@@ -923,6 +923,7 @@ internal class AndroidClassicRenderer {
         CharacterActivationType.OTHER -> "Otra"
     }
 
+
     private fun appendResourcesPages(
         doc: PDDocument,
         p: AndroidPdfRenderingPrimitives,
@@ -934,16 +935,21 @@ internal class AndroidClassicRenderer {
 
         var resourceOffset = 0
         var optionOffset = 0
+        var mixedOverviewRendered = false
 
         while (resourceOffset < resources.size || optionOffset < options.size) {
             val resourceRemaining = resources.size - resourceOffset
             val optionRemaining = options.size - optionOffset
+            val renderMixedOverview =
+                resourceRemaining > 0 &&
+                    optionRemaining > 0 &&
+                    !mixedOverviewRendered
             val page = addPage(doc)
 
             PDPageContentStream(doc, page).use { s ->
                 extendedHeader(s, p, plan.snapshot.aggregate.sheet.name, "RECURSOS Y OPCIONES")
 
-                if (resourceRemaining > 0 && optionRemaining > 0) {
+                if (renderMixedOverview) {
                     titledFrame(s, p, 24f, 112f, 564f, 316f, "RECURSOS")
                     resourceTableHeader(s, p, 36f, 148f)
                     val pageResources = resources
@@ -1001,6 +1007,10 @@ internal class AndroidClassicRenderer {
                 }
 
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / RECURSOS Y OPCIONES")
+            }
+
+            if (renderMixedOverview) {
+                mixedOverviewRendered = true
             }
         }
     }
@@ -1200,6 +1210,7 @@ internal class AndroidClassicRenderer {
         CharacterClassOptionKind.OTHER -> "Otro"
     }
 
+
     private fun appendInventoryPages(
         doc: PDDocument,
         p: AndroidPdfRenderingPrimitives,
@@ -1238,7 +1249,7 @@ internal class AndroidClassicRenderer {
                 .filter { !it.isDefault && it.standardCurrencyKindOrNull() == null }
                 .sortedBy { it.sortOrder }
                 .forEach { currency ->
-                    add("${currency.name}: ${currency.amount}")
+                    add("\${currency.name}: \${currency.amount}")
                 }
             val valuables = aggregate.successor.preferences.valuablesText
                 .split(';')
@@ -1259,6 +1270,7 @@ internal class AndroidClassicRenderer {
         var ordinaryOffset = 0
         var specialOffset = 0
         var noteOffset = 0
+        var mixedOverviewRendered = false
 
         while (
             ordinaryOffset < ordinaryRows.size ||
@@ -1273,52 +1285,14 @@ internal class AndroidClassicRenderer {
                 specialRemaining > 0,
                 noteRemaining > 0,
             ).count { it }
+            val renderMixedOverview = activeStreams > 1 && !mixedOverviewRendered
 
             val page = addPage(doc)
             PDPageContentStream(doc, page).use { s ->
                 extendedHeader(s, p, sheet.name, "INVENTARIO / EQUIPO")
 
                 when {
-                    activeStreams == 1 && ordinaryRemaining > 0 -> {
-                        titledFrame(s, p, 24f, 112f, 564f, 606f, "INVENTARIO - CONTINUACIÓN")
-                        inventoryHeader(s, p, 36f, 148f)
-                        val pageRows = ordinaryRows
-                            .drop(ordinaryOffset)
-                            .take(CLASSIC_INVENTORY_ONLY_ROWS_PER_PAGE)
-                        pageRows.forEachIndexed { index, row ->
-                            inventoryRow(s, p, 36f, 176f + index * 27f, row)
-                        }
-                        ordinaryOffset += pageRows.size
-                    }
-
-                    activeStreams == 1 && specialRemaining > 0 -> {
-                        titledFrame(s, p, 24f, 112f, 564f, 606f, "OBJETOS ESPECIALES / SINTONIZADOS")
-                        val pageSpecial = specialRows
-                            .drop(specialOffset)
-                            .take(CLASSIC_SPECIAL_ONLY_ITEMS_PER_PAGE)
-                        pageSpecial.forEachIndexed { index, item ->
-                            specialItem(
-                                s, p, 36f, 148f + index * 39f, 540f,
-                                item.name, item.attuned, item.note,
-                            )
-                        }
-                        specialOffset += pageSpecial.size
-                    }
-
-                    activeStreams == 1 && noteRemaining > 0 -> {
-                        titledFrame(s, p, 24f, 112f, 564f, 606f, "TESORO / VALORES")
-                        val pageNotes = noteEntries
-                            .drop(noteOffset)
-                            .take(CLASSIC_INVENTORY_NOTES_ONLY_PER_PAGE)
-                        ruledTextArea(
-                            s, p, 36f, 148f, 540f, 552f,
-                            pageNotes,
-                            8.3f,
-                        )
-                        noteOffset += pageNotes.size
-                    }
-
-                    ordinaryRemaining == 0 && specialRemaining > 0 && noteRemaining > 0 -> {
+                    renderMixedOverview && ordinaryRemaining == 0 -> {
                         titledFrame(s, p, 24f, 112f, 276f, 606f, "OBJETOS ESPECIALES / SINTONIZADOS")
                         val pageSpecial = specialRows
                             .drop(specialOffset)
@@ -1343,7 +1317,7 @@ internal class AndroidClassicRenderer {
                         noteOffset += pageNotes.size
                     }
 
-                    else -> {
+                    renderMixedOverview -> {
                         titledFrame(s, p, 24f, 112f, 564f, 402f, "INVENTARIO - CONTINUACIÓN")
                         inventoryHeader(s, p, 36f, 148f)
                         val pageRows = ordinaryRows
@@ -1357,24 +1331,100 @@ internal class AndroidClassicRenderer {
                         }
                         ordinaryOffset += pageRows.size
 
-                        titledFrame(s, p, 24f, 528f, 276f, 190f, "OBJETOS ESPECIALES / SINTONIZADOS")
+                        when {
+                            specialRemaining > 0 && noteRemaining > 0 -> {
+                                titledFrame(
+                                    s, p, 24f, 528f, 276f, 190f,
+                                    "OBJETOS ESPECIALES / SINTONIZADOS",
+                                )
+                                val pageSpecial = specialRows
+                                    .drop(specialOffset)
+                                    .take(CLASSIC_SPECIAL_ITEMS_PER_PAGE)
+                                pageSpecial.forEachIndexed { index, item ->
+                                    specialItem(
+                                        s, p, 36f, 558f + index * 39f, 252f,
+                                        item.name, item.attuned, item.note,
+                                    )
+                                }
+                                specialOffset += pageSpecial.size
+
+                                titledFrame(s, p, 312f, 528f, 276f, 190f, "TESORO / VALORES")
+                                val pageNotes = noteEntries
+                                    .drop(noteOffset)
+                                    .take(CLASSIC_INVENTORY_NOTES_PER_PAGE)
+                                ruledTextArea(
+                                    s, p, 324f, 564f, 252f, 140f,
+                                    pageNotes,
+                                    8.3f,
+                                )
+                                noteOffset += pageNotes.size
+                            }
+
+                            specialRemaining > 0 -> {
+                                titledFrame(
+                                    s, p, 24f, 528f, 564f, 190f,
+                                    "OBJETOS ESPECIALES / SINTONIZADOS",
+                                )
+                                val pageSpecial = specialRows
+                                    .drop(specialOffset)
+                                    .take(CLASSIC_SPECIAL_ITEMS_PER_PAGE)
+                                pageSpecial.forEachIndexed { index, item ->
+                                    specialItem(
+                                        s, p, 36f, 558f + index * 39f, 540f,
+                                        item.name, item.attuned, item.note,
+                                    )
+                                }
+                                specialOffset += pageSpecial.size
+                            }
+
+                            noteRemaining > 0 -> {
+                                titledFrame(s, p, 24f, 528f, 564f, 190f, "TESORO / VALORES")
+                                val pageNotes = noteEntries
+                                    .drop(noteOffset)
+                                    .take(CLASSIC_INVENTORY_NOTES_PER_PAGE)
+                                ruledTextArea(
+                                    s, p, 36f, 564f, 540f, 140f,
+                                    pageNotes,
+                                    8.3f,
+                                )
+                                noteOffset += pageNotes.size
+                            }
+                        }
+                    }
+
+                    ordinaryRemaining > 0 -> {
+                        titledFrame(s, p, 24f, 112f, 564f, 606f, "INVENTARIO - CONTINUACIÓN")
+                        inventoryHeader(s, p, 36f, 148f)
+                        val pageRows = ordinaryRows
+                            .drop(ordinaryOffset)
+                            .take(CLASSIC_INVENTORY_ONLY_ROWS_PER_PAGE)
+                        pageRows.forEachIndexed { index, row ->
+                            inventoryRow(s, p, 36f, 176f + index * 27f, row)
+                        }
+                        ordinaryOffset += pageRows.size
+                    }
+
+                    specialRemaining > 0 -> {
+                        titledFrame(s, p, 24f, 112f, 564f, 606f, "OBJETOS ESPECIALES / SINTONIZADOS")
                         val pageSpecial = specialRows
                             .drop(specialOffset)
-                            .take(CLASSIC_SPECIAL_ITEMS_PER_PAGE)
+                            .take(CLASSIC_SPECIAL_ONLY_ITEMS_PER_PAGE)
                         pageSpecial.forEachIndexed { index, item ->
                             specialItem(
-                                s, p, 36f, 558f + index * 39f, 252f,
+                                s, p, 36f, 148f + index * 39f, 540f,
                                 item.name, item.attuned, item.note,
                             )
                         }
                         specialOffset += pageSpecial.size
+                    }
 
-                        titledFrame(s, p, 312f, 528f, 276f, 190f, "TESORO / VALORES")
+                    else -> {
+                        titledFrame(s, p, 24f, 112f, 564f, 606f, "TESORO / VALORES")
                         val pageNotes = noteEntries
                             .drop(noteOffset)
-                            .take(CLASSIC_INVENTORY_NOTES_PER_PAGE)
+                            .take(CLASSIC_INVENTORY_NOTES_ONLY_PER_PAGE)
                         ruledTextArea(
-                            s, p, 324f, 564f, 252f, 140f,
+                            s, p, 36f, 148f, 540f, 552f,
                             pageNotes,
                             8.3f,
                         )
@@ -1383,6 +1433,10 @@ internal class AndroidClassicRenderer {
                 }
 
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / INVENTARIO Y EQUIPO")
+            }
+
+            if (renderMixedOverview) {
+                mixedOverviewRendered = true
             }
         }
         return 0
