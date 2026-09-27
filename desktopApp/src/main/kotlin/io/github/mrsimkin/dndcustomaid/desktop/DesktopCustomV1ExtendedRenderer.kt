@@ -3025,6 +3025,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val INVENTORY_ONLY_ROWS_PER_COLUMN = 29
         const val INVENTORY_ORDINARY_ONLY_CAPACITY = INVENTORY_ONLY_ROWS_PER_COLUMN * 4
         const val INVENTORY_SPECIAL_ONLY_CAPACITY = 29
+        const val INVENTORY_SPECIAL_NAME_TEXT_WIDTH = 109f
         const val INVENTORY_TREASURE_ONLY_CAPACITY = 29
         const val INVENTORY_ONLY_FIRST_RULE_TOP = 128.5f
         const val INVENTORY_ONLY_STEP = 20f
