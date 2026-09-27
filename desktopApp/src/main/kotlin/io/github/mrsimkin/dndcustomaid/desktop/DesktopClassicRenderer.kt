@@ -1616,32 +1616,65 @@ private fun appendSpellContinuationPages(
         val references = classicReferenceNoteLines(plan)
         if (entries.isEmpty() && references.isEmpty()) return
 
-        val pages = maxOf(
-            1,
-            pageCount(entries.size, CLASSIC_NOTES_ENTRIES_PER_PAGE),
-            pageCount(references.size, CLASSIC_REFERENCE_LINES_PER_PAGE),
-        )
-        repeat(pages) { pageIndex ->
+        var entryOffset = 0
+        var referenceOffset = 0
+
+        while (entryOffset < entries.size || referenceOffset < references.size) {
+            val entryRemaining = entries.size - entryOffset
+            val referenceRemaining = references.size - referenceOffset
             val page = addPage(doc)
+
             PDPageContentStream(doc, page).use { s ->
                 extendedHeader(s, p, sheet.name, "NOTAS")
 
-                titledFrame(s, p, 24f, 112f, 360f, 606f, "NOTAS DE CAMPAÑA")
-                ruledTextArea(
-                    s, p, 36f, 148f, 336f, 552f,
-                    entries.pageSlice(pageIndex, CLASSIC_NOTES_ENTRIES_PER_PAGE),
-                    8.7f,
-                )
+                if (entryRemaining > 0 && referenceRemaining > 0) {
+                    titledFrame(s, p, 24f, 112f, 360f, 606f, "NOTAS DE CAMPAÑA")
+                    val pageEntries = entries
+                        .drop(entryOffset)
+                        .take(CLASSIC_NOTES_ENTRIES_PER_PAGE)
+                    ruledTextArea(
+                        s, p, 36f, 148f, 336f, 552f,
+                        pageEntries,
+                        8.7f,
+                    )
+                    entryOffset += pageEntries.size
 
-                titledFrame(s, p, 398f, 112f, 190f, 292f, "CROQUIS / MAPA")
-                grid(s, 410f, 148f, 166f, 240f, 10, 14)
+                    titledFrame(s, p, 398f, 112f, 190f, 292f, "CROQUIS / MAPA")
+                    grid(s, 410f, 148f, 166f, 240f, 10, 14)
 
-                titledFrame(s, p, 398f, 418f, 190f, 300f, "REFERENCIAS Y RECORDATORIOS")
-                ruledTextArea(
-                    s, p, 410f, 454f, 166f, 246f,
-                    references.pageSlice(pageIndex, CLASSIC_REFERENCE_LINES_PER_PAGE),
-                    8.1f,
-                )
+                    titledFrame(s, p, 398f, 418f, 190f, 300f, "REFERENCIAS Y RECORDATORIOS")
+                    val pageReferences = references
+                        .drop(referenceOffset)
+                        .take(CLASSIC_REFERENCE_LINES_PER_PAGE)
+                    ruledTextArea(
+                        s, p, 410f, 454f, 166f, 246f,
+                        pageReferences,
+                        8.1f,
+                    )
+                    referenceOffset += pageReferences.size
+                } else if (entryRemaining > 0) {
+                    titledFrame(s, p, 24f, 112f, 564f, 606f, "NOTAS DE CAMPAÑA - CONTINUACIÓN")
+                    val pageEntries = entries
+                        .drop(entryOffset)
+                        .take(CLASSIC_NOTES_ENTRIES_PER_PAGE)
+                    ruledTextArea(
+                        s, p, 36f, 148f, 540f, 552f,
+                        pageEntries,
+                        8.7f,
+                    )
+                    entryOffset += pageEntries.size
+                } else {
+                    titledFrame(s, p, 24f, 112f, 564f, 606f, "REFERENCIAS Y RECORDATORIOS - CONTINUACIÓN")
+                    val pageReferences = references
+                        .drop(referenceOffset)
+                        .take(CLASSIC_REFERENCE_ONLY_LINES_PER_PAGE)
+                    ruledTextArea(
+                        s, p, 36f, 148f, 540f, 552f,
+                        pageReferences,
+                        8.1f,
+                    )
+                    referenceOffset += pageReferences.size
+                }
 
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / NOTAS")
             }
@@ -3584,6 +3617,7 @@ private fun ruledTextArea(
         const val CLASSIC_NOTES_CHARS_PER_LINE = 58
         const val CLASSIC_NOTES_LINES_PER_ENTRY = 2
         const val CLASSIC_REFERENCE_LINES_PER_PAGE = 12
+        const val CLASSIC_REFERENCE_ONLY_LINES_PER_PAGE = 27
         const val CLASSIC_REFERENCE_CHARS_PER_LINE = 32
 
         val INk = Color(42, 42, 42)
