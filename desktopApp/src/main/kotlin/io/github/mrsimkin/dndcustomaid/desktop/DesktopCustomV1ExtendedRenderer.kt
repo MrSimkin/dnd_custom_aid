@@ -2018,20 +2018,21 @@ internal class DesktopCustomV1ExtendedRenderer(
     }
 
     private fun appendNotesExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val lines = wrapForRulesByChars(notesText(plan), BASE_V1_NOTES_WRAP_CHARS)
-        val overflow = lines.drop(BASE_V1_NOTES_CAPACITY)
+        val overflow = noteFlowLines(plan)
+            .drop(BASE_V1_NARRATIVE_NOTE_CAPACITY + BASE_V1_NOTES_CAPACITY)
         if (overflow.isEmpty()) return
 
-        val pages = pageCount(overflow.size, NOTES_CONTINUATION_CAPACITY)
-        repeat(pages) { pageIndex ->
-            val page = PDPage(PDRectangle(W, H))
-            document.addPage(page)
-            renderNotesContinuationPage(
-                page = page,
-                lines = overflow.pageSlice(pageIndex, NOTES_CONTINUATION_CAPACITY),
-                pageIndex = pageIndex,
-            )
-        }
+        overflow
+            .chunked(NOTES_CONTINUATION_CAPACITY)
+            .forEachIndexed { pageIndex, lines ->
+                val page = PDPage(PDRectangle(W, H))
+                document.addPage(page)
+                renderNotesContinuationPage(
+                    page = page,
+                    lines = lines,
+                    pageIndex = pageIndex,
+                )
+            }
     }
 
     private fun renderNotesContinuationPage(
@@ -2042,33 +2043,133 @@ internal class DesktopCustomV1ExtendedRenderer(
         val prefix = "V1X NOTES P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            s.drawForm(resources.forms[4])
+            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            NOTES_RULES.forEach { y ->
+                drawRule(s, 25f, 267.5f, y, 0.45f)
+                drawRule(s, 311.669f, 583.795f, y, 0.45f)
+            }
         }
         appendLayer(page, "$prefix - CLEANUP") { }
-        appendLayer(page, "$prefix - LABELS") { }
+        appendLayer(page, "$prefix - LABELS") { s ->
+            centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Notas · Continuación", 18f)
+        }
         appendLayer(page, "$prefix - VALUES") { s ->
             lines.take(NOTES_COLUMN_CAPACITY).forEachIndexed { index, line ->
-                ruleText(
-                    s,
-                    resources.fira,
-                    Rule(25f, 267.5f, NOTES_RULES[index]),
-                    line,
-                    8.4f,
-                )
-            }
-            lines.drop(NOTES_COLUMN_CAPACITY)
-                .take(NOTES_COLUMN_CAPACITY)
-                .forEachIndexed { index, line ->
+                if (line.isNotEmpty()) {
                     ruleText(
                         s,
                         resources.fira,
-                        Rule(311.669f, 583.795f, NOTES_RULES[index]),
+                        Rule(25f, 267.5f, NOTES_RULES[index]),
                         line,
                         8.4f,
                     )
                 }
+            }
+            lines.drop(NOTES_COLUMN_CAPACITY)
+                .take(NOTES_COLUMN_CAPACITY)
+                .forEachIndexed { index, line ->
+                    if (line.isNotEmpty()) {
+                        ruleText(
+                            s,
+                            resources.fira,
+                            Rule(311.669f, 583.795f, NOTES_RULES[index]),
+                            line,
+                            8.4f,
+                        )
+                    }
+                }
         }
         appendLayer(page, "$prefix - MARKERS") { }
+    }
+
+    private fun noteParagraphs(plan: PcSheetPdfRenderPlan): List<String> {
+        val sheet = plan.snapshot.aggregate.sheet
+        return buildList {
+            addAll(sheet.pdfCampaignNoteParagraphs())
+            sheet.background.summary.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Resumen de trasfondo: $it")
+            }
+            sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
+                add("Fe / religión: $it")
+            }
+            sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
+                classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
+                    add("Subclase: " + classLevel.name + " - " + subclass)
+                }
+            }
+        }
+    }
+
+    private fun noteFlowLines(plan: PcSheetPdfRenderPlan): List<String> {
+        val output = mutableListOf<String>()
+        var segmentIndex = 0
+        var rowInSegment = 0
+
+        fun capacity(): Int =
+            if (segmentIndex == 0) BASE_V1_NARRATIVE_NOTE_CAPACITY else NOTES_COLUMN_CAPACITY
+
+        fun advanceSegment() {
+            while (rowInSegment < capacity()) {
+                output += ""
+                rowInSegment += 1
+            }
+            segmentIndex += 1
+            rowInSegment = 0
+        }
+
+        noteParagraphs(plan).forEach { paragraph ->
+            val wrapped = wrapForRulesByChars(paragraph, V1_NARRATIVE_NOTE_APPROX_CHARS)
+            if (wrapped.isEmpty()) return@forEach
+            val label = paragraph.substringBefore(":", "").trim().takeIf { it.isNotEmpty() }
+            val separatorRows = if (rowInSegment == 0) 0 else 1
+            val remaining = capacity() - rowInSegment
+
+            if (wrapped.size <= capacity() && wrapped.size + separatorRows > remaining) {
+                advanceSegment()
+            } else if (rowInSegment > 0) {
+                output += ""
+                rowInSegment += 1
+                if (rowInSegment >= capacity()) {
+                    segmentIndex += 1
+                    rowInSegment = 0
+                }
+            }
+
+            var offset = 0
+            var continuation = false
+            while (offset < wrapped.size) {
+                if (rowInSegment >= capacity()) {
+                    segmentIndex += 1
+                    rowInSegment = 0
+                    continuation = true
+                }
+                if (rowInSegment == 0 && continuation && label != null) {
+                    output += "$label (continuación)"
+                    rowInSegment += 1
+                }
+                val available = capacity() - rowInSegment
+                if (available <= 0) {
+                    segmentIndex += 1
+                    rowInSegment = 0
+                    continuation = true
+                    continue
+                }
+                val take = minOf(available, wrapped.size - offset)
+                output.addAll(wrapped.subList(offset, offset + take))
+                rowInSegment += take
+                offset += take
+                if (offset < wrapped.size) {
+                    if (rowInSegment < capacity()) {
+                        advanceSegment()
+                    } else {
+                        segmentIndex += 1
+                        rowInSegment = 0
+                    }
+                    continuation = true
+                }
+            }
+        }
+        return output
     }
 
     private fun narrativeNotesText(plan: PcSheetPdfRenderPlan): String {
