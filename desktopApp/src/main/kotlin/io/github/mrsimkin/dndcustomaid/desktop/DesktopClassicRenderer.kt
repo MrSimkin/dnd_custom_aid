@@ -321,19 +321,47 @@ internal class DesktopClassicRenderer {
         val leftEntries = traitEntries.filter {
             it.type == CharacterTraitType.CLASS || it.type == CharacterTraitType.FEAT
         }
-        val rightTraitEntries = traitEntries.filter {
+        val rightEntries = traitEntries.filter {
             it.type != CharacterTraitType.CLASS && it.type != CharacterTraitType.FEAT
         }
-
-        val rightEntries = rightTraitEntries
         if (leftEntries.isEmpty() && rightEntries.isEmpty()) return
 
-        val pages = maxOf(
-            1,
-            pageCount(leftEntries.size, CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE),
-            pageCount(rightEntries.size, CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE),
-        )
-        repeat(pages) { pageIndex ->
+        var leftOffset = 0
+        var rightOffset = 0
+        while (leftOffset < leftEntries.size || rightOffset < rightEntries.size) {
+            val leftRemaining = leftEntries.size - leftOffset
+            val rightRemaining = rightEntries.size - rightOffset
+
+            val leftPage: List<ClassicFeature>
+            val rightPage: List<ClassicFeature>
+            val leftTitle: String
+            val rightTitle: String
+
+            if (leftRemaining > 0 && rightRemaining > 0) {
+                leftPage = leftEntries.drop(leftOffset).take(CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE)
+                rightPage = rightEntries.drop(rightOffset).take(CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE)
+                leftOffset += leftPage.size
+                rightOffset += rightPage.size
+                leftTitle = "RASGOS Y CARACTERÍSTICAS - CONTINUACIÓN"
+                rightTitle = "RASGOS DE RAZA / TRASFONDO / OTROS"
+            } else if (leftRemaining > 0) {
+                leftPage = leftEntries.drop(leftOffset).take(CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE)
+                rightPage = leftEntries
+                    .drop(leftOffset + leftPage.size)
+                    .take(CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE)
+                leftOffset += leftPage.size + rightPage.size
+                leftTitle = "RASGOS / DOTES - CONTINUACIÓN"
+                rightTitle = "RASGOS / DOTES - CONTINUACIÓN"
+            } else {
+                leftPage = rightEntries.drop(rightOffset).take(CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE)
+                rightPage = rightEntries
+                    .drop(rightOffset + leftPage.size)
+                    .take(CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE)
+                rightOffset += leftPage.size + rightPage.size
+                leftTitle = "RAZA / TRASFONDO / OTROS - CONTINUACIÓN"
+                rightTitle = "RAZA / TRASFONDO / OTROS - CONTINUACIÓN"
+            }
+
             val page = addPage(doc)
             PDPageContentStream(doc, page).use { s ->
                 extendedHeader(
@@ -343,7 +371,7 @@ internal class DesktopClassicRenderer {
 
                 titledFrame(
                     s, p, 24f, 112f, 276f, 606f,
-                    "RASGOS Y CARACTERÍSTICAS - CONTINUACIÓN",
+                    leftTitle,
                 )
                 continuousFeatureEntries(
                     s = s,
@@ -352,14 +380,12 @@ internal class DesktopClassicRenderer {
                     top = 148f,
                     width = 252f,
                     height = 552f,
-                    entries = leftEntries
-                        .drop(pageIndex * CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE)
-                        .take(CLASSIC_TRAITS_LEFT_ENTRIES_PER_PAGE),
+                    entries = leftPage,
                 )
 
                 titledFrame(
                     s, p, 312f, 112f, 276f, 606f,
-                    "RASGOS DE RAZA / TRASFONDO / OTROS",
+                    rightTitle,
                 )
                 continuousFeatureEntries(
                     s = s,
@@ -368,9 +394,7 @@ internal class DesktopClassicRenderer {
                     top = 148f,
                     width = 252f,
                     height = 552f,
-                    entries = rightEntries
-                        .drop(pageIndex * CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE)
-                        .take(CLASSIC_TRAITS_RIGHT_ENTRIES_PER_PAGE),
+                    entries = rightPage,
                 )
 
                 footer(
