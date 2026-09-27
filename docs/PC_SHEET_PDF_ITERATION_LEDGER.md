@@ -281,3 +281,44 @@ Gate result:
 Approval checkpoint:
 
 `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`
+
+### VR-5 — Mara preqa.8 cross-family adaptive continuation repair
+
+- Repair date: 2026-09-27.
+- Stress fixture: `qa/pc-sheet/fixtures/03_mara_siete_umbrales_custom_extended.json`.
+- Validated implementation head: `ce695c40782e1847ed70a2256885b5b07113feae`.
+- Final code/regression workflow: Push Scaffold #4088 / `36354213574` — **SUCCESS**.
+- Final populated-proof artifact: `10942589698`.
+- Backend: PASS.
+- Hosted database: PASS.
+- Kotlin build/test: PASS.
+- Android renderer sync/delivery guards: PASS.
+
+Repair result:
+
+- continuation packing is content-adaptive across Fantasy Sheet, Custom v1 and both Custom v2 presentations;
+- Mara stress counts are now **29 / 18 / 16 / 15** pages respectively and are protected as fixture regression ceilings;
+- V1 Notes, Resources and Inventory/Special continuations no longer open avoidable scaffold pages;
+- Fantasy Traits, Inventory and Notes/References reclaim physical continuation space while preserving record boundaries;
+- Custom v2 Traits continuation no longer repeats exhausted multi-panel scaffolds and no longer splits a trait merely at a raw column-line boundary when that trait fits the next column;
+- Custom v2 per-Ability attribute ornaments now use measured light/dark source-sheet crops instead of one white source fragment for every row;
+- a visually bad intermediate dark crop that leaked the source label `Constitución` was rejected during Worker preflight despite green CI, then corrected before this ledger entry;
+- runtime QA now protects stale Custom Statistics underlay text, Mara semantic identities, cross-family page ceilings, Fantasy single-page inventory identity, and the alternating Custom-v2 light/dark ornament source tones.
+
+Worker visual preflight:
+
+- V1 final continuation pages were reviewed after the reduction to 18 pages;
+- Fantasy final Inventory and Notes/References pages were reviewed after the reduction to 29 pages;
+- Custom v2 Traits, Combat, Inventory/Special, Notes and Custom Statistics pages were re-inspected;
+- the final V2-Habilidad stat page shows light/dark/light/dark source ornament surroundings with no `Constitución` leakage.
+
+Contract note:
+
+- the old Traits ordering observation remains a contract question (category-grouped visual order vs. global fixture order), not demonstrated semantic loss; this repair does not silently redefine that owner-facing reading rule.
+
+Status: **IMPLEMENTATION + FINAL REGRESSION + WORKER VISUAL PREFLIGHT PASS / OWNER RE-QA PENDING**.
+
+Detailed checkpoint:
+
+`docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md`
+
