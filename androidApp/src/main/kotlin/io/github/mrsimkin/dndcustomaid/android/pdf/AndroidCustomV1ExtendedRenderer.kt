@@ -2157,7 +2157,7 @@ internal class AndroidCustomV1ExtendedRenderer(
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             drawSourceLogo(s)
-            NOTES_RULES.forEach { y ->
+            NOTES_CONTINUATION_RULES.forEach { y ->
                 drawRule(s, 25f, 267.5f, y)
                 drawRule(s, 311.669f, 583.795f, y)
             }
@@ -2167,25 +2167,25 @@ internal class AndroidCustomV1ExtendedRenderer(
             centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Notas · Continuación", 18f)
         }
         appendLayer(page, "$prefix - VALUES") { s ->
-            lines.take(NOTES_COLUMN_CAPACITY).forEachIndexed { index, line ->
+            lines.take(NOTES_CONTINUATION_ROWS_PER_COLUMN).forEachIndexed { index, line ->
                 if (line.isNotEmpty()) {
                     ruleText(
                         s,
                         resources.fira,
-                        Rule(25f, 267.5f, NOTES_RULES[index]),
+                        Rule(25f, 267.5f, NOTES_CONTINUATION_RULES[index]),
                         line,
                         8.4f,
                     )
                 }
             }
-            lines.drop(NOTES_COLUMN_CAPACITY)
-                .take(NOTES_COLUMN_CAPACITY)
+            lines.drop(NOTES_CONTINUATION_ROWS_PER_COLUMN)
+                .take(NOTES_CONTINUATION_ROWS_PER_COLUMN)
                 .forEachIndexed { index, line ->
                     if (line.isNotEmpty()) {
                         ruleText(
                             s,
                             resources.fira,
-                            Rule(311.669f, 583.795f, NOTES_RULES[index]),
+                            Rule(311.669f, 583.795f, NOTES_CONTINUATION_RULES[index]),
                             line,
                             8.4f,
                         )
@@ -2218,8 +2218,11 @@ internal class AndroidCustomV1ExtendedRenderer(
         var segmentIndex = 0
         var rowInSegment = 0
 
-        fun capacity(): Int =
-            if (segmentIndex == 0) BASE_V1_NARRATIVE_NOTE_CAPACITY else NOTES_COLUMN_CAPACITY
+        fun capacity(): Int = when (segmentIndex) {
+            0 -> BASE_V1_NARRATIVE_NOTE_CAPACITY
+            1, 2 -> NOTES_COLUMN_CAPACITY
+            else -> NOTES_CONTINUATION_ROWS_PER_COLUMN
+        }
 
         fun advanceSegment() {
             while (rowInSegment < capacity()) {
@@ -3329,11 +3332,14 @@ internal class AndroidCustomV1ExtendedRenderer(
         const val BASE_V1_NOTES_WRAP_CHARS = 68
         const val NOTES_COLUMN_CAPACITY = 17
         const val BASE_V1_NOTES_CAPACITY = NOTES_COLUMN_CAPACITY * 2
-        const val NOTES_CONTINUATION_CAPACITY = NOTES_COLUMN_CAPACITY * 2
+        const val NOTES_CONTINUATION_ROWS_PER_COLUMN = 29
+        const val NOTES_CONTINUATION_CAPACITY = NOTES_CONTINUATION_ROWS_PER_COLUMN * 2
         val NOTES_RULES = listOf(
             109.5f, 129.5f, 149.5f, 169f, 189f, 209f, 229f, 248.5f, 268.5f,
             288.5f, 308f, 328f, 348f, 367.5f, 387.5f, 407.5f, 427f,
         )
+        val NOTES_CONTINUATION_RULES = (0 until NOTES_CONTINUATION_ROWS_PER_COLUMN)
+            .map { INVENTORY_ONLY_FIRST_RULE_TOP + it * INVENTORY_ONLY_STEP }
 
         const val BASE_V1_COMBAT_CAPACITY = 5
         const val COMBAT_ROWS_PER_PAGE = 22
