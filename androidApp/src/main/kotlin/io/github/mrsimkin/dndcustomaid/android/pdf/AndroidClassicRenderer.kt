@@ -929,45 +929,80 @@ internal class AndroidClassicRenderer {
 
     private fun appendResourcesPages(
         doc: PDDocument,
-        p: AndroidPdfRenderingPrimitives,
+        p: DesktopPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
     ) {
         val resources = classicResourceRows(plan)
         val options = classicOptionRows(plan)
         if (resources.isEmpty() && options.isEmpty()) return
 
-        val pages = maxOf(
-            1,
-            pageCount(resources.size, CLASSIC_RESOURCE_ROWS_PER_PAGE),
-            pageCount(options.size, CLASSIC_OPTION_ROWS_PER_PAGE),
-        )
-        repeat(pages) { pageIndex ->
+        var resourceOffset = 0
+        var optionOffset = 0
+
+        while (resourceOffset < resources.size || optionOffset < options.size) {
+            val resourceRemaining = resources.size - resourceOffset
+            val optionRemaining = options.size - optionOffset
             val page = addPage(doc)
+
             PDPageContentStream(doc, page).use { s ->
                 extendedHeader(s, p, plan.snapshot.aggregate.sheet.name, "RECURSOS Y OPCIONES")
 
-                titledFrame(s, p, 24f, 112f, 564f, 316f, "RECURSOS")
-                resourceTableHeader(s, p, 36f, 148f)
-                val pageResources = resources
-                    .drop(pageIndex * CLASSIC_RESOURCE_ROWS_PER_PAGE)
-                    .take(CLASSIC_RESOURCE_ROWS_PER_PAGE)
-                repeat(CLASSIC_RESOURCE_ROWS_PER_PAGE) { index ->
-                    val top = 176f + index * 48f
-                    pageResources.getOrNull(index)?.let { row ->
-                        resourceTableRow(s, p, 36f, top, row)
-                    } ?: hairline(s, 36f, top + 42f, 576f, top + 42f)
+                if (resourceRemaining > 0 && optionRemaining > 0) {
+                    titledFrame(s, p, 24f, 112f, 564f, 316f, "RECURSOS")
+                    resourceTableHeader(s, p, 36f, 148f)
+                    val pageResources = resources
+                        .drop(resourceOffset)
+                        .take(CLASSIC_RESOURCE_ROWS_PER_PAGE)
+                    repeat(CLASSIC_RESOURCE_ROWS_PER_PAGE) { index ->
+                        val top = 176f + index * 48f
+                        pageResources.getOrNull(index)?.let { row ->
+                            resourceTableRow(s, p, 36f, top, row)
+                        } ?: hairline(s, 36f, top + 42f, 576f, top + 42f)
+                    }
+
+                    titledFrame(s, p, 24f, 442f, 564f, 276f, "OPCIONES Y ESTADOS RELEVANTES")
+                    val pageOptions = options
+                        .drop(optionOffset)
+                        .take(CLASSIC_OPTION_ROWS_PER_PAGE)
+                    pageOptions.forEachIndexed { index, row ->
+                        optionEntry(
+                            s, p, 36f, 478f + index * 68f, 540f,
+                            row.name, row.source, row.description,
+                        )
+                    }
+                    ruledLines(s, 36f, 682f, 540f, 24f, 1)
+
+                    resourceOffset += pageResources.size
+                    optionOffset += pageOptions.size
+                } else if (resourceRemaining > 0) {
+                    titledFrame(s, p, 24f, 112f, 564f, 606f, "RECURSOS - CONTINUACIÓN")
+                    resourceTableHeader(s, p, 36f, 148f)
+                    val pageResources = resources
+                        .drop(resourceOffset)
+                        .take(CLASSIC_RESOURCE_ONLY_ROWS_PER_PAGE)
+                    pageResources.forEachIndexed { index, row ->
+                        resourceTableRow(s, p, 36f, 176f + index * 48f, row)
+                    }
+                    repeat((CLASSIC_RESOURCE_ONLY_ROWS_PER_PAGE - pageResources.size).coerceAtLeast(0)) { index ->
+                        val top = 176f + (pageResources.size + index) * 48f
+                        if (top + 42f <= 700f) {
+                            hairline(s, 36f, top + 42f, 576f, top + 42f)
+                        }
+                    }
+                    resourceOffset += pageResources.size
+                } else {
+                    titledFrame(s, p, 24f, 112f, 564f, 606f, "OPCIONES Y ESTADOS - CONTINUACIÓN")
+                    val pageOptions = options
+                        .drop(optionOffset)
+                        .take(CLASSIC_OPTION_ONLY_ROWS_PER_PAGE)
+                    pageOptions.forEachIndexed { index, row ->
+                        optionEntry(
+                            s, p, 36f, 148f + index * 68f, 540f,
+                            row.name, row.source, row.description,
+                        )
+                    }
+                    optionOffset += pageOptions.size
                 }
-                titledFrame(s, p, 24f, 442f, 564f, 276f, "OPCIONES Y ESTADOS RELEVANTES")
-                val pageOptions = options
-                    .drop(pageIndex * CLASSIC_OPTION_ROWS_PER_PAGE)
-                    .take(CLASSIC_OPTION_ROWS_PER_PAGE)
-                pageOptions.forEachIndexed { index, row ->
-                    optionEntry(
-                        s, p, 36f, 478f + index * 68f, 540f,
-                        row.name, row.source, row.description,
-                    )
-                }
-                ruledLines(s, 36f, 682f, 540f, 24f, 1)
 
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / RECURSOS Y OPCIONES")
             }
@@ -3428,6 +3463,8 @@ private fun ruledTextArea(
         const val CLASSIC_RESOURCE_NOTE_CHARS = 30
         const val CLASSIC_RESOURCE_NOTE_LINES = 2
         const val CLASSIC_OPTION_ROWS_PER_PAGE = 3
+        const val CLASSIC_RESOURCE_ONLY_ROWS_PER_PAGE = 11
+        const val CLASSIC_OPTION_ONLY_ROWS_PER_PAGE = 8
         const val CLASSIC_OPTION_NAME_CHARS = 28
         const val CLASSIC_OPTION_SOURCE_CHARS = 18
         const val CLASSIC_OPTION_DETAIL_CHARS = 48
