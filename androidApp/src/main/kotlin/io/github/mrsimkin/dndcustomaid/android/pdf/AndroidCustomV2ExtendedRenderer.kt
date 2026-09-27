@@ -1572,26 +1572,78 @@ internal class AndroidCustomV2ExtendedRenderer(
         val sheet = aggregate.sheet
         val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
-        val ordinary = ordered.filterNot { it.special }
-        val ordinaryLines = ordinary.flatMapIndexed { index, item ->
+
+        val ordinaryRecords = ordered.filterNot { it.special }.mapIndexedNotNull { index, item ->
             val usage = usageByItem[item.id]
-            val needsFullContinuation =
+            val needsContinuation =
                 index >= BASE_V2_EQUIPMENT_CAPACITY ||
                     wrapByWidth(
                         resources.condensed,
                         inventoryBaseLabel(item),
                         7.0f,
                         V2_BASE_EQUIPMENT_TEXT_WIDTH,
-                    ).size > 1
-            if (needsFullContinuation) {
-                inventoryContinuationLines(item, usage)
+                    ).size > 1 ||
+                    usageMeaningful(usage)
+            if (!needsContinuation) {
+                null
             } else {
-                emptyList()
+                val lines = mutableListOf<InventoryFlowLine>()
+                wrapByWidth(
+                    resources.condensed,
+                    item.pdfCompactEquipmentLabel(),
+                    8.4f,
+                    INVENTORY_FLOW_TEXT_WIDTH,
+                ).forEachIndexed { lineIndex, line ->
+                    lines += InventoryFlowLine(
+                        text = line,
+                        style = if (lineIndex == 0) InventoryFlowStyle.TITLE else InventoryFlowStyle.BODY,
+                    )
+                }
+                val status = buildList {
+                    if (item.equipped) add("Equipado")
+                    addAll(inventoryUsageLabels(usage))
+                }.joinToString(" · ")
+                if (status.isNotEmpty()) {
+                    wrapByWidth(
+                        resources.fira,
+                        "Estado: $status",
+                        8.0f,
+                        INVENTORY_FLOW_TEXT_WIDTH,
+                    ).forEach { lines += InventoryFlowLine(it, InventoryFlowStyle.BODY) }
+                }
+                InventoryFlowRecord(
+                    continuationLabel = item.name,
+                    lines = lines,
+                )
             }
         }
 
-        val special = ordered.filter { it.special }
-        val specialContinuation = special.mapIndexedNotNull { index, item ->
+        val nativeV2Kinds = setOf(
+            StandardCurrencyKind.PLATINUM,
+            StandardCurrencyKind.GOLD,
+            StandardCurrencyKind.SILVER,
+            StandardCurrencyKind.COPPER,
+        )
+        val treasureEntries = buildList {
+            sheet.currencies
+                .filter { currency ->
+                    val kind = currency.standardCurrencyKindOrNull()
+                    (kind != null && kind !in nativeV2Kinds) ||
+                        (!currency.isDefault && kind == null)
+                }
+                .sortedBy { it.sortOrder }
+                .drop(BASE_V2_OTHER_CURRENCY_CAPACITY)
+                .forEach { currency -> add(currency.name + ": " + currency.amount) }
+
+            addAll(
+                aggregate.successor.preferences.valuablesText
+                    .split(Regex("[;\\n]+"))
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() },
+            )
+        }
+
+        val specialRecords = ordered.filter { it.special }.mapIndexedNotNull { index, item ->
             val usage = usageByItem[item.id]
             val baseDetail = buildList {
                 if (item.quantity != 1) add("Cant. " + item.quantity)
@@ -1605,77 +1657,99 @@ internal class AndroidCustomV2ExtendedRenderer(
                     textWidth(resources.fira, baseDetail, 8.5f) > V2_BASE_SPECIAL_DETAIL_WIDTH
             val baseNameOverflows =
                 textWidth(resources.fira, item.name, 8.5f) > V2_BASE_SPECIAL_NAME_WIDTH
+            val locationIsCustom = specialLocationRow(item.location) == null && !item.location.isNullOrBlank()
             val locationOverflows = item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
                 textWidth(resources.fira, it, 7.5f) > V2_BASE_SPECIAL_LOCATION_WIDTH
             } ?: false
-            item.takeIf {
+            val needsContinuation =
                 index >= BASE_V2_SPECIAL_CAPACITY ||
                     usageMeaningful(usage) ||
                     baseNameOverflows ||
                     baseDetailOverflows ||
-                    locationOverflows
-            }
-        }
+                    locationOverflows ||
+                    locationIsCustom
 
-        val specialDetailLines = specialContinuation.flatMap(::inventoryDetailContinuationLines)
-        val equipmentContinuationLines = ordinaryLines + specialDetailLines
-
-        val nativeV2Kinds = setOf(
-            StandardCurrencyKind.PLATINUM,
-            StandardCurrencyKind.GOLD,
-            StandardCurrencyKind.SILVER,
-            StandardCurrencyKind.COPPER,
-        )
-        val nonNativeCurrencies = sheet.currencies
-            .filter { currency ->
-                val kind = currency.standardCurrencyKindOrNull()
-                (kind != null && kind !in nativeV2Kinds) ||
-                    (!currency.isDefault && kind == null)
-            }
-            .sortedBy { it.sortOrder }
-
-        val treasureLines = buildList {
-            // The first adjacent OTROS rows are already consumed on the base page.
-            nonNativeCurrencies
-                .drop(BASE_V2_OTHER_CURRENCY_CAPACITY)
-                .forEach { currency ->
-                    add(currency.name + ": " + currency.amount)
+            if (!needsContinuation) {
+                null
+            } else {
+                val heading = buildList {
+                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    add(inventoryContinuationLabel(item))
+                }.joinToString(" · ")
+                val lines = mutableListOf<InventoryFlowLine>()
+                wrapByWidth(
+                    resources.condensed,
+                    heading,
+                    8.5f,
+                    INVENTORY_FLOW_TEXT_WIDTH,
+                ).forEachIndexed { lineIndex, line ->
+                    lines += InventoryFlowLine(
+                        text = line,
+                        style = if (lineIndex == 0) InventoryFlowStyle.TITLE else InventoryFlowStyle.BODY,
+                    )
                 }
-            addAll(
-                plan.snapshot.aggregate.successor.preferences.valuablesText
-                    .split(Regex("[;\\n]+"))
-                    .map { it.trim() }
-                    .filter { it.isNotEmpty() },
-            )
-        }.flatMap { value ->
-            wrapByWidth(resources.fira, value, 8.0f, V2_TREASURE_COLUMN_WIDTH)
+                val detail = buildList {
+                    if (item.quantity != 1) add("Cant. " + item.quantity)
+                    item.weightLb?.let { add(formatInventoryWeight(it)) }
+                    if (item.equipped) add("Equipado")
+                    if (item.attuned) add("Sintonizado")
+                    addAll(inventoryUsageLabels(usage))
+                    item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                }.distinct().joinToString(" · ")
+                wrapByWidth(
+                    resources.fira,
+                    detail,
+                    8.0f,
+                    INVENTORY_FLOW_TEXT_WIDTH,
+                ).forEach { lines += InventoryFlowLine(it, InventoryFlowStyle.BODY) }
+                InventoryFlowRecord(
+                    continuationLabel = item.name,
+                    lines = lines,
+                )
+            }
         }
 
-        if (equipmentContinuationLines.isEmpty() && specialContinuation.isEmpty() && treasureLines.isEmpty()) return
+        val records = buildList {
+            ordinaryRecords.forEachIndexed { index, record ->
+                add(
+                    if (index == 0) record.withSection("EQUIPO")
+                    else record,
+                )
+            }
+            treasureEntries.forEachIndexed { index, value ->
+                val lines = wrapByWidth(
+                    resources.fira,
+                    value,
+                    8.2f,
+                    INVENTORY_FLOW_TEXT_WIDTH,
+                ).mapIndexed { lineIndex, line ->
+                    InventoryFlowLine(
+                        line,
+                        if (lineIndex == 0) InventoryFlowStyle.TITLE else InventoryFlowStyle.BODY,
+                    )
+                }
+                add(
+                    InventoryFlowRecord(value.substringBefore(":").trim(), lines)
+                        .let { if (index == 0) it.withSection("TESORO / MONEDAS") else it },
+                )
+            }
+            specialRecords.forEachIndexed { index, record ->
+                add(
+                    if (index == 0) record.withSection("EQUIPO ESPECIAL")
+                    else record,
+                )
+            }
+        }
 
-        val ordinaryCapacity =
-            if (treasureLines.isEmpty()) INVENTORY_CONTINUATION_CAPACITY
-            else INVENTORY_EQUIPMENT_WITH_TREASURE_CAPACITY
-        val pages = maxOf(
-            pageCount(equipmentContinuationLines.size, ordinaryCapacity),
-            pageCount(treasureLines.size, INVENTORY_TREASURE_CAPACITY),
-            pageCount(specialContinuation.size, INVENTORY_SPECIAL_CAPACITY),
-        )
-        repeat(pages) { pageIndex ->
+        if (records.isEmpty()) return
+        val flow = packInventoryFlow(records)
+        flow.chunked(INVENTORY_FLOW_PAGE_CAPACITY).forEachIndexed { pageIndex, lines ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderInventory(
                 page = page,
-                ordinary = equipmentContinuationLines
-                    .drop(pageIndex * ordinaryCapacity)
-                    .take(ordinaryCapacity),
-                treasure = treasureLines
-                    .drop(pageIndex * INVENTORY_TREASURE_CAPACITY)
-                    .take(INVENTORY_TREASURE_CAPACITY),
-                special = specialContinuation
-                    .drop(pageIndex * INVENTORY_SPECIAL_CAPACITY)
-                    .take(INVENTORY_SPECIAL_CAPACITY),
-                usageByItem = usageByItem,
+                lines = lines,
                 pageIndex = pageIndex,
             )
         }
@@ -1683,118 +1757,69 @@ internal class AndroidCustomV2ExtendedRenderer(
 
     private fun renderInventory(
         page: PDPage,
-        ordinary: List<String>,
-        treasure: List<String>,
-        special: List<CharacterInventoryItem>,
-        usageByItem: Map<kotlin.uuid.Uuid, CharacterInventoryUsage>,
+        lines: List<InventoryFlowLine>,
         pageIndex: Int,
     ) {
-        // PDFBox OCG names are document-global, not page-local. Keep the first-page names exactly
-        // compatible with the existing production proof/tests, and page-scope subsequent inventory
-        // continuation layers so legitimate multi-page overflow cannot collide.
         val prefix = if (pageIndex == 0) "V2X INVENTORY" else "V2X INVENTORY P${pageIndex + 1}"
-
-        val positionedSpecial = positionedSpecialItems(special, INVENTORY_SPECIAL_CAPACITY)
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             pageHeaderStructure(s)
-            listOf(14f, 307f).forEach { blockX ->
-                bandedRows(s, blockX, blockX + 277f, 139f, 19, 17f, 0)
-                verticalRule(s, blockX + 139f, 122f, 462f, 0.45f)
-            }
-            drawRule(s, 14f, 598f, 480f, 0.8f)
-
-            bandedRows(s, 14f, 598f, 548f, 12, 17f, 0)
-            listOf(30f, 99f, 303f).forEach { x -> verticalRule(s, x, 512f, 752f, 0.45f) }
+            fill(s, 14f, 96f, 584f, 24f, Color.WHITE)
+            bandedRows(
+                s,
+                14f,
+                291f,
+                INVENTORY_FLOW_FIRST_RULE_TOP,
+                INVENTORY_FLOW_ROWS_PER_COLUMN,
+                INVENTORY_FLOW_ROW_STEP,
+                0,
+            )
+            bandedRows(
+                s,
+                307f,
+                598f,
+                INVENTORY_FLOW_FIRST_RULE_TOP,
+                INVENTORY_FLOW_ROWS_PER_COLUMN,
+                INVENTORY_FLOW_ROW_STEP,
+                1,
+            )
         }
         appendLayer(page, "$prefix - CLEANUP") { }
         appendLayer(page, "$prefix - LABELS") { s ->
-            pageTitle(s, "INVENTARIO / EQUIPO")
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 99f, 277f, 22f), "EQUIPO", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredFixedScale(
-                s,
-                resources.corbelBold,
-                TopRect(307f, 99f, 291f, 22f),
-                if (treasure.isEmpty()) "EQUIPO" else "TESORO / MONEDAS",
-                12.12f,
-                SOURCE_CORBEL_HEADING_SCALE,
-            )
-
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 489f, 584f, 22f), "EQUIPO ESPECIAL", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            tableLabel(s, 30f, 514f, 69f, "UBICACIÓN")
-            tableLabel(s, 99f, 514f, 204f, "NOMBRE")
-            tableLabel(s, 303f, 514f, 295f, "DESCRIPCIÓN / ESTADO")
-            SPECIAL_LOCATION_LABELS_DISPLAY.forEachIndexed { row, label ->
-                textAboveRule(s, resources.fira, Rule(34f, 95f, 548f + row * 17f), label, 7.4f, 6.6f, 2.2f)
-            }
+            pageTitle(s, "INVENTARIO / EQUIPO · CONTINUACIÓN")
         }
         appendLayer(page, "$prefix - VALUES") { s ->
-            ordinary.forEachIndexed { index, line ->
-                // When treasure exists, preserve the right block for its own semantic domain.
-                val block = index / INVENTORY_BLOCK_CAPACITY
-                val withinBlock = index % INVENTORY_BLOCK_CAPACITY
-                val column = withinBlock / INVENTORY_ROWS_PER_COLUMN
-                val row = withinBlock % INVENTORY_ROWS_PER_COLUMN
-                val blockX = if (block == 0) 14f else 307f
-                val x1 = blockX + if (column == 0) 4f else 143f
-                val x2 = blockX + if (column == 0) 135f else 273f
-                if (line.contains("— Nota:") || line.contains("— Estado:") ||
-                    line.startsWith("Nota:") || line.startsWith("Estado:")
-                ) {
-                    textAboveRule(s, resources.condensed, Rule(x1, x2, 139f + row * 17f), line, 8.0f, 6.6f, 2.3f)
-                } else {
-                    textAboveRuleScaled(
-                        s,
-                        resources.condensed,
-                        Rule(x1, x2, 139f + row * 17f),
+            fun renderLine(rule: Rule, line: InventoryFlowLine) {
+                when (line.style) {
+                    InventoryFlowStyle.SECTION ->
+                        textAboveRule(s, resources.firaSemibold, rule, line.text, 9.4f, 7.8f, 2.3f)
+                    InventoryFlowStyle.TITLE ->
+                        textAboveRule(s, resources.condensed, rule, line.text, 8.7f, 7.0f, 2.3f)
+                    InventoryFlowStyle.BODY ->
+                        textAboveRule(s, resources.fira, rule, line.text, 8.0f, 6.8f, 2.3f)
+                }
+            }
+
+            lines.take(INVENTORY_FLOW_ROWS_PER_COLUMN).forEachIndexed { row, line ->
+                if (line.text.isNotEmpty()) {
+                    renderLine(
+                        Rule(18f, 287f, INVENTORY_FLOW_FIRST_RULE_TOP + row * INVENTORY_FLOW_ROW_STEP),
                         line,
-                        preferredSize = 8.4f,
-                        minimumSize = 7.0f,
-                        clearance = 2.3f,
-                        minimumHorizontalScale = 78f,
                     )
                 }
             }
-
-            treasure.forEachIndexed { index, value ->
-                textAboveRule(
-                    s,
-                    resources.fira,
-                    Rule(311f, 594f, 139f + index * 17f),
-                    value,
-                    8.0f,
-                    6.8f,
-                    2.3f,
-                )
-            }
-
-            positionedSpecial.forEach { (row, item) ->
-                val y = 548f + row * 17f
-                if (specialLocationRow(item.location) != row) {
-                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
-                        textAboveRule(s, resources.fira, Rule(34f, 95f, y), it, 7.4f, 6.6f, 2.2f)
+            lines.drop(INVENTORY_FLOW_ROWS_PER_COLUMN)
+                .take(INVENTORY_FLOW_ROWS_PER_COLUMN)
+                .forEachIndexed { row, line ->
+                    if (line.text.isNotEmpty()) {
+                        renderLine(
+                            Rule(311f, 594f, INVENTORY_FLOW_FIRST_RULE_TOP + row * INVENTORY_FLOW_ROW_STEP),
+                            line,
+                        )
                     }
                 }
-                textAboveRule(s, resources.fira, Rule(103f, 297f, y), inventoryContinuationLabel(item), 8.8f, 7.2f, 2.3f)
-                val detail = buildList {
-                    item.weightLb?.let { add(formatInventoryWeight(it)) }
-                    if (item.attuned) add("Sintonizado")
-                    addAll(inventoryUsageLabels(usageByItem[item.id]))
-                }.joinToString(" · ")
-                if (detail.isNotEmpty()) {
-                    textAboveRule(s, resources.fira, Rule(307f, 594f, y), detail, 8.5f, 7.0f, 2.3f)
-                }
-            }
         }
-        appendLayer(page, "$prefix - MARKERS") { s ->
-            positionedSpecial.forEach { (row, item) ->
-                drawV2TrainingBox(
-                    s,
-                    TopRect(16f, 536f + row * 17f, 8.5f, 9f),
-                    if (item.equipped || item.attuned) Training.PROFICIENT else Training.NONE,
-                )
-            }
-        }
+        appendLayer(page, "$prefix - MARKERS") { }
     }
 
     private fun inventoryContinuationLabel(item: CharacterInventoryItem): String = buildString {
@@ -1820,6 +1845,65 @@ internal class AndroidCustomV2ExtendedRenderer(
             8.2f,
             V2_EQUIPMENT_COLUMN_WIDTH,
         )
+    }
+
+    private fun InventoryFlowRecord.withSection(section: String): InventoryFlowRecord =
+        copy(
+            lines = listOf(InventoryFlowLine(section, InventoryFlowStyle.SECTION)) + lines,
+        )
+
+    private fun packInventoryFlow(records: List<InventoryFlowRecord>): List<InventoryFlowLine> {
+        val output = mutableListOf<InventoryFlowLine>()
+        var rowInColumn = 0
+
+        fun advanceColumn() {
+            while (rowInColumn in 1 until INVENTORY_FLOW_ROWS_PER_COLUMN) {
+                output += InventoryFlowLine("", InventoryFlowStyle.BODY)
+                rowInColumn += 1
+            }
+            if (rowInColumn >= INVENTORY_FLOW_ROWS_PER_COLUMN) rowInColumn = 0
+        }
+
+        records.forEach { record ->
+            val separatorRows = if (rowInColumn == 0) 0 else 1
+            val remaining = INVENTORY_FLOW_ROWS_PER_COLUMN - rowInColumn
+            if (record.lines.size <= INVENTORY_FLOW_ROWS_PER_COLUMN &&
+                record.lines.size + separatorRows > remaining
+            ) {
+                advanceColumn()
+            } else if (rowInColumn > 0) {
+                output += InventoryFlowLine("", InventoryFlowStyle.BODY)
+                rowInColumn += 1
+                if (rowInColumn >= INVENTORY_FLOW_ROWS_PER_COLUMN) rowInColumn = 0
+            }
+
+            var offset = 0
+            var continuation = false
+            while (offset < record.lines.size) {
+                if (rowInColumn == 0 && continuation) {
+                    output += InventoryFlowLine(
+                        record.continuationLabel + " (continuación)",
+                        InventoryFlowStyle.TITLE,
+                    )
+                    rowInColumn += 1
+                }
+                val available = INVENTORY_FLOW_ROWS_PER_COLUMN - rowInColumn
+                if (available <= 0) {
+                    rowInColumn = 0
+                    continuation = true
+                    continue
+                }
+                val take = minOf(available, record.lines.size - offset)
+                output.addAll(record.lines.subList(offset, offset + take))
+                rowInColumn += take
+                offset += take
+                if (offset < record.lines.size) {
+                    if (rowInColumn < INVENTORY_FLOW_ROWS_PER_COLUMN) advanceColumn() else rowInColumn = 0
+                    continuation = true
+                }
+            }
+        }
+        return output
     }
 
     private fun inventoryContinuationLines(
@@ -2859,6 +2943,22 @@ internal class AndroidCustomV2ExtendedRenderer(
         val notes: String,
     )
 
+    private enum class InventoryFlowStyle {
+        SECTION,
+        TITLE,
+        BODY,
+    }
+
+    private data class InventoryFlowLine(
+        val text: String,
+        val style: InventoryFlowStyle,
+    )
+
+    private data class InventoryFlowRecord(
+        val continuationLabel: String,
+        val lines: List<InventoryFlowLine>,
+    )
+
     private data class ResourceRenderRow(
         val name: String,
         val currentValue: Int,
@@ -3082,6 +3182,11 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val BASE_V2_OTHER_CURRENCY_CAPACITY = 4
         const val V2_TREASURE_COLUMN_WIDTH = 283f
         const val INVENTORY_SPECIAL_CAPACITY = 12
+        const val INVENTORY_FLOW_ROWS_PER_COLUMN = 34
+        const val INVENTORY_FLOW_PAGE_CAPACITY = INVENTORY_FLOW_ROWS_PER_COLUMN * 2
+        const val INVENTORY_FLOW_FIRST_RULE_TOP = 148f
+        const val INVENTORY_FLOW_ROW_STEP = 17f
+        const val INVENTORY_FLOW_TEXT_WIDTH = 265f
         val SPECIAL_LOCATION_LABELS = listOf(
             "cabeza", "rostro", "cuello", "mano izquierda", "mano derecha",
             "brazo izquierdo", "brazo derecho", "pecho", "piernas", "pies",
