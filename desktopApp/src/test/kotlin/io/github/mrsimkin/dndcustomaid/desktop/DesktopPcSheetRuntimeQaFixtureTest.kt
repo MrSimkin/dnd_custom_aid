@@ -262,13 +262,50 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             Loader.loadPDF(bytes).use { pdf ->
                 val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
                 assertTrue(normalized.contains("Mara de los Siete Umbrales"))
-                assertTrue(normalized.contains("Astrolabio de cobre con anillos concéntricos 1"))
-                assertTrue(normalized.contains("Protocolo de paradoja 1"))
-                assertTrue(normalized.contains("Reserva 10: Sello"))
-                if (family == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ||
-                    family == PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY
-                ) {
-                    assertTrue(normalized.contains("Manipulación de éter"))
+
+                document.character.traits.sortedBy { it.sortOrder }.forEach { trait ->
+                    assertTrue(
+                        normalized.contains(trait.name),
+                        "$family lost trait identity: ${trait.name}",
+                    )
+                }
+                document.character.resources.sortedBy { it.sortOrder }.forEach { resource ->
+                    assertTrue(
+                        normalized.contains(resource.name),
+                        "$family lost resource identity: ${resource.name}",
+                    )
+                }
+                document.character.classOptions.sortedBy { it.sortOrder }.forEach { option ->
+                    assertTrue(
+                        normalized.contains(option.name),
+                        "$family lost class-option identity: ${option.name}",
+                    )
+                }
+                document.character.inventoryItems.sortedBy { it.sortOrder }.forEach { item ->
+                    assertTrue(
+                        normalized.contains(item.name),
+                        "$family lost inventory identity: ${item.name}",
+                    )
+                }
+                document.character.noteCards.sortedBy { it.sortOrder }.forEach { note ->
+                    note.title.trim().takeIf { it.isNotEmpty() }?.let { title ->
+                        assertTrue(
+                            normalized.contains(title),
+                            "$family lost note-card identity: $title",
+                        )
+                    }
+                }
+                document.successorState.customAttributes.sortedBy { it.sortOrder }.forEach { attribute ->
+                    assertTrue(
+                        normalized.contains(attribute.name),
+                        "$family lost custom-attribute identity: ${attribute.name}",
+                    )
+                }
+                document.successorState.customMarkers.sortedBy { it.sortOrder }.forEach { marker ->
+                    assertTrue(
+                        normalized.contains(marker.name),
+                        "$family lost custom-marker identity: ${marker.name}",
+                    )
                 }
                 pageCounts += "$slug=${pdf.numberOfPages}"
             }
