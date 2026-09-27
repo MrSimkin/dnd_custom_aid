@@ -2009,22 +2009,17 @@ internal class AndroidCustomV2ExtendedRenderer(
     )
 
     private fun appendNotesExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val lines = wrapForRulesByChars(notesText(plan), 72)
+        val lines = noteFlowLines(plan)
         val overflow = lines.drop(BASE_V2_NOTES_CAPACITY)
         if (overflow.isEmpty()) return
 
-        val pages = pageCount(overflow.size, NOTES_CONTINUATION_CAPACITY)
-        repeat(pages) { pageIndex ->
-            val page = PDPage(PDRectangle(W, H))
-            document.addPage(page)
-            renderNotesContinuationPage(
-                page,
-                overflow
-                    .drop(pageIndex * NOTES_CONTINUATION_CAPACITY)
-                    .take(NOTES_CONTINUATION_CAPACITY),
-                pageIndex,
-            )
-        }
+        overflow
+            .chunked(NOTES_CONTINUATION_CAPACITY)
+            .forEachIndexed { pageIndex, pageLines ->
+                val page = PDPage(PDRectangle(W, H))
+                document.addPage(page)
+                renderNotesContinuationPage(page, pageLines, pageIndex)
+            }
     }
 
     private fun renderNotesContinuationPage(
@@ -2034,38 +2029,39 @@ internal class AndroidCustomV2ExtendedRenderer(
     ) {
         val layerPrefix = if (pageIndex == 0) "V2X NOTES" else "V2X NOTES ${pageIndex + 1}"
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
-            s.drawForm(resources.forms[4])
+            pageHeaderStructure(s)
+            fill(s, 14f, 96f, 584f, 24f, Color.WHITE)
+            bandedRows(s, 14f, 302.5f, NOTES_FIRST_RULE_TOP, NOTES_COLUMN_CAPACITY, NOTES_ROW_STEP, 0)
+            bandedRows(s, 309f, 597.5f, NOTES_FIRST_RULE_TOP, NOTES_COLUMN_CAPACITY, NOTES_ROW_STEP, 1)
         }
         appendLayer(page, "$layerPrefix - CLEANUP") { }
-        appendLayer(page, "$layerPrefix - LABELS") { }
+        appendLayer(page, "$layerPrefix - LABELS") { s ->
+            pageTitle(s, "NOTAS · CONTINUACIÓN")
+        }
         appendLayer(page, "$layerPrefix - VALUES") { s ->
             lines.take(NOTES_COLUMN_CAPACITY).forEachIndexed { row, line ->
-                textAboveRule(
-                    s,
-                    resources.fira,
-                    Rule(14f, 302.5f, 104f + row * 17f),
-                    line,
-                    9.25f,
-                    8.0f,
-                    2.8f,
-                )
+                if (line.isNotEmpty()) {
+                    textAboveRule(
+                        s, resources.fira,
+                        Rule(18f, 298.5f, NOTES_FIRST_RULE_TOP + row * NOTES_ROW_STEP),
+                        line, 9.25f, 8.0f, 2.8f,
+                    )
+                }
             }
             lines.drop(NOTES_COLUMN_CAPACITY).take(NOTES_COLUMN_CAPACITY).forEachIndexed { row, line ->
-                textAboveRule(
-                    s,
-                    resources.fira,
-                    Rule(309f, 597.5f, 104f + row * 17f),
-                    line,
-                    9.25f,
-                    8.0f,
-                    2.8f,
-                )
+                if (line.isNotEmpty()) {
+                    textAboveRule(
+                        s, resources.fira,
+                        Rule(313f, 593.5f, NOTES_FIRST_RULE_TOP + row * NOTES_ROW_STEP),
+                        line, 9.25f, 8.0f, 2.8f,
+                    )
+                }
             }
         }
         appendLayer(page, "$layerPrefix - MARKERS") { }
     }
 
-    private fun notesText(plan: PcSheetPdfRenderPlan): String {
+    private fun noteParagraphs(plan: PcSheetPdfRenderPlan): List<String> {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
             addAll(sheet.pdfCampaignNoteParagraphs())
@@ -2083,7 +2079,60 @@ internal class AndroidCustomV2ExtendedRenderer(
                     add("Subclase: " + classLevel.name + " - " + subclass)
                 }
             }
-        }.joinToString("\n\n")
+        }
+    }
+
+    private fun noteFlowLines(plan: PcSheetPdfRenderPlan): List<String> {
+        val output = mutableListOf<String>()
+        var rowInColumn = 0
+
+        fun advanceColumn() {
+            while (rowInColumn in 1 until NOTES_COLUMN_CAPACITY) {
+                output += ""
+                rowInColumn += 1
+            }
+            if (rowInColumn >= NOTES_COLUMN_CAPACITY) rowInColumn = 0
+        }
+
+        noteParagraphs(plan).forEach { paragraph ->
+            val wrapped = wrapByWidth(resources.fira, paragraph, 9.25f, NOTES_COLUMN_TEXT_WIDTH)
+            if (wrapped.isEmpty()) return@forEach
+            val label = paragraph.substringBefore(":", "").trim().takeIf { it.isNotEmpty() }
+            val separatorRows = if (rowInColumn == 0) 0 else 1
+            val remaining = NOTES_COLUMN_CAPACITY - rowInColumn
+
+            if (wrapped.size <= NOTES_COLUMN_CAPACITY && wrapped.size + separatorRows > remaining) {
+                advanceColumn()
+            } else if (rowInColumn > 0) {
+                output += ""
+                rowInColumn += 1
+                if (rowInColumn >= NOTES_COLUMN_CAPACITY) rowInColumn = 0
+            }
+
+            var offset = 0
+            var continuation = false
+            while (offset < wrapped.size) {
+                if (rowInColumn == 0 && continuation && label != null) {
+                    output += "$label (continuación)"
+                    rowInColumn += 1
+                }
+                val available = NOTES_COLUMN_CAPACITY - rowInColumn
+                if (available <= 0) {
+                    rowInColumn = 0
+                    continuation = true
+                    continue
+                }
+                val take = minOf(available, wrapped.size - offset)
+                output.addAll(wrapped.subList(offset, offset + take))
+                rowInColumn += take
+                offset += take
+                if (offset < wrapped.size) {
+                    if (rowInColumn < NOTES_COLUMN_CAPACITY) advanceColumn() else rowInColumn = 0
+                    continuation = true
+                }
+            }
+        }
+        return output
     }
 
     private fun wrapForRulesByChars(text: String, maxChars: Int): List<String> {
@@ -3052,6 +3101,9 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val BASE_V2_NOTES_CAPACITY = 40
         const val NOTES_COLUMN_CAPACITY = 20
         const val NOTES_CONTINUATION_CAPACITY = 40
+        const val NOTES_COLUMN_TEXT_WIDTH = 280.5f
+        const val NOTES_FIRST_RULE_TOP = 142f
+        const val NOTES_ROW_STEP = 17f
 
         val SPELL_CONTINUATION_BLOCKS = listOf(
             SpellContinuationBlock(0, 25.5f, 203.5f, 14f, 127.21f, 8),
