@@ -236,83 +236,95 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             "mara-custom-v2-ability" to PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
         )
         val pageCounts = mutableListOf<String>()
+        val failures = mutableListOf<String>()
 
         cases.forEach { (slug, family) ->
-            val plan = PcSheetPdfExportPlanner.plan(
-                request = PcSheetPdfExportRequest(
-                    visualFamily = family,
-                    stateSelection = PcSheetExportStateSelection.PERMANENT,
-                ),
-                sources = PcSheetExportSources(
-                    permanent = PcSheetExportAggregate(
-                        sheet = document.character,
-                        closure = document.closureState,
-                        successor = document.successorState,
+            runCatching {
+                val plan = PcSheetPdfExportPlanner.plan(
+                    request = PcSheetPdfExportRequest(
+                        visualFamily = family,
+                        stateSelection = PcSheetExportStateSelection.PERMANENT,
                     ),
-                ),
-            )
-            val bytes = ByteArrayOutputStream().use { output ->
-                DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
-                output.toByteArray()
-            }
-            assertTrue(bytes.size > 20_000)
+                    sources = PcSheetExportSources(
+                        permanent = PcSheetExportAggregate(
+                            sheet = document.character,
+                            closure = document.closureState,
+                            successor = document.successorState,
+                        ),
+                    ),
+                )
+                val bytes = ByteArrayOutputStream().use { output ->
+                    DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+                    output.toByteArray()
+                }
+                assertTrue(bytes.size > 20_000)
 
-            val output = File(proofDir, "$slug-stress-baseline.pdf")
-            output.writeBytes(bytes)
-            Loader.loadPDF(bytes).use { pdf ->
-                val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
-                assertTrue(normalized.contains("Mara de los Siete Umbrales"))
+                val output = File(proofDir, "$slug-stress-baseline.pdf")
+                output.writeBytes(bytes)
+                Loader.loadPDF(bytes).use { pdf ->
+                    val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+                    assertTrue(normalized.contains("Mara de los Siete Umbrales"))
 
-                document.character.traits.sortedBy { it.sortOrder }.forEach { trait ->
-                    assertTrue(
-                        normalized.contains(trait.name),
-                        "$family lost trait identity: ${trait.name}",
-                    )
-                }
-                document.character.resources.sortedBy { it.sortOrder }.forEach { resource ->
-                    assertTrue(
-                        normalized.contains(resource.name),
-                        "$family lost resource identity: ${resource.name}",
-                    )
-                }
-                document.character.classOptions.sortedBy { it.sortOrder }.forEach { option ->
-                    assertTrue(
-                        normalized.contains(option.name),
-                        "$family lost class-option identity: ${option.name}",
-                    )
-                }
-                document.character.inventoryItems.sortedBy { it.sortOrder }.forEach { item ->
-                    assertTrue(
-                        normalized.contains(item.name),
-                        "$family lost inventory identity: ${item.name}",
-                    )
-                }
-                document.character.noteCards.sortedBy { it.sortOrder }.forEach { note ->
-                    note.title.trim().takeIf { it.isNotEmpty() }?.let { title ->
+                    document.character.traits.sortedBy { it.sortOrder }.forEach { trait ->
                         assertTrue(
-                            normalized.contains(title),
-                            "$family lost note-card identity: $title",
+                            normalized.contains(trait.name),
+                            "$family lost trait identity: ${trait.name}",
                         )
                     }
+                    document.character.resources.sortedBy { it.sortOrder }.forEach { resource ->
+                        assertTrue(
+                            normalized.contains(resource.name),
+                            "$family lost resource identity: ${resource.name}",
+                        )
+                    }
+                    document.character.classOptions.sortedBy { it.sortOrder }.forEach { option ->
+                        assertTrue(
+                            normalized.contains(option.name),
+                            "$family lost class-option identity: ${option.name}",
+                        )
+                    }
+                    document.character.inventoryItems.sortedBy { it.sortOrder }.forEach { item ->
+                        assertTrue(
+                            normalized.contains(item.name),
+                            "$family lost inventory identity: ${item.name}",
+                        )
+                    }
+                    document.character.noteCards.sortedBy { it.sortOrder }.forEach { note ->
+                        note.title.trim().takeIf { it.isNotEmpty() }?.let { title ->
+                            assertTrue(
+                                normalized.contains(title),
+                                "$family lost note-card identity: $title",
+                            )
+                        }
+                    }
+                    document.successorState.customAttributes.sortedBy { it.sortOrder }.forEach { attribute ->
+                        assertTrue(
+                            normalized.contains(attribute.name),
+                            "$family lost custom-attribute identity: ${attribute.name}",
+                        )
+                    }
+                    document.successorState.customMarkers.sortedBy { it.sortOrder }.forEach { marker ->
+                        assertTrue(
+                            normalized.contains(marker.name),
+                            "$family lost custom-marker identity: ${marker.name}",
+                        )
+                    }
+                    pageCounts += "$slug=${pdf.numberOfPages}"
                 }
-                document.successorState.customAttributes.sortedBy { it.sortOrder }.forEach { attribute ->
-                    assertTrue(
-                        normalized.contains(attribute.name),
-                        "$family lost custom-attribute identity: ${attribute.name}",
-                    )
-                }
-                document.successorState.customMarkers.sortedBy { it.sortOrder }.forEach { marker ->
-                    assertTrue(
-                        normalized.contains(marker.name),
-                        "$family lost custom-marker identity: ${marker.name}",
-                    )
-                }
-                pageCounts += "$slug=${pdf.numberOfPages}"
+            }.onFailure { failure ->
+                failures += "$family: ${failure::class.simpleName}: ${failure.message}"
             }
         }
 
         File(proofDir, "mara-cross-family-page-counts.txt")
             .writeText(pageCounts.joinToString("\n", postfix = "\n"))
+        File(proofDir, "mara-cross-family-failures.txt")
+            .writeText(failures.joinToString("\n", postfix = if (failures.isEmpty()) "" else "\n"))
+
+        assertTrue(
+            failures.isEmpty(),
+            "Mara cross-family stress failures:\n" + failures.joinToString("\n"),
+        )
     }
 
     @Test
