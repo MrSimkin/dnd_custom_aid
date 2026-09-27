@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Mara 3A export-generation PASS on preqa.8, but owner PDF visual QA FAIL. A consolidated visual-layout/continuation repair is required across Custom Statistics, Traits continuation packing, Combat headers/rows, Resources/Options packing, Inventory/Special Equipment, Notes, and stale template-underlay text. Mara 3B and Current Snapshot remain blocked.
+**Current active package:** PC Sheet PDF Export — cross-family adaptive continuation/layout repair active. Mara preqa.8 visual QA proved fixed-scaffold continuation is a product-level architecture defect across Fantasy, Custom v1, Custom v2 · Atributo and Custom v2 · Habilidad. CI-generated Mara artifacts and automated packing/semantic gates replace repeated owner-led defect discovery.
 
 ### Superseding PDF visual state — 2026-09-20
 
