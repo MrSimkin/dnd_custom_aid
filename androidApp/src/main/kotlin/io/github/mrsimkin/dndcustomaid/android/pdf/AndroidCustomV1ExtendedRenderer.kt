@@ -1630,8 +1630,6 @@ internal class AndroidCustomV1ExtendedRenderer(
         pageIndex: Int,
     ) {
         val prefix = "V1X INVENTORY P${pageIndex + 1}"
-        val positionedSpecial = positionedSpecialItems(special, INVENTORY_SPECIAL_CAPACITY)
-
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             s.drawForm(resources.forms[1])
         }
@@ -1676,56 +1674,9 @@ internal class AndroidCustomV1ExtendedRenderer(
                 }
             }
 
-            positionedSpecial.forEach { (rowIndex, item) ->
-                val y = INVENTORY_SPECIAL_RULES[rowIndex]
-                val expectedLocationRow = specialLocationRow(item.location)
-                if (expectedLocationRow != rowIndex) {
-                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { location ->
-                        ruleText(
-                            s,
-                            resources.fira,
-                            Rule(25f, 120f, y),
-                            location,
-                            8.0f,
-                        )
-                    }
-                }
-                ruleText(
-                    s,
-                    resources.fira,
-                    Rule(126f, 238f, y),
-                    specialInventoryDisplayName(item),
-                    8.2f,
-                )
-                val detail = specialInventoryDetail(item, usageByItem[item.id])
-                if (detail.isNotEmpty()) {
-                    ruleText(
-                        s,
-                        resources.fira,
-                        Rule(240.803f, 583.795f, y),
-                        detail,
-                        8.0f,
-                    )
-                }
-            }
+
         }
-        appendLayer(page, "$prefix - MARKERS") { s ->
-            positionedSpecial.forEach { (rowIndex, item) ->
-                if (item.equipped || item.attuned) {
-                    val y = INVENTORY_SPECIAL_RULES[rowIndex]
-                    // The imported v1 equipment template already contains the empty checkbox.
-                    // Overlay only the approved v8 check glyph; drawing another square creates a
-                    // visually double-boxed marker and shifts the perceived center.
-                    approvedV8Marker(
-                        s = s,
-                        font = resources.symbol,
-                        centerX = SPECIAL_CHECK_X + SPECIAL_CHECK_WIDTH / 2f,
-                        centerTop = INVENTORY_SPECIAL_CHECK_TOPS[rowIndex] + SPECIAL_CHECK_HEIGHT / 2f,
-                        size = 5.6f,
-                    )
-                }
-            }
-        }
+        appendLayer(page, "$prefix - MARKERS") { }
     }
 
     private fun inventoryContinuationLabel(item: CharacterInventoryItem): String = buildString {
