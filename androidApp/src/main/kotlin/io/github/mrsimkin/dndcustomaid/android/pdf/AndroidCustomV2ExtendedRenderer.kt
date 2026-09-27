@@ -30,7 +30,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
 import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
-import io.github.mrsimkin.dndcustomaid.shared.character.pdfNoteParagraphs
+import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import com.tom_roush.harmony.awt.AWTColor as Color
 import com.tom_roush.harmony.awt.geom.AffineTransform
 import android.graphics.Bitmap
@@ -2148,7 +2148,7 @@ internal class AndroidCustomV2ExtendedRenderer(
     private fun noteParagraphs(plan: PcSheetPdfRenderPlan): List<String> {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
-            addAll(sheet.pdfNoteParagraphs())
+            addAll(sheet.pdfCampaignNoteParagraphs())
             sheet.background.personalityTraits.trim().takeIf { it.isNotEmpty() }?.let {
                 add("Rasgos de personalidad: $it")
             }
