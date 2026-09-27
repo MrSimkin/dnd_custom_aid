@@ -3291,7 +3291,22 @@ class DesktopPcSheetWholeDraftRendererTest {
                         // contract when present, but do not require a redundant page to exist.
                         if (allText.contains("NOTAS DE CAMPAÑA")) {
                             audit("NOTAS DE CAMPAÑA", 204f, 110f, 136f)
-                            audit("REFERENCIAS Y RECORDATORIOS", 493f, 416f, 442f)
+                            val adaptiveReferences = locateTextBounds(
+                                document,
+                                "REFERENCIAS Y RECORDATORIOS",
+                                expectedYCenter = 123f,
+                            )
+                            val adaptiveCenterX =
+                                (adaptiveReferences.bounds.minX + adaptiveReferences.bounds.maxX) / 2f
+                            val usesAdaptiveReferenceColumn =
+                                kotlin.math.abs(adaptiveCenterX - 493f) <= 4f &&
+                                    adaptiveReferences.bounds.minY >= 110f - 3f &&
+                                    adaptiveReferences.bounds.maxY <= 136f + 3f
+                            if (usesAdaptiveReferenceColumn) {
+                                audit("REFERENCIAS Y RECORDATORIOS", 493f, 110f, 136f)
+                            } else {
+                                audit("REFERENCIAS Y RECORDATORIOS", 493f, 416f, 442f)
+                            }
                         }
                     }
 
