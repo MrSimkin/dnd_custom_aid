@@ -499,32 +499,120 @@ internal class AndroidCustomV2ExtendedRenderer(
         }
 
         val proficiencies = sheet.proficiencies.sortedBy { it.sortOrder }
-        val pages = maxOf(
-            1,
-            pageCount(remaining.size, TRAIT_NAME_INDEX_PER_PAGE),
-            pageCount(detailLines.size, TRAIT_DETAIL_LINES_PER_PAGE),
-            pageCount(proficiencies.size, TRAIT_PROFICIENCIES_PER_PAGE),
+
+        val overview = PDPage(PDRectangle(W, H))
+        document.addPage(overview)
+        renderTraitsPage(
+            page = overview,
+            featuredLeft = featuredLeft,
+            featuredRight = featuredRight,
+            nameIndex = remaining.take(TRAIT_NAME_INDEX_PER_PAGE),
+            detailLines = detailLines.take(TRAIT_DETAIL_LINES_PER_PAGE),
+            proficiencies = proficiencies.take(TRAIT_PROFICIENCIES_PER_PAGE),
+            pageIndex = 0,
         )
 
-        repeat(pages) { pageIndex ->
-            val page = PDPage(PDRectangle(W, H))
-            document.addPage(page)
-            renderTraitsPage(
-                page = page,
-                featuredLeft = if (pageIndex == 0) featuredLeft else emptyList(),
-                featuredRight = if (pageIndex == 0) featuredRight else emptyList(),
-                nameIndex = remaining
-                    .drop(pageIndex * TRAIT_NAME_INDEX_PER_PAGE)
-                    .take(TRAIT_NAME_INDEX_PER_PAGE),
-                detailLines = detailLines
-                    .drop(pageIndex * TRAIT_DETAIL_LINES_PER_PAGE)
-                    .take(TRAIT_DETAIL_LINES_PER_PAGE),
-                proficiencies = proficiencies
-                    .drop(pageIndex * TRAIT_PROFICIENCIES_PER_PAGE)
-                    .take(TRAIT_PROFICIENCIES_PER_PAGE),
-                pageIndex = pageIndex,
+        val continuationLines = buildList {
+            addAll(detailLines.drop(TRAIT_DETAIL_LINES_PER_PAGE))
+            val remainingProficiencies = proficiencies.drop(TRAIT_PROFICIENCIES_PER_PAGE)
+            if (remainingProficiencies.isNotEmpty()) {
+                add("COMPETENCIAS / IDIOMAS (cont.)")
+                remainingProficiencies.forEach { proficiency ->
+                    val label = buildString {
+                        append(proficiency.name)
+                        proficiency.source?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
+                        proficiency.notes?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
+                    }
+                    addAll(wrapByWidth(resources.fira, label, 8.0f, TRAIT_CONTINUATION_TEXT_WIDTH))
+                }
+            }
+        }
+
+        continuationLines
+            .chunked(TRAIT_CONTINUATION_CAPACITY)
+            .forEachIndexed { continuationIndex, lines ->
+                val page = PDPage(PDRectangle(W, H))
+                document.addPage(page)
+                renderTraitsContinuationPage(
+                    page = page,
+                    lines = lines,
+                    pageIndex = continuationIndex + 1,
+                )
+            }
+    }
+
+    private fun renderTraitsContinuationPage(
+        page: PDPage,
+        lines: List<String>,
+        pageIndex: Int,
+    ) {
+        val layerPrefix = "V2X TRAITS CONT ${pageIndex + 1}"
+        appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
+            pageHeaderStructure(s)
+            val leftStart = 14f
+            val leftEnd = 291f
+            val rightStart = 307f
+            val rightEnd = 598f
+            fill(s, leftStart, 96f, leftEnd - leftStart, 30f, Color.WHITE)
+            fill(s, rightStart, 96f, rightEnd - rightStart, 30f, Color.WHITE)
+            bandedRows(
+                s,
+                leftStart,
+                leftEnd,
+                TRAIT_CONTINUATION_FIRST_RULE_TOP,
+                TRAIT_CONTINUATION_ROWS_PER_COLUMN,
+                TRAIT_CONTINUATION_ROW_STEP,
+                0,
+            )
+            bandedRows(
+                s,
+                rightStart,
+                rightEnd,
+                TRAIT_CONTINUATION_FIRST_RULE_TOP,
+                TRAIT_CONTINUATION_ROWS_PER_COLUMN,
+                TRAIT_CONTINUATION_ROW_STEP,
+                1,
             )
         }
+        appendLayer(page, "$layerPrefix - CLEANUP") { }
+        appendLayer(page, "$layerPrefix - LABELS") { s ->
+            pageTitle(s, "RASGOS Y ATRIBUTOS · CONTINUACIÓN")
+            centeredFixedScale(
+                s,
+                resources.corbelBold,
+                TopRect(14f, 99f, 584f, 22f),
+                "DETALLES / NOTAS",
+                12.12f,
+                SOURCE_CORBEL_HEADING_SCALE,
+            )
+        }
+        appendLayer(page, "$layerPrefix - VALUES") { s ->
+            lines.take(TRAIT_CONTINUATION_ROWS_PER_COLUMN).forEachIndexed { row, line ->
+                textAboveRule(
+                    s,
+                    resources.fira,
+                    Rule(18f, 287f, TRAIT_CONTINUATION_FIRST_RULE_TOP + row * TRAIT_CONTINUATION_ROW_STEP),
+                    line,
+                    8.0f,
+                    6.4f,
+                    2.2f,
+                )
+            }
+            lines.drop(TRAIT_CONTINUATION_ROWS_PER_COLUMN)
+                .take(TRAIT_CONTINUATION_ROWS_PER_COLUMN)
+                .forEachIndexed { row, line ->
+                    textAboveRule(
+                        s,
+                        resources.fira,
+                        Rule(311f, 594f, TRAIT_CONTINUATION_FIRST_RULE_TOP + row * TRAIT_CONTINUATION_ROW_STEP),
+                        line,
+                        8.0f,
+                        6.4f,
+                        2.2f,
+                    )
+                }
+        }
+        appendLayer(page, "$layerPrefix - MARKERS") { }
     }
 
     private fun renderTraitsPage(
@@ -2731,6 +2819,10 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val TRAIT_DETAIL_LINES_PER_PAGE = 18
         const val TRAIT_CONTINUATION_TEXT_WIDTH = 281f
         const val TRAIT_PROFICIENCIES_PER_PAGE = 8
+        const val TRAIT_CONTINUATION_ROWS_PER_COLUMN = 34
+        const val TRAIT_CONTINUATION_CAPACITY = TRAIT_CONTINUATION_ROWS_PER_COLUMN * 2
+        const val TRAIT_CONTINUATION_FIRST_RULE_TOP = 148f
+        const val TRAIT_CONTINUATION_ROW_STEP = 17f
         const val BASE_V2_COMBAT_CAPACITY = 8
         const val COMBAT_ROWS_PER_PAGE = 22
         const val COMBAT_MINIMUM_BODY_SIZE = 6.0f
