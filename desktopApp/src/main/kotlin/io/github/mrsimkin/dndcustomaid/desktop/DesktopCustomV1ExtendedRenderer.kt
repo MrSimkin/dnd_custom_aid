@@ -2448,9 +2448,10 @@ internal class DesktopCustomV1ExtendedRenderer(
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             drawSourceLogo(s)
-            COLUMNS.take(modules.size).forEach { column ->
+            COLUMNS.take(modules.size).forEachIndexed { index, column ->
                 drawStatScoreFragment(
                     s = s,
+                    sourceVariantIndex = index,
                     targetX = column.x,
                     targetTop = STAT_SCORE_FRAGMENT_TARGET_TOP,
                     width = column.width,
@@ -2912,6 +2913,7 @@ internal class DesktopCustomV1ExtendedRenderer(
 
     private fun drawStatScoreFragment(
         s: PDFormContentStream,
+        sourceVariantIndex: Int,
         targetX: Float,
         targetTop: Float,
         width: Float,
@@ -2921,10 +2923,10 @@ internal class DesktopCustomV1ExtendedRenderer(
         s.addRect(targetX, H - targetTop - height, width, height)
         s.clip()
         s.drawImage(
-            resources.statScoreFragment,
+            resources.statScoreFragments[sourceVariantIndex],
             targetX,
             H - targetTop - SOURCE_SCORE_FRAGMENT_HEIGHT,
-            V1_STAT_FRAGMENT_WIDTH,
+            width,
             SOURCE_SCORE_FRAGMENT_HEIGHT,
         )
         s.restoreGraphicsState()
@@ -3120,7 +3122,7 @@ internal class DesktopCustomV1ExtendedRenderer(
     private data class Resources(
         val forms: List<PDFormXObject>,
         val logo: PDImageXObject,
-        val statScoreFragment: PDImageXObject,
+        val statScoreFragments: List<PDImageXObject>,
         val heading: PDFont,
         val fira: PDFont,
         val firaSemibold: PDFont,
@@ -3143,7 +3145,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                     logo = findImportedImage(forms) { image ->
                         image.width == V1_LOGO_SOURCE_WIDTH && image.height == V1_LOGO_SOURCE_HEIGHT
                     },
-                    statScoreFragment = buildRasterStatScoreFragment(document, source),
+                    statScoreFragments = buildRasterStatScoreFragments(document, source),
                     heading = heading,
                     fira = resourceFont(document, resourceLoader, FIRA_RESOURCE),
                     firaSemibold = resourceFont(document, resourceLoader, FIRA_SEMIBOLD_RESOURCE),
@@ -3182,24 +3184,27 @@ internal class DesktopCustomV1ExtendedRenderer(
                 error("Requested imported Custom-v1 source font not found.")
             }
 
-            private fun buildRasterStatScoreFragment(
+            private fun buildRasterStatScoreFragments(
                 document: PDDocument,
                 source: PDDocument,
-            ): PDImageXObject {
+            ): List<PDImageXObject> {
                 val dpi = 288f
                 val scale = dpi / 72f
                 val sourceImage = PDFRenderer(source).renderImageWithDPI(0, dpi, ImageType.RGB)
-                val x0 = (SOURCE_WHITE_ATTRIBUTE_X * scale).roundToInt()
                 val y0 = (SOURCE_SCORE_FRAGMENT_TOP * scale).roundToInt()
-                val width = (V1_STAT_FRAGMENT_WIDTH * scale).roundToInt()
                 val height = (SOURCE_SCORE_FRAGMENT_HEIGHT * scale).roundToInt()
-                val fragment = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
-                for (y in 0 until height) {
-                    for (x in 0 until width) {
-                        fragment.setRGB(x, y, sourceImage.getRGB(x0 + x, y0 + y))
+
+                return COLUMNS.map { column ->
+                    val x0 = (column.x * scale).roundToInt()
+                    val width = (column.width * scale).roundToInt()
+                    val fragment = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+                    for (y in 0 until height) {
+                        for (x in 0 until width) {
+                            fragment.setRGB(x, y, sourceImage.getRGB(x0 + x, y0 + y))
+                        }
                     }
+                    LosslessFactory.createFromImage(document, fragment)
                 }
-                return LosslessFactory.createFromImage(document, fragment)
             }
 
             private fun findImportedImage(
@@ -3397,7 +3402,6 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val V1_LOGO_HEIGHT = 60.25f
         const val V1_STAT_FRAGMENT_WIDTH = 96.4f
 
-        const val SOURCE_WHITE_ATTRIBUTE_X = 408f
         const val SOURCE_SCORE_FRAGMENT_TOP = 268.5f
         const val SOURCE_SCORE_FRAGMENT_HEIGHT = 41.5f
         const val STAT_SCORE_FRAGMENT_TARGET_TOP = 136.5f
