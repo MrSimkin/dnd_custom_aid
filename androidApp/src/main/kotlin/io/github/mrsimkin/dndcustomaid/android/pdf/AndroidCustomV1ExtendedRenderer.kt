@@ -1401,7 +1401,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                     usageMeaningful(usage) ||
                     baseNameOverflows ||
                     baseDetailOverflows ||
-                    isCustomInventoryLocation(item.location)
+                    specialLocationNeedsText(item.location)
             }
         }
 
