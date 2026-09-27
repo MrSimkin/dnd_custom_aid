@@ -402,7 +402,7 @@ internal class DesktopCustomV2SharedBaseRenderer(
     }
 
     private fun noteFlowLines(plan: PcSheetPdfRenderPlan): List<String> {
-        val width = NOTES_LEFT.first().endX - NOTES_LEFT.first().startX - 3f
+        val width = 280.5f
         val capacity = NOTES_LEFT.size
         val output = mutableListOf<String>()
         var rowInColumn = 0
