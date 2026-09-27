@@ -219,10 +219,10 @@ internal class DesktopCustomV2ExtendedRenderer(
             attributes.forEachIndexed { index, slice ->
                 val projection = slice.projection
                 textTopSource(
-                    s, resources.corbelBold, resources.firaSemibold,
+                    s, resources.firaSemibold, resources.firaSemibold,
                     18f + index * 193f, 111f,
                     keyedName(projection.attribute.name, projection.attribute.abbreviation),
-                    12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
+                    10.8f, 100f,
                 )
                 textAboveRuleSource(
                     s, resources.corbel, resources.fira,
@@ -394,10 +394,10 @@ internal class DesktopCustomV2ExtendedRenderer(
             centeredFixedScale(s, resources.corbelBold, TopRect(366f, 108f, 232f, 22f), "HABILIDADES", 7.8f, SOURCE_CORBEL_HEADING_SCALE)
             attributes.forEachIndexed { index, projection ->
                 textTopSource(
-                    s, resources.corbelBold, resources.firaSemibold,
+                    s, resources.firaSemibold, resources.firaSemibold,
                     14f, 142f + index * 96f,
                     keyedName(projection.attribute.name, projection.attribute.abbreviation),
-                    12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
+                    10.8f, 100f,
                 )
             }
         }
@@ -411,10 +411,10 @@ internal class DesktopCustomV2ExtendedRenderer(
             saves.forEachIndexed { index, projection ->
                 val y = 154f + index * 17f
                 textAboveRuleSource(
-                    s, resources.corbel, resources.fira,
+                    s, resources.firaSemibold, resources.firaSemibold,
                     Rule(235f, 308f, y),
                     keyedName(projection.attribute.name, projection.attribute.abbreviation),
-                    7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE,
+                    7.4f, 2.2f, 100f,
                 )
                 projection.savingThrowTotal?.let {
                     centeredAboveRule(s, resources.firaSemibold, Rule(308f, 342f, y), signed(it), 8.8f, 2.2f)
@@ -2462,12 +2462,15 @@ internal class DesktopCustomV2ExtendedRenderer(
     }
 
     private fun pageHeaderStructure(s: PDFormContentStream) {
-        // Keep the approved logo vector/source-derived, but bound it inside its own form so
-        // viewers never see hidden off-crop source content. This stays in STRUCTURE; no flattening.
-        s.saveGraphicsState()
-        s.transform(Matrix.getTranslateInstance(14f, H - 16f - 60f))
-        s.drawForm(resources.logo)
-        s.restoreGraphicsState()
+        // Draw the exact source logo image directly. Clipping a whole source-page form is
+        // visually correct, but PDF text extraction still exposes the hidden template text.
+        s.drawImage(
+            resources.logo,
+            V2_LOGO_X,
+            H - V2_LOGO_TOP - V2_LOGO_HEIGHT,
+            V2_LOGO_WIDTH,
+            V2_LOGO_HEIGHT,
+        )
         drawRule(s, 126f, 598f, 79f, 0.6f)
     }
 
@@ -2983,7 +2986,7 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private data class Resources(
         val forms: List<PDFormXObject>,
-        val logo: PDFormXObject,
+        val logo: PDImageXObject,
         val attributeOrnament: PDImageXObject,
         val corbel: PDFont,
         val corbelBold: PDFont,
@@ -3008,7 +3011,9 @@ internal class DesktopCustomV2ExtendedRenderer(
                 }
                 return Resources(
                     forms = forms,
-                    logo = buildVectorLogoForm(doc, forms[2]),
+                    logo = findImportedImage(forms) { image ->
+                        image.width == V2_LOGO_SOURCE_WIDTH && image.height == V2_LOGO_SOURCE_HEIGHT
+                    },
                     attributeOrnament = buildTransparentAttributeOrnament(doc, source),
                     corbel = corbelRegular,
                     corbelBold = corbelBold,
@@ -3049,24 +3054,24 @@ internal class DesktopCustomV2ExtendedRenderer(
                 error("Requested imported source font not found.")
             }
 
-            private fun buildVectorLogoForm(
-                doc: PDDocument,
-                sourceForm: PDFormXObject,
-            ): PDFormXObject {
-                val logo = PDFormXObject(doc).apply {
-                    resources = PDResources()
-                    setBBox(PDRectangle(0f, 0f, 105f, 60f))
+            private fun findImportedImage(
+                forms: List<PDFormXObject>,
+                predicate: (PDImageXObject) -> Boolean,
+            ): PDImageXObject {
+                val visited = mutableSetOf<Int>()
+                fun scan(resources: PDResources?): PDImageXObject? {
+                    if (resources == null) return null
+                    if (!visited.add(System.identityHashCode(resources.cosObject))) return null
+                    resources.xObjectNames.forEach { key ->
+                        when (val child = resources.getXObject(key)) {
+                            is PDImageXObject -> if (predicate(child)) return child
+                            is PDFormXObject -> scan(child.resources)?.let { return it }
+                        }
+                    }
+                    return null
                 }
-                PDFormContentStream(logo).use { s ->
-                    s.saveGraphicsState()
-                    s.addRect(0f, 0f, 105f, 60f)
-                    s.clip()
-                    // Source crop is x=14..119 pt, top=16..76 pt => PDF y=716..776.
-                    s.transform(Matrix.getTranslateInstance(-14f, -716f))
-                    s.drawForm(sourceForm)
-                    s.restoreGraphicsState()
-                }
-                return logo
+                forms.forEach { form -> scan(form.resources)?.let { return it } }
+                error("Requested imported Custom-v2 source image not found.")
             }
 
             private fun buildTransparentAttributeOrnament(
@@ -3129,6 +3134,12 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val FIRA_SEMIBOLD = "fonts/pdf/text/FiraSans-SemiBold.ttf"
         const val BARLOW_CONDENSED = "fonts/pdf/text/BarlowCondensed-Bold.ttf"
         const val SYMBOL_V8 = "fonts/owner/para-hoja-de-pj/v8/Para Hoja de PJ Symbols v8.ttf"
+        const val V2_LOGO_SOURCE_WIDTH = 453
+        const val V2_LOGO_SOURCE_HEIGHT = 171
+        const val V2_LOGO_X = 14.03f
+        const val V2_LOGO_TOP = 28.77f
+        const val V2_LOGO_WIDTH = 108.68f
+        const val V2_LOGO_HEIGHT = 40.89f
         const val ATTRIBUTE_ORNAMENT_SOURCE_X = 14.32f
         const val ATTRIBUTE_ORNAMENT_SOURCE_TOP = 164.68f
         const val ATTRIBUTE_ORNAMENT_WIDTH = 80.40f
@@ -3197,9 +3208,9 @@ internal class DesktopCustomV2ExtendedRenderer(
         )
         const val RESOURCE_ROWS_PER_PAGE = 10
         const val RESOURCE_OPTIONS_PER_PAGE = 18
-        const val RESOURCE_ONLY_ROWS_PER_PAGE = 34
+        const val RESOURCE_ONLY_ROWS_PER_PAGE = 38
         const val RESOURCE_ONLY_FIRST_RULE_TOP = 150f
-        const val RESOURCE_ONLY_ROW_STEP = 17f
+        const val RESOURCE_ONLY_ROW_STEP = 16f
         const val OPTION_ONLY_ROWS_PER_PAGE = 34
         const val OPTION_ONLY_FIRST_RULE_TOP = 150f
         const val OPTION_ONLY_ROW_STEP = 17f

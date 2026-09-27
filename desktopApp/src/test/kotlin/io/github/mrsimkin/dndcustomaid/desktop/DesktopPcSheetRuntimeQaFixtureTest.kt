@@ -309,6 +309,37 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                             "$family lost custom-marker identity: ${marker.name}",
                         )
                     }
+
+                    val firstCustomStatisticsPage = when (family) {
+                        PcSheetVisualFamily.CUSTOM_V1 -> 6
+                        PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+                        PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY -> 5
+                        else -> null
+                    }
+                    firstCustomStatisticsPage?.let { pageNumber ->
+                        val statisticsText = PDFTextStripper().apply {
+                            startPage = pageNumber
+                            endPage = pageNumber
+                        }.getText(pdf)
+                        listOf("EQUIPO ESPECIAL", "VÍNCULOS", "IDEALES", "HISTORIA", "PUNTOS DE VIDA")
+                            .forEach { staleLabel ->
+                                assertTrue(
+                                    !statisticsText.contains(staleLabel, ignoreCase = true),
+                                    "$family leaked hidden source-template text into Custom Statistics: $staleLabel",
+                                )
+                            }
+                    }
+
+                    val pageCeiling = when (family) {
+                        PcSheetVisualFamily.CLASSIC_DND_STYLE -> 35
+                        PcSheetVisualFamily.CUSTOM_V1 -> 20
+                        PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE -> 16
+                        PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY -> 15
+                    }
+                    assertTrue(
+                        pdf.numberOfPages <= pageCeiling,
+                        "$family adaptive-packing regression: ${pdf.numberOfPages} pages > $pageCeiling",
+                    )
                     pageCounts += "$slug=${pdf.numberOfPages}"
                 }
             }.onFailure { failure ->

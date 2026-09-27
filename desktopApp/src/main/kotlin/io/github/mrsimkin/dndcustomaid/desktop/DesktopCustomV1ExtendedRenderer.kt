@@ -40,6 +40,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle
 import org.apache.pdfbox.pdmodel.font.PDFont
 import org.apache.pdfbox.pdmodel.font.PDType0Font
 import org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
 import org.apache.pdfbox.util.Matrix
 
 /**
@@ -115,24 +116,6 @@ internal class DesktopCustomV1ExtendedRenderer(
         }
 
         val modulePages = pageCount(modules.size, MODULES_PER_PAGE)
-        repeat(modulePages) { pageIndex ->
-            val page = PDPage(PDRectangle(W, H))
-            document.addPage(page)
-            renderCustomStatisticsPage(
-                page = page,
-                modules = modules
-                    .drop(pageIndex * MODULES_PER_PAGE)
-                    .take(MODULES_PER_PAGE),
-                definitions = definitionLines
-                    .drop(pageIndex * BOTTOM_LINES_PER_PAGE)
-                    .take(BOTTOM_LINES_PER_PAGE),
-                notes = noteLines
-                    .drop(pageIndex * BOTTOM_LINES_PER_PAGE)
-                    .take(BOTTOM_LINES_PER_PAGE),
-                pageIndex = pageIndex,
-            )
-        }
-
         val remainingDefinitions = definitionLines.drop(modulePages * BOTTOM_LINES_PER_PAGE)
         val remainingNotes = noteLines.drop(modulePages * BOTTOM_LINES_PER_PAGE)
         val overflowLines = buildList {
@@ -146,9 +129,37 @@ internal class DesktopCustomV1ExtendedRenderer(
             }
         }
 
-        if (modulePages == 0 && overflowLines.isEmpty()) return
+        val lastModuleCount = if (modulePages == 0) 0 else {
+            modules.drop((modulePages - 1) * MODULES_PER_PAGE).take(MODULES_PER_PAGE).size
+        }
+        val spareColumnCount = (MODULES_PER_PAGE - lastModuleCount).coerceAtLeast(0)
+        val embeddedOverflowCapacity = if (modulePages > 0 && spareColumnCount >= 2) STATS_SPARE_ROWS else 0
+        val embeddedOverflow = overflowLines.take(embeddedOverflowCapacity)
+        val remainingOverflow = overflowLines.drop(embeddedOverflowCapacity)
 
-        overflowLines
+        repeat(modulePages) { pageIndex ->
+            val pageModules = modules
+                .drop(pageIndex * MODULES_PER_PAGE)
+                .take(MODULES_PER_PAGE)
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderCustomStatisticsPage(
+                page = page,
+                modules = pageModules,
+                definitions = definitionLines
+                    .drop(pageIndex * BOTTOM_LINES_PER_PAGE)
+                    .take(BOTTOM_LINES_PER_PAGE),
+                notes = noteLines
+                    .drop(pageIndex * BOTTOM_LINES_PER_PAGE)
+                    .take(BOTTOM_LINES_PER_PAGE),
+                sideContinuationLines = if (pageIndex == modulePages - 1) embeddedOverflow else emptyList(),
+                pageIndex = pageIndex,
+            )
+        }
+
+        if (modulePages == 0 && remainingOverflow.isEmpty()) return
+
+        remainingOverflow
             .chunked(STATS_CONTINUATION_CAPACITY)
             .forEachIndexed { continuationIndex, lines ->
                 val page = PDPage(PDRectangle(W, H))
@@ -169,7 +180,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         val prefix = "V1X STATS P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceCrop(s, resources.forms[0], 20f, 18f, 170f, 74f)
+            drawSourceLogo(s)
             sourceBands(
                 s,
                 25f,
@@ -322,7 +333,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         val prefix = "V1X TRAITS CONT P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            drawSourceLogo(s)
             sourceBands(
                 s,
                 25f,
@@ -838,7 +849,7 @@ internal class DesktopCustomV1ExtendedRenderer(
     ) {
         val prefix = "V1X COMBAT P${pageIndex + 1}"
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            drawSourceLogo(s)
             sourceBands(
                 s,
                 25f,
@@ -1164,7 +1175,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         val prefix = "V1X RESOURCES ONLY P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            drawSourceLogo(s)
             sourceBands(
                 s,
                 25f,
@@ -1241,7 +1252,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         val prefix = "V1X OPTIONS ONLY P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            drawSourceLogo(s)
             sourceBands(
                 s,
                 25f,
@@ -1312,7 +1323,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         val prefix = "V1X RESOURCES P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            drawSourceLogo(s)
             sourceBands(s, 25f, 585f, RESOURCE_FIRST_RULE_TOP, RESOURCE_ROWS_PER_PAGE, RESOURCE_STEP)
             sourceBands(s, 25f, 585f, OPTION_FIRST_RULE_TOP, OPTION_ROWS_PER_PAGE, OPTION_STEP)
         }
@@ -1591,7 +1602,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         )
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            drawSourceLogo(s)
             columns.forEach { (startX, endX) ->
                 sourceBands(
                     s,
@@ -1632,7 +1643,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         val prefix = if (pageIndex == 0) "V1X INVENTORY P1" else "V1X INVENTORY SPECIAL P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            drawSourceLogo(s)
             sourceBands(
                 s,
                 25f,
@@ -1686,7 +1697,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         val prefix = if (pageIndex == 0) "V1X INVENTORY P1" else "V1X INVENTORY TREASURE P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            drawSourceLogo(s)
             sourceBands(
                 s,
                 25f,
@@ -2138,7 +2149,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         val prefix = "V1X NOTES P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            drawSourceLogo(s)
             NOTES_RULES.forEach { y ->
                 drawRule(s, 25f, 267.5f, y)
                 drawRule(s, 311.669f, 583.795f, y)
@@ -2354,6 +2365,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                             projection.attribute.name,
                             projection.attribute.abbreviation,
                         ),
+                        isCustom = true,
                         score = projection.attribute.score.toString(),
                         modifier = signed(projection.attribute.modifier),
                         save = if (projection.attribute.savingThrowEnabled) {
@@ -2381,6 +2393,7 @@ internal class DesktopCustomV1ExtendedRenderer(
             physicalSkillLines.chunked(SKILLS_PER_MODULE).map { skills ->
                 ModuleSlice(
                     title = builtInKeyedName(ability),
+                    isCustom = false,
                     score = sheet.abilityScore(ability).toString(),
                     modifier = signed(sheet.abilityModifier(ability)),
                     save = signed(sheet.savingThrowTotal(ability)),
@@ -2423,22 +2436,20 @@ internal class DesktopCustomV1ExtendedRenderer(
         modules: List<ModuleSlice>,
         definitions: List<String>,
         notes: List<String>,
+        sideContinuationLines: List<String>,
         pageIndex: Int,
     ) {
         val prefix = "V1X STATS P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceCrop(s, resources.forms[0], 20f, 18f, 170f, 74f)
+            drawSourceLogo(s)
             COLUMNS.take(modules.size).forEach { column ->
-                drawTranslatedSourceCrop(
+                drawStatScoreFragment(
                     s = s,
-                    form = resources.forms[0],
-                    sourceX = SOURCE_WHITE_ATTRIBUTE_X,
-                    sourceTop = SOURCE_SCORE_FRAGMENT_TOP,
-                    width = column.width,
-                    height = SOURCE_SCORE_FRAGMENT_HEIGHT,
                     targetX = column.x,
                     targetTop = STAT_SCORE_FRAGMENT_TARGET_TOP,
+                    width = column.width,
+                    height = SOURCE_SCORE_FRAGMENT_HEIGHT,
                 )
                 drawRule(s, column.x + 16f, column.x + column.width - 5f, STAT_SAVE_RULE_TOP)
                 STAT_SKILL_RULE_TOPS.forEach { top ->
@@ -2448,6 +2459,11 @@ internal class DesktopCustomV1ExtendedRenderer(
             STAT_SECTION_COLUMNS.forEach { (a, b) ->
                 sourceBands(s, a, b, DEFINITIONS_FIRST_RULE_TOP, STAT_SECTION_ROWS, STAT_SECTION_STEP)
                 sourceBands(s, a, b, NOTES_FIRST_RULE_TOP, STAT_SECTION_ROWS, STAT_SECTION_STEP)
+            }
+            if (sideContinuationLines.isNotEmpty() && modules.size < MODULES_PER_PAGE) {
+                val sideX = COLUMNS[modules.size].x
+                val sideEnd = COLUMNS.last().x + COLUMNS.last().width
+                sourceBands(s, sideX, sideEnd, STATS_SPARE_FIRST_RULE_TOP, sideContinuationLines.size, STATS_SPARE_STEP)
             }
         }
 
@@ -2471,15 +2487,28 @@ internal class DesktopCustomV1ExtendedRenderer(
             )
             modules.forEachIndexed { index, module ->
                 val column = COLUMNS[index]
-                centeredGeneratedHeading(
-                    s = s,
-                    x = column.x + 1f,
-                    top = STAT_ATTRIBUTE_TITLE_TOP,
-                    width = column.width - 2f,
-                    height = 20f,
-                    value = module.title,
-                    preferredSize = 16.5f,
-                )
+                if (module.isCustom) {
+                    centeredText(
+                        s = s,
+                        font = resources.firaSemibold,
+                        x = column.x + 1f,
+                        top = STAT_ATTRIBUTE_TITLE_TOP,
+                        width = column.width - 2f,
+                        height = 20f,
+                        value = module.title,
+                        size = 10.8f,
+                    )
+                } else {
+                    centeredGeneratedHeading(
+                        s = s,
+                        x = column.x + 1f,
+                        top = STAT_ATTRIBUTE_TITLE_TOP,
+                        width = column.width - 2f,
+                        height = 20f,
+                        value = module.title,
+                        preferredSize = 16.5f,
+                    )
+                }
             }
             centeredText(
                 s, resources.heading,
@@ -2491,6 +2520,15 @@ internal class DesktopCustomV1ExtendedRenderer(
                 24f, NOTES_HEADING_TOP, 564f, 26f,
                 "Notas de Estadísticas Personalizadas", 17f,
             )
+            if (sideContinuationLines.isNotEmpty() && modules.size < MODULES_PER_PAGE) {
+                val sideX = COLUMNS[modules.size].x
+                val sideEnd = COLUMNS.last().x + COLUMNS.last().width
+                centeredText(
+                    s, resources.firaSemibold,
+                    sideX, STATS_SPARE_HEADING_TOP, sideEnd - sideX, 20f,
+                    "CONTINUACIÓN", 8.4f,
+                )
+            }
         }
 
         appendLayer(page, "$prefix - VALUES") { s ->
@@ -2548,6 +2586,21 @@ internal class DesktopCustomV1ExtendedRenderer(
 
             drawBottomLines(s, definitions, DEFINITIONS_FIRST_RULE_TOP)
             drawBottomLines(s, notes, NOTES_FIRST_RULE_TOP)
+            if (sideContinuationLines.isNotEmpty() && modules.size < MODULES_PER_PAGE) {
+                val sideX = COLUMNS[modules.size].x
+                val sideEnd = COLUMNS.last().x + COLUMNS.last().width
+                sideContinuationLines.forEachIndexed { index, value ->
+                    val font = if (
+                        value == "DEFINICIONES" ||
+                        value == "NOTAS DE ESTADÍSTICAS PERSONALIZADAS"
+                    ) resources.firaSemibold else resources.fira
+                    ruleText(
+                        s, font,
+                        Rule(sideX + 3f, sideEnd - 3f, STATS_SPARE_FIRST_RULE_TOP + index * STATS_SPARE_STEP),
+                        value, 8.1f,
+                    )
+                }
+            }
         }
 
         appendLayer(page, "$prefix - MARKERS") { s ->
@@ -2842,6 +2895,37 @@ internal class DesktopCustomV1ExtendedRenderer(
         }
     }
 
+    private fun drawSourceLogo(s: PDFormContentStream) {
+        s.drawImage(
+            resources.logo,
+            V1_LOGO_X,
+            H - V1_LOGO_TOP - V1_LOGO_HEIGHT,
+            V1_LOGO_WIDTH,
+            V1_LOGO_HEIGHT,
+        )
+    }
+
+    private fun drawStatScoreFragment(
+        s: PDFormContentStream,
+        targetX: Float,
+        targetTop: Float,
+        width: Float,
+        height: Float,
+    ) {
+        s.saveGraphicsState()
+        s.addRect(targetX, H - targetTop - height, width, height)
+        s.clip()
+        val imageTop = targetTop + V1_STAT_IMAGE_TOP_OFFSET
+        s.drawImage(
+            resources.attributeFrame,
+            targetX + V1_STAT_IMAGE_X_OFFSET,
+            H - imageTop - V1_STAT_IMAGE_HEIGHT,
+            V1_STAT_IMAGE_WIDTH,
+            V1_STAT_IMAGE_HEIGHT,
+        )
+        s.restoreGraphicsState()
+    }
+
     private fun drawSourceCrop(
         s: PDFormContentStream,
         form: PDFormXObject,
@@ -2997,6 +3081,7 @@ internal class DesktopCustomV1ExtendedRenderer(
 
     private data class ModuleSlice(
         val title: String,
+        val isCustom: Boolean,
         val score: String,
         val modifier: String,
         val save: String,
@@ -3030,6 +3115,8 @@ internal class DesktopCustomV1ExtendedRenderer(
 
     private data class Resources(
         val forms: List<PDFormXObject>,
+        val logo: PDImageXObject,
+        val attributeFrame: PDImageXObject,
         val heading: PDFont,
         val fira: PDFont,
         val firaSemibold: PDFont,
@@ -3049,6 +3136,12 @@ internal class DesktopCustomV1ExtendedRenderer(
                 }
                 return Resources(
                     forms = forms,
+                    logo = findImportedImage(forms) { image ->
+                        image.width == V1_LOGO_SOURCE_WIDTH && image.height == V1_LOGO_SOURCE_HEIGHT
+                    },
+                    attributeFrame = findImportedImage(forms) { image ->
+                        image.width == V1_STAT_IMAGE_SOURCE_WIDTH && image.height == V1_STAT_IMAGE_SOURCE_HEIGHT
+                    },
                     heading = heading,
                     fira = resourceFont(document, resourceLoader, FIRA_RESOURCE),
                     firaSemibold = resourceFont(document, resourceLoader, FIRA_SEMIBOLD_RESOURCE),
@@ -3087,6 +3180,26 @@ internal class DesktopCustomV1ExtendedRenderer(
                 error("Requested imported Custom-v1 source font not found.")
             }
 
+            private fun findImportedImage(
+                forms: List<PDFormXObject>,
+                predicate: (PDImageXObject) -> Boolean,
+            ): PDImageXObject {
+                val visited = mutableSetOf<Int>()
+                fun scan(resources: PDResources?): PDImageXObject? {
+                    if (resources == null) return null
+                    if (!visited.add(System.identityHashCode(resources.cosObject))) return null
+                    resources.xObjectNames.forEach { key ->
+                        when (val child = resources.getXObject(key)) {
+                            is PDImageXObject -> if (predicate(child)) return child
+                            is PDFormXObject -> scan(child.resources)?.let { return it }
+                        }
+                    }
+                    return null
+                }
+                forms.forEach { form -> scan(form.resources)?.let { return it } }
+                error("Requested imported Custom-v1 source image not found.")
+            }
+
             private fun resourceFont(
                 document: PDDocument,
                 resourceLoader: (String) -> InputStream?,
@@ -3114,6 +3227,10 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val STATS_CONTINUATION_FIRST_RULE_TOP = 150f
         const val STATS_CONTINUATION_STEP = 20f
         const val BOTTOM_TEXT_WIDTH = 150f
+        const val STATS_SPARE_ROWS = 9
+        const val STATS_SPARE_HEADING_TOP = 104f
+        const val STATS_SPARE_FIRST_RULE_TOP = 145f
+        const val STATS_SPARE_STEP = 17f
 
         const val BASE_V1_TRAIT_NAME_CAPACITY = 6
         const val TRAIT_LEFT_ROWS = 3
@@ -3249,6 +3366,19 @@ internal class DesktopCustomV1ExtendedRenderer(
             "piernas",
             "pies",
         )
+
+        const val V1_LOGO_SOURCE_WIDTH = 706
+        const val V1_LOGO_SOURCE_HEIGHT = 252
+        const val V1_LOGO_X = 28.20f
+        const val V1_LOGO_TOP = 27.50f
+        const val V1_LOGO_WIDTH = 169.22f
+        const val V1_LOGO_HEIGHT = 60.25f
+        const val V1_STAT_IMAGE_SOURCE_WIDTH = 243
+        const val V1_STAT_IMAGE_SOURCE_HEIGHT = 412
+        const val V1_STAT_IMAGE_X_OFFSET = 6.20f
+        const val V1_STAT_IMAGE_TOP_OFFSET = -17.80f
+        const val V1_STAT_IMAGE_WIDTH = 58.11f
+        const val V1_STAT_IMAGE_HEIGHT = 98.71f
 
         const val SOURCE_WHITE_ATTRIBUTE_X = 408f
         const val SOURCE_SCORE_FRAGMENT_TOP = 268.5f
