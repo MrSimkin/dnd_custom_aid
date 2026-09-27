@@ -263,6 +263,12 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 output.writeBytes(bytes)
                 Loader.loadPDF(bytes).use { pdf ->
                     val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+                    val normalizedPages = (1..pdf.numberOfPages).map { pageNumber ->
+                        PDFTextStripper().apply {
+                            startPage = pageNumber
+                            endPage = pageNumber
+                        }.getText(pdf).replace(Regex("\\s+"), " ")
+                    }
                     assertTrue(normalized.contains("Mara de los Siete Umbrales"))
 
                     document.character.traits.sortedBy { it.sortOrder }.forEach { trait ->
@@ -288,6 +294,12 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                             normalized.contains(item.name),
                             "$family lost inventory identity: ${item.name}",
                         )
+                        if (family == PcSheetVisualFamily.CLASSIC_DND_STYLE) {
+                            assertTrue(
+                                normalizedPages.any { pageText -> pageText.contains(item.name) },
+                                "$family split inventory identity across pages: ${item.name}",
+                            )
+                        }
                     }
                     document.character.noteCards.sortedBy { it.sortOrder }.forEach { note ->
                         note.title.trim().takeIf { it.isNotEmpty() }?.let { title ->
@@ -331,8 +343,8 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     }
 
                     val pageCeiling = when (family) {
-                        PcSheetVisualFamily.CLASSIC_DND_STYLE -> 34
-                        PcSheetVisualFamily.CUSTOM_V1 -> 20
+                        PcSheetVisualFamily.CLASSIC_DND_STYLE -> 29
+                        PcSheetVisualFamily.CUSTOM_V1 -> 18
                         PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE -> 16
                         PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY -> 15
                     }
