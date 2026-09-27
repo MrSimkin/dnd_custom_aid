@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Aldren Share PASS; Ilyra Step 2 PASS; Mara 3A preqa.7 defect chain repaired and integrated by PR #107. `0.5.0-preqa.8` / build `50800` is OWNER READY after consolidated #3927, PR-head #3928 and merged-main #3929 SUCCESS. Current manual runtime target: Mara 3A Custom v2 · Atributo + Permanente + Extended only; after PASS proceed to Mara 3B.
+**Current active package:** PC Sheet PDF Export — Mara 3A export-generation PASS on preqa.8, but owner PDF visual QA FAIL. A consolidated visual-layout/continuation repair is required across Custom Statistics, Traits continuation packing, Combat headers/rows, Resources/Options packing, Inventory/Special Equipment, Notes, and stale template-underlay text. Mara 3B and Current Snapshot remain blocked.
 
 ### Superseding PDF visual state — 2026-09-20
 

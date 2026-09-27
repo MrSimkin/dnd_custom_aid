@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — PR #107 Mara repair is integrated/green. `0.5.0-preqa.8` / build `50800` is owner-ready for Mara 3A Custom v2 · Atributo + Permanente + Extended. Mara 3B remains gated on Mara 3A PASS.
+**Current normal work:** PC Sheet PDF Export — Mara 3A preqa.8 PDF visual QA FAIL after successful export. Next work is a consolidated Custom-v2 Extended visual-layout/continuation repair; no owner rerun until that package is implemented and validated.
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -104,7 +104,7 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 **Sole active non-main branch:** none as continuation authority; merged repair refs are historical evidence only.
 
-**Sole active implementation PR:** none. PR #107 is MERGED / INTEGRATED as `15f86ec8285e69969054d40defaa2c16259b8dce`; merged-main Scaffold #3929 is SUCCESS.
+**Sole active implementation PR:** none yet; visual-QA repair package not yet branched.
 
 Current authority:
 - canonical checkpoint: `docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md`;

@@ -5,8 +5,8 @@
 **Last verified functional main:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
 **Post-merge Scaffold:** `36276643170` / #3929 — SUCCESS  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_MARA_CUSTOMV2_SOURCE_MICROFIT_REPAIR.md`  
-**Current active route:** Mara 3A on `0.5.0-preqa.8` / build `50800` now **exports with no error**; the previous `Manipulación de éter` blocker is gone. Remaining 3A gate: open/read the generated PDF and inspect Extended/custom-stat/Traits/Resources/Inventory/Notes continuation for readable, non-clipped content. Do not start Mara 3B until this PDF inspection passes.
+**Canonical active checkpoint:** `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`  
+**Current active route:** Mara 3A on `0.5.0-preqa.8` exports successfully but the uploaded 28-page PDF fails visual/structural QA. Independent review confirmed systemic template-underlay contamination, corrupted partial Custom Statistics rendering, highly wasteful Traits continuation packing, combat header/first-row collision, inefficient Resources/Options pagination, Inventory grouping/custom-location artifacts, and broken Notes boundaries/continuation packing. `Marcador custom 2 = 1` is fixture-correct. **Mara 3A = NOT PASS; do not start Mara 3B or Current Snapshot.**
 **Current implementation branch:** none — PR #107 is merged; `main` is continuation authority
 **Current implementation PR:** none — PR #107 is MERGED / INTEGRATED as `15f86ec8285e69969054d40defaa2c16259b8dce`  
 **Frozen approved renderer implementation:** `f7e4417c05a2981415ef3648ead740e20469fe33`  
