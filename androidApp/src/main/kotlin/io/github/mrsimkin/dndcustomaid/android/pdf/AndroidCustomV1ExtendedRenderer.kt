@@ -2478,12 +2478,7 @@ internal class AndroidCustomV1ExtendedRenderer(
             }
         }
 
-        appendLayer(page, "$prefix - CLEANUP") { s ->
-            COLUMNS.take(modules.size).forEachIndexed { index, _ ->
-                fill(s, SCORE_X[index] - 18f, STAT_SCORE_VALUE_TOP, 36f, 17f, Color.WHITE)
-                fill(s, MOD_X[index] - 10f, STAT_MOD_VALUE_TOP, 20f, 10f, Color.WHITE)
-            }
-        }
+        appendLayer(page, "$prefix - CLEANUP") { }
 
         appendLayer(page, "$prefix - LABELS") { s ->
             centeredText(
