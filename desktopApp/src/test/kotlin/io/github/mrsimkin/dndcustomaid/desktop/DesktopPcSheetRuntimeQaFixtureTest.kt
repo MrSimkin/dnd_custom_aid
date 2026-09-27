@@ -15,6 +15,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import org.apache.pdfbox.Loader
+import org.apache.pdfbox.rendering.ImageType
+import org.apache.pdfbox.rendering.PDFRenderer
 import org.apache.pdfbox.text.PDFTextStripper
 
 class DesktopPcSheetRuntimeQaFixtureTest {
@@ -340,6 +342,28 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                                     "$family leaked hidden source-template text into Custom Statistics: $staleLabel",
                                 )
                             }
+                    }
+
+                    if (family == PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY) {
+                        val image = PDFRenderer(pdf).renderImageWithDPI(4, 72f, ImageType.RGB)
+                        fun assertRgb(x: Int, y: Int, expected: Triple<Int, Int, Int>, label: String) {
+                            val rgb = image.getRGB(x, y)
+                            val actual = Triple(
+                                rgb shr 16 and 0xFF,
+                                rgb shr 8 and 0xFF,
+                                rgb and 0xFF,
+                            )
+                            assertTrue(
+                                kotlin.math.abs(actual.first - expected.first) <= 3 &&
+                                    kotlin.math.abs(actual.second - expected.second) <= 3 &&
+                                    kotlin.math.abs(actual.third - expected.third) <= 3,
+                                "$family $label ornament source tone regressed: actual=$actual expected=$expected",
+                            )
+                        }
+                        assertRgb(90, 170, Triple(227, 227, 227), "light row 1")
+                        assertRgb(90, 266, Triple(200, 199, 199), "dark row 2")
+                        assertRgb(90, 362, Triple(227, 227, 227), "light row 3")
+                        assertRgb(90, 458, Triple(200, 199, 199), "dark row 4")
                     }
 
                     val pageCeiling = when (family) {
