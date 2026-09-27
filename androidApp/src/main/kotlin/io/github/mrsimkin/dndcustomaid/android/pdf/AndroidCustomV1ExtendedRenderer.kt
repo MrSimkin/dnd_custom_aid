@@ -1670,6 +1670,7 @@ internal class AndroidCustomV1ExtendedRenderer(
 
         val customModules = stats.attributes.flatMap { projection ->
             linkedByCustom[projection.attribute.id].orEmpty()
+                .flatMap(::skillLines)
                 .chunked(SKILLS_PER_MODULE)
                 .ifEmpty { listOf(emptyList()) }
                 .map { skills ->
@@ -1693,14 +1694,16 @@ internal class AndroidCustomV1ExtendedRenderer(
                         } else {
                             Training.NONE
                         },
-                        skills = skills.map(::skillLine),
+                        skills = skills,
                     )
                 }
         }
 
         val standardModules = CharacterAbility.entries.flatMap { ability ->
-            val grouped = stats.skills.filter { it.ability.builtIn == ability }
-            grouped.chunked(SKILLS_PER_MODULE).map { skills ->
+            val physicalSkillLines = stats.skills
+                .filter { it.ability.builtIn == ability }
+                .flatMap(::skillLines)
+            physicalSkillLines.chunked(SKILLS_PER_MODULE).map { skills ->
                 ModuleSlice(
                     title = builtInKeyedName(ability),
                     score = sheet.abilityScore(ability).toString(),
@@ -1711,7 +1714,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                     } else {
                         Training.NONE
                     },
-                    skills = skills.map(::skillLine),
+                    skills = skills,
                 )
             }
         }
@@ -1719,12 +1722,26 @@ internal class AndroidCustomV1ExtendedRenderer(
         return customModules + standardModules
     }
 
-    private fun skillLine(projection: PcSheetCustomSkillProjection): SkillLine =
-        SkillLine(
-            name = projection.skill.name,
-            total = projection.total?.let(::signed).orEmpty(),
-            training = training(projection.skill.training),
-        )
+    private fun skillLines(projection: PcSheetCustomSkillProjection): List<SkillLine> {
+        val narrowestLabelWidth = COLUMNS.minOf { it.width - 39f }
+        val rawWidthAtApprovedScale =
+            narrowestLabelWidth / (SOURCE_LABEL_HORIZONTAL_SCALE / 100f)
+        val wrapped = wrapByWidth(
+            projection.skill.name,
+            resources.fira,
+            10f,
+            rawWidthAtApprovedScale,
+        ).ifEmpty { listOf(projection.skill.name) }
+
+        return wrapped.mapIndexed { index, line ->
+            SkillLine(
+                name = line,
+                total = projection.total?.let(::signed).orEmpty().takeIf { index == 0 }.orEmpty(),
+                training = if (index == 0) training(projection.skill.training) else Training.NONE,
+                marker = index == 0,
+            )
+        }
+    }
 
     private fun renderCustomStatisticsPage(
         page: PDPage,
@@ -1737,7 +1754,7 @@ internal class AndroidCustomV1ExtendedRenderer(
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             drawSourceCrop(s, resources.forms[0], 20f, 18f, 170f, 74f)
-            COLUMNS.forEach { column ->
+            COLUMNS.take(modules.size).forEach { column ->
                 drawTranslatedSourceCrop(
                     s = s,
                     form = resources.forms[0],
@@ -1760,7 +1777,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         }
 
         appendLayer(page, "$prefix - CLEANUP") { s ->
-            COLUMNS.forEachIndexed { index, _ ->
+            COLUMNS.take(modules.size).forEachIndexed { index, _ ->
                 fill(s, SCORE_X[index] - 18f, STAT_SCORE_VALUE_TOP, 36f, 17f, Color.WHITE)
                 fill(s, MOD_X[index] - 10f, STAT_MOD_VALUE_TOP, 20f, 10f, Color.WHITE)
             }
@@ -1859,21 +1876,23 @@ internal class AndroidCustomV1ExtendedRenderer(
         }
 
         appendLayer(page, "$prefix - MARKERS") { s ->
-            COLUMNS.forEachIndexed { index, column ->
-                val module = modules.getOrNull(index)
+            COLUMNS.take(modules.size).forEachIndexed { index, column ->
+                val module = modules[index]
                 drawV1TrainingBox(
                     s, resources.symbol,
                     column.x + 6.2f,
                     STAT_SAVE_RULE_TOP - 6.2f,
-                    module?.saveTraining ?: Training.NONE,
+                    module.saveTraining,
                 )
                 STAT_SKILL_RULE_TOPS.forEachIndexed { rowIndex, ruleTop ->
-                    drawV1TrainingBox(
-                        s, resources.symbol,
-                        column.x + 6.2f,
-                        ruleTop - 6.2f,
-                        module?.skills?.getOrNull(rowIndex)?.training ?: Training.NONE,
-                    )
+                    module.skills.getOrNull(rowIndex)?.takeIf { it.marker }?.let { skill ->
+                        drawV1TrainingBox(
+                            s, resources.symbol,
+                            column.x + 6.2f,
+                            ruleTop - 6.2f,
+                            skill.training,
+                        )
+                    }
                 }
             }
         }
@@ -2314,6 +2333,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         val name: String,
         val total: String,
         val training: Training,
+        val marker: Boolean,
     )
 
     private data class ColumnGeometry(
