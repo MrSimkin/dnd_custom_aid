@@ -485,17 +485,36 @@ internal class AndroidCustomV2ExtendedRenderer(
         val featuredIds = (featuredLeft + featuredRight).map { it.id }.toSet()
         val remaining = traits.filterNot { it.id in featuredIds }
 
-        val detailLines = buildList {
-            addAll(traitSupplementLines(plan))
+        val detailRecords = buildList {
+            traitSupplementLines(plan).forEach { line ->
+                add(TraitDetailRecord(listOf(line)))
+            }
             featuredLeft.forEach { trait ->
-                addAll(featureOverflowLines(trait, 269f))
+                featureOverflowLines(trait, 269f)
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { add(TraitDetailRecord(it)) }
             }
             featuredRight.forEach { trait ->
-                addAll(featureOverflowLines(trait, 283f))
+                featureOverflowLines(trait, 283f)
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { add(TraitDetailRecord(it)) }
             }
             remaining.forEach { trait ->
-                addAll(fullTraitDetailLines(trait))
+                fullTraitDetailLines(trait)
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { add(TraitDetailRecord(it)) }
             }
+        }
+
+        val detailSegments = packTraitDetailRecords(detailRecords)
+        val overviewPrimaryDetails = detailSegments.getOrNull(0).orEmpty()
+        val overviewSecondaryDetails = detailSegments.getOrNull(1).orEmpty()
+        val overviewDetailLines = buildList {
+            addAll(overviewPrimaryDetails)
+            repeat((TRAIT_OVERVIEW_PRIMARY_DETAIL_ROWS - overviewPrimaryDetails.size).coerceAtLeast(0)) {
+                add("")
+            }
+            addAll(overviewSecondaryDetails)
         }
 
         val proficiencies = sheet.proficiencies.sortedBy { it.sortOrder }
@@ -507,35 +526,46 @@ internal class AndroidCustomV2ExtendedRenderer(
             featuredLeft = featuredLeft,
             featuredRight = featuredRight,
             nameIndex = remaining.take(TRAIT_NAME_INDEX_PER_PAGE),
-            detailLines = detailLines.take(TRAIT_DETAIL_LINES_PER_PAGE),
+            detailLines = overviewDetailLines,
             proficiencies = proficiencies.take(TRAIT_PROFICIENCIES_PER_PAGE),
             pageIndex = 0,
         )
 
-        val continuationLines = buildList {
-            addAll(detailLines.drop(TRAIT_DETAIL_LINES_PER_PAGE))
-            val remainingProficiencies = proficiencies.drop(TRAIT_PROFICIENCIES_PER_PAGE)
-            if (remainingProficiencies.isNotEmpty()) {
-                add("COMPETENCIAS / IDIOMAS (cont.)")
-                remainingProficiencies.forEach { proficiency ->
-                    val label = buildString {
-                        append(proficiency.name)
-                        proficiency.source?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
-                        proficiency.notes?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
-                    }
-                    addAll(wrapByWidth(resources.fira, label, 8.0f, TRAIT_CONTINUATION_TEXT_WIDTH))
-                }
+        val continuationColumns = detailSegments
+            .drop(2)
+            .map { it.toMutableList() }
+            .toMutableList()
+        val remainingProficiencies = proficiencies.drop(TRAIT_PROFICIENCIES_PER_PAGE)
+        val proficiencyRecords = remainingProficiencies.mapIndexed { index, proficiency ->
+            val label = buildString {
+                append(proficiency.name)
+                proficiency.source?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
+                proficiency.notes?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
             }
+            val lines = wrapByWidth(resources.fira, label, 8.0f, TRAIT_CONTINUATION_TEXT_WIDTH)
+            TraitDetailRecord(
+                if (index == 0) listOf("COMPETENCIAS / IDIOMAS (cont.)") + lines else lines,
+            )
         }
+        appendTraitRecordsToContinuationColumns(continuationColumns, proficiencyRecords)
 
-        continuationLines
-            .chunked(TRAIT_CONTINUATION_CAPACITY)
-            .forEachIndexed { continuationIndex, lines ->
+        continuationColumns
+            .chunked(2)
+            .forEachIndexed { continuationIndex, columns ->
+                val leftLines = columns.firstOrNull().orEmpty()
+                val rightLines = columns.getOrNull(1).orEmpty()
+                val pageLines = buildList {
+                    addAll(leftLines)
+                    repeat((TRAIT_CONTINUATION_ROWS_PER_COLUMN - leftLines.size).coerceAtLeast(0)) {
+                        add("")
+                    }
+                    addAll(rightLines)
+                }
                 val page = PDPage(PDRectangle(W, H))
                 document.addPage(page)
                 renderTraitsContinuationPage(
                     page = page,
-                    lines = lines,
+                    lines = pageLines,
                     pageIndex = continuationIndex + 1,
                 )
             }
@@ -1099,6 +1129,98 @@ internal class AndroidCustomV2ExtendedRenderer(
                 it.type != CharacterCombatEntryType.ATTACK &&
                     it.name.trim().equals(name, ignoreCase = true)
             }
+    }
+
+    private fun packTraitDetailRecords(
+        records: List<TraitDetailRecord>,
+    ): MutableList<MutableList<String>> {
+        val segments = mutableListOf(
+            mutableListOf<String>(),
+            mutableListOf<String>(),
+        )
+        var segmentIndex = 0
+
+        fun capacity(index: Int): Int = when (index) {
+            0 -> TRAIT_OVERVIEW_PRIMARY_DETAIL_ROWS
+            1 -> TRAIT_OVERVIEW_SECONDARY_DETAIL_ROWS
+            else -> TRAIT_CONTINUATION_ROWS_PER_COLUMN
+        }
+
+        fun ensureSegment(index: Int) {
+            while (segments.size <= index) {
+                segments += mutableListOf<String>()
+            }
+        }
+
+        records.forEach { record ->
+            var remaining = record.lines
+            while (remaining.isNotEmpty()) {
+                ensureSegment(segmentIndex)
+                val current = segments[segmentIndex]
+                val segmentCapacity = capacity(segmentIndex)
+                val room = segmentCapacity - current.size
+
+                when {
+                    remaining.size <= room -> {
+                        current.addAll(remaining)
+                        remaining = emptyList()
+                    }
+                    remaining.size <= segmentCapacity -> {
+                        segmentIndex += 1
+                    }
+                    current.isNotEmpty() -> {
+                        segmentIndex += 1
+                    }
+                    segmentIndex < 2 &&
+                        remaining.size <= TRAIT_CONTINUATION_ROWS_PER_COLUMN -> {
+                        segmentIndex += 1
+                    }
+                    else -> {
+                        current.addAll(remaining.take(segmentCapacity))
+                        remaining = remaining.drop(segmentCapacity)
+                        segmentIndex += 1
+                    }
+                }
+            }
+        }
+        return segments
+    }
+
+    private fun appendTraitRecordsToContinuationColumns(
+        columns: MutableList<MutableList<String>>,
+        records: List<TraitDetailRecord>,
+    ) {
+        if (records.isEmpty()) return
+        if (columns.isEmpty()) columns += mutableListOf<String>()
+        var columnIndex = columns.lastIndex
+
+        records.forEach { record ->
+            var remaining = record.lines
+            while (remaining.isNotEmpty()) {
+                while (columns.size <= columnIndex) {
+                    columns += mutableListOf<String>()
+                }
+                val current = columns[columnIndex]
+                val room = TRAIT_CONTINUATION_ROWS_PER_COLUMN - current.size
+                when {
+                    remaining.size <= room -> {
+                        current.addAll(remaining)
+                        remaining = emptyList()
+                    }
+                    remaining.size <= TRAIT_CONTINUATION_ROWS_PER_COLUMN -> {
+                        columnIndex += 1
+                    }
+                    current.isNotEmpty() -> {
+                        columnIndex += 1
+                    }
+                    else -> {
+                        current.addAll(remaining.take(TRAIT_CONTINUATION_ROWS_PER_COLUMN))
+                        remaining = remaining.drop(TRAIT_CONTINUATION_ROWS_PER_COLUMN)
+                        columnIndex += 1
+                    }
+                }
+            }
+        }
     }
 
     private fun fullTraitDetailLines(
@@ -2904,6 +3026,10 @@ internal class AndroidCustomV2ExtendedRenderer(
         val skills: List<Pair<String, String>>,
     )
 
+    private data class TraitDetailRecord(
+        val lines: List<String>,
+    )
+
     private data class AttributeColumnSlice(
         val projection: PcSheetCustomAttributeProjection,
         val skills: List<PcSheetCustomSkillProjection>,
@@ -3133,6 +3259,8 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val FEATURE_DESCRIPTION_LINES = 3
         const val TRAIT_NAME_INDEX_PER_PAGE = 10
         const val TRAIT_DETAIL_LINES_PER_PAGE = 18
+        const val TRAIT_OVERVIEW_PRIMARY_DETAIL_ROWS = 10
+        const val TRAIT_OVERVIEW_SECONDARY_DETAIL_ROWS = 8
         const val TRAIT_CONTINUATION_TEXT_WIDTH = 281f
         const val TRAIT_PROFICIENCIES_PER_PAGE = 8
         const val TRAIT_CONTINUATION_ROWS_PER_COLUMN = 34
