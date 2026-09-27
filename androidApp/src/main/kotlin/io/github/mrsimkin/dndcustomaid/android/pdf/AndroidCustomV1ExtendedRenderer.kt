@@ -116,14 +116,8 @@ internal class AndroidCustomV1ExtendedRenderer(
             }
         }
 
-        val pages = maxOf(
-            1,
-            pageCount(modules.size, MODULES_PER_PAGE),
-            pageCount(definitionLines.size, BOTTOM_LINES_PER_PAGE),
-            pageCount(noteLines.size, BOTTOM_LINES_PER_PAGE),
-        )
-
-        repeat(pages) { pageIndex ->
+        val modulePages = pageCount(modules.size, MODULES_PER_PAGE)
+        repeat(modulePages) { pageIndex ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderCustomStatisticsPage(
@@ -140,6 +134,107 @@ internal class AndroidCustomV1ExtendedRenderer(
                 pageIndex = pageIndex,
             )
         }
+
+        val remainingDefinitions = definitionLines.drop(modulePages * BOTTOM_LINES_PER_PAGE)
+        val remainingNotes = noteLines.drop(modulePages * BOTTOM_LINES_PER_PAGE)
+        val overflowLines = buildList {
+            if (remainingDefinitions.isNotEmpty()) {
+                add("DEFINICIONES")
+                addAll(remainingDefinitions)
+            }
+            if (remainingNotes.isNotEmpty()) {
+                add("NOTAS DE ESTADÍSTICAS PERSONALIZADAS")
+                addAll(remainingNotes)
+            }
+        }
+
+        if (modulePages == 0 && overflowLines.isEmpty()) return
+
+        overflowLines
+            .chunked(STATS_CONTINUATION_CAPACITY)
+            .forEachIndexed { continuationIndex, lines ->
+                val page = PDPage(PDRectangle(W, H))
+                document.addPage(page)
+                renderCustomStatisticsContinuationPage(
+                    page = page,
+                    lines = lines,
+                    pageIndex = modulePages + continuationIndex,
+                )
+            }
+    }
+
+    private fun renderCustomStatisticsContinuationPage(
+        page: PDPage,
+        lines: List<String>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X STATS P${pageIndex + 1}"
+
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            drawSourceCrop(s, resources.forms[0], 20f, 18f, 170f, 74f)
+            sourceBands(
+                s,
+                25f,
+                294f,
+                STATS_CONTINUATION_FIRST_RULE_TOP,
+                STATS_CONTINUATION_ROWS_PER_COLUMN,
+                STATS_CONTINUATION_STEP,
+            )
+            sourceBands(
+                s,
+                311f,
+                585f,
+                STATS_CONTINUATION_FIRST_RULE_TOP,
+                STATS_CONTINUATION_ROWS_PER_COLUMN,
+                STATS_CONTINUATION_STEP,
+            )
+        }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { s ->
+            centeredText(
+                s,
+                resources.heading,
+                215f,
+                48f,
+                365f,
+                30f,
+                "Estadísticas Personalizadas · Continuación",
+                17f,
+            )
+        }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            fun renderLine(rule: Rule, value: String) {
+                if (value == "DEFINICIONES" || value == "NOTAS DE ESTADÍSTICAS PERSONALIZADAS") {
+                    ruleText(s, resources.firaSemibold, rule, value, 8.7f)
+                } else {
+                    ruleText(s, resources.fira, rule, value, 8.1f)
+                }
+            }
+
+            lines.take(STATS_CONTINUATION_ROWS_PER_COLUMN).forEachIndexed { index, line ->
+                renderLine(
+                    Rule(
+                        27.5f,
+                        291f,
+                        STATS_CONTINUATION_FIRST_RULE_TOP + index * STATS_CONTINUATION_STEP,
+                    ),
+                    line,
+                )
+            }
+            lines.drop(STATS_CONTINUATION_ROWS_PER_COLUMN)
+                .take(STATS_CONTINUATION_ROWS_PER_COLUMN)
+                .forEachIndexed { index, line ->
+                    renderLine(
+                        Rule(
+                            313.5f,
+                            583.795f,
+                            STATS_CONTINUATION_FIRST_RULE_TOP + index * STATS_CONTINUATION_STEP,
+                        ),
+                        line,
+                    )
+                }
+        }
+        appendLayer(page, "$prefix - MARKERS") { }
     }
 
     private fun needsTraitsExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
