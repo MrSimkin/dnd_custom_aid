@@ -1780,8 +1780,14 @@ internal class AndroidCustomV1ExtendedRenderer(
     ): List<String> {
         val lines = mutableListOf<String>()
         // Full continuation is only for an item whose compact identity itself did not fit the
-        // native Equipment capacity. Location/description/notes remain Notes semantics.
-        lines += item.pdfCompactEquipmentLabel()
+        // native Equipment capacity. Preserve that full logical identity across readable
+        // physical continuation rows instead of forcing one compressed/truncated row.
+        lines += wrapByWidth(
+            item.pdfCompactEquipmentLabel(),
+            resources.condensed,
+            8.4f,
+            INVENTORY_ORDINARY_TEXT_WIDTH,
+        )
 
         val operationalStatus = buildList {
             if (item.equipped) add("Equipado")
