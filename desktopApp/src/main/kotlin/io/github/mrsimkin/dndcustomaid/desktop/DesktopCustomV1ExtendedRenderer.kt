@@ -178,40 +178,109 @@ internal class DesktopCustomV1ExtendedRenderer(
         val languages = proficiencyLines(
             sheet.proficiencies.filter { it.type == CharacterProficiencyType.LANGUAGE },
         )
-
-        // Treat the two right-hand ruled areas as one continuation stream. This avoids
-        // allocating separate mostly-empty pages for "Detalles" and "Notas" when they are
-        // semantically one compact continuation.
         val rightLines = traitDetailLines(plan, orderedTraits) + traitSupplementLines(plan)
 
-        val pages = maxOf(
-            1,
-            pageCount(classNames.size, TRAIT_LEFT_ROWS),
-            pageCount(raceNames.size, TRAIT_LEFT_ROWS),
-            pageCount(featNames.size, TRAIT_LEFT_ROWS),
-            pageCount(proficiencies.size, TRAIT_LEFT_ROWS),
-            pageCount(languages.size, TRAIT_LEFT_ROWS),
-            pageCount(otherNames.size, TRAIT_OTHER_CAPACITY),
-            pageCount(rightLines.size, TRAIT_RIGHT_CAPACITY),
+        val overview = PDPage(PDRectangle(W, H))
+        document.addPage(overview)
+        val rightPage = rightLines.take(TRAIT_RIGHT_CAPACITY)
+        renderTraitsPage(
+            page = overview,
+            classNames = classNames.take(TRAIT_LEFT_ROWS),
+            raceNames = raceNames.take(TRAIT_LEFT_ROWS),
+            featNames = featNames.take(TRAIT_LEFT_ROWS),
+            proficiencies = proficiencies.take(TRAIT_LEFT_ROWS),
+            languages = languages.take(TRAIT_LEFT_ROWS),
+            otherNames = otherNames.take(TRAIT_OTHER_CAPACITY),
+            detailLines = rightPage.take(TRAIT_DETAIL_ROWS),
+            noteLines = rightPage.drop(TRAIT_DETAIL_ROWS).take(TRAIT_NOTE_ROWS),
+            pageIndex = 0,
         )
 
-        repeat(pages) { pageIndex ->
-            val page = PDPage(PDRectangle(W, H))
-            document.addPage(page)
-            val rightPage = rightLines.pageSlice(pageIndex, TRAIT_RIGHT_CAPACITY)
-            renderTraitsPage(
-                page = page,
-                classNames = classNames.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
-                raceNames = raceNames.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
-                featNames = featNames.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
-                proficiencies = proficiencies.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
-                languages = languages.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
-                otherNames = otherNames.pageSlice(pageIndex, TRAIT_OTHER_CAPACITY),
-                detailLines = rightPage.take(TRAIT_DETAIL_ROWS),
-                noteLines = rightPage.drop(TRAIT_DETAIL_ROWS).take(TRAIT_NOTE_ROWS),
-                pageIndex = pageIndex,
+        val continuationLines = buildList {
+            classNames.drop(TRAIT_LEFT_ROWS).forEach { add("Clase: $it") }
+            raceNames.drop(TRAIT_LEFT_ROWS).forEach { add("Raza: $it") }
+            featNames.drop(TRAIT_LEFT_ROWS).forEach { add("Dote: $it") }
+            proficiencies.drop(TRAIT_LEFT_ROWS).forEach { add("Competencia: $it") }
+            languages.drop(TRAIT_LEFT_ROWS).forEach { add("Idioma: $it") }
+            otherNames.drop(TRAIT_OTHER_CAPACITY).forEach { add("Otro rasgo: $it") }
+            addAll(rightLines.drop(TRAIT_RIGHT_CAPACITY))
+        }
+
+        continuationLines
+            .chunked(TRAIT_CONTINUATION_CAPACITY)
+            .forEachIndexed { continuationIndex, lines ->
+                val page = PDPage(PDRectangle(W, H))
+                document.addPage(page)
+                renderTraitsContinuationPage(
+                    page = page,
+                    lines = lines,
+                    pageIndex = continuationIndex + 1,
+                )
+            }
+    }
+
+    private fun renderTraitsContinuationPage(
+        page: PDPage,
+        lines: List<String>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X TRAITS CONT P${pageIndex + 1}"
+
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            sourceBands(
+                s,
+                25f,
+                294f,
+                TRAIT_CONTINUATION_FIRST_RULE_TOP,
+                TRAIT_CONTINUATION_ROWS_PER_COLUMN,
+                TRAIT_CONTINUATION_STEP,
+            )
+            sourceBands(
+                s,
+                311f,
+                585f,
+                TRAIT_CONTINUATION_FIRST_RULE_TOP,
+                TRAIT_CONTINUATION_ROWS_PER_COLUMN,
+                TRAIT_CONTINUATION_STEP,
             )
         }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { s ->
+            centeredText(
+                s,
+                resources.heading,
+                24f,
+                66f,
+                564f,
+                30f,
+                "Rasgos y Características · Continuación",
+                18f,
+            )
+        }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            lines.take(TRAIT_CONTINUATION_ROWS_PER_COLUMN).forEachIndexed { index, line ->
+                ruleText(
+                    s,
+                    resources.fira,
+                    Rule(27.5f, 291f, TRAIT_CONTINUATION_FIRST_RULE_TOP + index * TRAIT_CONTINUATION_STEP),
+                    line,
+                    8.4f,
+                )
+            }
+            lines.drop(TRAIT_CONTINUATION_ROWS_PER_COLUMN)
+                .take(TRAIT_CONTINUATION_ROWS_PER_COLUMN)
+                .forEachIndexed { index, line ->
+                    ruleText(
+                        s,
+                        resources.fira,
+                        Rule(313.5f, 583.795f, TRAIT_CONTINUATION_FIRST_RULE_TOP + index * TRAIT_CONTINUATION_STEP),
+                        line,
+                        8.4f,
+                    )
+                }
+        }
+        appendLayer(page, "$prefix - MARKERS") { }
     }
 
     private fun renderTraitsPage(
@@ -2485,6 +2554,10 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val TRAIT_DETAIL_ROWS = 4
         const val TRAIT_NOTE_ROWS = 5
         const val TRAIT_RIGHT_CAPACITY = TRAIT_DETAIL_ROWS + TRAIT_NOTE_ROWS
+        const val TRAIT_CONTINUATION_ROWS_PER_COLUMN = 34
+        const val TRAIT_CONTINUATION_CAPACITY = TRAIT_CONTINUATION_ROWS_PER_COLUMN * 2
+        const val TRAIT_CONTINUATION_FIRST_RULE_TOP = 142f
+        const val TRAIT_CONTINUATION_STEP = 17f
         const val TRAIT_LEFT_TEXT_WIDTH = 154f
         const val TRAIT_RIGHT_TEXT_WIDTH = 365f
 
