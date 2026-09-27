@@ -2516,13 +2516,22 @@ internal class AndroidCustomV2ExtendedRenderer(
     }
 
     private fun drawAttributeOrnament(s: PDFormContentStream, targetX: Float, targetTop: Float) {
-        s.drawImage(
-            resources.attributeOrnament,
-            targetX,
-            H - targetTop - ATTRIBUTE_ORNAMENT_HEIGHT,
-            ATTRIBUTE_ORNAMENT_WIDTH,
-            ATTRIBUTE_ORNAMENT_HEIGHT,
-        )
+        fun cleanBox(x: Float, top: Float, width: Float, height: Float, lineWidth: Float) {
+            s.saveGraphicsState()
+            s.setNonStrokingColor(Color.WHITE)
+            s.addRect(x, H - top - height, width, height)
+            s.fill()
+            s.setStrokingColor(Color.BLACK)
+            s.setLineWidth(lineWidth)
+            s.addRect(x, H - top - height, width, height)
+            s.stroke()
+            s.restoreGraphicsState()
+        }
+
+        // Programmatic score/modifier chrome replaces the source-PDF raster crop.
+        // The old crop carried visible tabs/line artifacts into every custom-stat card.
+        cleanBox(targetX + 12f, targetTop + 4f, 36f, 27f, 1.0f)
+        cleanBox(targetX + 44f, targetTop + 22f, 33f, 23f, 0.9f)
     }
 
     private fun drawV2TrainingBox(s: PDFormContentStream, rect: TopRect, training: Training) {
