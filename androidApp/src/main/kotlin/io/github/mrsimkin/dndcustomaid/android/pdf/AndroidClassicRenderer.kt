@@ -1442,7 +1442,7 @@ private fun classicInventoryRows(
             InventoryRow(
                 quantity = item.quantity.toString().takeIf { index == 0 }.orEmpty(),
                 name = nameLine,
-                weight = item.weightLb?.let(::formatWeight).takeIf { index == 0 }.orEmpty(),
+                weight = item.weightLb?.let(::formatWeight).takeIf { index == nameLines.lastIndex }.orEmpty(),
                 state = "",
                 notes = "",
             )
