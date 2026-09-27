@@ -34,15 +34,20 @@ Key page geometry that must not drift without an explicit owner-approved redesig
 | Traits continuation left frame | 24 | 112 | 276 | 606 |
 | Raza/Trasfondo/Otros continuation frame | 312 | 112 | 276 | 606 |
 | Inventory continuation frame | 24 | 112 | 564 | 402 |
-| Campaign notes frame | 24 | 112 | 360 | 606 |
-| References/reminders frame | 398 | 418 | 190 | 300 |
+| Campaign notes frame | 24 | 112 | 360 | <= 606, content-adaptive on mixed continuation pages |
+| References/reminders frame — sparse mixed layout | 398 | 418 | 190 | 300 |
+| References/reminders frame — overflow/adaptive layout | 398 | 112 | 190 | 606 |
+| References/reminders reclaimed lower-left frame | 24 | content-dependent, below Campaign notes | 360 | content-dependent, bottom <= 718 |
 
 Ruled prose contract:
 
 - each generated physical line consumes exactly one physical writing row;
 - text baseline and rule Y are derived from the same row;
 - no alternating skipped rows;
-- a base page may promote overflow to a continuation page rather than compressing line height.
+- a base page may promote overflow to a continuation page rather than compressing line height;
+- on Fantasy Notes continuation pages, the historical map + lower-right References geometry remains valid when References fits the sparse panel;
+- when References still overflows, it may reclaim the full right column at X=398 / top=112 / W=190 / H=606 instead of repeating the empty map scaffold;
+- unused lower-left space below a content-adaptive Campaign notes frame may be reclaimed for References only when at least one complete reference record fits there; a record that fits a normal continuation region must not be split merely to fill a small reclaimed fragment.
 
 ## Custom v1
 
