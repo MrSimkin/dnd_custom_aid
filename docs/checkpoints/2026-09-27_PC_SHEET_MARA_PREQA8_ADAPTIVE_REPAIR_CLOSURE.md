@@ -1,5 +1,8 @@
 # Checkpoint — Mara preqa.8 adaptive continuation repair closure
 
+> **SUPERSEDED BY OWNER RUNTIME RE-QA FAIL — 2026-09-28**  
+> This checkpoint records repository/CI/proof evidence only. It is **not valid as owner-runtime acceptance**. The owner-facing `0.5.0-preqa.8 / 50800` runtime reproduced the original defect classes, produced Fantasy 45 / Custom v2 Atributo 28 / Custom v2 Habilidad 27 pages, and Custom v1 failed generation. Resume from `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`.
+
 **Date:** 2026-09-27 (Chile local time)  
 **Fixture:** `qa/pc-sheet/fixtures/03_mara_siete_umbrales_custom_extended.json`  
 **Repair branch:** `repair/pc-sheet-adaptive-continuations-cross-family`  
