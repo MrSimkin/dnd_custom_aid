@@ -1220,21 +1220,25 @@ internal class DesktopCustomV1ExtendedRenderer(
                         )
                     }
                 }
-                ruleText(
+                ruleTextWrapped(
                     s,
                     resources.fira,
                     Rule(126f, 238f, y),
                     inventoryContinuationLabel(item),
-                    8.2f,
+                    preferredSize = 8.2f,
+                    maximumLines = 2,
+                    lineStep = 7.2f,
                 )
                 val detail = specialInventoryDetail(item, usageByItem[item.id])
                 if (detail.isNotEmpty()) {
-                    ruleText(
+                    ruleTextWrapped(
                         s,
                         resources.fira,
                         Rule(240.803f, 583.795f, y),
                         detail,
-                        8.0f,
+                        preferredSize = 8.0f,
+                        maximumLines = 2,
+                        lineStep = 7.0f,
                     )
                 }
             }
@@ -2000,6 +2004,41 @@ internal class DesktopCustomV1ExtendedRenderer(
             s.newLineAtOffset(
                 rule.startX + leftPadding,
                 H - rule.topY + 3.2f + lineFromBottom * COMBAT_CELL_LINE_STEP,
+            )
+            s.showText(line)
+            s.endText()
+        }
+    }
+
+    private fun ruleTextWrapped(
+        s: PDFormContentStream,
+        font: PDFont,
+        rule: Rule,
+        value: String,
+        preferredSize: Float,
+        maximumLines: Int,
+        lineStep: Float,
+        leftPadding: Float = 2f,
+    ) {
+        if (value.isBlank()) return
+        val available = rule.endX - rule.startX - leftPadding - 1f
+        var size = preferredSize
+        var lines = wrapByWidth(value, font, size, available)
+        while (size > MINIMUM_BODY_SIZE && lines.size > maximumLines) {
+            size -= 0.2f
+            lines = wrapByWidth(value, font, size, available)
+        }
+        require(lines.size <= maximumLines) {
+            "Custom-v1 Extended wrapped text exceeds native row capacity: '$value'"
+        }
+        lines.forEachIndexed { index, line ->
+            val lineFromBottom = lines.lastIndex - index
+            s.beginText()
+            s.setNonStrokingColor(Color.BLACK)
+            s.setFont(font, size)
+            s.newLineAtOffset(
+                rule.startX + leftPadding,
+                H - rule.topY + 3.2f + lineFromBottom * lineStep,
             )
             s.showText(line)
             s.endText()

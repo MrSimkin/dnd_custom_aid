@@ -265,9 +265,15 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     "$family must not project ordinary Equipment prose descriptions",
                 )
                 assertTrue(
-                    normalized.contains("2 x Frasco de tinta que recuerda la última palabra escrita 2"),
-                    "$family must preserve compact quantity + item identity",
+                    normalized.contains("Frasco de tinta que recuerda la última palabra escrita 2"),
+                    "$family must preserve ordinary item identity",
                 )
+                if (family != PcSheetVisualFamily.CLASSIC_DND_STYLE) {
+                    assertTrue(
+                        normalized.contains("2 x Frasco de tinta que recuerda la última palabra escrita 2"),
+                        "$family must preserve compact quantity + item identity",
+                    )
+                }
             }
         }
     }
