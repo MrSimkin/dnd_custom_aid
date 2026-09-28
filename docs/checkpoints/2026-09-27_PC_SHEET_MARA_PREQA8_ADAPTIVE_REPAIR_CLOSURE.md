@@ -141,7 +141,8 @@ The next manual boundary is a bounded owner re-QA of the repaired Mara path. Do 
 
 ```powershell
 New-Item -ItemType Directory -Force -Path "D:\DnD_Aid\PDF Check" | Out-Null
-adb pull "/sdcard/Download/." "D:\DnD_Aid\PDF Check\"
+Set-Location "D:\DnD_Aid\PDF Check"
+adb pull "/sdcard/Download/." "."
 ```
 
 8. Inspect the generated Mara PDF, with emphasis on the repaired failure surface:
