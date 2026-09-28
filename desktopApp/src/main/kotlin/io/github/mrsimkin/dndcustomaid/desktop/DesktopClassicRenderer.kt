@@ -1264,7 +1264,6 @@ internal class DesktopClassicRenderer {
             }
             if (!representedInBase) {
                 if (item.quantity != 1) add("Cant. ${item.quantity}")
-                item.weightLb?.let { add("Peso " + formatWeight(it) + " lb") }
             }
             inventoryState(item, usage).takeIf { it.isNotBlank() }?.let(::add)
             item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
@@ -2208,7 +2207,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
     private fun inventoryBaseNote(
         item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
         usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
-    ): String = item.weightLb?.let { formatWeight(it) + " lb" }.orEmpty()
+    ): String = ""
 
     private fun traitSummary(
         trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
