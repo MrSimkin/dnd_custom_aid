@@ -275,6 +275,12 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                         normalized.contains("2 x Frasco de tinta que recuerda la última palabra escrita 2"),
                         "$family must preserve compact quantity + item identity",
                     )
+                    val layers = pdf.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
+                    val forbiddenPrefix = if (family == PcSheetVisualFamily.CUSTOM_V1) "V1X INVENTORY" else "V2X INVENTORY"
+                    assertTrue(
+                        layers.none { it.startsWith(forbiddenPrefix) },
+                        "$family must not allocate an Extended inventory page while Mara fits native Equipment capacity",
+                    )
                 }
             }
         }

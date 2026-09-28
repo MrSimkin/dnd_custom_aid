@@ -1075,45 +1075,16 @@ internal class AndroidCustomV1ExtendedRenderer(
         val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
         val ordinary = ordered.filterNot { it.special }
-        val ordinaryLines = ordinary.flatMapIndexed { index, item ->
-            val baseLabel = inventoryBaseLabel(item)
-            val needsFullContinuation =
-                index >= BASE_V1_EQUIPMENT_CAPACITY ||
-                    wrapByWidth(
-                        baseLabel,
-                        resources.condensed,
-                        7.0f,
-                        INVENTORY_ORDINARY_TEXT_WIDTH,
-                    ).size > 1
-            if (needsFullContinuation) {
-                inventoryContinuationLines(item)
-            } else {
-                emptyList()
-            }
-        }
+        // The native Equipment block is authoritative. Long labels do not create a second
+        // inventory page; continuation begins only after the native row/column capacity is full.
+        val ordinaryLines = ordinary
+            .drop(BASE_V1_EQUIPMENT_CAPACITY)
+            .flatMap(::inventoryContinuationLines)
 
         val special = ordered.filter { it.special }
-        val specialContinuation = special.mapIndexedNotNull { index, item ->
-            val usage = usageByItem[item.id]
-            val baseDetail = buildList {
-                if (item.quantity != 1) add("Cant. " + item.quantity)
-                if (item.attuned) add("Sintonizado")
-                item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            }.joinToString(" · ")
-            val baseDetailOverflows =
-                baseDetail.isNotBlank() &&
-                    textWidth(resources.fira, baseDetail, 8.5f) > V1_BASE_SPECIAL_DETAIL_WIDTH
-            val baseNameOverflows =
-                textWidth(resources.fira, item.name, 8.5f) > V1_BASE_SPECIAL_NAME_WIDTH
-            item.takeIf {
-                index >= BASE_V1_SPECIAL_CAPACITY ||
-                    usageMeaningful(usage) ||
-                    baseNameOverflows ||
-                    baseDetailOverflows
-            }
-        }
+        // Same rule for Equipo Especial: metadata or a long label is not a reason to duplicate
+        // an item onto an Extended page while it still fits the native module.
+        val specialContinuation = special.drop(BASE_V1_SPECIAL_CAPACITY)
 
         val treasure = buildList {
             sheet.currencies
