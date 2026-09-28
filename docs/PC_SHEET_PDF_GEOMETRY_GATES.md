@@ -86,6 +86,12 @@ Header/logo:
 - artifact correction must not flatten the complete header;
 - hidden/off-crop source content must be bounded so viewers cannot reveal logo artifacts.
 
+Current 50800 source-relative gates:
+
+- **Custom Statistics:** use the page-1 native attribute slot geometry, typography and scale as the measurement authority. Page 1 demonstrates six attribute slots at native scale; Mara's four custom attributes must fit together without introducing a three-card geometry or painting empty/fake slots.
+- **Portrait/name ribbon:** generated character-name text must be centered horizontally and vertically inside the measured source ribbon. If one line cannot fit cleanly at the approved role, use two centered lines rather than lateral/vertical drift or excessive compression.
+- **Native-module continuations:** Traits/Rasgos, Trasfondo/Historia-style sections, ordinary Equipment, Equipo Especial and Notes must derive continuation geometry from their existing approved/source modules before any generic geometry is considered.
+
 ## Tolerances
 
 Dynamic text-anchor audit uses:
