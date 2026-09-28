@@ -128,15 +128,21 @@ Within each category, preserve coherent record order and semantic boundaries.
 
 Ordinary Equipment is a compact identity/list problem, not a prose-description page family.
 
-Reuse the existing base Equipment grammar. Prefer compact item identities such as `3 x Frasco de tinta` plus only genuinely useful compact state/weight information.
+The existing base **Equipment** element is already the correct visual reference. Extended ordinary Equipment must **reuse/copy that native-source element**, adding/repeating native columns as needed rather than inventing a new Inventory component.
 
-Do not create long descriptive Inventory pages merely because stress-fixture metadata contains descriptions. Avoid mechanically exposing metadata such as `Consumible` unless it is useful and belongs in the intended player-facing equipment representation.
+The intended player-facing content is the compact item identity, for example `3 x Frasco de tinta`.
+
+**Do not display weight. Do not display `Consumible`. Do not display prose descriptions.** Those stress-fixture fields must not be surfaced in the ordinary Equipment PDF presentation.
+
+If additional capacity is required, expand the proven Equipment grammar by adding/copying its existing columns/rows/pages while preserving the same font, size, spacing and visual construction.
 
 ### Equipo Especial
 
 Reuse the existing native/source Equipo Especial element rather than constructing an unrelated Extended table.
 
 Additional/custom locations must be supported as legitimate entries/rows without overprinting canonical source labels.
+
+The reuse rule is symmetrical: **both ordinary Equipment and Equipo Especial already have correctly designed native/source elements**. Neither should be replaced by a newly invented generic Extended renderer.
 
 ### Notes
 
