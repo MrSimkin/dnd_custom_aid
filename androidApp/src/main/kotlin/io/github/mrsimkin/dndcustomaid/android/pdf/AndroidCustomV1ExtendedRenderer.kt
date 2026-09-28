@@ -1076,7 +1076,6 @@ internal class AndroidCustomV1ExtendedRenderer(
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
         val ordinary = ordered.filterNot { it.special }
         val ordinaryLines = ordinary.flatMapIndexed { index, item ->
-            val usage = usageByItem[item.id]
             val baseLabel = inventoryBaseLabel(item)
             val needsFullContinuation =
                 index >= BASE_V1_EQUIPMENT_CAPACITY ||
@@ -1087,7 +1086,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                         INVENTORY_ORDINARY_TEXT_WIDTH,
                     ).size > 1
             if (needsFullContinuation) {
-                inventoryContinuationLines(item, usage)
+                inventoryContinuationLines(item)
             } else {
                 emptyList()
             }
@@ -1294,29 +1293,8 @@ internal class AndroidCustomV1ExtendedRenderer(
 
     private fun inventoryContinuationLines(
         item: CharacterInventoryItem,
-        usage: CharacterInventoryUsage?,
-    ): List<String> {
-        val lines = mutableListOf<String>()
-        // Full continuation is only for an item whose compact identity itself did not fit the
-        // native Equipment capacity. Location/description/notes remain Notes semantics.
-        lines += item.pdfCompactEquipmentLabel()
-
-        val operationalStatus = buildList {
-            if (item.equipped) add("Equipado")
-            if (item.attuned) add("Sintonizado")
-            addAll(inventoryUsageLabels(usage))
-        }.joinToString(" · ")
-        if (operationalStatus.isNotEmpty()) {
-            lines += wrapByWidth(
-                "Estado: $operationalStatus",
-                resources.condensed,
-                8.2f,
-                INVENTORY_ORDINARY_TEXT_WIDTH,
-            )
-        }
-
-        return lines
-    }
+    ): List<String> =
+        listOf(item.pdfCompactEquipmentLabel())
 
     private fun specialInventoryDetail(
         item: CharacterInventoryItem,
@@ -1977,7 +1955,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         val size = 10f
         val rawWidth = textWidth(font, value, size)
         val scale = minOf(SOURCE_LABEL_HORIZONTAL_SCALE, maximumWidth / rawWidth * 100f)
-        require(scale >= MINIMUM_LABEL_HORIZONTAL_SCALE) {
+        require(scale >= MINIMUM_LABEL_HORIZONTAL_SCALE - SOURCE_LABEL_MICRO_FIT_DELTA) {
             "Custom-v1 source-matched label requires excessive compression: '$value' ($scale%)"
         }
         s.beginText()
@@ -2554,6 +2532,7 @@ internal class AndroidCustomV1ExtendedRenderer(
 
         const val SOURCE_LABEL_HORIZONTAL_SCALE = 60f
         const val MINIMUM_LABEL_HORIZONTAL_SCALE = 50f
+        const val SOURCE_LABEL_MICRO_FIT_DELTA = 2f
         const val SOURCE_LABEL_BASELINE_OFFSET = 3.0f
         const val MINIMUM_BODY_SIZE = 5.8f
         const val COMBAT_MINIMUM_HORIZONTAL_SCALE = 55f
