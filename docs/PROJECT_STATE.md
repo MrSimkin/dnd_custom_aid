@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — owner re-QA **FAILED** on the owner-facing `0.5.0-preqa.8 / 50800` label. Runtime outputs are Fantasy 45 pages, Custom v1 generation FAIL, Custom v2 Atributo 28 and Custom v2 Habilidad 27, contradicting the prior repair proof/closure of 29/18/16/15. The original 2026-09-26 defect checkpoint is reopened as the acceptance ledger. Next work is exact APK/source provenance and source-observation traceability audit before any new speculative visual repair or branch promotion. Current Snapshot and Media/Handouts remain blocked.**
+**Current active package:** PC Sheet PDF Export — owner re-QA **FAILED** on the owner-facing `0.5.0-preqa.8 / 50800` label. Runtime outputs are Fantasy 45 pages, Custom v1 generation FAIL, Custom v2 Atributo 28 and Custom v2 Habilidad 27, contradicting the prior repair proof/closure of 29/18/16/15. The original 2026-09-26 defect checkpoint and the clarified 2026-09-28 runtime checkpoint remain the acceptance ledger, with the consolidated pre-fix matrix at `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`. Next work is exact APK/source provenance and item-by-item acceptance mapping before any renderer code change. Current Snapshot and Media/Handouts remain blocked.**
 
 ### Superseding PDF visual state — 2026-09-20
 
@@ -38,9 +38,19 @@ Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/
 
 ### Current active PDF route / renderer state
 
-The sole current non-main continuation authority is `repair/pc-sheet-adaptive-continuations-cross-family`, as routed by `docs/checkpoints/LATEST.md`. Historical PR #85 renderer-proof refs and preqa.8/main are evidence only for this pending repair QA.
+The prior `repair/pc-sheet-adaptive-continuations-cross-family` branch is **unmerged evidence only**, not accepted continuation authority. Its claimed closure at `ce695c40782e1847ed70a2256885b5b07113feae`, Scaffold #4088 / `36354213574` and proof artifact `10942589698` is superseded as runtime acceptance because owner 50800 output reproduced the original defect classes and added a Custom-v1 export blocker.
 
-The preqa.8 Mara 3A visual/structural failure has been repaired across all four PDF families. The validated code/test head is `ce695c40782e1847ed70a2256885b5b07113feae`; Scaffold #4088 / `36354213574` is SUCCESS and populated-proof artifact `10942589698` passed Worker visual preflight. The repair remains **OWNER RE-QA PENDING**, not owner-approved and not integrated into `main`. Resume from `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md`.
+Current authority is:
+
+- `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
+- `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`;
+- `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`;
+- `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+- `AGENTS.md` section 6.3.
+
+No renderer code change is authorized until the real 50800 artifacts have been walked against the matrix, exact APK/source provenance is established as far as repository evidence allows, and each OPEN item has implementation surface + existing native/source reference + regression + actual-candidate evidence mapped.
+
+The active owner design clarification is **reuse before reconstruction**: where the sheet already has a correct native component (attributes, Traits/Rasgos, Trasfondo/Historia-style modules, Equipment, Equipo Especial, Notes and analogous sections), extend/copy that grammar instead of inventing a generic Extended replacement. Ordinary Equipment specifically shows compact identity only: no weight, no `Consumible`, no prose descriptions.
 
 The shared primitive foundation has now passed owner Primitive PDF QA. Renderer work may proceed beyond the primitive gate using:
 
@@ -346,7 +356,7 @@ The final visual/layout/text-filling gate is OWNER APPROVED. PR #85 integrated t
 
 Frozen renderer implementation: `f7e4417c05a2981415ef3648ead740e20469fe33`. Frozen owner-approved proof artifact: `10756937024`.
 
-The owner explicitly approved Custom-v2 Equipment / Equipo Especial continuation with an accepted deviation: the current rendered continuation is not a literal copy of the original normal-page module. Preserve that fact and do not claim literal reuse was achieved.
+Historical 2026-09-23 fact: the owner approved Custom-v2 Equipment / Equipo Especial continuation despite a non-literal implementation. **That historical acceptance is superseded for the active 2026-09-28 repair by the newer owner clarification:** ordinary Equipment and Equipo Especial already have usable native/source elements and the next repair must reuse/copy those elements rather than preserve the later generic reconstruction. Do not rewrite the historical approval; do not use it as current repair authority.
 
 Desktop Save/Share implementation `fafd0f136e5b5dd283b17865e3edc494261f4126` adds PC Manager export choices and a delivery service that invokes the existing `PcSheetPdfExportPlanner -> DesktopPcSheetWholeDraftRenderer` path. Save writes locally; Share stages the same PDF bytes and places the file on the system clipboard. No renderer/layout file changes in this package.
 

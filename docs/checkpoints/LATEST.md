@@ -5,7 +5,7 @@
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`  
-**Current active route:** Owner re-QA of the purported adaptive repair **FAILED**. Runtime output from the owner-facing `0.5.0-preqa.8 / 50800` candidate reproduces the original Mara visual/layout defect classes, adds a blocking Custom-v1 export failure, and materially disagrees with the prior repair proof/page counts. **Next gate is binary/source provenance + source-observation traceability audit before any new speculative visual fix.**  
+**Current active route:** Owner re-QA of the purported adaptive repair **FAILED**. Runtime output from the owner-facing `0.5.0-preqa.8 / 50800` candidate reproduces the original Mara visual/layout defect classes, adds a blocking Custom-v1 export failure, and materially disagrees with the prior repair proof/page counts. The owner has now completed a detailed clarification pass and the consolidated pre-fix authority is `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`. **Next gate is exact binary/source provenance + item-by-item acceptance mapping before any renderer code change.**  
 **Current implementation branch:** `repair/pc-sheet-adaptive-continuations-cross-family` remains unmerged evidence/working state only; its prior closure is not accepted as runtime proof.  
 **Current implementation PR:** none — do not promote or merge before provenance and a new uniquely versioned owner candidate pass the rebuilt acceptance ledger.  
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
@@ -16,12 +16,13 @@
 2. `RESUME.md`;
 3. this file;
 4. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
-5. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md` — original defect/acceptance ledger;
-6. `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md` — superseded claimed closure / evidence to audit, **not** runtime acceptance;
-7. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
-8. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
-9. `docs/PROJECT_STATE.md`;
-10. `docs/BRANCH_STATUS.md`.
+5. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md` — consolidated owner clarification / mandatory pre-fix checklist;
+6. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md` — original defect/acceptance ledger;
+7. `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md` — superseded claimed closure / evidence to audit, **not** runtime acceptance;
+8. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+9. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+10. `docs/PROJECT_STATE.md`;
+11. `docs/BRANCH_STATUS.md`.
 
 **Branch rule:** do not infer success from the repair branch, prior green Scaffold, proof artifact or the reused `50800` version identity. First establish which exact binary/source state produced the owner runtime output.
 
@@ -39,11 +40,15 @@ The prior closure claimed **29 / 18 / 16 / 15**. This mismatch is decisive: runt
 The new acceptance gate is:
 
 1. establish exact installed APK commit/artifact provenance;
-2. reopen the 2026-09-26 source defect checkpoint and keep every original observation open until explicit candidate evidence exists;
-3. include the new Fantasy regressions and Custom-v1 export blocker;
-4. require all-four-family generation smoke before owner handoff;
-5. issue a **new unique versionName/versionCode**; do not reuse `0.5.0-preqa.8 / 50800`;
-6. only then resume owner visual QA.
+2. reopen the 2026-09-26 source defect checkpoint, the 2026-09-28 runtime-fail checkpoint and the 50800 pre-fix acceptance matrix;
+3. before code changes, map every OPEN matrix item to implementation surface + existing native/source reference + automated regression + actual-candidate evidence;
+4. preserve the owner reuse-first rule: attributes, Traits/Rasgos, Trasfondo/Historia-style modules, ordinary Equipment, Equipo Especial, Notes and analogous sections reuse/extend their existing native grammar instead of being rebuilt generically;
+5. ordinary Equipment shows compact identity only — **no weight, no `Consumible`, no prose descriptions**;
+6. include the Fantasy regressions and Custom-v1 export blocker;
+7. require all-four-family real-Mara generation smoke before owner handoff;
+8. inspect the actual generated candidate outputs against the matrix; CI/synthetic proof/page-count changes alone are insufficient;
+9. issue a **new unique versionName/versionCode**; do not reuse `0.5.0-preqa.8 / 50800`;
+10. only then resume owner visual QA.
 
 ## Current PDF visual truth
 
@@ -135,14 +140,14 @@ Custom v1 visual-family design/QA is closed. Production promotion and integrated
 - The application-owned optional Spellbook is production-complete and **PASS** at `ac0cbb2b26202bf934ac4926b56899014390613e`; final Scaffold #3161 / `35679451757` — SUCCESS; proof artifact `10674370966`. It is appended after the selected family/Extended output and leaves all preceding pages unchanged.
 - Local portrait-byte handoff plus Crop/Fit is production-complete and **PASS** at `93490d2247da5ea46ef50563fd17da78840e659e`; final Scaffold #3177 / `35683430947` — SUCCESS; proof artifact `10676160917`. Classic, Custom v1 and both Custom-v2 first-page variants preserve their portrait frames while supporting Crop-to-fill and Fit-entire-image.
 - `APP_MODIFIED_SHEET` plus originating-section continuation-cue candidate at `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` / artifact `10713481125` is **OWNER REJECTED / DO NOT USE**. Green CI did not preserve the exact frozen visual baselines.
-- Visual recovery artifact `10720833172` remains OWNER REJECTED. VR-3 (`a5cb2311a0beb8454291d8b9985cb1b13f37a3dd`, artifact `10723153227`) passed guarded preflight but owner review found additional regressions. VR-4 renderer `f7e4417c05a2981415ef3648ead740e20469fe33`, artifact `10756937024`, passed push #3279 / `35873556136` and PR #3280 / `35873560390`, then received **OWNER APPROVAL on 2026-09-23**. Custom-v2 Equipment/Equipo Especial continuation is approved with an explicitly accepted deviation: it is not a literal copy of the original normal-page modules. The current rendered output is frozen; do not claim literal reuse was achieved.
+- Visual recovery artifact `10720833172` remains OWNER REJECTED. VR-3 (`a5cb2311a0beb8454291d8b9985cb1b13f37a3dd`, artifact `10723153227`) passed guarded preflight but owner review found additional regressions. VR-4 renderer `f7e4417c05a2981415ef3648ead740e20469fe33`, artifact `10756937024`, passed push #3279 / `35873556136` and PR #3280 / `35873560390`, then received **OWNER APPROVAL on 2026-09-23**. Historical fact: that review accepted a non-literal Equipment/Equipo Especial continuation. **Active owner clarification on 2026-09-28 supersedes that deviation for the current repair:** the next repair must reuse/copy the existing native Equipment and Equipo Especial elements and extend their capacity rather than preserve the later generic reconstruction.
 
 ## Current continuation
 
-1. PC-sheet visual/layout/text-filling gate remains **OWNER APPROVED / CLOSED**.
-2. Frozen renderer authority remains `f7e4417c05a2981415ef3648ead740e20469fe33`; approved proof artifact remains `10756937024`.
-3. Preserve the accepted Custom-v2 Equipment / Equipo Especial deviation exactly; no current continuation authorizes redesign.
-4. Historical App Modified candidate `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` remains rejected; integrated export invokes the later owner-approved frozen renderer, not that candidate.
+1. Historical 2026-09-23 visual approval remains provenance, but the PC-sheet visual/layout gate is **REOPENED by the Mara 50800 owner runtime FAIL** for the active defect scope.
+2. Renderer `f7e4417c05a2981415ef3648ead740e20469fe33` / artifact `10756937024` remain historical approved evidence; they are not sufficient acceptance for the active Mara defects.
+3. The historical non-literal Custom-v2 Equipment / Equipo Especial deviation is superseded for this repair by the 2026-09-28 owner reuse-first clarification and the 50800 acceptance matrix.
+4. Historical App Modified candidate `bf7d4d8f5324af7aabb5bf4d3d0038936af2b53d` remains rejected; do not use it as active authority.
 5. PR #86 Desktop Save/Share is integrated as `c28ad548113b368413e479de544c85aa8c924ef4`.
 6. PR #88 Android generated renderer bridge is integrated as `c5963881bdff2597770d3f6a26992b8567b2a35b`.
 7. PR #89 Android Player/authorized-DM Save/Share is integrated as `e6e153a53bba8aa532b5c371dcc16849a901a541`.

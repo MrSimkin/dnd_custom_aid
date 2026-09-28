@@ -1,9 +1,9 @@
 # PC Sheet PDF — durable visual contract
 
 **Status:** ACTIVE / PRE-EXISTING RULE LEDGER  
-**Purpose:** single operational reference for visual rules that had already been established through owner review and frozen proof runs.
+**Purpose:** single operational reference for visual rules established through owner review, frozen proof runs and later explicit owner clarifications.
 
-This file does **not** create new design rules. It consolidates rules already present in the owner-approved baseline/checkpoint documents so future recovery work does not lose them between runs.
+This file does **not invent** design rules. It consolidates owner-approved baselines plus explicit later owner clarifications so future recovery work does not lose or silently override them between runs.
 
 ## Authority
 
