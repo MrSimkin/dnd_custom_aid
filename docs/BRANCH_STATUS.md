@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — owner re-QA **FAILED**. Owner runtime from the `0.5.0-preqa.8 / 50800` label produced Fantasy 45 pages, Custom v2 Atributo 28, Custom v2 Habilidad 27, and a blocking Custom-v1 export failure, while the prior branch closure claimed 29/18/16/15. The repair branch remains unmerged evidence only. **Next boundary is exact APK/source provenance plus a source-observation acceptance-ledger audit; do not merge or continue speculative visual fixes until that is reconstructed.**
+**Current normal work:** PC Sheet PDF Export — owner re-QA **FAILED**. Owner runtime from the `0.5.0-preqa.8 / 50800` label produced Fantasy 45 pages, Custom v2 Atributo 28, Custom v2 Habilidad 27, and a blocking Custom-v1 export failure, while the prior branch closure claimed 29/18/16/15. The repair branch remains unmerged evidence only. The clarified pre-fix authority is `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`. **Next boundary is exact APK/source provenance plus item-by-item acceptance mapping; no renderer code change until that matrix is walked against the real 50800 artifacts.**
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -108,6 +108,7 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 Current authority:
 - canonical checkpoint: `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
+- consolidated pre-fix matrix: `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`;
 - original acceptance ledger: `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`;
 - superseded claimed closure to audit: `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md`;
 - prior repair head: `ce695c40782e1847ed70a2256885b5b07113feae`;
@@ -115,13 +116,15 @@ Current authority:
 - owner runtime: Fantasy **45**, Custom v1 **generation FAIL**, Custom v2 Atributo **28**, Custom v2 Habilidad **27**;
 - prior claimed repaired counts **29 / 18 / 16 / 15** therefore do not match runtime;
 - owner disposition: **RE-QA FAIL**;
-- next technical gate: identify exact installed APK commit/artifact, establish renderer parity, rebuild the fix ledger from every original observation, then produce a uniquely versioned candidate;
+- next technical gate: identify exact installed APK commit/artifact, establish renderer parity, then map every OPEN matrix item to implementation surface + existing native/source reference + regression + actual-candidate evidence **before changing renderer code**;
+- owner reuse-first clarification applies across attributes, Traits/Rasgos, Trasfondo/Historia-style modules, ordinary Equipment, Equipo Especial, Notes and analogous components;
+- ordinary Equipment must not show weight, `Consumible` or prose descriptions;
 - do not reuse `0.5.0-preqa.8 / 50800`;
 - Current Snapshot and Media/Handouts remain blocked.
 
 Canonical resume authority:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md -> provenance/source-observation audit`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md -> docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md -> provenance/item mapping -> repair`
 
 ## Historical/stale open PRs
 
