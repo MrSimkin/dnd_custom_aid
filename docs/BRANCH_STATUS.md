@@ -1,6 +1,6 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-27 (Chile local time)  
+**Updated:** 2026-09-28 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified functional `main`:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — cross-family adaptive continuation/layout repair is implemented and internally validated on `repair/pc-sheet-adaptive-continuations-cross-family`. Validated code/test head `ce695c40782e1847ed70a2256885b5b07113feae`, Scaffold #4088 / `36354213574` SUCCESS, proof artifact `10942589698`. **Next boundary is owner re-QA; branch must not be promoted/merged or extended with speculative fixes before that disposition.**
+**Current normal work:** PC Sheet PDF Export — owner re-QA **FAILED**. Owner runtime from the `0.5.0-preqa.8 / 50800` label produced Fantasy 45 pages, Custom v2 Atributo 28, Custom v2 Habilidad 27, and a blocking Custom-v1 export failure, while the prior branch closure claimed 29/18/16/15. The repair branch remains unmerged evidence only. **Next boundary is exact APK/source provenance plus a source-observation acceptance-ledger audit; do not merge or continue speculative visual fixes until that is reconstructed.**
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -102,27 +102,26 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-**Sole active non-main branch:** `repair/pc-sheet-adaptive-continuations-cross-family`.
+**Sole active non-main branch:** `repair/pc-sheet-adaptive-continuations-cross-family` remains the only relevant repair ref, but it is **NOT accepted as owner-runtime-correct**.
 
-**Sole active implementation PR:** none — repair is intentionally held before promotion/merge until owner re-QA disposition.
+**Sole active implementation PR:** none — do not promote/merge until the failed owner re-QA is reconciled.
 
 Current authority:
-- canonical checkpoint: `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md`;
-- active implementation branch: `repair/pc-sheet-adaptive-continuations-cross-family`;
-- validated code/test head: `ce695c40782e1847ed70a2256885b5b07113feae`;
-- final regression: Scaffold #4088 / `36354213574` — **SUCCESS**;
-- final populated-proof artifact: `10942589698`;
-- Mara proof/page regression state: Fantasy **29**, Custom v1 **18**, Custom v2 · Atributo **16**, Custom v2 · Habilidad **15**;
-- Worker visual preflight: **PASS**;
-- owner disposition: **RE-QA PENDING / NOT YET APPROVED**;
-- no additional layout repair, Mara 3B, Current Snapshot, PR promotion or merge until the owner explicitly resumes QA or supplies new defect evidence;
-- Media/Handouts remains blocked behind the staged runtime sequence.
-
-Every other remote implementation/docs/tmp branch is historical evidence only unless the canonical checkpoint explicitly cites it. **Do not use branch recency, similar branch names, old PR state, or historical `next` instructions to select a continuation branch.**
+- canonical checkpoint: `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
+- original acceptance ledger: `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`;
+- superseded claimed closure to audit: `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md`;
+- prior repair head: `ce695c40782e1847ed70a2256885b5b07113feae`;
+- prior Scaffold #4088 / `36354213574` and proof artifact `10942589698` are repository evidence only, not owner runtime acceptance;
+- owner runtime: Fantasy **45**, Custom v1 **generation FAIL**, Custom v2 Atributo **28**, Custom v2 Habilidad **27**;
+- prior claimed repaired counts **29 / 18 / 16 / 15** therefore do not match runtime;
+- owner disposition: **RE-QA FAIL**;
+- next technical gate: identify exact installed APK commit/artifact, establish renderer parity, rebuild the fix ledger from every original observation, then produce a uniquely versioned candidate;
+- do not reuse `0.5.0-preqa.8 / 50800`;
+- Current Snapshot and Media/Handouts remain blocked.
 
 Canonical resume authority:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md -> repair/pc-sheet-adaptive-continuations-cross-family`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md -> provenance/source-observation audit`
 
 ## Historical/stale open PRs
 
