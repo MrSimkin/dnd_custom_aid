@@ -1291,7 +1291,12 @@ internal class DesktopCustomV1ExtendedRenderer(
     private fun inventoryContinuationLines(
         item: CharacterInventoryItem,
     ): List<String> =
-        listOf(item.pdfCompactEquipmentLabel())
+        wrapByWidth(
+            item.pdfCompactEquipmentLabel(),
+            resources.condensed,
+            7.0f,
+            INVENTORY_ORDINARY_TEXT_WIDTH,
+        )
 
     private fun specialInventoryDetail(
         item: CharacterInventoryItem,

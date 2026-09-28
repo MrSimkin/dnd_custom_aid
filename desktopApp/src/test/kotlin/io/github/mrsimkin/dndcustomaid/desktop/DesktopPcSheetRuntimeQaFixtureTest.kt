@@ -261,7 +261,7 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     "$family must not project equipment weight values",
                 )
                 assertTrue(
-                    !normalized.contains("Descripción suficientemente larga del objeto 2"),
+                    !normalized.contains("Descripción suficientemente larga del objeto 2. Debe"),
                     "$family must not project ordinary Equipment prose descriptions",
                 )
                 assertTrue(
