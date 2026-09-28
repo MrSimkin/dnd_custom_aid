@@ -55,6 +55,12 @@ The required source of truth for this repair is:
 
 The owner re-QA confirms that the same defect classes recorded there remain visible in runtime. The prior closure's statements that those items had bounded repair evidence are **not accepted as runtime closure**.
 
+The consolidated pre-fix acceptance authority is:
+
+`docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`
+
+That matrix must be used before the next renderer code change and again against the exact next candidate output before owner handoff.
+
 ## Custom v2 — previous defect classes still present
 
 ### A. Template/source-underlay contamination — STILL PRESENT
@@ -87,9 +93,11 @@ The renderer repeatedly emits the same multi-panel scaffold while only one or tw
 
 The intended content-adaptive continuation redesign is not present in owner runtime.
 
-### E. Traits ordering/record presentation — STILL UNRESOLVED
+### E. Traits ordering/record presentation — ORDER CONTRACT CLARIFIED / LAYOUT DEFECT STILL OPEN
 
-Category/panel grouping still determines visible order and continuation placement. The earlier ordering-contract issue is not resolved by this re-QA.
+Category grouping is **intentional and accepted**. Global numeric fixture order across categories is not required.
+
+The remaining defect is presentation/layout: the renderer must reuse the existing trait/rasgo grammar, keep coherent order inside each category, preserve record boundaries and stop wasting pages through repeated fixed scaffolds.
 
 ### F. Combat / Actions — STILL PRESENT
 
@@ -112,12 +120,16 @@ Confirmed defects:
 
 After option content is exhausted, a large empty Options table continues to be reproduced while Resources/Markers remain. The cross-stream reclaim rule is not working in runtime.
 
-### H. Inventory association/readability — STILL PRESENT
+### H. Ordinary Equipment reconstruction/readability — STILL PRESENT
 
 - Atributo pages **26–27**;
 - Habilidad pages **25–26**.
 
-Ordinary Equipment is visually difficult to parse. Item identity, weight/status and descriptive continuation are fragmented across rows/columns. Long item records are not kept in a readable logical unit.
+The current Extended Inventory treatment is not merely hard to parse; it is the wrong presentation model. The base **EQUIPO** element already provides the intended grammar and should be reused/copied with additional native columns/rows/pages as capacity requires.
+
+The desired visible content is compact item identity (for example `3 x Frasco de tinta`).
+
+**Weight must not be shown. `Consumible` must not be shown. Prose descriptions must not be shown.**
 
 ### I. Special Equipment custom-location overprint — STILL PRESENT
 
@@ -330,8 +342,8 @@ Before new layout implementation:
 
 1. establish exactly which commit/artifact produced the APK actually installed by the owner;
 2. compare its Android runtime renderer source against the prior repair branch;
-3. reopen the original 2026-09-26 defect checkpoint **and this clarified 2026-09-28 checkpoint** as the acceptance ledger;
-4. inspect the real 50800 runtime outputs and restate every original observation plus these owner clarifications before changing repair code;
+3. reopen the original 2026-09-26 defect checkpoint, this clarified 2026-09-28 checkpoint **and** `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md` as the acceptance ledger;
+4. inspect the real 50800 runtime outputs and walk the pre-fix matrix before changing repair code;
 5. map every observation plus the Fantasy/Custom-v1 regressions to:
    - responsible implementation surface;
    - the existing approved/native visual component that should be reused when one exists;
