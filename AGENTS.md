@@ -92,22 +92,24 @@ When provider/owner handoff is necessary, include:
 
 Prefer one provider handoff per task.
 
-## 6.1 Owner-local Android QA PDF destination
+## 6.1 Owner-local Android QA PDF destination and bulk pull rule
 
-For owner-run Android emulator/device PDF review on Windows, when asking the owner to copy or pull generated PDF files from the Android `Download` directory, use this local destination by default:
+For owner-run Android emulator/device PDF review on Windows, when asking the owner to copy or pull QA outputs from the Android `Download` directory, use this local destination by default:
 
 ```text
 D:\DnD_Aid\PDF Check
 ```
 
-Do not ask the owner to choose another destination unless they explicitly request one. Quote the Windows path because it contains a space. Give `adb pull` commands that place the requested PDF directly in that folder. If the folder may not exist, include a safe PowerShell creation command first:
+The owner requires the Android `Download` retrieval command to pull **everything present in that directory without discriminating by filename, extension or expected artifact**. Do not give a one-file `adb pull`, do not ask the owner to identify the generated PDF filename first, and do not filter to `*.pdf`. The standard PowerShell handoff is:
 
 ```powershell
 New-Item -ItemType Directory -Force -Path "D:\DnD_Aid\PDF Check" | Out-Null
-adb pull "/sdcard/Download/<archivo>.pdf" "D:\DnD_Aid\PDF Check\"
+adb pull "/sdcard/Download/." "D:\DnD_Aid\PDF Check\"
 ```
 
-This is an owner-local QA convenience only; do not commit generated review PDFs or make this local path an application/runtime dependency.
+Use the bulk form by default because it is the owner's workable QA flow. Only narrow the pull if the owner explicitly asks to do so.
+
+This is an owner-local QA convenience only; do not commit generated review files or make this local path an application/runtime dependency.
 
 ## 6.2 Owner-local Android QA APK naming and ADB boundary
 
