@@ -136,18 +136,37 @@ ADB remains appropriate for bounded QA support such as:
 - `adb pull` to retrieve generated PDFs or similar artifacts for review;
 - read-only inspection commands such as listing files or checking device connectivity when useful.
 
-## 6.3 QA repair source-traceability and owner-candidate identity
+## 6.3 QA repair source-traceability, comprehension gate and owner-candidate identity
 
 When implementation work is triggered by owner/QA observations, the **original observation source must remain the acceptance ledger for the entire fix**.
 
-Before changing code:
+### Blocking pre-implementation QA comprehension gate
 
-1. reopen the exact owner/QA checkpoint, report, screenshots or artifact that triggered the fix;
-2. enumerate every original observation that is in scope;
-3. distinguish original observations from later independent findings;
-4. map each observation to the implementation surface and planned regression evidence.
+**No repair code may be changed until the real QA result that triggered the work has been reopened and understood.** Reading only a summarized issue list, a later checkpoint, a derived proof, a test name or a prior agent's claimed diagnosis is not sufficient.
+
+Before changing code, the agent must:
+
+1. reopen the exact owner/QA checkpoint, report, screenshots and/or generated artifact that triggered the fix;
+2. inspect the real failing output itself whenever it exists (for PDF/layout work, inspect the actual generated PDF/pages, not only extracted text or a rewritten test fixture);
+3. enumerate every original owner observation that is in scope;
+4. restate each observation in concrete implementation-neutral terms: what is visibly/behaviorally wrong, what existing approved/native example establishes the intended behavior when one exists, and what evidence would demonstrate that the exact defect is gone;
+5. distinguish original owner observations from later independent findings;
+6. map each observation to the responsible implementation surface and planned regression evidence;
+7. identify any ambiguity in the expected behavior and resolve only genuine owner-level ambiguity before implementation.
+
+This gate is **blocking**. Do not begin coding merely because the likely implementation location is obvious. Do not treat reviewing the QA artifact as an administrative step after a fix has already been designed.
+
+Where an approved/native component already demonstrates the required visual grammar, **reuse that grammar as the reference instead of inventing a new generic component**. A repair must not replace an existing proven source-native pattern with a bespoke approximation unless the owner has explicitly approved that design change.
 
 A repair must **not** be declared closed merely because CI is green, a derived proof looks improved, page count decreases, or a rewritten test passes. Every source observation stays OPEN until it has explicit evidence against the exact candidate being promoted. Do not silently replace, summarize away or forget source observations while iterating.
+
+Before owner handoff, re-run the acceptance ledger against the **actual candidate output**. For every original observation, record one of:
+
+- **FIXED** — exact candidate evidence demonstrates the original defect is gone;
+- **OPEN** — defect still exists or evidence is insufficient;
+- **CHANGED/NEW** — the original symptom changed or a new regression appeared, which must be added rather than hiding the old observation.
+
+A candidate with any blocking OPEN item or newly blocking regression is not ready for owner QA. The purpose of automation/proofs is to support this review, not replace it.
 
 If a cross-family repair was motivated by one stress fixture, regression must also guard the product-level invariant on every affected family. Before owner handoff, generation smoke must cover all affected owner-facing families and must include known previously-working paths so the repair cannot introduce a new export blocker elsewhere.
 

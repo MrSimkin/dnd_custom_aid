@@ -141,6 +141,102 @@ The earlier note-boundary and adaptive packing requirement remains unmet.
 3. **Inventory Extended is effectively illegible** in the current stress output.
 4. **Equipo Especial should reuse the correct native/source module grammar** rather than the current overprinted table behavior.
 
+## Owner clarifications after detailed 50800 evidence review — 2026-09-28
+
+These clarifications are **authoritative refinements of the acceptance ledger**. They do not replace the original defects; they define the intended result more precisely.
+
+### Custom Statistics — reuse the page-1 attribute design and capacity
+
+The problem is not merely that the Extended page paints phantom cards or that three cards look wrong.
+
+The Custom-v2 page-1 source grammar already demonstrates **six standard attributes across the available line/region using the approved font, size, ornament and visual construction**. Extended Custom Statistics must reuse that same grammar, scale and font behavior rather than inventing a different three-card generic layout.
+
+For Mara's four custom attributes, the expected result is therefore conceptually one native-source row containing all four real attributes:
+
+- Fortuna;
+- Cordura;
+- Éter;
+- Renombre.
+
+There is no design justification for forcing only three real attributes onto the first Extended statistics page when the same family already proves six can fit in the equivalent native grammar. Empty/fake attribute shells must never be painted.
+
+This is primarily a **reuse/source-parity requirement**, not a request to compress a separate generic component.
+
+### Traits ordering — category order is intentional
+
+Traits/features may be grouped **by category** rather than preserving one global numeric source sequence. The layout should preserve coherent category grouping and readable record order inside each category.
+
+The defect is not category grouping itself. The defect remains the fixed-scaffold continuation waste, poor space reclaim and record presentation.
+
+### Ordinary Equipment — do not invent descriptive Inventory pages
+
+The existing base **EQUIPO** module is the intended visual/semantic reference for ordinary equipment.
+
+Ordinary equipment does **not** require long prose descriptions or dedicated descriptive Inventory continuation pages. The stress output's long detail paragraphs are not a desired product presentation.
+
+The preferred ordinary Equipment identity is compact and immediately readable, for example:
+
+- `3 x Frasco de tinta`
+
+with only genuinely useful compact state/weight information when the product requires it. Whether labels such as `Consumible` belong in this compact representation must be justified by actual player usefulness rather than copied mechanically from stress-fixture metadata.
+
+The repair must therefore avoid solving the current illegibility by creating larger item-description cards. It should **reuse/extend the already-clear base Equipment grammar** and keep item identity visually atomic and readable.
+
+### Equipo Especial — reuse the existing native element
+
+The renderer must not create a bespoke Extended Equipo Especial table when the source/base sheet already contains a visually correct Equipo Especial component.
+
+Extended handling should **reuse/copy the native-source grammar and extend it only as needed for additional/custom locations**. Noncanonical locations such as `Espalda` and `Bolsa lateral` must become legitimate rows/entries rather than overprinting fixed canonical labels.
+
+The same reuse principle applies to ordinary Equipment: prefer the proven existing sheet element over a newly invented generic substitute.
+
+### Notes — reuse the existing Notes sheet, not a bespoke Extended Notes design
+
+The project already has an existing Notes sheet/module. The owner explicitly expects overflow Notes to **replicate/reuse that existing Notes visual grammar** rather than inventing a separate Extended Notes page.
+
+Record readability requirements:
+
+- each note must preserve a visible semantic boundary;
+- at minimum, `Nota N` should be visually emphasized (for example bold) and there should be a line/row separation between notes;
+- if a note crosses a page boundary, the continuation must retain the note identity;
+- available Notes space/columns must be consumed before adding another page.
+
+The architectural question is therefore not “how should a new Extended Notes sheet look?” but “how should the existing Notes grammar be reused and paginated adaptively?”
+
+### Portrait/name ribbon alignment
+
+The character name must be centered **horizontally and vertically inside the existing portrait ribbon**. If the full name does not fit cleanly on one line, use two centered lines rather than shifting, clipping or compressing the text.
+
+### Fantasy semantic names — wrap, do not ellipsize
+
+Generated semantic names/identities must use **multi-line wrapping** when required instead of `...` truncation.
+
+The owner clarification applies to meaningful generated content such as character metadata, attacks, traits, resources/options and equipment identities. The renderer should preserve the complete semantic identity and allow the record/row to grow as needed.
+
+### Page count is evidence, not a numeric target
+
+There is **no fixed minimum or maximum page-count requirement** and no requirement that Fantasy specifically equal the previously claimed 29 pages.
+
+The 45-page runtime output is evidence of bad space allocation, pagination and page design because many pages are mostly empty or retain exhausted scaffolds. The acceptance rule is efficient, readable use of physical space; page count should fall out of correct layout rather than become an optimization target.
+
+### Repair-process requirement — no code before understanding the real QA
+
+The owner requires a strict process rule:
+
+**No fix may begin before the real QA result has been reviewed in detail.**
+
+This 50800 re-QA reproduced essentially the same failures as the prior QA, plus a worse Custom-v1 generation regression. Therefore the prior “repair” did not demonstrate that it addressed the owner's actual problems.
+
+For future repairs:
+
+1. inspect the actual failing artifact/output first;
+2. restate every owner observation and intended result;
+3. use existing approved/native elements as references wherever they already solve the design problem;
+4. only then design and implement the fix;
+5. after implementation, inspect the actual candidate output against the same original observations before calling the repair complete or asking the owner to re-QA.
+
+Coding, green CI, changed page counts or synthetic proofs are not substitutes for this source-observation review.
+
 ## Fantasy — owner observations confirmed and expanded
 
 ### Underused physical space / packing failure
@@ -216,13 +312,17 @@ Before new layout implementation:
 
 1. establish exactly which commit/artifact produced the APK actually installed by the owner;
 2. compare its Android runtime renderer source against the prior repair branch;
-3. reopen the original 2026-09-26 defect checkpoint as the acceptance ledger;
-4. map every original observation plus the new Fantasy/Custom-v1 regressions to:
+3. reopen the original 2026-09-26 defect checkpoint **and this clarified 2026-09-28 checkpoint** as the acceptance ledger;
+4. inspect the real 50800 runtime outputs and restate every original observation plus these owner clarifications before changing repair code;
+5. map every observation plus the Fantasy/Custom-v1 regressions to:
    - responsible implementation surface;
+   - the existing approved/native visual component that should be reused when one exists;
    - automated regression;
    - exact runtime candidate evidence;
-5. generate a **new uniquely versioned owner candidate**; never reuse `50800`;
-6. run generation smoke on all four families with real Mara before owner handoff;
-7. verify the owner-facing runtime outputs match the repaired expectations before asking for another manual visual pass.
+6. do not start implementation while any expected result remains materially ambiguous;
+7. generate a **new uniquely versioned owner candidate**; never reuse `50800`;
+8. run generation smoke on all four families with real Mara before owner handoff;
+9. inspect the actual generated candidate PDFs/output against the full acceptance ledger, not merely CI/proof summaries;
+10. verify every original observation as FIXED/OPEN/CHANGED before asking the owner for another manual visual pass.
 
 The next owner QA APK must have a unique versionName/versionCode and exact commit/artifact provenance.

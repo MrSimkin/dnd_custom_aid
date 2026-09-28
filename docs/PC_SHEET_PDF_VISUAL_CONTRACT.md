@@ -91,6 +91,90 @@ Extended Run 7 remains the authority:
 - Clase/Dotes and Raza/Trasfondo/Otros content uses consecutive measured source rows without gratuitous empty bands;
 - Equipment continuation reuses the v2 Equipment grammar and expands by native columns/pages.
 
+## Owner-confirmed continuation/reuse rules — 2026-09-28
+
+The following rules were clarified directly by owner review of the real Mara `0.5.0-preqa.8 / 50800` runtime outputs. They are durable product/visual requirements for future PC-sheet repair work.
+
+### Reuse proven native/source components before inventing new Extended components
+
+When the base/approved sheet already contains a component that correctly represents the same semantic content, Extended/continuation rendering must use that component's approved visual grammar as the first reference.
+
+Do not invent a generic substitute merely because the content is on an Extended page.
+
+This applies explicitly to:
+
+- Custom-v2 attributes/custom statistics;
+- ordinary Equipment;
+- Equipo Especial;
+- Notes.
+
+A continuation may extend capacity, add rows/columns or adapt pagination, but should remain recognizably the same approved component unless the owner explicitly approves a redesign.
+
+### Custom-v2 custom attributes
+
+The Custom-v2 page-1 attribute area already demonstrates six attributes using the approved source-native font, size, ornament and layout grammar.
+
+Custom Statistics must reuse that same grammar and capacity logic. Four Mara custom attributes should fit together in the native-scale presentation; a three-card bespoke layout is not an acceptable substitute.
+
+Never paint empty/fake attribute shells for unused capacity.
+
+### Trait ordering
+
+Trait/feature presentation is intentionally **category-grouped**. Global numeric fixture order is not required across categories.
+
+Within each category, preserve coherent record order and semantic boundaries.
+
+### Ordinary Equipment
+
+Ordinary Equipment is a compact identity/list problem, not a prose-description page family.
+
+Reuse the existing base Equipment grammar. Prefer compact item identities such as `3 x Frasco de tinta` plus only genuinely useful compact state/weight information.
+
+Do not create long descriptive Inventory pages merely because stress-fixture metadata contains descriptions. Avoid mechanically exposing metadata such as `Consumible` unless it is useful and belongs in the intended player-facing equipment representation.
+
+### Equipo Especial
+
+Reuse the existing native/source Equipo Especial element rather than constructing an unrelated Extended table.
+
+Additional/custom locations must be supported as legitimate entries/rows without overprinting canonical source labels.
+
+### Notes
+
+Reuse the existing Notes sheet/module grammar for overflow Notes; do not invent a separate generic Extended Notes visual family.
+
+At minimum:
+
+- emphasize the note identity such as `Nota N` (for example bold);
+- leave a visible line/row separation between note records;
+- preserve note identity across page continuations;
+- consume available Notes rows/columns before adding another page.
+
+### Portrait/name ribbon
+
+Center the character name horizontally and vertically inside the existing portrait ribbon.
+
+If the name does not fit cleanly on one line, use two centered lines rather than clipping, shifting or excessive compression.
+
+### Semantic names
+
+Meaningful generated identities must **wrap rather than ellipsize** when they need additional horizontal space.
+
+Rows/records may grow in height to preserve the complete semantic identity.
+
+### Adaptive continuation packing and page count
+
+There is no fixed target page count.
+
+Continuation layout must:
+
+1. allocate physical space according to streams that still contain content;
+2. let surviving streams reclaim space from exhausted sibling sections;
+3. stop repeating empty scaffolds;
+4. preserve semantic record boundaries while repacking;
+5. create another page only when remaining content actually requires it.
+
+A high page count is a defect signal only when it is caused by poor layout/packing, not because it exceeds a numeric threshold.
+
 ## How owner review must be classified
 
 When owner feedback repeats one of the rules above, record it as:
