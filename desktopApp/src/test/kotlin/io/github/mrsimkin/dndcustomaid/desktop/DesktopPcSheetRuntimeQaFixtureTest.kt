@@ -277,6 +277,28 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     normalized.contains("Frasco de tinta que recuerda"),
                     "$family must preserve recognizable ordinary item identity in the native Equipment module",
                 )
+                assertTrue(
+                    normalized.contains("mapas plegables 29"),
+                    "$family must preserve the final Special Equipment item instead of dropping overflow",
+                )
+                assertTrue(
+                    normalized.contains("Bolsa lateral"),
+                    "$family must preserve custom Special Equipment locations",
+                )
+                if (
+                    family == PcSheetVisualFamily.CUSTOM_V1 ||
+                    family == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ||
+                    family == PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY
+                ) {
+                    assertTrue(
+                        !normalized.contains("INVENTARIO / EQUIPO"),
+                        "$family must reuse the native Equipment page instead of the rejected generic inventory layout",
+                    )
+                    assertTrue(
+                        normalized.contains("Descripción suficientemente larga del objeto 1."),
+                        "$family must preserve Special Equipment descriptions in the native module",
+                    )
+                }
             }
         }
     }
