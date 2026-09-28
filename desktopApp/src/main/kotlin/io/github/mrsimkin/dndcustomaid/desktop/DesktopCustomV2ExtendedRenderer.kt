@@ -1311,7 +1311,6 @@ internal class DesktopCustomV2ExtendedRenderer(
             val usage = usageByItem[item.id]
             val baseDetail = buildList {
                 if (item.quantity != 1) add("Cant. " + item.quantity)
-                item.weightLb?.let { add(formatInventoryWeight(it)) }
                 if (item.attuned) add("Sintonizado")
                 item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
@@ -1493,7 +1492,6 @@ internal class DesktopCustomV2ExtendedRenderer(
                 }
                 textAboveRule(s, resources.fira, Rule(103f, 297f, y), inventoryContinuationLabel(item), 8.8f, 7.2f, 2.3f)
                 val detail = buildList {
-                    item.weightLb?.let { add(formatInventoryWeight(it)) }
                     if (item.attuned) add("Sintonizado")
                     addAll(inventoryUsageLabels(usageByItem[item.id]))
                 }.joinToString(" · ")
@@ -1586,7 +1584,7 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private fun usageMeaningful(usage: CharacterInventoryUsage?): Boolean =
         usage != null && (
-            usage.kind != CharacterConsumableKind.NONE ||
+            usage.kind == CharacterConsumableKind.AMMUNITION ||
                 usage.quickUseAmount != 1 ||
                 usage.carryState != CharacterInventoryCarryState.CARRIED
             )
@@ -1597,20 +1595,13 @@ internal class DesktopCustomV2ExtendedRenderer(
         return buildList {
             when (usage.kind) {
                 CharacterConsumableKind.NONE -> Unit
-                CharacterConsumableKind.CONSUMABLE -> add("Consumible")
+                CharacterConsumableKind.CONSUMABLE -> Unit
                 CharacterConsumableKind.AMMUNITION -> add("Munición")
             }
             if (usage.quickUseAmount != 1) add("Uso rápido " + usage.quickUseAmount)
             if (usage.carryState == CharacterInventoryCarryState.STORED) add("Almacenado")
         }
     }
-
-    private fun formatInventoryWeight(weightLb: Double): String =
-        "Peso " + if (weightLb % 1.0 == 0.0) {
-            weightLb.toInt().toString() + " lb"
-        } else {
-            weightLb.toString() + " lb"
-        }
 
     private fun pageCount(size: Int, capacity: Int): Int =
         if (size <= 0) 0 else (size + capacity - 1) / capacity
