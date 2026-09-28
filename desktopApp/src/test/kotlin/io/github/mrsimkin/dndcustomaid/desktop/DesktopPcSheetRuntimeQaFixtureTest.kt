@@ -186,6 +186,88 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     }
 
     @Test
+    fun maraCustomV1GeneratesWithoutExcessiveSourceLabelCompression() {
+        val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(
+                permanent = PcSheetExportAggregate(
+                    sheet = document.character,
+                    closure = document.closureState,
+                    successor = document.successorState,
+                ),
+            ),
+        )
+
+        val bytes = ByteArrayOutputStream().use { output ->
+            DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+            output.toByteArray()
+        }
+
+        assertTrue(bytes.size > 20_000)
+        Loader.loadPDF(bytes).use { pdf ->
+            val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+            assertTrue(normalized.contains("Mara de los Siete Umbrales"))
+            assertTrue(normalized.contains("Lectura de presagios"))
+        }
+    }
+
+    @Test
+    fun maraOrdinaryEquipmentProjectionOmitsWeightConsumibleAndDescriptionsAcrossFamilies() {
+        val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+        val families = listOf(
+            PcSheetVisualFamily.CLASSIC_DND_STYLE,
+            PcSheetVisualFamily.CUSTOM_V1,
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
+        )
+
+        families.forEach { family ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(
+                    permanent = PcSheetExportAggregate(
+                        sheet = document.character,
+                        closure = document.closureState,
+                        successor = document.successorState,
+                    ),
+                ),
+            )
+
+            val bytes = ByteArrayOutputStream().use { output ->
+                DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+                output.toByteArray()
+            }
+
+            Loader.loadPDF(bytes).use { pdf ->
+                val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+                assertTrue(
+                    !normalized.contains("Consumible"),
+                    "$family must not project Consumible into Equipment",
+                )
+                assertTrue(
+                    !Regex("""\b\d+(?:[.,]\d+)?\s*lb\b""").containsMatchIn(normalized),
+                    "$family must not project equipment weight values",
+                )
+                assertTrue(
+                    !normalized.contains("Descripción suficientemente larga del objeto 2"),
+                    "$family must not project ordinary Equipment prose descriptions",
+                )
+                assertTrue(
+                    normalized.contains("2 x Frasco de tinta que recuerda la última palabra escrita 2"),
+                    "$family must preserve compact quantity + item identity",
+                )
+            }
+        }
+    }
+
+    @Test
     fun maraCustomV2FamiliesMicroFitSourceLabelsAndPreserveExtendedContent() {
         val document = fixture("03_mara_siete_umbrales_custom_extended.json")
         val families = listOf(
