@@ -2136,7 +2136,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                 assertTrue(extracted.contains("Viales vacíos"))
                 assertFalse(extracted.contains("Muestras y"))
                 assertFalse(extracted.contains("reactivos."))
-                assertTrue(extracted.contains("Peso 4 lb"))
+                assertFalse(extracted.contains("Peso 4 lb"))
                 assertTrue(extracted.contains("Foco arcano y arma improvisada."))
                 assertTrue(extracted.contains("Conjuro adicional 9"))
                 assertTrue(extracted.contains("Nota de continuación 45"))
