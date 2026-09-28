@@ -1239,8 +1239,8 @@ internal class AndroidCustomV1ExtendedRenderer(
                         Rule(240.803f, 583.795f, y),
                         detail,
                         preferredSize = 8.0f,
-                        maximumLines = 2,
-                        lineStep = 7.0f,
+                        maximumLines = 3,
+                        lineStep = 5.8f,
                     )
                 }
             }
