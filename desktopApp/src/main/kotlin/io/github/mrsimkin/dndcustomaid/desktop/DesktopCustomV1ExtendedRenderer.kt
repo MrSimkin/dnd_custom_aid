@@ -1941,16 +1941,20 @@ internal class DesktopCustomV1ExtendedRenderer(
         maximumWidth: Float,
     ) {
         if (value.isBlank()) return
-        val size = 10f
-        val rawWidth = textWidth(font, value, size)
-        val scale = minOf(SOURCE_LABEL_HORIZONTAL_SCALE, maximumWidth / rawWidth * 100f)
-        require(scale >= MINIMUM_LABEL_HORIZONTAL_SCALE - SOURCE_LABEL_MICRO_FIT_DELTA) {
-            "Custom-v1 source-matched label requires excessive compression: '$value' ($scale%)"
+        val preferredSize = 10f
+        val preferredRawWidth = textWidth(font, value, preferredSize)
+        val requiredScaleAtPreferredSize = maximumWidth / preferredRawWidth * 100f
+        val fittedSize = minOf(
+            preferredSize,
+            preferredSize * requiredScaleAtPreferredSize / SOURCE_LABEL_HORIZONTAL_SCALE,
+        )
+        require(fittedSize >= MINIMUM_SOURCE_LABEL_SIZE) {
+            "Custom-v1 source-matched label does not fit legibly: '${value}' (${fittedSize}pt)"
         }
         s.beginText()
         s.setNonStrokingColor(Color.BLACK)
-        s.setFont(font, size)
-        s.setHorizontalScaling(scale)
+        s.setFont(font, fittedSize)
+        s.setHorizontalScaling(SOURCE_LABEL_HORIZONTAL_SCALE)
         s.newLineAtOffset(x, H - baselineTop)
         s.showText(value)
         s.setHorizontalScaling(100f)
@@ -2520,8 +2524,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val STAT_SECTION_STEP = 22f
 
         const val SOURCE_LABEL_HORIZONTAL_SCALE = 60f
-        const val MINIMUM_LABEL_HORIZONTAL_SCALE = 50f
-        const val SOURCE_LABEL_MICRO_FIT_DELTA = 2f
+        const val MINIMUM_SOURCE_LABEL_SIZE = 7.8f
         const val SOURCE_LABEL_BASELINE_OFFSET = 3.0f
         const val MINIMUM_BODY_SIZE = 5.8f
         const val COMBAT_MINIMUM_HORIZONTAL_SCALE = 55f
