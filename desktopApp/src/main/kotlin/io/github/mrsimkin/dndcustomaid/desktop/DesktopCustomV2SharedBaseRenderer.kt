@@ -164,6 +164,7 @@ internal class DesktopCustomV2SharedBaseRenderer(
                     if (item.quantity != 1) add("Cant. " + item.quantity)
                     if (item.attuned) add("Sintonizado")
                     item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 }.joinToString(" · ")
                 val detailLines = wrapWords(
                     fonts.regular,
