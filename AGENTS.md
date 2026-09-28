@@ -109,6 +109,30 @@ adb pull "/sdcard/Download/<archivo>.pdf" "D:\DnD_Aid\PDF Check\"
 
 This is an owner-local QA convenience only; do not commit generated review PDFs or make this local path an application/runtime dependency.
 
+## 6.2 Owner-local Android QA APK naming and ADB boundary
+
+For owner-facing Android QA APK downloads, rename the extracted APK before presenting or retaining it locally so the filename includes the application identity, version/pre-QA identity and build/versionCode. Use this pattern:
+
+```text
+dnd-custom-aid-<versionName>-build-<versionCode>.apk
+```
+
+Example:
+
+```text
+dnd-custom-aid-0.5.0-preqa.8-build-50800.apk
+```
+
+Do not leave an owner-facing QA APK named only `androidApp-debug.apk` when giving download/preparation instructions.
+
+The owner does **not** use ADB to install QA APKs on either the physical phone or the emulator. Installation is owner-driven through normal device/emulator interaction (for example drag/drop on the emulator). Do not provide `adb install` as the normal QA installation step unless the owner explicitly asks for it.
+
+ADB remains appropriate for bounded QA support such as:
+
+- `adb push` to place fixture/import files in emulator/device-visible storage;
+- `adb pull` to retrieve generated PDFs or similar artifacts for review;
+- read-only inspection commands such as listing files or checking device connectivity when useful.
+
 ## 7. Secret handling
 
 Never request or commit passwords, OTPs, Cloudflare tokens, DB passwords, Neon connection strings, Descope/session/access/refresh JWTs, private keys, signing credentials, provider credential files or secret environment-variable values.
