@@ -75,19 +75,23 @@ internal class DesktopCustomV2SharedBaseRenderer(
     }
 
     private fun drawEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        val ordinary = plan.snapshot.aggregate.sheet.inventoryItems
+        val lines = plan.snapshot.aggregate.sheet.inventoryItems
             .sortedBy { it.sortOrder }
             .filterNot { it.special }
-            .take(EQUIPMENT_RULES.size * 2)
+            .flatMap { item ->
+                wrapWords(
+                    fonts.condensed,
+                    inventoryLabel(item).trim().split(Regex("\\s+")),
+                    7.0f,
+                    V2_EQUIPMENT_NATIVE_TEXT_WIDTH,
+                )
+            }
 
-        EQUIPMENT_RULES.forEachIndexed { row, y ->
-            ordinary.getOrNull(row * 2)?.let { item ->
-                textAboveRule(s, fonts.condensed, Rule(14f, 149.5f, y), inventoryLabel(item), 9.25f, 7.0f, 2.5f, 2f)
+        EQUIPMENT_RULES_COLUMN_MAJOR
+            .zip(lines.take(EQUIPMENT_RULES_COLUMN_MAJOR.size))
+            .forEach { (rule, line) ->
+                textAboveRule(s, fonts.condensed, rule, line, 7.0f, 7.0f, 2.5f, 2f)
             }
-            ordinary.getOrNull(row * 2 + 1)?.let { item ->
-                textAboveRule(s, fonts.condensed, Rule(156f, 291.5f, y), inventoryLabel(item), 9.25f, 7.0f, 2.5f, 2f)
-            }
-        }
     }
 
     private fun drawBackground(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
@@ -441,6 +445,11 @@ internal class DesktopCustomV2SharedBaseRenderer(
         const val SYMBOL_FONT = "fonts/owner/para-hoja-de-pj/v8/Para Hoja de PJ Symbols v8.ttf"
 
         val EQUIPMENT_RULES = List(23) { 114.5f + it * 17f }
+        val EQUIPMENT_RULES_COLUMN_MAJOR =
+            listOf(14f to 149.5f, 156f to 291.5f).flatMap { (startX, endX) ->
+                EQUIPMENT_RULES.map { y -> Rule(startX, endX, y) }
+            }
+        const val V2_EQUIPMENT_NATIVE_TEXT_WIDTH = 132f
         val BACKGROUND_RULES = listOf(114.5f, 131.5f, 148.5f).map { Rule(297.5f, 597.5f, it) }
         val BONDS_RULES = listOf(182.5f, 199.5f, 216.5f).map { Rule(297.5f, 597.5f, it) }
         val IDEALS_RULES = listOf(250.5f, 267.5f, 284.5f).map { Rule(297.5f, 597.5f, it) }

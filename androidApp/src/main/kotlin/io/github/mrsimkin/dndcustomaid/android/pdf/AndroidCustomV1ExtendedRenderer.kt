@@ -1075,11 +1075,11 @@ internal class AndroidCustomV1ExtendedRenderer(
         val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
         val ordinary = ordered.filterNot { it.special }
-        // The native Equipment block is authoritative. Long labels do not create a second
-        // inventory page; continuation begins only after the native row/column capacity is full.
+        // Native capacity is physical writing rows, not item count. Long identities consume
+        // additional native rows before any continuation is created.
         val ordinaryLines = ordinary
-            .drop(BASE_V1_EQUIPMENT_CAPACITY)
             .flatMap(::inventoryContinuationLines)
+            .drop(BASE_V1_EQUIPMENT_CAPACITY)
 
         val special = ordered.filter { it.special }
         // Same rule for Equipo Especial: metadata or a long label is not a reason to duplicate

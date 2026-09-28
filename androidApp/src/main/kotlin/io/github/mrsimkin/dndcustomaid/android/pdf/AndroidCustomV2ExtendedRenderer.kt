@@ -1292,11 +1292,11 @@ internal class AndroidCustomV2ExtendedRenderer(
         val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
         val ordinary = ordered.filterNot { it.special }
-        // Reuse the native two-column Equipment block until its real capacity is exhausted.
-        // Long names are handled by the native renderer; they do not allocate a new page.
+        // Native capacity is measured in physical writing rows. Long compact identities consume
+        // those rows before any Extended page is allocated.
         val ordinaryLines = ordinary
-            .drop(BASE_V2_EQUIPMENT_CAPACITY)
             .flatMap(::inventoryContinuationLines)
+            .drop(BASE_V2_EQUIPMENT_CAPACITY)
 
         val special = ordered.filter { it.special }
         // Do not duplicate native Equipo Especial rows because of metadata/label length.

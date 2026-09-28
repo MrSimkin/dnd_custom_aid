@@ -332,17 +332,26 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
     }
 
     private fun drawEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        plan.snapshot.aggregate.sheet.inventoryItems
+        val lines = plan.snapshot.aggregate.sheet.inventoryItems
             .sortedBy { it.sortOrder }
             .filterNot { it.special }
-            .take(EQUIPMENT_RULES.size)
-            .forEachIndexed { index, item ->
+            .flatMap { item ->
+                wrapByWidth(
+                    fonts.condensed,
+                    item.pdfCompactEquipmentLabel(),
+                    7.0f,
+                    EQUIPMENT_NATIVE_TEXT_WIDTH,
+                )
+            }
+        EQUIPMENT_RULES_COLUMN_MAJOR
+            .zip(lines.take(EQUIPMENT_RULES_COLUMN_MAJOR.size))
+            .forEach { (rule, line) ->
                 textAboveRule(
                     s,
                     fonts.condensed,
-                    EQUIPMENT_RULES[index],
-                    item.pdfCompactEquipmentLabel(),
-                    9.25f,
+                    rule,
+                    line,
+                    7.0f,
                     7.0f,
                     2.5f,
                     1.5f,
@@ -948,6 +957,10 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         val EQUIPMENT_Y = listOf(108.5f, 128.5f, 148.5f, 168f, 188f, 208f, 228f, 247.5f, 267.5f, 287.5f, 307f, 327f, 347f, 366.5f, 386.5f, 406.5f, 426f, 446f)
         val EQUIPMENT_COLS = listOf(27.5f to 137.5f, 169.937f to 300.331f, 311.669f to 442.063f)
         val EQUIPMENT_RULES = EQUIPMENT_Y.flatMap { y -> EQUIPMENT_COLS.map { (a, b) -> Rule(a, b, y) } }
+        val EQUIPMENT_RULES_COLUMN_MAJOR = EQUIPMENT_COLS.flatMap { (a, b) ->
+            EQUIPMENT_Y.map { y -> Rule(a, b, y) }
+        }
+        const val EQUIPMENT_NATIVE_TEXT_WIDTH = 106f
         const val CUSTOM_CURRENCY_ROWS = 2
         const val V1_NARRATIVE_NOTE_APPROX_CHARS = 48
         val CURRENCY_KINDS = listOf(
