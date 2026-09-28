@@ -38,6 +38,13 @@ A run is not complete merely because CI is green. Each entry must record:
 | OFFICIAL-001 | Official-like family | A future D&D-official-like family, if built, is a separate visual product gate and must actually resemble the official D&D sheet grammar. Fantasy Sheet does not satisfy or claim this. |
 | RUN-001 | Read every run | After every CI run, read the actual result/logs. Record what failed/passed and how each issue was addressed before another owner proof is promoted. |
 | GOLDEN-001 | Frozen evidence | Owner-approved proofs/renderers are the visual goldens. A later production render does not replace a golden merely by passing CI. |
+| PROC-002 | Pre-fix QA comprehension | No repair code may change until the real failing owner artifact/output has been reopened, each source observation restated, expected behavior identified and evidence mapped. |
+| REUSE-001 | Native/source component reuse | If an approved/native sheet component already represents the semantic family, Extended rendering reuses/copies and extends that grammar instead of inventing a generic replacement. |
+| PACK-001 | Adaptive continuation | Exhausted sibling streams stop reserving physical space; surviving content reclaims available rows/columns before a new page is created. Page count is not a numeric target. |
+| WRAP-001 | Semantic identity | Meaningful generated names wrap to additional lines rather than being silently ellipsized. |
+| EQUIP-001 | Ordinary Equipment | Reuse the existing Equipment element; ordinary Equipment PDF output shows compact item identity only and does not show weight, `Consumible` or prose descriptions. |
+| NOTES-001 | Notes continuation | Overflow Notes reuse the existing Notes grammar, preserve note identity/boundaries and consume available native rows/columns before another page. |
+| CAND-001 | Owner-candidate identity | Every materially different owner-facing QA binary has a unique version/build identity and exact commit/artifact provenance; never reuse a prior candidate identity. |
 
 ## Iteration history
 
@@ -281,3 +288,55 @@ Gate result:
 Approval checkpoint:
 
 `docs/checkpoints/2026-09-23_PC_SHEET_PDF_FINAL_VISUAL_OWNER_APPROVED.md`
+
+
+### Mara runtime QA 50800 — acceptance reset / pre-fix clarification
+
+- Date: 2026-09-28.
+- Owner-facing label: `0.5.0-preqa.8 / 50800`.
+- Result: **OWNER RE-QA FAIL / PRIOR REPAIR CLOSURE NOT ACCEPTED**.
+- Canonical parent checkpoint: `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`.
+- Detailed pre-fix matrix: `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`.
+
+Real runtime evidence:
+
+- Fantasy: 45 pages — SHA-256 `a4a5864dcb4a1d39570609e671ea860d2de440077bc8d6b62e5be22668909bf7`;
+- Custom v1: generation failure on `Lectura de presagios`;
+- Custom v2 · Atributo: 28 pages — SHA-256 `74ccaf54f29ef03f1d95724cc63728c05cd5f09ef3c22aaacd739dceb9ae6b96`;
+- Custom v2 · Habilidad: 27 pages — SHA-256 `bd0cc116031372526f0b160133598f8b69992d8936b1c3b383e35b300d2897a6`;
+- Custom-v1 failure screenshot SHA-256 `a39cd801b6b30c09462fe1f119e760f141215d47e92c7f5faa158fe0c5d3da34`.
+
+Decisive finding:
+
+- the prior claimed repair proof reported 29 / 18 / 16 / 15;
+- the owner runtime produced 45 / FAIL / 28 / 27;
+- the same major visual/layout defect classes from the previous owner QA remain visible;
+- Custom v1 is now blocked entirely;
+- therefore CI/proof closure did **not** demonstrate repair of the owner's actual runtime observations.
+
+Owner clarifications now frozen into the acceptance ledger:
+
+1. **Reuse first, do not reconstruct.** Existing native/source examples already exist for attributes, Traits/Rasgos, Trasfondo/Historia-style content, ordinary Equipment, Equipo Especial, Notes and similar modules. Extended must extend those components rather than invent new generic visual systems.
+2. **Custom Statistics:** page 1 already proves six attributes fit in the approved grammar. Mara's four custom attributes must fit together with the same design/font/size logic; no three-card limit and no phantom cards.
+3. **Traits:** category grouping is intentional; the defect is layout/scaffold waste and failure to reuse the existing trait grammar, not category order.
+4. **Ordinary Equipment:** reuse/copy the existing Equipment element and add native columns/rows/pages as capacity requires. Show compact identity such as `3 x Frasco de tinta`. **Do not show weight, `Consumible` or prose descriptions.**
+5. **Equipo Especial:** reuse/copy its existing native component; custom locations become legitimate rows/entries and must not overprint canonical labels.
+6. **Notes:** overflow must reuse the existing Notes sheet/module. At minimum emphasize `Nota N`, separate records by a visible line/row boundary, retain continuation identity and consume available Notes columns before another page.
+7. **Character name:** center horizontally and vertically inside the portrait ribbon; use two centered lines if needed.
+8. **Fantasy semantic identities:** wrap; do not use `...` truncation for meaningful generated content.
+9. **Page count:** there is no numeric minimum/maximum. 45 pages is evidence of poor allocation because space is wasted, not because 45 violates a threshold.
+10. **Process:** no repair code before detailed inspection of the real QA result; no owner handoff before actual candidate outputs are reviewed item-by-item against the same source ledger.
+
+Current status:
+
+- all runtime/layout items remain **OPEN** for the next candidate;
+- process rules PROC-002 / REUSE-001 / PACK-001 / WRAP-001 / EQUIP-001 / NOTES-001 / CAND-001 are now explicit repository authority;
+- historical photos are not required to begin the repair because the three real PDFs plus the Custom-v1 failure screenshot preserve the necessary evidence;
+- the next repair must start from the pre-fix acceptance matrix, not from the superseded repair closure.
+
+Next bounded action:
+
+- provenance/parity audit for the installed 50800 APK;
+- map every OPEN acceptance item to implementation surface + native reference + automated regression + actual-candidate evidence;
+- only then begin renderer code changes;
+- next owner candidate must use a new unique version/build identity and pass all-four-family real-Mara generation plus internal artifact review before owner QA.
