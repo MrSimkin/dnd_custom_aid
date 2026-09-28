@@ -1006,223 +1006,8 @@ internal class AndroidCustomV1ExtendedRenderer(
             }
         }
         appendLayer(page, "$prefix - MARKERS") { s ->
-            rows.forEachIndexed { index, row ->
-                val current = row.currentValue
-                val maximum = row.maximum
-                if (
-                    current != null &&
-                    maximum != null &&
-                    maximum in 1..RESOURCE_SYMBOL_MAXIMUM &&
-                    current in 0..maximum
-                ) {
-                    drawResourceCounter(
-                        s = s,
-                        font = resources.symbol,
-                        startX = 222f,
-                        centerTop = RESOURCE_FIRST_RULE_TOP + index * RESOURCE_STEP - RESOURCE_STEP / 2f,
-                        current = current,
-                        maximum = maximum,
-                    )
-                }
-            }
-
-            options.forEachIndexed { index, option ->
-                option.active?.let { active ->
-                    val ruleTop = OPTION_FIRST_RULE_TOP + index * OPTION_STEP
-                    drawV1TrainingBox(
-                        s = s,
-                        font = resources.symbol,
-                        centerX = 116f,
-                        centerTop = ruleTop - OPTION_STEP / 2f,
-                        training = if (active) Training.PROFICIENT else Training.NONE,
-                    )
-                }
-            }
-        }
-    }
-
-    private fun optionKindLabel(kind: CharacterClassOptionKind): String = when (kind) {
-        CharacterClassOptionKind.ARTIFICER_PLAN -> "Plan"
-        CharacterClassOptionKind.ARTIFICER_DEVICE -> "Dispositivo"
-        CharacterClassOptionKind.SUBCLASS_STATE -> "Subclase"
-        CharacterClassOptionKind.TECHNIQUE -> "Técnica"
-        CharacterClassOptionKind.METAMAGIC -> "Metamagia"
-        CharacterClassOptionKind.INVOCATION -> "Invocación"
-        CharacterClassOptionKind.PACT_CHOICE -> "Pacto"
-        CharacterClassOptionKind.OTHER -> "Otro"
-    }
-
-    private fun recoveryLabel(cadence: CharacterRecoveryCadence): String = when (cadence) {
-        CharacterRecoveryCadence.NONE -> ""
-        CharacterRecoveryCadence.SHORT_REST -> "Descanso corto"
-        CharacterRecoveryCadence.LONG_REST -> "Descanso largo"
-        CharacterRecoveryCadence.SHORT_OR_LONG_REST -> "Descanso corto/largo"
-        CharacterRecoveryCadence.MANUAL -> "Manual"
-    }
-
-    private fun recoveryAmountLabel(
-        mode: CharacterRecoveryAmountMode,
-        fixedAmount: Int?,
-    ): String = when (mode) {
-        CharacterRecoveryAmountMode.NONE -> ""
-        CharacterRecoveryAmountMode.TO_MAX -> "A máximo"
-        CharacterRecoveryAmountMode.FIXED -> fixedAmount?.let { "+$it" } ?: "Cantidad fija"
-    }
-
-    private fun appendInventoryExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val aggregate = plan.snapshot.aggregate
-        val sheet = aggregate.sheet
-        val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
-        val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
-        val ordinary = ordered.filterNot { it.special }
-        // Native capacity is physical writing rows, not item count. Long identities consume
-        // additional native rows before any continuation is created.
-        val ordinaryLines = ordinary
-            .flatMap(::inventoryContinuationLines)
-            .drop(BASE_V1_EQUIPMENT_CAPACITY)
-
-        val special = ordered.filter { it.special }
-        // Same rule for Equipo Especial: metadata or a long label is not a reason to duplicate
-        // an item onto an Extended page while it still fits the native module.
-        val specialContinuation = special.drop(BASE_V1_SPECIAL_CAPACITY)
-
-        val treasure = buildList {
-            sheet.currencies
-                .filter { !it.isDefault && it.standardCurrencyKindOrNull() == null }
-                .sortedBy { it.sortOrder }
-                .drop(BASE_V1_CUSTOM_CURRENCY_CAPACITY)
-                .forEach { currency ->
-                    add(TreasureEntry("${currency.name}: ${currency.amount}", null))
-                }
-            aggregate.successor.preferences.valuablesText
-                .split(';')
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-                .drop(BASE_V1_VALUABLE_CAPACITY)
-                .map(::parseValuable)
-                .forEach(::add)
-        }
-
-        if (ordinaryLines.isEmpty() && specialContinuation.isEmpty() && treasure.isEmpty()) return
-
-        val pages = maxOf(
-            pageCount(ordinaryLines.size, INVENTORY_ORDINARY_CAPACITY),
-            pageCount(treasure.size, INVENTORY_TREASURE_CAPACITY),
-            pageCount(specialContinuation.size, INVENTORY_SPECIAL_CAPACITY),
-        )
-        repeat(pages) { pageIndex ->
-            val page = PDPage(PDRectangle(W, H))
-            document.addPage(page)
-            renderInventoryPage(
-                page = page,
-                ordinary = ordinaryLines.pageSlice(pageIndex, INVENTORY_ORDINARY_CAPACITY),
-                treasure = treasure.pageSlice(pageIndex, INVENTORY_TREASURE_CAPACITY),
-                special = specialContinuation.pageSlice(pageIndex, INVENTORY_SPECIAL_CAPACITY),
-                usageByItem = usageByItem,
-                pageIndex = pageIndex,
-            )
-        }
-    }
-
-    private fun renderInventoryPage(
-        page: PDPage,
-        ordinary: List<String>,
-        treasure: List<TreasureEntry>,
-        special: List<CharacterInventoryItem>,
-        usageByItem: Map<kotlin.uuid.Uuid, CharacterInventoryUsage>,
-        pageIndex: Int,
-    ) {
-        val prefix = "V1X INVENTORY P${pageIndex + 1}"
-        val positionedSpecial = positionedSpecialItems(special, INVENTORY_SPECIAL_CAPACITY)
-
-        appendLayer(page, "$prefix - STRUCTURE") { s ->
-            s.drawForm(resources.forms[1])
-        }
-        appendLayer(page, "$prefix - CLEANUP") { }
-        // The source sheet already identifies this as the Equipment page. Do not add a second
-        // heading/subtitle: it collided with the approved "Equipo" title and made the continuation
-        // look like a different layout instead of another native page.
-        appendLayer(page, "$prefix - LABELS") { }
-        appendLayer(page, "$prefix - VALUES") { s ->
-            ordinary.forEachIndexed { index, value ->
-                // Preserve natural paper reading order: fill one column top-to-bottom before
-                // continuing in the next column, so wrapped metadata for one item stays together.
-                val row = index % INVENTORY_ORDINARY_RULES.size
-                val column = index / INVENTORY_ORDINARY_RULES.size
-                val (startX, endX) = INVENTORY_ORDINARY_COLUMNS[column]
-                ruleText(
-                    s,
-                    resources.condensed,
-                    Rule(startX, endX, INVENTORY_ORDINARY_RULES[row]),
-                    value,
-                    8.4f,
-                )
-            }
-
-            treasure.forEachIndexed { index, entry ->
-                val y = INVENTORY_TREASURE_RULES[index]
-                ruleText(
-                    s,
-                    resources.fira,
-                    Rule(453.402f, 546.945f, y),
-                    entry.label,
-                    8.2f,
-                )
-                entry.value?.let { value ->
-                    ruleText(
-                        s,
-                        resources.fira,
-                        Rule(549.779f, 583.795f, y),
-                        value,
-                        8.2f,
-                    )
-                }
-            }
-
-            positionedSpecial.forEach { (rowIndex, item) ->
-                val y = INVENTORY_SPECIAL_RULES[rowIndex]
-                val expectedLocationRow = specialLocationRow(item.location)
-                if (expectedLocationRow != rowIndex) {
-                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { location ->
-                        ruleText(
-                            s,
-                            resources.fira,
-                            Rule(25f, 120f, y),
-                            location,
-                            8.0f,
-                        )
-                    }
-                }
-                ruleTextWrapped(
-                    s,
-                    resources.fira,
-                    Rule(126f, 238f, y),
-                    inventoryContinuationLabel(item),
-                    preferredSize = 8.2f,
-                    maximumLines = 2,
-                    lineStep = 7.2f,
-                )
-                val detail = specialInventoryDetail(item, usageByItem[item.id])
-                if (detail.isNotEmpty()) {
-                    ruleTextWrapped(
-                        s,
-                        resources.fira,
-                        Rule(240.803f, 583.795f, y),
-                        detail,
-                        preferredSize = 8.0f,
-                        maximumLines = 3,
-                        lineStep = 5.8f,
-                    )
-                }
-            }
-        }
-        appendLayer(page, "$prefix - MARKERS") { s ->
-            positionedSpecial.forEach { (rowIndex, item) ->
-                if (item.equipped || item.attuned) {
-                    val y = INVENTORY_SPECIAL_RULES[rowIndex]
-                    // The imported v1 equipment template already contains the empty checkbox.
-                    // Overlay only the approved v8 check glyph; drawing another square creates a
-                    // visually double-boxed marker and shifts the perceived center.
+            special.forEachIndexed { rowIndex, row ->
+                if (row.marked) {
                     approvedV8Marker(
                         s = s,
                         font = resources.symbol,
@@ -1233,6 +1018,48 @@ internal class AndroidCustomV1ExtendedRenderer(
                 }
             }
         }
+    }
+
+    private fun specialEquipmentRows(plan: PcSheetPdfRenderPlan): List<SpecialEquipmentRow> =
+        plan.snapshot.aggregate.sheet.inventoryItems
+            .sortedBy { it.sortOrder }
+            .filter { it.special }
+            .flatMap { item ->
+                val locationLines = wrapByWidth(item.location.orEmpty(), resources.fira, 7.2f, 80f)
+                    .ifEmpty { listOf("") }
+                val nameLines = wrapByWidth(item.name, resources.fira, 7.4f, 108f)
+                    .ifEmpty { listOf("") }
+                val detailText = buildList {
+                    if (item.quantity != 1) add("Cant. " + item.quantity)
+                    if (item.attuned) add("Sintonizado")
+                    item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                }.joinToString(" · ")
+                val detailLines = wrapByWidth(detailText, resources.fira, 7.2f, 340f)
+                    .ifEmpty { listOf("") }
+                val rowCount = maxOf(locationLines.size, nameLines.size, detailLines.size, 1)
+                (0 until rowCount).map { index ->
+                    SpecialEquipmentRow(
+                        location = locationLines.getOrNull(index).orEmpty(),
+                        name = nameLines.getOrNull(index).orEmpty(),
+                        detail = detailLines.getOrNull(index).orEmpty(),
+                        marked = index == 0 && (item.equipped || item.attuned),
+                    )
+                }
+            }
+
+    private fun clearSpecialLocationCell(s: PDFormContentStream, ruleTop: Float) {
+        val bottom = H - ruleTop
+        s.saveGraphicsState()
+        s.setNonStrokingColor(Color.WHITE)
+        s.addRect(25f, bottom + 0.7f, 83f, 14.8f)
+        s.fill()
+        s.setStrokingColor(Color.BLACK)
+        s.setLineWidth(0.45f)
+        s.moveTo(25f, bottom)
+        s.lineTo(108f, bottom)
+        s.stroke()
+        s.restoreGraphicsState()
     }
 
     private fun inventoryContinuationLabel(item: CharacterInventoryItem): String = buildString {
@@ -2267,6 +2094,13 @@ internal class AndroidCustomV1ExtendedRenderer(
         val notes: String,
     )
 
+    private data class SpecialEquipmentRow(
+        val location: String,
+        val name: String,
+        val detail: String,
+        val marked: Boolean,
+    )
+
     private data class TreasureEntry(
         val label: String,
         val value: String?,
@@ -2485,7 +2319,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         const val COMBAT_ROW_STEP = 42f
         const val COMBAT_TEXT_WIDTH = 556f
         const val BASE_V1_EQUIPMENT_CAPACITY = 54
-        const val BASE_V1_SPECIAL_CAPACITY = 12
+        const val BASE_V1_SPECIAL_CAPACITY = 13
         const val BASE_V1_VALUABLE_CAPACITY = 4
         const val BASE_V1_CUSTOM_CURRENCY_CAPACITY = 2
         const val INVENTORY_ORDINARY_CAPACITY = 54
