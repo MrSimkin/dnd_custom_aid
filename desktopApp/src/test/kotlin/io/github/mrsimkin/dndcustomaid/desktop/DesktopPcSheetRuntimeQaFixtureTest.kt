@@ -218,6 +218,7 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     @Test
     fun maraOrdinaryEquipmentProjectionOmitsWeightConsumibleAndDescriptionsAcrossFamilies() {
         val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val families = listOf(
             PcSheetVisualFamily.CLASSIC_DND_STYLE,
             PcSheetVisualFamily.CUSTOM_V1,
@@ -244,6 +245,10 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
                 output.toByteArray()
             }
+            File(
+                proofDir,
+                "mara-50800-phase1-${family.name.lowercase()}.pdf",
+            ).writeBytes(bytes)
 
             Loader.loadPDF(bytes).use { pdf ->
                 val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
