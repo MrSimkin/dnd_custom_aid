@@ -1301,7 +1301,7 @@ private fun classicInventoryRows(
             InventoryRow(
                 quantity = item.quantity.toString(),
                 name = classicSingleLineExcerpt(item.name, CLASSIC_INVENTORY_ROW_NAME_CHARS),
-                weight = item.weightLb?.let(::formatWeight).orEmpty(),
+                weight = "",
                 state = "",
                 notes = "",
             ),
