@@ -1154,9 +1154,7 @@ internal class DesktopClassicRenderer {
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
         val baseIds = ordered.take(BASE_EQUIPMENT_CAPACITY).mapTo(mutableSetOf()) { it.id }
 
-        val specialItems = ordered.filter { item ->
-            item.special || item.attuned
-        }
+        val specialItems = ordered.filter { item -> item.special }
         val specialIds = specialItems.mapTo(mutableSetOf()) { it.id }
 
         val ordinaryRows = ordered

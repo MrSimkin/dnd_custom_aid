@@ -1972,26 +1972,33 @@ internal class DesktopCustomV1ExtendedRenderer(
         if (value.isBlank()) return
         val available = rule.endX - rule.startX - leftPadding - 1f
         var size = preferredSize
-        while (size > MINIMUM_BODY_SIZE && textWidth(font, value, size) > available) {
+        var lines = wrapByWidth(value, font, size, available)
+        while (
+            size > MINIMUM_BODY_SIZE &&
+            (lines.size > COMBAT_MAX_LINES_PER_CELL || lines.any { textWidth(font, it, size) > available })
+        ) {
             size -= 0.2f
+            lines = wrapByWidth(value, font, size, available)
         }
-        val rawWidth = textWidth(font, value, size)
-        val horizontalScale = if (rawWidth <= available) {
-            100f
-        } else {
-            (available / rawWidth * 100f).coerceAtMost(100f)
+        require(
+            lines.size <= COMBAT_MAX_LINES_PER_CELL &&
+                lines.all { textWidth(font, it, size) <= available + 0.05f },
+        ) {
+            "Custom-v1 combat cell does not fit legibly: '$value'"
         }
-        require(horizontalScale >= COMBAT_MINIMUM_HORIZONTAL_SCALE) {
-            "Custom-v1 combat cell requires excessive compression: '$value' ($horizontalScale%)"
+
+        lines.forEachIndexed { index, line ->
+            val lineFromBottom = lines.lastIndex - index
+            s.beginText()
+            s.setNonStrokingColor(Color.BLACK)
+            s.setFont(font, size)
+            s.newLineAtOffset(
+                rule.startX + leftPadding,
+                H - rule.topY + 3.2f + lineFromBottom * COMBAT_CELL_LINE_STEP,
+            )
+            s.showText(line)
+            s.endText()
         }
-        s.beginText()
-        s.setNonStrokingColor(Color.BLACK)
-        s.setFont(font, size)
-        s.setHorizontalScaling(horizontalScale)
-        s.newLineAtOffset(rule.startX + leftPadding, H - rule.topY + 3.2f)
-        s.showText(value)
-        s.setHorizontalScaling(100f)
-        s.endText()
     }
 
     private fun ruleText(
@@ -2527,7 +2534,8 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val MINIMUM_SOURCE_LABEL_SIZE = 7.8f
         const val SOURCE_LABEL_BASELINE_OFFSET = 3.0f
         const val MINIMUM_BODY_SIZE = 5.8f
-        const val COMBAT_MINIMUM_HORIZONTAL_SCALE = 55f
+        const val COMBAT_MAX_LINES_PER_CELL = 3
+        const val COMBAT_CELL_LINE_STEP = 8.5f
 
         val SOURCE_GRAY = Color(211, 210, 210)
 
