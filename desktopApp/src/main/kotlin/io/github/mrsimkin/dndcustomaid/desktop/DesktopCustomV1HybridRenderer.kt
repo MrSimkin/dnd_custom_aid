@@ -441,13 +441,6 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             )
             val detail = buildList {
                 if (item.quantity != 1) add("Cant. " + item.quantity)
-                item.weightLb?.let { weight ->
-                    add(
-                        "Peso " +
-                            if (weight % 1.0 == 0.0) weight.toInt().toString() + " lb"
-                            else weight.toString() + " lb",
-                    )
-                }
                 if (item.attuned) add("Sintonizado")
                 if (specialLocationNeedsText(item.location)) {
                     item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Ubicación: " + it) }
