@@ -1323,7 +1323,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         }
 
         val equipmentContinuationLines = ordinaryLines
-        val specialRows = specialInventoryRows(specialContinuation, usageByItem) + specialDetailLines
+        val specialRows = specialInventoryRows(specialContinuation, usageByItem)
 
         val nativeV2Kinds = setOf(
             StandardCurrencyKind.PLATINUM,
