@@ -104,13 +104,15 @@ internal class AndroidCustomV2SharedBaseRenderer(
     }
 
     private fun drawSpecialEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        val special = plan.snapshot.aggregate.sheet.inventoryItems
-            .sortedBy { it.sortOrder }
-            .filter { it.special }
-
-        positionedSpecialItems(special, SPECIAL_RULE_Y.size).forEach { (rowIndex, item) ->
+        val rows = specialEquipmentRows(plan).take(SPECIAL_RULE_Y.size)
+        rows.forEachIndexed { rowIndex, row ->
             val y = SPECIAL_RULE_Y[rowIndex]
-            if (item.equipped || item.attuned) {
+
+            // A used row owns its location cell. Clear the source's preprinted canonical label
+            // so custom locations and continuation rows never overprint source text.
+            clearLocationValueCell(s, y)
+
+            if (row.marked) {
                 glyphInRect(
                     s,
                     fonts.symbol,
@@ -122,24 +124,62 @@ internal class AndroidCustomV2SharedBaseRenderer(
                     opticalY = -0.7f,
                 )
             }
-            // Native rows already contain the approved body-location label. Preserve that
-            // source typography instead of drawing a second label on top of it. Only fallback
-            // blank rows need an explicit location value.
-            if (rowIndex >= SPECIAL_LOCATION_LABELS.size) {
-                item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { location ->
-                    textAboveRule(s, fonts.regular, Rule(14f, 94f, y), location, 8.5f, 7.5f, 2.5f, 1f)
-                }
+            row.location.takeIf { it.isNotEmpty() }?.let {
+                textAboveRule(s, fonts.regular, Rule(14f, 94f, y), it, 8.2f, 7.2f, 2.5f, 1f)
             }
-            textAboveRule(s, fonts.regular, Rule(99f, 297f, y), item.name, 9.25f, 8.5f, 2.5f, 2f)
-            val detail = buildList {
-                if (item.quantity != 1) add("Cant. " + item.quantity)
-                if (item.attuned) add("Sintonizado")
-                item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            }.joinToString(" · ")
-            textAboveRule(s, fonts.regular, Rule(303f, 596f, y), detail, 9.25f, 8.5f, 2.5f, 2f)
+            row.name.takeIf { it.isNotEmpty() }?.let {
+                textAboveRule(s, fonts.regular, Rule(99f, 297f, y), it, 8.6f, 7.4f, 2.5f, 2f)
+            }
+            row.detail.takeIf { it.isNotEmpty() }?.let {
+                textAboveRule(s, fonts.regular, Rule(303f, 596f, y), it, 8.2f, 7.2f, 2.5f, 2f)
+            }
         }
     }
+
+    /**
+     * Reuse the native Special Equipment table as physical rows. A long player-facing
+     * description consumes subsequent rows of the same native module before any continuation
+     * page is considered.
+     */
+    private fun specialEquipmentRows(plan: PcSheetPdfRenderPlan): List<SpecialEquipmentRow> =
+        plan.snapshot.aggregate.sheet.inventoryItems
+            .sortedBy { it.sortOrder }
+            .filter { it.special }
+            .flatMap { item ->
+                val locationLines = wrapWords(
+                    fonts.regular,
+                    item.location.orEmpty().trim().split(Regex("\\s+")),
+                    7.2f,
+                    77f,
+                ).ifEmpty { listOf("") }
+                val nameLines = wrapWords(
+                    fonts.regular,
+                    item.name.trim().split(Regex("\\s+")),
+                    7.4f,
+                    194f,
+                ).ifEmpty { listOf("") }
+                val detailText = buildList {
+                    if (item.quantity != 1) add("Cant. " + item.quantity)
+                    if (item.attuned) add("Sintonizado")
+                    item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                }.joinToString(" · ")
+                val detailLines = wrapWords(
+                    fonts.regular,
+                    detailText.split(Regex("\\s+")),
+                    7.2f,
+                    289f,
+                ).ifEmpty { listOf("") }
+
+                val rowCount = maxOf(locationLines.size, nameLines.size, detailLines.size, 1)
+                (0 until rowCount).map { index ->
+                    SpecialEquipmentRow(
+                        location = if (index == 0) locationLines.joinToString(" ") else "",
+                        name = nameLines.getOrNull(index).orEmpty(),
+                        detail = detailLines.getOrNull(index).orEmpty(),
+                        marked = index == 0 && (item.equipped || item.attuned),
+                    )
+                }
+            }
 
     private fun clearLocationValueCell(s: PDFormContentStream, ruleTop: Float) {
         val ruleBottom = H - ruleTop
@@ -378,6 +418,13 @@ internal class AndroidCustomV2SharedBaseRenderer(
 
     private data class Rule(val startX: Float, val endX: Float, val topY: Float)
     private data class TopRect(val x: Float, val top: Float, val width: Float, val height: Float)
+    private data class SpecialEquipmentRow(
+        val location: String,
+        val name: String,
+        val detail: String,
+        val marked: Boolean,
+    )
+
     private data class SpellBlock(
         val level: Int,
         val totalRect: TopRect?,
