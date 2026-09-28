@@ -1,6 +1,6 @@
 # Project State — global repository navigation
 
-**Last reconstructed:** 2026-09-27 (Chile local time)  
+**Last reconstructed:** 2026-09-28 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified functional `main`:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — cross-family adaptive continuation repair is implemented and validated on `repair/pc-sheet-adaptive-continuations-cross-family`. Code/test head `ce695c40782e1847ed70a2256885b5b07113feae` passed Scaffold #4088 / `36354213574`; Mara proofs are Fantasy 29 / Custom v1 18 / Custom v2 Atributo 16 / Custom v2 Habilidad 15 pages. Worker visual preflight PASS. **Owner re-QA is the next boundary; no further fixes, Mara 3B, Current Snapshot, PR promotion or merge until the owner resumes QA or supplies new defect evidence.**
+**Current active package:** PC Sheet PDF Export — owner re-QA **FAILED** on the owner-facing `0.5.0-preqa.8 / 50800` label. Runtime outputs are Fantasy 45 pages, Custom v1 generation FAIL, Custom v2 Atributo 28 and Custom v2 Habilidad 27, contradicting the prior repair proof/closure of 29/18/16/15. The original 2026-09-26 defect checkpoint is reopened as the acceptance ledger. Next work is exact APK/source provenance and source-observation traceability audit before any new speculative visual repair or branch promotion. Current Snapshot and Media/Handouts remain blocked.**
 
 ### Superseding PDF visual state — 2026-09-20
 
