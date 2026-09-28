@@ -104,7 +104,8 @@ The owner requires the Android `Download` retrieval command to pull **everything
 
 ```powershell
 New-Item -ItemType Directory -Force -Path "D:\DnD_Aid\PDF Check" | Out-Null
-adb pull "/sdcard/Download/." "D:\DnD_Aid\PDF Check\"
+Set-Location "D:\DnD_Aid\PDF Check"
+adb pull "/sdcard/Download/." "."
 ```
 
 Use the bulk form by default because it is the owner's workable QA flow. Only narrow the pull if the owner explicitly asks to do so.
