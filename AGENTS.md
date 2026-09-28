@@ -136,6 +136,30 @@ ADB remains appropriate for bounded QA support such as:
 - `adb pull` to retrieve generated PDFs or similar artifacts for review;
 - read-only inspection commands such as listing files or checking device connectivity when useful.
 
+## 6.3 QA repair source-traceability and owner-candidate identity
+
+When implementation work is triggered by owner/QA observations, the **original observation source must remain the acceptance ledger for the entire fix**.
+
+Before changing code:
+
+1. reopen the exact owner/QA checkpoint, report, screenshots or artifact that triggered the fix;
+2. enumerate every original observation that is in scope;
+3. distinguish original observations from later independent findings;
+4. map each observation to the implementation surface and planned regression evidence.
+
+A repair must **not** be declared closed merely because CI is green, a derived proof looks improved, page count decreases, or a rewritten test passes. Every source observation stays OPEN until it has explicit evidence against the exact candidate being promoted. Do not silently replace, summarize away or forget source observations while iterating.
+
+If a cross-family repair was motivated by one stress fixture, regression must also guard the product-level invariant on every affected family. Before owner handoff, generation smoke must cover all affected owner-facing families and must include known previously-working paths so the repair cannot introduce a new export blocker elsewhere.
+
+Every materially different owner-facing QA binary must also have a **unique candidate identity**:
+
+- bump versionName/versionCode (or equivalent build identity) for every materially changed owner candidate;
+- never reuse an earlier owner-facing version/build number for a different binary;
+- record the exact source commit, CI/run, artifact ID and SHA-256 when available;
+- do not ask the owner to distinguish stale vs repaired binaries by filename alone.
+
+If runtime output materially disagrees with repository proof (for example page counts, visible layout class or generation success), stop speculative fixing and establish exact binary/source provenance first.
+
 ## 7. Secret handling
 
 Never request or commit passwords, OTPs, Cloudflare tokens, DB passwords, Neon connection strings, Descope/session/access/refresh JWTs, private keys, signing credentials, provider credential files or secret environment-variable values.
