@@ -430,13 +430,12 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
     }
 
     private fun drawSpecialEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        val special = plan.snapshot.aggregate.sheet.inventoryItems
-            .sortedBy { it.sortOrder }
-            .filter { it.special }
-
-        positionedSpecialItems(special, SPECIAL_RULE_Y.size).forEach { (rowIndex, item) ->
+        val rows = specialEquipmentRows(plan).take(SPECIAL_RULE_Y.size)
+        rows.forEachIndexed { rowIndex, row ->
             val y = SPECIAL_RULE_Y[rowIndex]
-            if (item.equipped || item.attuned) {
+            clearSpecialLocationCell(s, y)
+
+            if (row.marked) {
                 glyphInRect(
                     s,
                     fonts.symbol,
@@ -446,64 +445,60 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
                     0.6f,
                 )
             }
-            textAboveRule(
-                s, fonts.regular, Rule(127.5f, 210f, y),
-                item.name, 9.0f, 8.5f, 2.4f, 1.5f,
-            )
-            val detail = buildList {
-                if (item.quantity != 1) add("Cant. " + item.quantity)
-                if (item.attuned) add("Sintonizado")
-                if (specialLocationNeedsText(item.location)) {
-                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Ubicación: " + it) }
+            row.location.takeIf { it.isNotEmpty() }?.let {
+                textAboveRule(s, fonts.regular, Rule(25f, 108f, y), it, 7.2f, 7.2f, 2.4f, 1f)
+            }
+            row.name.takeIf { it.isNotEmpty() }?.let {
+                textAboveRule(s, fonts.regular, Rule(127.5f, 238f, y), it, 7.4f, 7.4f, 2.4f, 1.5f)
+            }
+            row.detail.takeIf { it.isNotEmpty() }?.let {
+                textAboveRule(s, fonts.regular, Rule(240.803f, 583.795f, y), it, 7.2f, 7.2f, 2.4f, 1.5f)
+            }
+        }
+    }
+
+    private fun specialEquipmentRows(plan: PcSheetPdfRenderPlan): List<SpecialEquipmentRow> =
+        plan.snapshot.aggregate.sheet.inventoryItems
+            .sortedBy { it.sortOrder }
+            .filter { it.special }
+            .flatMap { item ->
+                val locationLines = wrapByWidth(fonts.regular, item.location.orEmpty(), 7.2f, 80f)
+                    .ifEmpty { listOf("") }
+                val nameLines = wrapByWidth(fonts.regular, item.name, 7.4f, 108f)
+                    .ifEmpty { listOf("") }
+                val detailText = buildList {
+                    if (item.quantity != 1) add("Cant. " + item.quantity)
+                    if (item.attuned) add("Sintonizado")
+                    item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                }.joinToString(" · ")
+                val detailLines = wrapByWidth(fonts.regular, detailText, 7.2f, 340f)
+                    .ifEmpty { listOf("") }
+
+                val rowCount = maxOf(locationLines.size, nameLines.size, detailLines.size, 1)
+                (0 until rowCount).map { index ->
+                    SpecialEquipmentRow(
+                        location = locationLines.getOrNull(index).orEmpty(),
+                        name = nameLines.getOrNull(index).orEmpty(),
+                        detail = detailLines.getOrNull(index).orEmpty(),
+                        marked = index == 0 && (item.equipped || item.attuned),
+                    )
                 }
-                item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            }.joinToString(" · ")
-            textAboveRule(
-                s, fonts.regular, Rule(240.803f, 583.795f, y),
-                detail, 9.0f, 8.5f, 2.4f, 1.5f,
-            )
-        }
+            }
+
+    private fun clearSpecialLocationCell(s: PDFormContentStream, ruleTop: Float) {
+        val bottom = PAGE_HEIGHT - ruleTop
+        s.saveGraphicsState()
+        s.setNonStrokingColor(Color.WHITE)
+        s.addRect(25f, bottom + 0.7f, 83f, 14.8f)
+        s.fill()
+        s.setStrokingColor(Color.BLACK)
+        s.setLineWidth(0.45f)
+        s.moveTo(25f, bottom)
+        s.lineTo(108f, bottom)
+        s.stroke()
+        s.restoreGraphicsState()
     }
-
-    private fun positionedSpecialItems(
-        items: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>,
-        rowCount: Int,
-    ): List<Pair<Int, io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>> {
-        val available = (0 until rowCount).toMutableSet()
-        val positioned = mutableListOf<Pair<Int, io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>>()
-        items.take(rowCount).forEach { item ->
-            val preferred = specialLocationRow(item.location)?.takeIf { it in available }
-            val fallback = available
-                .filter { it >= SPECIAL_LOCATION_LABELS.size }
-                .minOrNull()
-                ?: available.minOrNull()
-            val row = preferred ?: fallback ?: return@forEach
-            available.remove(row)
-            positioned += row to item
-        }
-        return positioned.sortedBy { it.first }
-    }
-
-    private fun specialLocationRow(location: String?): Int? =
-        SPECIAL_LOCATION_LABELS.indexOf(normalizedInventoryLocation(location)).takeIf { it >= 0 }
-
-    private fun specialLocationNeedsText(location: String?): Boolean {
-        val normalized = normalizedInventoryLocation(location)
-        return normalized.isNotEmpty() && normalized !in SPECIAL_LOCATION_LABELS
-    }
-
-    private fun normalizedInventoryLocation(location: String?): String =
-        location
-            ?.lowercase()
-            ?.replace('á', 'a')
-            ?.replace('é', 'e')
-            ?.replace('í', 'i')
-            ?.replace('ó', 'o')
-            ?.replace('ú', 'u')
-            ?.replace(Regex("\\s+"), " ")
-            ?.trim()
-            .orEmpty()
 
     private fun drawNotesPage(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
         val text = dedicatedNotesText(plan)
@@ -847,6 +842,13 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         val maxRows: Int,
     )
 
+    private data class SpecialEquipmentRow(
+        val location: String,
+        val name: String,
+        val detail: String,
+        val marked: Boolean,
+    )
+
     private data class Rule(val startX: Float, val endX: Float, val topY: Float)
     private data class TopRect(val x: Float, val top: Float, val width: Float, val height: Float)
     private data class AbilityPlacement(val ability: CharacterAbility, val scoreX: Float, val modX: Float)
@@ -973,7 +975,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             StandardCurrencyKind.ELECTRUM,
         )
         val VALUABLE_RULE_Y = listOf(307f, 327f, 347f, 366.5f)
-        val SPECIAL_RULE_Y = listOf(522.5f, 542.5f, 562f, 582f, 602f, 622f, 641.5f, 661.5f, 681.5f, 701f, 721f, 741f)
+        val SPECIAL_RULE_Y = listOf(522.5f, 542.5f, 562f, 582f, 602f, 622f, 641.5f, 661.5f, 681.5f, 701f, 721f, 741f, 763.5f)
         val SPECIAL_LOCATION_LABELS = listOf(
             "cabeza", "rostro", "cuello", "mano izquierda", "mano derecha",
             "brazo izquierdo", "brazo derecho", "pecho", "piernas", "pies",
@@ -981,6 +983,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         val SPECIAL_CHECK_TOP = listOf(
             508.770f, 528.612f, 548.455f, 568.297f, 588.140f, 607.982f,
             627.825f, 647.667f, 667.510f, 687.352f, 707.195f, 727.037f,
+            746.880f,
         )
 
         val NOTES_Y = listOf(109.5f, 129.5f, 149.5f, 169f, 189f, 209f, 229f, 248.5f, 268.5f, 288.5f, 308f, 328f, 348f, 367.5f, 387.5f, 407.5f, 427f)
