@@ -1097,7 +1097,6 @@ internal class AndroidCustomV1ExtendedRenderer(
             val usage = usageByItem[item.id]
             val baseDetail = buildList {
                 if (item.quantity != 1) add("Cant. " + item.quantity)
-                item.weightLb?.let { add(formatInventoryWeight(it)) }
                 if (item.attuned) add("Sintonizado")
                 item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
@@ -1300,7 +1299,6 @@ internal class AndroidCustomV1ExtendedRenderer(
         item: CharacterInventoryItem,
         usage: CharacterInventoryUsage?,
     ): String = buildList {
-        item.weightLb?.let { add(formatInventoryWeight(it)) }
         if (item.equipped) add("Equipado")
         if (item.attuned) add("Sintonizado")
         addAll(inventoryUsageLabels(usage))
@@ -1351,7 +1349,7 @@ internal class AndroidCustomV1ExtendedRenderer(
 
     private fun usageMeaningful(usage: CharacterInventoryUsage?): Boolean =
         usage != null && (
-            usage.kind != CharacterConsumableKind.NONE ||
+            usage.kind == CharacterConsumableKind.AMMUNITION ||
                 usage.quickUseAmount != 1 ||
                 usage.carryState != CharacterInventoryCarryState.CARRIED
             )
@@ -1362,20 +1360,13 @@ internal class AndroidCustomV1ExtendedRenderer(
         return buildList {
             when (usage.kind) {
                 CharacterConsumableKind.NONE -> Unit
-                CharacterConsumableKind.CONSUMABLE -> add("Consumible")
+                CharacterConsumableKind.CONSUMABLE -> Unit
                 CharacterConsumableKind.AMMUNITION -> add("Munición")
             }
             if (usage.quickUseAmount != 1) add("Uso rápido " + usage.quickUseAmount)
             if (usage.carryState == CharacterInventoryCarryState.STORED) add("Almacenado")
         }
     }
-
-    private fun formatInventoryWeight(weightLb: Double): String =
-        "Peso " + if (weightLb % 1.0 == 0.0) {
-            weightLb.toInt().toString() + " lb"
-        } else {
-            weightLb.toString() + " lb"
-        }
 
     private fun parseValuable(raw: String): TreasureEntry {
         val match = Regex("""^(.*?)\s*\((\d+)\s*po\)\s*$""", RegexOption.IGNORE_CASE)
