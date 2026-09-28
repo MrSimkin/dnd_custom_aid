@@ -1291,7 +1291,6 @@ internal class DesktopCustomV2ExtendedRenderer(
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
         val ordinary = ordered.filterNot { it.special }
         val ordinaryLines = ordinary.flatMapIndexed { index, item ->
-            val usage = usageByItem[item.id]
             val needsFullContinuation =
                 index >= BASE_V2_EQUIPMENT_CAPACITY ||
                     wrapByWidth(
@@ -1301,7 +1300,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                         V2_BASE_EQUIPMENT_TEXT_WIDTH,
                     ).size > 1
             if (needsFullContinuation) {
-                inventoryContinuationLines(item, usage)
+                inventoryContinuationLines(item)
             } else {
                 emptyList()
             }
@@ -1541,30 +1540,13 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private fun inventoryContinuationLines(
         item: CharacterInventoryItem,
-        usage: CharacterInventoryUsage?,
-    ): List<String> {
-        val lines = mutableListOf<String>()
-        // True Equipment overflow carries only compact identity; descriptive metadata is routed
-        // to Notes instead of becoming apparent duplicate equipment rows. Long identity labels
-        // may consume multiple physical continuation rows rather than dropping below the compact
-        // readability target.
-        lines += wrapByWidth(
+    ): List<String> =
+        wrapByWidth(
             resources.condensed,
             item.pdfCompactEquipmentLabel(),
             7.0f,
             INVENTORY_COMPACT_IDENTITY_WRAP_WIDTH,
         )
-
-        val operationalStatus = buildList {
-            if (item.equipped) add("Equipado")
-            addAll(inventoryUsageLabels(usage))
-        }.joinToString(" · ")
-        if (operationalStatus.isNotEmpty()) {
-            lines += wrapByWidth(resources.condensed, "Estado: $operationalStatus", 8.2f, V2_EQUIPMENT_COLUMN_WIDTH)
-        }
-
-        return lines
-    }
 
     private fun positionedSpecialItems(
         items: List<CharacterInventoryItem>,
