@@ -1316,7 +1316,7 @@ private fun classicInventoryRows(
             item.equipped -> add("Equipado")
         }
         when (usage?.kind) {
-            CharacterConsumableKind.CONSUMABLE -> add("Consumible")
+            CharacterConsumableKind.CONSUMABLE -> Unit
             CharacterConsumableKind.AMMUNITION -> add("Munición")
             CharacterConsumableKind.NONE,
             null,
