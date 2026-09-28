@@ -92,6 +92,23 @@ When provider/owner handoff is necessary, include:
 
 Prefer one provider handoff per task.
 
+## 6.1 Owner-local Android QA PDF destination
+
+For owner-run Android emulator/device PDF review on Windows, when asking the owner to copy or pull generated PDF files from the Android `Download` directory, use this local destination by default:
+
+```text
+D:\DnD_Aid\PDF Check
+```
+
+Do not ask the owner to choose another destination unless they explicitly request one. Quote the Windows path because it contains a space. Give `adb pull` commands that place the requested PDF directly in that folder. If the folder may not exist, include a safe PowerShell creation command first:
+
+```powershell
+New-Item -ItemType Directory -Force -Path "D:\DnD_Aid\PDF Check" | Out-Null
+adb pull "/sdcard/Download/<archivo>.pdf" "D:\DnD_Aid\PDF Check\"
+```
+
+This is an owner-local QA convenience only; do not commit generated review PDFs or make this local path an application/runtime dependency.
+
 ## 7. Secret handling
 
 Never request or commit passwords, OTPs, Cloudflare tokens, DB passwords, Neon connection strings, Descope/session/access/refresh JWTs, private keys, signing credentials, provider credential files or secret environment-variable values.
