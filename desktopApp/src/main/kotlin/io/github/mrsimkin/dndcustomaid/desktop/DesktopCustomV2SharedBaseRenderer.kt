@@ -175,7 +175,7 @@ internal class DesktopCustomV2SharedBaseRenderer(
                 val rowCount = maxOf(locationLines.size, nameLines.size, detailLines.size, 1)
                 (0 until rowCount).map { index ->
                     SpecialEquipmentRow(
-                        location = if (index == 0) locationLines.joinToString(" ") else "",
+                        location = locationLines.getOrNull(index).orEmpty(),
                         name = nameLines.getOrNull(index).orEmpty(),
                         detail = detailLines.getOrNull(index).orEmpty(),
                         marked = index == 0 && (item.equipped || item.attuned),
