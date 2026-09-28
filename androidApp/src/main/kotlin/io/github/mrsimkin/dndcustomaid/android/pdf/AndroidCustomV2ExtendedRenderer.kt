@@ -1289,21 +1289,14 @@ internal class AndroidCustomV2ExtendedRenderer(
     private fun appendInventoryExtendedPages(plan: PcSheetPdfRenderPlan) {
         val aggregate = plan.snapshot.aggregate
         val sheet = aggregate.sheet
-        val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
-        val ordinary = ordered.filterNot { it.special }
-        // Native capacity is measured in physical writing rows. Long compact identities consume
-        // those rows before any Extended page is allocated.
-        val ordinaryLines = ordinary
+
+        val ordinaryLines = ordered
+            .filterNot { it.special }
             .flatMap(::inventoryContinuationLines)
             .drop(BASE_V2_EQUIPMENT_CAPACITY)
 
-        val special = ordered.filter { it.special }
-        // Do not duplicate native Equipo Especial rows because of metadata/label length.
-        val specialContinuation = special.drop(BASE_V2_SPECIAL_CAPACITY)
-
-        val specialDetailLines = specialContinuation.flatMap(::inventoryDetailContinuationLines)
-        val equipmentContinuationLines = ordinaryLines + specialDetailLines
+        val specialRows = specialEquipmentRows(plan).drop(BASE_V2_SPECIAL_CAPACITY)
 
         val nativeV2Kinds = setOf(
             StandardCurrencyKind.PLATINUM,
@@ -1320,12 +1313,9 @@ internal class AndroidCustomV2ExtendedRenderer(
             .sortedBy { it.sortOrder }
 
         val treasureLines = buildList {
-            // The first adjacent OTROS rows are already consumed on the base page.
             nonNativeCurrencies
                 .drop(BASE_V2_OTHER_CURRENCY_CAPACITY)
-                .forEach { currency ->
-                    add(currency.name + ": " + currency.amount)
-                }
+                .forEach { currency -> add(currency.name + ": " + currency.amount) }
             addAll(
                 plan.snapshot.aggregate.successor.preferences.valuablesText
                     .split(Regex("[;\\n]+"))
@@ -1336,149 +1326,153 @@ internal class AndroidCustomV2ExtendedRenderer(
             wrapByWidth(resources.fira, value, 8.0f, V2_TREASURE_COLUMN_WIDTH)
         }
 
-        if (equipmentContinuationLines.isEmpty() && specialContinuation.isEmpty() && treasureLines.isEmpty()) return
-
-        val ordinaryCapacity =
-            if (treasureLines.isEmpty()) INVENTORY_CONTINUATION_CAPACITY
-            else INVENTORY_EQUIPMENT_WITH_TREASURE_CAPACITY
-        val pages = maxOf(
-            pageCount(equipmentContinuationLines.size, ordinaryCapacity),
-            pageCount(treasureLines.size, INVENTORY_TREASURE_CAPACITY),
-            pageCount(specialContinuation.size, INVENTORY_SPECIAL_CAPACITY),
+        val nativePages = maxOf(
+            pageCount(ordinaryLines.size, BASE_V2_EQUIPMENT_CAPACITY),
+            pageCount(specialRows.size, BASE_V2_SPECIAL_CAPACITY),
         )
-        repeat(pages) { pageIndex ->
+        repeat(nativePages) { pageIndex ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
-            renderInventory(
+            renderNativeEquipmentContinuation(
                 page = page,
-                ordinary = equipmentContinuationLines
-                    .drop(pageIndex * ordinaryCapacity)
-                    .take(ordinaryCapacity),
-                treasure = treasureLines
-                    .drop(pageIndex * INVENTORY_TREASURE_CAPACITY)
-                    .take(INVENTORY_TREASURE_CAPACITY),
-                special = specialContinuation
-                    .drop(pageIndex * INVENTORY_SPECIAL_CAPACITY)
-                    .take(INVENTORY_SPECIAL_CAPACITY),
-                usageByItem = usageByItem,
+                ordinary = ordinaryLines
+                    .drop(pageIndex * BASE_V2_EQUIPMENT_CAPACITY)
+                    .take(BASE_V2_EQUIPMENT_CAPACITY),
+                special = specialRows
+                    .drop(pageIndex * BASE_V2_SPECIAL_CAPACITY)
+                    .take(BASE_V2_SPECIAL_CAPACITY),
                 pageIndex = pageIndex,
             )
         }
+
+        if (treasureLines.isNotEmpty()) {
+            appendTreasureContinuationPages(treasureLines, nativePages)
+        }
     }
 
-    private fun renderInventory(
+    private fun renderNativeEquipmentContinuation(
         page: PDPage,
         ordinary: List<String>,
-        treasure: List<String>,
-        special: List<CharacterInventoryItem>,
-        usageByItem: Map<kotlin.uuid.Uuid, CharacterInventoryUsage>,
+        special: List<SpecialEquipmentRow>,
         pageIndex: Int,
     ) {
-        // PDFBox OCG names are document-global, not page-local. Keep the first-page names exactly
-        // compatible with the existing production proof/tests, and page-scope subsequent inventory
-        // continuation layers so legitimate multi-page overflow cannot collide.
-        val prefix = if (pageIndex == 0) "V2X INVENTORY" else "V2X INVENTORY P${pageIndex + 1}"
-
-        val positionedSpecial = positionedSpecialItems(special, INVENTORY_SPECIAL_CAPACITY)
-
+        val prefix = "V2X NATIVE EQUIPMENT P${pageIndex + 1}"
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            pageHeaderStructure(s)
-            listOf(14f, 307f).forEach { blockX ->
-                bandedRows(s, blockX, blockX + 277f, 139f, 19, 17f, 0)
-                verticalRule(s, blockX + 139f, 122f, 462f, 0.45f)
-            }
-            drawRule(s, 14f, 598f, 480f, 0.8f)
-
-            bandedRows(s, 14f, 598f, 548f, 12, 17f, 0)
-            listOf(30f, 99f, 303f).forEach { x -> verticalRule(s, x, 512f, 752f, 0.45f) }
-        }
-        appendLayer(page, "$prefix - CLEANUP") { }
-        appendLayer(page, "$prefix - LABELS") { s ->
-            pageTitle(s, "INVENTARIO / EQUIPO")
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 99f, 277f, 22f), "EQUIPO", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredFixedScale(
-                s,
-                resources.corbelBold,
-                TopRect(307f, 99f, 291f, 22f),
-                if (treasure.isEmpty()) "EQUIPO" else "TESORO / MONEDAS",
-                12.12f,
-                SOURCE_CORBEL_HEADING_SCALE,
-            )
-
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 489f, 584f, 22f), "EQUIPO ESPECIAL", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            tableLabel(s, 30f, 514f, 69f, "UBICACIÓN")
-            tableLabel(s, 99f, 514f, 204f, "NOMBRE")
-            tableLabel(s, 303f, 514f, 295f, "DESCRIPCIÓN / ESTADO")
-            SPECIAL_LOCATION_LABELS_DISPLAY.forEachIndexed { row, label ->
-                textAboveRule(s, resources.fira, Rule(34f, 95f, 548f + row * 17f), label, 7.4f, 6.6f, 2.2f)
-            }
+            // Exact approved Equipment/Trasfondo page from the source template.
+            s.drawForm(resources.forms[1])
         }
         appendLayer(page, "$prefix - VALUES") { s ->
-            ordinary.forEachIndexed { index, line ->
-                // When treasure exists, preserve the right block for its own semantic domain.
-                val block = index / INVENTORY_BLOCK_CAPACITY
-                val withinBlock = index % INVENTORY_BLOCK_CAPACITY
-                val column = withinBlock / INVENTORY_ROWS_PER_COLUMN
-                val row = withinBlock % INVENTORY_ROWS_PER_COLUMN
-                val blockX = if (block == 0) 14f else 307f
-                val x1 = blockX + if (column == 0) 4f else 143f
-                val x2 = blockX + if (column == 0) 135f else 273f
-                if (line.contains("— Nota:") || line.contains("— Estado:") ||
-                    line.startsWith("Nota:") || line.startsWith("Estado:")
-                ) {
-                    textAboveRule(s, resources.condensed, Rule(x1, x2, 139f + row * 17f), line, 8.0f, 6.6f, 2.3f)
-                } else {
-                    textAboveRuleScaled(
-                        s,
-                        resources.condensed,
-                        Rule(x1, x2, 139f + row * 17f),
-                        line,
-                        preferredSize = 8.4f,
-                        minimumSize = 7.0f,
-                        clearance = 2.3f,
-                        minimumHorizontalScale = 78f,
-                    )
-                }
+            val ordinaryRules = listOf(14f to 149.5f, 156f to 291.5f).flatMap { (startX, endX) ->
+                (0 until 23).map { row -> Rule(startX, endX, 114.5f + row * 17f) }
+            }
+            ordinaryRules.zip(ordinary).forEach { (rule, line) ->
+                textAboveRule(s, resources.condensed, rule, line, 7.0f, 7.0f, 2.5f)
             }
 
-            treasure.forEachIndexed { index, value ->
-                textAboveRule(
-                    s,
-                    resources.fira,
-                    Rule(311f, 594f, 139f + index * 17f),
-                    value,
-                    8.0f,
-                    6.8f,
-                    2.3f,
-                )
-            }
-
-            positionedSpecial.forEach { (row, item) ->
-                val y = 548f + row * 17f
-                if (specialLocationRow(item.location) != row) {
-                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
-                        textAboveRule(s, resources.fira, Rule(34f, 95f, y), it, 7.4f, 6.6f, 2.2f)
-                    }
+            special.forEachIndexed { rowIndex, row ->
+                val y = 542.5f + rowIndex * 17f
+                clearNativeSpecialLocationCell(s, y)
+                row.location.takeIf { it.isNotEmpty() }?.let {
+                    textAboveRule(s, resources.fira, Rule(14f, 94f, y), it, 7.2f, 7.2f, 2.5f)
                 }
-                textAboveRule(s, resources.fira, Rule(103f, 297f, y), inventoryContinuationLabel(item), 8.8f, 7.2f, 2.3f)
-                val detail = buildList {
-                    if (item.attuned) add("Sintonizado")
-                    addAll(inventoryUsageLabels(usageByItem[item.id]))
-                }.joinToString(" · ")
-                if (detail.isNotEmpty()) {
-                    textAboveRule(s, resources.fira, Rule(307f, 594f, y), detail, 8.5f, 7.0f, 2.3f)
+                row.name.takeIf { it.isNotEmpty() }?.let {
+                    textAboveRule(s, resources.fira, Rule(99f, 297f, y), it, 7.4f, 7.4f, 2.5f)
+                }
+                row.detail.takeIf { it.isNotEmpty() }?.let {
+                    textAboveRule(s, resources.fira, Rule(303f, 596f, y), it, 7.2f, 7.2f, 2.5f)
                 }
             }
         }
         appendLayer(page, "$prefix - MARKERS") { s ->
-            positionedSpecial.forEach { (row, item) ->
-                drawV2TrainingBox(
-                    s,
-                    TopRect(16f, 536f + row * 17f, 8.5f, 9f),
-                    if (item.equipped || item.attuned) Training.PROFICIENT else Training.NONE,
-                )
+            special.forEachIndexed { rowIndex, row ->
+                if (row.marked) {
+                    glyphInRect(
+                        s,
+                        resources.symbol,
+                        0xE211,
+                        TopRect(87.5f, 530.5f + rowIndex * 17f, 8.5f, 9f),
+                        0.5f,
+                        0.5f,
+                        opticalX = 1.75f,
+                        opticalY = -0.7f,
+                    )
+                }
             }
         }
+    }
+
+    private fun appendTreasureContinuationPages(lines: List<String>, pageOffset: Int) {
+        val pages = pageCount(lines.size, INVENTORY_TREASURE_CAPACITY)
+        repeat(pages) { index ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            val slice = lines
+                .drop(index * INVENTORY_TREASURE_CAPACITY)
+                .take(INVENTORY_TREASURE_CAPACITY)
+            val prefix = "V2X TREASURE P${pageOffset + index + 1}"
+            appendLayer(page, "$prefix - STRUCTURE") { s ->
+                pageHeaderStructure(s)
+                bandedRows(s, 14f, 598f, 139f, INVENTORY_TREASURE_CAPACITY, 17f, 0)
+            }
+            appendLayer(page, "$prefix - LABELS") { s ->
+                pageTitle(s, "TESORO / MONEDAS")
+            }
+            appendLayer(page, "$prefix - VALUES") { s ->
+                slice.forEachIndexed { row, value ->
+                    textAboveRule(
+                        s,
+                        resources.fira,
+                        Rule(18f, 594f, 139f + row * 17f),
+                        value,
+                        8.0f,
+                        6.8f,
+                        2.3f,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun specialEquipmentRows(plan: PcSheetPdfRenderPlan): List<SpecialEquipmentRow> =
+        plan.snapshot.aggregate.sheet.inventoryItems
+            .sortedBy { it.sortOrder }
+            .filter { it.special }
+            .flatMap { item ->
+                val locationLines = wrapByWidth(resources.fira, item.location.orEmpty(), 7.2f, 77f)
+                    .ifEmpty { listOf("") }
+                val nameLines = wrapByWidth(resources.fira, item.name, 7.4f, 194f)
+                    .ifEmpty { listOf("") }
+                val detailText = buildList {
+                    if (item.quantity != 1) add("Cant. " + item.quantity)
+                    if (item.attuned) add("Sintonizado")
+                    item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                    item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                }.joinToString(" · ")
+                val detailLines = wrapByWidth(resources.fira, detailText, 7.2f, 289f)
+                    .ifEmpty { listOf("") }
+                val rowCount = maxOf(locationLines.size, nameLines.size, detailLines.size, 1)
+                (0 until rowCount).map { index ->
+                    SpecialEquipmentRow(
+                        location = locationLines.getOrNull(index).orEmpty(),
+                        name = nameLines.getOrNull(index).orEmpty(),
+                        detail = detailLines.getOrNull(index).orEmpty(),
+                        marked = index == 0 && (item.equipped || item.attuned),
+                    )
+                }
+            }
+
+    private fun clearNativeSpecialLocationCell(s: PDFormContentStream, ruleTop: Float) {
+        val bottom = H - ruleTop
+        s.saveGraphicsState()
+        s.setNonStrokingColor(Color.WHITE)
+        s.addRect(15f, bottom + 0.7f, 78f, 14.8f)
+        s.fill()
+        s.setStrokingColor(Color.BLACK)
+        s.setLineWidth(0.45f)
+        s.moveTo(14f, bottom)
+        s.lineTo(94f, bottom)
+        s.stroke()
+        s.restoreGraphicsState()
     }
 
     private fun inventoryContinuationLabel(item: CharacterInventoryItem): String = buildString {
@@ -2428,6 +2422,13 @@ internal class AndroidCustomV2ExtendedRenderer(
 
     private data class Rule(val startX: Float, val endX: Float, val topY: Float)
     private data class TopRect(val x: Float, val top: Float, val width: Float, val height: Float)
+    private data class SpecialEquipmentRow(
+        val location: String,
+        val name: String,
+        val detail: String,
+        val marked: Boolean,
+    )
+
     private data class AttributeValues(
         val score: String,
         val modifier: String,
