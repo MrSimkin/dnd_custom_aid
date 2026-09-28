@@ -264,6 +264,15 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     !normalized.contains("Descripción suficientemente larga del objeto 2. Debe"),
                     "$family must not project ordinary Equipment prose descriptions",
                 )
+                if (
+                    family == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ||
+                    family == PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY
+                ) {
+                    assertTrue(
+                        normalized.contains("Descripción suficientemente larga del objeto 1."),
+                        "$family must preserve Special Equipment description in its dedicated domain",
+                    )
+                }
                 assertTrue(
                     normalized.contains("Frasco de tinta que recuerda"),
                     "$family must preserve recognizable ordinary item identity in the native Equipment module",
