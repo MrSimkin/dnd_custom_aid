@@ -2,8 +2,8 @@
 
 **Status:** ACTIVE / AUTHORITATIVE PROCESS RECORD  
 **Established:** 2026-09-22  
-**Branch:** `wave7/pc-sheet-pdf-renderer-template-proof`  
-**PR:** #85 - OPEN / DRAFT / DO NOT MERGE
+**Current routing:** `RESUME.md -> docs/checkpoints/LATEST.md -> canonical active checkpoint`  
+**Historical origin:** branch `wave7/pc-sheet-pdf-renderer-template-proof`, PR #85. Those refs are provenance only, not current continuation authority.
 
 ## Why this exists
 
@@ -128,9 +128,11 @@ A run is not complete merely because CI is green. Each entry must record:
 - Layer result: tests now require presence of all five semantic layers for v1/v2 continuation roles.
 - Remaining process gap at this point: ordered-layer assertion + dynamic X/Y pre-print report still needed.
 
-## Mandatory next entry
+## Historical mandatory-next-entry instruction — fulfilled by VR-3
 
-The next generated proof iteration must append a new `VR-3` entry **before owner delivery** and include:
+The following was the required next-entry instruction at that historical point and was fulfilled by the VR-3 entries below. It is not the current continuation route.
+
+The next generated proof iteration was required to append a new `VR-3` entry **before owner delivery** and include:
 
 - final head;
 - push + PR run IDs and conclusions;
