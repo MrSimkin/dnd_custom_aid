@@ -1,57 +1,27 @@
 package io.github.mrsimkin.dndcustomaid.shared.character
 
 /**
- * Compact ordinary-equipment identity used by PDF families.
+ * Compact ordinary-equipment identity used by every PDF family.
  *
- * Location, description and notes are intentionally excluded: they are detail semantics and must
- * not make a normal inventory item consume extra Equipment rows merely because metadata exists.
+ * Owner 50800 contract: ordinary Equipment is the existing sheet's compact Equipment list, not a
+ * metadata/detail surface. Quantity belongs to the identity; weight, usage state, location,
+ * description and notes do not render as ordinary Equipment PDF content.
  */
 fun CharacterInventoryItem.pdfCompactEquipmentLabel(): String =
-    buildList {
-        add(
-            buildString {
-                if (quantity > 1) append(quantity).append(" x ")
-                append(name)
-            },
-        )
-        weightLb?.let { weight ->
-            add(
-                if (weight % 1.0 == 0.0) {
-                    weight.toInt().toString() + " lb"
-                } else {
-                    weight.toString() + " lb"
-                },
-            )
-        }
-    }.joinToString(" · ")
+    buildString {
+        if (quantity > 1) append(quantity).append(" x ")
+        append(name)
+    }
 
 /**
- * Detail text for an ordinary item. This belongs in a details/notes semantic destination, not the
- * ordinary Equipment identity row.
+ * Ordinary Equipment prose/detail metadata is deliberately not projected into the PDF.
+ *
+ * The character data remains intact in the model; this only defines the player-facing sheet
+ * projection. Special Equipment keeps its own dedicated native module semantics.
  */
-fun CharacterInventoryItem.pdfOrdinaryEquipmentDetailOrNull(): String? {
-    if (special) return null
+fun CharacterInventoryItem.pdfOrdinaryEquipmentDetailOrNull(): String? = null
 
-    val descriptionText = description?.trim().orEmpty()
-    val notesText = notes?.trim().orEmpty()
-    // A bare storage/location tag is useful metadata, but it is not enough by itself to justify
-    // allocating a PDF detail/Notes surface. If richer detail exists, preserve location with it.
-    if (descriptionText.isEmpty() && notesText.isEmpty()) return null
-
-    val detail = buildList {
-        location?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Ubicación: $it") }
-        descriptionText.takeIf { it.isNotEmpty() }?.let(::add)
-        notesText.takeIf { it.isNotEmpty() }?.let(::add)
-    }.joinToString(" · ")
-
-    return "$name — $detail"
-}
-
-
-/**
- * Semantic PDF notes: campaign notes plus ordinary-item metadata that does not belong on an
- * Equipment identity row. Special equipment keeps its dedicated location/detail surface.
- */
+/** Campaign Notes are independent from ordinary Equipment metadata. */
 fun CharacterSheet.pdfCampaignNoteParagraphs(): List<String> = buildList {
     generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
     noteCards.sortedBy { it.sortOrder }.forEach { card ->
@@ -65,11 +35,6 @@ fun CharacterSheet.pdfCampaignNoteParagraphs(): List<String> = buildList {
     }
 }
 
-fun CharacterSheet.pdfOrdinaryEquipmentDetailParagraphs(): List<String> =
-    inventoryItems
-        .sortedBy { it.sortOrder }
-        .filterNot { it.special }
-        .mapNotNull { it.pdfOrdinaryEquipmentDetailOrNull() }
+fun CharacterSheet.pdfOrdinaryEquipmentDetailParagraphs(): List<String> = emptyList()
 
-fun CharacterSheet.pdfNoteParagraphs(): List<String> =
-    pdfCampaignNoteParagraphs() + pdfOrdinaryEquipmentDetailParagraphs()
+fun CharacterSheet.pdfNoteParagraphs(): List<String> = pdfCampaignNoteParagraphs()
