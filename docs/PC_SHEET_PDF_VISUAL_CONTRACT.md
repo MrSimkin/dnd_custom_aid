@@ -101,14 +101,19 @@ When the base/approved sheet already contains a component that correctly represe
 
 Do not invent a generic substitute merely because the content is on an Extended page.
 
-This applies explicitly to:
+This applies explicitly to **any semantic family that already has a usable approved/native example**, including but not limited to:
 
 - Custom-v2 attributes/custom statistics;
+- Traits / Rasgos / Features;
+- Trasfondo / Historia / personalidad-style sections;
 - ordinary Equipment;
 - Equipo Especial;
-- Notes.
+- Notes;
+- other repeated sheet modules whose base/source treatment already solves the visual problem.
 
-A continuation may extend capacity, add rows/columns or adapt pagination, but should remain recognizably the same approved component unless the owner explicitly approves a redesign.
+The default question for an Extended renderer is therefore: **"what existing approved/source component already represents this same content, and how do we extend its capacity?"** — not "what new generic component should we design?"
+
+A continuation may extend capacity, add/copy rows or columns, flow onto additional pages or adapt pagination, but should preserve the same approved component grammar unless the owner explicitly approves a redesign.
 
 ### Custom-v2 custom attributes
 
@@ -118,11 +123,21 @@ Custom Statistics must reuse that same grammar and capacity logic. Four Mara cus
 
 Never paint empty/fake attribute shells for unused capacity.
 
-### Trait ordering
+### Traits / Rasgos / Features
+
+Traits/features already have usable native/source examples in the sheet. Extended presentation must **reuse that existing trait/rasgo grammar** rather than reconstructing the section as an unrelated generic four-panel or prose component.
+
+The renderer may add/copy capacity and use adaptive continuation once a native section fills, but it should preserve the established visual identity, typography, spacing and record treatment.
 
 Trait/feature presentation is intentionally **category-grouped**. Global numeric fixture order is not required across categories.
 
 Within each category, preserve coherent record order and semantic boundaries.
+
+### Trasfondo / historia and similar narrative modules
+
+Where the base/source sheet already has a clear module for Trasfondo, Historia, personalidad-style fields or similar narrative content, continuation should reuse that module's visual grammar and extend it rather than inventing a new generic narrative layout.
+
+The same reuse-first rule applies: preserve the existing heading hierarchy, font roles, writing rhythm and section identity, then add capacity adaptively.
 
 ### Ordinary Equipment
 
