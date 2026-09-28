@@ -1513,7 +1513,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             resources.condensed,
             item.pdfCompactEquipmentLabel(),
             7.0f,
-            INVENTORY_COMPACT_IDENTITY_WRAP_WIDTH,
+            V2_BASE_EQUIPMENT_TEXT_WIDTH,
         )
 
     private fun positionedSpecialItems(
