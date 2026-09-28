@@ -1080,9 +1080,28 @@ internal class DesktopCustomV1ExtendedRenderer(
             .flatMap(::inventoryContinuationLines)
 
         val special = ordered.filter { it.special }
-        // Same rule for Equipo Especial: metadata or a long label is not a reason to duplicate
-        // an item onto an Extended page while it still fits the native module.
-        val specialContinuation = special.drop(BASE_V1_SPECIAL_CAPACITY)
+        // Special Equipment may carry real native-row content (description/notes/location) that
+        // cannot fit its source row. Preserve that semantic overflow, but do not duplicate rows
+        // merely because of usage state.
+        val specialContinuation = special.mapIndexedNotNull { index, item ->
+            val baseDetail = buildList {
+                if (item.quantity != 1) add("Cant. " + item.quantity)
+                if (item.attuned) add("Sintonizado")
+                item.location?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            }.joinToString(" · ")
+            val baseDetailOverflows =
+                baseDetail.isNotBlank() &&
+                    textWidth(resources.fira, baseDetail, 8.5f) > V1_BASE_SPECIAL_DETAIL_WIDTH
+            val baseNameOverflows =
+                textWidth(resources.fira, item.name, 8.5f) > V1_BASE_SPECIAL_NAME_WIDTH
+            item.takeIf {
+                index >= BASE_V1_SPECIAL_CAPACITY ||
+                    baseNameOverflows ||
+                    baseDetailOverflows
+            }
+        }
 
         val treasure = buildList {
             sheet.currencies

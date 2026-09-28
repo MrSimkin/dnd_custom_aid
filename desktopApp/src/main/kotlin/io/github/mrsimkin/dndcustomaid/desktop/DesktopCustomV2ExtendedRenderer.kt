@@ -1297,8 +1297,30 @@ internal class DesktopCustomV2ExtendedRenderer(
             .flatMap(::inventoryContinuationLines)
 
         val special = ordered.filter { it.special }
-        // Do not duplicate native Equipo Especial rows because of metadata/label length.
-        val specialContinuation = special.drop(BASE_V2_SPECIAL_CAPACITY)
+        // Preserve true Special-Equipment overflow while avoiding duplication caused only by
+        // usage state. The continuation still uses the dedicated special-equipment semantics.
+        val specialContinuation = special.mapIndexedNotNull { index, item ->
+            val baseDetail = buildList {
+                if (item.quantity != 1) add("Cant. " + item.quantity)
+                if (item.attuned) add("Sintonizado")
+                item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+            }.joinToString(" · ")
+            val baseDetailOverflows =
+                baseDetail.isNotBlank() &&
+                    textWidth(resources.fira, baseDetail, 8.5f) > V2_BASE_SPECIAL_DETAIL_WIDTH
+            val baseNameOverflows =
+                textWidth(resources.fira, item.name, 8.5f) > V2_BASE_SPECIAL_NAME_WIDTH
+            val locationOverflows = item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                textWidth(resources.fira, it, 7.5f) > V2_BASE_SPECIAL_LOCATION_WIDTH
+            } ?: false
+            item.takeIf {
+                index >= BASE_V2_SPECIAL_CAPACITY ||
+                    baseNameOverflows ||
+                    baseDetailOverflows ||
+                    locationOverflows
+            }
+        }
 
         val specialDetailLines = specialContinuation.flatMap(::inventoryDetailContinuationLines)
         val equipmentContinuationLines = ordinaryLines + specialDetailLines

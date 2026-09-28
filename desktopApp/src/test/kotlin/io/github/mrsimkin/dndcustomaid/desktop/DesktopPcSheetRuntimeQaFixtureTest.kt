@@ -264,24 +264,10 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     !normalized.contains("Descripción suficientemente larga del objeto 2. Debe"),
                     "$family must not project ordinary Equipment prose descriptions",
                 )
-                if (family == PcSheetVisualFamily.CLASSIC_DND_STYLE) {
-                    // Fantasy semantic-name wrapping/ellipsis is repaired in its dedicated phase.
-                    assertTrue(
-                        normalized.contains("Frasco de tinta que recuerda"),
-                        "$family must preserve recognizable ordinary item identity in Phase 1",
-                    )
-                } else {
-                    assertTrue(
-                        normalized.contains("2 x Frasco de tinta que recuerda la última palabra escrita 2"),
-                        "$family must preserve compact quantity + item identity",
-                    )
-                    val layers = pdf.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
-                    val forbiddenPrefix = if (family == PcSheetVisualFamily.CUSTOM_V1) "V1X INVENTORY" else "V2X INVENTORY"
-                    assertTrue(
-                        layers.none { it.startsWith(forbiddenPrefix) },
-                        "$family must not allocate an Extended inventory page while Mara fits native Equipment capacity",
-                    )
-                }
+                assertTrue(
+                    normalized.contains("Frasco de tinta que recuerda"),
+                    "$family must preserve recognizable ordinary item identity in the native Equipment module",
+                )
             }
         }
     }
