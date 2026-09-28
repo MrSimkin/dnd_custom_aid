@@ -520,7 +520,6 @@ internal class DesktopPcSheetWholeDraftRenderer(
         if (item.quantity > 1) append(item.quantity).append(" x ")
         append(item.name)
         item.location?.takeIf { it.isNotBlank() }?.let { append(" - ").append(it) }
-        item.weightLb?.let { append(" - ").append(it).append(" lb") }
     }
 
     private fun positionedSpecialItems(
