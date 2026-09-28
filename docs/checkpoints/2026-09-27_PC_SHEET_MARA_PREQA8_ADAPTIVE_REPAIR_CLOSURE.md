@@ -118,6 +118,54 @@ This repair package preserves content and record boundaries but does not silentl
 
 Therefore this one item remains an owner-facing contract note unless/until a specific ordering rule is chosen. It is not being misreported as a repaired data-loss defect.
 
+## Owner re-QA execution procedure
+
+The next manual boundary is a bounded owner re-QA of the repaired Mara path. Do not restart defect discovery, extend the repair or promote/merge the branch before this disposition.
+
+### Candidate identity and installation
+
+- application/version identity: `dnd-custom-aid-0.5.0-preqa.8-build-50800.apk`;
+- repaired implementation authority: `repair/pc-sheet-adaptive-continuations-cross-family` at validated head `ce695c40782e1847ed70a2256885b5b07113feae`;
+- install through the owner's normal emulator/device interaction (for example drag/drop), **not** through `adb install`;
+- if an earlier QA build is already installed, install over it; do not uninstall merely for this re-QA because local QA state should be preserved when possible.
+
+### Step 1 — Mara 3A
+
+1. Open **Mara de los Siete Umbrales**.
+2. Export **Custom v2 · Atributo**.
+3. Use **Permanente**.
+4. Use **Extended** custom-stat presentation.
+5. Keep Spellbook **OFF/as-is**.
+6. Choose **Guardar PDF** and open/read the generated PDF.
+7. Retrieve the complete Android `Download` directory to the owner review folder; do not select or filter files:
+
+```powershell
+New-Item -ItemType Directory -Force -Path "D:\DnD_Aid\PDF Check" | Out-Null
+adb pull "/sdcard/Download/." "D:\DnD_Aid\PDF Check\"
+```
+
+8. Inspect the generated Mara PDF, with emphasis on the repaired failure surface:
+   - ordinary Equipment continuation remains grouped/readable and item identity is not detached from its continuation when it can stay together;
+   - Notes records have visible boundaries, do not run together, use available columns/space before creating another page, and do not leave a detached tail;
+   - Custom Statistics cards/ornaments are intact, only real attribute slices render, Éter remains unambiguous, and stale source-template labels do not bleed through;
+   - Combat / Actions heading does not collide with the first row;
+   - Traits continuation packing becomes adaptive after sibling/overview sections are exhausted instead of repeating empty scaffolds;
+   - Resources / Options reclaim unused sibling space rather than forcing empty repeated structures;
+   - ordinary and Special Equipment do not overlap or show stale/custom-location artifacts.
+9. Record **PASS** or the exact first observed defect with page/section evidence. Do not advance on a material defect.
+
+### Step 2 — Mara 3B, only after 3A PASS
+
+1. Reopen/use **Mara de los Siete Umbrales**.
+2. Export **Custom v2 · Habilidad**.
+3. Use **Permanente** and **Extended**.
+4. Keep Spellbook **OFF/as-is**.
+5. Choose **Guardar PDF**, open/read it, then repeat the same bulk `adb pull` of the complete Android `Download` directory.
+6. Repeat the 3A continuation/layout inspection and additionally verify that the Custom-v2 per-Ability score/modifier ornaments retain the intended alternating source-derived light/dark surroundings and that no source label such as `Constitución` leaks into an ornament.
+7. Record **PASS** or the exact observed defect.
+
+Only after both Mara 3A and 3B owner re-QA are accepted may the staged runtime sequence move forward. Current Snapshot and later blocked work remain out of scope until that disposition is recorded.
+
 ## Gate
 
 This checkpoint does **not** claim owner approval.
