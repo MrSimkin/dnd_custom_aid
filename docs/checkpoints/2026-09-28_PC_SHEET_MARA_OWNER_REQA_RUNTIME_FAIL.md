@@ -145,6 +145,22 @@ The earlier note-boundary and adaptive packing requirement remains unmet.
 
 These clarifications are **authoritative refinements of the acceptance ledger**. They do not replace the original defects; they define the intended result more precisely.
 
+### General source-component reuse clarification
+
+The owner further clarified that this is **not limited to Custom Statistics, Equipment, Equipo Especial or Notes**.
+
+The existing sheets already contain usable visual examples for **Traits/Rasgos, Trasfondo/Historia and other similar semantic sections**. Those examples should have been treated as the implementation reference instead of reconstructing new Extended components.
+
+Therefore, for any section that already has an approved/native representation:
+
+1. reuse/copy the existing component grammar first;
+2. preserve its fonts, scale, spacing, hierarchy and visual identity;
+3. extend capacity by adding/copying rows, columns or pages as needed;
+4. switch to adaptive continuation only to reclaim space or continue overflow;
+5. do **not** invent a generic replacement unless no adequate source/native component exists or the owner explicitly approves a redesign.
+
+This is a cross-section product rule, not a one-off fix for Equipment.
+
 ### Custom Statistics — reuse the page-1 attribute design and capacity
 
 The problem is not merely that the Extended page paints phantom cards or that three cards look wrong.
@@ -168,19 +184,21 @@ Traits/features may be grouped **by category** rather than preserving one global
 
 The defect is not category grouping itself. The defect remains the fixed-scaffold continuation waste, poor space reclaim and record presentation.
 
-### Ordinary Equipment — do not invent descriptive Inventory pages
+### Ordinary Equipment — reuse the existing element; do not invent descriptive Inventory pages
 
-The existing base **EQUIPO** module is the intended visual/semantic reference for ordinary equipment.
+The existing base **EQUIPO** element is already the intended visual/semantic solution for ordinary equipment. The renderer should **copy/reuse that element and extend it by adding/repeating native columns as required**, rather than inventing a separate Extended Inventory design.
 
 Ordinary equipment does **not** require long prose descriptions or dedicated descriptive Inventory continuation pages. The stress output's long detail paragraphs are not a desired product presentation.
 
-The preferred ordinary Equipment identity is compact and immediately readable, for example:
+The intended visible content is the compact item identity, for example:
 
 - `3 x Frasco de tinta`
 
-with only genuinely useful compact state/weight information when the product requires it. Whether labels such as `Consumible` belong in this compact representation must be justified by actual player usefulness rather than copied mechanically from stress-fixture metadata.
+**Weight must not be shown. `Consumible` must not be shown. Prose descriptions must not be shown.**
 
-The repair must therefore avoid solving the current illegibility by creating larger item-description cards. It should **reuse/extend the already-clear base Equipment grammar** and keep item identity visually atomic and readable.
+Those fields may exist in the stress fixture/data model, but they are not part of the desired ordinary Equipment PDF presentation.
+
+The repair must therefore reuse the already-clear base Equipment grammar — same visual construction, font/size/rhythm — and increase capacity by copying/adding its existing columns/rows/pages as needed.
 
 ### Equipo Especial — reuse the existing native element
 
@@ -188,7 +206,7 @@ The renderer must not create a bespoke Extended Equipo Especial table when the s
 
 Extended handling should **reuse/copy the native-source grammar and extend it only as needed for additional/custom locations**. Noncanonical locations such as `Espalda` and `Bolsa lateral` must become legitimate rows/entries rather than overprinting fixed canonical labels.
 
-The same reuse principle applies to ordinary Equipment: prefer the proven existing sheet element over a newly invented generic substitute.
+This is not unique to Equipo Especial: **ordinary Equipment also already has a correctly designed native/source element**. Both modules must be reused directly; Extended rendering should add/copy capacity from the existing components rather than create replacement designs.
 
 ### Notes — reuse the existing Notes sheet, not a bespoke Extended Notes design
 
@@ -231,7 +249,7 @@ For future repairs:
 
 1. inspect the actual failing artifact/output first;
 2. restate every owner observation and intended result;
-3. use existing approved/native elements as references wherever they already solve the design problem;
+3. use existing approved/native elements as the primary implementation reference wherever they already solve the design problem — including attributes, rasgos/features, trasfondo/history, Equipment, Equipo Especial, Notes and analogous modules;
 4. only then design and implement the fix;
 5. after implementation, inspect the actual candidate output against the same original observations before calling the repair complete or asking the owner to re-QA.
 

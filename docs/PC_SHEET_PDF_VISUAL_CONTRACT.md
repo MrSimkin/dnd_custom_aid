@@ -101,14 +101,19 @@ When the base/approved sheet already contains a component that correctly represe
 
 Do not invent a generic substitute merely because the content is on an Extended page.
 
-This applies explicitly to:
+This applies explicitly to **any semantic family that already has a usable approved/native example**, including but not limited to:
 
 - Custom-v2 attributes/custom statistics;
+- Traits / Rasgos / Features;
+- Trasfondo / Historia / personalidad-style sections;
 - ordinary Equipment;
 - Equipo Especial;
-- Notes.
+- Notes;
+- other repeated sheet modules whose base/source treatment already solves the visual problem.
 
-A continuation may extend capacity, add rows/columns or adapt pagination, but should remain recognizably the same approved component unless the owner explicitly approves a redesign.
+The default question for an Extended renderer is therefore: **"what existing approved/source component already represents this same content, and how do we extend its capacity?"** — not "what new generic component should we design?"
+
+A continuation may extend capacity, add/copy rows or columns, flow onto additional pages or adapt pagination, but should preserve the same approved component grammar unless the owner explicitly approves a redesign.
 
 ### Custom-v2 custom attributes
 
@@ -118,25 +123,41 @@ Custom Statistics must reuse that same grammar and capacity logic. Four Mara cus
 
 Never paint empty/fake attribute shells for unused capacity.
 
-### Trait ordering
+### Traits / Rasgos / Features
+
+Traits/features already have usable native/source examples in the sheet. Extended presentation must **reuse that existing trait/rasgo grammar** rather than reconstructing the section as an unrelated generic four-panel or prose component.
+
+The renderer may add/copy capacity and use adaptive continuation once a native section fills, but it should preserve the established visual identity, typography, spacing and record treatment.
 
 Trait/feature presentation is intentionally **category-grouped**. Global numeric fixture order is not required across categories.
 
 Within each category, preserve coherent record order and semantic boundaries.
 
+### Trasfondo / historia and similar narrative modules
+
+Where the base/source sheet already has a clear module for Trasfondo, Historia, personalidad-style fields or similar narrative content, continuation should reuse that module's visual grammar and extend it rather than inventing a new generic narrative layout.
+
+The same reuse-first rule applies: preserve the existing heading hierarchy, font roles, writing rhythm and section identity, then add capacity adaptively.
+
 ### Ordinary Equipment
 
 Ordinary Equipment is a compact identity/list problem, not a prose-description page family.
 
-Reuse the existing base Equipment grammar. Prefer compact item identities such as `3 x Frasco de tinta` plus only genuinely useful compact state/weight information.
+The existing base **Equipment** element is already the correct visual reference. Extended ordinary Equipment must **reuse/copy that native-source element**, adding/repeating native columns as needed rather than inventing a new Inventory component.
 
-Do not create long descriptive Inventory pages merely because stress-fixture metadata contains descriptions. Avoid mechanically exposing metadata such as `Consumible` unless it is useful and belongs in the intended player-facing equipment representation.
+The intended player-facing content is the compact item identity, for example `3 x Frasco de tinta`.
+
+**Do not display weight. Do not display `Consumible`. Do not display prose descriptions.** Those stress-fixture fields must not be surfaced in the ordinary Equipment PDF presentation.
+
+If additional capacity is required, expand the proven Equipment grammar by adding/copying its existing columns/rows/pages while preserving the same font, size, spacing and visual construction.
 
 ### Equipo Especial
 
 Reuse the existing native/source Equipo Especial element rather than constructing an unrelated Extended table.
 
 Additional/custom locations must be supported as legitimate entries/rows without overprinting canonical source labels.
+
+The reuse rule is symmetrical: **both ordinary Equipment and Equipo Especial already have correctly designed native/source elements**. Neither should be replaced by a newly invented generic Extended renderer.
 
 ### Notes
 
