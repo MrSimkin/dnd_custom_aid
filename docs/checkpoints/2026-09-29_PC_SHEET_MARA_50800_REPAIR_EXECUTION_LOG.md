@@ -430,3 +430,27 @@ Disposition:
 - all remain formally OPEN in the master matrix until final exact-candidate acceptance;
 - Phase 2B.1 internal progression gate = **PASS**;
 - next bounded work = Phase 2B.2 Notes, M50800-21/22/23/24.
+
+
+## Phase 2B.2 — exact artifact progression
+
+Pre-code authority: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE2B2_PRECODE_MAP.md`.
+
+Run 4244 / `36594894685` / renderer-code head `5c5759a9699316bad27d4d032f31f082215045fe` — **SUCCESS**.  
+Exact proof artifact `11045852152`, digest `sha256:217fec8c85b36e240fd3a7358c9294c93b4f0d9f8df00a3bb41b5eab2597f084`.
+
+Exact artifact inspection demonstrates:
+
+- the existing native Notes source form is reused;
+- note identities are visibly emphasized and separated by native ruled rows;
+- real Mara uses both Notes columns before page advance;
+- all nine note-card identities remain present;
+- background/personality/faith/subclass records remain identifiable;
+- stressed proof `mara-50800-phase2b2-cross-page-note.pdf` repeats the owning note identity with `(continuación)` across physical column/page boundaries and preserves the final semantic tail.
+
+Disposition:
+
+- M50800-21/22/23/24 = **Phase 2B.2 internal progression candidates with positive exact-artifact evidence**;
+- they remain formally OPEN in the master matrix until final exact-candidate acceptance;
+- Phase 2B.2 internal progression gate = **PASS**;
+- next bounded work = Phase 2B.3, M50800-17/20.
