@@ -2057,11 +2057,23 @@ class DesktopPcSheetWholeDraftRendererTest {
                     ?.getGroupNames()
                     ?.toList()
                     .orEmpty()
-                listOf("V2X TRAITS", "V2X RESOURCES").forEach { prefix ->
+                // 50800 owner QA supersedes the rejected fixed six-panel V2X TRAITS
+                // scaffold. Traits now use page-1-derived adaptive native rows, so protect the
+                // semantic layer contract without freezing the rejected prefix/geometry.
+                val traitPrefix = layerNames
+                    .firstOrNull {
+                        it.startsWith("V2X NATIVE TRAITS") && it.endsWith(" - STRUCTURE")
+                    }
+                    ?.removeSuffix(" - STRUCTURE")
+                assertTrue(
+                    traitPrefix != null,
+                    "Missing 50800 native Traits continuation semantic layer",
+                )
+                listOf(requireNotNull(traitPrefix), "V2X RESOURCES").forEach { prefix ->
                     listOf("STRUCTURE", "CLEANUP", "LABELS", "VALUES", "MARKERS").forEach { role ->
                         assertTrue(
                             layerNames.contains("$prefix - $role"),
-                            "Missing frozen semantic layer $prefix - $role",
+                            "Missing semantic layer $prefix - $role",
                         )
                     }
                 }
@@ -3303,9 +3315,17 @@ class DesktopPcSheetWholeDraftRendererTest {
                     PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
                     PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
                     -> {
-                        audit("RASGOS Y ATRIBUTOS", 362f, 26f, 56f)
-                        audit("CLASE / DOTES", 152.5f, 97f, 119f)
-                        audit("RAZA / TRASFONDO / OTROS", 452.5f, 97f, 119f)
+                        // M50800-08/09/10: category headers are intentionally adaptive native
+                        // rows now. Do not freeze them at the rejected six-panel coordinates.
+                        audit("RASGOS Y ATRIBUTOS · CONTINUACIÓN", 362f, 26f, 56f)
+                        assertTrue(
+                            allText.contains("CLASE / DOTES", ignoreCase = true),
+                            "50800 native Traits flow must preserve the accepted primary category",
+                        )
+                        assertTrue(
+                            allText.contains("RAZA / TRASFONDO / OTROS", ignoreCase = true),
+                            "50800 native Traits flow must preserve the accepted secondary category",
+                        )
                         audit("EQUIPO ESPECIAL", 306f, 487f, 511f)
                     }
                 }
