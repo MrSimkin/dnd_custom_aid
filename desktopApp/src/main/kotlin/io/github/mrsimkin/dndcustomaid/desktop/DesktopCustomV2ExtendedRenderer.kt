@@ -1412,6 +1412,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 pageHeaderStructure(s)
                 bandedRows(s, 14f, 598f, 139f, INVENTORY_TREASURE_CAPACITY, 17f, 0)
             }
+            appendLayer(page, "$prefix - CLEANUP") { }
             appendLayer(page, "$prefix - LABELS") { s ->
                 pageTitle(s, "TESORO / MONEDAS")
             }
@@ -1428,6 +1429,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                     )
                 }
             }
+            appendLayer(page, "$prefix - MARKERS") { }
         }
     }
 
