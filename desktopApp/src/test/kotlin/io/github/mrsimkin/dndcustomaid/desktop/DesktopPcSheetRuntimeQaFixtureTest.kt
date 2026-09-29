@@ -549,6 +549,12 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             output.toByteArray()
         }
 
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        File(
+            proofDir,
+            "mara-50800-phase2b1-background-overflow.pdf",
+        ).writeBytes(bytes)
+
         Loader.loadPDF(bytes).use { pdf ->
             val pageTexts = (1..pdf.numberOfPages).map { pageNumber ->
                 PDFTextStripper().apply {

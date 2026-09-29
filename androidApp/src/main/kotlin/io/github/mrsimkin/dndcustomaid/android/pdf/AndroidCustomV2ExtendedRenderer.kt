@@ -736,7 +736,13 @@ internal class AndroidCustomV2ExtendedRenderer(
         }
         appendLayer(page, "$layerPrefix - CLEANUP") { }
         appendLayer(page, "$layerPrefix - LABELS") { s ->
-            pageTitle(s, title)
+            centered(
+                s,
+                resources.firaSemibold,
+                TopRect(126f, 28f, 472f, 34f),
+                title,
+                12.12f,
+            )
         }
         appendLayer(page, "$layerPrefix - VALUES") { s ->
             columns.take(2).forEachIndexed { columnIndex, rows ->
@@ -749,9 +755,9 @@ internal class AndroidCustomV2ExtendedRenderer(
                         NATIVE_FLOW_FIRST_RULE_TOP + rowIndex * NATIVE_FLOW_ROW_STEP,
                     )
                     when (row.style) {
-                        NativeFlowRowStyle.SECTION -> centeredFixedScale(
+                        NativeFlowRowStyle.SECTION -> centered(
                             s,
-                            resources.corbelBold,
+                            resources.firaSemibold,
                             TopRect(
                                 startX,
                                 rule.topY - NATIVE_FLOW_ROW_STEP + 1f,
@@ -760,7 +766,6 @@ internal class AndroidCustomV2ExtendedRenderer(
                             ),
                             row.text,
                             8.9f,
-                            SOURCE_CORBEL_HEADING_SCALE,
                         )
                         NativeFlowRowStyle.NAME -> textAboveRule(
                             s,
