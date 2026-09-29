@@ -1005,6 +1005,195 @@ internal class AndroidCustomV1ExtendedRenderer(
                 }
             }
         }
+        appendLayer(page, "$prefix - MARKERS") { s ->
+            rows.forEachIndexed { index, row ->
+                val current = row.currentValue
+                val maximum = row.maximum
+                if (
+                    current != null &&
+                    maximum != null &&
+                    maximum in 1..RESOURCE_SYMBOL_MAXIMUM &&
+                    current in 0..maximum
+                ) {
+                    drawResourceCounter(
+                        s = s,
+                        font = resources.symbol,
+                        startX = 222f,
+                        centerTop = RESOURCE_FIRST_RULE_TOP + index * RESOURCE_STEP - RESOURCE_STEP / 2f,
+                        current = current,
+                        maximum = maximum,
+                    )
+                }
+            }
+
+            options.forEachIndexed { index, option ->
+                option.active?.let { active ->
+                    val ruleTop = OPTION_FIRST_RULE_TOP + index * OPTION_STEP
+                    drawV1TrainingBox(
+                        s = s,
+                        font = resources.symbol,
+                        centerX = 116f,
+                        centerTop = ruleTop - OPTION_STEP / 2f,
+                        training = if (active) Training.PROFICIENT else Training.NONE,
+                    )
+                }
+            }
+        }
+    }
+
+    private fun optionKindLabel(kind: CharacterClassOptionKind): String = when (kind) {
+        CharacterClassOptionKind.ARTIFICER_PLAN -> "Plan"
+        CharacterClassOptionKind.ARTIFICER_DEVICE -> "Dispositivo"
+        CharacterClassOptionKind.SUBCLASS_STATE -> "Subclase"
+        CharacterClassOptionKind.TECHNIQUE -> "Técnica"
+        CharacterClassOptionKind.METAMAGIC -> "Metamagia"
+        CharacterClassOptionKind.INVOCATION -> "Invocación"
+        CharacterClassOptionKind.PACT_CHOICE -> "Pacto"
+        CharacterClassOptionKind.OTHER -> "Otro"
+    }
+
+    private fun recoveryLabel(cadence: CharacterRecoveryCadence): String = when (cadence) {
+        CharacterRecoveryCadence.NONE -> ""
+        CharacterRecoveryCadence.SHORT_REST -> "Descanso corto"
+        CharacterRecoveryCadence.LONG_REST -> "Descanso largo"
+        CharacterRecoveryCadence.SHORT_OR_LONG_REST -> "Descanso corto/largo"
+        CharacterRecoveryCadence.MANUAL -> "Manual"
+    }
+
+    private fun recoveryAmountLabel(
+        mode: CharacterRecoveryAmountMode,
+        fixedAmount: Int?,
+    ): String = when (mode) {
+        CharacterRecoveryAmountMode.NONE -> ""
+        CharacterRecoveryAmountMode.TO_MAX -> "A máximo"
+        CharacterRecoveryAmountMode.FIXED -> fixedAmount?.let { "+$it" } ?: "Cantidad fija"
+    }
+
+    private fun appendInventoryExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val aggregate = plan.snapshot.aggregate
+        val sheet = aggregate.sheet
+        val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
+
+        val ordinaryLines = ordered
+            .filterNot { it.special }
+            .flatMap(::inventoryContinuationLines)
+            .drop(BASE_V1_EQUIPMENT_CAPACITY)
+
+        val specialRows = specialEquipmentRows(plan).drop(BASE_V1_SPECIAL_CAPACITY)
+
+        val treasure = buildList {
+            sheet.currencies
+                .filter { !it.isDefault && it.standardCurrencyKindOrNull() == null }
+                .sortedBy { it.sortOrder }
+                .drop(BASE_V1_CUSTOM_CURRENCY_CAPACITY)
+                .forEach { currency ->
+                    add(TreasureEntry("${currency.name}: ${currency.amount}", null))
+                }
+            aggregate.successor.preferences.valuablesText
+                .split(';')
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .drop(BASE_V1_VALUABLE_CAPACITY)
+                .map(::parseValuable)
+                .forEach(::add)
+        }
+
+        if (ordinaryLines.isEmpty() && specialRows.isEmpty() && treasure.isEmpty()) return
+
+        val pages = maxOf(
+            pageCount(ordinaryLines.size, INVENTORY_ORDINARY_CAPACITY),
+            pageCount(treasure.size, INVENTORY_TREASURE_CAPACITY),
+            pageCount(specialRows.size, INVENTORY_SPECIAL_CAPACITY),
+        )
+        repeat(pages) { pageIndex ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderNativeInventoryPage(
+                page = page,
+                ordinary = ordinaryLines.pageSlice(pageIndex, INVENTORY_ORDINARY_CAPACITY),
+                treasure = treasure.pageSlice(pageIndex, INVENTORY_TREASURE_CAPACITY),
+                special = specialRows.pageSlice(pageIndex, INVENTORY_SPECIAL_CAPACITY),
+                pageIndex = pageIndex,
+            )
+        }
+    }
+
+    private fun renderNativeInventoryPage(
+        page: PDPage,
+        ordinary: List<String>,
+        treasure: List<TreasureEntry>,
+        special: List<SpecialEquipmentRow>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X NATIVE EQUIPMENT P${pageIndex + 1}"
+
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            // Exact approved Equipment page from the source template.
+            s.drawForm(resources.forms[1])
+        }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            ordinary.forEachIndexed { index, value ->
+                val row = index % INVENTORY_ORDINARY_RULES.size
+                val column = index / INVENTORY_ORDINARY_RULES.size
+                val (startX, endX) = INVENTORY_ORDINARY_COLUMNS[column]
+                ruleText(
+                    s,
+                    resources.condensed,
+                    Rule(startX, endX, INVENTORY_ORDINARY_RULES[row]),
+                    value,
+                    7.0f,
+                )
+            }
+
+            treasure.forEachIndexed { index, entry ->
+                val y = INVENTORY_TREASURE_RULES[index]
+                ruleText(
+                    s,
+                    resources.fira,
+                    Rule(453.402f, 546.945f, y),
+                    entry.label,
+                    8.2f,
+                )
+                entry.value?.let { value ->
+                    ruleText(
+                        s,
+                        resources.fira,
+                        Rule(549.779f, 583.795f, y),
+                        value,
+                        8.2f,
+                    )
+                }
+            }
+
+            special.forEachIndexed { rowIndex, row ->
+                val y = INVENTORY_SPECIAL_RULES[rowIndex]
+                clearNativeSpecialLocationCell(s, y)
+                row.location.takeIf { it.isNotEmpty() }?.let {
+                    ruleText(s, resources.fira, Rule(25f, 108f, y), it, 7.2f)
+                }
+                row.name.takeIf { it.isNotEmpty() }?.let {
+                    ruleText(s, resources.fira, Rule(127.5f, 238f, y), it, 7.4f)
+                }
+                row.detail.takeIf { it.isNotEmpty() }?.let {
+                    ruleText(s, resources.fira, Rule(240.803f, 583.795f, y), it, 7.2f)
+                }
+            }
+        }
+        appendLayer(page, "$prefix - MARKERS") { s ->
+            special.forEachIndexed { rowIndex, row ->
+                if (row.marked) {
+                    approvedV8Marker(
+                        s = s,
+                        font = resources.symbol,
+                        centerX = SPECIAL_CHECK_X + SPECIAL_CHECK_WIDTH / 2f,
+                        centerTop = INVENTORY_SPECIAL_CHECK_TOPS[rowIndex] + SPECIAL_CHECK_HEIGHT / 2f,
+                        size = 5.6f,
+                    )
+                }
+            }
+        }
     }
 
     private fun specialEquipmentRows(plan: PcSheetPdfRenderPlan): List<SpecialEquipmentRow> =
@@ -1012,18 +1201,30 @@ internal class AndroidCustomV1ExtendedRenderer(
             .sortedBy { it.sortOrder }
             .filter { it.special }
             .flatMap { item ->
-                val locationLines = wrapByWidth(item.location.orEmpty(), resources.fira, 7.2f, 80f)
-                    .ifEmpty { listOf("") }
-                val nameLines = wrapByWidth(item.name, resources.fira, 7.4f, 108f)
-                    .ifEmpty { listOf("") }
+                val locationLines = wrapByWidth(
+                    item.location.orEmpty(),
+                    resources.fira,
+                    7.2f,
+                    V1_NATIVE_SPECIAL_LOCATION_WIDTH,
+                ).ifEmpty { listOf("") }
+                val nameLines = wrapByWidth(
+                    item.name,
+                    resources.fira,
+                    7.4f,
+                    V1_NATIVE_SPECIAL_NAME_WIDTH,
+                ).ifEmpty { listOf("") }
                 val detailText = buildList {
                     if (item.quantity != 1) add("Cant. " + item.quantity)
                     if (item.attuned) add("Sintonizado")
                     item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                     item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 }.joinToString(" · ")
-                val detailLines = wrapByWidth(detailText, resources.fira, 7.2f, 340f)
-                    .ifEmpty { listOf("") }
+                val detailLines = wrapByWidth(
+                    detailText,
+                    resources.fira,
+                    7.2f,
+                    V1_NATIVE_SPECIAL_DETAIL_WIDTH,
+                ).ifEmpty { listOf("") }
                 val rowCount = maxOf(locationLines.size, nameLines.size, detailLines.size, 1)
                 (0 until rowCount).map { index ->
                     SpecialEquipmentRow(
@@ -1035,7 +1236,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                 }
             }
 
-    private fun clearSpecialLocationCell(s: PDFormContentStream, ruleTop: Float) {
+    private fun clearNativeSpecialLocationCell(s: PDFormContentStream, ruleTop: Float) {
         val bottom = H - ruleTop
         s.saveGraphicsState()
         s.setNonStrokingColor(Color.WHITE)
@@ -1049,36 +1250,6 @@ internal class AndroidCustomV1ExtendedRenderer(
         s.restoreGraphicsState()
     }
 
-    private fun inventoryContinuationLabel(item: CharacterInventoryItem): String = buildString {
-        if (item.quantity > 1) append(item.quantity).append(" x ")
-        append(item.name)
-    }
-
-    private fun inventoryBaseLabel(item: CharacterInventoryItem): String =
-        item.pdfCompactEquipmentLabel()
-
-    private fun inventoryDetailContinuationLines(
-        item: CharacterInventoryItem,
-        usage: CharacterInventoryUsage?,
-    ): List<String> {
-        val lines = mutableListOf<String>()
-        val operationalStatus = buildList {
-            if (item.equipped) add("Equipado")
-            if (item.attuned) add("Sintonizado")
-            addAll(inventoryUsageLabels(usage))
-        }.joinToString(" · ")
-        if (operationalStatus.isNotEmpty()) {
-            lines += wrapByWidth(
-                item.name + " — Estado: " + operationalStatus,
-                resources.condensed,
-                8.2f,
-                INVENTORY_ORDINARY_TEXT_WIDTH,
-            )
-        }
-
-        return lines
-    }
-
     private fun inventoryContinuationLines(
         item: CharacterInventoryItem,
     ): List<String> =
@@ -1088,79 +1259,6 @@ internal class AndroidCustomV1ExtendedRenderer(
             7.0f,
             INVENTORY_ORDINARY_TEXT_WIDTH,
         )
-
-    private fun specialInventoryDetail(
-        item: CharacterInventoryItem,
-        usage: CharacterInventoryUsage?,
-    ): String = buildList {
-        if (item.equipped) add("Equipado")
-        if (item.attuned) add("Sintonizado")
-        addAll(inventoryUsageLabels(usage))
-        item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-        item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-    }.joinToString(" · ")
-
-    private fun positionedSpecialItems(
-        items: List<CharacterInventoryItem>,
-        rowCount: Int,
-    ): List<Pair<Int, CharacterInventoryItem>> {
-        val available = (0 until rowCount).toMutableSet()
-        val positioned = mutableListOf<Pair<Int, CharacterInventoryItem>>()
-        items.take(rowCount).forEach { item ->
-            val preferred = specialLocationRow(item.location)?.takeIf { it in available }
-            val fallback = available
-                .filter { it >= SPECIAL_LOCATION_LABELS.size }
-                .minOrNull()
-                ?: available.minOrNull()
-            val row = preferred ?: fallback ?: return@forEach
-            available.remove(row)
-            positioned += row to item
-        }
-        return positioned.sortedBy { it.first }
-    }
-
-    private fun specialLocationRow(location: String?): Int? {
-        val normalized = normalizedInventoryLocation(location)
-        return SPECIAL_LOCATION_LABELS.indexOf(normalized).takeIf { it >= 0 }
-    }
-
-    private fun specialLocationNeedsText(location: String?): Boolean {
-        val normalized = normalizedInventoryLocation(location)
-        return normalized.isNotEmpty() && normalized !in SPECIAL_LOCATION_LABELS
-    }
-
-    private fun normalizedInventoryLocation(location: String?): String =
-        location
-            ?.lowercase()
-            ?.replace('á', 'a')
-            ?.replace('é', 'e')
-            ?.replace('í', 'i')
-            ?.replace('ó', 'o')
-            ?.replace('ú', 'u')
-            ?.replace(Regex("\\s+"), " ")
-            ?.trim()
-            .orEmpty()
-
-    private fun usageMeaningful(usage: CharacterInventoryUsage?): Boolean =
-        usage != null && (
-            usage.kind == CharacterConsumableKind.AMMUNITION ||
-                usage.quickUseAmount != 1 ||
-                usage.carryState != CharacterInventoryCarryState.CARRIED
-            )
-
-    private fun inventoryUsageLabels(usage: CharacterInventoryUsage?): List<String> {
-        if (!usageMeaningful(usage)) return emptyList()
-        requireNotNull(usage)
-        return buildList {
-            when (usage.kind) {
-                CharacterConsumableKind.NONE -> Unit
-                CharacterConsumableKind.CONSUMABLE -> Unit
-                CharacterConsumableKind.AMMUNITION -> add("Munición")
-            }
-            if (usage.quickUseAmount != 1) add("Uso rápido " + usage.quickUseAmount)
-            if (usage.carryState == CharacterInventoryCarryState.STORED) add("Almacenado")
-        }
-    }
 
     private fun parseValuable(raw: String): TreasureEntry {
         val match = Regex("""^(.*?)\s*\((\d+)\s*po\)\s*$""", RegexOption.IGNORE_CASE)
@@ -2315,6 +2413,9 @@ internal class AndroidCustomV1ExtendedRenderer(
         const val INVENTORY_ORDINARY_TEXT_WIDTH = 106f
         const val V1_BASE_SPECIAL_NAME_WIDTH = 82.5f
         const val V1_BASE_SPECIAL_DETAIL_WIDTH = 343f
+        const val V1_NATIVE_SPECIAL_LOCATION_WIDTH = 80f
+        const val V1_NATIVE_SPECIAL_NAME_WIDTH = 108f
+        const val V1_NATIVE_SPECIAL_DETAIL_WIDTH = 340f
         val INVENTORY_ORDINARY_COLUMNS = listOf(
             27.5f to 137.5f,
             169.937f to 300.331f,
