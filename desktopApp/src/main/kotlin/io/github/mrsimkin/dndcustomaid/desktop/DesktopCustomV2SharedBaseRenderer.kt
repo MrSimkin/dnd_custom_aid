@@ -106,7 +106,7 @@ internal class DesktopCustomV2SharedBaseRenderer(
     }
 
     private fun drawSpecialEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        val rows = specialEquipmentRows(plan).take(SPECIAL_RULE_Y.size)
+        val rows = specialEquipmentPages(plan, SPECIAL_RULE_Y.size).firstOrNull().orEmpty()
         rows.forEachIndexed { rowIndex, row ->
             val y = SPECIAL_RULE_Y[rowIndex]
 
@@ -143,35 +143,20 @@ internal class DesktopCustomV2SharedBaseRenderer(
      * description consumes subsequent rows of the same native module before any continuation
      * page is considered.
      */
-    private fun specialEquipmentRows(plan: PcSheetPdfRenderPlan): List<SpecialEquipmentRow> =
+    private fun specialEquipmentGroups(plan: PcSheetPdfRenderPlan): List<List<SpecialEquipmentRow>> =
         plan.snapshot.aggregate.sheet.inventoryItems
             .sortedBy { it.sortOrder }
             .filter { it.special }
-            .flatMap { item ->
-                val locationLines = wrapWords(
-                    fonts.regular,
-                    item.location.orEmpty().trim().split(Regex("\\s+")),
-                    7.2f,
-                    77f,
-                ).ifEmpty { listOf("") }
-                val nameLines = wrapWords(
-                    fonts.regular,
-                    item.name.trim().split(Regex("\\s+")),
-                    7.4f,
-                    194f,
-                ).ifEmpty { listOf("") }
+            .map { item ->
+                val locationLines = wrapWords(fonts.regular, item.location.orEmpty().trim().split(Regex("\\s+")), 7.2f, 77f).ifEmpty { listOf("") }
+                val nameLines = wrapWords(fonts.regular, item.name.trim().split(Regex("\\s+")), 7.4f, 194f).ifEmpty { listOf("") }
                 val detailText = buildList {
                     if (item.quantity != 1) add("Cant. " + item.quantity)
                     if (item.attuned) add("Sintonizado")
                     item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                     item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 }.joinToString(" · ")
-                val detailLines = wrapWords(
-                    fonts.regular,
-                    detailText.split(Regex("\\s+")),
-                    7.2f,
-                    289f,
-                ).ifEmpty { listOf("") }
+                val detailLines = wrapWords(fonts.regular, detailText.trim().split(Regex("\\s+")), 7.2f, 289f).ifEmpty { listOf("") }
 
                 val rowCount = maxOf(locationLines.size, nameLines.size, detailLines.size, 1)
                 (0 until rowCount).map { index ->
@@ -183,6 +168,27 @@ internal class DesktopCustomV2SharedBaseRenderer(
                     )
                 }
             }
+
+    private fun specialEquipmentPages(
+        plan: PcSheetPdfRenderPlan,
+        capacity: Int,
+    ): List<List<SpecialEquipmentRow>> {
+        val pages = mutableListOf<MutableList<SpecialEquipmentRow>>()
+        var current = mutableListOf<SpecialEquipmentRow>()
+
+        specialEquipmentGroups(plan).forEach { group ->
+            require(group.size <= capacity) {
+                "Special Equipment item requires more native rows than one page can provide."
+            }
+            if (current.isNotEmpty() && current.size + group.size > capacity) {
+                pages += current
+                current = mutableListOf()
+            }
+            current += group
+        }
+        if (current.isNotEmpty()) pages += current
+        return pages
+    }
 
     private fun clearLocationValueCell(s: PDFormContentStream, ruleTop: Float) {
         val ruleBottom = H - ruleTop

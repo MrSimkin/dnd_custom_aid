@@ -1844,7 +1844,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
             listOf("STRUCTURE", "CLEANUP", "LABELS", "VALUES", "MARKERS").forEach { role ->
                 assertTrue(
-                    layers.any { it.startsWith("V1X INVENTORY P1 - $role") },
+                    layers.any { it.startsWith("V1X NATIVE EQUIPMENT P1 - $role") },
                     "Missing v1 inventory semantic layer $role",
                 )
             }
@@ -1924,7 +1924,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(layers.any { it.startsWith("V1X SPELLS P2 - MARKERS") })
             assertFalse(layers.any { it.startsWith("V1X TRAITS") })
             assertFalse(layers.any { it.startsWith("V1X RESOURCES") })
-            assertFalse(layers.any { it.startsWith("V1X INVENTORY") })
+            assertFalse(layers.any { it.startsWith("V1X NATIVE EQUIPMENT") })
 
             val extracted = PDFTextStripper().getText(document)
             listOf(11, 20, 21, 30).forEach { index ->
@@ -2006,7 +2006,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             )
             assertFalse(layers.any { it.startsWith("V1X TRAITS") })
             assertFalse(layers.any { it.startsWith("V1X RESOURCES") })
-            assertFalse(layers.any { it.startsWith("V1X INVENTORY") })
+            assertFalse(layers.any { it.startsWith("V1X NATIVE EQUIPMENT") })
             assertFalse(layers.any { it.startsWith("V1X SPELLS") })
 
             val extracted = PDFTextStripper().getText(document)
@@ -2120,11 +2120,16 @@ class DesktopPcSheetWholeDraftRendererTest {
                     ?.getGroupNames()
                     ?.toList()
                     .orEmpty()
-                listOf("V2X INVENTORY", "V2X SPELLS", "V2X NOTES").forEach { prefix ->
+                val continuationPrefixes = listOf(
+                    "V2X NATIVE EQUIPMENT P1",
+                    "V2X SPELLS",
+                    "V2X NOTES",
+                )
+                continuationPrefixes.forEach { prefix ->
                     listOf("STRUCTURE", "CLEANUP", "LABELS", "VALUES", "MARKERS").forEach { role ->
                         assertTrue(
-                            layerNames.contains("$prefix - $role"),
-                            "Missing frozen semantic layer $prefix - $role",
+                            layerNames.any { it == "$prefix - $role" || it.startsWith("$prefix - $role") },
+                            "Missing semantic layer $prefix - $role",
                         )
                     }
                 }

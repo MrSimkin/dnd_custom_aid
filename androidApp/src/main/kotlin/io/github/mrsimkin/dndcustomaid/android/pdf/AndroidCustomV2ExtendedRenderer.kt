@@ -1296,7 +1296,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             .flatMap(::inventoryContinuationLines)
             .drop(BASE_V2_EQUIPMENT_CAPACITY)
 
-        val specialRows = specialEquipmentRows(plan).drop(BASE_V2_SPECIAL_CAPACITY)
+        val specialPages = specialEquipmentPages(plan, BASE_V2_SPECIAL_CAPACITY).drop(1)
 
         val nativeV2Kinds = setOf(
             StandardCurrencyKind.PLATINUM,
@@ -1328,7 +1328,7 @@ internal class AndroidCustomV2ExtendedRenderer(
 
         val nativePages = maxOf(
             pageCount(ordinaryLines.size, BASE_V2_EQUIPMENT_CAPACITY),
-            pageCount(specialRows.size, BASE_V2_SPECIAL_CAPACITY),
+            specialPages.size,
         )
         repeat(nativePages) { pageIndex ->
             val page = PDPage(PDRectangle(W, H))
@@ -1338,9 +1338,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                 ordinary = ordinaryLines
                     .drop(pageIndex * BASE_V2_EQUIPMENT_CAPACITY)
                     .take(BASE_V2_EQUIPMENT_CAPACITY),
-                special = specialRows
-                    .drop(pageIndex * BASE_V2_SPECIAL_CAPACITY)
-                    .take(BASE_V2_SPECIAL_CAPACITY),
+                special = specialPages.getOrNull(pageIndex).orEmpty(),
                 pageIndex = pageIndex,
             )
         }
@@ -1361,6 +1359,8 @@ internal class AndroidCustomV2ExtendedRenderer(
             // Exact approved Equipment/Trasfondo page from the source template.
             s.drawForm(resources.forms[1])
         }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { }
         appendLayer(page, "$prefix - VALUES") { s ->
             val ordinaryRules = listOf(14f to 149.5f, 156f to 291.5f).flatMap { (startX, endX) ->
                 (0 until 23).map { row -> Rule(startX, endX, 114.5f + row * 17f) }
@@ -1433,23 +1433,21 @@ internal class AndroidCustomV2ExtendedRenderer(
         }
     }
 
-    private fun specialEquipmentRows(plan: PcSheetPdfRenderPlan): List<SpecialEquipmentRow> =
+    private fun specialEquipmentGroups(plan: PcSheetPdfRenderPlan): List<List<SpecialEquipmentRow>> =
         plan.snapshot.aggregate.sheet.inventoryItems
             .sortedBy { it.sortOrder }
             .filter { it.special }
-            .flatMap { item ->
-                val locationLines = wrapByWidth(resources.fira, item.location.orEmpty(), 7.2f, 77f)
-                    .ifEmpty { listOf("") }
-                val nameLines = wrapByWidth(resources.fira, item.name, 7.4f, 194f)
-                    .ifEmpty { listOf("") }
+            .map { item ->
+                val locationLines = wrapByWidth(resources.fira, item.location.orEmpty(), 7.2f, 77f).ifEmpty { listOf("") }
+                val nameLines = wrapByWidth(resources.fira, item.name, 7.4f, 194f).ifEmpty { listOf("") }
                 val detailText = buildList {
                     if (item.quantity != 1) add("Cant. " + item.quantity)
                     if (item.attuned) add("Sintonizado")
                     item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                     item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 }.joinToString(" · ")
-                val detailLines = wrapByWidth(resources.fira, detailText, 7.2f, 289f)
-                    .ifEmpty { listOf("") }
+                val detailLines = wrapByWidth(resources.fira, detailText, 7.2f, 289f).ifEmpty { listOf("") }
+
                 val rowCount = maxOf(locationLines.size, nameLines.size, detailLines.size, 1)
                 (0 until rowCount).map { index ->
                     SpecialEquipmentRow(
@@ -1460,6 +1458,27 @@ internal class AndroidCustomV2ExtendedRenderer(
                     )
                 }
             }
+
+    private fun specialEquipmentPages(
+        plan: PcSheetPdfRenderPlan,
+        capacity: Int,
+    ): List<List<SpecialEquipmentRow>> {
+        val pages = mutableListOf<MutableList<SpecialEquipmentRow>>()
+        var current = mutableListOf<SpecialEquipmentRow>()
+
+        specialEquipmentGroups(plan).forEach { group ->
+            require(group.size <= capacity) {
+                "Special Equipment item requires more native rows than one page can provide."
+            }
+            if (current.isNotEmpty() && current.size + group.size > capacity) {
+                pages += current
+                current = mutableListOf()
+            }
+            current += group
+        }
+        if (current.isNotEmpty()) pages += current
+        return pages
+    }
 
     private fun clearNativeSpecialLocationCell(s: PDFormContentStream, ruleTop: Float) {
         val bottom = H - ruleTop
