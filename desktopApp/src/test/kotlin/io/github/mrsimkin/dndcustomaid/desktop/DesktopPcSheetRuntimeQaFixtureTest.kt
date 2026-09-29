@@ -327,8 +327,8 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                         finalSpecialText.contains("EQUIPO ESPECIAL", ignoreCase = true),
                         "$family final Special Equipment overflow must use the native Equipment/Trasfondo source page",
                     )
-                    assertFalse(
-                        finalSpecialText.contains("CLASE Y NIVEL", ignoreCase = true),
+                    assertTrue(
+                        !finalSpecialText.contains("CLASE Y NIVEL", ignoreCase = true),
                         "$family Equipment continuation must not copy either main-sheet source page",
                     )
                 }
