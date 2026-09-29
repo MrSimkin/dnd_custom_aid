@@ -570,7 +570,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
                     .map { NativeNoteLine(it, emphasis = true) }
                 val bodyLines = wrapByWidth(fonts.regular, remainingBody, NOTE_BODY_SIZE, width)
                 val separator = if (current().isNotEmpty()) 1 else 0
-                val capacity = $cap
+                val capacity = NOTES_LEFT_RULES.size
                 val available = capacity - current().size
                 val wholeSize = separator + titleLines.size + bodyLines.size
 
