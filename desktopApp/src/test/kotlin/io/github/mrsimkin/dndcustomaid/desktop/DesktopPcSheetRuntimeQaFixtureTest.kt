@@ -859,6 +859,10 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             assertTrue(normalized.contains("del objeto 1"))
             assertTrue(normalized.contains("Protocolo de paradoja 1"))
             assertTrue(normalized.contains("Reserva 10: Sello"))
+            assertTrue(
+                !normalized.contains("..."),
+                "M50800-26: Fantasy Mara semantic content must wrap instead of introducing ellipsis",
+            )
         }
     }
 
