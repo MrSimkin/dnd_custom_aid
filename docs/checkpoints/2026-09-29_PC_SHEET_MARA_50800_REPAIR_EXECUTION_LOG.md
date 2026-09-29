@@ -16,9 +16,15 @@ The old branch `repair/pc-sheet-adaptive-continuations-cross-family` is referenc
 
 ## Current execution phase
 
-Active phase: **Phase 1B — native Equipment / Equipo Especial semantics and Custom-v1 generation safety**.
+**SAFE PAUSE after Phase 2A internal artifact QA.**
 
-Phase 2A (Custom-v2 Custom Statistics/native attribute reuse) has been analyzed but intentionally not modified yet. It remains gated on Phase 1B CI plus real-artifact inspection.
+- Phase 1B progression gate passed from exact artifact QA; M50800-17 and M50800-20 remain intentionally OPEN.
+- Phase 2A internal artifact-QA progression gate passed at run 4212 / head `6e53492dcd9f13945fbb320334f621aad070e61f` / artifact `11011771728`.
+- M50800-03/04/05/06/07/25 have positive exact-artifact phase evidence but remain formally OPEN until final exact-candidate acceptance.
+- **Next implementation phase: Phase 2B.1 — Traits/Rasgos + Trasfondo/Historia native reuse (M50800-08/09/10/11).**
+- Canonical safe-pause checkpoint: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_END_OF_DAY_HANDOFF.md`.
+
+Do not restart Phase 1B or Phase 2A without new concrete artifact evidence.
 
 ## 50800 items addressed by the active code path
 
