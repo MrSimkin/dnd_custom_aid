@@ -2120,8 +2120,10 @@ class DesktopPcSheetWholeDraftRendererTest {
                     ?.getGroupNames()
                     ?.toList()
                     .orEmpty()
+                // This fixture adds spell/note overflow only. Equipment remains within the
+                // native module, so requiring an Equipment continuation would recreate the old
+                // scaffold bug instead of testing data-warranted pagination.
                 val continuationPrefixes = listOf(
-                    "V2X NATIVE EQUIPMENT P1",
                     "V2X SPELLS",
                     "V2X NOTES",
                 )

@@ -278,8 +278,12 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     "$family must preserve recognizable ordinary item identity in the native Equipment module",
                 )
                 assertTrue(
-                    normalized.contains("mapas plegables 29"),
-                    "$family must preserve the final Special Equipment item instead of dropping overflow",
+                    normalized.contains("Cuaderno de fórmulas"),
+                    "$family must preserve the leading identity of the final Special Equipment item",
+                )
+                assertTrue(
+                    normalized.contains("plegables 29"),
+                    "$family must preserve the tail of the final Special Equipment item across native rows",
                 )
                 assertTrue(
                     normalized.contains("Bolsa lateral"),
