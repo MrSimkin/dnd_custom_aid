@@ -329,7 +329,7 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     }
 
     @Test
-    fun maraCustomV2FamiliesMicroFitSourceLabelsAndPreserveExtendedContent() {
+    fun maraCustomV2StatisticsUseOneCleanNativeScalePageWithoutSourceLeak() {
         val document = fixture("03_mara_siete_umbrales_custom_extended.json")
         val families = listOf(
             PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
@@ -358,7 +358,39 @@ class DesktopPcSheetRuntimeQaFixtureTest {
 
             assertTrue(bytes.size > 20_000)
             Loader.loadPDF(bytes).use { pdf ->
-                val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+                val pageTexts = (1..pdf.numberOfPages).map { pageNumber ->
+                    PDFTextStripper().apply {
+                        startPage = pageNumber
+                        endPage = pageNumber
+                    }.getText(pdf).replace(Regex("\\s+"), " ")
+                }
+                val statsPages = pageTexts.filter {
+                    it.contains("ESTADÍSTICAS PERSONALIZADAS", ignoreCase = true)
+                }
+                assertEquals(
+                    1,
+                    statsPages.size,
+                    "$family must place Mara's four real custom attributes on one statistics page",
+                )
+                val stats = statsPages.single()
+                listOf("Fortuna", "Cordura", "Éter", "Renombre").forEach { attributeName ->
+                    assertTrue(
+                        stats.contains(attributeName, ignoreCase = true),
+                        "$family statistics page must contain real attribute $attributeName",
+                    )
+                }
+                assertTrue(
+                    !stats.contains("ETE · Éter", ignoreCase = true),
+                    "$family must render clean Éter rather than the ambiguous keyed fallback",
+                )
+                listOf("UBICACIÓN", "EQUIPO ESPECIAL", "CLASE Y NIVEL").forEach { leakedSourceLabel ->
+                    assertTrue(
+                        !stats.contains(leakedSourceLabel, ignoreCase = true),
+                        "$family statistics page must not leak source-underlay text: $leakedSourceLabel",
+                    )
+                }
+
+                val normalized = pageTexts.joinToString(" ")
                 assertTrue(normalized.contains("Mara de los Siete Umbrales"))
                 assertTrue(normalized.contains("Manipulación de éter"))
                 assertTrue(normalized.contains("Astrolabio de cobre con anillos concéntricos 1"))

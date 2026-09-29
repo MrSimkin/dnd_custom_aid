@@ -133,22 +133,22 @@ internal class DesktopCustomV2ExtendedRenderer(
                 } else {
                     rawNote
                 }
-                wrapByWidth(resources.fira, note, 8.8f, 174f)
+                wrapByWidth(resources.fira, note, 8.0f, ATTRIBUTE_NOTE_TEXT_WIDTH)
             }
             val slices = maxOf(
                 1,
-                pageCount(linked.size, ATTRIBUTE_LINKED_SKILLS_PER_COLUMN),
-                pageCount(noteLines.size, ATTRIBUTE_NOTE_LINES_PER_COLUMN),
+                pageCount(linked.size, ATTRIBUTE_NATIVE_LINKED_SKILLS_PER_BLOCK),
+                pageCount(noteLines.size, ATTRIBUTE_NOTE_LINES_PER_BLOCK),
             )
             (0 until slices).map { sliceIndex ->
                 AttributeColumnSlice(
                     projection = projection,
                     skills = linked
-                        .drop(sliceIndex * ATTRIBUTE_LINKED_SKILLS_PER_COLUMN)
-                        .take(ATTRIBUTE_LINKED_SKILLS_PER_COLUMN),
+                        .drop(sliceIndex * ATTRIBUTE_NATIVE_LINKED_SKILLS_PER_BLOCK)
+                        .take(ATTRIBUTE_NATIVE_LINKED_SKILLS_PER_BLOCK),
                     noteLines = noteLines
-                        .drop(sliceIndex * ATTRIBUTE_NOTE_LINES_PER_COLUMN)
-                        .take(ATTRIBUTE_NOTE_LINES_PER_COLUMN),
+                        .drop(sliceIndex * ATTRIBUTE_NOTE_LINES_PER_BLOCK)
+                        .take(ATTRIBUTE_NOTE_LINES_PER_BLOCK),
                 )
             }
         }
@@ -158,13 +158,13 @@ internal class DesktopCustomV2ExtendedRenderer(
             .groupBy { requireNotNull(it.ability.builtIn) }
             .toList()
             .flatMap { (ability, groupedSkills) ->
-                groupedSkills.chunked(STANDARD_SKILLS_PER_COLUMN).map { chunk ->
+                groupedSkills.chunked(STANDARD_SKILLS_PER_GROUP).map { chunk ->
                     StandardSkillSlice(ability = ability, skills = chunk)
                 }
             }
 
-        val attributePages = attributeSlices.chunked(ATTRIBUTE_COLUMNS_PER_PAGE)
-        val standardPages = standardSlices.chunked(STANDARD_COLUMNS_PER_PAGE)
+        val attributePages = attributeSlices.chunked(ATTRIBUTE_NATIVE_BLOCKS_PER_PAGE)
+        val standardPages = standardSlices.chunked(STANDARD_GROUPS_PER_PAGE)
         val pages = maxOf(1, attributePages.size, standardPages.size)
 
         repeat(pages) { pageIndex ->
@@ -189,68 +189,116 @@ internal class DesktopCustomV2ExtendedRenderer(
 
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
             pageHeaderStructure(s)
-            val columns = listOf(14f, 207f, 400f)
-            columns.forEach { x ->
-                fill(s, x, 104f, 184f, 244f, SOURCE_GRAY_LIGHT)
-                attributeBandStructure(s, x, 104f, 184f, ATTRIBUTE_LINKED_SKILLS_PER_COLUMN)
+
+            fill(s, 14f, 104f, 174f, 30f, SOURCE_GRAY_LIGHT)
+            attributes.forEachIndexed { index, slice ->
+                val top = ATTRIBUTE_NATIVE_FIRST_TOP + index * ATTRIBUTE_NATIVE_BLOCK_STEP
+                fill(
+                    s, 14f, top, 174f, ATTRIBUTE_NATIVE_BLOCK_HEIGHT,
+                    if (index % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK,
+                )
+                attributeBandStructure(
+                    s = s,
+                    x = 14f,
+                    top = top,
+                    width = 174f,
+                    rows = slice.skills.size,
+                )
+                drawRule(s, 22f, 180f, top + ATTRIBUTE_NATIVE_BLOCK_HEIGHT, 0.55f)
             }
 
-            drawRule(s, 14f, 598f, 365f, 0.8f)
-            columns.forEachIndexed { index, x ->
-                fill(s, x, 392f, 184f, 110f, if (index % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK)
-                drawRule(s, x + 16f, x + 174f, 430f, 0.55f)
-                repeat(STANDARD_SKILLS_PER_COLUMN) { row ->
-                    drawRule(s, x + 16f, x + 174f, 447f + row * 17f, 0.55f)
+            fill(s, 202f, 104f, 396f, 30f, SOURCE_GRAY_LIGHT)
+            standardGroups.forEachIndexed { index, group ->
+                val top = STANDARD_GROUP_FIRST_TOP + index * STANDARD_GROUP_STEP
+                fill(
+                    s, 202f, top, 396f, STANDARD_GROUP_HEIGHT,
+                    if (index % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK,
+                )
+                drawRule(s, 218f, 582f, top + 30f, 0.55f)
+                group.skills.forEachIndexed { row, _ ->
+                    drawRule(s, 230f, 588f, top + 48f + row * 17f, 0.55f)
                 }
             }
 
-            drawRule(s, 14f, 598f, 522f, 0.8f)
-            columns.forEachIndexed { col, x ->
-                bandedRows(s, x, x + 184f, 562f, ATTRIBUTE_NOTE_LINES_PER_COLUMN, 17f, col)
+            fill(s, 202f, NOTES_SECTION_TOP, 396f, 30f, SOURCE_GRAY_LIGHT)
+            attributes.forEachIndexed { index, _ ->
+                val col = index % 2
+                val row = index / 2
+                val x = 202f + col * 208f
+                val top = NOTES_BLOCK_FIRST_TOP + row * NOTES_BLOCK_STEP
+                fill(
+                    s, x, top, 188f, NOTES_BLOCK_HEIGHT,
+                    if ((index + row) % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK,
+                )
+                repeat(ATTRIBUTE_NOTE_LINES_PER_BLOCK) { line ->
+                    drawRule(s, x + 8f, x + 180f, top + 42f + line * 17f, 0.5f)
+                }
             }
         }
+
         appendLayer(page, "$layerPrefix - CLEANUP") { }
+
         appendLayer(page, "$layerPrefix - LABELS") { s ->
             pageTitle(s, "ESTADÍSTICAS PERSONALIZADAS")
+            centeredFixedScale(
+                s, resources.corbelBold, TopRect(14f, 108f, 174f, 22f),
+                "ATRIBUTOS", 7.8f, SOURCE_CORBEL_HEADING_SCALE,
+            )
             attributes.forEachIndexed { index, slice ->
-                val projection = slice.projection
+                val top = ATTRIBUTE_NATIVE_FIRST_TOP + index * ATTRIBUTE_NATIVE_BLOCK_STEP
                 textTopSource(
                     s, resources.corbelBold, resources.firaSemibold,
-                    18f + index * 193f, 111f,
-                    keyedName(projection.attribute.name, projection.attribute.abbreviation),
+                    18f, top + 7f,
+                    slice.projection.attribute.name,
                     12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
                 )
                 textAboveRuleSource(
                     s, resources.corbel, resources.fira,
-                    Rule(108f + index * 193f, 159f + index * 193f, 151f),
+                    Rule(108f, 159f, top + 47f),
                     "Tirada de Salvación", 7.75f, 2.0f, SOURCE_CORBEL_COMPACT_SCALE,
                 )
             }
-            centeredSource(
-                s, resources.corbelBold, resources.firaSemibold,
-                TopRect(14f, 367f, 584f, 22f),
-                "HABILIDADES VINCULADAS A ATRIBUTOS ESTÁNDAR", 10.2f, SOURCE_CORBEL_HEADING_SCALE,
+
+            centeredFixedScale(
+                s, resources.corbelBold, TopRect(202f, 108f, 396f, 22f),
+                "HABILIDADES VINCULADAS A ATRIBUTOS ESTÁNDAR",
+                7.8f, SOURCE_CORBEL_HEADING_SCALE,
             )
             standardGroups.forEachIndexed { index, group ->
+                val top = STANDARD_GROUP_FIRST_TOP + index * STANDARD_GROUP_STEP
                 centeredSource(
                     s, resources.corbelBold, resources.firaSemibold,
-                    TopRect(14f + index * 193f, 397f, 184f, 22f),
-                    builtInKeyedName(group.ability), 12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
+                    TopRect(210f, top + 4f, 380f, 22f),
+                    builtInKeyedName(group.ability), 10.5f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
                 )
             }
-            centeredSource(
-                s, resources.corbelBold, resources.firaSemibold,
-                TopRect(14f, 524f, 584f, 22f),
-                "DEFINICIONES / NOTAS", 12.12f, SOURCE_CORBEL_HEADING_SCALE,
+
+            centeredFixedScale(
+                s, resources.corbelBold, TopRect(202f, NOTES_SECTION_TOP + 4f, 396f, 22f),
+                "DEFINICIONES / NOTAS", 7.8f, SOURCE_CORBEL_HEADING_SCALE,
             )
+            attributes.forEachIndexed { index, slice ->
+                val col = index % 2
+                val row = index / 2
+                val x = 202f + col * 208f
+                val top = NOTES_BLOCK_FIRST_TOP + row * NOTES_BLOCK_STEP
+                centeredSource(
+                    s, resources.corbelBold, resources.firaSemibold,
+                    TopRect(x + 8f, top + 5f, 172f, 22f),
+                    slice.projection.attribute.name,
+                    9.4f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
+                )
+            }
         }
+
         appendLayer(page, "$layerPrefix - VALUES") { s ->
             attributes.forEachIndexed { index, slice ->
+                val top = ATTRIBUTE_NATIVE_FIRST_TOP + index * ATTRIBUTE_NATIVE_BLOCK_STEP
                 val attr = slice.projection.attribute
                 drawAttributeBandValues(
                     s,
-                    14f + index * 193f,
-                    104f,
+                    14f,
+                    top,
                     AttributeValues(
                         score = attr.score.toString(),
                         modifier = signed(attr.modifier),
@@ -258,63 +306,71 @@ internal class DesktopCustomV2ExtendedRenderer(
                         skills = slice.skills.map { it.skill.name to it.total?.let(::signed).orEmpty() },
                     ),
                 )
-                slice.noteLines.forEachIndexed { row, line ->
-                    textAboveRule(
-                        s, resources.fira,
-                        Rule(18f + index * 193f, 194f + index * 193f, 562f + row * 17f),
-                        line, 8.8f, 8.0f, 2.2f,
-                    )
-                }
             }
 
-            standardGroups.forEachIndexed { col, group ->
+            standardGroups.forEachIndexed { index, group ->
+                val top = STANDARD_GROUP_FIRST_TOP + index * STANDARD_GROUP_STEP
                 group.skills.forEachIndexed { row, item ->
-                    val y = 447f + row * 17f
+                    val y = top + 48f + row * 17f
                     textAboveRuleSource(
                         s, resources.corbel, resources.fira,
-                        Rule(38f + col * 193f, 164f + col * 193f, y),
+                        Rule(242f, 548f, y),
                         item.skill.name, 7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE,
                     )
                     item.total?.let {
                         centeredAboveRule(
                             s, resources.firaSemibold,
-                            Rule(164f + col * 193f, 196f + col * 193f, y),
+                            Rule(548f, 588f, y),
                             signed(it), 8.8f, 2.2f,
                         )
                     }
                 }
             }
+
+            attributes.forEachIndexed { index, slice ->
+                val col = index % 2
+                val row = index / 2
+                val x = 202f + col * 208f
+                val top = NOTES_BLOCK_FIRST_TOP + row * NOTES_BLOCK_STEP
+                slice.noteLines.forEachIndexed { lineIndex, line ->
+                    textAboveRule(
+                        s, resources.fira,
+                        Rule(x + 8f, x + 180f, top + 42f + lineIndex * 17f),
+                        line, 8.0f, 7.2f, 2.2f,
+                    )
+                }
+            }
         }
+
         appendLayer(page, "$layerPrefix - MARKERS") { s ->
-            repeat(ATTRIBUTE_COLUMNS_PER_PAGE) { col ->
-                val slice = attributes.getOrNull(col)
-                val projection = slice?.projection
+            attributes.forEachIndexed { index, slice ->
+                val top = ATTRIBUTE_NATIVE_FIRST_TOP + index * ATTRIBUTE_NATIVE_BLOCK_STEP
+                val projection = slice.projection
                 val saveTraining = if (
-                    projection?.attribute?.savingThrowEnabled == true &&
+                    projection.attribute.savingThrowEnabled &&
                     projection.attribute.savingThrowProficient
                 ) {
                     Training.PROFICIENT
                 } else {
                     Training.NONE
                 }
-                drawV2TrainingBox(s, TopRect(98.5f + col * 193f, 141.5f, 8.5f, 9f), saveTraining)
-
-                repeat(ATTRIBUTE_LINKED_SKILLS_PER_COLUMN) { row ->
+                drawV2TrainingBox(s, TopRect(98.5f, top + 37.5f, 8.5f, 9f), saveTraining)
+                slice.skills.forEachIndexed { row, skill ->
                     drawV2TrainingBox(
                         s,
-                        TopRect(98.5f + col * 193f, 157f + row * 17f, 8.5f, 9f),
-                        slice?.skills?.getOrNull(row)?.let { training(it.skill.training) } ?: Training.NONE,
+                        TopRect(98.5f, top + 53f + row * 17f, 8.5f, 9f),
+                        training(skill.skill.training),
                     )
                 }
             }
 
-            repeat(STANDARD_COLUMNS_PER_PAGE) { col ->
-                val group = standardGroups.getOrNull(col)
-                repeat(STANDARD_SKILLS_PER_COLUMN) { row ->
+            standardGroups.forEachIndexed { index, group ->
+                val top = STANDARD_GROUP_FIRST_TOP + index * STANDARD_GROUP_STEP
+                group.skills.forEachIndexed { row, item ->
                     drawV2TrainingBox(
                         s,
-                        TopRect(18f + col * 193f, 434f + row * 17f, 8.5f, 9f),
-                        group?.skills?.getOrNull(row)?.let { training(it.skill.training) } ?: Training.NONE,
+                        TopRect(218f, top + 36f + row * 17f, 8.5f, 9f),
+                        training(item.skill.training),
                     )
                 }
             }
@@ -369,7 +425,7 @@ internal class DesktopCustomV2ExtendedRenderer(
             fill(s, 202f, 104f, 150f, 30f, SOURCE_GRAY_LIGHT)
             fill(s, 366f, 104f, 232f, 30f, SOURCE_GRAY_LIGHT)
 
-            repeat(ABILITY_ATTRIBUTES_PER_PAGE) { index ->
+            attributes.forEachIndexed { index, _ ->
                 val top = 136f + index * 96f
                 fill(s, 14f, top, 174f, 94f, if (index % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK)
                 drawAttributeOrnament(s, 14.3f, top + 24f)
@@ -388,7 +444,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 textTopSource(
                     s, resources.corbelBold, resources.firaSemibold,
                     14f, 142f + index * 96f,
-                    keyedName(projection.attribute.name, projection.attribute.abbreviation),
+                    projection.attribute.name,
                     12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
                 )
             }
@@ -405,7 +461,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 textAboveRuleSource(
                     s, resources.corbel, resources.fira,
                     Rule(235f, 308f, y),
-                    keyedName(projection.attribute.name, projection.attribute.abbreviation),
+                    projection.attribute.name,
                     7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE,
                 )
                 projection.savingThrowTotal?.let {
@@ -2671,11 +2727,22 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val SOURCE_MATCHED_MICRO_FIT_DELTA = 2f
         const val COMPACT_LABEL_MICRO_FIT_DELTA = 2f
         const val BASE_V2_TRAIT_CAPACITY = 18
-        const val ATTRIBUTE_COLUMNS_PER_PAGE = 3
-        const val ATTRIBUTE_LINKED_SKILLS_PER_COLUMN = 6
-        const val ATTRIBUTE_NOTE_LINES_PER_COLUMN = 10
-        const val STANDARD_COLUMNS_PER_PAGE = 3
-        const val STANDARD_SKILLS_PER_COLUMN = 4
+        const val ATTRIBUTE_NATIVE_BLOCKS_PER_PAGE = 6
+        const val ATTRIBUTE_NATIVE_LINKED_SKILLS_PER_BLOCK = 2
+        const val ATTRIBUTE_NOTE_LINES_PER_BLOCK = 5
+        const val ATTRIBUTE_NOTE_TEXT_WIDTH = 172f
+        const val ATTRIBUTE_NATIVE_FIRST_TOP = 136f
+        const val ATTRIBUTE_NATIVE_BLOCK_STEP = 96f
+        const val ATTRIBUTE_NATIVE_BLOCK_HEIGHT = 94f
+        const val STANDARD_GROUPS_PER_PAGE = 3
+        const val STANDARD_SKILLS_PER_GROUP = 4
+        const val STANDARD_GROUP_FIRST_TOP = 136f
+        const val STANDARD_GROUP_STEP = 104f
+        const val STANDARD_GROUP_HEIGHT = 100f
+        const val NOTES_SECTION_TOP = 456f
+        const val NOTES_BLOCK_FIRST_TOP = 488f
+        const val NOTES_BLOCK_STEP = 130f
+        const val NOTES_BLOCK_HEIGHT = 126f
         const val ABILITY_ATTRIBUTES_PER_PAGE = 6
         const val ABILITY_SAVES_PER_PAGE = 30
         const val ABILITY_SKILLS_PER_PAGE = 34
