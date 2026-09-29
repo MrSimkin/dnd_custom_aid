@@ -590,6 +590,88 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     }
 
     @Test
+    fun maraCustomV2NotesPreserveNativeRecordBoundariesAndContinuationIdentity() {
+        val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+        val families = listOf(
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
+        )
+
+        families.forEach { family ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(
+                    permanent = PcSheetExportAggregate(
+                        sheet = document.character,
+                        closure = document.closureState,
+                        successor = document.successorState,
+                    ),
+                ),
+            )
+
+            val bytes = ByteArrayOutputStream().use { output ->
+                DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+                output.toByteArray()
+            }
+
+            Loader.loadPDF(bytes).use { pdf ->
+                val pageTexts = (1..pdf.numberOfPages).map { pageNumber ->
+                    PDFTextStripper().apply {
+                        startPage = pageNumber
+                        endPage = pageNumber
+                    }.getText(pdf).replace(Regex("\\s+"), " ").trim()
+                }
+                val fullText = pageTexts.joinToString(" ")
+                val orderedTitles = document.character.noteCards
+                    .sortedBy { it.sortOrder }
+                    .map { it.title.trim() }
+                    .filter { it.isNotEmpty() }
+
+                orderedTitles.forEach { title ->
+                    assertTrue(
+                        fullText.contains(title),
+                        "$family must preserve note-card identity $title",
+                    )
+                }
+
+                var previousIndex = -1
+                orderedTitles.forEach { title ->
+                    val index = fullText.indexOf(title)
+                    assertTrue(index > previousIndex, "$family must preserve note-card sortOrder")
+                    previousIndex = index
+                }
+
+                val notesPages = pageTexts.filter { text ->
+                    text.contains("NOTAS", ignoreCase = true) &&
+                        (
+                            text.contains("Nota ", ignoreCase = true) ||
+                                text.contains("Notas generales", ignoreCase = true) ||
+                                text.contains("continuación", ignoreCase = true)
+                        )
+                }
+                assertTrue(notesPages.size >= 2, "$family must exercise real Mara Notes overflow")
+                val overflowText = notesPages.drop(1).joinToString(" ")
+                assertTrue(
+                    Regex("""Nota\s+\d+[^.]{0,80}\(continuación\)""", RegexOption.IGNORE_CASE)
+                        .containsMatchIn(overflowText),
+                    "$family must retain Note N identity across the base/Extended boundary",
+                )
+                assertTrue(
+                    overflowText.contains("Rasgos de personalidad", ignoreCase = true),
+                    "$family must preserve background-derived Notes records",
+                )
+                assertTrue(
+                    overflowText.contains("Subclase", ignoreCase = true),
+                    "$family must preserve subclass-derived Notes records",
+                )
+            }
+        }
+    }
+
+    @Test
     fun maraFantasySheetRendersStressContentWithoutUnroutedOverflow() {
         val document = fixture("03_mara_siete_umbrales_custom_extended.json")
         val plan = PcSheetPdfExportPlanner.plan(

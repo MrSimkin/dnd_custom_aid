@@ -4,7 +4,6 @@ package io.github.mrsimkin.dndcustomaid.android.pdf
 
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
-import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
 import com.tom_roush.harmony.awt.AWTColor as Color
 import com.tom_roush.harmony.awt.geom.AffineTransform
@@ -58,20 +57,56 @@ internal class AndroidCustomV2SharedBaseRenderer(
 
     private fun renderNotes(page: PDPage, plan: PcSheetPdfRenderPlan) {
         append(page, "CustomV2 BASE - Notes") { s ->
-            val text = notesText(plan)
-            if (text.isBlank()) return@append
-            val leftWidth = NOTES_LEFT.first().endX - NOTES_LEFT.first().startX - 3f
-            val rightWidth = NOTES_RIGHT.first().endX - NOTES_RIGHT.first().startX - 3f
-            val words = text.trim().split(Regex("\\s+"))
-            val leftLines = wrapWords(fonts.regular, words, 9.25f, leftWidth)
-            val left = leftLines.take(NOTES_LEFT.size)
-            left.forEachIndexed { index, line ->
-                textAboveRule(s, fonts.regular, NOTES_LEFT[index], line, 9.25f, 8.5f, 2.8f, 2f)
-            }
-            val consumedWords = left.sumOf { it.split(Regex("\\s+")).size }
-            val rightLines = wrapWords(fonts.regular, words.drop(consumedWords), 9.25f, rightWidth)
-            rightLines.take(NOTES_RIGHT.size).forEachIndexed { index, line ->
-                textAboveRule(s, fonts.regular, NOTES_RIGHT[index], line, 9.25f, 8.5f, 2.8f, 2f)
+            val noteRows = v2NativeNoteRows(
+                plan = plan,
+                rowsPerColumn = NOTES_LEFT.size,
+                wrapIdentity = { text ->
+                    wrapWords(
+                        fonts.semibold,
+                        text.trim().split(Regex("\\s+")),
+                        9.25f,
+                        NOTES_LEFT.first().endX - NOTES_LEFT.first().startX - 3f,
+                    )
+                },
+                wrapBody = { text ->
+                    wrapWords(
+                        fonts.regular,
+                        text.trim().split(Regex("\\s+")),
+                        9.25f,
+                        NOTES_LEFT.first().endX - NOTES_LEFT.first().startX - 3f,
+                    )
+                },
+            ).take(NOTES_LEFT.size + NOTES_RIGHT.size)
+
+            noteRows.forEachIndexed { index, row ->
+                val rule = if (index < NOTES_LEFT.size) {
+                    NOTES_LEFT[index]
+                } else {
+                    NOTES_RIGHT[index - NOTES_LEFT.size]
+                }
+                when (row.style) {
+                    V2NativeNoteRowStyle.IDENTITY -> textAboveRule(
+                        s,
+                        fonts.semibold,
+                        rule,
+                        row.text,
+                        9.25f,
+                        8.0f,
+                        2.8f,
+                        2f,
+                    )
+                    V2NativeNoteRowStyle.BODY -> textAboveRule(
+                        s,
+                        fonts.regular,
+                        rule,
+                        row.text,
+                        9.25f,
+                        8.5f,
+                        2.8f,
+                        2f,
+                    )
+                    V2NativeNoteRowStyle.SPACER -> Unit
+                }
             }
         }
     }
@@ -392,27 +427,6 @@ internal class AndroidCustomV2SharedBaseRenderer(
         return SPECIAL_LOCATION_LABELS.indexOf(normalized).takeIf { it >= 0 }
     }
 
-    private fun notesText(plan: PcSheetPdfRenderPlan): String {
-        val sheet = plan.snapshot.aggregate.sheet
-        return buildList {
-            addAll(sheet.pdfCampaignNoteParagraphs())
-            sheet.background.personalityTraits.trim().takeIf { it.isNotEmpty() }?.let {
-                add("Rasgos de personalidad: $it")
-            }
-            sheet.background.flaws.trim().takeIf { it.isNotEmpty() }?.let {
-                add("Defectos: $it")
-            }
-            sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
-                add("Fe / religión: $it")
-            }
-            sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
-                classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
-                    add("Subclase: " + classLevel.name + " - " + subclass)
-                }
-            }
-        }.joinToString(" ")
-    }
-
     private class Fonts(document: PDDocument, loader: (String) -> InputStream?) {
         val regular = load(document, loader, "fonts/pdf/text/FiraSans-Regular.ttf")
         val semibold = load(document, loader, "fonts/pdf/text/FiraSans-SemiBold.ttf")
@@ -488,3 +502,125 @@ internal class AndroidCustomV2SharedBaseRenderer(
         )
     }
 }
+
+internal enum class V2NativeNoteRowStyle { IDENTITY, BODY, SPACER }
+
+internal data class V2NativeNoteRow(
+    val text: String,
+    val style: V2NativeNoteRowStyle,
+)
+
+internal data class V2NativeNoteRecord(
+    val identity: String,
+    val body: String,
+)
+
+internal fun v2NativeNoteRecords(plan: PcSheetPdfRenderPlan): List<V2NativeNoteRecord> {
+    val sheet = plan.snapshot.aggregate.sheet
+    return buildList {
+        sheet.generalNotes.trim().takeIf { it.isNotEmpty() }?.let { general ->
+            add(V2NativeNoteRecord("Notas generales", general))
+        }
+        sheet.noteCards.sortedBy { it.sortOrder }.forEachIndexed { index, card ->
+            val identity = card.title.trim().ifEmpty { "Nota ${index + 1}" }
+            val body = card.content.trim()
+            if (identity.isNotEmpty() || body.isNotEmpty()) {
+                add(V2NativeNoteRecord(identity, body))
+            }
+        }
+        sheet.background.personalityTraits.trim().takeIf { it.isNotEmpty() }?.let { value ->
+            add(V2NativeNoteRecord("Rasgos de personalidad", value))
+        }
+        sheet.background.flaws.trim().takeIf { it.isNotEmpty() }?.let { value ->
+            add(V2NativeNoteRecord("Defectos", value))
+        }
+        sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let { value ->
+            add(V2NativeNoteRecord("Fe / religión", value))
+        }
+        sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
+            classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
+                add(V2NativeNoteRecord("Subclase", classLevel.name + " - " + subclass))
+            }
+        }
+    }
+}
+
+/**
+ * Maps semantic Notes records into the physical 20-row native column rhythm used by Custom-v2.
+ * The row stream is shared by the base and Extended renderers so the continuation boundary is
+ * deterministic and can repeat the owning note identity instead of resuming anonymously.
+ */
+internal fun v2NativeNoteRows(
+    plan: PcSheetPdfRenderPlan,
+    rowsPerColumn: Int,
+    wrapIdentity: (String) -> List<String>,
+    wrapBody: (String) -> List<String>,
+): List<V2NativeNoteRow> {
+    require(rowsPerColumn > 1)
+    val rows = mutableListOf<V2NativeNoteRow>()
+    var rowInColumn = 0
+
+    fun append(row: V2NativeNoteRow) {
+        rows.add(row)
+        rowInColumn = (rowInColumn + 1) % rowsPerColumn
+    }
+
+    fun padToNextColumn() {
+        while (rowInColumn != 0) {
+            append(V2NativeNoteRow("", V2NativeNoteRowStyle.SPACER))
+        }
+    }
+
+    v2NativeNoteRecords(plan).forEach { record ->
+        val bodyLines = wrapBody(record.body).ifEmpty { emptyList() }
+        var bodyOffset = 0
+        var fragment = 0
+
+        do {
+            val identityText = if (fragment == 0) {
+                record.identity
+            } else {
+                record.identity + " (continuación)"
+            }
+            val identityLines = wrapIdentity(identityText).ifEmpty { listOf(identityText) }
+            require(identityLines.size < rowsPerColumn) {
+                "Custom-v2 Notes identity cannot fit a native column: ${record.identity}"
+            }
+
+            val bodyRemains = bodyOffset < bodyLines.size
+            val minimumRows = identityLines.size + if (bodyRemains) 1 else 0
+            val remainingRows = if (rowInColumn == 0) rowsPerColumn else rowsPerColumn - rowInColumn
+            if (rowInColumn != 0 && remainingRows < minimumRows) {
+                padToNextColumn()
+            }
+
+            identityLines.forEach { line ->
+                append(V2NativeNoteRow(line, V2NativeNoteRowStyle.IDENTITY))
+            }
+
+            if (bodyOffset < bodyLines.size) {
+                val capacity = if (rowInColumn == 0) rowsPerColumn else rowsPerColumn - rowInColumn
+                val slice = bodyLines.drop(bodyOffset).take(capacity)
+                slice.forEach { line ->
+                    append(V2NativeNoteRow(line, V2NativeNoteRowStyle.BODY))
+                }
+                bodyOffset += slice.size
+            }
+
+            if (bodyOffset < bodyLines.size) {
+                // The fragment consumed the native column. Repeat the same note identity at the
+                // next column/page so the owner never sees an anonymous continuation tail.
+                fragment += 1
+            } else {
+                // A blank native ruled row is the visible record boundary required by M50800-22.
+                if (rowInColumn != 0) {
+                    append(V2NativeNoteRow("", V2NativeNoteRowStyle.SPACER))
+                }
+                break
+            }
+        } while (true)
+    }
+
+    return rows
+}
+

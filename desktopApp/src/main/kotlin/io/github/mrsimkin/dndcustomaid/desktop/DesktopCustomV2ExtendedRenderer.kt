@@ -28,7 +28,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
 import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
-import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import java.awt.Color
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
@@ -1960,27 +1959,39 @@ internal class DesktopCustomV2ExtendedRenderer(
     )
 
     private fun appendNotesExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val lines = wrapForRulesByChars(notesText(plan), 72)
-        val overflow = lines.drop(BASE_V2_NOTES_CAPACITY)
+        val allRows = v2NativeNoteRows(
+            plan = plan,
+            rowsPerColumn = NOTES_COLUMN_CAPACITY,
+            wrapIdentity = { text ->
+                wrapByWidth(
+                    resources.firaSemibold,
+                    text,
+                    9.25f,
+                    NOTES_NATIVE_TEXT_WIDTH,
+                )
+            },
+            wrapBody = { text ->
+                wrapByWidth(
+                    resources.fira,
+                    text,
+                    9.25f,
+                    NOTES_NATIVE_TEXT_WIDTH,
+                )
+            },
+        )
+        val overflow = allRows.drop(BASE_V2_NOTES_CAPACITY)
         if (overflow.isEmpty()) return
 
-        val pages = pageCount(overflow.size, NOTES_CONTINUATION_CAPACITY)
-        repeat(pages) { pageIndex ->
+        overflow.chunked(NOTES_CONTINUATION_CAPACITY).forEachIndexed { pageIndex, rows ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
-            renderNotesContinuationPage(
-                page,
-                overflow
-                    .drop(pageIndex * NOTES_CONTINUATION_CAPACITY)
-                    .take(NOTES_CONTINUATION_CAPACITY),
-                pageIndex,
-            )
+            renderNotesContinuationPage(page, rows, pageIndex)
         }
     }
 
     private fun renderNotesContinuationPage(
         page: PDPage,
-        lines: List<String>,
+        rows: List<V2NativeNoteRow>,
         pageIndex: Int,
     ) {
         val layerPrefix = if (pageIndex == 0) "V2X NOTES" else "V2X NOTES ${pageIndex + 1}"
@@ -1990,51 +2001,38 @@ internal class DesktopCustomV2ExtendedRenderer(
         appendLayer(page, "$layerPrefix - CLEANUP") { }
         appendLayer(page, "$layerPrefix - LABELS") { }
         appendLayer(page, "$layerPrefix - VALUES") { s ->
-            lines.take(NOTES_COLUMN_CAPACITY).forEachIndexed { row, line ->
-                textAboveRule(
-                    s,
-                    resources.fira,
-                    Rule(14f, 302.5f, 104f + row * 17f),
-                    line,
-                    9.25f,
-                    8.0f,
-                    2.8f,
-                )
-            }
-            lines.drop(NOTES_COLUMN_CAPACITY).take(NOTES_COLUMN_CAPACITY).forEachIndexed { row, line ->
-                textAboveRule(
-                    s,
-                    resources.fira,
-                    Rule(309f, 597.5f, 104f + row * 17f),
-                    line,
-                    9.25f,
-                    8.0f,
-                    2.8f,
-                )
+            rows.forEachIndexed { index, row ->
+                val columnIndex = index / NOTES_COLUMN_CAPACITY
+                val rowIndex = index % NOTES_COLUMN_CAPACITY
+                val rule = if (columnIndex == 0) {
+                    Rule(14f, 302.5f, 104f + rowIndex * 17f)
+                } else {
+                    Rule(309f, 597.5f, 104f + rowIndex * 17f)
+                }
+                when (row.style) {
+                    V2NativeNoteRowStyle.IDENTITY -> textAboveRule(
+                        s,
+                        resources.firaSemibold,
+                        rule,
+                        row.text,
+                        9.25f,
+                        8.0f,
+                        2.8f,
+                    )
+                    V2NativeNoteRowStyle.BODY -> textAboveRule(
+                        s,
+                        resources.fira,
+                        rule,
+                        row.text,
+                        9.25f,
+                        8.5f,
+                        2.8f,
+                    )
+                    V2NativeNoteRowStyle.SPACER -> Unit
+                }
             }
         }
         appendLayer(page, "$layerPrefix - MARKERS") { }
-    }
-
-    private fun notesText(plan: PcSheetPdfRenderPlan): String {
-        val sheet = plan.snapshot.aggregate.sheet
-        return buildList {
-            addAll(sheet.pdfCampaignNoteParagraphs())
-            sheet.background.personalityTraits.trim().takeIf { it.isNotEmpty() }?.let {
-                add("Rasgos de personalidad: $it")
-            }
-            sheet.background.flaws.trim().takeIf { it.isNotEmpty() }?.let {
-                add("Defectos: $it")
-            }
-            sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
-                add("Fe / religión: $it")
-            }
-            sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
-                classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
-                    add("Subclase: " + classLevel.name + " - " + subclass)
-                }
-            }
-        }.joinToString("\n\n")
     }
 
     private fun wrapForRulesByChars(text: String, maxChars: Int): List<String> {
@@ -3073,6 +3071,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val BASE_V2_NOTES_CAPACITY = 40
         const val NOTES_COLUMN_CAPACITY = 20
         const val NOTES_CONTINUATION_CAPACITY = 40
+        const val NOTES_NATIVE_TEXT_WIDTH = 285f
 
         val SPELL_CONTINUATION_BLOCKS = listOf(
             SpellContinuationBlock(0, 25.5f, 203.5f, 14f, 127.21f, 8),
