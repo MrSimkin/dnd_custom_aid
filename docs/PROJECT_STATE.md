@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — active 50800 repair on `fix/pc-sheet-50800-phase1-native-semantics`. Phase 1B has an artifact-reviewed progression pass; Phase 2A has an internal exact-artifact progression pass at workflow 4212 / renderer head `6e53492dcd9f13945fbb320334f621aad070e61f`, artifact `11011771728`. The whole repair is NOT final/owner-accepted. Resume at Phase 2B.1 from `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_END_OF_DAY_HANDOFF.md`; Current Snapshot and Media/Handouts remain blocked.**
+**Current active package:** PC Sheet PDF Export — active 50800 repair on `fix/pc-sheet-50800-phase1-native-semantics`. Phase 2B.1 has an exact-artifact internal progression PASS at workflow 4230 / renderer head `adb01dd851286419409e7f8dcc349e329f903c51`, artifact `11041040671`. The whole repair is NOT final/owner-accepted. Resume at Phase 2B.2 from `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE2B1_CLOSURE.md`; Current Snapshot and Media/Handouts remain blocked.**
 
 ### Superseding PDF visual state — 2026-09-20
 
@@ -41,13 +41,14 @@ Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/
 **Superseding active-route note — 2026-09-29:**
 
 - active branch: `fix/pc-sheet-50800-phase1-native-semantics`;
-- safe-pause authority: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_END_OF_DAY_HANDOFF.md`;
-- validated current renderer/code head: `6e53492dcd9f13945fbb320334f621aad070e61f`;
-- workflow 4212 / `36517524807` = SUCCESS;
-- exact proof artifact `11011771728`, digest `sha256:140b71f0d53c1ace3e0bd53385827d0d234d4d0706b0bff5d476cc595cc3017e`;
+- current phase-transition authority: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE2B1_CLOSURE.md`;
+- validated current renderer/code head: `adb01dd851286419409e7f8dcc349e329f903c51`;
+- workflow 4230 / `36582233207` = SUCCESS;
+- exact proof artifact `11041040671`, digest `sha256:64b29126119ca6e93aa2bd351cf2a2d0cdcdcc189791291bd106b6acb4d54240`;
 - Phase 1B progression candidates: M50800-02/15/16/18/19; M50800-17/20 remain OPEN;
 - Phase 2A internal artifact-QA progression candidates: M50800-03/04/05/06/07/25; formally OPEN until final exact-candidate acceptance;
-- next bounded work: Phase 2B.1 — Traits/Rasgos + Trasfondo/Historia native reuse (M50800-08/09/10/11);
+- Phase 2B.1 internal artifact-QA progression candidates: M50800-08/09/10/11; formally OPEN until final exact-candidate acceptance;
+- next bounded work: Phase 2B.2 — Notes native reuse (M50800-21/22/23/24);
 - do not merge, do not create an owner APK, and do not restart Phase 1B/2A without new artifact evidence.
 
 

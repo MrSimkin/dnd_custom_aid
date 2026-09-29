@@ -392,3 +392,41 @@ Disposition:
 - They remain formally OPEN in the master matrix until final exact-candidate acceptance / owner handoff.
 - Phase 2A internal progression gate = **PASS**.
 - Resume at Phase 2B.1.
+
+
+## Phase 2B.1 — exact artifact progression
+
+Pre-code authority: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE2B1_PRECODE_MAP.md`.
+
+The real 50800 Traits/Features defect and owner reuse-first clarification were re-opened before renderer work. Run 4212 was also visually rechecked and still showed the rejected six-panel fixed scaffold with mostly-empty sibling panels.
+
+Relevant execution:
+
+- 4223: Android sync guard failure only; hand-generated port was not byte-identical to the canonical generator.
+- 4224: compilation exposed bounded implementation errors in the first native-flow draft.
+- 4225–4226: focused regression compile/import corrections.
+- 4227: renderer compiled and tests reached semantic guards; two historical tests still froze the rejected six-panel geometry/prefix. Those guards were corrected under M50800-08/09/10 without removing semantic coverage.
+- 4228 / head `0968249...`: CI PASS; exact artifact showed the fixed scaffold was gone and Traits occupied both columns, but newly generated source-subset headings visibly lost `/` and `·` glyphs. Artifact QA therefore remained open.
+- 4229 / head `1e06051...`: CI PASS; complete embedded heading font fixed the visible glyph issue and an exact stressed Trasfondo/Historia proof was added. Artifact QA then found Historia continuation generating a second almost-empty page because a long narrative block would not consume remaining rows in the previous column.
+- **4230 / `36582233207` / head `adb01dd851286419409e7f8dcc349e329f903c51` — SUCCESS.**
+- Exact proof artifact `11041040671`, digest `sha256:64b29126119ca6e93aa2bd351cf2a2d0cdcdcc189791291bd106b6acb4d54240`.
+
+4230 exact artifact observations:
+
+- real Mara Custom-v2 Atributo: 19 pages observed;
+- real Mara Custom-v2 Habilidad: 19 pages observed;
+- Traits continuation occupies pages 6–10 in both, versus the 50800 Atributo 7–18 / Habilidad 6–17 repeated-scaffold failure;
+- all 26 trait identities remain preserved in the complete PDF;
+- category grouping remains intentional and source `sortOrder` is coherent inside each category;
+- both columns are used and rejected fixed sibling panels are absent;
+- generated headings visibly retain separators after the subset-font correction;
+- stressed narrative proof `mara-50800-phase2b1-background-overflow.pdf` contains exactly one narrative continuation page;
+- that page preserves `TRASFONDO`, `VÍNCULOS`, `IDEALES`, `HISTORIA` section identity, uses both columns, and preserves the final `Historia adicional 60` content;
+- no generic Traits `DETALLES / NOTAS` surface is used for narrative overflow.
+
+Disposition:
+
+- M50800-08/09/10/11 = **Phase 2B.1 internal progression candidates with positive exact-artifact evidence**;
+- all remain formally OPEN in the master matrix until final exact-candidate acceptance;
+- Phase 2B.1 internal progression gate = **PASS**;
+- next bounded work = Phase 2B.2 Notes, M50800-21/22/23/24.

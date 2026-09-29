@@ -4,15 +4,15 @@
 **Normal integrated trunk:** `main`  
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_END_OF_DAY_HANDOFF.md`  
-**Current active route:** 50800 repair is active on `fix/pc-sheet-50800-phase1-native-semantics`. Phase 1B has an artifact-reviewed progression pass; Phase 2A has an internal exact-artifact progression pass at run 4212 / renderer head `6e53492dcd9f13945fbb320334f621aad070e61f`. The complete repair remains OPEN. **Resume at Phase 2B.1 from the end-of-day handoff + the 32-item acceptance matrix.**  
+**Canonical active checkpoint:** `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE2B1_CLOSURE.md`  
+**Current active route:** 50800 repair remains active on `fix/pc-sheet-50800-phase1-native-semantics`. Phase 2B.1 has an exact-artifact internal progression PASS at run 4230 / head `adb01dd851286419409e7f8dcc349e329f903c51`, artifact `11041040671`. The complete repair remains OPEN. **Resume at Phase 2B.2 — Notes native reuse (M50800-21..24), beginning from the real 50800 Notes observations.**
 **Current implementation branch:** `fix/pc-sheet-50800-phase1-native-semantics` — active, unmerged; do not promote yet.  
 **Current implementation PR:** none — continue discrete repair phases; publish an owner candidate only after final matrix acceptance.  
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
 
 ## Read first on resume
 
-1. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_END_OF_DAY_HANDOFF.md` — **safe-pause authority; read first**;
+1. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE2B1_CLOSURE.md` — **current phase-transition authority; read first**;
 2. `AGENTS.md`;
 3. `RESUME.md`;
 4. this file;
@@ -21,12 +21,13 @@
 7. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_FIX_PHASE_MAP.md`;
 8. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE1B_CLOSURE.md`;
 9. `docs/checkpoints/PC_SHEET_MARA_50800_PHASE2A_PRECODE_MAP.md`;
-10. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
-11. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`;
-12. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
-13. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
-14. `docs/PROJECT_STATE.md`;
-15. `docs/BRANCH_STATUS.md`.
+10. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE2B1_PRECODE_MAP.md`;
+11. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
+12. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`;
+13. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+14. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+15. `docs/PROJECT_STATE.md`;
+16. `docs/BRANCH_STATUS.md`.
 
 **Branch rule:** do not infer success from the repair branch, prior green Scaffold, proof artifact or the reused `50800` version identity. First establish which exact binary/source state produced the owner runtime output.
 
