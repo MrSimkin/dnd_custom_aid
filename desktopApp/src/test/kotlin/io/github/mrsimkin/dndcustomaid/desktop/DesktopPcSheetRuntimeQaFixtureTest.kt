@@ -702,6 +702,12 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             output.toByteArray()
         }
 
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        File(
+            proofDir,
+            "mara-50800-phase2b2-cross-page-note.pdf",
+        ).writeBytes(bytes)
+
         Loader.loadPDF(bytes).use { pdf ->
             val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
             assertTrue(
