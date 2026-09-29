@@ -112,22 +112,28 @@ internal class AndroidCustomV2SharedBaseRenderer(
     }
 
     private fun drawEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        val lines = plan.snapshot.aggregate.sheet.inventoryItems
+        val groups = plan.snapshot.aggregate.sheet.inventoryItems
             .sortedBy { it.sortOrder }
             .filterNot { it.special }
-            .flatMap { item ->
+            .map { item ->
                 wrapWords(
                     fonts.condensed,
                     inventoryLabel(item).trim().split(Regex("\\s+")),
                     7.0f,
                     V2_EQUIPMENT_NATIVE_TEXT_WIDTH,
-                )
+                ).ifEmpty { listOf(inventoryLabel(item)) }
             }
+        val rows = packV2NativeEquipmentRows(
+            groups = groups,
+            rowsPerColumn = EQUIPMENT_ROWS_PER_COLUMN,
+        )
 
         EQUIPMENT_RULES_COLUMN_MAJOR
-            .zip(lines.take(EQUIPMENT_RULES_COLUMN_MAJOR.size))
+            .zip(rows.take(EQUIPMENT_RULES_COLUMN_MAJOR.size))
             .forEach { (rule, line) ->
-                textAboveRule(s, fonts.condensed, rule, line, 7.0f, 7.0f, 2.5f, 2f)
+                if (line.isNotEmpty()) {
+                    textAboveRule(s, fonts.condensed, rule, line, 7.0f, 7.0f, 2.5f, 2f)
+                }
             }
     }
 
@@ -473,6 +479,7 @@ internal class AndroidCustomV2SharedBaseRenderer(
                 EQUIPMENT_RULES.map { y -> Rule(startX, endX, y) }
             }
         const val V2_EQUIPMENT_NATIVE_TEXT_WIDTH = 132f
+        const val EQUIPMENT_ROWS_PER_COLUMN = 23
         val BACKGROUND_RULES = listOf(114.5f, 131.5f, 148.5f).map { Rule(297.5f, 597.5f, it) }
         val BONDS_RULES = listOf(182.5f, 199.5f, 216.5f).map { Rule(297.5f, 597.5f, it) }
         val IDEALS_RULES = listOf(250.5f, 267.5f, 284.5f).map { Rule(297.5f, 597.5f, it) }
@@ -501,6 +508,40 @@ internal class AndroidCustomV2SharedBaseRenderer(
             SpellBlock(9, TopRect(439f, 614f, 23f, 26f), 405f, 647f, 416.5f, 594.5f, 658.5f, 17f, 7),
         )
     }
+}
+
+internal fun packV2NativeEquipmentRows(
+    groups: List<List<String>>,
+    rowsPerColumn: Int,
+): List<String> {
+    require(rowsPerColumn > 0)
+    val rows = mutableListOf<String>()
+    var rowInColumn = 0
+
+    fun padToNextColumn() {
+        while (rowInColumn != 0) {
+            rows += ""
+            rowInColumn = (rowInColumn + 1) % rowsPerColumn
+        }
+    }
+
+    groups.forEach { rawGroup ->
+        val group = rawGroup.filter { it.isNotBlank() }
+        if (group.isEmpty()) return@forEach
+        require(group.size <= rowsPerColumn) {
+            "Ordinary Equipment identity requires more native rows than one column can provide."
+        }
+        val remaining = if (rowInColumn == 0) rowsPerColumn else rowsPerColumn - rowInColumn
+        if (rowInColumn != 0 && group.size > remaining) {
+            padToNextColumn()
+        }
+        group.forEach { line ->
+            rows += line
+            rowInColumn = (rowInColumn + 1) % rowsPerColumn
+        }
+    }
+
+    return rows
 }
 
 internal enum class V2NativeNoteRowStyle { IDENTITY, BODY, SPACER }
