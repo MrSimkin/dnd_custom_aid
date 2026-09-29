@@ -12,18 +12,21 @@
 
 ## Read first on resume
 
-0. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_END_OF_DAY_HANDOFF.md` — **read this first; safe-pause authority for tomorrow**;
-1. `AGENTS.md`;
-2. `RESUME.md`;
-3. this file;
-4. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
-5. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md` — consolidated owner clarification / mandatory pre-fix checklist;
-6. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md` — original defect/acceptance ledger;
-7. `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md` — superseded claimed closure / evidence to audit, **not** runtime acceptance;
-8. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
-9. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
-10. `docs/PROJECT_STATE.md`;
-11. `docs/BRANCH_STATUS.md`.
+1. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_END_OF_DAY_HANDOFF.md` — **safe-pause authority; read first**;
+2. `AGENTS.md`;
+3. `RESUME.md`;
+4. this file;
+5. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`;
+6. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_REPAIR_EXECUTION_LOG.md`;
+7. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_FIX_PHASE_MAP.md`;
+8. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE1B_CLOSURE.md`;
+9. `docs/checkpoints/PC_SHEET_MARA_50800_PHASE2A_PRECODE_MAP.md`;
+10. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
+11. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`;
+12. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+13. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+14. `docs/PROJECT_STATE.md`;
+15. `docs/BRANCH_STATUS.md`.
 
 **Branch rule:** do not infer success from the repair branch, prior green Scaffold, proof artifact or the reused `50800` version identity. First establish which exact binary/source state produced the owner runtime output.
 
