@@ -1,17 +1,18 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-09-28 (Chile local time)  
+**Updated:** 2026-09-29 (Chile local time)  
 **Normal integrated trunk:** `main`  
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`  
-**Current active route:** Owner re-QA of the purported adaptive repair **FAILED**. Runtime output from the owner-facing `0.5.0-preqa.8 / 50800` candidate reproduces the original Mara visual/layout defect classes, adds a blocking Custom-v1 export failure, and materially disagrees with the prior repair proof/page counts. The owner has now completed a detailed clarification pass and the consolidated pre-fix authority is `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`. **Next gate is exact binary/source provenance + item-by-item acceptance mapping before any renderer code change.**  
-**Current implementation branch:** `repair/pc-sheet-adaptive-continuations-cross-family` remains unmerged evidence/working state only; its prior closure is not accepted as runtime proof.  
-**Current implementation PR:** none — do not promote or merge before provenance and a new uniquely versioned owner candidate pass the rebuilt acceptance ledger.  
+**Canonical active checkpoint:** `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_END_OF_DAY_HANDOFF.md`  
+**Current active route:** 50800 repair is active on `fix/pc-sheet-50800-phase1-native-semantics`. Phase 1B has an artifact-reviewed progression pass; Phase 2A has an internal exact-artifact progression pass at run 4212 / renderer head `6e53492dcd9f13945fbb320334f621aad070e61f`. The complete repair remains OPEN. **Resume at Phase 2B.1 from the end-of-day handoff + the 32-item acceptance matrix.**  
+**Current implementation branch:** `fix/pc-sheet-50800-phase1-native-semantics` — active, unmerged; do not promote yet.  
+**Current implementation PR:** none — continue discrete repair phases; publish an owner candidate only after final matrix acceptance.  
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
 
 ## Read first on resume
 
+0. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_END_OF_DAY_HANDOFF.md` — **read this first; safe-pause authority for tomorrow**;
 1. `AGENTS.md`;
 2. `RESUME.md`;
 3. this file;
