@@ -2158,7 +2158,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                 assertFalse(extracted.contains("Peso 4 lb"))
                 assertTrue(extracted.contains("Foco arcano y arma improvisada."))
                 assertTrue(extracted.contains("Conjuro adicional 9"))
-                assertTrue(Regex("""Nota\\s+de\\s+continuación\\s+45""").containsMatchIn(extracted))
+                assertTrue(Regex("Nota\\\\s+de\\\\s+continuación\\\\s+45").containsMatchIn(extracted))
                 assertFalse(extracted.contains("Especie", ignoreCase = true))
 
                 ((document.numberOfPages - 3) until document.numberOfPages).forEach { pageIndex ->
