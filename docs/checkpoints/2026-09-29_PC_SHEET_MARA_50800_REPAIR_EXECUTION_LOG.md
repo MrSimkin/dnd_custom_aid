@@ -134,3 +134,70 @@ The focused regression is now aligned directly to the 50800 defect:
 The final Special Equipment item remains protected separately by the global semantic assertions (`Cuaderno de fórmulas` + unique `objeto 29` content). M50800-18/19/20 remain OPEN until the exact green-run PDFs are inspected visually.
 
 This change does not weaken M50800-19 and does not treat text extraction as a substitute for rendered-cell QA.
+
+
+## Artifact review - run 4199
+
+Exact workflow run: `36508734878`, head `861dc6a220ba3f30be030c9c414e8ffba7f13a1d`.  
+Exact proof artifact: `pc-sheet-populated-template-proofs`, artifact ID `11008661146`.
+
+CI result: **PASS**.
+
+Real-Mara outputs inspected from that artifact:
+
+- Fantasy: **42 pages**;
+- Custom v1: **39 pages**;
+- Custom v2 Atributo: **27 pages**;
+- Custom v2 Habilidad: **26 pages**.
+
+Text/content scan on the exact PDFs:
+
+- no `Consumible` in any family;
+- no equipment `lb` values in any family;
+- no ordinary-item prose description `Descripción suficientemente larga del objeto 2.`;
+- final Special Equipment semantic content `objeto 29` remains present;
+- Custom-v2 PDFs now contain `CLASE Y NIVEL` only on page 1, confirming the Equipment continuation no longer copies a main-sheet source page.
+
+Rendered-page inspection:
+
+### Custom v1
+
+Page 38 uses the native Equipment / Monedas / Equipo Especial source page.
+
+Positive evidence:
+- `Bolsa lateral` is visibly present as the custom location;
+- the final item identity and description remain present across native rows;
+- no generic `INVENTARIO / EQUIPO` replacement page is used.
+
+Open observation:
+- the long Special Equipment identity spans several physical native rows. M50800-17 remains OPEN pending final atomic/readability judgment; CI/text preservation is not enough.
+
+### Custom v2 Atributo / Habilidad
+
+Atributo p.26 and Habilidad p.25 now use the correct source page containing `EQUIPO`, `TRASFONDO` and `EQUIPO ESPECIAL`. The prior 4196 main-sheet-underlay overlap is gone.
+
+Positive evidence:
+- `Bolsa lateral` is visibly written into the Special Equipment location column;
+- the final item remains present;
+- no `CLASE Y NIVEL` underlay is visible on the continuation.
+
+New artifact-QA defect:
+- the cleanup rectangle used to remove the source's canonical location label overlaps the native checkbox column;
+- the checkbox is partially erased and renders as a bracket-like `]` on used rows;
+- this is a direct M50800-19 failure because a legitimate custom location must not damage the existing native row element.
+
+Repair derived directly from this artifact:
+- reduce the location cleanup mask from 78 pt to 70 pt in both the Custom-v2 base and Extended native Equipment renderers;
+- preserve the native checkbox geometry while still clearing the canonical location text.
+
+Disposition after run 4199:
+
+- M50800-02: **CANDIDATE PASSED generation; keep closure tied to final candidate artifact**;
+- M50800-15: **CANDIDATE positive native-reuse evidence; final visual closure still pending**;
+- M50800-16: **CANDIDATE PASS on exact artifact text/content scan**;
+- M50800-17: **OPEN**;
+- M50800-18: **CANDIDATE positive source-page evidence; final visual closure still pending**;
+- M50800-19: **OPEN - artifact defect found and repair applied after 4199**;
+- M50800-20: **OPEN** because broader adaptive space reclaim is not demonstrated by this phase.
+
+Phase 2A remains gated until the post-mask-fix artifact is rendered and inspected.

@@ -195,7 +195,7 @@ internal class DesktopCustomV2SharedBaseRenderer(
         s.saveGraphicsState()
         s.setNonStrokingColor(Color.WHITE)
         // Leave the table's vertical borders intact while covering the decorative source value.
-        s.addRect(15f, ruleBottom + 0.7f, 78f, 14.8f)
+        s.addRect(15f, ruleBottom + 0.7f, 70f, 14.8f)
         s.fill()
         s.setStrokingColor(Color.BLACK)
         s.setLineWidth(0.45f)
