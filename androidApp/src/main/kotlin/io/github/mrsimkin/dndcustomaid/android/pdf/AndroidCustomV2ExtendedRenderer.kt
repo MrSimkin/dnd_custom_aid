@@ -806,10 +806,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         val sections = backgroundNarrativeOverflow(plan)
         if (sections.isEmpty()) return
 
-        val blocks = sections.flatMap { section ->
-            nativeNarrativeSectionBlocks(section)
-        }
-        val columns = packNativeFlowBlocks(blocks)
+        val columns = packNativeNarrativeColumns(sections)
         columns.chunked(2).forEachIndexed { pageIndex, pageColumns ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
@@ -853,29 +850,59 @@ internal class AndroidCustomV2ExtendedRenderer(
         )
     }
 
-    private fun nativeNarrativeSectionBlocks(
-        section: NativeNarrativeSection,
+    private fun packNativeNarrativeColumns(
+        sections: List<NativeNarrativeSection>,
     ): List<List<NativeFlowRow>> {
-        val blocks = mutableListOf<List<NativeFlowRow>>()
-        var offset = 0
-        var part = 0
-        val bodyCapacity = NATIVE_FLOW_ROWS_PER_COLUMN - 2
-        while (offset < section.lines.size) {
-            val heading = if (part == 0) {
-                section.title + " · CONTINUACIÓN"
-            } else {
-                section.title + " · CONTINUACIÓN " + (part + 1)
+        val columns = mutableListOf<List<NativeFlowRow>>()
+        var current = mutableListOf<NativeFlowRow>()
+
+        fun flushColumn() {
+            if (current.isNotEmpty()) {
+                columns += current.toList()
+                current = mutableListOf()
             }
-            val slice = section.lines.drop(offset).take(bodyCapacity)
-            blocks.add(buildList {
-                add(NativeFlowRow(heading, NativeFlowRowStyle.SECTION))
-                addAll(slice.map { NativeFlowRow(it, NativeFlowRowStyle.NARRATIVE_BODY) })
-                add(NativeFlowRow("", NativeFlowRowStyle.SPACER))
-            })
-            offset += slice.size
-            part += 1
         }
-        return blocks
+
+        sections.forEach { section ->
+            var offset = 0
+            var part = 0
+
+            while (offset < section.lines.size) {
+                // A continuation fragment always needs a heading plus at least one body row.
+                if (NATIVE_FLOW_ROWS_PER_COLUMN - current.size < 2) {
+                    flushColumn()
+                }
+
+                val heading = if (part == 0) {
+                    section.title + " · CONTINUACIÓN"
+                } else {
+                    section.title + " · CONTINUACIÓN " + (part + 1)
+                }
+                current += NativeFlowRow(heading, NativeFlowRowStyle.SECTION)
+
+                val availableBodyRows = NATIVE_FLOW_ROWS_PER_COLUMN - current.size
+                val slice = section.lines
+                    .drop(offset)
+                    .take(availableBodyRows)
+                current += slice.map { NativeFlowRow(it, NativeFlowRowStyle.NARRATIVE_BODY) }
+                offset += slice.size
+
+                if (offset < section.lines.size) {
+                    // The section is intentionally splittable at a native-row boundary so it can
+                    // reclaim the remainder of the current column instead of creating a sparse
+                    // next page. The repeated heading preserves section identity after the split.
+                    flushColumn()
+                    part += 1
+                } else {
+                    if (current.size < NATIVE_FLOW_ROWS_PER_COLUMN) {
+                        current += NativeFlowRow("", NativeFlowRowStyle.SPACER)
+                    }
+                }
+            }
+        }
+
+        flushColumn()
+        return columns
     }
 
     private fun traitReferenceLines(plan: PcSheetPdfRenderPlan): List<String> {

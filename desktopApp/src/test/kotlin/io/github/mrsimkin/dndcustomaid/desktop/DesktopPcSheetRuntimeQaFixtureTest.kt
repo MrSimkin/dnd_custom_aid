@@ -566,8 +566,12 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 it.contains("TRASFONDO / HISTORIA", ignoreCase = true) &&
                     it.contains("CONTINUACIÓN", ignoreCase = true)
             }
-            assertTrue(backgroundPages.isNotEmpty())
-            val backgroundText = backgroundPages.joinToString(" ")
+            assertEquals(
+                1,
+                backgroundPages.size,
+                "Stressed native narrative overflow must reclaim both columns before adding another page",
+            )
+            val backgroundText = backgroundPages.single()
             listOf("TRASFONDO", "VÍNCULOS", "IDEALES", "HISTORIA").forEach { section ->
                 assertTrue(
                     backgroundText.contains(section, ignoreCase = true),
@@ -577,6 +581,10 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             assertTrue(
                 backgroundPages.none { it.contains("DETALLES / NOTAS", ignoreCase = true) },
                 "Background overflow must not be routed through the generic Traits detail panel",
+            )
+            assertTrue(
+                backgroundText.contains("Historia adicional 60"),
+                "Native narrative packing must preserve the tail of the stressed Historia content",
             )
         }
     }
