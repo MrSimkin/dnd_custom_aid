@@ -308,28 +308,20 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     family == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ||
                     family == PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY
                 ) {
-                    val finalSpecialPage = (1..pdf.numberOfPages).firstOrNull { pageNumber ->
+                    val pageTexts = (1..pdf.numberOfPages).map { pageNumber ->
                         PDFTextStripper().apply {
                             startPage = pageNumber
                             endPage = pageNumber
                         }.getText(pdf).replace(Regex("\\s+"), " ")
-                            .let { pageText ->
-                                Regex("""objeto\\s+29\\b""", RegexOption.IGNORE_CASE)
-                                    .containsMatchIn(pageText)
-                            }
                     }
-                    assertTrue(finalSpecialPage != null, "$family must route the final Special Equipment item")
-                    val finalSpecialText = PDFTextStripper().apply {
-                        startPage = requireNotNull(finalSpecialPage)
-                        endPage = finalSpecialPage
-                    }.getText(pdf).replace(Regex("\\s+"), " ")
                     assertTrue(
-                        finalSpecialText.contains("EQUIPO ESPECIAL", ignoreCase = true),
-                        "$family final Special Equipment overflow must use the native Equipment/Trasfondo source page",
+                        pageTexts.any { it.contains("EQUIPO ESPECIAL", ignoreCase = true) },
+                        "$family must preserve the native Equipment/Trasfondo source page",
                     )
-                    assertTrue(
-                        !finalSpecialText.contains("CLASE Y NIVEL", ignoreCase = true),
-                        "$family Equipment continuation must not copy either main-sheet source page",
+                    assertEquals(
+                        1,
+                        pageTexts.count { it.contains("CLASE Y NIVEL", ignoreCase = true) },
+                        "$family must contain exactly one main-sheet source page; Equipment continuation must not duplicate it",
                     )
                 }
             }

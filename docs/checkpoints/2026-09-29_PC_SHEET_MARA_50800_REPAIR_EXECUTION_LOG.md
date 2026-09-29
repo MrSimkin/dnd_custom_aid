@@ -116,3 +116,21 @@ Observed real-Mara outputs:
 Root cause confirmed in code: `renderNativeEquipmentContinuation` used `resources.forms[1]`. The planner defines Custom-v2 Equipment/Trasfondo as source page **3**, therefore the imported zero-based form must be `resources.forms[2]`. Source pages 1 and 2 are the alternative main-sheet variants.
 
 A focused regression is added so the page containing Mara's final Special Equipment item must contain `EQUIPO ESPECIAL` and must **not** contain `CLASE Y NIVEL`.
+
+
+## Runs 4197-4198 — source-page correction derived from 4196 artifact QA
+
+Run 4196 was green in CI but **failed artifact QA**: the real Custom-v2 Atributo/Habilidad continuation pages copied a main-sheet source underlay. That result, not CI, drove the next fix.
+
+- 4197 / `36507345237` / `12db45fab5592de15f271a506eb73cf7d35fdfa5`: renderer changed Custom-v2 native Equipment continuation from `resources.forms[1]` to `resources.forms[2]`, matching the planner's source page 3 authority. CI stopped only because the newly added test used an unimported `assertFalse`.
+- 4198 / `36507646803` / `71c759df166ba121531e5cc085744b69af9581d1`: test compiled, but its page locator incorrectly assumed the final item text `objeto 29` must be extractable as one page-local regex.
+
+The focused regression is now aligned directly to the 50800 defect:
+
+1. both V2 families must contain the native `EQUIPO ESPECIAL` page;
+2. each V2 PDF must contain **exactly one** page with `CLASE Y NIVEL`;
+3. therefore a continuation cannot silently copy either main-sheet source page.
+
+The final Special Equipment item remains protected separately by the global semantic assertions (`Cuaderno de fórmulas` + unique `objeto 29` content). M50800-18/19/20 remain OPEN until the exact green-run PDFs are inspected visually.
+
+This change does not weaken M50800-19 and does not treat text extraction as a substitute for rendered-cell QA.
