@@ -1480,7 +1480,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                     width,
                 )
                 val separator = if (current().isNotEmpty()) 1 else 0
-                val capacity = $cap
+                val capacity = NOTES_COLUMN_CAPACITY
                 val available = capacity - current().size
                 val wholeSize = separator + titleLines.size + bodyLines.size
 
