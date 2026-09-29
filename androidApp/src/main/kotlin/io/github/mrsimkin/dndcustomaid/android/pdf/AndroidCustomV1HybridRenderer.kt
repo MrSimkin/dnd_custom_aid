@@ -326,7 +326,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             s,
             fonts.regular,
             NARRATIVE_NOTES_RULES,
-            narrativeNotesText(plan),
+            plan.snapshot.aggregate.sheet.generalNotes,
             9.25f,
             2.8f,
             2f,
@@ -519,25 +519,130 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
     }
 
     private fun drawNotesPage(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        val text = dedicatedNotesText(plan)
-        if (text.isBlank()) return
-        val leftWidth = NOTES_LEFT_RULES.first().endX - NOTES_LEFT_RULES.first().startX - 3f
-        val rightWidth = NOTES_RIGHT_RULES.first().endX - NOTES_RIGHT_RULES.first().startX - 3f
-        val leftLines = wrapByWidth(fonts.regular, text, 9.25f, leftWidth)
-        val left = leftLines.take(NOTES_LEFT_RULES.size)
-        left.forEachIndexed { index, line ->
-            textAboveRule(s, fonts.regular, NOTES_LEFT_RULES[index], line, 9.25f, 8.5f, 2.8f, 2f)
+        val columns = nativeNoteColumns(plan)
+        fun drawColumn(lines: List<NativeNoteLine>, rules: List<Rule>) {
+            lines.take(rules.size).forEachIndexed { index, line ->
+                if (line.text.isBlank()) return@forEachIndexed
+                textAboveRule(
+                    s,
+                    if (line.emphasis) fonts.semibold else fonts.regular,
+                    rules[index],
+                    line.text,
+                    if (line.emphasis) NOTE_TITLE_SIZE else NOTE_BODY_SIZE,
+                    if (line.emphasis) NOTE_TITLE_MIN_SIZE else NOTE_BODY_MIN_SIZE,
+                    2.8f,
+                    2f,
+                )
+            }
         }
-        val consumedText = left.joinToString(" ")
-        val remaining = if (left.size < NOTES_LEFT_RULES.size) {
-            emptyList()
-        } else {
-            val words = text.trim().split(Regex("\\s+"))
-            val consumedWords = consumedText.split(Regex("\\s+")).size
-            wrapByWidth(fonts.regular, words.drop(consumedWords).joinToString(" "), 9.25f, rightWidth)
+        drawColumn(columns.getOrNull(0).orEmpty(), NOTES_LEFT_RULES)
+        drawColumn(columns.getOrNull(1).orEmpty(), NOTES_RIGHT_RULES)
+    }
+
+    private fun nativeNoteColumns(plan: PcSheetPdfRenderPlan): List<List<NativeNoteLine>> {
+        val records = nativeNoteRecords(plan)
+        if (records.isEmpty()) return emptyList()
+
+        val widths = listOf(
+            NOTES_LEFT_RULES.first().endX - NOTES_LEFT_RULES.first().startX - 3f,
+            NOTES_RIGHT_RULES.first().endX - NOTES_RIGHT_RULES.first().startX - 3f,
+        )
+        val columns = mutableListOf<MutableList<NativeNoteLine>>(mutableListOf())
+        var columnIndex = 0
+
+        fun current(): MutableList<NativeNoteLine> = columns[columnIndex]
+        fun advanceColumn() {
+            columnIndex += 1
+            columns += mutableListOf()
         }
-        remaining.take(NOTES_RIGHT_RULES.size).forEachIndexed { index, line ->
-            textAboveRule(s, fonts.regular, NOTES_RIGHT_RULES[index], line, 9.25f, 8.5f, 2.8f, 2f)
+
+        records.forEach { record ->
+            var remainingBody = record.body.trim()
+            var continuation = record.continuation
+            var finished = false
+
+            while (!finished) {
+                val width = widths[columnIndex % widths.size]
+                val identity = if (continuation) {
+                    record.identity + " (continuación)"
+                } else {
+                    record.identity
+                }
+                val titleLines = wrapByWidth(fonts.semibold, identity, NOTE_TITLE_SIZE, width)
+                    .map { NativeNoteLine(it, emphasis = true) }
+                val bodyLines = wrapByWidth(fonts.regular, remainingBody, NOTE_BODY_SIZE, width)
+                val separator = if (current().isNotEmpty()) 1 else 0
+                val wholeSize = separator + titleLines.size + bodyLines.size
+
+                if (wholeSize <= NOTES_LEFT_RULES.size) {
+                    if (wholeSize <= NOTES_LEFT_RULES.size - current().size) {
+                        if (separator == 1) current() += NativeNoteLine("", emphasis = false)
+                        current() += titleLines
+                        current() += bodyLines.map { NativeNoteLine(it, emphasis = false) }
+                        finished = true
+                    } else {
+                        advanceColumn()
+                    }
+                    continue
+                }
+
+                if (current().isNotEmpty()) {
+                    advanceColumn()
+                    continue
+                }
+
+                require(titleLines.size < NOTES_LEFT_RULES.size) {
+                    "Custom-v1 Notes identity exceeds a native Notes column: '$identity'"
+                }
+                val bodyCapacity = NOTES_LEFT_RULES.size - titleLines.size
+                current() += titleLines
+                current() += bodyLines.take(bodyCapacity).map { NativeNoteLine(it, emphasis = false) }
+                remainingBody = bodyLines.drop(bodyCapacity).joinToString(" ")
+                if (remainingBody.isBlank()) {
+                    finished = true
+                } else {
+                    continuation = true
+                    advanceColumn()
+                }
+            }
+        }
+        return columns.map { it.toList() }
+    }
+
+    private fun nativeNoteRecords(plan: PcSheetPdfRenderPlan): List<NativeNoteRecord> {
+        val sheet = plan.snapshot.aggregate.sheet
+        return buildList {
+            val general = sheet.generalNotes.trim()
+            if (general.isNotEmpty()) {
+                val width = NARRATIVE_NOTES_RULES.first().endX -
+                    NARRATIVE_NOTES_RULES.first().startX - 3f
+                val overflow = wrapByWidth(fonts.regular, general, 9.25f, width)
+                    .drop(NARRATIVE_NOTES_RULES.size)
+                    .joinToString(" ")
+                if (overflow.isNotBlank()) {
+                    add(NativeNoteRecord("Notas generales", overflow, continuation = true))
+                }
+            }
+
+            sheet.noteCards.sortedBy { it.sortOrder }.forEachIndexed { index, card ->
+                val title = card.title.trim().ifEmpty { "Nota ${index + 1}" }
+                val body = card.content.trim()
+                if (title.isNotEmpty() || body.isNotEmpty()) {
+                    add(NativeNoteRecord(title, body))
+                }
+            }
+
+            sheet.background.summary.trim().takeIf { it.isNotEmpty() }?.let {
+                add(NativeNoteRecord("Resumen de trasfondo", it))
+            }
+            sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
+                add(NativeNoteRecord("Fe / religión", it))
+            }
+            sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
+                classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
+                    add(NativeNoteRecord("Subclase: ${classLevel.name}", subclass))
+                }
+            }
         }
     }
 
@@ -850,6 +955,17 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
     }
 
 
+    private data class NativeNoteRecord(
+        val identity: String,
+        val body: String,
+        val continuation: Boolean = false,
+    )
+
+    private data class NativeNoteLine(
+        val text: String,
+        val emphasis: Boolean,
+    )
+
     private data class SpellLevelGeometry(
         val level: Int,
         val totalRect: TopRect,
@@ -1004,6 +1120,10 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             746.880f,
         )
 
+        const val NOTE_TITLE_SIZE = 8.6f
+        const val NOTE_TITLE_MIN_SIZE = 7.4f
+        const val NOTE_BODY_SIZE = 8.3f
+        const val NOTE_BODY_MIN_SIZE = 7.3f
         val NOTES_Y = listOf(109.5f, 129.5f, 149.5f, 169f, 189f, 209f, 229f, 248.5f, 268.5f, 288.5f, 308f, 328f, 348f, 367.5f, 387.5f, 407.5f, 427f)
         val NOTES_LEFT_RULES = NOTES_Y.map { Rule(25f, 267.5f, it) }
         val NOTES_RIGHT_RULES = NOTES_Y.map { Rule(311.669f, 583.795f, it) }
