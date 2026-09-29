@@ -1355,50 +1355,143 @@ internal class DesktopClassicRenderer {
 
         if (ordinaryRows.isEmpty() && specialRows.isEmpty() && noteEntries.isEmpty()) return 0
 
-        val pages = maxOf(
-            1,
-            pageCount(ordinaryRows.size, CLASSIC_INVENTORY_ROWS_PER_PAGE),
-            pageCount(specialRows.size, CLASSIC_SPECIAL_ITEMS_PER_PAGE),
-            pageCount(noteEntries.size, CLASSIC_INVENTORY_NOTES_PER_PAGE),
-        )
-        repeat(pages) { pageIndex ->
+        var ordinaryIndex = 0
+        var specialIndex = 0
+        var noteIndex = 0
+
+        while (
+            ordinaryIndex < ordinaryRows.size ||
+            specialIndex < specialRows.size ||
+            noteIndex < noteEntries.size
+        ) {
+            val ordinaryActive = ordinaryIndex < ordinaryRows.size
+            val specialActive = specialIndex < specialRows.size
+            val noteActive = noteIndex < noteEntries.size
+
+            val ordinaryCapacity = if (ordinaryActive && !specialActive && !noteActive) {
+                CLASSIC_INVENTORY_FULL_PAGE_ROWS
+            } else {
+                CLASSIC_INVENTORY_ROWS_PER_PAGE
+            }
+            val specialCapacity = when {
+                !specialActive -> 0
+                ordinaryActive -> CLASSIC_SPECIAL_ITEMS_PER_PAGE
+                else -> CLASSIC_SPECIAL_ITEMS_FULL_PAGE
+            }
+            val noteCapacity = when {
+                !noteActive -> 0
+                ordinaryActive -> CLASSIC_INVENTORY_NOTES_PER_PAGE
+                else -> CLASSIC_INVENTORY_NOTES_FULL_PAGE
+            }
+
+            val pageRows = ordinaryRows.drop(ordinaryIndex).take(ordinaryCapacity)
+            val pageSpecial = specialRows.drop(specialIndex).take(specialCapacity)
+            val pageNotes = noteEntries.drop(noteIndex).take(noteCapacity)
+
             val page = addPage(doc)
-            PDPageContentStream(doc, page).use { s ->
-                extendedHeader(s, p, sheet.name, "INVENTARIO / EQUIPO")
+            PDPageContentStream(doc, page).use { stream ->
+                extendedHeader(stream, p, sheet.name, "INVENTARIO / EQUIPO")
 
-                titledFrame(s, p, 24f, 112f, 564f, 402f, "INVENTARIO - CONTINUACIÓN")
-                inventoryHeader(s, p, 36f, 148f)
-                val pageRows = ordinaryRows
-                    .drop(pageIndex * CLASSIC_INVENTORY_ROWS_PER_PAGE)
-                    .take(CLASSIC_INVENTORY_ROWS_PER_PAGE)
-                pageRows.forEachIndexed { index, row ->
-                    inventoryRow(s, p, 36f, 176f + index * 27f, row)
-                }
-                repeat((CLASSIC_INVENTORY_ROWS_PER_PAGE - pageRows.size).coerceAtLeast(0)) { index ->
-                    inventoryBlankRow(s, 36f, 176f + (pageRows.size + index) * 27f)
-                }
-
-                titledFrame(s, p, 24f, 528f, 276f, 190f, "OBJETOS ESPECIALES / SINTONIZADOS")
-                specialRows
-                    .drop(pageIndex * CLASSIC_SPECIAL_ITEMS_PER_PAGE)
-                    .take(CLASSIC_SPECIAL_ITEMS_PER_PAGE)
-                    .forEachIndexed { index, item ->
-                        specialItem(
-                            s, p, 36f, 558f + index * 54f, 252f,
-                            item.name, item.attuned, item.note,
+                when {
+                    pageRows.isNotEmpty() -> {
+                        val fullInventory = pageSpecial.isEmpty() && pageNotes.isEmpty()
+                        val frameHeight = if (fullInventory) 606f else 402f
+                        titledFrame(
+                            stream, p, 24f, 112f, 564f, frameHeight,
+                            "INVENTARIO - CONTINUACIÓN",
                         )
+                        inventoryHeader(stream, p, 36f, 148f)
+                        pageRows.forEachIndexed { index, row ->
+                            inventoryRow(stream, p, 36f, 176f + index * 27f, row)
+                        }
+
+                        if (!fullInventory) {
+                            when {
+                                pageSpecial.isNotEmpty() && pageNotes.isNotEmpty() -> {
+                                    titledFrame(
+                                        stream, p, 24f, 528f, 276f, 190f,
+                                        "OBJETOS ESPECIALES / SINTONIZADOS",
+                                    )
+                                    pageSpecial.forEachIndexed { index, item ->
+                                        specialItem(
+                                            stream, p, 36f, 558f + index * 54f, 252f,
+                                            item.name, item.attuned, item.note,
+                                        )
+                                    }
+                                    titledFrame(
+                                        stream, p, 312f, 528f, 276f, 190f,
+                                        "TESORO / VALORES",
+                                    )
+                                    ruledTextArea(
+                                        stream, p, 324f, 564f, 252f, 140f,
+                                        pageNotes, 8.3f,
+                                    )
+                                }
+                                pageSpecial.isNotEmpty() -> {
+                                    titledFrame(
+                                        stream, p, 24f, 528f, 564f, 190f,
+                                        "OBJETOS ESPECIALES / SINTONIZADOS",
+                                    )
+                                    pageSpecial.forEachIndexed { index, item ->
+                                        specialItem(
+                                            stream, p, 36f, 558f + index * 54f, 540f,
+                                            item.name, item.attuned, item.note,
+                                        )
+                                    }
+                                }
+                                pageNotes.isNotEmpty() -> {
+                                    titledFrame(stream, p, 24f, 528f, 564f, 190f, "TESORO / VALORES")
+                                    ruledTextArea(
+                                        stream, p, 36f, 564f, 540f, 140f,
+                                        pageNotes, 8.3f,
+                                    )
+                                }
+                            }
+                        }
                     }
 
-                titledFrame(s, p, 312f, 528f, 276f, 190f, "TESORO / VALORES")
-                ruledTextArea(
-                    s, p, 324f, 564f, 252f, 140f,
-                    noteEntries
-                        .drop(pageIndex * CLASSIC_INVENTORY_NOTES_PER_PAGE)
-                        .take(CLASSIC_INVENTORY_NOTES_PER_PAGE),
-                    8.3f,
-                )
+                    pageSpecial.isNotEmpty() && pageNotes.isNotEmpty() -> {
+                        titledFrame(
+                            stream, p, 24f, 112f, 276f, 606f,
+                            "OBJETOS ESPECIALES / SINTONIZADOS",
+                        )
+                        pageSpecial.forEachIndexed { index, item ->
+                            specialItem(
+                                stream, p, 36f, 148f + index * 54f, 252f,
+                                item.name, item.attuned, item.note,
+                            )
+                        }
+                        titledFrame(stream, p, 312f, 112f, 276f, 606f, "TESORO / VALORES")
+                        ruledTextArea(stream, p, 324f, 148f, 252f, 552f, pageNotes, 8.3f)
+                    }
 
-                footer(s, p, doc.numberOfPages, "EXTENSIÓN / INVENTARIO Y EQUIPO")
+                    pageSpecial.isNotEmpty() -> {
+                        titledFrame(
+                            stream, p, 24f, 112f, 564f, 606f,
+                            "OBJETOS ESPECIALES / SINTONIZADOS - CONTINUACIÓN",
+                        )
+                        pageSpecial.forEachIndexed { index, item ->
+                            specialItem(
+                                stream, p, 36f, 148f + index * 54f, 540f,
+                                item.name, item.attuned, item.note,
+                            )
+                        }
+                    }
+
+                    else -> {
+                        titledFrame(stream, p, 24f, 112f, 564f, 606f, "TESORO / VALORES")
+                        ruledTextArea(stream, p, 36f, 148f, 540f, 552f, pageNotes, 8.3f)
+                    }
+                }
+
+                footer(stream, p, doc.numberOfPages, "EXTENSIÓN / INVENTARIO Y EQUIPO")
+            }
+
+            ordinaryIndex += pageRows.size
+            specialIndex += pageSpecial.size
+            noteIndex += pageNotes.size
+            check(pageRows.isNotEmpty() || pageSpecial.isNotEmpty() || pageNotes.isNotEmpty()) {
+                "Fantasy Inventory allocator made no progress."
             }
         }
         return 0
@@ -1623,34 +1716,73 @@ private fun appendSpellContinuationPages(
         val references = classicReferenceNoteLines(plan)
         if (entries.isEmpty() && references.isEmpty()) return
 
-        val pages = maxOf(
-            1,
-            pageCount(entries.size, CLASSIC_NOTES_ENTRIES_PER_PAGE),
-            pageCount(references.size, CLASSIC_REFERENCE_LINES_PER_PAGE),
-        )
-        repeat(pages) { pageIndex ->
+        var entryIndex = 0
+        var referenceIndex = 0
+
+        while (entryIndex < entries.size || referenceIndex < references.size) {
+            val entriesActive = entryIndex < entries.size
+            val referencesActive = referenceIndex < references.size
+            val entryCapacity = CLASSIC_NOTES_ENTRIES_PER_PAGE
+            val referenceCapacity = if (entriesActive) {
+                CLASSIC_REFERENCE_LINES_PER_PAGE
+            } else {
+                CLASSIC_REFERENCE_FULL_PAGE_LINES
+            }
+            val pageEntries = entries.drop(entryIndex).take(entryCapacity)
+            val pageReferences = references.drop(referenceIndex).take(referenceCapacity)
+
             val page = addPage(doc)
-            PDPageContentStream(doc, page).use { s ->
-                extendedHeader(s, p, sheet.name, "NOTAS")
+            PDPageContentStream(doc, page).use { stream ->
+                extendedHeader(stream, p, sheet.name, "NOTAS")
 
-                titledFrame(s, p, 24f, 112f, 360f, 606f, "NOTAS DE CAMPAÑA")
-                ruledTextArea(
-                    s, p, 36f, 148f, 336f, 552f,
-                    entries.pageSlice(pageIndex, CLASSIC_NOTES_ENTRIES_PER_PAGE),
-                    8.7f,
-                )
+                when {
+                    pageEntries.isNotEmpty() && pageReferences.isNotEmpty() -> {
+                        titledFrame(stream, p, 24f, 112f, 360f, 606f, "NOTAS DE CAMPAÑA")
+                        ruledTextArea(
+                            stream, p, 36f, 148f, 336f, 552f,
+                            pageEntries, 8.7f,
+                        )
 
-                titledFrame(s, p, 398f, 112f, 190f, 292f, "CROQUIS / MAPA")
-                grid(s, 410f, 148f, 166f, 240f, 10, 14)
+                        titledFrame(stream, p, 398f, 112f, 190f, 292f, "CROQUIS / MAPA")
+                        grid(stream, 410f, 148f, 166f, 240f, 10, 14)
 
-                titledFrame(s, p, 398f, 418f, 190f, 300f, "REFERENCIAS Y RECORDATORIOS")
-                ruledTextArea(
-                    s, p, 410f, 454f, 166f, 246f,
-                    references.pageSlice(pageIndex, CLASSIC_REFERENCE_LINES_PER_PAGE),
-                    8.1f,
-                )
+                        titledFrame(
+                            stream, p, 398f, 418f, 190f, 300f,
+                            "REFERENCIAS Y RECORDATORIOS",
+                        )
+                        ruledTextArea(
+                            stream, p, 410f, 454f, 166f, 246f,
+                            pageReferences, 8.1f,
+                        )
+                    }
 
-                footer(s, p, doc.numberOfPages, "EXTENSIÓN / NOTAS")
+                    pageEntries.isNotEmpty() -> {
+                        titledFrame(stream, p, 24f, 112f, 564f, 606f, "NOTAS DE CAMPAÑA")
+                        ruledTextArea(
+                            stream, p, 36f, 148f, 540f, 552f,
+                            pageEntries, 8.7f,
+                        )
+                    }
+
+                    else -> {
+                        titledFrame(
+                            stream, p, 24f, 112f, 564f, 606f,
+                            "REFERENCIAS Y RECORDATORIOS - CONTINUACIÓN",
+                        )
+                        ruledTextArea(
+                            stream, p, 36f, 148f, 540f, 552f,
+                            pageReferences, 8.1f,
+                        )
+                    }
+                }
+
+                footer(stream, p, doc.numberOfPages, "EXTENSIÓN / NOTAS")
+            }
+
+            entryIndex += pageEntries.size
+            referenceIndex += pageReferences.size
+            check(pageEntries.isNotEmpty() || pageReferences.isNotEmpty()) {
+                "Fantasy Notes allocator made no progress."
             }
         }
     }
@@ -3601,11 +3733,14 @@ private fun ruledTextArea(
         const val CLASSIC_OPTION_DETAIL_CHARS = 48
         const val CLASSIC_OPTION_DETAIL_LINES = 3
         const val CLASSIC_INVENTORY_ROWS_PER_PAGE = 12
+        const val CLASSIC_INVENTORY_FULL_PAGE_ROWS = 19
         const val CLASSIC_SPECIAL_ITEMS_PER_PAGE = 3
+        const val CLASSIC_SPECIAL_ITEMS_FULL_PAGE = 10
         const val CLASSIC_SPECIAL_ITEM_NAME_CHARS = 30
         const val CLASSIC_SPECIAL_ITEM_NOTE_CHARS = 42
         const val CLASSIC_SPECIAL_ITEM_NOTE_LINES = 2
         const val CLASSIC_INVENTORY_NOTES_PER_PAGE = 3
+        const val CLASSIC_INVENTORY_NOTES_FULL_PAGE = 12
         const val CLASSIC_BASE_INVENTORY_NAME_CHARS = 30
         const val CLASSIC_BASE_INVENTORY_NOTE_CHARS = 24
         const val CLASSIC_INVENTORY_ROW_NAME_CHARS = 34
@@ -3634,6 +3769,7 @@ private fun ruledTextArea(
         const val CLASSIC_NOTES_CHARS_PER_LINE = 58
         const val CLASSIC_NOTES_LINES_PER_ENTRY = 2
         const val CLASSIC_REFERENCE_LINES_PER_PAGE = 12
+        const val CLASSIC_REFERENCE_FULL_PAGE_LINES = 26
         const val CLASSIC_REFERENCE_CHARS_PER_LINE = 32
 
         val INk = Color(42, 42, 42)
