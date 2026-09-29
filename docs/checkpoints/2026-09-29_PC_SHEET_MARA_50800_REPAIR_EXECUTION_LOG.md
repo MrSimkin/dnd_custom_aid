@@ -64,7 +64,7 @@ The exact rendered name remains subject to visual artifact inspection; this asse
 | 4191 / `36503127638` | `87db894a3b826c4521f06ce7c030886eb7296ad9` | FAIL | Whole-item Special Equipment packing added; compile stopped on one stale `specialRows` identifier. |
 | 4192 / `36503258869` | `7e591b9764a391411e750254c1e1b6539f446dbe` | FAIL | Same stale identifier; V2 treasure standard semantic layers also restored without visual change. |
 | 4193 / `36503433050` | `6d63d295bdda3c6ede6278214ebfe20b74436e2a` | FAIL | 84 tests executed; only two assertions remained: PDF text-order assumption for final Mara special item and a fixture incorrectly requiring Equipment continuation without Equipment overflow. |
-| 4194 / `36504198065` | `ae44bc5dc3195525b838d7791e020dd7113021b6` | FAIL | 84 tests executed; **one** assertion remained, the PDFTextStripper tail-substring assumption for the final V1 special item. No compile or other test failure. |\n| 4195 / `36505758967` | `e7a7f31c29707dc8035fa9ded8bc5dab95db7b2b` | FAIL | 84 tests executed; final Special Equipment identity/content passed. Only `Bolsa lateral` text extraction failed in Custom v1. M50800-19 remains a rendered-cell gate rather than being waived or declared fixed. |
+| 4194 / `36504198065` | `ae44bc5dc3195525b838d7791e020dd7113021b6` | FAIL | 84 tests executed; **one** assertion remained, the PDFTextStripper tail-substring assumption for the final V1 special item. No compile or other test failure. |\n| 4195 / `36505758967` | `e7a7f31c29707dc8035fa9ded8bc5dab95db7b2b` | FAIL | 84 tests executed; final Special Equipment identity/content passed. Only `Bolsa lateral` text extraction failed in Custom v1. M50800-19 remains a rendered-cell gate rather than being waived or declared fixed. |\n| 4196 / `36506437746` | `1e03d22a95fe3f8a93bc11ed27b6d3701ece450c` | **CI PASS / ARTIFACT QA FAIL** | Kotlin job green and proofs uploaded. Artifact `11007511945` was inspected. Custom-v1 p.38 correctly shows `Bolsa lateral` and the complete item 29 in native Equipo Especial. Custom-v2 Atributo p.26 / Habilidad p.25 incorrectly copy a main-sheet source page and write Special Equipment over its footer. M50800-18/19/20 remain OPEN. |
 
 ## Historical-test corrections made under matrix authority
 
@@ -101,3 +101,18 @@ The following matrix items are intentionally not claimed by the Phase 1B work:
 - M50800-25 name-ribbon centering/wrap.
 
 The real 50800 Atributo/Habilidad pages remain the visual baseline for those changes.
+
+
+## Artifact review - run 4196
+
+Exact proof artifact: `pc-sheet-populated-template-proofs`, artifact ID `11007511945`, workflow run `36506437746`, head `1e03d22a95fe3f8a93bc11ed27b6d3701ece450c`.
+
+Observed real-Mara outputs:
+
+- Custom v1: 39 pages. Page 38 uses the native Equipment/Monedas/Equipo Especial source page. The final special item appears with custom location `Bolsa lateral`, name `Cuaderno de fórmulas personales y mapas plegables 29`, and its dedicated description/QA note. This is positive evidence for M50800-18/19 in Custom v1, but M50800-20 remains open because broader adaptive reclaim is not yet demonstrated.
+- Custom v2 Atributo: 27 pages. Page 26 contains the final special item but the underlay is the **wrong source page** (main character page), producing severe overlap at the bottom.
+- Custom v2 Habilidad: 26 pages. Page 25 has the same wrong-source-page defect.
+
+Root cause confirmed in code: `renderNativeEquipmentContinuation` used `resources.forms[1]`. The planner defines Custom-v2 Equipment/Trasfondo as source page **3**, therefore the imported zero-based form must be `resources.forms[2]`. Source pages 1 and 2 are the alternative main-sheet variants.
+
+A focused regression is added so the page containing Mara's final Special Equipment item must contain `EQUIPO ESPECIAL` and must **not** contain `CLASE Y NIVEL`.

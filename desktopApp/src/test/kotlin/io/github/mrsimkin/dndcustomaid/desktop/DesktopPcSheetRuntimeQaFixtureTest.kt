@@ -303,6 +303,35 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                         "$family must preserve Special Equipment descriptions in the native module",
                     )
                 }
+
+                if (
+                    family == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ||
+                    family == PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY
+                ) {
+                    val finalSpecialPage = (1..pdf.numberOfPages).firstOrNull { pageNumber ->
+                        PDFTextStripper().apply {
+                            startPage = pageNumber
+                            endPage = pageNumber
+                        }.getText(pdf).replace(Regex("\\s+"), " ")
+                            .let { pageText ->
+                                Regex("""objeto\\s+29\\b""", RegexOption.IGNORE_CASE)
+                                    .containsMatchIn(pageText)
+                            }
+                    }
+                    assertTrue(finalSpecialPage != null, "$family must route the final Special Equipment item")
+                    val finalSpecialText = PDFTextStripper().apply {
+                        startPage = requireNotNull(finalSpecialPage)
+                        endPage = finalSpecialPage
+                    }.getText(pdf).replace(Regex("\\s+"), " ")
+                    assertTrue(
+                        finalSpecialText.contains("EQUIPO ESPECIAL", ignoreCase = true),
+                        "$family final Special Equipment overflow must use the native Equipment/Trasfondo source page",
+                    )
+                    assertFalse(
+                        finalSpecialText.contains("CLASE Y NIVEL", ignoreCase = true),
+                        "$family Equipment continuation must not copy either main-sheet source page",
+                    )
+                }
             }
         }
     }

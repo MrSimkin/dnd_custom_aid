@@ -1354,8 +1354,9 @@ internal class DesktopCustomV2ExtendedRenderer(
     ) {
         val prefix = "V2X NATIVE EQUIPMENT P${pageIndex + 1}"
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            // Exact approved Equipment/Trasfondo page from the source template.
-            s.drawForm(resources.forms[1])
+            // Custom-v2 Equipment/Trasfondo is source page 3 (zero-based imported form 2).
+            // Page 1/2 are the two alternative main-sheet variants and must never be used here.
+            s.drawForm(resources.forms[2])
         }
         appendLayer(page, "$prefix - CLEANUP") { }
         appendLayer(page, "$prefix - LABELS") { }
