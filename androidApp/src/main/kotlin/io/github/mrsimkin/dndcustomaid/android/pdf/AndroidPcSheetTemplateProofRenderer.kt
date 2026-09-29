@@ -299,7 +299,7 @@ private fun drawCustomV2PerAttribute(
         primitives: AndroidPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
     ) {
-        drawCustomV2Common(stream, primitives, plan, nameCenterY = 291f, pageTwoVariant = false)
+        drawCustomV2Common(stream, primitives, plan, pageTwoVariant = false)
         val sheet = plan.snapshot.aggregate.sheet
 
         val scoreRows = listOf(
@@ -369,7 +369,7 @@ private fun drawCustomV2PerAbility(
         primitives: AndroidPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
     ) {
-        drawCustomV2Common(stream, primitives, plan, nameCenterY = 376f, pageTwoVariant = true)
+        drawCustomV2Common(stream, primitives, plan, pageTwoVariant = true)
         val sheet = plan.snapshot.aggregate.sheet
 
         val scoreRows = listOf(
@@ -416,16 +416,17 @@ private fun drawCustomV2Common(
         stream: PDPageContentStream,
         primitives: AndroidPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
-        nameCenterY: Float,
         pageTwoVariant: Boolean,
     ) {
         val sheet = plan.snapshot.aggregate.sheet
 
         fillOnRulePx(stream, primitives, 885f, 311f, 93f, classSummary(plan), 10.5f)
         fillOnRulePx(stream, primitives, 777f, 419f, 135f, sheet.background.race, 10.5f)
-        fillCenteredTextPx(
-            stream, primitives, 534f, nameCenterY, sheet.name,
-            13.5f, 248f, PdfTypographyRole.HANDWRITTEN_NAME, -0.4f,
+        fillCustomV2RibbonNamePx(
+            stream = stream,
+            primitives = primitives,
+            text = sheet.name,
+            pageTwoVariant = pageTwoVariant,
         )
 
         fillCenteredTextPx(stream, primitives, 771f, 237f, sheet.armorClass.toString(), 20f, 106f, PdfTypographyRole.PRIMARY_VALUE, -1.6f)
@@ -765,6 +766,35 @@ private fun drawCustomV2Common(
                 maximumLines = 1,
                 horizontalPaddingPt = 1f,
                 verticalPaddingPt = 0f,
+            ),
+        )
+    }
+
+    private fun fillCustomV2RibbonNamePx(
+        stream: PDPageContentStream,
+        primitives: AndroidPdfRenderingPrimitives,
+        text: String,
+        pageTwoVariant: Boolean,
+    ) {
+        // Owner-approved source rectangles:
+        // per-Attribute TopRect(205, 134.5, 124, 22)
+        // per-Ability   TopRect(205, 177.0, 124, 22)
+        val topPx = if (pageTwoVariant) 354f else 269f
+        primitives.drawTextBox(
+            stream,
+            PdfTextBoxSpec(
+                rect = rectPx(410f, topPx, 248f, 44f),
+                text = text,
+                role = PdfTypographyRole.HANDWRITTEN_NAME,
+                preferredSizePt = 13.5f,
+                minimumSizePt = 8f,
+                horizontalAlignment = PdfHorizontalAlignment.CENTER,
+                verticalAlignment = PdfVerticalAlignment.CENTER,
+                wrapPolicy = PdfWrapPolicy.WORD_WRAP,
+                maximumLines = 2,
+                horizontalPaddingPt = 1f,
+                verticalPaddingPt = 0f,
+                lineHeightMultiplier = 1.0f,
             ),
         )
     }

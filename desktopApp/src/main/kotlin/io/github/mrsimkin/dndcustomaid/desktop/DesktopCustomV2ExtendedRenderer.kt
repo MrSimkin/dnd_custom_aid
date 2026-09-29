@@ -2006,12 +2006,14 @@ internal class DesktopCustomV2ExtendedRenderer(
     }
 
     private fun pageHeaderStructure(s: PDFormContentStream) {
-        // Keep the approved logo vector/source-derived, but bound it inside its own form so
-        // viewers never see hidden off-crop source content. This stays in STRUCTURE; no flattening.
-        s.saveGraphicsState()
-        s.transform(Matrix.getTranslateInstance(14f, H - 16f - 60f))
-        s.drawForm(resources.logo)
-        s.restoreGraphicsState()
+        // Logo-only raster crop: source-derived visually, but without unrelated hidden source text.
+        s.drawImage(
+            resources.logo,
+            LOGO_SOURCE_X,
+            H - LOGO_SOURCE_TOP - LOGO_HEIGHT,
+            LOGO_WIDTH,
+            LOGO_HEIGHT,
+        )
         drawRule(s, 126f, 598f, 79f, 0.6f)
     }
 
@@ -2517,7 +2519,7 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private data class Resources(
         val forms: List<PDFormXObject>,
-        val logo: PDFormXObject,
+        val logo: PDImageXObject,
         val attributeOrnament: PDImageXObject,
         val corbel: PDFont,
         val corbelBold: PDFont,
@@ -2542,7 +2544,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 }
                 return Resources(
                     forms = forms,
-                    logo = buildVectorLogoForm(doc, forms[2]),
+                    logo = buildLogoImage(doc, source),
                     attributeOrnament = buildTransparentAttributeOrnament(doc, source),
                     corbel = corbelRegular,
                     corbelBold = corbelBold,
@@ -2583,24 +2585,27 @@ internal class DesktopCustomV2ExtendedRenderer(
                 error("Requested imported source font not found.")
             }
 
-            private fun buildVectorLogoForm(
+            private fun buildLogoImage(
                 doc: PDDocument,
-                sourceForm: PDFormXObject,
-            ): PDFormXObject {
-                val logo = PDFormXObject(doc).apply {
-                    resources = PDResources()
-                    setBBox(PDRectangle(0f, 0f, 105f, 60f))
+                source: PDDocument,
+            ): PDImageXObject {
+                val dpi = 288f
+                val scale = dpi / 72f
+                // Source page 3 is shared by both v2 variants and contains the approved logo.
+                // Copy pixels only: importing a clipped full-page form preserves hidden text
+                // objects outside the visual crop and caused M50800-03.
+                val sourceImage = PDFRenderer(source).renderImageWithDPI(2, dpi, ImageType.RGB)
+                val x0 = (LOGO_SOURCE_X * scale).roundToInt()
+                val y0 = (LOGO_SOURCE_TOP * scale).roundToInt()
+                val width = (LOGO_WIDTH * scale).roundToInt()
+                val height = (LOGO_HEIGHT * scale).roundToInt()
+                val crop = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+                for (y in 0 until height) {
+                    for (x in 0 until width) {
+                        crop.setRGB(x, y, sourceImage.getRGB(x0 + x, y0 + y))
+                    }
                 }
-                PDFormContentStream(logo).use { s ->
-                    s.saveGraphicsState()
-                    s.addRect(0f, 0f, 105f, 60f)
-                    s.clip()
-                    // Source crop is x=14..119 pt, top=16..76 pt => PDF y=716..776.
-                    s.transform(Matrix.getTranslateInstance(-14f, -716f))
-                    s.drawForm(sourceForm)
-                    s.restoreGraphicsState()
-                }
-                return logo
+                return LosslessFactory.createFromImage(doc, crop)
             }
 
             private fun buildTransparentAttributeOrnament(
@@ -2663,6 +2668,10 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val FIRA_SEMIBOLD = "fonts/pdf/text/FiraSans-SemiBold.ttf"
         const val BARLOW_CONDENSED = "fonts/pdf/text/BarlowCondensed-Bold.ttf"
         const val SYMBOL_V8 = "fonts/owner/para-hoja-de-pj/v8/Para Hoja de PJ Symbols v8.ttf"
+        const val LOGO_SOURCE_X = 14f
+        const val LOGO_SOURCE_TOP = 16f
+        const val LOGO_WIDTH = 105f
+        const val LOGO_HEIGHT = 60f
         const val ATTRIBUTE_ORNAMENT_SOURCE_X = 14.32f
         const val ATTRIBUTE_ORNAMENT_SOURCE_TOP = 164.68f
         const val ATTRIBUTE_ORNAMENT_WIDTH = 80.40f
