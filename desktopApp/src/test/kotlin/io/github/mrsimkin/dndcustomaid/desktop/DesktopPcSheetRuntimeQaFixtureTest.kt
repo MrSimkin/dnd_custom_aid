@@ -928,12 +928,17 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 },
                 "M50800-27: exhausted ordinary Inventory must not reserve space on special-only continuation pages",
             )
+            val referenceOnlyPages = pageTexts.filter { page ->
+                page.contains("REFERENCIAS Y RECORDATORIOS - CONTINUACIÓN") &&
+                    !page.contains("NOTAS DE CAMPAÑA")
+            }
             assertTrue(
-                pageTexts.any { page ->
-                    page.contains("REFERENCIAS Y RECORDATORIOS - CONTINUACIÓN") &&
-                        !page.contains("NOTAS DE CAMPAÑA")
-                },
+                referenceOnlyPages.isNotEmpty(),
                 "M50800-27: exhausted campaign Notes must not reserve space on references-only continuation pages",
+            )
+            assertTrue(
+                referenceOnlyPages.last().contains("Efecto temporal: Referencia"),
+                "M50800-27: final references-only page must retain an owning semantic record identity, not an anonymous tail",
             )
         }
     }
