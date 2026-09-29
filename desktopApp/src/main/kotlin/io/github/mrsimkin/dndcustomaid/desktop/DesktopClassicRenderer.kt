@@ -1713,15 +1713,32 @@ private fun appendSpellContinuationPages(
     ) {
         val sheet = plan.snapshot.aggregate.sheet
         val entries = classicNoteEntries(plan).drop(alreadyPackedEntries)
-        val references = classicReferenceNoteLines(plan)
-        if (entries.isEmpty() && references.isEmpty()) return
+        val referenceGroups = classicReferenceNoteGroups(plan)
+        if (entries.isEmpty() && referenceGroups.isEmpty()) return
+
+        fun takeReferenceGroups(
+            startIndex: Int,
+            capacity: Int,
+        ): Pair<List<String>, Int> {
+            val page = mutableListOf<String>()
+            var index = startIndex
+            while (index < referenceGroups.size) {
+                val group = referenceGroups[index]
+                require(group.size <= CLASSIC_REFERENCE_FULL_PAGE_LINES) {
+                    "Fantasy reference record exceeds a full Notes continuation page."
+                }
+                if (page.size + group.size > capacity) break
+                page += group
+                index += 1
+            }
+            return page to index
+        }
 
         var entryIndex = 0
-        var referenceIndex = 0
+        var referenceGroupIndex = 0
 
-        while (entryIndex < entries.size || referenceIndex < references.size) {
+        while (entryIndex < entries.size || referenceGroupIndex < referenceGroups.size) {
             val entriesActive = entryIndex < entries.size
-            val referencesActive = referenceIndex < references.size
             val entryCapacity = CLASSIC_NOTES_ENTRIES_PER_PAGE
             val referenceCapacity = if (entriesActive) {
                 CLASSIC_REFERENCE_LINES_PER_PAGE
@@ -1729,7 +1746,8 @@ private fun appendSpellContinuationPages(
                 CLASSIC_REFERENCE_FULL_PAGE_LINES
             }
             val pageEntries = entries.drop(entryIndex).take(entryCapacity)
-            val pageReferences = references.drop(referenceIndex).take(referenceCapacity)
+            val (pageReferences, nextReferenceGroupIndex) =
+                takeReferenceGroups(referenceGroupIndex, referenceCapacity)
 
             val page = addPage(doc)
             PDPageContentStream(doc, page).use { stream ->
@@ -1780,32 +1798,23 @@ private fun appendSpellContinuationPages(
             }
 
             entryIndex += pageEntries.size
-            referenceIndex += pageReferences.size
-            check(pageEntries.isNotEmpty() || pageReferences.isNotEmpty()) {
+            referenceGroupIndex = nextReferenceGroupIndex
+            check(pageEntries.isNotEmpty() || nextReferenceGroupIndex > referenceGroupIndex) {
                 "Fantasy Notes allocator made no progress."
             }
         }
     }
 
-    private fun classicReferenceNoteLines(plan: PcSheetPdfRenderPlan): List<String> {
+    private fun classicReferenceNoteGroups(plan: PcSheetPdfRenderPlan): List<List<String>> {
         val aggregate = plan.snapshot.aggregate
         val sheet = aggregate.sheet
-        val lines = mutableListOf<String>()
+        val groups = mutableListOf<List<String>>()
 
         fun addWrapped(label: String, value: String) {
             val clean = value.trim()
             if (clean.isEmpty()) return
             val wrapped = wrapForChars("$label: $clean", CLASSIC_REFERENCE_CHARS_PER_LINE)
-            if (wrapped.isEmpty()) return
-            val usedOnPage = lines.size % CLASSIC_REFERENCE_LINES_PER_PAGE
-            if (
-                usedOnPage != 0 &&
-                wrapped.size <= CLASSIC_REFERENCE_LINES_PER_PAGE &&
-                usedOnPage + wrapped.size > CLASSIC_REFERENCE_LINES_PER_PAGE
-            ) {
-                repeat(CLASSIC_REFERENCE_LINES_PER_PAGE - usedOnPage) { lines += "" }
-            }
-            lines += wrapped
+            if (wrapped.isNotEmpty()) groups += wrapped
         }
 
         val baseLanguageIds = sheet.proficiencies
@@ -1856,7 +1865,7 @@ private fun appendSpellContinuationPages(
             )
         }
 
-        return lines
+        return groups
     }
 
     private fun classicNoteEntries(plan: PcSheetPdfRenderPlan): List<String> {
