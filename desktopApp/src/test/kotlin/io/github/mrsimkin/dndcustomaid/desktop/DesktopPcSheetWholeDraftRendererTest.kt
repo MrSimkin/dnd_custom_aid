@@ -1992,9 +1992,9 @@ class DesktopPcSheetWholeDraftRendererTest {
         Loader.loadPDF(pdf).use { document ->
             val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
             assertTrue(plan.basePages.any { it.role == PcSheetBasePageRole.NOTES })
-            assertFalse(
+            assertTrue(
                 layers.any { it.startsWith("V1X NOTES") },
-                "Forty short notes fit in the native narrative Notes area plus the dedicated Notes page.",
+                "M50800-22/24: forty logical Notes records may extend beyond native capacity once identity and record separation are preserved.",
             )
             assertFalse(layers.any { it.startsWith("V1X TRAITS") })
             assertFalse(layers.any { it.startsWith("V1X RESOURCES") })
@@ -2002,7 +2002,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertFalse(layers.any { it.startsWith("V1X SPELLS") })
 
             val extracted = PDFTextStripper().getText(document)
-            listOf(35, 40).forEach { index ->
+            listOf(1, 35, 40).forEach { index ->
                 assertTrue(
                     Regex("Nota\\s+canónica\\s+$index").containsMatchIn(extracted),
                     "Missing canonical continuation note $index.",
