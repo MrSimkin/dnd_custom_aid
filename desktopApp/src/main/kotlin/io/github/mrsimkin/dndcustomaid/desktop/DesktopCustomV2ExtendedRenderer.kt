@@ -1083,18 +1083,29 @@ internal class DesktopCustomV2ExtendedRenderer(
     }
 
     private fun appendCombatExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val rows = combatReferenceRows(plan).flatMap(::expandCombatReferenceRow)
-        if (rows.isEmpty()) return
+        val groups = combatReferenceRows(plan).mapIndexed { groupIndex, row ->
+            expandCombatReferenceRow(row).map { CombatPhysicalRow(it, groupIndex) }
+        }
+        if (groups.isEmpty()) return
 
-        val pages = pageCount(rows.size, COMBAT_ROWS_PER_PAGE)
-        repeat(pages) { pageIndex ->
+        val pages = mutableListOf<List<CombatPhysicalRow>>()
+        var current = mutableListOf<CombatPhysicalRow>()
+        groups.forEach { group ->
+            require(group.size <= COMBAT_ROWS_PER_PAGE) {
+                "Custom-v2 Combat entry requires more rows than one continuation page can provide."
+            }
+            if (current.isNotEmpty() && current.size + group.size > COMBAT_ROWS_PER_PAGE) {
+                pages += current.toList()
+                current = mutableListOf()
+            }
+            current += group
+        }
+        if (current.isNotEmpty()) pages += current.toList()
+
+        pages.forEachIndexed { pageIndex, rows ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
-            renderCombatPage(
-                page = page,
-                rows = rows.drop(pageIndex * COMBAT_ROWS_PER_PAGE).take(COMBAT_ROWS_PER_PAGE),
-                pageIndex = pageIndex,
-            )
+            renderCombatPage(page = page, rows = rows, pageIndex = pageIndex)
         }
     }
 
@@ -1184,16 +1195,29 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private fun renderCombatPage(
         page: PDPage,
-        rows: List<CombatReferenceRow>,
+        rows: List<CombatPhysicalRow>,
         pageIndex: Int,
     ) {
         val layerPrefix = if (pageIndex == 0) "V2X COMBAT" else "V2X COMBAT ${pageIndex + 1}"
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
             pageHeaderStructure(s)
             fill(s, 14f, 96f, 584f, 22f, SOURCE_GRAY_LIGHT)
-            bandedRows(s, 14f, 598f, COMBAT_FIRST_RULE_TOP, COMBAT_ROWS_PER_PAGE, COMBAT_ROW_STEP, 0)
+            rows.forEachIndexed { index, physical ->
+                val ruleTop = COMBAT_FIRST_RULE_TOP + index * COMBAT_ROW_STEP
+                val tone = if (physical.groupIndex % 2 == 0) SOURCE_GRAY_DARK else SOURCE_GRAY_LIGHT
+                fill(
+                    s,
+                    14f,
+                    ruleTop - COMBAT_ROW_STEP + 0.5f,
+                    584f,
+                    COMBAT_ROW_STEP - 0.5f,
+                    tone,
+                )
+                drawRule(s, 14f, 598f, ruleTop, 0.55f)
+            }
+            val tableBottom = COMBAT_FIRST_RULE_TOP + rows.size * COMBAT_ROW_STEP
             listOf(200f, 282f, 334f, 462f).forEach { x ->
-                verticalRule(s, x, 120f, COMBAT_FIRST_RULE_TOP + COMBAT_ROWS_PER_PAGE * COMBAT_ROW_STEP, 0.45f)
+                verticalRule(s, x, 146f, tableBottom, 0.45f)
             }
         }
         appendLayer(page, "$layerPrefix - CLEANUP") { }
@@ -1206,7 +1230,8 @@ internal class DesktopCustomV2ExtendedRenderer(
             tableLabel(s, 466f, 121f, 128f, "NOTAS")
         }
         appendLayer(page, "$layerPrefix - VALUES") { s ->
-            rows.forEachIndexed { index, row ->
+            rows.forEachIndexed { index, physical ->
+                val row = physical.row
                 val y = COMBAT_FIRST_RULE_TOP + index * COMBAT_ROW_STEP
                 combatCellText(s, resources.fira, Rule(18f, 196f, y), row.name, 7.8f)
                 combatCellText(s, resources.fira, Rule(204f, 278f, y), row.range, 7.6f)
@@ -2892,6 +2917,11 @@ internal class DesktopCustomV2ExtendedRenderer(
         val notes: String,
     )
 
+    private data class CombatPhysicalRow(
+        val row: CombatReferenceRow,
+        val groupIndex: Int,
+    )
+
     private data class ResourceRenderRow(
         val name: String,
         val currentValue: Int,
@@ -3103,11 +3133,11 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val NATIVE_FLOW_TEXT_WIDTH = 269f
         const val NATIVE_NARRATIVE_TEXT_WIDTH = 269f
         const val BASE_V2_COMBAT_CAPACITY = 8
-        const val COMBAT_ROWS_PER_PAGE = 14
+        const val COMBAT_ROWS_PER_PAGE = 31
         const val COMBAT_MINIMUM_BODY_SIZE = 6.0f
         const val COMBAT_MINIMUM_HORIZONTAL_SCALE = 72f
-        const val COMBAT_FIRST_RULE_TOP = 137f
-        const val COMBAT_ROW_STEP = 42f
+        const val COMBAT_FIRST_RULE_TOP = 166f
+        const val COMBAT_ROW_STEP = 17f
         const val COMBAT_TEXT_WIDTH = 576f
         const val BASE_V2_EQUIPMENT_CAPACITY = 46
         const val EQUIPMENT_ROWS_PER_COLUMN = 23
