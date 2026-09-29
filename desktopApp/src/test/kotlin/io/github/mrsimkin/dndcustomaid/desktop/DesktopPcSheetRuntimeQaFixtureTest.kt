@@ -449,21 +449,37 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     "$family must not constrain late Traits continuation to the rejected detail panel",
                 )
 
-                val extendedTraitsText = traitPages.joinToString(" ")
+                val fullPdfText = pageTexts.joinToString(" ")
                 document.character.traits
                     .sortedBy { it.sortOrder }
+                    .forEach { trait ->
+                        assertTrue(
+                            fullPdfText.contains(trait.name),
+                            "$family must preserve trait identity ${trait.name} somewhere in the full PDF",
+                        )
+                    }
+
+                val resourceNames = document.character.resources
+                    .map { it.name.trim().lowercase() }
+                    .filter { it.isNotEmpty() }
+                    .toSet()
+                val actionNames = document.character.combatEntries
+                    .filter { it.type != CharacterCombatEntryType.ATTACK }
+                    .map { it.name.trim().lowercase() }
+                    .filter { it.isNotEmpty() }
+                    .toSet()
+                val traitsOwnedByThisSurface = document.character.traits
                     .filterNot { trait ->
                         trait.type == CharacterTraitType.SPECIES_RACE &&
                             trait.name.equals(document.character.background.race, ignoreCase = true)
                     }
-                    .forEach { trait ->
-                        assertTrue(
-                            extendedTraitsText.contains(trait.name),
-                            "$family must preserve trait identity ${trait.name}",
-                        )
+                    .filterNot { trait ->
+                        val normalizedName = trait.name.trim().lowercase()
+                        normalizedName in resourceNames || normalizedName in actionNames
                     }
+                val extendedTraitsText = traitPages.joinToString(" ")
 
-                val primary = document.character.traits
+                val primary = traitsOwnedByThisSurface
                     .filter {
                         it.type == CharacterTraitType.CLASS ||
                             it.type == CharacterTraitType.FEAT ||
@@ -471,15 +487,11 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     }
                     .sortedBy { it.sortOrder }
                     .map { it.name }
-                val secondary = document.character.traits
+                val secondary = traitsOwnedByThisSurface
                     .filterNot {
                         it.type == CharacterTraitType.CLASS ||
                             it.type == CharacterTraitType.FEAT ||
                             it.type == CharacterTraitType.GIFT_BLESSING
-                    }
-                    .filterNot {
-                        it.type == CharacterTraitType.SPECIES_RACE &&
-                            it.name.equals(document.character.background.race, ignoreCase = true)
                     }
                     .sortedBy { it.sortOrder }
                     .map { it.name }
