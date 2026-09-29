@@ -1098,7 +1098,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                 .forEach(::add)
         }
 
-        if (ordinaryLines.isEmpty() && specialRows.isEmpty() && treasure.isEmpty()) return
+        if (ordinaryLines.isEmpty() && specialPages.isEmpty() && treasure.isEmpty()) return
 
         val pages = maxOf(
             pageCount(ordinaryLines.size, INVENTORY_ORDINARY_CAPACITY),
