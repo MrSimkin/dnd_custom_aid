@@ -926,10 +926,7 @@ internal class DesktopClassicRenderer {
             .ifEmpty { listOf("") }
         return chunks.mapIndexed { index, chunk ->
             ClassicFeature(
-                name = classicSingleLineExcerpt(
-                    if (index == 0) trait.name else trait.name + " (cont.)",
-                    CLASSIC_FEATURE_NAME_CHARS,
-                ),
+                name = if (index == 0) trait.name else trait.name + " (cont.)",
                 source = traitTypeLabel(trait.type),
                 description = chunk,
                 type = trait.type,
@@ -953,10 +950,7 @@ internal class DesktopClassicRenderer {
             .ifEmpty { listOf("") }
         return chunks.mapIndexed { index, chunk ->
             ClassicFeature(
-                name = classicSingleLineExcerpt(
-                    if (index == 0) proficiency.name else proficiency.name + " (cont.)",
-                    CLASSIC_FEATURE_NAME_CHARS,
-                ),
+                name = if (index == 0) proficiency.name else proficiency.name + " (cont.)",
                 source = proficiencyTypeLabel(proficiency.type),
                 description = chunk,
                 type = CharacterTraitType.OTHER,
@@ -1396,7 +1390,7 @@ internal class DesktopClassicRenderer {
                     .take(CLASSIC_SPECIAL_ITEMS_PER_PAGE)
                     .forEachIndexed { index, item ->
                         specialItem(
-                            s, p, 36f, 558f + index * 39f, 252f,
+                            s, p, 36f, 558f + index * 54f, 252f,
                             item.name, item.attuned, item.note,
                         )
                     }
@@ -1422,7 +1416,7 @@ internal class DesktopClassicRenderer {
         representedInBase: Boolean,
     ): List<ClassicSpecialItem> {
         val cleanName = item.name.trim()
-        val projectedName = classicSingleLineExcerpt(cleanName, CLASSIC_SPECIAL_ITEM_NAME_CHARS)
+        val projectedName = cleanName
         val detail = buildList {
             if (cleanName.length > CLASSIC_SPECIAL_ITEM_NAME_CHARS) {
                 add("Nombre completo: $cleanName")
@@ -1444,10 +1438,7 @@ internal class DesktopClassicRenderer {
                 name = if (index == 0) {
                     projectedName
                 } else {
-                    classicSingleLineExcerpt(
-                        "$projectedName (cont.)",
-                        CLASSIC_SPECIAL_ITEM_NAME_CHARS,
-                    )
+                    "$projectedName (cont.)"
                 },
                 attuned = item.attuned && index == 0,
                 note = chunk,
@@ -1462,7 +1453,7 @@ private fun classicInventoryRows(
         listOf(
             InventoryRow(
                 quantity = item.quantity.toString(),
-                name = classicSingleLineExcerpt(item.name, CLASSIC_INVENTORY_ROW_NAME_CHARS),
+                name = item.name,
                 weight = "",
                 state = "",
                 notes = "",
@@ -1891,8 +1882,10 @@ private fun appendSpellContinuationPages(
                 val top = 300f + index * 23f
                 text(
                     s, p, rightX + 10f, top, 148f, 18f,
-                    classicSingleLineExcerpt(entry.name, CLASSIC_COMBAT_NAME_CHARS),
-                    PdfTypographyRole.BODY, 8.5f, 7.2f,
+                    entry.name,
+                    PdfTypographyRole.BODY, 8.5f, 6.8f,
+                    wrap = true, maxLines = 2,
+                    vertical = PdfVerticalAlignment.TOP,
                 )
                 text(
                     s, p, rightX + 162f, top, 45f, 18f,
@@ -1907,8 +1900,10 @@ private fun appendSpellContinuationPages(
                 ).joinToString(" · ")
                 text(
                     s, p, rightX + 211f, top, 97f, 18f,
-                    classicSingleLineExcerpt(detail, CLASSIC_COMBAT_PREVIEW_CHARS),
-                    PdfTypographyRole.BODY, 8.2f, 7f,
+                    detail,
+                    PdfTypographyRole.BODY, 8.2f, 6.6f,
+                    wrap = true, maxLines = 2,
+                    vertical = PdfVerticalAlignment.TOP,
                 )
                 hairline(s, rightX + 10f, top + 20f, rightX + rightW - 10f, top + 20f)
             }
@@ -1933,8 +1928,10 @@ private fun appendSpellContinuationPages(
                 val rowTop = 636f + index * 22f
                 text(
                     s, p, rightX + 10f, rowTop, 134f, 17f,
-                    classicSingleLineExcerpt(trait.name, CLASSIC_SPECIES_NAME_CHARS),
-                    PdfTypographyRole.BODY, 7.8f, 6.8f,
+                    trait.name,
+                    PdfTypographyRole.BODY, 7.8f, 6.2f,
+                    wrap = true, maxLines = 2,
+                    vertical = PdfVerticalAlignment.TOP,
                 )
                 hairline(s, rightX + 10f, rowTop + 21f, rightX + 144f, rowTop + 21f)
             }
@@ -2028,16 +2025,17 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
                 )
                 text(
                     s, p, 316f, top, 142f, 19f,
-                    classicSingleLineExcerpt(item.name, CLASSIC_BASE_INVENTORY_NAME_CHARS),
-                    PdfTypographyRole.BODY, 8.5f, 7.2f,
+                    item.name,
+                    PdfTypographyRole.BODY, 8.5f, 6.6f,
+                    wrap = true, maxLines = 2,
+                    vertical = PdfVerticalAlignment.TOP,
                 )
                 text(
                     s, p, 464f, top, 112f, 19f,
-                    classicSingleLineExcerpt(
-                        inventoryBaseNote(item, usageByItem[item.id]),
-                        CLASSIC_BASE_INVENTORY_NOTE_CHARS,
-                    ),
-                    PdfTypographyRole.BODY, 8f, 7f,
+                    inventoryBaseNote(item, usageByItem[item.id]),
+                    PdfTypographyRole.BODY, 8f, 6.4f,
+                    wrap = true, maxLines = 2,
+                    vertical = PdfVerticalAlignment.TOP,
                 )
                 hairline(s, 276f, top + 21f, 576f, top + 21f)
             }
@@ -2076,26 +2074,21 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             titledFrame(s, p, 264f, 580f, 156f, 138f, "IDIOMAS")
             ruledTextArea(
                 s, p, 276f, 612f, 132f, 92f,
-                languages.take(BASE_LANGUAGE_CAPACITY).map {
-                    classicSingleLineExcerpt(it.name, CLASSIC_BASE_LANGUAGE_NAME_CHARS)
-                },
+                languages.take(BASE_LANGUAGE_CAPACITY).map { it.name },
                 8.8f,
             )
 
             val alliesAndTreasure = buildList {
                 sheet.companions.sortedBy { it.sortOrder }.take(BASE_COMPANION_CAPACITY).forEach { companion ->
                     add(
-                        classicSingleLineExcerpt(
-                            companion.name +
-                                companion.kind.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty(),
-                            CLASSIC_BASE_ALLY_VALUE_CHARS,
-                        ),
+                        companion.name +
+                            companion.kind.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty(),
                     )
                 }
                 aggregate.successor.preferences.valuablesText
                     .split(';').map { it.trim() }.filter { it.isNotEmpty() }
                     .take(CLASSIC_BASE_VALUABLE_CAPACITY)
-                    .map { classicSingleLineExcerpt(it, CLASSIC_BASE_ALLY_VALUE_CHARS) }
+                    .map { it }
                     .forEach(::add)
             }
             titledFrame(s, p, 432f, 580f, 156f, 138f, "ALIADOS Y TESORO")
@@ -2285,14 +2278,17 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         fantasyFrame(s, 24f, 24f, 564f, 72f, 1.05f, fill = PAPER_TINT)
         text(
             s, p, 36f, 31f, 195f, 31f,
-            classicSingleLineExcerpt(name, CLASSIC_HEADER_NAME_CHARS),
-            PdfTypographyRole.CHARACTER_NAME, 18f, 15f,
+            name,
+            PdfTypographyRole.CHARACTER_NAME, 18f, 13f,
+            wrap = true, maxLines = 2,
+            vertical = PdfVerticalAlignment.CENTER,
         )
         text(s, p, 36f, 66f, 195f, 12f, "APTITUD MÁGICA", PdfTypographyRole.OPTIONAL_DECORATIVE, 6.8f, 6f)
         text(
             s, p, 239f, 27f, 112f, 15f,
-            classicSingleLineExcerpt(ability, CLASSIC_SPELLCASTING_ABILITY_CHARS),
-            PdfTypographyRole.OPTIONAL_DECORATIVE, 9f, 7.5f,
+            ability,
+            PdfTypographyRole.OPTIONAL_DECORATIVE, 9f, 6.8f,
+            wrap = true, maxLines = 2,
             align = PdfHorizontalAlignment.CENTER)
         miniRunicStat(s, p, 239f, 45f, 112f, 38f, "MODIFICADOR", modifier)
         miniRunicStat(s, p, 363f, 30f, 101f, 52f, "CD DE SALVACIÓN", saveDc)
@@ -2353,8 +2349,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             )
             text(
                 s, p, x + 21f, rowTop, width - 31f, 18f,
-                classicSingleLineExcerpt(spell?.name.orEmpty(), CLASSIC_SPELL_NAME_CHARS),
-                PdfTypographyRole.SPELL_NAME, 8.1f, 7f,
+                spell?.name.orEmpty(),
+                PdfTypographyRole.SPELL_NAME, 8.1f, 6.4f,
+                wrap = true, maxLines = 2,
+                vertical = PdfVerticalAlignment.TOP,
             )
             hairline(s, x + 21f, rowTop + 20f, x + width - 10f, rowTop + 20f)
         }
@@ -2499,8 +2497,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         fantasyFrame(s, 24f, 24f, 564f, 72f, 1.15f, fill = PAPER_TINT)
         text(
             s, p, 36f, 31f, 214f, 37f,
-            classicSingleLineExcerpt(name, CLASSIC_HEADER_NAME_CHARS),
-            PdfTypographyRole.CHARACTER_NAME, 20f, 16f,
+            name,
+            PdfTypographyRole.CHARACTER_NAME, 20f, 14f,
+            wrap = true, maxLines = 2,
+            vertical = PdfVerticalAlignment.CENTER,
         )
         hairline(s, 36f, 68f, 250f, 68f)
         text(s, p, 36f, 70f, 214f, 15f, "NOMBRE DEL PERSONAJE", PdfTypographyRole.OPTIONAL_DECORATIVE, 7.2f, 6.5f)
@@ -2514,8 +2514,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             val top = 31f + row * 27f
             text(
                 s, p, x, top, 106f, 14f,
-                classicSingleLineExcerpt(value, CLASSIC_IDENTITY_VALUE_CHARS),
-                PdfTypographyRole.BODY, 8.5f, 7.2f,
+                value,
+                PdfTypographyRole.BODY, 8.5f, 6.2f,
+                wrap = true, maxLines = 2,
+                vertical = PdfVerticalAlignment.TOP,
             )
             hairline(s, x, top + 14f, x + 106f, top + 14f)
             text(s, p, x, top + 15f, 106f, 9f, label, PdfTypographyRole.OPTIONAL_DECORATIVE, 5.8f, 5.2f)
@@ -2639,12 +2641,12 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         fantasyFrame(s, x, top, width, height, 0.9f)
         text(
             s, p, x + 8f, top + 7f, width - 16f, 18f,
-            classicSingleLineExcerpt(
-                "$title ($abbreviation)",
-                CLASSIC_CUSTOM_ATTRIBUTE_TITLE_CHARS,
-            ),
+            "$title ($abbreviation)",
             PdfTypographyRole.OPTIONAL_DECORATIVE,
-            10f, 8.5f, align = PdfHorizontalAlignment.CENTER,
+            10f, 7.5f,
+            wrap = true, maxLines = 2,
+            align = PdfHorizontalAlignment.CENTER,
+            vertical = PdfVerticalAlignment.TOP,
         )
         circleOutline(s, x + 38f, top + 58f, 28f)
         text(
@@ -2661,18 +2663,21 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         )
         text(
             s, p, x + 10f, top + 101f, width - 20f, 15f,
-            "Habilidades gobernadas por " +
-                classicSingleLineExcerpt(abbreviation, CLASSIC_CUSTOM_ABBREVIATION_CHARS),
-            PdfTypographyRole.OPTIONAL_DECORATIVE, 6.7f, 5.8f,
+            "Habilidades gobernadas por $abbreviation",
+            PdfTypographyRole.OPTIONAL_DECORATIVE, 6.7f, 5.4f,
+            wrap = true, maxLines = 2,
             align = PdfHorizontalAlignment.CENTER,
+            vertical = PdfVerticalAlignment.TOP,
         )
         skills.forEachIndexed { index, row ->
             val rowTop = top + 122f + index * 23f
             trainingMarker(s, p, x + 12f, rowTop + 8f, row.training)
             text(
                 s, p, x + 24f, rowTop, width - 56f, 18f,
-                classicSingleLineExcerpt(row.name, CLASSIC_CUSTOM_SKILL_NAME_CHARS),
-                PdfTypographyRole.BODY, 7.8f, 6.6f,
+                row.name,
+                PdfTypographyRole.BODY, 7.8f, 6.0f,
+                wrap = true, maxLines = 2,
+                vertical = PdfVerticalAlignment.TOP,
             )
             text(
                 s, p, x + width - 30f, rowTop, 22f, 18f,
@@ -2818,21 +2823,28 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         entries.forEach { entry ->
             if (rowIndex >= physicalRows) return@forEach
 
+            val headerLines = maxOf(
+                wrapForChars(entry.name, CLASSIC_FEATURE_NAME_CHARS).size,
+                wrapForChars(entry.source, CLASSIC_FEATURE_SOURCE_CHARS).size,
+            ).coerceAtLeast(1)
+            if (rowIndex + headerLines > physicalRows) return@forEach
             val headerTop = top + rowIndex * lineGap
             text(
                 s, p, x + 1f, headerTop + 0.5f, width * 0.68f - 1f, lineGap - 1.5f,
-                classicSingleLineExcerpt(entry.name, CLASSIC_FEATURE_NAME_CHARS),
-                PdfTypographyRole.SPELL_NAME, 9f, 7.8f,
-                vertical = PdfVerticalAlignment.BOTTOM,
+                entry.name,
+                PdfTypographyRole.SPELL_NAME, 9f, 6.8f,
+                wrap = true, maxLines = headerLines,
+                vertical = PdfVerticalAlignment.TOP,
             )
             text(
                 s, p, x + width * 0.68f, headerTop + 0.5f, width * 0.32f - 1f, lineGap - 1.5f,
-                classicSingleLineExcerpt(entry.source, CLASSIC_FEATURE_SOURCE_CHARS),
-                PdfTypographyRole.OPTIONAL_DECORATIVE, 7f, 6f,
+                entry.source,
+                PdfTypographyRole.OPTIONAL_DECORATIVE, 7f, 5.6f,
+                wrap = true, maxLines = headerLines,
                 align = PdfHorizontalAlignment.RIGHT,
-                vertical = PdfVerticalAlignment.BOTTOM,
+                vertical = PdfVerticalAlignment.TOP,
             )
-            rowIndex += 1
+            rowIndex += headerLines
 
             entry.description
                 .replace("\r\n", "\n")
@@ -2981,7 +2993,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             text(
                 s, p, cursor + 3f, top, widths[index] - 6f, 20f, value,
                 if (index == 1) PdfTypographyRole.SPELL_NAME else PdfTypographyRole.BODY,
-                if (index == 1) 8.3f else 7.6f, 6.5f,
+                if (index == 1) 8.3f else 7.6f, 6.0f,
+                wrap = index == 1 || index == 3 || index == 4,
+                maxLines = if (index == 1 || index == 3 || index == 4) 2 else 1,
+                vertical = PdfVerticalAlignment.TOP,
                 align = if (index == 0 || index == 2) {
                     PdfHorizontalAlignment.CENTER
                 } else {
@@ -3017,17 +3032,19 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         )
         text(
             s, p, x + 18f, top, width - 18f, 15f,
-            classicSingleLineExcerpt(name, CLASSIC_SPECIAL_ITEM_NAME_CHARS),
-            PdfTypographyRole.SPELL_NAME, 8.3f, 7.2f,
+            name,
+            PdfTypographyRole.SPELL_NAME, 8.3f, 6.3f,
+            wrap = true, maxLines = 2,
+            vertical = PdfVerticalAlignment.TOP,
         )
         text(
-            s, p, x + 18f, top + 15f, width - 18f, 18f,
-            note, PdfTypographyRole.BODY, 7.2f, 6.2f,
+            s, p, x + 18f, top + 24f, width - 18f, 24f,
+            note, PdfTypographyRole.BODY, 7.2f, 5.8f,
             wrap = true,
             maxLines = CLASSIC_SPECIAL_ITEM_NOTE_LINES,
             vertical = PdfVerticalAlignment.TOP,
         )
-        hairline(s, x + 18f, top + 36f, x + width, top + 36f)
+        hairline(s, x + 18f, top + 52f, x + width, top + 52f)
     }
 
     private fun optionEntry(
@@ -3581,7 +3598,7 @@ private fun ruledTextArea(
         const val CLASSIC_OPTION_DETAIL_CHARS = 48
         const val CLASSIC_OPTION_DETAIL_LINES = 3
         const val CLASSIC_INVENTORY_ROWS_PER_PAGE = 12
-        const val CLASSIC_SPECIAL_ITEMS_PER_PAGE = 4
+        const val CLASSIC_SPECIAL_ITEMS_PER_PAGE = 3
         const val CLASSIC_SPECIAL_ITEM_NAME_CHARS = 30
         const val CLASSIC_SPECIAL_ITEM_NOTE_CHARS = 42
         const val CLASSIC_SPECIAL_ITEM_NOTE_LINES = 2
