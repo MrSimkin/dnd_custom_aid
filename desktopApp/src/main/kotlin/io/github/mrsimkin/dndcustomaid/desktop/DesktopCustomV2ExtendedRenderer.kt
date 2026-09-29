@@ -2310,6 +2310,8 @@ internal class DesktopCustomV2ExtendedRenderer(
         rect: TopRect,
         insetX: Float,
         insetY: Float,
+        opticalX: Float = 0f,
+        opticalY: Float = 0f,
     ) {
         val glyph = String(Character.toChars(cp))
         val normalizedWidth = font.getStringWidth(glyph) / 1000f
@@ -2321,8 +2323,8 @@ internal class DesktopCustomV2ExtendedRenderer(
         val targetHeight = rect.height - insetY * 2f
         val scaleX = targetWidth / normalizedWidth
         val scaleY = targetHeight / normalizedHeight
-        val left = rect.x + insetX
-        val targetBottom = H - (rect.top + rect.height) + insetY
+        val left = rect.x + insetX + opticalX
+        val targetBottom = H - (rect.top + rect.height) + insetY + opticalY
         val baseline = targetBottom - normalizedDescent * scaleY
         s.beginText()
         s.setFont(font, 1f)
