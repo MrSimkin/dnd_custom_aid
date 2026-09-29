@@ -1396,17 +1396,16 @@ internal class AndroidCustomV1ExtendedRenderer(
     }
 
     private fun appendNotesExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val lines = wrapForRulesByChars(notesText(plan), BASE_V1_NOTES_WRAP_CHARS)
-        val overflow = lines.drop(BASE_V1_NOTES_CAPACITY)
-        if (overflow.isEmpty()) return
+        val columns = nativeNoteColumns(plan).drop(2)
+        if (columns.isEmpty()) return
 
-        val pages = pageCount(overflow.size, NOTES_CONTINUATION_CAPACITY)
-        repeat(pages) { pageIndex ->
+        columns.chunked(2).forEachIndexed { pageIndex, pageColumns ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderNotesContinuationPage(
                 page = page,
-                lines = overflow.pageSlice(pageIndex, NOTES_CONTINUATION_CAPACITY),
+                leftLines = pageColumns.getOrNull(0).orEmpty(),
+                rightLines = pageColumns.getOrNull(1).orEmpty(),
                 pageIndex = pageIndex,
             )
         }
@@ -1414,68 +1413,231 @@ internal class AndroidCustomV1ExtendedRenderer(
 
     private fun renderNotesContinuationPage(
         page: PDPage,
-        lines: List<String>,
+        leftLines: List<NativeNoteLine>,
+        rightLines: List<NativeNoteLine>,
         pageIndex: Int,
     ) {
         val prefix = "V1X NOTES P${pageIndex + 1}"
 
-        appendLayer(page, "$prefix - STRUCTURE") { s ->
-            s.drawForm(resources.forms[4])
+        appendLayer(page, "$prefix - STRUCTURE") { stream ->
+            stream.drawForm(resources.forms[4])
         }
         appendLayer(page, "$prefix - CLEANUP") { }
         appendLayer(page, "$prefix - LABELS") { }
-        appendLayer(page, "$prefix - VALUES") { s ->
-            lines.take(NOTES_COLUMN_CAPACITY).forEachIndexed { index, line ->
-                ruleText(
-                    s,
-                    resources.fira,
-                    Rule(25f, 267.5f, NOTES_RULES[index]),
-                    line,
-                    8.4f,
-                )
-            }
-            lines.drop(NOTES_COLUMN_CAPACITY)
-                .take(NOTES_COLUMN_CAPACITY)
-                .forEachIndexed { index, line ->
+        appendLayer(page, "$prefix - VALUES") { stream ->
+            fun drawColumn(lines: List<NativeNoteLine>, startX: Float, endX: Float) {
+                lines.take(NOTES_COLUMN_CAPACITY).forEachIndexed { index, line ->
+                    if (line.text.isBlank()) return@forEachIndexed
                     ruleText(
-                        s,
-                        resources.fira,
-                        Rule(311.669f, 583.795f, NOTES_RULES[index]),
-                        line,
-                        8.4f,
+                        stream,
+                        if (line.emphasis) resources.firaSemibold else resources.fira,
+                        Rule(startX, endX, NOTES_RULES[index]),
+                        line.text,
+                        if (line.emphasis) NOTE_TITLE_SIZE else NOTE_BODY_SIZE,
                     )
                 }
+            }
+            drawColumn(leftLines, 25f, 267.5f)
+            drawColumn(rightLines, 311.669f, 583.795f)
         }
         appendLayer(page, "$prefix - MARKERS") { }
     }
 
-    private fun narrativeNotesText(plan: PcSheetPdfRenderPlan): String {
+    private fun nativeNoteColumns(plan: PcSheetPdfRenderPlan): List<List<NativeNoteLine>> {
+        val records = nativeNoteRecords(plan)
+        if (records.isEmpty()) return emptyList()
+
+        val widths = listOf(NOTES_LEFT_WIDTH, NOTES_RIGHT_WIDTH)
+        val columns = mutableListOf<MutableList<NativeNoteLine>>(mutableListOf())
+        var columnIndex = 0
+
+        fun current(): MutableList<NativeNoteLine> = columns[columnIndex]
+        fun advanceColumn() {
+            columnIndex += 1
+            columns += mutableListOf()
+        }
+
+        records.forEach { record ->
+            var remainingBody = record.body.trim()
+            var continuation = record.continuation
+            var finished = false
+
+            while (!finished) {
+                val width = widths[columnIndex % widths.size]
+                val identity = if (continuation) {
+                    record.identity + " (continuación)"
+                } else {
+                    record.identity
+                }
+                val titleLines = wrapByWidth(
+                    identity,
+                    resources.firaSemibold,
+                    NOTE_TITLE_SIZE,
+                    width,
+                ).map { NativeNoteLine(it, emphasis = true) }
+                val bodyLines = wrapByWidth(
+                    remainingBody,
+                    resources.fira,
+                    NOTE_BODY_SIZE,
+                    width,
+                )
+                val separator = if (current().isNotEmpty()) 1 else 0
+                val wholeSize = separator + titleLines.size + bodyLines.size
+
+                if (wholeSize <= NOTES_COLUMN_CAPACITY) {
+                    if (wholeSize <= NOTES_COLUMN_CAPACITY - current().size) {
+                        if (separator == 1) current() += NativeNoteLine("", emphasis = false)
+                        current() += titleLines
+                        current() += bodyLines.map { NativeNoteLine(it, emphasis = false) }
+                        finished = true
+                    } else {
+                        advanceColumn()
+                    }
+                    continue
+                }
+
+                if (current().isNotEmpty()) {
+                    advanceColumn()
+                    continue
+                }
+
+                require(titleLines.size < NOTES_COLUMN_CAPACITY) {
+                    "Custom-v1 Notes identity exceeds a native Notes column: '$identity'"
+                }
+                val bodyCapacity = NOTES_COLUMN_CAPACITY - titleLines.size
+                current() += titleLines
+                current() += bodyLines.take(bodyCapacity).map { NativeNoteLine(it, emphasis = false) }
+                remainingBody = bodyLines.drop(bodyCapacity).joinToString(" ")
+                if (remainingBody.isBlank()) {
+                    finished = true
+                } else {
+                    continuation = true
+                    advanceColumn()
+                }
+            }
+        }
+        return columns.map { it.toList() }
+    }
+
+    private fun nativeNoteRecords(plan: PcSheetPdfRenderPlan): List<NativeNoteRecord> {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
-            addAll(sheet.pdfCampaignNoteParagraphs())
+            val general = sheet.generalNotes.trim()
+            if (general.isNotEmpty()) {
+                val overflow = wrapByWidth(
+                    general,
+                    resources.fira,
+                    9.25f,
+                    NARRATIVE_NOTES_WIDTH,
+                ).drop(BASE_V1_NARRATIVE_NOTE_CAPACITY).joinToString(" ")
+                if (overflow.isNotBlank()) {
+                    add(NativeNoteRecord("Notas generales", overflow, continuation = true))
+                }
+            }
+
+            sheet.noteCards.sortedBy { it.sortOrder }.forEachIndexed { index, card ->
+                val title = card.title.trim().ifEmpty { "Nota ${index + 1}" }
+                val body = card.content.trim()
+                if (title.isNotEmpty() || body.isNotEmpty()) {
+                    add(NativeNoteRecord(title, body))
+                }
+            }
+
             sheet.background.summary.trim().takeIf { it.isNotEmpty() }?.let {
-                add("Resumen de trasfondo: $it")
+                add(NativeNoteRecord("Resumen de trasfondo", it))
             }
             sheet.background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
-                add("Fe / religión: $it")
+                add(NativeNoteRecord("Fe / religión", it))
             }
             sheet.classes.sortedBy { it.sortOrder }.forEach { classLevel ->
                 classLevel.subclassName?.trim()?.takeIf { it.isNotEmpty() }?.let { subclass ->
-                    add("Subclase: " + classLevel.name + " - " + subclass)
+                    add(NativeNoteRecord("Subclase: ${classLevel.name}", subclass))
                 }
             }
-        }.joinToString(" ")
+        }
     }
 
-    private fun notesText(plan: PcSheetPdfRenderPlan): String {
-        val sheet = plan.snapshot.aggregate.sheet
-        return buildList {
-            val narrativeOverflow = wrapForRulesByChars(
-                narrativeNotesText(plan),
-                V1_NARRATIVE_NOTE_APPROX_CHARS,
-            ).drop(BASE_V1_NARRATIVE_NOTE_CAPACITY).joinToString(" ")
-            narrativeOverflow.takeIf { it.isNotBlank() }?.let(::add)
-        }.joinToString("\n\n")
+    private fun narrativeNotesText(plan: PcSheetPdfRenderPlan): String =
+        narrativeNoteRecords(plan).joinToString(" ")
+
+    private fun notesContinuationRecords(plan: PcSheetPdfRenderPlan): List<String> {
+        val records = narrativeNoteRecords(plan)
+        if (records.isEmpty()) return emptyList()
+
+        fun words(value: String): List<String> =
+            value.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
+
+        fun consumedWords(lines: List<String>): Int =
+            words(lines.joinToString(" ")).size
+
+        val fullText = records.joinToString(" ")
+        val fullWords = words(fullText)
+
+        val narrativeLines = wrapForRulesByChars(
+            fullText,
+            V1_NARRATIVE_NOTE_APPROX_CHARS,
+        )
+        val narrativeConsumed = consumedWords(
+            narrativeLines.take(BASE_V1_NARRATIVE_NOTE_CAPACITY),
+        )
+
+        val dedicatedWords = fullWords.drop(narrativeConsumed)
+        if (dedicatedWords.isEmpty()) return emptyList()
+
+        val dedicatedText = dedicatedWords.joinToString(" ")
+        val leftLines = wrapByWidth(
+            dedicatedText,
+            resources.fira,
+            V1_BASE_NOTES_FONT_SIZE,
+            V1_BASE_NOTES_LEFT_WIDTH,
+        )
+        val left = leftLines.take(NOTES_COLUMN_CAPACITY)
+        val leftConsumed = consumedWords(left)
+
+        val afterLeft = dedicatedWords.drop(leftConsumed)
+        val rightConsumed = if (left.size < NOTES_COLUMN_CAPACITY || afterLeft.isEmpty()) {
+            0
+        } else {
+            val right = wrapByWidth(
+                afterLeft.joinToString(" "),
+                resources.fira,
+                V1_BASE_NOTES_FONT_SIZE,
+                V1_BASE_NOTES_RIGHT_WIDTH,
+            ).take(NOTES_COLUMN_CAPACITY)
+            consumedWords(right)
+        }
+
+        val totalConsumed = (narrativeConsumed + leftConsumed + rightConsumed)
+            .coerceAtMost(fullWords.size)
+        if (totalConsumed >= fullWords.size) return emptyList()
+
+        var boundaryStart = 0
+        var boundaryIndex = records.lastIndex
+        for ((index, record) in records.withIndex()) {
+            val end = boundaryStart + words(record).size
+            if (totalConsumed < end) {
+                boundaryIndex = index
+                break
+            }
+            boundaryStart = end
+        }
+
+        val continuation = records.drop(boundaryIndex).toMutableList()
+        val firstRecord = records[boundaryIndex]
+        val offset = (totalConsumed - boundaryStart).coerceAtLeast(0)
+        if (offset > 0) {
+            val identity = firstRecord.substringBefore(':').trim()
+            val tail = words(firstRecord).drop(offset).joinToString(" ")
+            continuation[0] = buildString {
+                if (identity.isNotEmpty()) {
+                    append(identity)
+                    append(" (continuación):")
+                    if (tail.isNotEmpty()) append(' ')
+                }
+                append(tail)
+            }
+        }
+        return continuation
     }
 
     private fun wrapForRulesByChars(text: String, maxChars: Int): List<String> {
@@ -2162,6 +2324,17 @@ internal class AndroidCustomV1ExtendedRenderer(
     private fun textWidth(font: PDFont, text: String, size: Float): Float =
         font.getStringWidth(text) / 1000f * size
 
+    private data class NativeNoteRecord(
+        val identity: String,
+        val body: String,
+        val continuation: Boolean = false,
+    )
+
+    private data class NativeNoteLine(
+        val text: String,
+        val emphasis: Boolean,
+    )
+
     private data class V8Glyph(
         val codePoint: Int,
         val xMin: Int,
@@ -2396,10 +2569,15 @@ internal class AndroidCustomV1ExtendedRenderer(
 
         const val V1_NARRATIVE_NOTE_APPROX_CHARS = 48
         const val BASE_V1_NARRATIVE_NOTE_CAPACITY = 9
-        const val BASE_V1_NOTES_WRAP_CHARS = 68
         const val NOTES_COLUMN_CAPACITY = 17
-        const val BASE_V1_NOTES_CAPACITY = NOTES_COLUMN_CAPACITY * 2
-        const val NOTES_CONTINUATION_CAPACITY = NOTES_COLUMN_CAPACITY * 2
+        const val NOTE_TITLE_SIZE = 8.6f
+        const val NOTE_BODY_SIZE = 8.3f
+        const val NARRATIVE_NOTES_WIDTH = 365.504f
+        const val NOTES_LEFT_WIDTH = 239.5f
+        const val NOTES_RIGHT_WIDTH = 269.126f
+        const val V1_BASE_NOTES_FONT_SIZE = 9.25f
+        const val V1_BASE_NOTES_LEFT_WIDTH = 239.5f
+        const val V1_BASE_NOTES_RIGHT_WIDTH = 269.126f
         val NOTES_RULES = listOf(
             109.5f, 129.5f, 149.5f, 169f, 189f, 209f, 229f, 248.5f, 268.5f,
             288.5f, 308f, 328f, 348f, 367.5f, 387.5f, 407.5f, 427f,
