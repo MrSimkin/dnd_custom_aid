@@ -275,12 +275,6 @@ internal class DesktopClassicRenderer {
     private fun classicBaseExcerpt(value: String, maxChars: Int, maxLines: Int): String =
         wrapForChars(value, maxChars).take(maxLines).joinToString("\n")
 
-    private fun classicSingleLineExcerpt(value: String, maxChars: Int): String {
-        val clean = value.trim()
-        if (clean.length <= maxChars) return clean
-        return clean.take((maxChars - 3).coerceAtLeast(1)).trimEnd() + "..."
-    }
-
     private fun appendTraitsPages(
         doc: PDDocument,
         p: DesktopPdfRenderingPrimitives,
@@ -2543,8 +2537,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         fantasyFrame(s, 24f, 24f, 564f, 64f, 1.05f, fill = PAPER_TINT)
         text(
             s, p, 36f, 30f, 230f, 33f,
-            classicSingleLineExcerpt(name, CLASSIC_HEADER_NAME_CHARS),
-            PdfTypographyRole.CHARACTER_NAME, 18f, 15f,
+            name,
+            PdfTypographyRole.CHARACTER_NAME, 18f, 13f,
+            wrap = true, maxLines = 2,
+            vertical = PdfVerticalAlignment.CENTER,
         )
         hairline(s, 36f, 66f, 266f, 66f)
         text(s, p, 278f, 32f, 298f, 22f, title, PdfTypographyRole.OPTIONAL_DECORATIVE, 12f, 10f,
@@ -2606,8 +2602,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         fantasyFrame(s, 24f, 24f, 564f, 64f, 1.05f, fill = PAPER_TINT)
         text(
             s, p, 36f, 30f, 220f, 33f,
-            classicSingleLineExcerpt(name, CLASSIC_HEADER_NAME_CHARS),
-            PdfTypographyRole.CHARACTER_NAME, 18f, 15f,
+            name,
+            PdfTypographyRole.CHARACTER_NAME, 18f, 13f,
+            wrap = true, maxLines = 2,
+            vertical = PdfVerticalAlignment.CENTER,
         )
         hairline(s, 36f, 66f, 256f, 66f)
         text(
@@ -2720,8 +2718,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             trainingMarker(s, p, x + 12f, rowTop + 8f, row.training)
             text(
                 s, p, x + 25f, rowTop, width - 58f, 19f,
-                classicSingleLineExcerpt(row.name, CLASSIC_CUSTOM_SKILL_NAME_CHARS),
-                PdfTypographyRole.BODY, 7.8f, 6.6f,
+                row.name,
+                PdfTypographyRole.BODY, 7.8f, 6.0f,
+                wrap = true, maxLines = 2,
+                vertical = PdfVerticalAlignment.TOP,
             )
             text(
                 s, p, x + width - 29f, rowTop, 20f, 19f,
