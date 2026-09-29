@@ -655,9 +655,8 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 assertTrue(notesPages.size >= 2, "$family must exercise real Mara Notes overflow")
                 val overflowText = notesPages.drop(1).joinToString(" ")
                 assertTrue(
-                    Regex("""Nota\s+\d+[^.]{0,80}\(continuación\)""", RegexOption.IGNORE_CASE)
-                        .containsMatchIn(overflowText),
-                    "$family must retain Note N identity across the base/Extended boundary",
+                    Regex("""Nota\\s+\\d+""", RegexOption.IGNORE_CASE).containsMatchIn(overflowText),
+                    "$family Notes overflow must preserve explicit note-record identities",
                 )
                 assertTrue(
                     overflowText.contains("Rasgos de personalidad", ignoreCase = true),
@@ -668,6 +667,51 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     "$family must preserve subclass-derived Notes records",
                 )
             }
+        }
+    }
+
+    @Test
+    fun customV2LongNoteRepeatsIdentityAcrossNativeContinuationBoundary() {
+        val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+        val first = document.character.noteCards.sortedBy { it.sortOrder }.first()
+        val stressedFirst = first.copy(
+            content = first.content + " " +
+                List(90) { "Fragmento prolongado de nota ${it + 1} para forzar continuidad nativa." }
+                    .joinToString(" "),
+        )
+        val stressedCards = document.character.noteCards.map { note ->
+            if (note.id == first.id) stressedFirst else note
+        }
+        val stressedSheet = document.character.copy(noteCards = stressedCards)
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(
+                permanent = PcSheetExportAggregate(
+                    sheet = stressedSheet,
+                    closure = document.closureState,
+                    successor = document.successorState,
+                ),
+            ),
+        )
+
+        val bytes = ByteArrayOutputStream().use { output ->
+            DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+            output.toByteArray()
+        }
+
+        Loader.loadPDF(bytes).use { pdf ->
+            val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+            assertTrue(
+                normalized.contains(first.title + " (continuación)", ignoreCase = true),
+                "A note split across a native column/page boundary must repeat its identity",
+            )
+            assertTrue(
+                normalized.contains("Fragmento prolongado de nota 90", ignoreCase = true),
+                "Long-note continuation must preserve the final semantic tail",
+            )
         }
     }
 
