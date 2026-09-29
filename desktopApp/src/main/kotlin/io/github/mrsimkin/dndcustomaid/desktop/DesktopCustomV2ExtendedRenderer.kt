@@ -2100,9 +2100,12 @@ internal class DesktopCustomV2ExtendedRenderer(
         }
         values.skills.forEachIndexed { row, item ->
             val y = top + 64f + row * 17f
-            textAboveRuleSource(
-                s, resources.fira, resources.fira,
-                Rule(x + 94f, x + 145f, y), item.first, 7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE,
+            // Dynamic custom labels must use a complete font. In the compact native
+            // attribute row, allow the existing bounded size fit rather than reverting to a
+            // source subset or forcing excessive horizontal compression.
+            textAboveRule(
+                s, resources.fira,
+                Rule(x + 94f, x + 145f, y), item.first, 7.75f, 6.2f, 2.2f,
             )
             if (item.second.isNotEmpty()) {
                 centeredAboveRule(s, resources.firaSemibold, Rule(x + 145f, x + 174f, y), item.second, 8.8f, 2.2f)

@@ -316,3 +316,23 @@ Repair derived from this artifact:
 - re-run and visually inspect `Éter` before Phase 2A closure.
 
 4209 is therefore **CI PASS / PHASE 2A ARTIFACT QA FAIL**, not an accepted Phase 2A result.
+
+
+## Phase 2A — run 4210 dynamic-font fit diagnostic
+
+Run 4210 / `36516524777` / head `f5ce07fcbb8268c57feb19d71bb094b24804bba8` reached the full Desktop suite after Android/Desktop sync passed.
+
+Two runtime tests failed for the same renderer reason:
+
+`Source-matched text does not fit: Manipulación de éter (58.291935 > 49.0; requiredScale=65.566536)`.
+
+This is a real layout-fit consequence of the 4209 artifact-derived font repair, not a historical-test conflict.
+
+Disposition:
+
+- do **not** revert dynamic text to the imported Corbel subset, because that recreates the invisible `É` glyph defect;
+- do **not** accept 65% horizontal scaling;
+- use the existing bounded font-size fit for the narrow custom-linked-skill row: preferred 7.75 pt, minimum 6.2 pt, full Fira font;
+- preserve the native row geometry and score/modifier/save placement.
+
+M50800-07 remains OPEN until a post-fix artifact visibly renders `Éter`. M50800-04 remains a visual gate for readability at the resulting size.
