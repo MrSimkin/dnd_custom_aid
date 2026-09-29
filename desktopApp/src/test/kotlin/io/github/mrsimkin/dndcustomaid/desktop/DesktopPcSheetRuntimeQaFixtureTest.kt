@@ -718,6 +718,98 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     }
 
     @Test
+    fun maraCustomV2CombatAndResourcesReclaimExhaustedSiblingSpace() {
+        val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+        val families = listOf(
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
+        )
+
+        families.forEach { family ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(
+                    permanent = PcSheetExportAggregate(
+                        sheet = document.character,
+                        closure = document.closureState,
+                        successor = document.successorState,
+                    ),
+                ),
+            )
+
+            val bytes = ByteArrayOutputStream().use { output ->
+                DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+                output.toByteArray()
+            }
+
+            Loader.loadPDF(bytes).use { pdf ->
+                val pageTexts = (1..pdf.numberOfPages).map { pageNumber ->
+                    PDFTextStripper().apply {
+                        startPage = pageNumber
+                        endPage = pageNumber
+                    }.getText(pdf).replace(Regex("\\s+"), " ").trim()
+                }
+                val fullText = pageTexts.joinToString(" ")
+
+                document.character.combatEntries
+                    .sortedBy { it.sortOrder }
+                    .forEach { entry ->
+                        assertTrue(
+                            fullText.contains(entry.name),
+                            "$family must preserve Combat entry ${entry.name}",
+                        )
+                    }
+
+                val combatPages = pageTexts.filter {
+                    it.contains("COMBATE / ACCIONES", ignoreCase = true)
+                }
+                assertEquals(
+                    1,
+                    combatPages.size,
+                    "$family must not strand Mara's final Combat entry on a mostly-empty second page",
+                )
+
+                document.character.resources
+                    .sortedBy { it.sortOrder }
+                    .forEach { resource ->
+                        assertTrue(
+                            fullText.contains(resource.name),
+                            "$family must preserve Resource ${resource.name}",
+                        )
+                    }
+                document.character.classOptions
+                    .sortedBy { it.sortOrder }
+                    .forEach { option ->
+                        assertTrue(
+                            fullText.contains(option.name),
+                            "$family must preserve Option ${option.name}",
+                        )
+                    }
+
+                val splitPages = pageTexts.filter {
+                    it.contains("RECURSOS Y OPCIONES", ignoreCase = true)
+                }
+                assertTrue(splitPages.isNotEmpty(), "$family must retain the shared Resources/Options grammar")
+
+                val resourceOnlyPages = pageTexts.filter {
+                    it.contains("RECURSOS · CONTINUACIÓN", ignoreCase = true)
+                }
+                assertTrue(
+                    resourceOnlyPages.isNotEmpty(),
+                    "$family must exercise Resources-only reclaim after Options are exhausted",
+                )
+                assertTrue(
+                    resourceOnlyPages.none { it.contains("OPCIONES", ignoreCase = true) },
+                    "$family must not reserve an empty Options scaffold after Options are exhausted",
+                )
+            }
+        }
+    }
+
+    @Test
     fun maraFantasySheetRendersStressContentWithoutUnroutedOverflow() {
         val document = fixture("03_mara_siete_umbrales_custom_extended.json")
         val plan = PcSheetPdfExportPlanner.plan(
