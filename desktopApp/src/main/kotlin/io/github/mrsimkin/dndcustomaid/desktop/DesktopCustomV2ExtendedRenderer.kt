@@ -1331,44 +1331,68 @@ internal class DesktopCustomV2ExtendedRenderer(
     private fun appendResourcesExtendedPages(plan: PcSheetPdfRenderPlan) {
         if (!needsResourcesExtendedPage(plan)) return
 
-        val rows = resourceRenderLines(resourceRenderRows(plan))
-        val options = optionRenderLines(plan.snapshot.aggregate.sheet.classOptions.sortedBy { it.sortOrder })
-        if (rows.isEmpty() && options.isEmpty()) return
+        val rowGroups = resourceRenderGroups(resourceRenderRows(plan))
+        val optionGroups = optionRenderGroups(plan.snapshot.aggregate.sheet.classOptions.sortedBy { it.sortOrder })
+        if (rowGroups.isEmpty() && optionGroups.isEmpty()) return
+
+        fun <T> takeWholeGroups(
+            groups: List<List<T>>,
+            startIndex: Int,
+            capacity: Int,
+        ): Pair<List<T>, Int> {
+            val page = mutableListOf<T>()
+            var index = startIndex
+            while (index < groups.size) {
+                val group = groups[index]
+                require(group.size <= capacity) {
+                    "Continuation record requires more rows than the page can provide."
+                }
+                if (page.isNotEmpty() && page.size + group.size > capacity) break
+                if (page.isEmpty() && group.size > capacity) break
+                page += group
+                index += 1
+            }
+            return page to index
+        }
 
         val pages = mutableListOf<ResourceContinuationPage>()
-        var rowOffset = 0
-        var optionOffset = 0
+        var rowGroupIndex = 0
+        var optionGroupIndex = 0
 
-        while (rowOffset < rows.size && optionOffset < options.size) {
-            val pageRows = rows.drop(rowOffset).take(RESOURCE_ROWS_PER_PAGE)
-            val pageOptions = options.drop(optionOffset).take(RESOURCE_OPTIONS_PER_PAGE)
+        while (rowGroupIndex < rowGroups.size && optionGroupIndex < optionGroups.size) {
+            val (pageRows, nextRowIndex) =
+                takeWholeGroups(rowGroups, rowGroupIndex, RESOURCE_ROWS_PER_PAGE)
+            val (pageOptions, nextOptionIndex) =
+                takeWholeGroups(optionGroups, optionGroupIndex, RESOURCE_OPTIONS_PER_PAGE)
             pages += ResourceContinuationPage(
                 rows = pageRows,
                 options = pageOptions,
                 mode = ResourceContinuationMode.SPLIT,
             )
-            rowOffset += pageRows.size
-            optionOffset += pageOptions.size
+            rowGroupIndex = nextRowIndex
+            optionGroupIndex = nextOptionIndex
         }
 
-        while (rowOffset < rows.size) {
-            val pageRows = rows.drop(rowOffset).take(RESOURCE_FULL_PAGE_ROWS)
+        while (rowGroupIndex < rowGroups.size) {
+            val (pageRows, nextRowIndex) =
+                takeWholeGroups(rowGroups, rowGroupIndex, RESOURCE_FULL_PAGE_ROWS)
             pages += ResourceContinuationPage(
                 rows = pageRows,
                 options = emptyList(),
                 mode = ResourceContinuationMode.RESOURCES_ONLY,
             )
-            rowOffset += pageRows.size
+            rowGroupIndex = nextRowIndex
         }
 
-        while (optionOffset < options.size) {
-            val pageOptions = options.drop(optionOffset).take(RESOURCE_FULL_PAGE_OPTIONS)
+        while (optionGroupIndex < optionGroups.size) {
+            val (pageOptions, nextOptionIndex) =
+                takeWholeGroups(optionGroups, optionGroupIndex, RESOURCE_FULL_PAGE_OPTIONS)
             pages += ResourceContinuationPage(
                 rows = emptyList(),
                 options = pageOptions,
                 mode = ResourceContinuationMode.OPTIONS_ONLY,
             )
-            optionOffset += pageOptions.size
+            optionGroupIndex = nextOptionIndex
         }
 
         pages.forEachIndexed { pageIndex, continuation ->
@@ -1465,8 +1489,8 @@ internal class DesktopCustomV2ExtendedRenderer(
             .sortedWith(compareBy<ResourceRenderRow> { it.sortOrder }.thenBy { it.sourceRank }.thenBy { it.name.lowercase() })
     }
 
-    private fun resourceRenderLines(rows: List<ResourceRenderRow>): List<ResourceRenderLine> =
-        rows.flatMap { row ->
+    private fun resourceRenderGroups(rows: List<ResourceRenderRow>): List<List<ResourceRenderLine>> =
+        rows.map { row ->
             val nameLines = wrapByWidth(resources.fira, row.name, 7.6f, 196f).ifEmpty { listOf("") }
             val recoveryLines = wrapByWidth(resources.fira, row.recovery, 7.0f, 111f).ifEmpty { listOf("") }
             val detailLines = wrapByWidth(resources.fira, row.detail, 7.0f, 111f).ifEmpty { listOf("") }
@@ -1483,9 +1507,9 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
         }
 
-    private fun optionRenderLines(
+    private fun optionRenderGroups(
         options: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOption>,
-    ): List<OptionRenderLine> = options.flatMap { option ->
+    ): List<List<OptionRenderLine>> = options.map { option ->
         val kindLines = wrapByWidth(resources.fira, optionKindLabel(option.kind), 7.0f, 76f).ifEmpty { listOf("") }
         val nameLines = wrapByWidth(resources.fira, option.name, 7.2f, 128f).ifEmpty { listOf("") }
         val detail = listOf(
