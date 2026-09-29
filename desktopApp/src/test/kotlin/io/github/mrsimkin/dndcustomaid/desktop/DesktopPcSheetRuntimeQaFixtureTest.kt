@@ -2,6 +2,8 @@ package io.github.mrsimkin.dndcustomaid.desktop
 
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupCodec
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupDecodeResult
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportAggregate
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelection
