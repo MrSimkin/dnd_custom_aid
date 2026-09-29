@@ -1565,10 +1565,12 @@ internal class DesktopCustomV2ExtendedRenderer(
         val sheet = aggregate.sheet
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
 
-        val ordinaryLines = ordered
-            .filterNot { it.special }
-            .flatMap(::inventoryContinuationLines)
-            .drop(BASE_V2_EQUIPMENT_CAPACITY)
+        val ordinaryLines = packV2NativeEquipmentRows(
+            groups = ordered
+                .filterNot { it.special }
+                .map(::inventoryContinuationLines),
+            rowsPerColumn = EQUIPMENT_ROWS_PER_COLUMN,
+        ).drop(BASE_V2_EQUIPMENT_CAPACITY)
 
         val specialPages = specialEquipmentPages(plan, BASE_V2_SPECIAL_CAPACITY).drop(1)
 
@@ -1629,23 +1631,70 @@ internal class DesktopCustomV2ExtendedRenderer(
         pageIndex: Int,
     ) {
         val prefix = "V2X NATIVE EQUIPMENT P${pageIndex + 1}"
+        val ordinaryActive = ordinary.any { it.isNotBlank() }
+        val specialActive = special.isNotEmpty()
+        require(ordinaryActive || specialActive) {
+            "Native Equipment continuation page requires surviving content."
+        }
+        val specialTopOffset = if (specialActive && !ordinaryActive) {
+            SPECIAL_ONLY_TARGET_TOP - SPECIAL_SOURCE_TOP
+        } else {
+            0f
+        }
+
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            // Custom-v2 Equipment/Trasfondo is source page 3 (zero-based imported form 2).
-            // Page 1/2 are the two alternative main-sheet variants and must never be used here.
-            s.drawForm(resources.forms[2])
+            // Reuse only the native source components that still carry data. Do not copy the
+            // full Equipment/Trasfondo page when sibling streams are exhausted.
+            if (ordinaryActive) {
+                drawSourceCrop(
+                    s = s,
+                    form = resources.forms[2],
+                    x = EQUIPMENT_SOURCE_X,
+                    top = EQUIPMENT_SOURCE_TOP,
+                    width = EQUIPMENT_SOURCE_WIDTH,
+                    height = EQUIPMENT_SOURCE_HEIGHT,
+                )
+            }
+            if (specialActive) {
+                if (ordinaryActive) {
+                    drawSourceCrop(
+                        s = s,
+                        form = resources.forms[2],
+                        x = SPECIAL_SOURCE_X,
+                        top = SPECIAL_SOURCE_TOP,
+                        width = SPECIAL_SOURCE_WIDTH,
+                        height = SPECIAL_SOURCE_HEIGHT,
+                    )
+                } else {
+                    drawSourceCropTranslated(
+                        s = s,
+                        form = resources.forms[2],
+                        sourceX = SPECIAL_SOURCE_X,
+                        sourceTop = SPECIAL_SOURCE_TOP,
+                        width = SPECIAL_SOURCE_WIDTH,
+                        height = SPECIAL_SOURCE_HEIGHT,
+                        targetX = SPECIAL_ONLY_TARGET_X,
+                        targetTop = SPECIAL_ONLY_TARGET_TOP,
+                    )
+                }
+            }
         }
         appendLayer(page, "$prefix - CLEANUP") { }
         appendLayer(page, "$prefix - LABELS") { }
         appendLayer(page, "$prefix - VALUES") { s ->
             val ordinaryRules = listOf(14f to 149.5f, 156f to 291.5f).flatMap { (startX, endX) ->
-                (0 until 23).map { row -> Rule(startX, endX, 114.5f + row * 17f) }
+                (0 until EQUIPMENT_ROWS_PER_COLUMN).map { row ->
+                    Rule(startX, endX, 114.5f + row * 17f)
+                }
             }
             ordinaryRules.zip(ordinary).forEach { (rule, line) ->
-                textAboveRule(s, resources.condensed, rule, line, 7.0f, 7.0f, 2.5f)
+                if (line.isNotBlank()) {
+                    textAboveRule(s, resources.condensed, rule, line, 7.0f, 7.0f, 2.5f)
+                }
             }
 
             special.forEachIndexed { rowIndex, row ->
-                val y = 542.5f + rowIndex * 17f
+                val y = 542.5f + rowIndex * 17f + specialTopOffset
                 clearNativeSpecialLocationCell(s, y)
                 row.location.takeIf { it.isNotEmpty() }?.let {
                     textAboveRule(s, resources.fira, Rule(14f, 94f, y), it, 7.2f, 7.2f, 2.5f)
@@ -1665,7 +1714,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                         s,
                         resources.symbol,
                         0xE211,
-                        TopRect(87.5f, 530.5f + rowIndex * 17f, 8.5f, 9f),
+                        TopRect(87.5f, 530.5f + rowIndex * 17f + specialTopOffset, 8.5f, 9f),
                         0.5f,
                         0.5f,
                         opticalX = 1.75f,
@@ -2395,6 +2444,26 @@ internal class DesktopCustomV2ExtendedRenderer(
         s.restoreGraphicsState()
     }
 
+    private fun drawSourceCropTranslated(
+        s: PDFormContentStream,
+        form: PDFormXObject,
+        sourceX: Float,
+        sourceTop: Float,
+        width: Float,
+        height: Float,
+        targetX: Float,
+        targetTop: Float,
+    ) {
+        val dx = targetX - sourceX
+        val dy = sourceTop - targetTop
+        s.saveGraphicsState()
+        s.addRect(targetX, H - targetTop - height, width, height)
+        s.clip()
+        s.transform(Matrix.getTranslateInstance(dx, dy))
+        s.drawForm(form)
+        s.restoreGraphicsState()
+    }
+
     private fun fill(s: PDFormContentStream, x: Float, top: Float, width: Float, height: Float, color: Color) {
         s.saveGraphicsState()
         s.setNonStrokingColor(color)
@@ -3041,6 +3110,17 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val COMBAT_ROW_STEP = 42f
         const val COMBAT_TEXT_WIDTH = 576f
         const val BASE_V2_EQUIPMENT_CAPACITY = 46
+        const val EQUIPMENT_ROWS_PER_COLUMN = 23
+        const val EQUIPMENT_SOURCE_X = 0f
+        const val EQUIPMENT_SOURCE_TOP = 92f
+        const val EQUIPMENT_SOURCE_WIDTH = 306f
+        const val EQUIPMENT_SOURCE_HEIGHT = 414f
+        const val SPECIAL_SOURCE_X = 0f
+        const val SPECIAL_SOURCE_TOP = 500f
+        const val SPECIAL_SOURCE_WIDTH = 612f
+        const val SPECIAL_SOURCE_HEIGHT = 276f
+        const val SPECIAL_ONLY_TARGET_X = 0f
+        const val SPECIAL_ONLY_TARGET_TOP = 92f
         const val V2_EQUIPMENT_COLUMN_WIDTH = 125f
         // Conservative raw-width ceiling at the 7 pt / 78% compact target for the narrowest
         // continuation equipment rule (~128 pt usable width).
