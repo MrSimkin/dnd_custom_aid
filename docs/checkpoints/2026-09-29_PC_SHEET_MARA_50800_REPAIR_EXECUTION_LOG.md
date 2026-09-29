@@ -275,3 +275,44 @@ Correction under the 50800 matrix:
 - require clean `Honor`, `Voluntad`, `Suerte` only for Custom v2.
 
 No renderer behavior is relaxed by this commit. M50800-07 remains an artifact gate: Mara must render clean `Éter` and must not emit `ETE · Éter` on the exact generated statistics page.
+
+
+## Phase 2A — run 4209 exact artifact review
+
+Run 4209 / `36515547745` / head `4fa7efb51fbd5ea958f02d515085d4ab5a13ab0d`  
+Proof artifact ID: `11010473535`  
+CI: **PASS** (84 Desktop tests + Android/Desktop sync).
+
+Exact real-Mara Custom-v2 artifact inspection:
+
+- Atributo: 26 pages observed; Custom Statistics occurs only on page 5.
+- Habilidad: 26 pages observed; Custom Statistics occurs only on page 5.
+- page counts are observations only, not acceptance targets.
+
+Text/page evidence:
+
+- both statistics pages contain Fortuna, Cordura, Éter and Renombre;
+- neither emits `ETE · Éter`;
+- neither statistics page contains stale `UBICACIÓN`, `EQUIPO ESPECIAL` or `CLASE Y NIVEL` source text;
+- only real attribute modules are emitted; Atributo no longer needs page 6 and Habilidad no longer paints fifth/sixth attribute shells.
+
+Rendered evidence:
+
+- M50800-03: positive candidate evidence; hidden source-underlay text is gone.
+- M50800-04/05/06: positive candidate evidence; native-scale compact modules are reused, all four real Mara attributes fit on one page, and phantom attribute shells are gone.
+- M50800-25: positive candidate evidence; `Mara de los Siete Umbrales` is horizontally and vertically centered in the ribbon and fits cleanly on one line. The renderer now has a two-line centered fallback for longer names.
+- **M50800-07 remains OPEN / artifact FAIL:** text extraction reports `Éter`, but the rendered PDF visibly shows `ter` in custom attribute/save/skill contexts.
+
+Root cause established from the artifact and renderer:
+
+- imported Corbel fonts are PDF subsets from the source template;
+- `font.encode(text)` can succeed even when a subset lacks the visible glyph;
+- therefore PDF text extraction can preserve `É` while rendering a blank glyph.
+
+Repair derived from this artifact:
+
+- keep imported source fonts for fixed/native labels;
+- render user-defined/dynamic Custom Statistics names and skill labels with complete embedded Fira fonts, retaining the source-matched size/horizontal scale;
+- re-run and visually inspect `Éter` before Phase 2A closure.
+
+4209 is therefore **CI PASS / PHASE 2A ARTIFACT QA FAIL**, not an accepted Phase 2A result.

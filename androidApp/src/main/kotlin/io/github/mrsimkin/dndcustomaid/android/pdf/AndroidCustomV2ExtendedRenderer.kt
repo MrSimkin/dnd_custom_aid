@@ -249,7 +249,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             attributes.forEachIndexed { index, slice ->
                 val top = ATTRIBUTE_NATIVE_FIRST_TOP + index * ATTRIBUTE_NATIVE_BLOCK_STEP
                 textTopSource(
-                    s, resources.corbelBold, resources.firaSemibold,
+                    s, resources.firaSemibold, resources.firaSemibold,
                     18f, top + 7f,
                     slice.projection.attribute.name,
                     12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
@@ -285,7 +285,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                 val x = 202f + col * 208f
                 val top = NOTES_BLOCK_FIRST_TOP + row * NOTES_BLOCK_STEP
                 centeredSource(
-                    s, resources.corbelBold, resources.firaSemibold,
+                    s, resources.firaSemibold, resources.firaSemibold,
                     TopRect(x + 8f, top + 5f, 172f, 22f),
                     slice.projection.attribute.name,
                     9.4f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
@@ -315,7 +315,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                 group.skills.forEachIndexed { row, item ->
                     val y = top + 48f + row * 17f
                     textAboveRuleSource(
-                        s, resources.corbel, resources.fira,
+                        s, resources.fira, resources.fira,
                         Rule(242f, 548f, y),
                         item.skill.name, 7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE,
                     )
@@ -444,7 +444,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             centeredFixedScale(s, resources.corbelBold, TopRect(366f, 108f, 232f, 22f), "HABILIDADES", 7.8f, SOURCE_CORBEL_HEADING_SCALE)
             attributes.forEachIndexed { index, projection ->
                 textTopSource(
-                    s, resources.corbelBold, resources.firaSemibold,
+                    s, resources.firaSemibold, resources.firaSemibold,
                     14f, 142f + index * 96f,
                     projection.attribute.name,
                     12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
@@ -461,7 +461,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             saves.forEachIndexed { index, projection ->
                 val y = 154f + index * 17f
                 textAboveRuleSource(
-                    s, resources.corbel, resources.fira,
+                    s, resources.fira, resources.fira,
                     Rule(235f, 308f, y),
                     projection.attribute.name,
                     7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE,
@@ -475,7 +475,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                 val y = 154f + index * 17f
                 val label = projection.skill.name + " (" + abilityKey(projection.ability, allAttributes) + ")"
                 textAboveRuleSource(
-                    s, resources.corbel, resources.fira,
+                    s, resources.fira, resources.fira,
                     Rule(399f, 548f, y), label, 7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE,
                 )
                 projection.total?.let {
@@ -2103,7 +2103,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         values.skills.forEachIndexed { row, item ->
             val y = top + 64f + row * 17f
             textAboveRuleSource(
-                s, resources.corbel, resources.fira,
+                s, resources.fira, resources.fira,
                 Rule(x + 94f, x + 145f, y), item.first, 7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE,
             )
             if (item.second.isNotEmpty()) {
@@ -2262,6 +2262,10 @@ internal class AndroidCustomV2ExtendedRenderer(
         }
     }
 
+    // Imported source fonts are PDF subsets. encode(text) only proves that the PDF can
+    // carry a character code; it does not prove that the subset contains a visible glyph.
+    // Fixed/native labels may use those source fonts, but user-defined/dynamic Custom Statistics
+    // text is deliberately rendered with the complete embedded Fira fonts at source-matched scale.
     private fun supports(font: PDFont, text: String): Boolean =
         runCatching {
             font.encode(text)
