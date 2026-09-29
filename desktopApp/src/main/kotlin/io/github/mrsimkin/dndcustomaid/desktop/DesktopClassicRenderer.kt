@@ -2277,7 +2277,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         text(
             s, p, 36f, 31f, 195f, 31f,
             name,
-            PdfTypographyRole.CHARACTER_NAME, 18f, 9f,
+            PdfTypographyRole.CHARACTER_NAME, 18f, 8f,
             wrap = true, maxLines = 2,
             align = PdfHorizontalAlignment.CENTER,
             vertical = PdfVerticalAlignment.CENTER,
@@ -2497,7 +2497,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         text(
             s, p, 36f, 31f, 214f, 37f,
             name,
-            PdfTypographyRole.CHARACTER_NAME, 20f, 9f,
+            PdfTypographyRole.CHARACTER_NAME, 20f, 8f,
             wrap = true, maxLines = 2,
             align = PdfHorizontalAlignment.CENTER,
             vertical = PdfVerticalAlignment.CENTER,
@@ -2544,7 +2544,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         text(
             s, p, 36f, 30f, 230f, 33f,
             name,
-            PdfTypographyRole.CHARACTER_NAME, 18f, 9f,
+            PdfTypographyRole.CHARACTER_NAME, 18f, 8f,
             wrap = true, maxLines = 2,
             align = PdfHorizontalAlignment.CENTER,
             vertical = PdfVerticalAlignment.CENTER,
@@ -2610,7 +2610,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         text(
             s, p, 36f, 30f, 220f, 33f,
             name,
-            PdfTypographyRole.CHARACTER_NAME, 18f, 9f,
+            PdfTypographyRole.CHARACTER_NAME, 18f, 8f,
             wrap = true, maxLines = 2,
             align = PdfHorizontalAlignment.CENTER,
             vertical = PdfVerticalAlignment.CENTER,
