@@ -551,7 +551,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         fun current(): MutableList<NativeNoteLine> = columns[columnIndex]
         fun advanceColumn() {
             columnIndex += 1
-            columns += mutableListOf()
+            columns.add(mutableListOf())
         }
 
         records.forEach { record ->
