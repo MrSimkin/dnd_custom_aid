@@ -45,6 +45,8 @@ Status after run 4200: **progression gate passed**, with M50800-17 and M50800-20
 
 ### Phase 2A — Custom-v2 Custom Statistics + source underlay + name ribbon
 
+Status after run 4212: **internal exact-artifact progression PASS** at `6e53492dcd9f13945fbb320334f621aad070e61f` / artifact `11011771728`. M50800-03/04/05/06/07/25 remain formally OPEN until final-candidate reconfirmation.
+
 Acceptance scope: M50800-03, M50800-04, M50800-05, M50800-06, M50800-07, M50800-25.
 
 - reuse the page-1 attribute grammar/capacity rather than the 3-column generic cards;
@@ -56,6 +58,13 @@ Acceptance scope: M50800-03, M50800-04, M50800-05, M50800-06, M50800-07, M50800-
 - use two centered lines when one line does not fit cleanly.
 
 ### Phase 2B — remaining Custom-v2 native component reuse
+
+**Next resume point.** Execute as discrete subphases:
+
+- **2B.1:** Traits/Rasgos + Trasfondo/Historia native reuse — M50800-08/09/10/11;
+- **2B.2:** Notes native reuse/boundaries/continuation — M50800-21/22/23/24;
+- **2B.3:** residual Equipment readability/reclaim — M50800-17/20.
+
 
 - Traits/Rasgos reuse native/source grammar;
 - Trasfondo/Historia and similar narrative modules reuse native/source grammar;
