@@ -1542,11 +1542,11 @@ internal class DesktopCustomV1ExtendedRenderer(
 
         var boundaryStart = 0
         var boundaryIndex = records.lastIndex
-        records.forEachIndexed { index, record ->
+        for ((index, record) in records.withIndex()) {
             val end = boundaryStart + words(record).size
             if (totalConsumed < end) {
                 boundaryIndex = index
-                return@forEachIndexed
+                break
             }
             boundaryStart = end
         }
