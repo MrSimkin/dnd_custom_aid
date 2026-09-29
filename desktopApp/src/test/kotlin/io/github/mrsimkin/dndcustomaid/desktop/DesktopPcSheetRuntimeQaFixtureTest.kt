@@ -851,6 +851,13 @@ class DesktopPcSheetRuntimeQaFixtureTest {
 
         Loader.loadPDF(bytes).use { pdf ->
             val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+            val pageTexts = (1..pdf.numberOfPages).map { pageNumber ->
+                PDFTextStripper().apply {
+                    startPage = pageNumber
+                    endPage = pageNumber
+                }.getText(pdf).replace(Regex("\\s+"), " ")
+            }
+
             assertTrue(normalized.contains("Mara de los Siete Umbrales"))
             assertTrue(normalized.contains("Astrolabio de cobre con anillos concéntricos 1"))
             // A long special-item detail may cross physical continuation rows; require both
@@ -859,9 +866,44 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             assertTrue(normalized.contains("del objeto 1"))
             assertTrue(normalized.contains("Protocolo de paradoja 1"))
             assertTrue(normalized.contains("Reserva 10: Sello"))
+
             assertTrue(
                 !normalized.contains("..."),
                 "M50800-26: Fantasy Mara semantic content must wrap instead of introducing ellipsis",
+            )
+
+            val combatPages = pageTexts.filter { it.contains("COMBATE / ACCIONES") }
+            assertTrue(
+                combatPages.any { page ->
+                    page.contains("TIPO / NOMBRE") &&
+                        page.contains("RANGO") &&
+                        page.contains("BONIF.") &&
+                        page.contains("DAÑO / EFECTO") &&
+                        page.contains("NOTAS")
+                },
+                "M50800-13: Fantasy Combat continuation must preserve the semantic table grammar",
+            )
+
+            assertTrue(
+                pageTexts.any { page ->
+                    page.contains("RECURSOS - CONTINUACIÓN") &&
+                        !page.contains("OPCIONES Y ESTADOS RELEVANTES")
+                },
+                "M50800-27: exhausted Options must not reserve space on Resources-only continuation pages",
+            )
+            assertTrue(
+                pageTexts.any { page ->
+                    page.contains("OBJETOS ESPECIALES / SINTONIZADOS - CONTINUACIÓN") &&
+                        !page.contains("INVENTARIO - CONTINUACIÓN")
+                },
+                "M50800-27: exhausted ordinary Inventory must not reserve space on special-only continuation pages",
+            )
+            assertTrue(
+                pageTexts.any { page ->
+                    page.contains("REFERENCIAS Y RECORDATORIOS - CONTINUACIÓN") &&
+                        !page.contains("NOTAS DE CAMPAÑA")
+                },
+                "M50800-27: exhausted campaign Notes must not reserve space on references-only continuation pages",
             )
         }
     }
