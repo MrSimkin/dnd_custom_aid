@@ -87,6 +87,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         }
 
         appendTraitsExtendedPages(plan)
+        appendBackgroundNarrativeExtendedPages(plan)
         appendCombatExtendedPages(plan)
 
         appendResourcesExtendedPages(plan)
@@ -511,161 +512,370 @@ internal class DesktopCustomV2ExtendedRenderer(
         val traits = sheet.traits
             .sortedBy { it.sortOrder }
             .filterNot { isSpeciesIdentityTrait(it, plan) || traitHasDedicatedActionOrResource(it, plan) }
-        fun featurePriority(trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait): Int =
-            if (
-                trait.maxUses != null ||
-                !trait.recovery.isNullOrBlank() ||
-                !trait.notes.isNullOrBlank()
-            ) 0 else 1
 
-        val leftTraits = traits.filter {
+        val primaryTraits = traits.filter {
             it.type == CharacterTraitType.CLASS ||
                 it.type == CharacterTraitType.FEAT ||
                 it.type == CharacterTraitType.GIFT_BLESSING
-        }.sortedWith(compareBy(::featurePriority).thenBy { it.sortOrder })
-        val rightTraits = traits.filterNot { it in leftTraits }
-            .sortedWith(compareBy(::featurePriority).thenBy { it.sortOrder })
-
-        val featuredLeft = leftTraits.take(2)
-        val featuredRight = rightTraits.take(2)
-        val featuredIds = (featuredLeft + featuredRight).map { it.id }.toSet()
-        val remaining = traits.filterNot { it.id in featuredIds }
-
-        val detailLines = buildList {
-            addAll(traitSupplementLines(plan))
-            featuredLeft.forEach { trait ->
-                addAll(featureOverflowLines(trait, 269f))
-            }
-            featuredRight.forEach { trait ->
-                addAll(featureOverflowLines(trait, 283f))
-            }
-            remaining.forEach { trait ->
-                addAll(fullTraitDetailLines(trait))
-            }
         }
+        val secondaryTraits = traits.filterNot { it in primaryTraits }
 
-        val proficiencies = sheet.proficiencies.sortedBy { it.sortOrder }
-        val pages = maxOf(
-            1,
-            pageCount(remaining.size, TRAIT_NAME_INDEX_PER_PAGE),
-            pageCount(detailLines.size, TRAIT_DETAIL_LINES_PER_PAGE),
-            pageCount(proficiencies.size, TRAIT_PROFICIENCIES_PER_PAGE),
-        )
+        val blocks = mutableListOf<List<NativeFlowRow>>()
+        blocks += nativeTraitCategoryBlocks("CLASE / DOTES", primaryTraits)
+        blocks += nativeTraitCategoryBlocks("RAZA / TRASFONDO / OTROS", secondaryTraits)
 
-        repeat(pages) { pageIndex ->
-            val page = PDPage(PDRectangle(W, H))
-            document.addPage(page)
-            renderTraitsPage(
-                page = page,
-                featuredLeft = if (pageIndex == 0) featuredLeft else emptyList(),
-                featuredRight = if (pageIndex == 0) featuredRight else emptyList(),
-                nameIndex = remaining
-                    .drop(pageIndex * TRAIT_NAME_INDEX_PER_PAGE)
-                    .take(TRAIT_NAME_INDEX_PER_PAGE),
-                detailLines = detailLines
-                    .drop(pageIndex * TRAIT_DETAIL_LINES_PER_PAGE)
-                    .take(TRAIT_DETAIL_LINES_PER_PAGE),
-                proficiencies = proficiencies
-                    .drop(pageIndex * TRAIT_PROFICIENCIES_PER_PAGE)
-                    .take(TRAIT_PROFICIENCIES_PER_PAGE),
-                pageIndex = pageIndex,
-            )
-        }
-    }
-
-    private fun renderTraitsPage(
-        page: PDPage,
-        featuredLeft: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
-        featuredRight: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
-        nameIndex: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
-        detailLines: List<String>,
-        proficiencies: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiency>,
-        pageIndex: Int,
-    ) {
-        val layerPrefix = if (pageIndex == 0) "V2X TRAITS" else "V2X TRAITS ${pageIndex + 1}"
-
-        appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
-            pageHeaderStructure(s)
-            bandedRows(s, 14f, 291f, 137f, 36, 17f, 0)
-            bandedRows(s, 307f, 598f, 137f, 36, 17f, 1)
-            fill(s, 14f, 96f, 277f, 34f, Color.WHITE)
-            fill(s, 307f, 96f, 291f, 34f, Color.WHITE)
-            fill(s, 14f, 358f, 277f, 34f, Color.WHITE)
-            fill(s, 307f, 358f, 291f, 34f, Color.WHITE)
-            fill(s, 14f, 579f, 277f, 34f, Color.WHITE)
-            fill(s, 307f, 579f, 291f, 34f, Color.WHITE)
-            drawRule(s, 14f, 291f, 358f, 0.8f)
-            drawRule(s, 307f, 598f, 358f, 0.8f)
-            drawRule(s, 14f, 291f, 579f, 0.8f)
-            drawRule(s, 307f, 598f, 579f, 0.8f)
-        }
-        appendLayer(page, "$layerPrefix - CLEANUP") { }
-        appendLayer(page, "$layerPrefix - LABELS") { s ->
-            pageTitle(s, "RASGOS Y ATRIBUTOS")
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 99f, 277f, 22f), "CLASE / DOTES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredFixedScale(s, resources.corbelBold, TopRect(307f, 99f, 291f, 22f), "RAZA / TRASFONDO / OTROS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 363f, 277f, 22f), "OTROS RASGOS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredFixedScale(s, resources.corbelBold, TopRect(307f, 363f, 291f, 22f), "DETALLES / NOTAS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 584f, 277f, 22f), "COMPETENCIAS / IDIOMAS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredFixedScale(s, resources.corbelBold, TopRect(307f, 584f, 291f, 22f), "CONTINUACIÓN", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-        }
-        appendLayer(page, "$layerPrefix - VALUES") { s ->
-            var leftFeatureRule = 137f
-            featuredLeft.forEach { trait ->
-                leftFeatureRule = featureEntry(s, 14f, leftFeatureRule, 277f, trait)
-            }
-            var rightFeatureRule = 137f
-            featuredRight.forEach { trait ->
-                rightFeatureRule = featureEntry(s, 307f, rightFeatureRule, 291f, trait)
-            }
-
-            nameIndex.forEachIndexed { index, trait ->
-                textAboveRule(s, resources.fira, Rule(18f, 287f, 392f + index * 17f), trait.name, 8.1f, 6.5f, 2.2f)
-            }
-
-            detailLines.take(10).forEachIndexed { index, line ->
-                textAboveRule(s, resources.fira, Rule(311f, 594f, 392f + index * 17f), line, 7.7f, 6.2f, 2.2f)
-            }
-
-            proficiencies.forEachIndexed { index, proficiency ->
+        val proficiencyLines = sheet.proficiencies
+            .sortedBy { it.sortOrder }
+            .flatMap { proficiency ->
                 val label = buildString {
                     append(proficiency.name)
                     proficiency.source?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
                     proficiency.notes?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
                 }
-                textAboveRule(s, resources.fira, Rule(18f, 287f, 613f + index * 17f), label, 8.0f, 6.2f, 2.2f)
+                wrapByWidth(resources.fira, label, 7.7f, NATIVE_FLOW_TEXT_WIDTH)
             }
+        blocks += nativeSectionBlocks("COMPETENCIAS / IDIOMAS", proficiencyLines)
 
-            detailLines.drop(10).take(8).forEachIndexed { index, line ->
-                textAboveRule(s, resources.fira, Rule(311f, 594f, 613f + index * 17f), line, 7.7f, 6.2f, 2.2f)
+        val referenceLines = traitReferenceLines(plan)
+            .flatMap { wrapByWidth(resources.fira, it, 7.7f, NATIVE_FLOW_TEXT_WIDTH) }
+        blocks += nativeSectionBlocks("REFERENCIAS", referenceLines)
+
+        val columns = packNativeFlowBlocks(blocks)
+        if (columns.isEmpty()) return
+
+        columns.chunked(2).forEachIndexed { pageIndex, pageColumns ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderNativeFlowPage(
+                page = page,
+                title = "RASGOS Y ATRIBUTOS · CONTINUACIÓN",
+                columns = pageColumns,
+                pageIndex = pageIndex,
+                layerStem = "V2X NATIVE TRAITS",
+            )
+        }
+    }
+
+    private fun nativeTraitCategoryBlocks(
+        title: String,
+        traits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
+    ): List<List<NativeFlowRow>> {
+        if (traits.isEmpty()) return emptyList()
+        return buildList {
+            traits.forEachIndexed { index, trait ->
+                addAll(nativeTraitBlocks(trait, if (index == 0) title else null))
+            }
+        }
+    }
+
+    private fun nativeTraitBlocks(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+        categoryTitle: String?,
+    ): List<List<NativeFlowRow>> {
+        val nameLines = wrapByWidth(
+            resources.firaSemibold,
+            trait.name,
+            9.25f,
+            NATIVE_FLOW_TEXT_WIDTH,
+        ).ifEmpty { listOf(trait.name) }
+
+        val uses = trait.maxUses?.let { max ->
+            val current = (max - trait.spentUses).coerceIn(0, max)
+            buildString {
+                append("Usos ").append(current).append("/").append(max)
+                trait.recovery?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
+            }
+        } ?: trait.recovery?.takeIf { it.isNotBlank() }
+
+        val metadata = listOf(
+            traitTypeLabel(trait.type),
+            trait.source.trim(),
+            trait.activation?.let(::activationLabel).orEmpty(),
+            uses.orEmpty(),
+        ).filter { it.isNotEmpty() }.joinToString(" · ")
+
+        val bodyLines = buildList {
+            if (metadata.isNotBlank()) {
+                addAll(wrapByWidth(resources.fira, metadata, 7.7f, NATIVE_FLOW_TEXT_WIDTH))
+            }
+            trait.description.trim().takeIf { it.isNotEmpty() }?.let { description ->
+                addAll(wrapByWidth(resources.fira, description, 7.7f, NATIVE_FLOW_TEXT_WIDTH))
+            }
+            trait.notes.orEmpty().trim().takeIf { it.isNotEmpty() }?.let { notes ->
+                addAll(wrapByWidth(resources.fira, notes, 7.7f, NATIVE_FLOW_TEXT_WIDTH))
+            }
+        }
+
+        val blocks = mutableListOf<List<NativeFlowRow>>()
+        var offset = 0
+        var first = true
+        do {
+            val prefix = mutableListOf<NativeFlowRow>()
+            if (first && categoryTitle != null) {
+                prefix += NativeFlowRow(categoryTitle, NativeFlowRowStyle.SECTION)
+            }
+            val currentNameLines = if (first) {
+                nameLines
+            } else {
+                wrapByWidth(
+                    resources.firaSemibold,
+                    trait.name + " (continuación)",
+                    9.25f,
+                    NATIVE_FLOW_TEXT_WIDTH,
+                )
+            }
+            prefix += currentNameLines.map { NativeFlowRow(it, NativeFlowRowStyle.NAME) }
+
+            val bodyCapacity = NATIVE_FLOW_ROWS_PER_COLUMN - prefix.size - 1
+            require(bodyCapacity > 0) {
+                "Custom-v2 native trait identity cannot fit one continuation column: ${trait.name}"
+            }
+            val bodySlice = bodyLines.drop(offset).take(bodyCapacity)
+            val block = buildList {
+                addAll(prefix)
+                addAll(bodySlice.map { NativeFlowRow(it, NativeFlowRowStyle.BODY) })
+                add(NativeFlowRow("", NativeFlowRowStyle.SPACER))
+            }
+            blocks += block
+            offset += bodySlice.size
+            first = false
+        } while (offset < bodyLines.size)
+
+        return blocks
+    }
+
+    private fun nativeSectionBlocks(
+        title: String,
+        lines: List<String>,
+    ): List<List<NativeFlowRow>> {
+        if (lines.isEmpty()) return emptyList()
+        val blocks = mutableListOf<List<NativeFlowRow>>()
+        var offset = 0
+        var part = 0
+        while (offset < lines.size) {
+            val heading = if (part == 0) title else "$title · CONTINUACIÓN"
+            val bodyCapacity = NATIVE_FLOW_ROWS_PER_COLUMN - 2
+            val slice = lines.drop(offset).take(bodyCapacity)
+            blocks += buildList {
+                add(NativeFlowRow(heading, NativeFlowRowStyle.SECTION))
+                addAll(slice.map { NativeFlowRow(it, NativeFlowRowStyle.BODY) })
+                add(NativeFlowRow("", NativeFlowRowStyle.SPACER))
+            }
+            offset += slice.size
+            part += 1
+        }
+        return blocks
+    }
+
+    private fun packNativeFlowBlocks(
+        blocks: List<List<NativeFlowRow>>,
+    ): List<List<NativeFlowRow>> {
+        val columns = mutableListOf<MutableList<NativeFlowRow>>()
+        var current = mutableListOf<NativeFlowRow>()
+
+        blocks.forEach { block ->
+            require(block.size <= NATIVE_FLOW_ROWS_PER_COLUMN) {
+                "Native continuation block exceeds one column."
+            }
+            if (current.isNotEmpty() && current.size + block.size > NATIVE_FLOW_ROWS_PER_COLUMN) {
+                columns += current
+                current = mutableListOf()
+            }
+            current += block
+        }
+        if (current.isNotEmpty()) columns += current
+        return columns
+    }
+
+    private fun renderNativeFlowPage(
+        page: PDPage,
+        title: String,
+        columns: List<List<NativeFlowRow>>,
+        pageIndex: Int,
+        layerStem: String,
+    ) {
+        val layerPrefix = "$layerStem P${pageIndex + 1}"
+        appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
+            pageHeaderStructure(s)
+            columns.take(2).forEachIndexed { columnIndex, rows ->
+                val startX = if (columnIndex == 0) 14f else 307f
+                val endX = if (columnIndex == 0) 291f else 598f
+                rows.forEachIndexed { rowIndex, row ->
+                    val ruleTop = NATIVE_FLOW_FIRST_RULE_TOP + rowIndex * NATIVE_FLOW_ROW_STEP
+                    when (row.style) {
+                        NativeFlowRowStyle.SECTION,
+                        NativeFlowRowStyle.SPACER -> fill(
+                            s,
+                            startX,
+                            ruleTop - NATIVE_FLOW_ROW_STEP + 0.5f,
+                            endX - startX,
+                            NATIVE_FLOW_ROW_STEP - 0.5f,
+                            Color.WHITE,
+                        )
+                        NativeFlowRowStyle.NAME,
+                        NativeFlowRowStyle.BODY,
+                        NativeFlowRowStyle.NARRATIVE_BODY -> {
+                            val tone = if (rowIndex % 2 == 0) SOURCE_GRAY_DARK else SOURCE_GRAY_LIGHT
+                            fill(
+                                s,
+                                startX,
+                                ruleTop - NATIVE_FLOW_ROW_STEP + 0.5f,
+                                endX - startX,
+                                NATIVE_FLOW_ROW_STEP - 0.5f,
+                                tone,
+                            )
+                        }
+                    }
+                    if (row.style != NativeFlowRowStyle.SPACER) {
+                        drawRule(s, startX, endX, ruleTop, 0.55f)
+                    }
+                }
+            }
+        }
+        appendLayer(page, "$layerPrefix - CLEANUP") { }
+        appendLayer(page, "$layerPrefix - LABELS") { s ->
+            pageTitle(s, title)
+        }
+        appendLayer(page, "$layerPrefix - VALUES") { s ->
+            columns.take(2).forEachIndexed { columnIndex, rows ->
+                val startX = if (columnIndex == 0) 18f else 311f
+                val endX = if (columnIndex == 0) 287f else 594f
+                rows.forEachIndexed { rowIndex, row ->
+                    val rule = Rule(
+                        startX,
+                        endX,
+                        NATIVE_FLOW_FIRST_RULE_TOP + rowIndex * NATIVE_FLOW_ROW_STEP,
+                    )
+                    when (row.style) {
+                        NativeFlowRowStyle.SECTION -> centeredFixedScale(
+                            s,
+                            resources.corbelBold,
+                            TopRect(
+                                startX,
+                                rule.topY - NATIVE_FLOW_ROW_STEP + 1f,
+                                endX - startX,
+                                NATIVE_FLOW_ROW_STEP - 1f,
+                            ),
+                            row.text,
+                            8.9f,
+                            SOURCE_CORBEL_HEADING_SCALE,
+                        )
+                        NativeFlowRowStyle.NAME -> textAboveRule(
+                            s,
+                            resources.firaSemibold,
+                            rule,
+                            row.text,
+                            9.25f,
+                            7.4f,
+                            2.7f,
+                        )
+                        NativeFlowRowStyle.BODY -> textAboveRule(
+                            s,
+                            resources.fira,
+                            rule,
+                            row.text,
+                            7.7f,
+                            6.4f,
+                            2.4f,
+                        )
+                        NativeFlowRowStyle.NARRATIVE_BODY -> textAboveRule(
+                            s,
+                            resources.fira,
+                            rule,
+                            row.text,
+                            9.25f,
+                            8.0f,
+                            2.8f,
+                        )
+                        NativeFlowRowStyle.SPACER -> Unit
+                    }
+                }
             }
         }
         appendLayer(page, "$layerPrefix - MARKERS") { }
     }
 
-    private fun featureOverflowLines(
-        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
-        width: Float,
-    ): List<String> {
-        val lines = featureDescriptionLines(trait, width)
-        val overflow = lines.drop(FEATURE_DESCRIPTION_LINES)
-        if (overflow.isEmpty()) return emptyList()
+    private fun appendBackgroundNarrativeExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val sections = backgroundNarrativeOverflow(plan)
+        if (sections.isEmpty()) return
 
-        val continuationText = trait.name + ": " + overflow.joinToString(" ")
-        return wrapByWidth(
-            resources.fira,
-            continuationText,
-            7.7f,
-            TRAIT_CONTINUATION_TEXT_WIDTH,
+        val blocks = sections.flatMap { section ->
+            nativeNarrativeSectionBlocks(section)
+        }
+        val columns = packNativeFlowBlocks(blocks)
+        columns.chunked(2).forEachIndexed { pageIndex, pageColumns ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderNativeFlowPage(
+                page = page,
+                title = "TRASFONDO / HISTORIA · CONTINUACIÓN",
+                columns = pageColumns,
+                pageIndex = pageIndex,
+                layerStem = "V2X NATIVE BACKGROUND",
+            )
+        }
+    }
+
+    private fun backgroundNarrativeOverflow(
+        plan: PcSheetPdfRenderPlan,
+    ): List<NativeNarrativeSection> {
+        val background = plan.snapshot.aggregate.sheet.background
+        val summary = listOf(background.name, background.summary)
+            .filter { it.isNotBlank() }
+            .joinToString(" - ")
+
+        fun overflow(
+            title: String,
+            value: String,
+            baseCapacity: Int,
+        ): NativeNarrativeSection? {
+            val clean = value.trim()
+            if (clean.isEmpty()) return null
+            val lines = wrapByWidth(resources.fira, clean, 9.25f, NATIVE_NARRATIVE_TEXT_WIDTH)
+            val remaining = lines.drop(baseCapacity)
+            return remaining.takeIf { it.isNotEmpty() }?.let {
+                NativeNarrativeSection(title, it)
+            }
+        }
+
+        return listOfNotNull(
+            overflow("TRASFONDO", summary, 3),
+            overflow("VÍNCULOS", background.bonds, 3),
+            overflow("IDEALES", background.ideals, 3),
+            overflow("HISTORIA", background.story, 11),
         )
     }
 
-    private fun traitSupplementLines(plan: PcSheetPdfRenderPlan): List<String> {
+    private fun nativeNarrativeSectionBlocks(
+        section: NativeNarrativeSection,
+    ): List<List<NativeFlowRow>> {
+        val blocks = mutableListOf<List<NativeFlowRow>>()
+        var offset = 0
+        var part = 0
+        val bodyCapacity = NATIVE_FLOW_ROWS_PER_COLUMN - 2
+        while (offset < section.lines.size) {
+            val heading = if (part == 0) {
+                section.title + " · CONTINUACIÓN"
+            } else {
+                section.title + " · CONTINUACIÓN " + (part + 1)
+            }
+            val slice = section.lines.drop(offset).take(bodyCapacity)
+            blocks += buildList {
+                add(NativeFlowRow(heading, NativeFlowRowStyle.SECTION))
+                addAll(slice.map { NativeFlowRow(it, NativeFlowRowStyle.NARRATIVE_BODY) })
+                add(NativeFlowRow("", NativeFlowRowStyle.SPACER))
+            }
+            offset += slice.size
+            part += 1
+        }
+        return blocks
+    }
+
+    private fun traitReferenceLines(plan: PcSheetPdfRenderPlan): List<String> {
         val aggregate = plan.snapshot.aggregate
         val sheet = aggregate.sheet
         val closure = aggregate.closure
         val successor = aggregate.successor
-        val background = sheet.background
         val lines = mutableListOf<String>()
 
         fun addFull(label: String, value: String) {
@@ -675,27 +885,6 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
         }
 
-        fun addOverflow(label: String, value: String, maxChars: Int, baseLines: Int) {
-            val clean = value.trim()
-            if (clean.isEmpty()) return
-            val overflow = wrapForRulesByChars(clean, maxChars).drop(baseLines)
-            if (overflow.isNotEmpty()) {
-                lines += wrapByWidth(
-                    resources.fira,
-                    "$label (cont.): " + overflow.joinToString(" "),
-                    7.7f,
-                    281f,
-                )
-            }
-        }
-
-        val backgroundSummary = listOf(background.name, background.summary)
-            .filter { it.isNotBlank() }
-            .joinToString(" - ")
-        addOverflow("Trasfondo", backgroundSummary, 76, 3)
-        addOverflow("Vínculos", background.bonds, 76, 3)
-        addOverflow("Ideales", background.ideals, 76, 3)
-        addOverflow("Historia", background.story, 76, 12)
         val orderedClasses = sheet.classes.sortedBy { it.sortOrder }
         val classSummary = orderedClasses.joinToString(" / ") { classLevel ->
             classLevel.name + " " + classLevel.level
@@ -2541,6 +2730,18 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private fun signed(value: Int): String = if (value >= 0) "+$value" else value.toString()
 
+    private enum class NativeFlowRowStyle { SECTION, NAME, BODY, NARRATIVE_BODY, SPACER }
+
+    private data class NativeFlowRow(
+        val text: String,
+        val style: NativeFlowRowStyle,
+    )
+
+    private data class NativeNarrativeSection(
+        val title: String,
+        val lines: List<String>,
+    )
+
     private data class Rule(val startX: Float, val endX: Float, val topY: Float)
     private data class TopRect(val x: Float, val top: Float, val width: Float, val height: Float)
     private data class SpecialEquipmentRow(
@@ -2797,6 +2998,11 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val TRAIT_DETAIL_LINES_PER_PAGE = 18
         const val TRAIT_CONTINUATION_TEXT_WIDTH = 281f
         const val TRAIT_PROFICIENCIES_PER_PAGE = 8
+        const val NATIVE_FLOW_ROWS_PER_COLUMN = 36
+        const val NATIVE_FLOW_FIRST_RULE_TOP = 137f
+        const val NATIVE_FLOW_ROW_STEP = 17f
+        const val NATIVE_FLOW_TEXT_WIDTH = 269f
+        const val NATIVE_NARRATIVE_TEXT_WIDTH = 269f
         const val BASE_V2_COMBAT_CAPACITY = 8
         const val COMBAT_ROWS_PER_PAGE = 14
         const val COMBAT_MINIMUM_BODY_SIZE = 6.0f

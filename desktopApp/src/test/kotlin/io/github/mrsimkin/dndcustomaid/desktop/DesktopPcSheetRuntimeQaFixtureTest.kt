@@ -401,6 +401,167 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     }
 
     @Test
+    fun maraCustomV2TraitsUseAdaptiveNativeRowsAndPreserveCategoryOrder() {
+        val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+        val families = listOf(
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
+        )
+
+        families.forEach { family ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(
+                    permanent = PcSheetExportAggregate(
+                        sheet = document.character,
+                        closure = document.closureState,
+                        successor = document.successorState,
+                    ),
+                ),
+            )
+
+            val bytes = ByteArrayOutputStream().use { output ->
+                DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+                output.toByteArray()
+            }
+
+            Loader.loadPDF(bytes).use { pdf ->
+                val pageTexts = (1..pdf.numberOfPages).map { pageNumber ->
+                    PDFTextStripper().apply {
+                        startPage = pageNumber
+                        endPage = pageNumber
+                    }.getText(pdf).replace(Regex("\\s+"), " ")
+                }
+                val traitPages = pageTexts.filter {
+                    it.contains("RASGOS Y ATRIBUTOS", ignoreCase = true) &&
+                        it.contains("CONTINUACIÓN", ignoreCase = true)
+                }
+                assertTrue(traitPages.isNotEmpty(), "$family must emit native Traits continuation")
+                assertTrue(
+                    traitPages.none { it.contains("OTROS RASGOS", ignoreCase = true) },
+                    "$family must not reproduce the rejected fixed Traits scaffold",
+                )
+                assertTrue(
+                    traitPages.none { it.contains("DETALLES / NOTAS", ignoreCase = true) },
+                    "$family must not constrain late Traits continuation to the rejected detail panel",
+                )
+
+                val extendedTraitsText = traitPages.joinToString(" ")
+                document.character.traits
+                    .sortedBy { it.sortOrder }
+                    .filterNot { trait ->
+                        trait.type == CharacterTraitType.SPECIES_RACE &&
+                            trait.name.equals(document.character.background.race, ignoreCase = true)
+                    }
+                    .forEach { trait ->
+                        assertTrue(
+                            extendedTraitsText.contains(trait.name),
+                            "$family must preserve trait identity ${trait.name}",
+                        )
+                    }
+
+                val primary = document.character.traits
+                    .filter {
+                        it.type == CharacterTraitType.CLASS ||
+                            it.type == CharacterTraitType.FEAT ||
+                            it.type == CharacterTraitType.GIFT_BLESSING
+                    }
+                    .sortedBy { it.sortOrder }
+                    .map { it.name }
+                val secondary = document.character.traits
+                    .filterNot {
+                        it.type == CharacterTraitType.CLASS ||
+                            it.type == CharacterTraitType.FEAT ||
+                            it.type == CharacterTraitType.GIFT_BLESSING
+                    }
+                    .filterNot {
+                        it.type == CharacterTraitType.SPECIES_RACE &&
+                            it.name.equals(document.character.background.race, ignoreCase = true)
+                    }
+                    .sortedBy { it.sortOrder }
+                    .map { it.name }
+
+                fun assertOrdered(names: List<String>) {
+                    var previous = -1
+                    names.forEach { name ->
+                        val current = extendedTraitsText.indexOf(name)
+                        assertTrue(current >= 0, "$family missing trait $name")
+                        assertTrue(
+                            current > previous,
+                            "$family must preserve source sortOrder inside each accepted category",
+                        )
+                        previous = current
+                    }
+                }
+                assertOrdered(primary)
+                assertOrdered(secondary)
+            }
+        }
+    }
+
+    @Test
+    fun customV2BackgroundOverflowUsesNativeNarrativeSections() {
+        val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+        val stressedBackground = document.character.background.copy(
+            summary = document.character.background.summary + " " +
+                List(18) { "Resumen narrativo adicional ${it + 1}." }.joinToString(" "),
+            bonds = document.character.background.bonds + " " +
+                List(14) { "Vínculo adicional ${it + 1}." }.joinToString(" "),
+            ideals = document.character.background.ideals + " " +
+                List(14) { "Ideal adicional ${it + 1}." }.joinToString(" "),
+            story = document.character.background.story + " " +
+                List(60) { "Historia adicional ${it + 1} para continuidad." }.joinToString(" "),
+        )
+        val stressedSheet = document.character.copy(background = stressedBackground)
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(
+                permanent = PcSheetExportAggregate(
+                    sheet = stressedSheet,
+                    closure = document.closureState,
+                    successor = document.successorState,
+                ),
+            ),
+        )
+
+        val bytes = ByteArrayOutputStream().use { output ->
+            DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+            output.toByteArray()
+        }
+
+        Loader.loadPDF(bytes).use { pdf ->
+            val pageTexts = (1..pdf.numberOfPages).map { pageNumber ->
+                PDFTextStripper().apply {
+                    startPage = pageNumber
+                    endPage = pageNumber
+                }.getText(pdf).replace(Regex("\\s+"), " ")
+            }
+            val backgroundPages = pageTexts.filter {
+                it.contains("TRASFONDO / HISTORIA", ignoreCase = true) &&
+                    it.contains("CONTINUACIÓN", ignoreCase = true)
+            }
+            assertTrue(backgroundPages.isNotEmpty())
+            val backgroundText = backgroundPages.joinToString(" ")
+            listOf("TRASFONDO", "VÍNCULOS", "IDEALES", "HISTORIA").forEach { section ->
+                assertTrue(
+                    backgroundText.contains(section, ignoreCase = true),
+                    "Native narrative continuation must preserve $section identity",
+                )
+            }
+            assertTrue(
+                backgroundPages.none { it.contains("DETALLES / NOTAS", ignoreCase = true) },
+                "Background overflow must not be routed through the generic Traits detail panel",
+            )
+        }
+    }
+
+    @Test
     fun maraFantasySheetRendersStressContentWithoutUnroutedOverflow() {
         val document = fixture("03_mara_siete_umbrales_custom_extended.json")
         val plan = PcSheetPdfExportPlanner.plan(
