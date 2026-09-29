@@ -805,6 +805,22 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     resourceOnlyPages.none { it.contains("OPCIONES", ignoreCase = true) },
                     "$family must not reserve an empty Options scaffold after Options are exhausted",
                 )
+                resourceOnlyPages.forEach { pageText ->
+                    val firstReserva = pageText.indexOf("Reserva ", ignoreCase = true)
+                    val firstMarcador = pageText.indexOf("Marcador ", ignoreCase = true)
+                    val firstIdentity = listOf(firstReserva, firstMarcador)
+                        .filter { it >= 0 }
+                        .minOrNull()
+                        ?: -1
+                    val anonymousTail = pageText.indexOf(
+                        "nombre, valor y recuperación.",
+                        ignoreCase = true,
+                    )
+                    assertTrue(
+                        firstIdentity >= 0 && (anonymousTail < 0 || firstIdentity < anonymousTail),
+                        "$family Resources reclaim page must begin with an owning record identity, not an anonymous tail",
+                    )
+                }
             }
         }
     }
