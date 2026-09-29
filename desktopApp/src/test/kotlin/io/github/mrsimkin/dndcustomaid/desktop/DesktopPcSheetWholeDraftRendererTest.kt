@@ -816,28 +816,20 @@ class DesktopPcSheetWholeDraftRendererTest {
         notesPdf.outputStream().use { renderer.renderDraft(notesPlan, it) }
 
         Loader.loadPDF(notesPdf).use { document ->
-            assertEquals(6, document.numberOfPages)
+            assertTrue(
+                document.numberOfPages > notesPlan.basePages.size,
+                "Fantasy Notes overflow must append continuation pages without targeting an exact page count",
+            )
             val extracted = PDFTextStripper().getText(document)
             assertTrue(extracted.contains("NOTAS DE CAMPAÑA"))
             assertTrue(Regex("Nota\\s+canónica\\s+1").containsMatchIn(extracted))
             assertTrue(Regex("Nota\\s+canónica\\s+30").containsMatchIn(extracted))
             assertTrue(extracted.contains("Recordatorio general canónico"))
-            assertTrue(extracted.contains("CROQUIS / MAPA"))
-            assertTrue(extracted.contains("REFERENCIAS Y RECORDATORIOS"))
-
-            val page4 = PDFTextStripper().apply {
-                startPage = 4
-                endPage = 4
-            }.getText(document)
-            val page6 = PDFTextStripper().apply {
-                startPage = 6
-                endPage = 6
-            }.getText(document)
-            assertTrue(Regex("Nota\\s+canónica\\s+1").containsMatchIn(page4))
-            assertTrue(Regex("Nota\\s+canónica\\s+30").containsMatchIn(page6))
+            // M50800-27: do not require CROQUIS/REFERENCIAS scaffolds when their sibling stream
+            // has no content; continuation pages must be content-driven.
 
             val pdfRenderer = PDFRenderer(document)
-            (3 until document.numberOfPages).forEach { index ->
+            (notesPlan.basePages.size until document.numberOfPages).forEach { index ->
                 val image = pdfRenderer.renderImageWithDPI(index, 220f, ImageType.RGB)
                 assertTrue(
                     ImageIO.write(
