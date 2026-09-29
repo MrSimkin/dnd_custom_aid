@@ -1452,7 +1452,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         fun current(): MutableList<NativeNoteLine> = columns[columnIndex]
         fun advanceColumn() {
             columnIndex += 1
-            columns += mutableListOf()
+            columns.add(mutableListOf())
         }
 
         records.forEach { record ->
@@ -1555,88 +1555,6 @@ internal class DesktopCustomV1ExtendedRenderer(
         }
     }
 
-    private fun narrativeNotesText(plan: PcSheetPdfRenderPlan): String =
-        narrativeNoteRecords(plan).joinToString(" ")
-
-    private fun notesContinuationRecords(plan: PcSheetPdfRenderPlan): List<String> {
-        val records = narrativeNoteRecords(plan)
-        if (records.isEmpty()) return emptyList()
-
-        fun words(value: String): List<String> =
-            value.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
-
-        fun consumedWords(lines: List<String>): Int =
-            words(lines.joinToString(" ")).size
-
-        val fullText = records.joinToString(" ")
-        val fullWords = words(fullText)
-
-        val narrativeLines = wrapForRulesByChars(
-            fullText,
-            V1_NARRATIVE_NOTE_APPROX_CHARS,
-        )
-        val narrativeConsumed = consumedWords(
-            narrativeLines.take(BASE_V1_NARRATIVE_NOTE_CAPACITY),
-        )
-
-        val dedicatedWords = fullWords.drop(narrativeConsumed)
-        if (dedicatedWords.isEmpty()) return emptyList()
-
-        val dedicatedText = dedicatedWords.joinToString(" ")
-        val leftLines = wrapByWidth(
-            dedicatedText,
-            resources.fira,
-            V1_BASE_NOTES_FONT_SIZE,
-            V1_BASE_NOTES_LEFT_WIDTH,
-        )
-        val left = leftLines.take(NOTES_COLUMN_CAPACITY)
-        val leftConsumed = consumedWords(left)
-
-        val afterLeft = dedicatedWords.drop(leftConsumed)
-        val rightConsumed = if (left.size < NOTES_COLUMN_CAPACITY || afterLeft.isEmpty()) {
-            0
-        } else {
-            val right = wrapByWidth(
-                afterLeft.joinToString(" "),
-                resources.fira,
-                V1_BASE_NOTES_FONT_SIZE,
-                V1_BASE_NOTES_RIGHT_WIDTH,
-            ).take(NOTES_COLUMN_CAPACITY)
-            consumedWords(right)
-        }
-
-        val totalConsumed = (narrativeConsumed + leftConsumed + rightConsumed)
-            .coerceAtMost(fullWords.size)
-        if (totalConsumed >= fullWords.size) return emptyList()
-
-        var boundaryStart = 0
-        var boundaryIndex = records.lastIndex
-        for ((index, record) in records.withIndex()) {
-            val end = boundaryStart + words(record).size
-            if (totalConsumed < end) {
-                boundaryIndex = index
-                break
-            }
-            boundaryStart = end
-        }
-
-        val continuation = records.drop(boundaryIndex).toMutableList()
-        val firstRecord = records[boundaryIndex]
-        val offset = (totalConsumed - boundaryStart).coerceAtLeast(0)
-        if (offset > 0) {
-            val identity = firstRecord.substringBefore(':').trim()
-            val tail = words(firstRecord).drop(offset).joinToString(" ")
-            continuation[0] = buildString {
-                if (identity.isNotEmpty()) {
-                    append(identity)
-                    append(" (continuación):")
-                    if (tail.isNotEmpty()) append(' ')
-                }
-                append(tail)
-            }
-        }
-        return continuation
-    }
 
     private fun wrapForRulesByChars(text: String, maxChars: Int): List<String> {
         val paragraphs = text
