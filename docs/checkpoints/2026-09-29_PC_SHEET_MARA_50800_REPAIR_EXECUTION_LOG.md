@@ -260,3 +260,18 @@ It reached 84 Desktop tests with **one** failure:
 That expectation conflicts with the Phase 2A acceptance rule derived from M50800-07: custom-attribute identity is rendered as its clean semantic name, not by injecting the abbreviation into the name. The test is therefore updated to `Honor`, `Voluntad`, and `Suerte`.
 
 This is a test-authority correction, not a renderer relaxation. The test still requires the Custom Statistics semantic layers and all representative custom-skill content.
+
+
+## Phase 2A — run 4208 test-authority correction
+
+Run 4208 / `36513783110` / head `4debf9a9a77bf5b42ebb19840eb9ecedbfcb2628` compiled the Phase 2A renderer and executed 84 Desktop tests. Two failures remained, both caused by the previous test edit crossing family scope:
+
+- the **Custom v1** test was accidentally changed to clean semantic names even though Phase 2A does not change Custom v1;
+- the **Custom v2** test still required historical keyed names `HONor`, `VOLuntad`, `SUErte`, contradicting M50800-07.
+
+Correction under the 50800 matrix:
+
+- restore the V1 test to its existing keyed-name expectation;
+- require clean `Honor`, `Voluntad`, `Suerte` only for Custom v2.
+
+No renderer behavior is relaxed by this commit. M50800-07 remains an artifact gate: Mara must render clean `Éter` and must not emit `ETE · Éter` on the exact generated statistics page.
