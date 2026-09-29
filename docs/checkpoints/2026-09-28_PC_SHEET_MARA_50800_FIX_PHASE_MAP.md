@@ -59,10 +59,10 @@ Acceptance scope: M50800-03, M50800-04, M50800-05, M50800-06, M50800-07, M50800-
 
 ### Phase 2B — remaining Custom-v2 native component reuse
 
-**Next resume point.** Execute as discrete subphases:
+**Current resume point: Phase 2B.3.** Execute as discrete subphases:
 
 - **2B.1:** Traits/Rasgos + Trasfondo/Historia native reuse — M50800-08/09/10/11;
-- **2B.2:** Notes native reuse/boundaries/continuation — M50800-21/22/23/24;
+- **2B.2:** Notes native reuse/boundaries/continuation — M50800-21/22/23/24 — **internal exact-artifact PASS at run 4244 / head `5c5759a...` / artifact `11045852152`; final-candidate reconfirmation required**;
 - **2B.3:** residual Equipment readability/reclaim — M50800-17/20.
 
 
