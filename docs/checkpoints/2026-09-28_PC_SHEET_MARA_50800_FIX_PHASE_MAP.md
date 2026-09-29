@@ -32,15 +32,36 @@ Close the highest-confidence semantic contradictions before layout reconstructio
 - fix the Custom-v1 real-Mara generation blocker without aggressive compression;
 - add/adjust focused regressions and keep Desktop/Android parity.
 
-### Phase 2 — Custom-v2 native component reuse
+### Phase 1B — native Equipment / Equipo Especial continuation
 
-- Custom Statistics: reuse page-1 attribute grammar/capacity;
-- no phantom cards; clean Éter;
-- ribbon centering/wrap;
-- Traits/Rasgos and narrative modules reuse native grammar;
-- ordinary Equipment and Equipo Especial reuse native elements;
-- Notes reuse native Notes grammar;
-- remove stale template-underlay leakage.
+Status after run 4200: **progression gate passed**, with M50800-17 and M50800-20 intentionally still OPEN.
+
+- reuse native Equipment/Equipo Especial pages and rows;
+- ordinary Equipment = compact identity only;
+- no weight, no `Consumible`, no ordinary descriptions;
+- preserve custom locations without damaging native checkboxes;
+- keep Special Equipment items whole across pagination boundaries;
+- inspect exact generated PDFs before progression.
+
+### Phase 2A — Custom-v2 Custom Statistics + source underlay + name ribbon
+
+Acceptance scope: M50800-03, M50800-04, M50800-05, M50800-06, M50800-07, M50800-25.
+
+- reuse the page-1 attribute grammar/capacity rather than the 3-column generic cards;
+- Mara's Fortuna, Cordura, Éter and Renombre must fit together at native scale;
+- render only real attributes; no phantom shells;
+- preserve clean semantic names, including `Éter`;
+- remove stale source-underlay text contamination from Extended headers;
+- center the character name horizontally and vertically in the native ribbon;
+- use two centered lines when one line does not fit cleanly.
+
+### Phase 2B — remaining Custom-v2 native component reuse
+
+- Traits/Rasgos reuse native/source grammar;
+- Trasfondo/Historia and similar narrative modules reuse native/source grammar;
+- refine Equipment/Equipo Especial readability issues left OPEN by Phase 1B;
+- Notes reuse the existing native Notes grammar;
+- preserve semantic boundaries and source identity.
 
 ### Phase 3 — adaptive continuation packing
 

@@ -52,7 +52,9 @@ The focused Mara QA requires three independent anchors for the final special ite
 - custom location: `Bolsa lateral`;
 - unique final-item semantic content: `objeto 29`.
 
-The exact rendered name remains subject to visual artifact inspection; this assertion change is not treated as visual closure.\n\n`Bolsa lateral` is also **not** waived: run 4195 showed that PDFTextStripper is not a reliable acceptance oracle for that Custom-v1 location cell. M50800-19 therefore remains OPEN and must be decided from the rendered native Equipo Especial cell in the exact green-run artifact.
+The exact rendered name remains subject to visual artifact inspection; this assertion change is not treated as visual closure.
+
+`Bolsa lateral` is also **not** waived: run 4195 showed that PDFTextStripper is not a reliable acceptance oracle for that Custom-v1 location cell. M50800-19 therefore remains OPEN and must be decided from the rendered native Equipo Especial cell in the exact green-run artifact.
 
 ## CI / commit ledger
 
@@ -64,7 +66,10 @@ The exact rendered name remains subject to visual artifact inspection; this asse
 | 4191 / `36503127638` | `87db894a3b826c4521f06ce7c030886eb7296ad9` | FAIL | Whole-item Special Equipment packing added; compile stopped on one stale `specialRows` identifier. |
 | 4192 / `36503258869` | `7e591b9764a391411e750254c1e1b6539f446dbe` | FAIL | Same stale identifier; V2 treasure standard semantic layers also restored without visual change. |
 | 4193 / `36503433050` | `6d63d295bdda3c6ede6278214ebfe20b74436e2a` | FAIL | 84 tests executed; only two assertions remained: PDF text-order assumption for final Mara special item and a fixture incorrectly requiring Equipment continuation without Equipment overflow. |
-| 4194 / `36504198065` | `ae44bc5dc3195525b838d7791e020dd7113021b6` | FAIL | 84 tests executed; **one** assertion remained, the PDFTextStripper tail-substring assumption for the final V1 special item. No compile or other test failure. |\n| 4195 / `36505758967` | `e7a7f31c29707dc8035fa9ded8bc5dab95db7b2b` | FAIL | 84 tests executed; final Special Equipment identity/content passed. Only `Bolsa lateral` text extraction failed in Custom v1. M50800-19 remains a rendered-cell gate rather than being waived or declared fixed. |\n| 4196 / `36506437746` | `1e03d22a95fe3f8a93bc11ed27b6d3701ece450c` | **CI PASS / ARTIFACT QA FAIL** | Kotlin job green and proofs uploaded. Artifact `11007511945` was inspected. Custom-v1 p.38 correctly shows `Bolsa lateral` and the complete item 29 in native Equipo Especial. Custom-v2 Atributo p.26 / Habilidad p.25 incorrectly copy a main-sheet source page and write Special Equipment over its footer. M50800-18/19/20 remain OPEN. |\n| 4197 / `36507345237` | `12db45fab5592de15f271a506eb73cf7d35fdfa5` | FAIL before tests | Renderer/source-page correction compiled; focused test failed to compile only because `assertFalse` was not imported. No renderer failure observed. |
+| 4194 / `36504198065` | `ae44bc5dc3195525b838d7791e020dd7113021b6` | FAIL | 84 tests executed; **one** assertion remained, the PDFTextStripper tail-substring assumption for the final V1 special item. No compile or other test failure. |
+| 4195 / `36505758967` | `e7a7f31c29707dc8035fa9ded8bc5dab95db7b2b` | FAIL | 84 tests executed; final Special Equipment identity/content passed. Only `Bolsa lateral` text extraction failed in Custom v1. M50800-19 remains a rendered-cell gate rather than being waived or declared fixed. |
+| 4196 / `36506437746` | `1e03d22a95fe3f8a93bc11ed27b6d3701ece450c` | **CI PASS / ARTIFACT QA FAIL** | Kotlin job green and proofs uploaded. Artifact `11007511945` was inspected. Custom-v1 p.38 correctly shows `Bolsa lateral` and the complete item 29 in native Equipo Especial. Custom-v2 Atributo p.26 / Habilidad p.25 incorrectly copy a main-sheet source page and write Special Equipment over its footer. M50800-18/19/20 remain OPEN. |
+| 4197 / `36507345237` | `12db45fab5592de15f271a506eb73cf7d35fdfa5` | FAIL before tests | Renderer/source-page correction compiled; focused test failed to compile only because `assertFalse` was not imported. No renderer failure observed. |
 
 ## Historical-test corrections made under matrix authority
 
@@ -201,3 +206,44 @@ Disposition after run 4199:
 - M50800-20: **OPEN** because broader adaptive space reclaim is not demonstrated by this phase.
 
 Phase 2A remains gated until the post-mask-fix artifact is rendered and inspected.
+
+
+## Artifact review - run 4200 / Phase 1B progression gate
+
+Exact workflow run: `36509536738`  
+Head: `a5ac8d5edbcc1184ecc8dc9496db8933b029a73f`  
+Proof artifact: `pc-sheet-populated-template-proofs`, artifact ID `11009076550`  
+CI: **PASS**
+
+Real-Mara outputs remain:
+
+- Fantasy: 42 pages;
+- Custom v1: 39 pages;
+- Custom v2 Atributo: 27 pages;
+- Custom v2 Habilidad: 26 pages.
+
+The page counts are observations only, not acceptance targets.
+
+Exact artifact checks:
+
+- no `Consumible`;
+- no equipment weight in `lb`;
+- no ordinary Equipment prose description for object 2;
+- Custom v1 generates successfully;
+- V2 `CLASE Y NIVEL` occurs only on the real main page;
+- V2 continuation uses the source-native Equipment/Trasfondo page;
+- `Bolsa lateral` is visibly present in the Special Equipment location column;
+- the post-4199 cleanup-mask fix preserves complete native checkboxes in both base and continuation pages;
+- the prior bracket-like partial checkbox artifact is gone.
+
+Phase 1B progression disposition:
+
+- M50800-02: **PHASE PASS / final-candidate reconfirmation required**;
+- M50800-15: **PHASE PASS for native Equipment source reuse / final-candidate reconfirmation required**;
+- M50800-16: **PHASE PASS on exact artifact**;
+- M50800-18: **PHASE PASS for native Equipo Especial source reuse / final-candidate reconfirmation required**;
+- M50800-19: **PHASE PASS on exact rendered artifact**;
+- M50800-17: **OPEN** — final semantic atomicity/readability of long identities still requires later layout review;
+- M50800-20: **OPEN** — broader adaptive reclaim / redundant scaffold elimination is not solved by this phase.
+
+Phase 1B may now hand off to Phase 2A. No other matrix item is implied fixed.
