@@ -106,7 +106,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         }
         return semanticTraits ||
             sheet.proficiencies.isNotEmpty() ||
-            traitSupplementLines(plan).isNotEmpty()
+            traitReferenceLines(plan).isNotEmpty()
     }
 
     private fun needsResourcesExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
@@ -523,8 +523,8 @@ internal class AndroidCustomV2ExtendedRenderer(
         val secondaryTraits = traits.filterNot { it in primaryTraits }
 
         val blocks = mutableListOf<List<NativeFlowRow>>()
-        blocks += nativeTraitCategoryBlocks("CLASE / DOTES", primaryTraits)
-        blocks += nativeTraitCategoryBlocks("RAZA / TRASFONDO / OTROS", secondaryTraits)
+        blocks.addAll(nativeTraitCategoryBlocks("CLASE / DOTES", primaryTraits))
+        blocks.addAll(nativeTraitCategoryBlocks("RAZA / TRASFONDO / OTROS", secondaryTraits))
 
         val proficiencyLines = sheet.proficiencies
             .sortedBy { it.sortOrder }
@@ -536,11 +536,11 @@ internal class AndroidCustomV2ExtendedRenderer(
                 }
                 wrapByWidth(resources.fira, label, 7.7f, NATIVE_FLOW_TEXT_WIDTH)
             }
-        blocks += nativeSectionBlocks("COMPETENCIAS / IDIOMAS", proficiencyLines)
+        blocks.addAll(nativeSectionBlocks("COMPETENCIAS / IDIOMAS", proficiencyLines))
 
         val referenceLines = traitReferenceLines(plan)
             .flatMap { wrapByWidth(resources.fira, it, 7.7f, NATIVE_FLOW_TEXT_WIDTH) }
-        blocks += nativeSectionBlocks("REFERENCIAS", referenceLines)
+        blocks.addAll(nativeSectionBlocks("REFERENCIAS", referenceLines))
 
         val columns = packNativeFlowBlocks(blocks)
         if (columns.isEmpty()) return
@@ -638,7 +638,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                 addAll(bodySlice.map { NativeFlowRow(it, NativeFlowRowStyle.BODY) })
                 add(NativeFlowRow("", NativeFlowRowStyle.SPACER))
             }
-            blocks += block
+            blocks.add(block)
             offset += bodySlice.size
             first = false
         } while (offset < bodyLines.size)
@@ -658,11 +658,11 @@ internal class AndroidCustomV2ExtendedRenderer(
             val heading = if (part == 0) title else "$title · CONTINUACIÓN"
             val bodyCapacity = NATIVE_FLOW_ROWS_PER_COLUMN - 2
             val slice = lines.drop(offset).take(bodyCapacity)
-            blocks += buildList {
+            blocks.add(buildList {
                 add(NativeFlowRow(heading, NativeFlowRowStyle.SECTION))
                 addAll(slice.map { NativeFlowRow(it, NativeFlowRowStyle.BODY) })
                 add(NativeFlowRow("", NativeFlowRowStyle.SPACER))
-            }
+            })
             offset += slice.size
             part += 1
         }
@@ -862,11 +862,11 @@ internal class AndroidCustomV2ExtendedRenderer(
                 section.title + " · CONTINUACIÓN " + (part + 1)
             }
             val slice = section.lines.drop(offset).take(bodyCapacity)
-            blocks += buildList {
+            blocks.add(buildList {
                 add(NativeFlowRow(heading, NativeFlowRowStyle.SECTION))
                 addAll(slice.map { NativeFlowRow(it, NativeFlowRowStyle.NARRATIVE_BODY) })
                 add(NativeFlowRow("", NativeFlowRowStyle.SPACER))
-            }
+            })
             offset += slice.size
             part += 1
         }
