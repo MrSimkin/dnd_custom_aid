@@ -1,6 +1,6 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-28 (Chile local time)  
+**Updated:** 2026-09-29 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified functional `main`:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — owner re-QA **FAILED**. Owner runtime from the `0.5.0-preqa.8 / 50800` label produced Fantasy 45 pages, Custom v2 Atributo 28, Custom v2 Habilidad 27, and a blocking Custom-v1 export failure, while the prior branch closure claimed 29/18/16/15. The repair branch remains unmerged evidence only. The clarified pre-fix authority is `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`. **Next boundary is exact APK/source provenance plus item-by-item acceptance mapping; no renderer code change until that matrix is walked against the real 50800 artifacts.**
+**Current normal work:** PC Sheet PDF Export — 50800 owner re-QA remains the acceptance authority. Active repair branch is `fix/pc-sheet-50800-phase1-native-semantics`. Phase 1B progression passed from exact artifact QA; Phase 2A internal artifact-QA progression passed at run 4212 / renderer head `6e53492dcd9f13945fbb320334f621aad070e61f`. The complete repair remains OPEN. **Resume at Phase 2B.1; do not merge or issue an owner candidate yet.**
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -102,9 +102,9 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-**Sole active non-main branch:** `repair/pc-sheet-adaptive-continuations-cross-family` remains the only relevant repair ref, but it is **NOT accepted as owner-runtime-correct**.
+**Sole active non-main branch:** `fix/pc-sheet-50800-phase1-native-semantics` — active repair authority. `repair/pc-sheet-adaptive-continuations-cross-family` is historical evidence only.
 
-**Sole active implementation PR:** none — do not promote/merge until the failed owner re-QA is reconciled.
+**Sole active implementation PR:** none — continue on the active repair branch until final exact-candidate matrix acceptance.
 
 Current authority:
 - canonical checkpoint: `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
@@ -124,7 +124,7 @@ Current authority:
 
 Canonical resume authority:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md -> docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md -> provenance/item mapping -> repair`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_END_OF_DAY_HANDOFF.md -> 32-item acceptance matrix -> Phase 2B.1`
 
 ## Historical/stale open PRs
 
