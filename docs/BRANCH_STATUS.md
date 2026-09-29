@@ -10,6 +10,8 @@
 **Wave 7 lifecycle:** ACTIVE  
 **Current normal work:** PC Sheet PDF Export — 50800 owner re-QA remains the acceptance authority. Active repair branch is `fix/pc-sheet-50800-phase1-native-semantics`. Phase 1B progression passed from exact artifact QA; Phase 2A internal artifact-QA progression passed at run 4212 / renderer head `6e53492dcd9f13945fbb320334f621aad070e61f`. The complete repair remains OPEN. **Resume at Phase 2B.1; do not merge or issue an owner candidate yet.**
 
+**Safe-pause checkpoint:** `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_END_OF_DAY_HANDOFF.md`
+
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
 ## `main`
