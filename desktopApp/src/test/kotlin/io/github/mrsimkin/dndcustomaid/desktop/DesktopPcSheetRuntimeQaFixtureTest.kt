@@ -826,6 +826,43 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     }
 
     @Test
+    fun maraCustomV1NotesPreserveEveryRecordIdentityAcrossNativeAndExtendedPages() {
+        val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(
+                permanent = PcSheetExportAggregate(
+                    sheet = document.character,
+                    closure = document.closureState,
+                    successor = document.successorState,
+                ),
+            ),
+        )
+
+        val bytes = ByteArrayOutputStream().use { output ->
+            DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+            output.toByteArray()
+        }
+
+        Loader.loadPDF(bytes).use { pdf ->
+            val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+            document.character.noteCards.sortedBy { it.sortOrder }.forEach { note ->
+                assertTrue(
+                    normalized.contains(note.title),
+                    "M50800-22/23: Custom v1 must preserve Notes record identity: ${note.title}",
+                )
+            }
+            assertTrue(
+                normalized.contains("Nota 8 — Lugar"),
+                "M50800-23: Custom v1 continuation must not reduce Nota 8 to an anonymous body tail",
+            )
+        }
+    }
+
+    @Test
     fun maraFantasySheetRendersStressContentWithoutUnroutedOverflow() {
         val document = fixture("03_mara_siete_umbrales_custom_extended.json")
         val plan = PcSheetPdfExportPlanner.plan(
