@@ -655,7 +655,7 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 assertTrue(notesPages.size >= 2, "$family must exercise real Mara Notes overflow")
                 val overflowText = notesPages.drop(1).joinToString(" ")
                 assertTrue(
-                    Regex("""Nota\\s+\\d+""", RegexOption.IGNORE_CASE).containsMatchIn(overflowText),
+                    Regex("Nota\\\\s+\\\\d+", RegexOption.IGNORE_CASE).containsMatchIn(overflowText),
                     "$family Notes overflow must preserve explicit note-record identities",
                 )
                 assertTrue(
