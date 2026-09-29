@@ -336,3 +336,23 @@ Disposition:
 - preserve the native row geometry and score/modifier/save placement.
 
 M50800-07 remains OPEN until a post-fix artifact visibly renders `Éter`. M50800-04 remains a visual gate for readability at the resulting size.
+
+
+## Phase 2A — run 4211 compact-row fit diagnostic
+
+Run 4211 / `36517014608` / head `7461ae2b5e399b542feeb0ef131b646242a32e59` again reached the full Desktop suite after sync guards passed.
+
+Failure:
+
+`Text does not fit: Contratos arcanos`.
+
+This demonstrates that font-size reduction alone is not the page-1 native grammar. The source compact rows also use horizontal scaling.
+
+Repair decision tied to M50800-04/M50800-07:
+
+- full embedded Fira remains mandatory for dynamic custom glyph coverage;
+- preserve `SOURCE_CORBEL_COMPACT_SCALE` (78%) for the compact linked-skill row;
+- then apply a bounded 7.75 -> 6.2 pt fit only if needed;
+- do not reduce below the existing readable floor and do not reintroduce the imported subset.
+
+This better reproduces the page-1 compact row behavior while keeping arbitrary custom Unicode visible.

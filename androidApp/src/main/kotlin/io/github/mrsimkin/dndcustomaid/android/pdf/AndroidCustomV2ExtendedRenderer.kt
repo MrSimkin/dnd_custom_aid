@@ -2102,12 +2102,18 @@ internal class AndroidCustomV2ExtendedRenderer(
         }
         values.skills.forEachIndexed { row, item ->
             val y = top + 64f + row * 17f
-            // Dynamic custom labels must use a complete font. In the compact native
-            // attribute row, allow the existing bounded size fit rather than reverting to a
-            // source subset or forcing excessive horizontal compression.
-            textAboveRule(
-                s, resources.fira,
-                Rule(x + 94f, x + 145f, y), item.first, 7.75f, 6.2f, 2.2f,
+            // Dynamic custom labels use the complete embedded font, but preserve the
+            // native compact row's horizontal scale. Size reduction is bounded and applied only
+            // after the approved source-matched condensation.
+            textAboveRuleAdaptiveScale(
+                s = s,
+                font = resources.fira,
+                rule = Rule(x + 94f, x + 145f, y),
+                text = item.first,
+                preferredSize = 7.75f,
+                minimumSize = 6.2f,
+                clearance = 2.2f,
+                horizontalScale = SOURCE_CORBEL_COMPACT_SCALE,
             )
             if (item.second.isNotEmpty()) {
                 centeredAboveRule(s, resources.firaSemibold, Rule(x + 145f, x + 174f, y), item.second, 8.8f, 2.2f)
@@ -2323,6 +2329,39 @@ internal class AndroidCustomV2ExtendedRenderer(
         s.setFont(font, size)
         s.setHorizontalScaling(horizontalScale)
         s.newLineAtOffset(rect.x + (rect.width - width) / 2f, baseline)
+        s.showText(text)
+        s.setHorizontalScaling(100f)
+        s.endText()
+    }
+
+    private fun textAboveRuleAdaptiveScale(
+        s: PDFormContentStream,
+        font: PDFont,
+        rule: Rule,
+        text: String,
+        preferredSize: Float,
+        minimumSize: Float,
+        clearance: Float,
+        horizontalScale: Float,
+    ) {
+        var size = preferredSize
+        val available = rule.endX - rule.startX - 2f
+        fun scaledWidth(candidateSize: Float): Float =
+            textWidth(font, text, candidateSize) * horizontalScale / 100f
+
+        while (size > minimumSize && scaledWidth(size) > available) {
+            size = (size - 0.25f).coerceAtLeast(minimumSize)
+        }
+        require(scaledWidth(size) <= available + 0.05f) {
+            "Scaled dynamic text does not fit: $text"
+        }
+
+        val descent = (font.fontDescriptor?.descent ?: -250f) / 1000f * size
+        val baseline = H - rule.topY + clearance - descent
+        s.beginText()
+        s.setFont(font, size)
+        s.setHorizontalScaling(horizontalScale)
+        s.newLineAtOffset(rule.startX + 1f, baseline)
         s.showText(text)
         s.setHorizontalScaling(100f)
         s.endText()
