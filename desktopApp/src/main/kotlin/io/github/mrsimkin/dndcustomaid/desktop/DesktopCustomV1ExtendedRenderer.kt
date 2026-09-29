@@ -1394,17 +1394,38 @@ internal class DesktopCustomV1ExtendedRenderer(
     }
 
     private fun appendNotesExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val lines = wrapForRulesByChars(notesText(plan), BASE_V1_NOTES_WRAP_CHARS)
-        val overflow = lines.drop(BASE_V1_NOTES_CAPACITY)
-        if (overflow.isEmpty()) return
+        val records = notesContinuationRecords(plan)
+        if (records.isEmpty()) return
 
-        val pages = pageCount(overflow.size, NOTES_CONTINUATION_CAPACITY)
-        repeat(pages) { pageIndex ->
+        val pages = mutableListOf<List<String>>()
+        var current = mutableListOf<String>()
+
+        records.forEach { record ->
+            val group = wrapForRulesByChars(record, BASE_V1_NOTES_WRAP_CHARS)
+                .ifEmpty { listOf(record) }
+            require(group.size <= NOTES_CONTINUATION_CAPACITY) {
+                "Custom-v1 Notes record requires more than one continuation page: $record"
+            }
+
+            val separatorRows = if (current.isEmpty()) 0 else 1
+            if (
+                current.isNotEmpty() &&
+                current.size + separatorRows + group.size > NOTES_CONTINUATION_CAPACITY
+            ) {
+                pages += current.toList()
+                current = mutableListOf()
+            }
+            if (current.isNotEmpty()) current += ""
+            current += group
+        }
+        if (current.isNotEmpty()) pages += current.toList()
+
+        pages.forEachIndexed { pageIndex, lines ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderNotesContinuationPage(
                 page = page,
-                lines = overflow.pageSlice(pageIndex, NOTES_CONTINUATION_CAPACITY),
+                lines = lines,
                 pageIndex = pageIndex,
             )
         }
@@ -1447,7 +1468,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - MARKERS") { }
     }
 
-    private fun narrativeNotesText(plan: PcSheetPdfRenderPlan): String {
+    private fun narrativeNoteRecords(plan: PcSheetPdfRenderPlan): List<String> {
         val sheet = plan.snapshot.aggregate.sheet
         return buildList {
             addAll(sheet.pdfCampaignNoteParagraphs())
@@ -1462,18 +1483,90 @@ internal class DesktopCustomV1ExtendedRenderer(
                     add("Subclase: " + classLevel.name + " - " + subclass)
                 }
             }
-        }.joinToString(" ")
+        }
     }
 
-    private fun notesText(plan: PcSheetPdfRenderPlan): String {
-        val sheet = plan.snapshot.aggregate.sheet
-        return buildList {
-            val narrativeOverflow = wrapForRulesByChars(
-                narrativeNotesText(plan),
-                V1_NARRATIVE_NOTE_APPROX_CHARS,
-            ).drop(BASE_V1_NARRATIVE_NOTE_CAPACITY).joinToString(" ")
-            narrativeOverflow.takeIf { it.isNotBlank() }?.let(::add)
-        }.joinToString("\n\n")
+    private fun narrativeNotesText(plan: PcSheetPdfRenderPlan): String =
+        narrativeNoteRecords(plan).joinToString(" ")
+
+    private fun notesContinuationRecords(plan: PcSheetPdfRenderPlan): List<String> {
+        val records = narrativeNoteRecords(plan)
+        if (records.isEmpty()) return emptyList()
+
+        fun words(value: String): List<String> =
+            value.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }
+
+        fun consumedWords(lines: List<String>): Int =
+            words(lines.joinToString(" ")).size
+
+        val fullText = records.joinToString(" ")
+        val fullWords = words(fullText)
+
+        val narrativeLines = wrapForRulesByChars(
+            fullText,
+            V1_NARRATIVE_NOTE_APPROX_CHARS,
+        )
+        val narrativeConsumed = consumedWords(
+            narrativeLines.take(BASE_V1_NARRATIVE_NOTE_CAPACITY),
+        )
+
+        val dedicatedWords = fullWords.drop(narrativeConsumed)
+        if (dedicatedWords.isEmpty()) return emptyList()
+
+        val dedicatedText = dedicatedWords.joinToString(" ")
+        val leftLines = wrapByWidth(
+            dedicatedText,
+            resources.fira,
+            V1_BASE_NOTES_FONT_SIZE,
+            V1_BASE_NOTES_LEFT_WIDTH,
+        )
+        val left = leftLines.take(NOTES_COLUMN_CAPACITY)
+        val leftConsumed = consumedWords(left)
+
+        val afterLeft = dedicatedWords.drop(leftConsumed)
+        val rightConsumed = if (left.size < NOTES_COLUMN_CAPACITY || afterLeft.isEmpty()) {
+            0
+        } else {
+            val right = wrapByWidth(
+                afterLeft.joinToString(" "),
+                resources.fira,
+                V1_BASE_NOTES_FONT_SIZE,
+                V1_BASE_NOTES_RIGHT_WIDTH,
+            ).take(NOTES_COLUMN_CAPACITY)
+            consumedWords(right)
+        }
+
+        val totalConsumed = (narrativeConsumed + leftConsumed + rightConsumed)
+            .coerceAtMost(fullWords.size)
+        if (totalConsumed >= fullWords.size) return emptyList()
+
+        var boundaryStart = 0
+        var boundaryIndex = records.lastIndex
+        records.forEachIndexed { index, record ->
+            val end = boundaryStart + words(record).size
+            if (totalConsumed < end) {
+                boundaryIndex = index
+                return@forEachIndexed
+            }
+            boundaryStart = end
+        }
+
+        val continuation = records.drop(boundaryIndex).toMutableList()
+        val firstRecord = records[boundaryIndex]
+        val offset = (totalConsumed - boundaryStart).coerceAtLeast(0)
+        if (offset > 0) {
+            val identity = firstRecord.substringBefore(':').trim()
+            val tail = words(firstRecord).drop(offset).joinToString(" ")
+            continuation[0] = buildString {
+                if (identity.isNotEmpty()) {
+                    append(identity)
+                    append(" (continuación):")
+                    if (tail.isNotEmpty()) append(' ')
+                }
+                append(tail)
+            }
+        }
+        return continuation
     }
 
     private fun wrapForRulesByChars(text: String, maxChars: Int): List<String> {
@@ -2398,6 +2491,9 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val NOTES_COLUMN_CAPACITY = 17
         const val BASE_V1_NOTES_CAPACITY = NOTES_COLUMN_CAPACITY * 2
         const val NOTES_CONTINUATION_CAPACITY = NOTES_COLUMN_CAPACITY * 2
+        const val V1_BASE_NOTES_FONT_SIZE = 9.25f
+        const val V1_BASE_NOTES_LEFT_WIDTH = 239.5f
+        const val V1_BASE_NOTES_RIGHT_WIDTH = 269.126f
         val NOTES_RULES = listOf(
             109.5f, 129.5f, 149.5f, 169f, 189f, 209f, 229f, 248.5f, 268.5f,
             288.5f, 308f, 328f, 348f, 367.5f, 387.5f, 407.5f, 427f,
