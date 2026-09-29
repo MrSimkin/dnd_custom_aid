@@ -1,6 +1,6 @@
 # Project State — global repository navigation
 
-**Last reconstructed:** 2026-09-28 (Chile local time)  
+**Last reconstructed:** 2026-09-29 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified functional `main`:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — owner re-QA **FAILED** on the owner-facing `0.5.0-preqa.8 / 50800` label. Runtime outputs are Fantasy 45 pages, Custom v1 generation FAIL, Custom v2 Atributo 28 and Custom v2 Habilidad 27, contradicting the prior repair proof/closure of 29/18/16/15. The original 2026-09-26 defect checkpoint and the clarified 2026-09-28 runtime checkpoint remain the acceptance ledger, with the consolidated pre-fix matrix at `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`. Next work is exact APK/source provenance and item-by-item acceptance mapping before any renderer code change. Current Snapshot and Media/Handouts remain blocked.**
+**Current active package:** PC Sheet PDF Export — active 50800 repair on `fix/pc-sheet-50800-phase1-native-semantics`. Phase 1B has an artifact-reviewed progression pass; Phase 2A has an internal exact-artifact progression pass at workflow 4212 / renderer head `6e53492dcd9f13945fbb320334f621aad070e61f`, artifact `11011771728`. The whole repair is NOT final/owner-accepted. Resume at Phase 2B.1 from `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_END_OF_DAY_HANDOFF.md`; Current Snapshot and Media/Handouts remain blocked.**
 
 ### Superseding PDF visual state — 2026-09-20
 
@@ -37,6 +37,19 @@ D-0074 + owner clarification require design-specific Extended pages for **all** 
 Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/Rules Manager, Place/Shop Manager, Stage retrieval, Scene Spine, Dungeon/Zone Manager, Encounter Manager, PC Manager inspection/audit, PC authority repository work or the PC Sheet PDF semantic foundation without new defect evidence.
 
 ### Current active PDF route / renderer state
+
+**Superseding active-route note — 2026-09-29:**
+
+- active branch: `fix/pc-sheet-50800-phase1-native-semantics`;
+- safe-pause authority: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_END_OF_DAY_HANDOFF.md`;
+- validated current renderer/code head: `6e53492dcd9f13945fbb320334f621aad070e61f`;
+- workflow 4212 / `36517524807` = SUCCESS;
+- exact proof artifact `11011771728`, digest `sha256:140b71f0d53c1ace3e0bd53385827d0d234d4d0706b0bff5d476cc595cc3017e`;
+- Phase 1B progression candidates: M50800-02/15/16/18/19; M50800-17/20 remain OPEN;
+- Phase 2A internal artifact-QA progression candidates: M50800-03/04/05/06/07/25; formally OPEN until final exact-candidate acceptance;
+- next bounded work: Phase 2B.1 — Traits/Rasgos + Trasfondo/Historia native reuse (M50800-08/09/10/11);
+- do not merge, do not create an owner APK, and do not restart Phase 1B/2A without new artifact evidence.
+
 
 The prior `repair/pc-sheet-adaptive-continuations-cross-family` branch is **unmerged evidence only**, not accepted continuation authority. Its claimed closure at `ce695c40782e1847ed70a2256885b5b07113feae`, Scaffold #4088 / `36354213574` and proof artifact `10942589698` is superseded as runtime acceptance because owner 50800 output reproduced the original defect classes and added a Custom-v1 export blocker.
 
