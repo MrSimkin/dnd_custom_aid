@@ -247,3 +247,16 @@ Phase 1B progression disposition:
 - M50800-20: **OPEN** — broader adaptive reclaim / redundant scaffold elimination is not solved by this phase.
 
 Phase 1B may now hand off to Phase 2A. No other matrix item is implied fixed.
+
+
+## Phase 2A — run 4207 diagnostic
+
+Run 4207 / `36513175606` / head `aedee9b0232a8e4fd113ec3a25ec8c71773e4638` compiled Desktop and Android successfully and passed the Android renderer sync guard.
+
+It reached 84 Desktop tests with **one** failure:
+
+- `promotesOwnerApprovedCustomV2ExtendedCustomStatisticsFromRealPlanData` still required historical keyed spellings `HONor`, `VOLuntad`, and `SUErte`.
+
+That expectation conflicts with the Phase 2A acceptance rule derived from M50800-07: custom-attribute identity is rendered as its clean semantic name, not by injecting the abbreviation into the name. The test is therefore updated to `Honor`, `Voluntad`, and `Suerte`.
+
+This is a test-authority correction, not a renderer relaxation. The test still requires the Custom Statistics semantic layers and all representative custom-skill content.
