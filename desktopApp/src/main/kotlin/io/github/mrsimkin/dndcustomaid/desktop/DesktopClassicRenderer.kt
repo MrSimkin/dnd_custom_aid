@@ -668,39 +668,56 @@ internal class DesktopClassicRenderer {
         p: DesktopPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
     ) {
-        val lines = classicCombatReferenceLines(plan)
-        if (lines.isEmpty()) return
+        val rows = classicCombatReferenceRows(plan)
+        if (rows.isEmpty()) return
 
-        val pages = pageCount(lines.size, CLASSIC_COMBAT_LINES_PER_PAGE)
-        repeat(pages) { pageIndex ->
+        val pages = mutableListOf<List<ClassicCombatReferenceRow>>()
+        var current = mutableListOf<ClassicCombatReferenceRow>()
+        var usedHeight = 0f
+
+        rows.forEach { row ->
+            val rowHeight = classicCombatRowHeight(row)
+            require(rowHeight <= CLASSIC_COMBAT_BODY_HEIGHT) {
+                "Fantasy Combat entry requires more than one continuation page: ${row.name}"
+            }
+            if (current.isNotEmpty() && usedHeight + rowHeight > CLASSIC_COMBAT_BODY_HEIGHT) {
+                pages += current.toList()
+                current = mutableListOf()
+                usedHeight = 0f
+            }
+            current += row
+            usedHeight += rowHeight
+        }
+        if (current.isNotEmpty()) pages += current.toList()
+
+        pages.forEach { pageRows ->
             val page = addPage(doc)
-            PDPageContentStream(doc, page).use { s ->
-                extendedHeader(s, p, plan.snapshot.aggregate.sheet.name, "COMBATE / ACCIONES")
+            PDPageContentStream(doc, page).use { stream ->
+                extendedHeader(stream, p, plan.snapshot.aggregate.sheet.name, "COMBATE / ACCIONES")
                 titledFrame(
-                    s,
+                    stream,
                     p,
                     24f,
                     112f,
                     564f,
                     606f,
-                    "REFERENCIA DE COMBATE / ACCIÓN / DAÑO",
+                    "COMBATE / ACCIONES - CONTINUACIÓN",
                 )
-                ruledTextArea(
-                    s,
-                    p,
-                    36f,
-                    148f,
-                    540f,
-                    552f,
-                    lines.pageSlice(pageIndex, CLASSIC_COMBAT_LINES_PER_PAGE),
-                    8.4f,
-                )
-                footer(s, p, doc.numberOfPages, "EXTENSIÓN / COMBATE Y ACCIONES")
+                classicCombatTableHeader(stream, p, 36f, 148f)
+
+                var top = 170f
+                pageRows.forEach { row ->
+                    val height = classicCombatRowHeight(row)
+                    classicCombatTableRow(stream, p, 36f, top, height, row)
+                    top += height
+                }
+
+                footer(stream, p, doc.numberOfPages, "EXTENSIÓN / COMBATE Y ACCIONES")
             }
         }
     }
 
-    private fun classicCombatReferenceLines(plan: PcSheetPdfRenderPlan): List<String> {
+    private fun classicCombatReferenceRows(plan: PcSheetPdfRenderPlan): List<ClassicCombatReferenceRow> {
         val aggregate = plan.snapshot.aggregate
         val damageByCombatId = aggregate.successor.combatDamage.associateBy { it.combatEntryId }
 
@@ -728,19 +745,92 @@ internal class DesktopClassicRenderer {
                 if (!needsReference) {
                     null
                 } else {
-                    buildList {
-                        add(combatTypeLabel(entry.type) + " — " + entry.name)
-                        entry.attackModifier?.let { add("Ataque " + signed(it)) }
-                        entry.damageEffect.takeIf { it.isNotBlank() }?.let { add("Efecto / daño: $it") }
-                        entry.rangeText?.takeIf { it.isNotBlank() }?.let { add("Alcance: $it") }
-                        entry.notes?.takeIf { it.isNotBlank() }?.let { add("Notas: $it") }
-                        structuredDamage.takeIf { it.isNotBlank() }?.let { add("Daño estructurado: $it") }
-                    }.joinToString(" · ")
+                    val effect = listOf(
+                        entry.damageEffect.trim(),
+                        structuredDamage.takeIf {
+                            it.isNotBlank() && !it.equals(entry.damageEffect.trim(), ignoreCase = true)
+                        }?.let { "Daño: $it" }.orEmpty(),
+                    ).filter { it.isNotEmpty() }.joinToString(" · ")
+                    ClassicCombatReferenceRow(
+                        name = combatTypeLabel(entry.type) + " — " + entry.name,
+                        range = entry.rangeText.orEmpty().trim(),
+                        bonus = entry.attackModifier?.let(::signed).orEmpty(),
+                        effect = effect,
+                        notes = entry.notes.orEmpty().trim(),
+                    )
                 }
             }
-            .flatMap { value ->
-                wrapForChars(value, CLASSIC_COMBAT_REFERENCE_CHARS)
+    }
+
+    private fun classicCombatRowHeight(row: ClassicCombatReferenceRow): Float {
+        fun lines(value: String, chars: Int): Int =
+            wrapForChars(value, chars).size.coerceAtLeast(1)
+
+        val physicalLines = maxOf(
+            lines(row.name, 34),
+            lines(row.range, 12),
+            lines(row.bonus, 8),
+            lines(row.effect, 25),
+            lines(row.notes, 29),
+        )
+        return (physicalLines * 15f + 8f).coerceAtLeast(38f)
+    }
+
+    private fun classicCombatTableHeader(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+    ) {
+        tableHeader(
+            s,
+            p,
+            x,
+            top,
+            listOf(
+                170f to "TIPO / NOMBRE",
+                66f to "RANGO",
+                50f to "BONIF.",
+                118f to "DAÑO / EFECTO",
+                136f to "NOTAS",
+            ),
+        )
+    }
+
+    private fun classicCombatTableRow(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        x: Float,
+        top: Float,
+        height: Float,
+        row: ClassicCombatReferenceRow,
+    ) {
+        val widths = listOf(170f, 66f, 50f, 118f, 136f)
+        val values = listOf(row.name, row.range, row.bonus, row.effect, row.notes)
+        var cursor = x
+        values.forEachIndexed { index, value ->
+            text(
+                s,
+                p,
+                cursor + 3f,
+                top + 3f,
+                widths[index] - 6f,
+                height - 6f,
+                value,
+                if (index == 0) PdfTypographyRole.SPELL_NAME else PdfTypographyRole.BODY,
+                if (index == 0) 8.2f else 7.6f,
+                6.5f,
+                wrap = true,
+                maxLines = ((height - 6f) / 15f).toInt().coerceAtLeast(1),
+                align = if (index == 2) PdfHorizontalAlignment.CENTER else PdfHorizontalAlignment.LEFT,
+                vertical = PdfVerticalAlignment.TOP,
+            )
+            if (index < widths.lastIndex) {
+                hairline(s, cursor + widths[index], top, cursor + widths[index], top + height)
             }
+            cursor += widths[index]
+        }
+        hairline(s, x, top + height, x + widths.sum(), top + height)
     }
 
     private fun characterStatusLabel(status: CharacterStatus): String = when (status) {
@@ -3307,6 +3397,14 @@ private fun ruledTextArea(
         val note: String,
     )
 
+    private data class ClassicCombatReferenceRow(
+        val name: String,
+        val range: String,
+        val bonus: String,
+        val effect: String,
+        val notes: String,
+    )
+
     private data class ClassicResourceRow(
         val name: String,
         val value: String,
@@ -3355,8 +3453,7 @@ private fun ruledTextArea(
         const val W = 612f
         const val H = 792f
         const val BASE_COMBAT_CAPACITY = 4
-        const val CLASSIC_COMBAT_LINES_PER_PAGE = 27
-        const val CLASSIC_COMBAT_REFERENCE_CHARS = 86
+        const val CLASSIC_COMBAT_BODY_HEIGHT = 520f
         const val BASE_CLASS_TRAIT_CAPACITY = 4
         const val CLASSIC_BASE_CLASS_RULE_ROWS = 7
         const val BASE_SPECIES_TRAIT_CAPACITY = 3
