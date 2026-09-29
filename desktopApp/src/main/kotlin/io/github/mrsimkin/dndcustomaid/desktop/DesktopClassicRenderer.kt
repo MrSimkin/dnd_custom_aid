@@ -996,54 +996,146 @@ internal class DesktopClassicRenderer {
         p: DesktopPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
     ) {
-        val resources = classicResourceRows(plan)
-        val options = classicOptionRows(plan)
-        if (resources.isEmpty() && options.isEmpty()) return
+        val resourceGroups = classicResourceGroups(plan)
+        val optionGroups = classicOptionGroups(plan)
+        if (resourceGroups.isEmpty() && optionGroups.isEmpty()) return
 
-        val pages = maxOf(
-            1,
-            pageCount(resources.size, CLASSIC_RESOURCE_ROWS_PER_PAGE),
-            pageCount(options.size, CLASSIC_OPTION_ROWS_PER_PAGE),
-        )
-        repeat(pages) { pageIndex ->
-            val page = addPage(doc)
-            PDPageContentStream(doc, page).use { s ->
-                extendedHeader(s, p, plan.snapshot.aggregate.sheet.name, "RECURSOS Y OPCIONES")
-
-                titledFrame(s, p, 24f, 112f, 564f, 316f, "RECURSOS")
-                resourceTableHeader(s, p, 36f, 148f)
-                val pageResources = resources
-                    .drop(pageIndex * CLASSIC_RESOURCE_ROWS_PER_PAGE)
-                    .take(CLASSIC_RESOURCE_ROWS_PER_PAGE)
-                repeat(CLASSIC_RESOURCE_ROWS_PER_PAGE) { index ->
-                    val top = 176f + index * 48f
-                    pageResources.getOrNull(index)?.let { row ->
-                        resourceTableRow(s, p, 36f, top, row)
-                    } ?: hairline(s, 36f, top + 42f, 576f, top + 42f)
+        fun <T> takeWholeGroups(
+            groups: List<List<T>>,
+            startIndex: Int,
+            capacity: Int,
+        ): Pair<List<T>, Int> {
+            val page = mutableListOf<T>()
+            var index = startIndex
+            while (index < groups.size) {
+                val group = groups[index]
+                require(group.size <= capacity) {
+                    "Fantasy continuation record requires more rows than one page can provide."
                 }
-                titledFrame(s, p, 24f, 442f, 564f, 276f, "OPCIONES Y ESTADOS RELEVANTES")
-                val pageOptions = options
-                    .drop(pageIndex * CLASSIC_OPTION_ROWS_PER_PAGE)
-                    .take(CLASSIC_OPTION_ROWS_PER_PAGE)
-                pageOptions.forEachIndexed { index, row ->
-                    optionEntry(
-                        s, p, 36f, 478f + index * 68f, 540f,
-                        row.name, row.source, row.description,
-                    )
-                }
-                ruledLines(s, 36f, 682f, 540f, 24f, 1)
-
-                footer(s, p, doc.numberOfPages, "EXTENSIÓN / RECURSOS Y OPCIONES")
+                if (page.isNotEmpty() && page.size + group.size > capacity) break
+                page += group
+                index += 1
             }
+            return page to index
+        }
+
+        var resourceIndex = 0
+        var optionIndex = 0
+        var pageIndex = 0
+
+        while (resourceIndex < resourceGroups.size || optionIndex < optionGroups.size) {
+            val bothActive =
+                resourceIndex < resourceGroups.size && optionIndex < optionGroups.size
+            val resourceCapacity =
+                if (bothActive) CLASSIC_RESOURCE_ROWS_PER_PAGE else CLASSIC_RESOURCE_FULL_PAGE_ROWS
+            val optionCapacity =
+                if (bothActive) CLASSIC_OPTION_ROWS_PER_PAGE else CLASSIC_OPTION_FULL_PAGE_ROWS
+
+            val (pageResources, nextResourceIndex) =
+                if (resourceIndex < resourceGroups.size) {
+                    takeWholeGroups(resourceGroups, resourceIndex, resourceCapacity)
+                } else {
+                    emptyList<ClassicResourceRow>() to resourceIndex
+                }
+            val (pageOptions, nextOptionIndex) =
+                if (optionIndex < optionGroups.size) {
+                    takeWholeGroups(optionGroups, optionIndex, optionCapacity)
+                } else {
+                    emptyList<ClassicOptionRow>() to optionIndex
+                }
+
+            val page = addPage(doc)
+            PDPageContentStream(doc, page).use { stream ->
+                extendedHeader(stream, p, plan.snapshot.aggregate.sheet.name, "RECURSOS Y OPCIONES")
+                when {
+                    pageResources.isNotEmpty() && pageOptions.isNotEmpty() ->
+                        renderClassicResourcesAndOptionsSplit(
+                            stream,
+                            p,
+                            pageResources,
+                            pageOptions,
+                        )
+                    pageResources.isNotEmpty() ->
+                        renderClassicResourcesOnly(stream, p, pageResources)
+                    else ->
+                        renderClassicOptionsOnly(stream, p, pageOptions)
+                }
+                footer(stream, p, doc.numberOfPages, "EXTENSIÓN / RECURSOS Y OPCIONES")
+            }
+
+            require(nextResourceIndex > resourceIndex || nextOptionIndex > optionIndex) {
+                "Fantasy Resources/Options allocator made no progress."
+            }
+            resourceIndex = nextResourceIndex
+            optionIndex = nextOptionIndex
+            pageIndex += 1
         }
     }
 
-    private fun classicResourceRows(plan: PcSheetPdfRenderPlan): List<ClassicResourceRow> {
+    private fun renderClassicResourcesAndOptionsSplit(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        resources: List<ClassicResourceRow>,
+        options: List<ClassicOptionRow>,
+    ) {
+        titledFrame(s, p, 24f, 112f, 564f, 316f, "RECURSOS")
+        resourceTableHeader(s, p, 36f, 148f)
+        resources.forEachIndexed { index, row ->
+            resourceTableRow(s, p, 36f, 176f + index * 48f, row)
+        }
+        titledFrame(s, p, 24f, 442f, 564f, 276f, "OPCIONES Y ESTADOS RELEVANTES")
+        options.forEachIndexed { index, row ->
+            optionEntry(
+                s,
+                p,
+                36f,
+                478f + index * 68f,
+                540f,
+                row.name,
+                row.source,
+                row.description,
+            )
+        }
+    }
+
+    private fun renderClassicResourcesOnly(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        resources: List<ClassicResourceRow>,
+    ) {
+        titledFrame(s, p, 24f, 112f, 564f, 606f, "RECURSOS - CONTINUACIÓN")
+        resourceTableHeader(s, p, 36f, 148f)
+        resources.forEachIndexed { index, row ->
+            resourceTableRow(s, p, 36f, 176f + index * 48f, row)
+        }
+    }
+
+    private fun renderClassicOptionsOnly(
+        s: PDPageContentStream,
+        p: DesktopPdfRenderingPrimitives,
+        options: List<ClassicOptionRow>,
+    ) {
+        titledFrame(s, p, 24f, 112f, 564f, 606f, "OPCIONES Y ESTADOS RELEVANTES")
+        options.forEachIndexed { index, row ->
+            optionEntry(
+                s,
+                p,
+                36f,
+                148f + index * 68f,
+                540f,
+                row.name,
+                row.source,
+                row.description,
+            )
+        }
+    }
+
+    private fun classicResourceGroups(plan: PcSheetPdfRenderPlan): List<List<ClassicResourceRow>> {
         val aggregate = plan.snapshot.aggregate
         val recoveryById = aggregate.closure.resourceRecovery.associateBy { it.resourceId }
         val configById = aggregate.successor.resourceConfigurations.associateBy { it.resourceId }
 
-        val ordinary = aggregate.sheet.resources.sortedBy { it.sortOrder }.flatMap { resource ->
+        val ordinary = aggregate.sheet.resources.sortedBy { it.sortOrder }.map { resource ->
             val recovery = recoveryById[resource.id]
             val kind = configById[resource.id]?.valueKind ?: CharacterTrackableValueKind.CURRENT_MAX
             val maximum = when (kind) {
@@ -1086,7 +1178,7 @@ internal class DesktopClassicRenderer {
             )
         }
 
-        val markers = aggregate.successor.customMarkers.sortedBy { it.sortOrder }.flatMap { marker ->
+        val markers = aggregate.successor.customMarkers.sortedBy { it.sortOrder }.map { marker ->
             val maximum = when (marker.valueKind) {
                 CharacterTrackableValueKind.BINARY -> 1
                 CharacterTrackableValueKind.COUNTER,
@@ -1130,13 +1222,11 @@ internal class DesktopClassicRenderer {
         val cleanName = name.trim()
         val cleanRecovery = recovery.trim()
         val cleanSource = source.trim()
-        val projectedName = classicSingleLineExcerpt(cleanName, CLASSIC_RESOURCE_NAME_CHARS)
         val projectedRecovery = classicBaseExcerpt(
             cleanRecovery,
             CLASSIC_RESOURCE_RECOVERY_CHARS,
             CLASSIC_RESOURCE_NOTE_LINES,
         )
-        val projectedSource = classicSingleLineExcerpt(cleanSource, CLASSIC_RESOURCE_SOURCE_CHARS)
         val detailText = buildList {
             notes.trim().takeIf { it.isNotEmpty() }?.let(::add)
             if (cleanName.length > CLASSIC_RESOURCE_NAME_CHARS) add("Nombre completo: $cleanName")
@@ -1154,28 +1244,22 @@ internal class DesktopClassicRenderer {
             .ifEmpty { listOf("") }
         return noteChunks.mapIndexed { index, note ->
             ClassicResourceRow(
-                name = if (index == 0) {
-                    projectedName
-                } else {
-                    classicSingleLineExcerpt("$projectedName (cont.)", CLASSIC_RESOURCE_NAME_CHARS)
-                },
+                name = if (index == 0) cleanName else "$cleanName (cont.)",
                 value = value.takeIf { index == 0 }.orEmpty(),
                 oneUseAvailable = oneUseAvailable.takeIf { index == 0 },
                 recovery = projectedRecovery.takeIf { index == 0 }.orEmpty(),
-                source = projectedSource.takeIf { index == 0 }.orEmpty(),
+                source = cleanSource.takeIf { index == 0 }.orEmpty(),
                 notes = note,
             )
         }
     }
 
-    private fun classicOptionRows(plan: PcSheetPdfRenderPlan): List<ClassicOptionRow> =
+    private fun classicOptionGroups(plan: PcSheetPdfRenderPlan): List<List<ClassicOptionRow>> =
         plan.snapshot.aggregate.sheet.classOptions
             .sortedBy { it.sortOrder }
-            .flatMap { option ->
+            .map { option ->
                 val cleanName = option.name.trim()
                 val cleanSource = option.source.orEmpty().trim()
-                val projectedName = classicSingleLineExcerpt(cleanName, CLASSIC_OPTION_NAME_CHARS)
-                val projectedSource = classicSingleLineExcerpt(cleanSource, CLASSIC_OPTION_SOURCE_CHARS)
                 val description = buildList {
                     if (cleanName.length > CLASSIC_OPTION_NAME_CHARS) add("Nombre completo: $cleanName")
                     if (cleanSource.length > CLASSIC_OPTION_SOURCE_CHARS) add("Fuente completa: $cleanSource")
@@ -1191,15 +1275,8 @@ internal class DesktopClassicRenderer {
                     .ifEmpty { listOf("") }
                 chunks.mapIndexed { index, chunk ->
                     ClassicOptionRow(
-                        name = if (index == 0) {
-                            projectedName
-                        } else {
-                            classicSingleLineExcerpt(
-                                "$projectedName (cont.)",
-                                CLASSIC_OPTION_NAME_CHARS,
-                            )
-                        },
-                        source = projectedSource.takeIf { index == 0 }.orEmpty(),
+                        name = if (index == 0) cleanName else "$cleanName (cont.)",
+                        source = cleanSource.takeIf { index == 0 }.orEmpty(),
                         description = chunk,
                     )
                 }
@@ -2965,14 +3042,18 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
     ) {
         text(
             s, p, x, top, 196f, 18f,
-            classicSingleLineExcerpt(name, CLASSIC_OPTION_NAME_CHARS),
-            PdfTypographyRole.SPELL_NAME, 9f, 7.8f,
+            name,
+            PdfTypographyRole.SPELL_NAME, 9f, 7.0f,
+            wrap = true, maxLines = 2,
+            vertical = PdfVerticalAlignment.TOP,
         )
         text(
             s, p, x + 202f, top, 118f, 18f,
-            classicSingleLineExcerpt(source, CLASSIC_OPTION_SOURCE_CHARS),
-            PdfTypographyRole.OPTIONAL_DECORATIVE, 7.2f, 6.2f,
+            source,
+            PdfTypographyRole.OPTIONAL_DECORATIVE, 7.2f, 6.0f,
+            wrap = true, maxLines = 2,
             align = PdfHorizontalAlignment.CENTER,
+            vertical = PdfVerticalAlignment.TOP,
         )
         text(
             s, p, x + 326f, top, width - 326f, 48f,
@@ -3009,14 +3090,14 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         row: ClassicResourceRow,
     ) {
         val values = listOf(
-            classicSingleLineExcerpt(row.name, CLASSIC_RESOURCE_NAME_CHARS),
+            row.name,
             row.value,
             classicBaseExcerpt(
                 row.recovery,
                 CLASSIC_RESOURCE_RECOVERY_CHARS,
                 CLASSIC_RESOURCE_NOTE_LINES,
             ),
-            classicSingleLineExcerpt(row.source, CLASSIC_RESOURCE_SOURCE_CHARS),
+            row.source,
             row.notes,
         )
         val widths = listOf(162f, 68f, 104f, 72f, 134f)
@@ -3026,8 +3107,8 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
                 s, p, cursor + 3f, top, widths[index] - 6f, 40f, value,
                 if (index == 0) PdfTypographyRole.SPELL_NAME else PdfTypographyRole.BODY,
                 if (index == 0) 8.2f else 7.6f, 6.5f,
-                wrap = index == 2 || index == 4,
-                maxLines = if (index == 2 || index == 4) CLASSIC_RESOURCE_NOTE_LINES else 1,
+                wrap = index != 1,
+                maxLines = if (index == 1) 1 else CLASSIC_RESOURCE_NOTE_LINES,
                 align = if (index == 1) PdfHorizontalAlignment.CENTER else PdfHorizontalAlignment.LEFT,
                 vertical = PdfVerticalAlignment.TOP,
             )
@@ -3487,12 +3568,14 @@ private fun ruledTextArea(
         const val CLASSIC_COMBAT_PREVIEW_CHARS = 20
         const val CLASSIC_BASE_SLOT_MARKERS = 4
         const val CLASSIC_RESOURCE_ROWS_PER_PAGE = 4
+        const val CLASSIC_RESOURCE_FULL_PAGE_ROWS = 10
         const val CLASSIC_RESOURCE_NAME_CHARS = 24
         const val CLASSIC_RESOURCE_RECOVERY_CHARS = 18
         const val CLASSIC_RESOURCE_SOURCE_CHARS = 12
         const val CLASSIC_RESOURCE_NOTE_CHARS = 30
         const val CLASSIC_RESOURCE_NOTE_LINES = 2
         const val CLASSIC_OPTION_ROWS_PER_PAGE = 3
+        const val CLASSIC_OPTION_FULL_PAGE_ROWS = 8
         const val CLASSIC_OPTION_NAME_CHARS = 28
         const val CLASSIC_OPTION_SOURCE_CHARS = 18
         const val CLASSIC_OPTION_DETAIL_CHARS = 48
