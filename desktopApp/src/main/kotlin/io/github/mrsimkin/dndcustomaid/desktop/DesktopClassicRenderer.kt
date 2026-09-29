@@ -1798,8 +1798,9 @@ private fun appendSpellContinuationPages(
             }
 
             entryIndex += pageEntries.size
+            val referenceAdvanced = nextReferenceGroupIndex > referenceGroupIndex
             referenceGroupIndex = nextReferenceGroupIndex
-            check(pageEntries.isNotEmpty() || nextReferenceGroupIndex > referenceGroupIndex) {
+            check(pageEntries.isNotEmpty() || referenceAdvanced) {
                 "Fantasy Notes allocator made no progress."
             }
         }
