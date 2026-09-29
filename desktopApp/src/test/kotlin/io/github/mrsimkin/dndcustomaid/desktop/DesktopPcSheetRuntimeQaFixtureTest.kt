@@ -860,6 +860,36 @@ class DesktopPcSheetRuntimeQaFixtureTest {
 
             assertTrue(normalized.contains("Mara de los Siete Umbrales"))
             assertTrue(normalized.contains("Astrolabio de cobre con anillos concéntricos 1"))
+
+            fun assertSemanticIdentityPresent(label: String, value: String) {
+                val normalizedValue = value.replace(Regex("\\s+"), " ").trim()
+                assertTrue(
+                    normalized.contains(normalizedValue),
+                    "Fantasy Mara must preserve $label identity: $normalizedValue",
+                )
+            }
+
+            document.character.combatEntries.forEach {
+                assertSemanticIdentityPresent("Combat", it.name)
+            }
+            document.character.traits.forEach {
+                assertSemanticIdentityPresent("Trait", it.name)
+            }
+            document.character.resources.forEach {
+                assertSemanticIdentityPresent("Resource", it.name)
+            }
+            document.successorState.customMarkers.forEach {
+                assertSemanticIdentityPresent("Marker", it.name)
+            }
+            document.character.classOptions.forEach {
+                assertSemanticIdentityPresent("Option", it.name)
+            }
+            document.character.inventoryItems.forEach {
+                assertSemanticIdentityPresent("Inventory", it.name)
+            }
+            document.character.noteCards.forEach {
+                assertSemanticIdentityPresent("Note", it.title)
+            }
             // A long special-item detail may cross physical continuation rows; require both
             // semantic halves rather than pretending PDF extraction keeps them adjacent.
             assertTrue(normalized.contains("Descripción suficientemente larga"))
