@@ -1023,6 +1023,7 @@ internal class AndroidClassicRenderer {
 
         var resourceIndex = 0
         var optionIndex = 0
+        var pageIndex = 0
 
         while (resourceIndex < resourceGroups.size || optionIndex < optionGroups.size) {
             val bothActive =
@@ -1069,6 +1070,7 @@ internal class AndroidClassicRenderer {
             }
             resourceIndex = nextResourceIndex
             optionIndex = nextOptionIndex
+            pageIndex += 1
         }
     }
 
