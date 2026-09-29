@@ -58,8 +58,11 @@ def transform(source: str, source_name: str) -> str:
         "BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)",
         "Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)",
     )
-    rendered = rendered.replace("transparent.setRGB(", "transparent.setPixel(")
-    rendered = rendered.replace("sourceImage.getRGB(", "sourceImage.getPixel(")
+    # Desktop PDF image helpers use BufferedImage pixel access. After BufferedImage is
+    # mapped to Bitmap, translate pixel methods generically so newly named image buffers do not
+    # require one-off generator patches.
+    rendered = rendered.replace(".setRGB(", ".setPixel(")
+    rendered = rendered.replace(".getRGB(", ".getPixel(")
 
     forbidden = [
         "org.apache.pdfbox",
