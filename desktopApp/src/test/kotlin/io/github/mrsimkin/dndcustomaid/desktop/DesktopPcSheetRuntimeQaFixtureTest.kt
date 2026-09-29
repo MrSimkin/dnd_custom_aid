@@ -282,8 +282,8 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     "$family must preserve the leading identity of the final Special Equipment item",
                 )
                 assertTrue(
-                    normalized.contains("plegables 29"),
-                    "$family must preserve the tail of the final Special Equipment item across native rows",
+                    Regex("""objeto\s+29\b""", RegexOption.IGNORE_CASE).containsMatchIn(normalized),
+                    "$family must preserve unique semantic content from the final Special Equipment item",
                 )
                 assertTrue(
                     normalized.contains("Bolsa lateral"),

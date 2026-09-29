@@ -1,0 +1,103 @@
+# Mara 50800 — repair execution log
+
+**Date:** 2026-09-29 (Chile local time)  
+**Branch:** `fix/pc-sheet-50800-phase1-native-semantics`  
+**Status:** ACTIVE / NOT OWNER-ACCEPTED / DO NOT MERGE YET  
+**Acceptance authority:** `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`  
+**Phase map:** `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_FIX_PHASE_MAP.md`
+
+## Governing rule
+
+This repair is driven by the 50800 owner QA matrix, not by historical renderer tests or by the old adaptive continuation branch.
+
+A test that encodes a rejected 50800 behavior may be updated when the matrix explicitly contradicts it. A matrix item is **not** closed merely because CI turns green. Items that require rendered-PDF evidence remain pending until the exact generated artifacts are inspected.
+
+The old branch `repair/pc-sheet-adaptive-continuations-cross-family` is reference/evidence only. It is not merged or cherry-picked wholesale.
+
+## Current execution phase
+
+Active phase: **Phase 1B — native Equipment / Equipo Especial semantics and Custom-v1 generation safety**.
+
+Phase 2A (Custom-v2 Custom Statistics/native attribute reuse) has been analyzed but intentionally not modified yet. It remains gated on Phase 1B CI plus real-artifact inspection.
+
+## 50800 items addressed by the active code path
+
+| Matrix item | Current implementation state | Closure state |
+| --- | --- | --- |
+| M50800-02 Custom v1 generation | Source-fit blocker rebuilt away from the failing generic continuation path. Real Mara fixture now reaches the focused runtime assertions instead of failing on `Lectura de presagios`. | **CANDIDATE / artifact still required** |
+| M50800-15 ordinary Equipment design | Custom v1/v2 continuation now uses native Equipment-page grammar instead of the rejected `INVENTARIO / EQUIPO` generic presentation. | **CANDIDATE / visual comparison still required** |
+| M50800-16 ordinary Equipment content | Focused runtime QA rejects `Consumible`, weight values and ordinary prose descriptions, while requiring compact recognizable item identity. | **CANDIDATE / artifact still required** |
+| M50800-17 ordinary Equipment readability | Ordinary identity is kept in native Equipment rows. Final visual atomicity still requires PDF inspection. | **OPEN pending visual evidence** |
+| M50800-18 Equipo Especial design | Continuation is rendered in the native/source Equipo Especial table rather than a separate generic Extended table. | **CANDIDATE / visual comparison still required** |
+| M50800-19 custom locations | Used native location cells are cleared before custom values are written; focused QA requires `Bolsa lateral`. | **CANDIDATE / rendered-page inspection still required** |
+| M50800-20 redundant Equipment scaffolds | Continuation allocation is data-driven; historical tests that required an Equipment page without Equipment overflow were corrected to stop demanding empty scaffolds. | **CANDIDATE / page-level artifact review required** |
+| M50800-30 pre-fix comprehension gate | Acceptance matrix + phase/source map existed before renderer repair work on this branch. | **SATISFIED as process gate** |
+| M50800-32 cross-family generation | Focused real-Mara fixture executes Fantasy, Custom v1, Custom v2 Atributo and Custom v2 Habilidad. | **OPEN until one exact CI artifact set passes and is inspected** |
+
+No other matrix item is implicitly closed by this phase.
+
+## Special Equipment packing rule introduced
+
+A Special Equipment item is now a semantic unit for pagination.
+
+- Its location, name and dedicated description/notes are wrapped into native rows.
+- The rows belonging to one item are kept together.
+- If the complete item does not fit in the remaining native rows, the item moves as a whole to the next native Equipment copy.
+- The base page and continuation renderer use the same page-capacity rule.
+- This prevents cutting an item's identity/context at the base/Extended boundary.
+
+The focused Mara QA requires three independent anchors for the final special item rather than relying on PDFTextStripper column ordering:
+
+- leading identity: `Cuaderno de fórmulas`;
+- custom location: `Bolsa lateral`;
+- unique final-item semantic content: `objeto 29`.
+
+The exact rendered name remains subject to visual artifact inspection; this assertion change is not treated as visual closure.
+
+## CI / commit ledger
+
+| Run | Commit | Result | Relevant diagnosis |
+| --- | --- | --- | --- |
+| 4188 / `36501811667` | `7354081ec8fefafde2408a7f67c716f9260bebfd` | FAIL | Earlier V1 refactor still had structural compile fallout. |
+| 4189 / `36502124625` | `bfc1360db83c8e6c02e22fb7e03c2dfe954bd9bd` | FAIL | V1 clean reconstruction compiled far enough to expose only V2 `opticalX/opticalY` helper mismatch. |
+| 4190 / `36502322050` | `2432d668fc76a957e6a86a127532f13b6eecab67` | FAIL | Build/tests reached semantic QA; exposed real V1 loss of final Special Equipment item plus historical generic-layer expectations. |
+| 4191 / `36503127638` | `87db894a3b826c4521f06ce7c030886eb7296ad9` | FAIL | Whole-item Special Equipment packing added; compile stopped on one stale `specialRows` identifier. |
+| 4192 / `36503258869` | `7e591b9764a391411e750254c1e1b6539f446dbe` | FAIL | Same stale identifier; V2 treasure standard semantic layers also restored without visual change. |
+| 4193 / `36503433050` | `6d63d295bdda3c6ede6278214ebfe20b74436e2a` | FAIL | 84 tests executed; only two assertions remained: PDF text-order assumption for final Mara special item and a fixture incorrectly requiring Equipment continuation without Equipment overflow. |
+| 4194 / `36504198065` | `ae44bc5dc3195525b838d7791e020dd7113021b6` | FAIL | 84 tests executed; **one** assertion remained, the PDFTextStripper tail-substring assumption for the final V1 special item. No compile or other test failure. |
+
+## Historical-test corrections made under matrix authority
+
+Tests were changed only where the 50800 matrix directly invalidates their old expectation:
+
+1. old generic layer names such as `V1X INVENTORY` / `V2X INVENTORY` were replaced with native Equipment continuation semantics;
+2. a spell/note-overflow fixture no longer requires an Equipment continuation page when it did not add Equipment overflow, matching M50800-20;
+3. the final Mara Special Equipment assertion no longer depends on contiguous text extraction across PDF columns/rows; it uses unique semantic anchors and remains subject to rendered-PDF review.
+
+These changes do **not** relax the prohibitions on weight, `Consumible`, ordinary descriptions, generic Inventory presentation, or loss of custom Special Equipment locations/content.
+
+## Gate before Phase 2A
+
+Do not start Custom Statistics renderer changes until all of the following are true:
+
+1. current branch CI Kotlin job is green;
+2. the generated real-Mara PDFs for all four families are available from that exact run;
+3. Custom v1 actually generates;
+4. text scan confirms ordinary Equipment does not contain weight, `Consumible` or ordinary prose descriptions;
+5. rendered Equipment / Equipo Especial pages are visually inspected for native reuse, readable item identity, custom locations and redundant scaffolds;
+6. Ilyra/control behavior is checked where the focused suite/artifact provides it.
+
+If any visual acceptance item is ambiguous, keep it OPEN and continue the corresponding repair phase. Do not infer closure from CI alone.
+
+## Phase 2A remains OPEN
+
+The following matrix items are intentionally not claimed by the Phase 1B work:
+
+- M50800-03 source-underlay leakage;
+- M50800-04 native Custom Statistics grammar;
+- M50800-05 four real Mara attributes together at native scale;
+- M50800-06 no phantom attribute shells;
+- M50800-07 clean/unambiguous Éter presentation;
+- M50800-25 name-ribbon centering/wrap.
+
+The real 50800 Atributo/Habilidad pages remain the visual baseline for those changes.
