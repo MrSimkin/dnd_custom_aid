@@ -570,29 +570,38 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
                     .map { NativeNoteLine(it, emphasis = true) }
                 val bodyLines = wrapByWidth(fonts.regular, remainingBody, NOTE_BODY_SIZE, width)
                 val separator = if (current().isNotEmpty()) 1 else 0
+                val capacity = $cap
+                val available = capacity - current().size
                 val wholeSize = separator + titleLines.size + bodyLines.size
 
-                if (wholeSize <= NOTES_LEFT_RULES.size) {
-                    if (wholeSize <= NOTES_LEFT_RULES.size - current().size) {
-                        if (separator == 1) current() += NativeNoteLine("", emphasis = false)
+                if (wholeSize <= available) {
+                    if (separator == 1) current() += NativeNoteLine("", emphasis = false)
+                    current() += titleLines
+                    current() += bodyLines.map { NativeNoteLine(it, emphasis = false) }
+                    finished = true
+                    continue
+                }
+
+                if (current().isNotEmpty()) {
+                    val partialBodyCapacity = available - separator - titleLines.size
+                    if (partialBodyCapacity > 0) {
+                        current() += NativeNoteLine("", emphasis = false)
                         current() += titleLines
-                        current() += bodyLines.map { NativeNoteLine(it, emphasis = false) }
-                        finished = true
+                        current() += bodyLines.take(partialBodyCapacity)
+                            .map { NativeNoteLine(it, emphasis = false) }
+                        remainingBody = bodyLines.drop(partialBodyCapacity).joinToString(" ")
+                        continuation = true
+                        advanceColumn()
                     } else {
                         advanceColumn()
                     }
                     continue
                 }
 
-                if (current().isNotEmpty()) {
-                    advanceColumn()
-                    continue
-                }
-
-                require(titleLines.size < NOTES_LEFT_RULES.size) {
+                require(titleLines.size < capacity) {
                     "Custom-v1 Notes identity exceeds a native Notes column: '$identity'"
                 }
-                val bodyCapacity = NOTES_LEFT_RULES.size - titleLines.size
+                val bodyCapacity = capacity - titleLines.size
                 current() += titleLines
                 current() += bodyLines.take(bodyCapacity).map { NativeNoteLine(it, emphasis = false) }
                 remainingBody = bodyLines.drop(bodyCapacity).joinToString(" ")
