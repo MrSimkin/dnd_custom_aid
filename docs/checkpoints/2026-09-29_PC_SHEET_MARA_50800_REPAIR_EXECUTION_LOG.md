@@ -52,7 +52,7 @@ The focused Mara QA requires three independent anchors for the final special ite
 - custom location: `Bolsa lateral`;
 - unique final-item semantic content: `objeto 29`.
 
-The exact rendered name remains subject to visual artifact inspection; this assertion change is not treated as visual closure.
+The exact rendered name remains subject to visual artifact inspection; this assertion change is not treated as visual closure.\n\n`Bolsa lateral` is also **not** waived: run 4195 showed that PDFTextStripper is not a reliable acceptance oracle for that Custom-v1 location cell. M50800-19 therefore remains OPEN and must be decided from the rendered native Equipo Especial cell in the exact green-run artifact.
 
 ## CI / commit ledger
 
@@ -64,7 +64,7 @@ The exact rendered name remains subject to visual artifact inspection; this asse
 | 4191 / `36503127638` | `87db894a3b826c4521f06ce7c030886eb7296ad9` | FAIL | Whole-item Special Equipment packing added; compile stopped on one stale `specialRows` identifier. |
 | 4192 / `36503258869` | `7e591b9764a391411e750254c1e1b6539f446dbe` | FAIL | Same stale identifier; V2 treasure standard semantic layers also restored without visual change. |
 | 4193 / `36503433050` | `6d63d295bdda3c6ede6278214ebfe20b74436e2a` | FAIL | 84 tests executed; only two assertions remained: PDF text-order assumption for final Mara special item and a fixture incorrectly requiring Equipment continuation without Equipment overflow. |
-| 4194 / `36504198065` | `ae44bc5dc3195525b838d7791e020dd7113021b6` | FAIL | 84 tests executed; **one** assertion remained, the PDFTextStripper tail-substring assumption for the final V1 special item. No compile or other test failure. |
+| 4194 / `36504198065` | `ae44bc5dc3195525b838d7791e020dd7113021b6` | FAIL | 84 tests executed; **one** assertion remained, the PDFTextStripper tail-substring assumption for the final V1 special item. No compile or other test failure. |\n| 4195 / `36505758967` | `e7a7f31c29707dc8035fa9ded8bc5dab95db7b2b` | FAIL | 84 tests executed; final Special Equipment identity/content passed. Only `Bolsa lateral` text extraction failed in Custom v1. M50800-19 remains a rendered-cell gate rather than being waived or declared fixed. |
 
 ## Historical-test corrections made under matrix authority
 
