@@ -2006,12 +2006,9 @@ internal class DesktopCustomV2ExtendedRenderer(
     }
 
     private fun pageHeaderStructure(s: PDFormContentStream) {
-        // Keep the approved logo vector/source-derived, but bound it inside its own form so
-        // viewers never see hidden off-crop source content. This stays in STRUCTURE; no flattening.
-        s.saveGraphicsState()
-        s.transform(Matrix.getTranslateInstance(14f, H - 16f - 60f))
-        s.drawForm(resources.logo)
-        s.restoreGraphicsState()
+        // M50800-03: draw only logo pixels. A clipped whole-page form remains text-extractable
+        // outside its visible clip; the raster crop prevents stale source-page text leakage.
+        s.drawImage(resources.logo, 14f, H - 16f - 60f, 105f, 60f)
         drawRule(s, 126f, 598f, 79f, 0.6f)
     }
 
@@ -2517,7 +2514,7 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private data class Resources(
         val forms: List<PDFormXObject>,
-        val logo: PDFormXObject,
+        val logo: PDImageXObject,
         val attributeOrnament: PDImageXObject,
         val corbel: PDFont,
         val corbelBold: PDFont,
@@ -2542,7 +2539,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 }
                 return Resources(
                     forms = forms,
-                    logo = buildVectorLogoForm(doc, forms[2]),
+                    logo = buildLogoImage(doc, source),
                     attributeOrnament = buildTransparentAttributeOrnament(doc, source),
                     corbel = corbelRegular,
                     corbelBold = corbelBold,
@@ -2583,24 +2580,24 @@ internal class DesktopCustomV2ExtendedRenderer(
                 error("Requested imported source font not found.")
             }
 
-            private fun buildVectorLogoForm(
+            private fun buildLogoImage(
                 doc: PDDocument,
-                sourceForm: PDFormXObject,
-            ): PDFormXObject {
-                val logo = PDFormXObject(doc).apply {
-                    resources = PDResources()
-                    setBBox(PDRectangle(0f, 0f, 105f, 60f))
+                source: PDDocument,
+            ): PDImageXObject {
+                val dpi = 288f
+                val scale = dpi / 72f
+                val sourceImage = PDFRenderer(source).renderImageWithDPI(2, dpi, ImageType.RGB)
+                val x0 = (14f * scale).roundToInt()
+                val y0 = (16f * scale).roundToInt()
+                val width = (105f * scale).roundToInt()
+                val height = (60f * scale).roundToInt()
+                val logoImage = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+                for (y in 0 until height) {
+                    for (x in 0 until width) {
+                        logoImage.setRGB(x, y, sourceImage.getRGB(x0 + x, y0 + y))
+                    }
                 }
-                PDFormContentStream(logo).use { s ->
-                    s.saveGraphicsState()
-                    s.addRect(0f, 0f, 105f, 60f)
-                    s.clip()
-                    // Source crop is x=14..119 pt, top=16..76 pt => PDF y=716..776.
-                    s.transform(Matrix.getTranslateInstance(-14f, -716f))
-                    s.drawForm(sourceForm)
-                    s.restoreGraphicsState()
-                }
-                return logo
+                return LosslessFactory.createFromImage(doc, logoImage)
             }
 
             private fun buildTransparentAttributeOrnament(

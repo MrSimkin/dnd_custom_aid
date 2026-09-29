@@ -422,9 +422,13 @@ private fun drawCustomV2Common(
 
         fillOnRulePx(stream, primitives, 885f, 311f, 93f, classSummary(plan), 10.5f)
         fillOnRulePx(stream, primitives, 777f, 419f, 135f, sheet.background.race, 10.5f)
-        fillCenteredTextPx(
-            stream, primitives, 534f, nameCenterY, sheet.name,
-            13.5f, 248f, PdfTypographyRole.HANDWRITTEN_NAME, -0.4f,
+        fillCenteredNameRibbonPx(
+            stream = stream,
+            primitives = primitives,
+            centerXPx = 534f,
+            centerYPx = nameCenterY,
+            text = sheet.name,
+            maxWidthPx = 248f,
         )
 
         fillCenteredTextPx(stream, primitives, 771f, 237f, sheet.armorClass.toString(), 20f, 106f, PdfTypographyRole.PRIMARY_VALUE, -1.6f)
@@ -764,6 +768,42 @@ private fun drawCustomV2Common(
                 maximumLines = 1,
                 horizontalPaddingPt = 1f,
                 verticalPaddingPt = 0f,
+            ),
+        )
+    }
+
+    private fun fillCenteredNameRibbonPx(
+        stream: PDPageContentStream,
+        primitives: DesktopPdfRenderingPrimitives,
+        centerXPx: Float,
+        centerYPx: Float,
+        text: String,
+        maxWidthPx: Float,
+    ) {
+        // M50800-25: the native ribbon owns a centered text area. Prefer the approved
+        // handwriting size, allow two centered lines, and only then reduce toward the
+        // readable floor. No optical Y offset is used: vertical centering is geometric.
+        val heightPx = 62f
+        primitives.drawTextBox(
+            stream,
+            PdfTextBoxSpec(
+                rect = rectPx(
+                    centerXPx - maxWidthPx / 2f,
+                    centerYPx - heightPx / 2f,
+                    maxWidthPx,
+                    heightPx,
+                ),
+                text = text,
+                role = PdfTypographyRole.HANDWRITTEN_NAME,
+                preferredSizePt = 13.5f,
+                minimumSizePt = 8.5f,
+                horizontalAlignment = PdfHorizontalAlignment.CENTER,
+                verticalAlignment = PdfVerticalAlignment.CENTER,
+                wrapPolicy = PdfWrapPolicy.WORD_WRAP,
+                maximumLines = 2,
+                horizontalPaddingPt = 1f,
+                verticalPaddingPt = 0f,
+                lineHeightMultiplier = 1.02f,
             ),
         )
     }
