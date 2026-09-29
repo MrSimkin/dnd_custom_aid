@@ -1003,19 +1003,6 @@ internal class DesktopCustomV1ExtendedRenderer(
                 }
             }
         }
-        appendLayer(page, "$prefix - MARKERS") { s ->
-            special.forEachIndexed { rowIndex, row ->
-                if (row.marked) {
-                    approvedV8Marker(
-                        s = s,
-                        font = resources.symbol,
-                        centerX = SPECIAL_CHECK_X + SPECIAL_CHECK_WIDTH / 2f,
-                        centerTop = INVENTORY_SPECIAL_CHECK_TOPS[rowIndex] + SPECIAL_CHECK_HEIGHT / 2f,
-                        size = 5.6f,
-                    )
-                }
-            }
-        }
     }
 
     private fun specialEquipmentRows(plan: PcSheetPdfRenderPlan): List<SpecialEquipmentRow> =
