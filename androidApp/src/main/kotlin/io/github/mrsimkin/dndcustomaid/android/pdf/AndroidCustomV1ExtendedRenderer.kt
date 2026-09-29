@@ -146,9 +146,11 @@ internal class AndroidCustomV1ExtendedRenderer(
         val sheet = plan.snapshot.aggregate.sheet
         val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
         val overflowNames = orderedTraits.drop(BASE_V1_TRAIT_NAME_CAPACITY)
-        val rightLines = traitDetailLines(plan, orderedTraits) + traitSupplementLines(plan)
+        val detailGroups = traitDetailLineGroups(plan, orderedTraits)
+        val supplementLines = traitSupplementLines(plan)
         return overflowNames.isNotEmpty() ||
-            rightLines.isNotEmpty() ||
+            detailGroups.isNotEmpty() ||
+            supplementLines.isNotEmpty() ||
             sheet.proficiencies.isNotEmpty()
     }
 
@@ -181,26 +183,52 @@ internal class AndroidCustomV1ExtendedRenderer(
             sheet.proficiencies.filter { it.type == CharacterProficiencyType.LANGUAGE },
         )
 
-        // Treat the two right-hand ruled areas as one continuation stream. This avoids
-        // allocating separate mostly-empty pages for "Detalles" and "Notas" when they are
-        // semantically one compact continuation.
-        val rightLines = traitDetailLines(plan, orderedTraits) + traitSupplementLines(plan)
+        val detailGroups = traitDetailLineGroups(plan, orderedTraits)
+        val supplementLines = traitSupplementLines(plan)
+        var detailGroupIndex = 0
+        var supplementLineIndex = 0
 
-        val pages = maxOf(
-            1,
+        fun takeContinuationLines(capacity: Int): List<String> {
+            val output = mutableListOf<String>()
+
+            while (detailGroupIndex < detailGroups.size) {
+                val group = detailGroups[detailGroupIndex]
+                require(group.size <= TRAIT_RECLAIM_ROWS) {
+                    "Custom-v1 trait detail record exceeds reclaimed native page capacity: " +
+                        group.firstOrNull().orEmpty()
+                }
+                val separator = if (output.isEmpty()) 0 else 1
+                if (output.size + separator + group.size > capacity) break
+                if (separator == 1) output += ""
+                output += group
+                detailGroupIndex += 1
+            }
+
+            if (detailGroupIndex >= detailGroups.size) {
+                while (
+                    supplementLineIndex < supplementLines.size &&
+                    output.size < capacity
+                ) {
+                    output += supplementLines[supplementLineIndex]
+                    supplementLineIndex += 1
+                }
+            }
+            return output
+        }
+
+        val nativeScaffoldPages = maxOf(
             pageCount(classNames.size, TRAIT_LEFT_ROWS),
             pageCount(raceNames.size, TRAIT_LEFT_ROWS),
             pageCount(featNames.size, TRAIT_LEFT_ROWS),
             pageCount(proficiencies.size, TRAIT_LEFT_ROWS),
             pageCount(languages.size, TRAIT_LEFT_ROWS),
             pageCount(otherNames.size, TRAIT_OTHER_CAPACITY),
-            pageCount(rightLines.size, TRAIT_RIGHT_CAPACITY),
         )
 
-        repeat(pages) { pageIndex ->
+        repeat(nativeScaffoldPages) { pageIndex ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
-            val rightPage = rightLines.pageSlice(pageIndex, TRAIT_RIGHT_CAPACITY)
+            val rightPage = takeContinuationLines(TRAIT_RIGHT_CAPACITY)
             renderTraitsPage(
                 page = page,
                 classNames = classNames.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
@@ -214,6 +242,85 @@ internal class AndroidCustomV1ExtendedRenderer(
                 pageIndex = pageIndex,
             )
         }
+
+        var reclaimedPageIndex = 0
+        while (
+            detailGroupIndex < detailGroups.size ||
+            supplementLineIndex < supplementLines.size
+        ) {
+            val lines = takeContinuationLines(TRAIT_RECLAIM_ROWS)
+            require(lines.isNotEmpty()) {
+                "Custom-v1 trait continuation made no progress while content remains."
+            }
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderTraitDetailsOnlyPage(
+                page = page,
+                lines = lines,
+                pageIndex = reclaimedPageIndex,
+            )
+            reclaimedPageIndex += 1
+        }
+    }
+
+    private fun renderTraitDetailsOnlyPage(
+        page: PDPage,
+        lines: List<String>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X TRAIT DETAILS P${pageIndex + 1}"
+
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            fill(s, 0f, 0f, W, H, Color.WHITE)
+            drawSourceCrop(
+                s = s,
+                form = resources.forms[2],
+                x = 20f,
+                top = 15f,
+                width = 145f,
+                height = 58f,
+            )
+            TRAIT_RECLAIM_RULES.forEachIndexed { index, top ->
+                if (index % 2 == 0) {
+                    fill(
+                        s,
+                        TRAIT_RECLAIM_X,
+                        top - TRAIT_RECLAIM_STEP + 1f,
+                        TRAIT_RECLAIM_WIDTH,
+                        TRAIT_RECLAIM_STEP - 1f,
+                        SOURCE_GRAY,
+                    )
+                }
+                drawRule(
+                    s,
+                    TRAIT_RECLAIM_X,
+                    TRAIT_RECLAIM_X + TRAIT_RECLAIM_WIDTH,
+                    top,
+                )
+            }
+        }
+        appendLayer(page, "$prefix - LABELS") { s ->
+            centeredGeneratedHeading(
+                s,
+                TRAIT_RECLAIM_X,
+                78f,
+                TRAIT_RECLAIM_WIDTH,
+                38f,
+                "Detalles de Rasgos",
+                18f,
+            )
+        }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            drawRuledValues(
+                s,
+                TRAIT_RECLAIM_X,
+                TRAIT_RECLAIM_X + TRAIT_RECLAIM_WIDTH,
+                TRAIT_RECLAIM_RULES,
+                lines,
+                8.5f,
+            )
+        }
+        appendLayer(page, "$prefix - MARKERS") { }
     }
 
     private fun renderTraitsPage(
@@ -289,10 +396,10 @@ internal class AndroidCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - MARKERS") { }
     }
 
-    private fun traitDetailLines(
+    private fun traitDetailLineGroups(
         plan: PcSheetPdfRenderPlan,
         traits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
-    ): List<String> {
+    ): List<List<String>> {
         val sheet = plan.snapshot.aggregate.sheet
         val resourceNames = sheet.resources
             .map { it.name.trim().lowercase() }
@@ -304,14 +411,14 @@ internal class AndroidCustomV1ExtendedRenderer(
             .filter { it.isNotEmpty() }
             .toSet()
 
-        return traits.flatMap { trait ->
+        return traits.mapNotNull { trait ->
             val normalizedName = trait.name.trim().lowercase()
             val hasDedicatedActionOrResource =
                 normalizedName in resourceNames || normalizedName in actionNames
             if (hasDedicatedActionOrResource) {
                 // The name may remain visible on the base trait surface, but detailed use/action
                 // semantics are authoritative in Resources and Combat, not replayed here.
-                emptyList()
+                null
             } else {
                 val detail = buildList {
                     trait.description.trim().takeIf { it.isNotEmpty() }?.let(::add)
@@ -329,7 +436,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                 }.distinct().joinToString(" · ")
 
                 if (detail.isBlank()) {
-                    emptyList()
+                    null
                 } else {
                     wrapByWidth(
                         trait.name + ": " + detail,
@@ -2445,6 +2552,14 @@ internal class AndroidCustomV1ExtendedRenderer(
         const val TRAIT_RIGHT_CAPACITY = TRAIT_DETAIL_ROWS + TRAIT_NOTE_ROWS
         const val TRAIT_LEFT_TEXT_WIDTH = 154f
         const val TRAIT_RIGHT_TEXT_WIDTH = 365f
+        const val TRAIT_RECLAIM_ROWS = 31
+        const val TRAIT_RECLAIM_X = 28f
+        const val TRAIT_RECLAIM_WIDTH = 556f
+        const val TRAIT_RECLAIM_FIRST_RULE_TOP = 140f
+        const val TRAIT_RECLAIM_STEP = 19.84f
+        val TRAIT_RECLAIM_RULES = List(TRAIT_RECLAIM_ROWS) { index ->
+            TRAIT_RECLAIM_FIRST_RULE_TOP + index * TRAIT_RECLAIM_STEP
+        }
 
         const val RESOURCE_FIRST_RULE_TOP = 128.5f
         const val RESOURCE_ROWS_PER_PAGE = 10
