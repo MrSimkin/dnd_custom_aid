@@ -1879,7 +1879,7 @@ private fun appendSpellContinuationPages(
                 text(
                     s, p, rightX + 10f, top, 148f, 18f,
                     entry.name,
-                    PdfTypographyRole.BODY, 8.5f, 6.8f,
+                    PdfTypographyRole.BODY, 8.5f, 5.8f,
                     wrap = true, maxLines = 2,
                     vertical = PdfVerticalAlignment.TOP,
                 )
@@ -1896,8 +1896,8 @@ private fun appendSpellContinuationPages(
                 ).joinToString(" · ")
                 text(
                     s, p, rightX + 211f, top, 97f, 18f,
-                    detail,
-                    PdfTypographyRole.BODY, 8.2f, 6.6f,
+                    classicBaseExcerpt(detail, CLASSIC_COMBAT_PREVIEW_CHARS, 2),
+                    PdfTypographyRole.BODY, 8.2f, 6.2f,
                     wrap = true, maxLines = 2,
                     vertical = PdfVerticalAlignment.TOP,
                 )
@@ -1925,7 +1925,7 @@ private fun appendSpellContinuationPages(
                 text(
                     s, p, rightX + 10f, rowTop, 134f, 17f,
                     trait.name,
-                    PdfTypographyRole.BODY, 7.8f, 6.2f,
+                    PdfTypographyRole.BODY, 7.8f, 5.5f,
                     wrap = true, maxLines = 2,
                     vertical = PdfVerticalAlignment.TOP,
                 )
@@ -2028,8 +2028,12 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
                 )
                 text(
                     s, p, 464f, top, 112f, 19f,
-                    inventoryBaseNote(item, usageByItem[item.id]),
-                    PdfTypographyRole.BODY, 8f, 6.4f,
+                    classicBaseExcerpt(
+                        inventoryBaseNote(item, usageByItem[item.id]),
+                        CLASSIC_BASE_INVENTORY_NOTE_CHARS,
+                        2,
+                    ),
+                    PdfTypographyRole.BODY, 8f, 6.0f,
                     wrap = true, maxLines = 2,
                     vertical = PdfVerticalAlignment.TOP,
                 )
@@ -2275,8 +2279,9 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         text(
             s, p, 36f, 31f, 195f, 31f,
             name,
-            PdfTypographyRole.CHARACTER_NAME, 18f, 13f,
+            PdfTypographyRole.CHARACTER_NAME, 18f, 9f,
             wrap = true, maxLines = 2,
+            align = PdfHorizontalAlignment.CENTER,
             vertical = PdfVerticalAlignment.CENTER,
         )
         text(s, p, 36f, 66f, 195f, 12f, "APTITUD MÁGICA", PdfTypographyRole.OPTIONAL_DECORATIVE, 6.8f, 6f)
@@ -2346,7 +2351,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             text(
                 s, p, x + 21f, rowTop, width - 31f, 18f,
                 spell?.name.orEmpty(),
-                PdfTypographyRole.SPELL_NAME, 8.1f, 6.4f,
+                PdfTypographyRole.SPELL_NAME, 8.1f, 5.5f,
                 wrap = true, maxLines = 2,
                 vertical = PdfVerticalAlignment.TOP,
             )
@@ -2494,8 +2499,9 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         text(
             s, p, 36f, 31f, 214f, 37f,
             name,
-            PdfTypographyRole.CHARACTER_NAME, 20f, 14f,
+            PdfTypographyRole.CHARACTER_NAME, 20f, 9f,
             wrap = true, maxLines = 2,
+            align = PdfHorizontalAlignment.CENTER,
             vertical = PdfVerticalAlignment.CENTER,
         )
         hairline(s, 36f, 68f, 250f, 68f)
@@ -2511,7 +2517,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             text(
                 s, p, x, top, 106f, 14f,
                 value,
-                PdfTypographyRole.BODY, 8.5f, 6.2f,
+                PdfTypographyRole.BODY, 8.5f, 5.2f,
                 wrap = true, maxLines = 2,
                 vertical = PdfVerticalAlignment.TOP,
             )
@@ -2540,8 +2546,9 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         text(
             s, p, 36f, 30f, 230f, 33f,
             name,
-            PdfTypographyRole.CHARACTER_NAME, 18f, 13f,
+            PdfTypographyRole.CHARACTER_NAME, 18f, 9f,
             wrap = true, maxLines = 2,
+            align = PdfHorizontalAlignment.CENTER,
             vertical = PdfVerticalAlignment.CENTER,
         )
         hairline(s, 36f, 66f, 266f, 66f)
@@ -2605,8 +2612,9 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         text(
             s, p, 36f, 30f, 220f, 33f,
             name,
-            PdfTypographyRole.CHARACTER_NAME, 18f, 13f,
+            PdfTypographyRole.CHARACTER_NAME, 18f, 9f,
             wrap = true, maxLines = 2,
+            align = PdfHorizontalAlignment.CENTER,
             vertical = PdfVerticalAlignment.CENTER,
         )
         hairline(s, 36f, 66f, 256f, 66f)
@@ -2675,7 +2683,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             text(
                 s, p, x + 24f, rowTop, width - 56f, 18f,
                 row.name,
-                PdfTypographyRole.BODY, 7.8f, 6.0f,
+                PdfTypographyRole.BODY, 7.8f, 5.4f,
                 wrap = true, maxLines = 2,
                 vertical = PdfVerticalAlignment.TOP,
             )
@@ -2721,7 +2729,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             text(
                 s, p, x + 25f, rowTop, width - 58f, 19f,
                 row.name,
-                PdfTypographyRole.BODY, 7.8f, 6.0f,
+                PdfTypographyRole.BODY, 7.8f, 5.4f,
                 wrap = true, maxLines = 2,
                 vertical = PdfVerticalAlignment.TOP,
             )
@@ -2825,28 +2833,23 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         entries.forEach { entry ->
             if (rowIndex >= physicalRows) return@forEach
 
-            val headerLines = maxOf(
-                wrapForChars(entry.name, CLASSIC_FEATURE_NAME_CHARS).size,
-                wrapForChars(entry.source, CLASSIC_FEATURE_SOURCE_CHARS).size,
-            ).coerceAtLeast(1)
-            if (rowIndex + headerLines > physicalRows) return@forEach
             val headerTop = top + rowIndex * lineGap
             text(
                 s, p, x + 1f, headerTop + 0.5f, width * 0.68f - 1f, lineGap - 1.5f,
                 entry.name,
-                PdfTypographyRole.SPELL_NAME, 9f, 6.8f,
-                wrap = true, maxLines = headerLines,
+                PdfTypographyRole.SPELL_NAME, 9f, 5.4f,
+                wrap = true, maxLines = 2,
                 vertical = PdfVerticalAlignment.TOP,
             )
             text(
                 s, p, x + width * 0.68f, headerTop + 0.5f, width * 0.32f - 1f, lineGap - 1.5f,
                 entry.source,
-                PdfTypographyRole.OPTIONAL_DECORATIVE, 7f, 5.6f,
-                wrap = true, maxLines = headerLines,
+                PdfTypographyRole.OPTIONAL_DECORATIVE, 7f, 5.0f,
+                wrap = true, maxLines = 2,
                 align = PdfHorizontalAlignment.RIGHT,
                 vertical = PdfVerticalAlignment.TOP,
             )
-            rowIndex += headerLines
+            rowIndex += 1
 
             entry.description
                 .replace("\r\n", "\n")
@@ -3035,7 +3038,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         text(
             s, p, x + 18f, top, width - 18f, 15f,
             name,
-            PdfTypographyRole.SPELL_NAME, 8.3f, 6.3f,
+            PdfTypographyRole.SPELL_NAME, 8.3f, 5.4f,
             wrap = true, maxLines = 2,
             vertical = PdfVerticalAlignment.TOP,
         )
