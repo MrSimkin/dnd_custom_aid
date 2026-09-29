@@ -356,3 +356,33 @@ Repair decision tied to M50800-04/M50800-07:
 - do not reduce below the existing readable floor and do not reintroduce the imported subset.
 
 This better reproduces the page-1 compact row behavior while keeping arbitrary custom Unicode visible.
+
+
+## Phase 2A — run 4212 exact artifact QA / safe-pause result
+
+Run 4212 / `36517524807` / head `6e53492dcd9f13945fbb320334f621aad070e61f` — **CI PASS**.  
+Artifact: `pc-sheet-populated-template-proofs` / `11011771728`.  
+Digest: `sha256:140b71f0d53c1ace3e0bd53385827d0d234d4d0706b0bff5d476cc595cc3017e`.
+
+Exact real-Mara observations:
+
+- Fantasy 42 pages;
+- Custom v1 39 pages;
+- Custom v2 Atributo 26 pages;
+- Custom v2 Habilidad 26 pages.
+
+Phase 1B regression scan remains positive: no `Consumible`; no ordinary prose description for object 2; object 29 remains present. V2 Atributo p.25 still visibly contains `Bolsa lateral`, the final Special Equipment item and an intact checkbox.
+
+Custom-v2 statistics evidence:
+
+- Atributo: exactly one statistics page (p.5); Fortuna, Cordura, Éter and Renombre all present; compact native-style modules; no second Renombre page; no fake fifth/sixth attribute shell; no `ETE · Éter`; no `UBICACIÓN`, `EQUIPO ESPECIAL` or `CLASE Y NIVEL` underlay text.
+- Habilidad: exactly one statistics page (p.5); four real attribute modules only; clean visible Éter; no `ETE · Éter`; no source-underlay leakage.
+- unused physical rows in saves/skills are not treated as phantom attribute shells; broader reclaim remains later M50800-27 work.
+- page-1 Mara name is visibly centered in the native ribbon and fits cleanly on one line; renderer has a centered two-line fallback.
+
+Disposition:
+
+- M50800-03/04/05/06/07/25 = **Phase 2A internal progression candidates with positive exact-artifact evidence**.
+- They remain formally OPEN in the master matrix until final exact-candidate acceptance / owner handoff.
+- Phase 2A internal progression gate = **PASS**.
+- Resume at Phase 2B.1.
