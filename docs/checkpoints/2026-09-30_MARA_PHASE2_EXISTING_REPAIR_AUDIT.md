@@ -1736,3 +1736,42 @@ if persistent character state says some uses/ammunition are already spent at exp
 **B. Preserve runtime snapshot separately:** keep the handwriting tracker blank/editable but also print the current/spent runtime state elsewhere as non-interfering text.
 
 No implementation assumption is authorized until the owner resolves 8A.
+
+
+## Owner clarification 8A — writable tracker runtime state — RESOLVED
+
+The owner chooses **B**, but with an important compact-presentation constraint.
+
+Required behavior:
+
+- the tracker remains writable/editable by hand;
+- the exported runtime/current availability may be preserved;
+- do **not** add a verbose secondary status line such as `Estado al exportar: 2 disponibles`;
+- instead, integrate the runtime value very compactly into the writable control.
+
+Owner example:
+
+`____(2)/3`
+
+Interpretation:
+- `3` = maximum capacity;
+- `2` = current available value at export time;
+- the blank/writable portion remains usable for manual table play;
+- the runtime snapshot is informational and visually subordinate.
+
+Equivalent native-compatible compact forms may be used for ammunition/uses if they preserve the same semantics and handwriting usability.
+
+**Audit consequence:** current pre-filled square/counter implementations that consume the writable marks are **MODIFY**. Phase 3 must provide a compact current/max annotation without sacrificing the blank handwritten control.
+
+## Phase-2 owner clarification status
+
+All owner clarification questions raised through M50800-32 are now resolved.
+
+No known owner QA item remains pending solely for lack of owner intent.
+
+The remaining Phase-2 work is technical consolidation only:
+- burn down the acceptance matrix;
+- reconcile stale provisional text against later owner decisions;
+- produce final KEEP / MODIFY / REPLACE / MISSING classifications;
+- map each item to exact Phase-3 action/evidence;
+- close the comprehension gate before renderer implementation.
