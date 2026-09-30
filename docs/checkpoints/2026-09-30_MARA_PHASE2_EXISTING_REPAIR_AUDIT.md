@@ -996,3 +996,86 @@ Code evidence inspected at repair head `ce695c...`:
 - continuation status path emits `Equipado`, `Consumible`, `Munición`, etc.
 
 No renderer/product code changes are made in Phase 2.
+
+
+## Owner responses — Batch 4 partial (14–17)
+
+### B4-14 — Ordinary Equipment native geometry — CONFIRMED
+
+The owner confirms that the generic two-column continuation design should be discarded.
+
+Required rule:
+
+- start from the **actual native Equipment element**;
+- reuse its existing width/height and visual grammar as the baseline;
+- the Extended-page composer may place/repeat that native module, but must not invent arbitrary new Equipment box dimensions or new families of height/width merely for packing convenience;
+- flexibility comes from composing/repeating valid native modules/rows/layouts, not from redefining the module into an unrelated generic rectangle.
+
+**Audit consequence:** generic `INVENTARIO / EQUIPO` continuation is **REPLACE**. Native Equipment module geometry becomes the authority.
+
+### B4-15 — Ordinary Equipment visible content — CONFIRMED
+
+The owner confirms that `Equipado` should also be absent from ordinary Equipment rows.
+
+Visible ordinary Equipment row content is therefore limited to compact item identity:
+
+- quantity when relevant;
+- full item name/identity.
+
+Do not show in the visible ordinary Equipment row:
+
+- weight;
+- `Consumible`;
+- `Equipado`;
+- operational state prose;
+- prose description.
+
+Ammunition/use semantics are governed separately by the writable-tracker rule.
+
+**Audit consequence:** current `pdfCompactEquipmentLabel()` and continuation status rendering require modification.
+
+### B4-16 — Ordinary Equipment atomic identity / wrapped-line indentation — CONFIRMED
+
+The owner confirms the semantic-record rule:
+
+- one item remains visually atomic;
+- choose the native Equipment module width first;
+- bounded readable compression is allowed;
+- if wrapping is still required, wrapped lines use uniform scale;
+- no next item begins before the current item finishes.
+
+Additional owner requirement:
+
+- from the **second wrapped line onward**, use visible indentation (or an equivalent clear continuation cue) so it is obvious that the line belongs to the item above rather than starting a new item.
+
+Conceptual example:
+
+```
+3 x Cuaderno de fórmulas personales
+    y mapas plegables
+Antorcha
+```
+
+**Audit consequence:** record-boundary packing is reusable, but wrapped-line rendering must include a continuation indentation/cue within native Equipment grammar.
+
+### B4-17 — Equipo Especial geometry — RESOLVED AS FIXED NATIVE MODULE
+
+The owner clarifies that the native Equipo Especial module already includes capacity/space for **non-common/custom locations**.
+
+Therefore:
+
+- do not extend/redefine its geometry;
+- do not invent a taller variant;
+- copy/reuse the native Equipo Especial element as-is;
+- when more capacity is required, **repeat the native element**;
+- the compositor may position the repeated module where a valid layout permits, but the module itself remains native.
+
+This corresponds to prior option **A: full native module geometry fixed and repeatable**.
+
+**Audit consequence:** current generic two-column Equipo Especial continuation is **REPLACE**. Clarification 9A is CLOSED.
+
+### B4-13 — Resources / “Options” terminology — PENDING NOMENCLATURE CLARIFICATION
+
+The owner does not recognize the abbreviated label “Opciones”.
+
+Before asking for a product decision, identify the actual domain/UI name represented by `CharacterClassOption` / the `OPCIONES` section and explain it using concrete examples from the supported kinds. Do not assume owner intent until terminology is clear.
