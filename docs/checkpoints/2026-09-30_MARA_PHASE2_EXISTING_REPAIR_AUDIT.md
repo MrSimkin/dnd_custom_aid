@@ -1523,3 +1523,85 @@ This is **not** free-form geometric packing:
 - page-count reduction is an outcome, never the optimization target.
 
 **Audit consequence:** M50800-27 is conceptually CLOSED for owner intent. Phase 3 must implement the global constraint-aware compositor while preserving the valid local packing primitives identified during Phase 2.
+
+
+## Batch 7 — acceptance/process rules (28–32)
+
+### B7-28 — M50800-28 page-count interpretation
+
+**Matrix rule:** there is no fixed product minimum/maximum page count. A high page count is evidence of a packing problem only when pages waste usable native space; a low count is not proof of correctness if achieved by compression, deformation, data loss or loss of handwriting usability.
+
+**Evidence:** the final adaptive proof reported 29 / 18 / 16 / 15 pages and its historical closure called them fixture regression ceilings. Phase 2 has since established that several of those layouts still violate owner design rules despite the lower counts.
+
+**Audit consequence:** numeric ceilings must not be used as product acceptance. Page count remains diagnostic evidence only.
+
+**Owner question:** confirm that 29 / 18 / 16 / 15 must not be preserved as target numbers; the next candidate may legitimately have more or fewer pages if the visual/native/semantic rules are satisfied.
+
+### B7-29 — M50800-29 data preservation
+
+**Matrix rule:** all required semantic identities must survive layout repair. Readability cannot be purchased by silently dropping records.
+
+**Existing repair evidence:** `ce695c...` strengthened the Mara cross-family fixture so generated PDFs contain full semantic identities for:
+- traits;
+- resources;
+- class-choice records;
+- inventory items;
+- note-card titles;
+- custom attributes;
+- custom markers.
+
+This is useful regression protection, but text-layer presence somewhere is not sufficient visual acceptance.
+
+**Phase-3 requirement:** preserve both:
+1. **semantic completeness** — every required record is present;
+2. **correct association/presentation** — the identity appears in the correct native module/continuation and is not merely duplicated elsewhere to satisfy a text scan.
+
+**Owner question:** confirm that this two-part rule is correct: no data loss, and “present somewhere in the PDF” is not enough if the data is presented in the wrong module or detached from its semantic record.
+
+### B7-30 — M50800-30 pre-fix comprehension gate
+
+**Matrix requirement:** no renderer code changes until the actual failing artifacts/owner observations are understood, native references are identified and each defect is mapped to evidence/intended behavior.
+
+**Current Phase-2 status:** this gate is being executed now:
+- Phase 1 resolved exact 50800 provenance;
+- Phase 2 has reviewed the later repair item-by-item against owner QA;
+- owner clarifications are being persisted before implementation;
+- no renderer/product code has been changed on the Phase-2 audit branch.
+
+**Audit consequence:** the gate is not a design question; it becomes satisfied only when this audit closes with a complete owner-observation → existing code/evidence → KEEP/MODIFY/REPLACE/MISSING → Phase-3 action mapping.
+
+**Owner question:** confirm the process rule that Phase 3 implementation starts only after this Phase-2 mapping is complete enough that no known owner QA item is left without a planned disposition.
+
+### B7-31 — M50800-31 exact-candidate acceptance gate
+
+**Matrix requirement:** CI/tests/synthetic proofs/page counts cannot authorize owner handoff by themselves.
+
+Before owner handoff of the next candidate:
+- build must have a unique owner-facing version/build identity greater/different from 50800;
+- generate the real Mara PDFs from that exact candidate;
+- inspect the actual candidate PDFs, not a previous proof artifact;
+- walk the acceptance matrix and mark each item FIXED / OPEN / CHANGED-NEW;
+- any material blocking OPEN or new regression blocks handoff;
+- record source commit → build/run → APK hash/artifact → exact proof hashes so provenance cannot repeat the 50800 mistake.
+
+**Owner question:** confirm this as the handoff gate.
+
+### B7-32 — M50800-32 all-four-family generation
+
+**Historical evidence:** `ce695c...` successfully generated all four internal Mara proof families:
+- Fantasy;
+- Custom v1;
+- Custom v2 · Atributo;
+- Custom v2 · Habilidad.
+
+That proves the old repair head could generate all four internally, but does not waive the requirement for the next candidate.
+
+**Next-candidate rule:** before owner handoff, the exact candidate must generate real Mara output successfully in all four families, and those exact four outputs must be part of candidate inspection.
+
+A failure in any one family blocks handoff even if the other three look correct.
+
+**Owner question:** confirm that all four families are mandatory smoke/visual evidence before the next owner QA handoff.
+
+## Batch 7 status
+
+No renderer/product code changes are made. These are acceptance/process rules and remain pending owner confirmation where a question is listed.
