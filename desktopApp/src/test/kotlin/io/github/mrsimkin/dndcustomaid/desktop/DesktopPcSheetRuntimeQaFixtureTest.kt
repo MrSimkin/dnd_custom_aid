@@ -292,6 +292,89 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     }
 
     @Test
+    fun maraCustomV1ResourcesReclaimExhaustedOptionsAndKeepLogicalRecordsWhole() {
+        val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(
+                permanent = PcSheetExportAggregate(
+                    sheet = document.character,
+                    closure = document.closureState,
+                    successor = document.successorState,
+                ),
+            ),
+        )
+
+        val bytes = ByteArrayOutputStream().use { output ->
+            DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+            output.toByteArray()
+        }
+
+        Loader.loadPDF(bytes).use { pdf ->
+            val pageTexts = (1..pdf.numberOfPages).map { pageNumber ->
+                PDFTextStripper().apply {
+                    startPage = pageNumber
+                    endPage = pageNumber
+                }.getText(pdf).replace(Regex("\\s+"), " ").trim()
+            }
+
+            assertTrue(
+                pageTexts.any { page ->
+                    page.contains("Recursos", ignoreCase = true) &&
+                        page.contains("Opciones", ignoreCase = true)
+                },
+                "Custom v1 must keep the split native grammar while both Resources and Options survive.",
+            )
+
+            val reclaimedPages = pageTexts.filter { page ->
+                page.contains("Recursos · Continuación", ignoreCase = true)
+            }
+            assertTrue(
+                reclaimedPages.isNotEmpty(),
+                "Custom v1 must reclaim the page after Options are exhausted.",
+            )
+            reclaimedPages.forEach { page ->
+                assertTrue(
+                    !page.contains("Opciones", ignoreCase = true),
+                    "Resources-only continuation must not retain an empty Options scaffold.",
+                )
+            }
+
+            val fullText = pageTexts.joinToString(" ")
+            val resourceIdentities = document.character.resources
+                .sortedBy { it.sortOrder }
+                .map { it.name } +
+                document.successorState.customMarkers
+                    .sortedBy { it.sortOrder }
+                    .map { it.name }
+            resourceIdentities.forEach { identity ->
+                assertTrue(
+                    fullText.contains(identity),
+                    "Custom v1 must preserve Resource/Marker identity $identity",
+                )
+            }
+            document.character.classOptions
+                .sortedBy { it.sortOrder }
+                .forEach { option ->
+                    assertTrue(
+                        fullText.contains(option.name),
+                        "Custom v1 must preserve Option identity ${option.name}",
+                    )
+                }
+
+            reclaimedPages.forEach { page ->
+                assertTrue(
+                    resourceIdentities.any { identity -> page.contains(identity) },
+                    "Each reclaimed Resources page must begin from identifiable logical records, not anonymous tails.",
+                )
+            }
+        }
+    }
+
+    @Test
     fun maraOrdinaryEquipmentProjectionOmitsWeightConsumibleAndDescriptionsAcrossFamilies() {
         val document = fixture("03_mara_siete_umbrales_custom_extended.json")
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
