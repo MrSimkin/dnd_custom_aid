@@ -1605,3 +1605,104 @@ A failure in any one family blocks handoff even if the other three look correct.
 ## Batch 7 status
 
 No renderer/product code changes are made. These are acceptance/process rules and remain pending owner confirmation where a question is listed.
+
+
+## Owner responses — Batch 7 (28–32)
+
+### B7-28 — page-count interpretation — CONFIRMED WITH PRACTICAL EXPECTATION
+
+The owner confirms that the historical `29 / 18 / 16 / 15` counts are **not product targets** and must not be preserved mechanically.
+
+Page count is an outcome of:
+- native visual grammar;
+- readable text;
+- handwriting usability;
+- semantic continuity;
+- reasonable packing efficiency.
+
+A candidate may legitimately have more or fewer pages than the historical proof counts.
+
+Additional owner expectation:
+- a **normal/standard character sheet should not ordinarily require an excessive number of pages**;
+- however, the Mara QA fixture is intentionally extreme/high-volume, so a larger page count may be an artifact of the stress dataset rather than a product defect by itself.
+
+**Audit consequence:** use page count as a diagnostic signal:
+- unusually large counts on ordinary characters may indicate a packing regression;
+- stress-fixture counts must be interpreted in context;
+- no numeric ceiling substitutes for visual/layout acceptance.
+
+### B7-29 — semantic data preservation — CONFIRMED
+
+The owner confirms the two-part rule:
+
+1. preserve every required semantic record;
+2. preserve correct semantic placement/association.
+
+“Present somewhere in the PDF” is insufficient.
+
+Examples explicitly consistent with owner intent:
+- a Trait must not be routed into Notes merely to preserve its text;
+- an Attack must not appear in Equipment;
+- each record belongs in its correct native/extended semantic module.
+
+**Audit consequence:** Phase-3 regressions must test both semantic completeness and module/record association, not only whole-document text presence.
+
+### B7-30 — pre-fix comprehension gate — CONFIRMED / THIS PHASE IS THE GATE
+
+The owner confirms that the current Phase-2 exercise is exactly the intended comprehension gate.
+
+Current purpose:
+- reconstruct every known owner QA observation;
+- understand what it means visually/semantically;
+- map it to existing code/evidence;
+- classify existing repair work as KEEP / MODIFY / REPLACE / MISSING;
+- record the expected future behavior;
+- only then enter Phase 3 implementation.
+
+The owner explicitly confirms this is what the current audit should accomplish.
+
+**Audit consequence:** B7-30 is conceptually satisfied only at Phase-2 closure, once no known owner observation lacks a planned disposition. No renderer/product code changes are authorized before that closure.
+
+### B7-31 — exact candidate/version/build acceptance identity — CONFIRMED
+
+The owner strongly confirms the exact-candidate provenance gate.
+
+Reason:
+- the owner needs to know exactly which APK is being tested;
+- version and build identity must uniquely identify the candidate;
+- the delivered APK must have an explicit, unique owner-facing filename — effectively the APK's “nombre y apellido”.
+
+Before owner handoff, record and preserve the exact chain:
+
+- source commit;
+- unique app version;
+- unique build number, never reusing 50800;
+- workflow/build run;
+- APK artifact identity;
+- APK SHA-256;
+- exact Mara proof PDFs generated from that same candidate;
+- proof hashes;
+- completed acceptance matrix against those exact outputs.
+
+No materially different APKs may share the same owner-facing version/build identity.
+
+**Audit consequence:** provenance is a hard acceptance gate, not bookkeeping.
+
+### B7-32 — all-four-family generation — CONFIRMED
+
+Before the next owner QA handoff, the exact candidate must successfully generate and pass candidate inspection for all four Mara families:
+
+- Fantasy;
+- Custom v1;
+- Custom v2 · Atributo;
+- Custom v2 · Habilidad.
+
+A material failure in any one family blocks handoff even if the other three succeed.
+
+Generation success alone is insufficient; the exact outputs also participate in the candidate visual/semantic acceptance review.
+
+## Batch 7 disposition
+
+Owner intent for M50800-28 through M50800-32 is now clear.
+
+No renderer/product code changes have been made during Phase 2.
