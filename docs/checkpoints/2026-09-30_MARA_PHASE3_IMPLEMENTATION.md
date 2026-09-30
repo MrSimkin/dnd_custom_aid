@@ -1,0 +1,104 @@
+# Phase 3 — Mara renderer repair implementation
+
+**Date:** 2026-09-30 (Chile local time)  
+**Phase:** 3 — implementation  
+**Branch:** `repair/mara-phase3-semantic-flow-compositor`  
+**Base main:** `c4e65955a5f58f88e0b03807b4616a3f8a9323a8`  
+**Status:** ACTIVE / IMPLEMENTATION AUTHORIZED  
+**Owner authority:** Phase-2 final burn-down in `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md`.
+
+## Non-negotiable authority
+
+Phase 3 must implement the authoritative final disposition for M50800-01…32. Earlier provisional questions/classifications in the Phase-2 checkpoint are historical only.
+
+Do not reopen owner decisions already resolved unless implementation reveals a genuinely new product ambiguity.
+
+## Implementation order
+
+1. **Shared semantic-flow contracts**
+   - semantic record identity + correct module association;
+   - bidirectional continuation metadata (`continúa en...` / `proviene de...`);
+   - writable tracker semantics with compact current/max snapshot (owner example `____(2)/3`);
+   - meaningful-text policy: no semantic ellipsis, bounded readable compression, then wrap/grow/continue.
+
+2. **Native-module geometry/contracts**
+   - Custom Statistics source-native attribute module;
+   - Traits/Rasgos;
+   - Trasfondo/Historia;
+   - Combat/Actions;
+   - ordinary Equipment;
+   - Equipo Especial;
+   - Notes;
+   - Resources / class-choice modules.
+
+3. **Global Extended-page compositor**
+   - inspect all remaining active semantic streams;
+   - choose valid family-native layouts;
+   - remove exhausted modules from later layouts;
+   - permit compatible modules to reclaim/share space only within native geometry constraints;
+   - fixed modules repeat rather than resize;
+   - Notes overflow remains a whole-native-page exception.
+
+4. **Family renderer integration**
+   - Custom v1;
+   - Custom v2 · Atributo;
+   - Custom v2 · Habilidad;
+   - Fantasy;
+   - Android/Desktop parity.
+
+5. **Regression + proof**
+   - semantic completeness and correct module association;
+   - no stale underlay;
+   - no semantic ellipsis or silent dropped overflow;
+   - all-four-family real Mara generation;
+   - actual rendered PDF inspection against M50800-01…32.
+
+6. **Exact owner candidate gate**
+   - unique versionName/versionCode/build identity; never reuse 50800;
+   - explicit owner-facing APK filename;
+   - exact source commit → workflow/build → APK artifact → APK SHA-256;
+   - exact four Mara proof hashes;
+   - acceptance matrix marked FIXED / OPEN / CHANGED-NEW before owner handoff.
+
+7. **Next-phase recovery prompt**
+   - at Phase-3 closure, provide the owner a ready-to-copy continuation/recovery prompt equivalent to the established timeout/connection-failure prompt;
+   - it must force canonical repo re-anchoring, preserve final/latest owner decisions over superseded provisional text, verify partially-completed operations before repeating them, and route into the next phase without losing references.
+
+## Cross-cutting owner rules
+
+- Native/source reuse before reconstruction.
+- Custom v1/v2 native bicolour row physical reference: 7 mm (~19.84 pt).
+- Meaningful semantic identities never use `...`.
+- Wrapped lines for one semantic label use uniform typography/scale.
+- Ordinary Equipment visible content = quantity + full identity only; no weight, `Consumible`, `Equipado`, status prose or description.
+- Equipo Especial uses the native fixed module; repeat it when more capacity is needed. Custom-location fallback may be built from native pieces with matching font/size/strokes/fills/spacing, never overprinting canonical labels.
+- Notes overflow uses the full native Notes page.
+- Split semantic content uses bidirectional explicit navigation.
+- Writable use/ammunition trackers remain hand-editable while compactly preserving runtime current/max state.
+- Page count is diagnostic, not a target.
+
+## First implementation package
+
+Start with shared semantic-flow contracts and tests. Do not begin by patching individual Mara pages.
+
+The first package should make renderer-independent concepts explicit and testable before visual integration:
+- semantic module identity;
+- continuation links;
+- compact writable tracker state;
+- semantic text fit/overflow decisions.
+
+## Owner boundary
+
+Routine technical decomposition, tests, branch commits, CI and PR mechanics are autonomous while scope remains within this checkpoint.
+
+Stop only for:
+- a genuinely new owner/product decision not resolved by Phase 2;
+- material regression/contradiction in native source evidence;
+- security/cost/provider boundary;
+- exact owner visual QA handoff after internal candidate acceptance.
+
+## Gate to Phase 4 / next phase
+
+Phase 3 is not closed until the exact candidate has passed the internal all-four-family acceptance gate and the owner-facing handoff state is recorded.
+
+At closure, provide the point-7 recovery prompt requested by the owner.
