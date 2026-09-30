@@ -338,3 +338,106 @@ Relevant repair commits include:
 - Combat compact/header separation: `0cc63991...`.
 
 Batch 2 is **PENDING OWNER REVIEW**. No renderer/product code changes are permitted.
+
+
+## Owner follow-up — Batch 1/2 clarifications
+
+### B1-05 — Éter / abbreviated ability-reference rule — EXPANDED
+
+The owner further clarified that the `(ETE)` suffix is **mode/context dependent**, not universally required.
+
+Required behavior:
+
+- **Per Attribute / por Atributo:** when a skill is listed directly under its owning attribute, do **not** redundantly append `(ETE)` because the parent attribute is already visually explicit above it.
+- **Per Ability / por Habilidad:** when skills are listed together outside an owning attribute block, append the compact ability key, e.g. `Lectura de presagios (ETE)`.
+- The same compact-key rule applies when **overflow/extra skills associated with existing standard abilities** (e.g. Strength/Wisdom) must be listed outside the page-1 native block because they no longer fit there:
+  - `<skill> (FUE)`;
+  - `<skill> (SAB)`;
+  - etc.
+- Attribute title/name remains integrated native-style, e.g. `ETEr`.
+- Compact references use only the three-letter key, e.g. `ETE`.
+
+**Audit consequence:** any unconditional suffixing strategy is wrong. The formatter must know whether the owning attribute is already structurally explicit. Classification remains **PARTIALLY RESOLVED / MODIFY**, with existing compact-key helper potentially reusable.
+
+### Clarification Point 2 — native boxes / 7 mm native row grammar — RESOLVED
+
+The owner confirmed the earlier understanding exactly.
+
+Required layered construction:
+
+1. background/fill color layer;
+2. exact native page-1 score/modifier box ornament as the next visual layer;
+3. later semantic text/value/marker layers.
+
+Do not replace the native ornament with a merely similar programmatic box when the original component can be reused.
+
+Additional source-authoring fact supplied by the owner:
+
+- the bicolour ruled/table rows used across Custom v1/v2 (e.g. Equipment, Background and analogous tables) were designed in Adobe InDesign at **7 mm row height**;
+- 7 mm is the intended physical handwriting-friendly row cadence;
+- pixel/raster measurements can obscure this design fact, so the implementation should treat **7 mm (~19.84 pt)** as an authoritative physical-design reference when reproducing such source-native rows.
+
+Fallback rule when a new box must genuinely be created because no reusable source object/component exists:
+
+- it must be visually almost indistinguishable from the owner's established family grammar;
+- e.g. Custom v1 boxes use the characteristic border construction (owner recalls thin / thick / thin line treatment);
+- family-specific stroke/fill/spacing grammar must be measured/reused rather than replaced by a generic rectangle.
+
+**Audit consequence:** Clarification Point 2 is closed. Exact source-component reuse is the default; source-faithful reconstruction is a fallback only when copying/reusing is impossible.
+
+### B2-06 — isolated source objects / placement — RESOLVED
+
+The owner accepts isolated source-derived raster/image objects to avoid hidden template contamination.
+
+Placement rule:
+
+- copy/reuse the source object itself;
+- **do not assume the original source-page coordinates must be preserved**;
+- reposition the object to the location required by the new Extended layout and the semantic role it serves;
+- never place it over another important element merely to preserve source coordinates or visual resemblance.
+
+**Audit consequence:** classification becomes **KEEP** for the isolation technique, with placement governed by collision-free adaptive composition.
+
+### B2-07 — Traits/Rasgos and adaptive Extended page composition — MAJOR CLARIFICATION
+
+The owner clarified that the key requirement is broader than merely changing the Traits continuation page.
+
+Extended pages must **not** be treated as a fixed multi-zone page template whose unused sections remain reserved.
+
+Example supplied by owner:
+
+If overflow exists only for:
+- Rasgos; and
+- Equipo;
+
+then a new page should contain **only those two active modules**, with their available page area expanded/reallocated appropriately.
+
+Rejected pattern:
+
+- create a fixed page containing six semantic slots;
+- populate only Rasgos and Equipo;
+- leave the other four slots empty.
+
+Accepted conceptual pattern:
+
+- compose the page dynamically from the content streams that actually remain;
+- include only active/warranted modules;
+- allocate page width/height among those modules according to their remaining content and family-native visual grammar;
+- allow modules to reclaim space from absent/exhausted modules;
+- generate another page only when remaining content genuinely requires one.
+
+The page remains family-matched:
+- reuse/copy native modules where possible;
+- preserve source-family visual grammar;
+- source-derived objects may be repositioned;
+- new/reconstructed boxes must be source-faithful;
+- no important visual/data element may be overprinted.
+
+**Audit consequence:** the current repair's pattern of having separate role-specific Extended pages (Traits page, Resources page, Inventory page, Notes page, etc.) is **not sufficient as the final architecture** if multiple remaining roles could share one page efficiently. The adaptive repair made useful local packing improvements, but a higher-level **cross-role page composition layer** is still required.
+
+Therefore B2-07 is reclassified from KEEP/MODIFY candidate to **PARTIAL / ARCHITECTURAL GAP**:
+- KEEP family-native module/continuation primitives where valid;
+- MODIFY/REPLACE fixed role-page allocation;
+- add a dynamic page composer that decides which active modules share each Extended page.
+
+This clarification also materially affects later review of Resources, Equipment, Notes and other continuation roles; those items must be audited under this cross-role composition rule.
