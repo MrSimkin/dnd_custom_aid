@@ -60,7 +60,7 @@ class PcSheetPdfContinuationFlowTest {
             extendedCapacity = 4,
         )
 
-        assertEquals(4, segments.size)
+        assertEquals(5, segments.size)
 
         assertEquals(
             "[continúa en sección extendida HISTORIA 01]",
@@ -89,7 +89,16 @@ class PcSheetPdfContinuationFlowTest {
             "[proviene de sección extendida HISTORIA 02]",
             segments[3].leadingMarker,
         )
-        assertNull(segments[3].trailingMarker)
+        assertEquals(
+            "[continúa en sección extendida HISTORIA 04]",
+            segments[3].trailingMarker,
+        )
+
+        assertEquals(
+            "[proviene de sección extendida HISTORIA 03]",
+            segments[4].leadingMarker,
+        )
+        assertNull(segments[4].trailingMarker)
         assertEquals((1..10).map { "línea $it" }, segments.flatMap { it.contentLines })
     }
 
