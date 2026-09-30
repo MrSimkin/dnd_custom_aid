@@ -155,9 +155,9 @@ Repository-side provenance is now bounded:
 3. the final repair branch has an internally coherent source → run → APK artifact → proof-artifact chain;
 4. the owner runtime materially disagrees with that final proof chain;
 5. the exact Custom-v1 failure strongly matches the pre-fix defect path and was specifically repaired before `ce695c...`;
-6. **the missing fact is the SHA-256 of the exact APK actually installed/tested by the owner**.
+6. the owner-supplied APK matches the pre-adaptive `15f86ec...` artifact exactly and does not match the final adaptive-repair APK.
 
-No speculative renderer repair is authorized yet.
+Phase 1 provenance is therefore closed. No new renderer implementation has been authorized or started.
 
 ## Phase-1 closure
 
