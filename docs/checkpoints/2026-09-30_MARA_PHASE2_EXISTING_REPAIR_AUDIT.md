@@ -866,3 +866,133 @@ Open owner clarifications at this safety point:
 
 No further Phase 2 audit conclusions should be advanced past these questions while the owner is away.
 No renderer/product code changes are authorized.
+
+
+## Batch 4 — Resources/Options and Equipment — pending owner review
+
+This batch continues after B3-12. Earlier open clarifications 8A and 11A remain open. Clarification 9A is folded into B4-17 because it directly governs Equipo Especial geometry.
+
+### B4-13 — M50800-14 Resources/Options packing
+
+**Original observation:** once Options were exhausted, the old renderer continued reserving/repeating a large empty Options scaffold while Resources still needed continuation space.
+
+**Repair attempted:** `535070ed...` / `dc5d5caa...` changed Resources/Options pagination from a fixed paired-page model to three local modes:
+- combined Resources + Options while both remain;
+- Resources-only when Options are exhausted;
+- Options-only when Resources are exhausted.
+
+**Actual final proof:**
+- Mara page 12 contains both Resources and Options;
+- page 13 contains only Resources and reclaims almost the full page instead of repeating an empty Options block.
+
+**What is genuinely useful:** the exhausted-stream detection and the ability for Resources to reclaim space are real improvements.
+
+**What is no longer sufficient under the owner's later architecture:** the implementation still creates a dedicated Resources page. Under the confirmed cross-role compositor rule, Resources should become a composable module that may share a page with other remaining roles when a valid family-native layout permits it.
+
+**Additional cross-cutting issue:** current resource counters render already-consumed/current state with filled/empty squares; this intersects unresolved clarification 8A about writable tracker state.
+
+**Provisional classification:** **PARTIAL / KEEP local reclaim primitive + MODIFY page-allocation architecture**.
+
+**Owner question:** confirm that the local rule “when Options ends, Resources may reclaim its space” is correct and reusable, but Resources/Options must ultimately participate in the global constraint-aware Extended-page composer rather than automatically own a continuation page.
+
+### B4-14 — M50800-15 Ordinary Equipment design
+
+**Original requirement:** do not invent a separate descriptive Inventory presentation. Reuse/copy the existing native ordinary `EQUIPO` element and increase capacity by repeating/adding its native rows/columns/pages as needed.
+
+**Repair state at `ce695c...`:**
+- the final repair replaced the earlier dedicated Equipment structures with a generic two-column `INVENTARIO / EQUIPO · CONTINUACIÓN` flow;
+- each column is a long ruled text stream;
+- section labels such as `EQUIPO` are inserted as text records into that stream.
+
+**Actual final proof:** Mara page 14 is visibly a generic two-column continuation rather than a copy/extension of the native Equipment element from base page 2.
+
+**Relevant owner design facts now known:**
+- ordinary Equipment is highly flexible in page allocation;
+- source-family bicolour table rows were authored at 7 mm physical height;
+- source components should be copied/reused when available.
+
+**Provisional classification:** **REPLACE presentation architecture**. Record-packing helpers may be reusable, but the generic two-column Inventory page is not the desired visual component.
+
+**Owner question:** confirm that the generic two-column `INVENTARIO / EQUIPO` continuation should be discarded as a visual design, and ordinary Equipment should instead be represented by reusable native Equipment modules/rows that the global composer can resize/repeat within valid layouts.
+
+### B4-15 — M50800-16 Ordinary Equipment content
+
+**Original owner rule:** visible ordinary Equipment content is compact identity, e.g. `3 x Frasco de tinta`.
+Do **not** display:
+- weight;
+- `Consumible`;
+- prose descriptions.
+
+**Repair state:**
+- shared `pdfCompactEquipmentLabel()` explicitly appends weight (`· 2 lb`, etc.);
+- Custom-v2 continuation adds operational status lines such as `Estado: Equipado`, `Estado: Consumible`, etc.;
+- ordinary descriptions were removed from the Equipment row path, which is a useful partial correction.
+
+**Actual final proof:** Mara page 14 visibly contains item weight and status/Consumible lines.
+
+**Provisional classification:** **PARTIAL / MODIFY**:
+- KEEP quantity + full item identity and the removal of prose descriptions from ordinary Equipment;
+- REMOVE weight from the visible ordinary Equipment label;
+- REMOVE `Consumible` and similar operational metadata from visible ordinary Equipment;
+- preserve ammunition/use semantics only through the separately defined writable-tracker treatment, not by adding prose metadata to the item identity.
+
+**Owner question:** no new product decision is required unless the owner disagrees; this follows an already explicit acceptance rule. Confirm only whether `Equipado` should also be absent from ordinary Equipment rows, consistent with the compact-identity-only rule.
+
+### B4-16 — M50800-17 Ordinary Equipment readability / atomic identity
+
+**Original observation:** item identity and metadata/descriptions were fragmented across physical streams/columns, making Equipment difficult to scan.
+
+**Repair attempted:** record-aware packing keeps an item's wrapped lines together when possible and adds a continuation title if a record must cross a physical column.
+
+**Actual final proof:** this improves record contiguity compared with the old failure, but the item presentation is still polluted by weight/status and uses a non-native generic flow. Long identities are also rendered in a relatively narrow half-page column even though ordinary Equipment is one of the most flexible modules.
+
+**Owner's already-established typography rule:** readable compression is allowed; wrapping is allowed; all wrapped lines of one semantic label must use a consistent scale.
+
+**Provisional classification:** **KEEP record-boundary concept / MODIFY visual implementation**.
+
+The reusable principle should be:
+- compact identity stays one semantic record;
+- choose a reasonable native Equipment column width/layout first;
+- apply bounded uniform compression if useful;
+- then wrap consistently if needed;
+- do not interleave another item until the record is complete;
+- do not waste another page merely because a rigid Equipment slot ended.
+
+**Owner question:** confirm this as the intended readability rule for ordinary Equipment.
+
+### B4-17 — M50800-18 Equipo Especial native design + clarification 9A
+
+**Original requirement:** the renderer invented a separate Extended table although a correct native/source `EQUIPO ESPECIAL` element already exists. Reuse/copy that native component and extend only capacity/rows as needed.
+
+**Repair state at `ce695c...`:**
+- the final repair abandoned the native Equipo Especial table in continuation;
+- special items are converted into generic title/body records inside the same two-column Inventory flow;
+- location, quantity, weight, Equipped/Attuned/Consumible state, description and notes are concatenated into wrapped prose-like lines.
+
+**Actual final proof:** Mara page 15 is not the native Equipo Especial module; it is a generic two-column text continuation headed by `EQUIPO ESPECIAL`.
+
+**Provisional classification:** **REPLACE continuation presentation**. Data extraction and record-boundary logic may survive, but the visual module must return to the native/source Equipo Especial grammar.
+
+**Clarification 9A folded here:** the owner previously said Equipo Especial occupies effectively “100% fixed” space. Two interpretations remain:
+
+A. **Full module geometry fixed:** copy the complete native module at its exact width and height. If more capacity is needed, place another complete module.
+
+B. **Width/grammar fixed, vertical capacity extensible:** preserve native width, columns, header/strokes/row grammar, but extend height by adding/repeating native 7 mm rows when the selected page layout has room.
+
+**Owner question:** choose A or B (or correct both) so the Phase-3 composer knows the true geometry contract for Equipo Especial.
+
+## Batch 4 evidence
+
+Direct final-repair evidence inspected:
+- Mara Custom-v2 Attribute page 12 — combined Resources/Options;
+- page 13 — Resources-only continuation;
+- page 14 — ordinary Equipment generic two-column continuation;
+- page 15 — Equipo Especial generic text-flow continuation.
+
+Code evidence inspected at repair head `ce695c...`:
+- Resources adaptive local modes in `appendResourcesExtendedPages`;
+- generic Inventory flow in `appendInventoryExtendedPages` / `renderInventory`;
+- shared `pdfCompactEquipmentLabel()` includes weight;
+- continuation status path emits `Equipado`, `Consumible`, `Munición`, etc.
+
+No renderer/product code changes are made in Phase 2.
