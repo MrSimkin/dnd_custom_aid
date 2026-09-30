@@ -102,3 +102,24 @@ Stop only for:
 Phase 3 is not closed until the exact candidate has passed the internal all-four-family acceptance gate and the owner-facing handoff state is recorded.
 
 At closure, provide the point-7 recovery prompt requested by the owner.
+
+
+## Progress — Package 1 shared semantic-flow contracts
+
+**Status:** COMPLETE / GREEN
+
+Implemented:
+- `PcSheetSemanticModule` + stable semantic record references;
+- domain-to-module association for Traits, Combat/Actions, Resources, class choices, ordinary/special Equipment, Notes and Spells;
+- bidirectional continuation endpoints/markers with numbered Extended destinations;
+- paper-first writable tracker state with compact runtime snapshot, e.g. `____(2)/3`;
+- shared semantic-text decision order: native size -> readable uniform compression -> uniform wrap -> explicit continuation; semantic ellipsis is not an available disposition;
+- ordinary Equipment compact label corrected to quantity + identity only (weight removed);
+- Notes semantic helper no longer reroutes ordinary-Equipment metadata into Notes.
+
+Validation:
+- Scaffold #4391 / `36785191325`: backend PASS; hosted-database PASS; kotlin PASS.
+- Initial runs #4384–#4390 failed only because `LATEST.md` pointed to the new canonical checkpoint without adding it to the Read-first list; route guard was corrected before functional validation.
+
+Next:
+- Package 2 native-module contracts/geometry capabilities.
