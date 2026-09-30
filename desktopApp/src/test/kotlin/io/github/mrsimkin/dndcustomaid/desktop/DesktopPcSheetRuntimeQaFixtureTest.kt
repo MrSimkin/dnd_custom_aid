@@ -226,6 +226,39 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     }
 
     @Test
+    fun maraCustomV1WrapsLongCustomSkillNamesAtReadableSourceScale() {
+        val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(
+                permanent = PcSheetExportAggregate(
+                    sheet = document.character,
+                    closure = document.closureState,
+                    successor = document.successorState,
+                ),
+            ),
+        )
+
+        val bytes = ByteArrayOutputStream().use { output ->
+            DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+            output.toByteArray()
+        }
+
+        assertTrue(bytes.size > 20_000)
+        Loader.loadPDF(bytes).use { pdf ->
+            val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+            assertTrue(normalized.contains("Mara de los Siete Umbrales"))
+            assertTrue(
+                normalized.contains("Lectura de presagios"),
+                "Custom-v1 must preserve the complete long custom-skill identity.",
+            )
+        }
+    }
+
+    @Test
     fun maraFantasySheetRendersStressContentWithoutUnroutedOverflow() {
         val document = fixture("03_mara_siete_umbrales_custom_extended.json")
         val plan = PcSheetPdfExportPlanner.plan(
