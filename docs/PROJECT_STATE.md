@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — active 50800 repair on `fix/pc-sheet-50800-phase1-native-semantics`. Phase 2B.1 has an exact-artifact internal progression PASS at workflow 4230 / renderer head `adb01dd851286419409e7f8dcc349e329f903c51`, artifact `11041040671`. The whole repair is NOT final/owner-accepted. Resume at Phase 2B.2 from `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE2B1_CLOSURE.md`; Current Snapshot and Media/Handouts remain blocked.**
+**Current active package:** PC Sheet PDF Export — active 50800 repair on `fix/pc-sheet-50800-phase1-native-semantics`, currently **PAUSED in Phase 5 final acceptance**. Exact post-repair candidate: `0.5.0-preqa.9 / 50900`, source head `93d56a55cbc8546713c86bc6d5c72b908b14a5ba`, workflow 4325 / `36661323553` SUCCESS. All four real-Mara families generate (37 / 25 / 16 / 16 pages observed), but the final M50800-01..32 exact-candidate disposition is not yet persisted and owner re-QA has not started. Canonical resume: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50900_PAUSE_HANDOFF.md`. Current Snapshot and Media/Handouts remain blocked.**
 
 ### Superseding PDF visual state — 2026-09-20
 
@@ -41,16 +41,17 @@ Do not repeat completed Wave 5, Wave 6, Creature Manager, NPC Manager, Homebrew/
 **Superseding active-route note — 2026-09-29:**
 
 - active branch: `fix/pc-sheet-50800-phase1-native-semantics`;
-- current phase-transition authority: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE2B1_CLOSURE.md`;
-- validated current renderer/code head: `adb01dd851286419409e7f8dcc349e329f903c51`;
-- workflow 4230 / `36582233207` = SUCCESS;
-- exact proof artifact `11041040671`, digest `sha256:64b29126119ca6e93aa2bd351cf2a2d0cdcdcc189791291bd106b6acb4d54240`;
-- Phase 1B progression candidates: M50800-02/15/16/18/19; M50800-17/20 remain OPEN;
-- Phase 2A internal artifact-QA progression candidates: M50800-03/04/05/06/07/25; formally OPEN until final exact-candidate acceptance;
-- Phase 2B.1 internal artifact-QA progression candidates: M50800-08/09/10/11; formally OPEN until final exact-candidate acceptance;
-- next bounded work: Phase 2B.2 — Notes native reuse (M50800-21/22/23/24);
-- do not merge, do not create an owner APK, and do not restart Phase 1B/2A without new artifact evidence.
-
+- canonical checkpoint: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50900_PAUSE_HANDOFF.md`;
+- exact candidate source head: `93d56a55cbc8546713c86bc6d5c72b908b14a5ba`;
+- candidate identity: `0.5.0-preqa.9 / 50900`;
+- workflow 4325 / `36661323553` = SUCCESS;
+- exact proof artifact `11074068606`, digest `sha256:5b818fabb8ffa3306228bcee66eb630a75f3034b4b38e3343caba8ad3ad9c9bf`;
+- APK artifact `11074108563`, digest `sha256:8fc59ed1e377f82174cc8740d57e9042bae999b1ff4274b680263c716f9e175a`;
+- all four real-Mara outputs generate: Fantasy 37, Custom v1 25, Custom v2 Atributo 16, Custom v2 Habilidad 16 pages (observations only);
+- Phase 5 artifact review already found and repaired residual Custom-v1 Traits and Resources/Options reclaim defects;
+- final M50800-01..32 exact-candidate FIXED/OPEN/CHANGED-NEW disposition remains pending;
+- owner re-QA has **not** started; do not merge or promote until M50800-31 is complete;
+- next bounded work is acceptance review, not new renderer work unless that review exposes a blocking defect.
 
 The prior `repair/pc-sheet-adaptive-continuations-cross-family` branch is **unmerged evidence only**, not accepted continuation authority. Its claimed closure at `ce695c40782e1847ed70a2256885b5b07113feae`, Scaffold #4088 / `36354213574` and proof artifact `10942589698` is superseded as runtime acceptance because owner 50800 output reproduced the original defect classes and added a Custom-v1 export blocker.
 

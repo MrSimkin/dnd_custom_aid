@@ -2,34 +2,33 @@
 
 **Updated:** 2026-09-29 (Chile local time)  
 **Normal integrated trunk:** `main`  
-**Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
+**Last verified functional main before the active unmerged repair:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE2B1_CLOSURE.md`  
-**Current active route:** 50800 repair remains active on `fix/pc-sheet-50800-phase1-native-semantics`. Phase 2B.1 has an exact-artifact internal progression PASS at run 4230 / head `adb01dd851286419409e7f8dcc349e329f903c51`, artifact `11041040671`. The complete repair remains OPEN. **Resume at Phase 2B.2 — Notes native reuse (M50800-21..24), beginning from the real 50800 Notes observations.**
-**Current implementation branch:** `fix/pc-sheet-50800-phase1-native-semantics` — active, unmerged; do not promote yet.  
-**Current implementation PR:** none — continue discrete repair phases; publish an owner candidate only after final matrix acceptance.  
+**Canonical active checkpoint:** `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50900_PAUSE_HANDOFF.md`  
+**Current active route:** PC Sheet PDF 50800 repair is paused in Phase 5 on `fix/pc-sheet-50800-phase1-native-semantics`. The exact post-repair candidate is `0.5.0-preqa.9 / 50900` at source head `93d56a55cbc8546713c86bc6d5c72b908b14a5ba`; workflow 4325 / `36661323553` is SUCCESS and all four real-Mara families generate. **Final M50800-01..32 exact-candidate disposition remains pending; owner re-QA has not started.**
+**Current implementation branch:** `fix/pc-sheet-50800-phase1-native-semantics` — active, unmerged, paused for documentation/final acceptance.  
+**Current implementation PR:** none — do not merge or hand off 50900 until the final exact-candidate matrix walk is persisted.  
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
 
 ## Read first on resume
 
-1. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE2B1_CLOSURE.md` — **current phase-transition authority; read first**;
+1. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50900_PAUSE_HANDOFF.md` — **canonical pause/resume authority; read first**;
 2. `AGENTS.md`;
 3. `RESUME.md`;
 4. this file;
 5. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`;
-6. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_REPAIR_EXECUTION_LOG.md`;
-7. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_FIX_PHASE_MAP.md`;
-8. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE1B_CLOSURE.md`;
-9. `docs/checkpoints/PC_SHEET_MARA_50800_PHASE2A_PRECODE_MAP.md`;
-10. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE2B1_PRECODE_MAP.md`;
-11. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
-12. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`;
-13. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
-14. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
-15. `docs/PROJECT_STATE.md`;
-16. `docs/BRANCH_STATUS.md`.
+6. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE5_PRECODE_MAP.md`;
+7. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE5A_V1_TRAITS_CLOSURE.md`;
+8. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_REPAIR_EXECUTION_LOG.md`;
+9. `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE4_CLOSURE.md`;
+10. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
+11. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`;
+12. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+13. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+14. `docs/PROJECT_STATE.md`;
+15. `docs/BRANCH_STATUS.md`.
 
-**Branch rule:** do not infer success from the repair branch, prior green Scaffold, proof artifact or the reused `50800` version identity. First establish which exact binary/source state produced the owner runtime output.
+**Branch rule:** 50900 has a unique identity and green CI, but those facts alone do not close M50800-31. Resume by inspecting the exact 50900 artifact and completing the 32-item ledger; do not restart old phases or infer owner acceptance from branch/CI state.
 
 ## Active owner re-QA failure
 

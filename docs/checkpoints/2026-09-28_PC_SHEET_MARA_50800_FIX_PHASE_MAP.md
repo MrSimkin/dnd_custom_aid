@@ -59,7 +59,7 @@ Acceptance scope: M50800-03, M50800-04, M50800-05, M50800-06, M50800-07, M50800-
 
 ### Phase 2B — remaining Custom-v2 native component reuse
 
-**Current resume point: Phase 2B.3.** Execute as discrete subphases:
+**Historical Phase 2B sequencing (completed internally).** The current resume authority is the 50900 Phase-5 pause checkpoint. These subphases were:
 
 - **2B.1:** Traits/Rasgos + Trasfondo/Historia native reuse — M50800-08/09/10/11;
 - **2B.2:** Notes native reuse/boundaries/continuation — M50800-21/22/23/24 — **internal exact-artifact PASS at run 4244 / head `5c5759a...` / artifact `11045852152`; final-candidate reconfirmation required**;
@@ -90,12 +90,14 @@ Acceptance scope: M50800-03, M50800-04, M50800-05, M50800-06, M50800-07, M50800-
 
 ### Phase 5 — cross-family acceptance/candidate
 
-- all-four-family real-Mara generation;
-- actual generated PDF inspection;
-- text/data preservation checks;
-- 32-item matrix disposition;
-- unique next candidate identity;
-- only then owner QA.
+**Current status at pause:** active final-acceptance phase. Residual Custom-v1 Traits and Resources/Options defects found during Phase-5 artifact inspection were repaired. Unique candidate `0.5.0-preqa.9 / 50900` exists at `93d56a55...`; workflow 4325 is SUCCESS and all four real-Mara families generate. The final M50800-01..32 disposition against the exact 50900 artifact is still pending, so owner re-QA has not started.
+
+- all-four-family real-Mara generation — DONE for exact 50900;
+- actual generated PDF inspection — PARTIAL/IN PROGRESS; prior 4324 visual review is positive, final exact-candidate ledger walk remains;
+- text/data preservation checks — positive automated evidence; final matrix recording remains;
+- 32-item matrix disposition — PENDING;
+- unique next candidate identity — DONE: `0.5.0-preqa.9 / 50900`;
+- only then owner QA — NOT STARTED.
 
 ## Acceptance item → source map
 

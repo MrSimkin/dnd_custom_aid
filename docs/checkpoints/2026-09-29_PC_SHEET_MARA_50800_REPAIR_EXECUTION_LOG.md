@@ -454,3 +454,118 @@ Disposition:
 - they remain formally OPEN in the master matrix until final exact-candidate acceptance;
 - Phase 2B.2 internal progression gate = **PASS**;
 - next bounded work = Phase 2B.3, M50800-17/20.
+
+
+## Phase 2B.3 — residual Equipment exact-artifact progression
+
+Canonical closure: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE2B3_CLOSURE.md`.
+
+- workflow 4252 / `36597017691` — SUCCESS;
+- head `49afb6062de99a380b2b64673c28498f6cb4e147`;
+- proof artifact `11046448289`;
+- ordinary Equipment is paged as atomic compact item groups;
+- surviving Equipo Especial reclaims a clean native-module continuation rather than carrying an exhausted Equipment/Trasfondo scaffold;
+- M50800-17/20 gained positive internal exact-artifact evidence.
+
+## Phase 3 — Custom-v2 Combat + Resources/Options adaptive continuation
+
+Canonical closure: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE3_CLOSURE.md`.
+
+- renderer workflow 4261 / `36602606829` — SUCCESS;
+- regression workflow 4262 / `36602640910` — SUCCESS;
+- final proof artifact `11050167492`;
+- Custom-v2 Combat preserves the five-column semantic table and packs wrapped records by logical entry;
+- Resources reclaim the page after Options exhaust;
+- an intermediate anonymous-tail artifact was rejected and corrected before closure;
+- M50800-12/14 and the exercised Custom-v2 portion of M50800-27 gained positive internal evidence.
+
+## Phase 4 — Fantasy-specific exact-artifact progression
+
+Canonical closure: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE4_CLOSURE.md`.
+
+- renderer workflow 4286 / `36617646946` — SUCCESS;
+- regression workflow 4287 / `36617673962` — SUCCESS;
+- proof artifact `11056346834`;
+- exact Fantasy artifact = 37 pages observed;
+- Combat retains semantic table grammar;
+- renderer-introduced semantic ellipsis is removed;
+- Resources, Inventory and Notes/References reclaim exhausted sibling space;
+- an anonymous final reference-tail artifact was rejected and repaired before closure;
+- M50800-13/26 and Fantasy portions of M50800-27 gained positive internal evidence.
+
+## Post-Phase-4 Custom-v1 Notes correction
+
+Before Phase 5 promotion, exact generated output exposed remaining Custom-v1 Notes boundary/capacity issues. The repair sequence preserved logical note identities, used remaining native rows/columns before breaking, and re-synchronized generated Android renderers.
+
+Final pre-Phase-5 head:
+
+- `22bb175d8bd9bbd12c067420d310a3b0a4fbb94d`;
+- workflow 4309 / `36623266391` — SUCCESS;
+- proof artifact `11059618225`.
+
+The Notes correction itself was positive, but run 4309 was **not** accepted as a candidate because Phase-5 visual review found remaining Custom-v1 Traits and Resources/Options reclaim failures.
+
+## Phase 5 — exact cross-family review and residual Custom-v1 repair
+
+Pre-code authority: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE5_PRECODE_MAP.md`.
+
+### Run 4309 artifact rejection
+
+Run 4309 generated all four families but exact Custom-v1 review showed:
+
+- pages 9–31 repeating the full Traits scaffold after left-side streams were exhausted;
+- anonymous trait-detail tails at page starts;
+- later Resources pages retaining an empty Options table after Options exhausted;
+- anonymous Resource detail tails at page starts.
+
+Therefore 4309 was CI PASS / Phase-5 artifact QA BLOCKED.
+
+### Phase 5A — Custom-v1 Traits reclaim
+
+Closure: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE5A_V1_TRAITS_CLOSURE.md`.
+
+- run 4318 / `36649417194` — SUCCESS;
+- head `4255e38b92cec8f9e04257ef157ddc2e66a1df10`;
+- artifact `11069468492`;
+- exhausted native sibling scaffolds stop reserving page space;
+- full-width source-derived `Detalles de Rasgos` continuation is used;
+- logical trait records remain whole and identifiable;
+- hidden source-form underlay was removed.
+
+### Phase 5B — Custom-v1 Resources / Options reclaim
+
+Repair and regression sequence:
+
+- `33b2e29c5a203bfb34c600cf8463dad66ce5f23a` — renderer reclaim repair;
+- `57f115082fcc48a9b453a44cb410b88908b6e31f` — generated Android sync;
+- `daabe258803d93f8a585d90a457fd9c2eea5f90e` — focused regression guard;
+- run 4324 / `36650594025` — SUCCESS;
+- proof artifact `11069919274`, digest `sha256:3cb2e62180df8998f146609ff047be12aa55cc86e0ea8f0dbdf2f52df64100c0`.
+
+Exact 4324 visual inspection showed Custom v1 at 25 pages observed, with Traits reclaim, Resources-only reclaim, native Equipment/Equipo Especial and the repaired native Notes flow. No new blocking defect was identified in the inspected Fantasy/Custom-v2 pages.
+
+## Exact 50900 candidate stamping and pause
+
+A unique candidate identity was then assigned:
+
+- `0.5.0-preqa.9 / 50900`;
+- source head `93d56a55cbc8546713c86bc6d5c72b908b14a5ba`;
+- run 4325 / `36661323553` — SUCCESS;
+- APK artifact `11074108563`, digest `sha256:8fc59ed1e377f82174cc8740d57e9042bae999b1ff4274b680263c716f9e175a`;
+- proof artifact `11074068606`, digest `sha256:5b818fabb8ffa3306228bcee66eb630a75f3034b4b38e3343caba8ad3ad9c9bf`;
+- source-render artifact `11073634096`, digest `sha256:fc04025802914e467a06cb890e1de6434f6a7b5fc0a1b96dadd0e961ea5ae638`.
+
+Exact 50900 real-Mara outputs:
+
+- Fantasy: 37 pages, PDF SHA-256 `70c8acc26ed394e821043476bc0556968ec3442c5b6673f09e78e19024931b84`;
+- Custom v1: 25 pages, PDF SHA-256 `cdfd27dfd6d01b27250120cfa8466c5aab33c15eea6fc6501118ec48c0b81bae`;
+- Custom v2 Atributo: 16 pages, PDF SHA-256 `00bab431ecc5f1151e01609c21ee092821624b5bb62217ece52e00dcf86e4fe7`;
+- Custom v2 Habilidad: 16 pages, PDF SHA-256 `eb43906fb4bd5c854f8b502e2edb345f88f4749da2b3ef8cb2c06865187d0e13`.
+
+The extracted text hashes of all four exact 4325 PDFs match the corresponding 4324 PDFs. This confirms semantic/text equivalence across the version-stamp-only transition, but it does not replace the required M50800-31 final exact-candidate visual ledger walk.
+
+Work was then explicitly paused by the owner.
+
+**Resume authority:** `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50900_PAUSE_HANDOFF.md`.
+
+**Blocking next action:** complete and persist M50800-01..32 as FIXED / OPEN / CHANGED-NEW against the exact 50900 artifact. Do not merge or begin owner re-QA before that ledger is complete.

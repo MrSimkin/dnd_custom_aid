@@ -8,9 +8,9 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — 50800 owner re-QA remains the acceptance authority. Active repair branch is `fix/pc-sheet-50800-phase1-native-semantics`. Phase 2B.1 internal artifact-QA progression passed at run 4230 / head `adb01dd851286419409e7f8dcc349e329f903c51`, artifact `11041040671`. The complete repair remains OPEN. **Resume at Phase 2B.2 — Notes (M50800-21..24); do not merge or issue an owner candidate yet.**
+**Current normal work:** PC Sheet PDF Export — the 50800 repair remains the acceptance authority. Active branch `fix/pc-sheet-50800-phase1-native-semantics` is paused in Phase 5 final acceptance with exact candidate `0.5.0-preqa.9 / 50900` at `93d56a55cbc8546713c86bc6d5c72b908b14a5ba`. Workflow 4325 / `36661323553` is SUCCESS and all four real-Mara families generate. **Final M50800-01..32 disposition is pending; owner re-QA has not started; do not merge yet.**
 
-**Current phase checkpoint:** `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE2B1_CLOSURE.md`
+**Current phase checkpoint:** `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50900_PAUSE_HANDOFF.md`
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -106,27 +106,25 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 **Sole active non-main branch:** `fix/pc-sheet-50800-phase1-native-semantics` — active repair authority. `repair/pc-sheet-adaptive-continuations-cross-family` is historical evidence only.
 
-**Sole active implementation PR:** none — continue on the active repair branch until final exact-candidate matrix acceptance.
+**Sole active implementation PR:** none — the branch is paused for final exact-candidate acceptance. Do not open/merge a promotion PR until M50800-31 is complete.
 
 Current authority:
-- canonical checkpoint: `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
-- consolidated pre-fix matrix: `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`;
-- original acceptance ledger: `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`;
-- superseded claimed closure to audit: `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md`;
-- prior repair head: `ce695c40782e1847ed70a2256885b5b07113feae`;
-- prior Scaffold #4088 / `36354213574` and proof artifact `10942589698` are repository evidence only, not owner runtime acceptance;
-- owner runtime: Fantasy **45**, Custom v1 **generation FAIL**, Custom v2 Atributo **28**, Custom v2 Habilidad **27**;
-- prior claimed repaired counts **29 / 18 / 16 / 15** therefore do not match runtime;
-- owner disposition: **RE-QA FAIL**;
-- next technical gate: identify exact installed APK commit/artifact, establish renderer parity, then map every OPEN matrix item to implementation surface + existing native/source reference + regression + actual-candidate evidence **before changing renderer code**;
-- owner reuse-first clarification applies across attributes, Traits/Rasgos, Trasfondo/Historia-style modules, ordinary Equipment, Equipo Especial, Notes and analogous components;
-- ordinary Equipment must not show weight, `Consumible` or prose descriptions;
-- do not reuse `0.5.0-preqa.8 / 50800`;
+- canonical checkpoint: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50900_PAUSE_HANDOFF.md`;
+- consolidated acceptance matrix: `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`;
+- Phase 5 pre-code map: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE5_PRECODE_MAP.md`;
+- Phase 5A Traits closure: `docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_PHASE5A_V1_TRAITS_CLOSURE.md`;
+- exact candidate identity: `0.5.0-preqa.9 / 50900`;
+- candidate source head: `93d56a55cbc8546713c86bc6d5c72b908b14a5ba`;
+- workflow 4325 / `36661323553` = SUCCESS;
+- proof artifact `11074068606`;
+- APK artifact `11074108563`;
+- owner 50800 runtime remains the original acceptance ledger;
+- owner re-QA for 50900 has not started;
 - Current Snapshot and Media/Handouts remain blocked.
 
 Canonical resume authority:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-29_PC_SHEET_MARA_50800_END_OF_DAY_HANDOFF.md -> 32-item acceptance matrix -> Phase 2B.1`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-29_PC_SHEET_MARA_50900_PAUSE_HANDOFF.md -> 32-item acceptance matrix -> exact 50900 artifact walk`
 
 ## Historical/stale open PRs
 
