@@ -441,3 +441,85 @@ Therefore B2-07 is reclassified from KEEP/MODIFY candidate to **PARTIAL / ARCHIT
 - add a dynamic page composer that decides which active modules share each Extended page.
 
 This clarification also materially affects later review of Resources, Equipment, Notes and other continuation roles; those items must be audited under this cross-role composition rule.
+
+
+## Owner follow-up — Batch 2 responses
+
+### B1-05 — mode/context rule for attribute suffixes — FINAL CLARIFICATION
+
+The owner reaffirmed and sharpened the context rule:
+
+- In **per Attribute / por Atributo**, do not append a compact key such as `(ETE)` to a skill when the owning custom attribute is already visually explicit above the skill list.
+- However, if **extra/overflow skills linked to existing built-in attributes** no longer fit the native page-1 block and must appear elsewhere, they **must** carry the compact owning key:
+  - `<skill> (FUE)`;
+  - `<skill> (SAB)`;
+  - etc.
+- The general product rule is therefore structural: show the compact attribute key only when the skill's owning attribute is **not already unambiguously established by the surrounding block**.
+
+**Audit consequence:** formatting must be context-aware; no unconditional suffix rule.
+
+### Clarification Point 2 — CONFIRMED
+
+The owner confirmed the previously recorded native ornament/layer interpretation exactly.
+
+Additional authoritative family-design facts:
+
+- Custom v1/v2 bicolour table rows (e.g. Equipment, Background and analogous tables) were authored in Adobe InDesign at **7 mm physical row height**, chosen as the handwriting-friendly target.
+- When source components can be copied/reused, they should be.
+- If a component genuinely cannot be copied and must be reconstructed, the reconstruction must be visually almost indistinguishable from the owner's source-family design.
+- Example family cue: Custom v1 box borders use a characteristic multi-stroke treatment remembered by the owner as **thin / thick / thin** rather than a generic single rectangle.
+
+### B2-06 — source-object reuse and relocation — CONFIRMED
+
+The owner confirms:
+
+- copy/reuse the source object itself;
+- original source coordinates are not mandatory;
+- place the object where the new semantic/layout purpose requires it;
+- **never overprint or cover another important element** merely to preserve a source position.
+
+### B2-07 — cross-role adaptive Extended composition — CONFIRMED AND STRENGTHENED
+
+Owner example:
+
+If only **Rasgos** and **Equipo** remain to overflow, a new Extended page should not preserve unrelated empty zones. It should compose only the active modules.
+
+Rejected conceptual page:
+
+```
+| cosa 1 | cosa 2 |
+| RASGOS | cosa 3 |
+| cosa 4 | EQUIPO |
+```
+
+Desired conceptual page:
+
+```
+| RASGOS | EQUIPO |
+| ...    | ...    |
+| ...    | ...    |
+```
+
+The exact split need not be fixed by this sketch; the key rule is that only currently active content roles consume page area.
+
+**Architectural consequence:** the repair needs a higher-level Extended-page layout selector/composer with multiple valid family-matched page arrangements. It should choose an appropriate arrangement according to which roles remain and how much content each still has, rather than assigning every role its own fixed page or reserving empty slots.
+
+### B2-08 — owner requests clarification by example/wireframe
+
+The owner did not yet resolve whether feature-priority may reorder traits inside a category. Re-present with a concrete wireframe/example.
+
+### B2-09 — multiple page layouts / choose correct layout based on remaining content
+
+The owner clarified the desired architecture further:
+
+- there should be **multiple possible Extended page formats/layouts**;
+- the renderer should choose the correct format depending on **how much information remains to be shown across the entire character sheet**;
+- this is broader than merely giving Rasgos its own adaptive continuation page.
+
+**Audit consequence:** KEEP local packing primitives; current role-specific page allocation remains an architectural gap. The eventual solution needs a page-layout decision layer that selects among several family-native compositions based on remaining active roles/content volume.
+
+The owner requests a follow-up only if this interpretation is still unclear.
+
+### B2-10 — owner requests clarification by example/wireframe
+
+The owner did not yet resolve the logical-row vs fixed-physical-band Combat/Actions behavior. Re-present with concrete wireframes.
