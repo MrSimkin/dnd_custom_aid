@@ -4,10 +4,10 @@
 **Normal integrated trunk:** `main`  
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md`  
-**Current active route:** Phase 2 existing-repair audit is **COMPLETE / PUBLISHED** on `main` through PR #115 / `295e4a0f...`. M50800-01…32 are burned down against the later repair; all owner-intent clarifications are resolved; the authoritative KEEP / MODIFY / REPLACE / MISSING mapping and Phase-3 dependency plan live in the canonical checkpoint. **No renderer/product code changed in Phase 2. Phase 3 is the next work phase and has not started.**  
-**Completed audit branch:** `audit/mara-phase2-existing-repair`. `repair/pc-sheet-adaptive-continuations-cross-family` remains historical implementation evidence at `ce695c...`; it is repository/CI/Worker-preflight green but **not owner-runtime verified** and is not acceptance authority.  
-**Current implementation PR:** none. The next renderer implementation is Phase 3. Any later owner candidate must use a new unique version/build identity and pass the rebuilt exact-candidate acceptance ledger.  
+**Canonical active checkpoint:** `docs/checkpoints/2026-09-30_MARA_PHASE3_IMPLEMENTATION.md`  
+**Current active route:** Phase 3 Mara renderer repair implementation is **ACTIVE** on `repair/mara-phase3-semantic-flow-compositor`. Phase 2 is COMPLETE/PUBLISHED and its final burn-down for M50800-01…32 is the binding implementation authority. Phase 3 begins with shared semantic-flow contracts, then native-module contracts, the global Extended-page compositor, family integration, and exact-candidate acceptance.  
+**Completed audit branch:** `audit/mara-phase2-existing-repair` — historical only after Phase-2 publication.  
+**Current implementation branch:** `repair/mara-phase3-semantic-flow-compositor`; implementation PR not yet opened.  
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
 
 ## Read first on resume
@@ -26,7 +26,7 @@
 12. `docs/PROJECT_STATE.md`;
 13. `docs/BRANCH_STATUS.md`.
 
-**Branch rule:** provenance is established: the failed owner runtime came from `15f86ec...`, not `ce695c...`. The completed Phase-2 burn-down in the canonical checkpoint is now the authority for what survives into Phase 3. Do not infer that `ce695c...` is correct merely from green CI/proofs, and do not begin new renderer work until this documentation closure is merged.
+**Branch rule:** current `main` publishes Phase-2 closure; `repair/mara-phase3-semantic-flow-compositor` is the sole non-main implementation authority for Phase 3. Do not resume from the old adaptive-repair branch except as historical evidence explicitly referenced by the Phase-2 burn-down.  
 
 ## Active owner re-QA failure
 
