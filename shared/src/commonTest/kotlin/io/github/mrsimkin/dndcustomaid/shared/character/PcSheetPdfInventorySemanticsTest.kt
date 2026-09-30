@@ -8,7 +8,7 @@ import kotlin.uuid.Uuid
 
 class PcSheetPdfInventorySemanticsTest {
     @Test
-    fun ordinaryEquipmentIdentityIsQuantityNameAndWeightOnly() {
+    fun ordinaryEquipmentIdentityIsQuantityAndNameOnly() {
         val item = CharacterInventoryItem(
             id = Uuid.random(),
             name = "Virotes",
@@ -24,7 +24,7 @@ class PcSheetPdfInventorySemanticsTest {
         )
 
         val compact = item.pdfCompactEquipmentLabel()
-        assertEquals("20 x Virotes · 0.075 lb", compact)
+        assertEquals("20 x Virotes", compact)
         assertFalse(compact.contains("Carcaj"))
         assertFalse(compact.contains("Munición"))
         assertFalse(compact.contains("otra línea"))
@@ -51,7 +51,7 @@ class PcSheetPdfInventorySemanticsTest {
             attuned = false,
         )
 
-        assertEquals("Mochila · 5 lb", item.pdfCompactEquipmentLabel())
+        assertEquals("Mochila", item.pdfCompactEquipmentLabel())
         assertEquals(null, item.pdfOrdinaryEquipmentDetailOrNull())
     }
 
@@ -71,7 +71,7 @@ class PcSheetPdfInventorySemanticsTest {
             sortOrder = 0,
         )
 
-        assertEquals("Espada larga · 3 lb", item.pdfCompactEquipmentLabel())
+        assertEquals("Espada larga", item.pdfCompactEquipmentLabel())
         assertEquals(null, item.pdfOrdinaryEquipmentDetailOrNull())
     }
 }
