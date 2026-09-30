@@ -5,7 +5,7 @@
 **Branch:** `audit/mara-phase2-existing-repair`  
 **Base main:** `bf4ed5b7017e63f2e0f1cfb43f60250d1c5ab988`  
 **Repair evidence head under audit:** `ce695c40782e1847ed70a2256885b5b07113feae`  
-**Status:** ACTIVE / AUDIT ONLY / NO RENDERER CHANGES  
+**Status:** COMPLETE PENDING PUBLICATION / AUDIT ONLY / NO RENDERER CHANGES  
 **Owner review mode:** batches of at most 5 decision points; unresolved owner questions are accumulated rather than interrupting technical audit.
 
 ## Governing authority
@@ -1775,3 +1775,139 @@ The remaining Phase-2 work is technical consolidation only:
 - produce final KEEP / MODIFY / REPLACE / MISSING classifications;
 - map each item to exact Phase-3 action/evidence;
 - close the comprehension gate before renderer implementation.
+
+
+# Phase 2 final burn-down — authoritative disposition for M50800-01…32
+
+> **Authority note:** This section supersedes every earlier provisional `PENDING OWNER`, provisional KEEP/MODIFY/REPLACE label, and interim owner question in this checkpoint. Earlier sections remain as audit history/evidence only.
+
+All owner-intent questions raised during Phase 2 are resolved. No renderer/product code was changed in Phase 2.
+
+Legend:
+- **KEEP** — existing repair work is valid and should survive.
+- **MODIFY** — core idea is useful but implementation must change.
+- **REPLACE** — current presentation/architecture conflicts with the clarified owner contract.
+- **MISSING** — required behavior is not sufficiently implemented.
+- Mixed dispositions identify reusable primitives explicitly.
+
+| ID | Final disposition of existing repair | Phase-3 action / acceptance intent |
+| --- | --- | --- |
+| **M50800-01** | **FIXED / KEEP provenance finding** | Preserve Phase-1 finding: owner-tested 50800 = `15f86ec...` APK SHA `ff367e...`. Every future owner candidate gets unique versionName/versionCode/build identity and explicit APK filename/hash chain. |
+| **M50800-02** | **KEEP + MODIFY** | Keep the Custom-v1 multi-line skill routing that fixes `Lectura de presagios`; change typography so all wrapped lines of one semantic label use one consistent readable scale. Real Mara Custom-v1 must generate from the exact candidate. |
+| **M50800-03** | **KEEP, strengthen regression** | Keep isolated source-object technique that prevents stale hidden template text. Source objects may be repositioned but must never cover important content. Scan/render all relevant Extended roles for stale underlay text. |
+| **M50800-04** | **KEEP source assets / REPLACE surrounding presentation** | Custom Statistics must start from exact native page-1 attribute score/modifier ornament as layered source truth. No generic replacement boxes. If reconstruction is unavoidable, it must be visually almost indistinguishable from source grammar. |
+| **M50800-05** | **MODIFY / REPLACE capacity rule** | Remove arbitrary 3-attribute limit. Native grammar supports up to six attributes per page at native scale; Mara's four custom attributes belong together when space allows. |
+| **M50800-06** | **KEEP / resolved defect** | No phantom skills. Empty attribute visual capacity is non-blocking if it does not create fake semantic records; reclaim unused area where reasonably possible. |
+| **M50800-07** | **KEEP compact key logic + MODIFY title logic** | Attribute title uses integrated native-style form, e.g. `ETEr`; compact references use `ETE`. Per-Attribute skills under explicit parent do not need `(ETE)`; detached/per-Ability/overflow skills use `(FUE)`, `(SAB)`, `(ETE)`, etc. |
+| **M50800-08** | **KEEP useful native-like primitives / REPLACE fixed role-page design** | Traits/Rasgos must use family-native grammar. Treat it as a composable native module rather than a generic six-zone page or dedicated role page. |
+| **M50800-09** | **MODIFY ordering logic** | Remove synthetic `featurePriority` promotion. Category grouping is allowed/expected; within a category preserve player/stored order. |
+| **M50800-10** | **KEEP record-aware packing + MODIFY page ownership** | Preserve trait record boundaries and local column reclaim. Traits becomes a module available to the global compositor instead of automatically owning continuation pages. |
+| **M50800-11** | **REPLACE generic narrative routing / MISSING continuity metadata** | Trasfondo/Historia retains its own native module identity. Add explicit bidirectional `continúa en...` / `proviene de...` navigation across split semantic sections, with numbered Extended destinations/sources. |
+| **M50800-12** | **KEEP table/header separation + MODIFY row model** | Custom-v2 Combat/Actions stays tabular; one action = one logical row whose height is driven by tallest wrapped cell. Use generous/full-page width for action-heavy Extended layouts; avoid confusing fixed 26-pt band fragments. |
+| **M50800-13** | **REPLACE presentation** | Fantasy Combat/Actions overflow must extend the base table grammar; discard prose/reference flattening. |
+| **M50800-14** | **KEEP exhausted-stream detection + MODIFY architecture** | Resources and class-choice modules (Técnicas/Metamagia/Pactos/Invocaciones/etc.) release unused space globally. Remaining Resources may expand or another compatible active module may occupy the reclaimed area. |
+| **M50800-15** | **REPLACE presentation** | Discard generic two-column Inventory continuation. Reuse native ordinary `EQUIPO` element and its existing geometry as baseline; compose/repeat valid native modules/rows instead of inventing arbitrary dimensions. |
+| **M50800-16** | **MODIFY content formatter** | Ordinary Equipment visible row = quantity + full identity only. Remove weight, `Consumible`, `Equipado`, operational-state prose and long descriptions. |
+| **M50800-17** | **KEEP atomic record packing + MODIFY rendering** | Preserve item boundaries. Use native Equipment geometry; bounded uniform compression, then wrap. Indent second/subsequent wrapped lines (or equivalent native cue) so continuation is visibly tied to the previous line. |
+| **M50800-18** | **REPLACE presentation** | Equipo Especial uses the complete native module at fixed native geometry. If more capacity is needed, repeat the native module; do not invent a taller/reshaped variant. |
+| **M50800-19** | **REPLACE old workaround / source-faithful fallback permitted** | Prefer the native module's custom-location capacity. If insufficient, build a blank-location variant from native pieces using matching source font, size, strokes, fills, spacing and row rhythm. Never overprint a canonical location label. |
+| **M50800-20** | **KEEP exhausted-module principle / REPLACE fixed scaffold implementation** | Once Equipment/Equipo Especial (or any module) is exhausted, it disappears from subsequent layout selection; surviving compatible modules reclaim/use the area. |
+| **M50800-21** | **REPLACE presentation** | Every additional Notes page is the complete native Notes page design/geometry. Notes is a whole-page exception and does not share its overflow page with unrelated modules. |
+| **M50800-22** | **KEEP record boundaries + MODIFY heading treatment** | Preserve clear spacing between notes; emphasize `Nota N — Título` with native-compatible heading treatment, body subordinate. |
+| **M50800-23** | **KEEP identity primitive + MODIFY to bidirectional navigation** | Split Notes use explicit forward/back continuity markers, not destination-only `(continuación)`. This is part of the general semantic-continuity contract. |
+| **M50800-24** | **KEEP packing concept, transplant to native Notes geometry** | Move a whole Note to a fresh native column when it fits; split only if too large for a full fresh column; consume all native Notes columns before another full Notes page. |
+| **M50800-25** | **MODIFY** | Name ribbon: preferred native size → reasonable uniform reduction → two centered lines if needed. Center block horizontally and vertically. Never ellipsize the character name. |
+| **M50800-26** | **REPLACE Fantasy ellipsis behavior; audit Custom-v1/v2 routing** | Meaningful semantic identities never become `...`. Use reasonable uniform compression, then wrap/grow; if base module cannot hold full semantic record, route with explicit continuation. Verify Custom-v1/v2 do not silently drop wrapped overflow even when no ellipsis is printed. |
+| **M50800-27** | **KEEP valid local packing primitives / REPLACE architecture** | Implement global constraint-aware **automatic page compositor**: inspect remaining content, choose native modules and valid page layouts, combine compatible active modules, remove exhausted ones, and add a page rather than deforming design. Page count is not the objective. |
+| **M50800-28** | **PROCESS RULE CONFIRMED** | Do not preserve historical `29/18/16/15` as targets. Page count is diagnostic only. Excessive pages on ordinary characters can indicate a regression; Mara is a stress fixture and may legitimately be large. |
+| **M50800-29** | **KEEP semantic-presence regression + EXTEND association checks** | Preserve every required record **and** verify it appears in the correct semantic module/record. Whole-document text presence alone is insufficient. |
+| **M50800-30** | **PHASE-2 GATE SATISFIED BY THIS AUDIT ON CLOSURE** | Phase 3 may start only after this final mapping is committed as the authoritative comprehension plan. No known owner observation may enter implementation without disposition/action. |
+| **M50800-31** | **FUTURE HARD GATE** | Exact next candidate: unique version/build + commit/run/artifact/APK SHA + exact four proof hashes; inspect actual candidate PDFs and mark matrix FIXED / OPEN / CHANGED-NEW. Any material blocker stops owner handoff. |
+| **M50800-32** | **KEEP four-family harness + repeat on exact candidate** | Before owner handoff, real Mara must generate and be inspected in Fantasy, Custom v1, Custom v2 Atributo and Custom v2 Habilidad. Any material family failure blocks handoff. |
+
+## Cross-cutting owner rules that Phase 3 must treat as normative
+
+### Native-first construction
+- Copy/reuse an existing approved source/native component whenever it represents the same semantic family.
+- Source coordinates are not sacred; source **geometry/visual grammar** is.
+- Reposition a copied object as needed for the new layout, but never overprint important content.
+- If a component truly cannot be copied, reconstruct it from source-family pieces/measurements so it is almost visually indistinguishable from the original.
+- Custom v1/v2 bicolour table-row physical reference is **7 mm** (about 19.84 pt), chosen for handwriting usability.
+
+### Automatic Extended-page compositor
+- Look at **all remaining content**, not one role at a time.
+- Choose among valid family-native page arrangements.
+- Only active modules consume space.
+- Exhausted modules disappear.
+- Compatible modules may share/reclaim area only if their native geometry permits it.
+- Fixed native modules are repeated, not arbitrarily resized.
+- Notes overflow is a full-native-page exception.
+- When content cannot fit without harming design/readability/handwriting space, create another page.
+
+### Semantic continuity
+For semantic content split across non-contiguous sections/pages:
+- source segment visibly identifies the target, e.g. `[continúa en sección extendida HISTORIA 02]`;
+- destination visibly identifies its immediate source, e.g. `[proviene de sección extendida HISTORIA 01]`;
+- numbered identities must be unambiguous;
+- the markers must not overwrite meaningful content.
+
+### Writable trackers
+Trait uses/ammunition/etc. remain handwriting-editable while preserving runtime snapshot compactly.
+Owner example:
+`____(2)/3`
+where `2` is current available at export and `3` is maximum.
+Do not consume/fill the writable marks or add verbose runtime-status prose.
+
+### Meaningful text
+- No semantic ellipsis for names/identities.
+- Reasonable readable compression is allowed.
+- Wrapped lines belonging to one semantic label use uniform typography/scale.
+- Grow/wrap/continue rather than silently truncate.
+
+## Phase-3 implementation order implied by dependencies
+
+This is a dependency order, **not** permission to begin implementation before Phase-2 closure is committed/merged.
+
+1. **Shared semantic-flow contracts**
+   - semantic record identity/association;
+   - bidirectional continuation metadata;
+   - writable tracker semantics;
+   - meaningful-text no-ellipsis policy.
+2. **Native-module inventory/geometry contracts**
+   - source-native attribute module;
+   - Traits/Rasgos;
+   - Trasfondo/Historia;
+   - Combat/Actions tables;
+   - Equipment;
+   - Equipo Especial;
+   - Notes;
+   - Resources/class-choice modules.
+3. **Global Extended-page compositor**
+   - active-stream inventory;
+   - module constraints;
+   - valid layout choices;
+   - reclaim/exhaustion behavior;
+   - no arbitrary deformation.
+4. **Family renderers**
+   - Custom v1;
+   - Custom v2 Atributo/Habilidad;
+   - Fantasy;
+   - Android/Desktop parity.
+5. **Regression + exact-candidate proof**
+   - semantic completeness + correct association;
+   - no stale underlay;
+   - no semantic ellipsis/silent drop;
+   - all-four-family real Mara generation;
+   - actual PDF render inspection;
+   - unique candidate provenance.
+
+## Phase-2 comprehension-gate result
+
+**PASS — OWNER INTENT MAPPED / EXISTING REPAIR BURNED DOWN / NO RENDERER CHANGES**
+
+All known M50800-01…32 items now have:
+- owner intent;
+- disposition of existing repair work;
+- explicit Phase-3 action/acceptance direction.
+
+Phase 2 can close after this documentation-only audit state is published through the normal repository review path.
