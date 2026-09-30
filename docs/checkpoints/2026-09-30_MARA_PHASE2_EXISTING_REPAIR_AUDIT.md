@@ -1247,3 +1247,130 @@ The owner confirms:
 - the body remains visually subordinate to the note identity.
 
 **Audit consequence:** KEEP record-aware separation primitive; MODIFY rendering so note headers are clearly distinguishable within the native Notes-page grammar.
+
+
+## Batch 6 — Notes continuation, name ribbon, semantic ellipsis, adaptive architecture (23–27)
+
+### B6-23 — M50800-23 Notes continuation identity
+
+**Original defect:** an overflow Notes page/column could begin with the tail of a note without identifying which note was continuing.
+
+**Repair state at `ce695c...`:**
+- `noteFlowLines` keeps a semantic label derived from the note paragraph;
+- when a note must continue after a physical segment boundary, it can emit `<label> (continuación)` before the remaining lines;
+- this is a useful record-identity primitive.
+
+**Limitations:**
+- Mara final proof does not provide a sufficiently clear multi-page Notes stress case to prove the full cross-page behavior visually;
+- the current rendering is on the rejected reconstructed Notes page rather than the native Notes page;
+- the owner's later bidirectional continuity contract for Historia raises a scope question: whether Notes should also carry explicit forward/back navigation, not only a destination-side `(continuación)` label.
+
+**Provisional classification:** **KEEP continuation-identity primitive / MODIFY visual placement; pending owner scope clarification**.
+
+**Owner question:** for Notes specifically, is `Nota N (continuación)` at the destination sufficient, or should a split note also use the full bidirectional contract:
+- source: `[continúa en NOTAS 02 / Nota N]`;
+- destination: `[proviene de NOTAS 01 / Nota N]`?
+This also helps close earlier clarification 11A about whether the bidirectional contract is general or narrative-only.
+
+### B6-24 — M50800-24 Notes packing
+
+**Original defect:** Notes continuation used only part of available writing space and created another page while native Notes rows/columns remained unused.
+
+**Repair state:**
+- current flow uses both continuation columns before adding a page;
+- it is record-aware: if a complete note will not fit in the remaining tail of the current column but will fit in a fresh column, it advances the whole note rather than splitting it;
+- only records larger than a full physical segment must split.
+
+**Owner rule now established:** additional Notes pages must be complete copies of the native Notes page.
+
+**Provisional classification:** **KEEP packing concept / transplant to native Notes geometry**.
+
+**Owner question:** confirm the packing priority:
+1. preserve a whole note in the next native Notes column if it fits there, even if that leaves some unused lines at the end of the previous column;
+2. split a note only when it is too large to fit as a whole in a fresh native column;
+3. when split, preserve note identity/continuity markers;
+4. consume all usable native Notes columns before creating another full Notes page.
+
+### B6-25 — M50800-25 character-name ribbon
+
+**Original defect:** the character name was shifted/misaligned inside the portrait ribbon.
+
+**Acceptance rule:** center horizontally and vertically inside the existing ribbon; if one line does not fit cleanly, use two centered lines.
+
+**Repair evidence:**
+- final Mara Custom-v1 and Custom-v2 proofs show the full one-line name `Mara de los Siete Umbrales` in the ribbon without truncation;
+- Custom-v1 implementation still calls a one-line `centered(... PORTRAIT_NAME_RECT ...)` helper; there is no two-line fallback in that path;
+- therefore the Mara fixture looks acceptable for its current length, but the general long-name rule is not fully implemented/proven.
+
+**Provisional classification:** **PARTIAL / MODIFY**.
+
+**Owner question:** confirm the desired long-name strategy:
+- start at native/preferred type size;
+- allow only reasonable uniform reduction if necessary;
+- if one line still does not fit cleanly, wrap to two centered lines;
+- center the resulting one- or two-line block both horizontally and vertically in the native ribbon;
+- never ellipsize the character name.
+
+### B6-26 — M50800-26 semantic ellipsis
+
+**Original defect:** Fantasy silently truncated meaningful semantic identities with `...` in names across metadata, attacks, traits, resources/class choices and equipment.
+
+**Repair attempted:** semantic-identity tests were strengthened (e.g. commit `3ba83b49...`) to assert that complete identities exist somewhere in the generated PDF.
+
+**Critical limitation:** those tests prove data preservation somewhere, not correct rendering at the location where the identity is shown.
+
+**Direct final-proof evidence:** `mara-fantasy-stress-baseline.pdf` still contains many visible/extracted ellipses, including examples such as:
+- `Mara de los Siete...`;
+- `Cronomante del Umbr...`;
+- `Cartógrafa de Parad...`;
+- attack/effect names ending in `...`;
+- trait names ending in `...`;
+- equipment identities ending in `...`.
+
+The Fantasy renderer still contains `classicSingleLineExcerpt(...)`, which explicitly returns a shortened string plus `...`.
+
+**Provisional classification:** **NOT RESOLVED / REPLACE truncation behavior**.
+
+**Owner question:** confirm that meaningful identity fields must never use semantic ellipsis even on constrained base pages: use bounded reasonable compression and/or wrap/grow the logical row/module; if the native base surface truly cannot hold the complete semantic record, route the excess through an explicit continuation mechanism rather than silently shortening the name.
+
+### B6-27 — M50800-27 adaptive continuation architecture
+
+**Original defect:** fixed per-role/multi-panel scaffolds remained allocated after a stream ended, producing mostly-empty pages.
+
+**Repair state:** many useful local adaptive primitives were added:
+- Traits can reclaim its own continuation area;
+- Resources can drop exhausted class-choice space;
+- Inventory record packing avoids some empty local scaffolds;
+- Notes can use both local columns;
+- cross-family tests constrain excessive page growth.
+
+**Owner clarification during Phase 2 is broader:** the final architecture must be a **global, constraint-aware Extended-page composer**:
+- inspect every remaining active content stream;
+- respect each native module's geometry/flexibility constraints;
+- choose among multiple valid family-native page layouts;
+- absent/exhausted modules reserve no space;
+- compatible surviving modules share/reclaim page area;
+- Notes remains a whole-page native exception;
+- fixed modules such as Equipo Especial are repeated rather than arbitrarily resized;
+- semantic record boundaries and explicit continuity are preserved.
+
+**Provisional classification:** **PARTIAL / ARCHITECTURAL MODIFY-REPLACE**:
+KEEP local packing/reclaim primitives that remain valid;
+REPLACE fixed role-page ownership with global layout selection.
+
+**Owner question:** confirm that this global composer is the umbrella rule for all Extended continuation work, and that page count is only an outcome/evidence signal - not a target to optimize at the expense of native grammar, handwriting space, readability, or semantic continuity.
+
+## Batch 6 evidence
+
+Directly inspected:
+- final repair Mara Custom-v1 page 1;
+- final repair Mara Custom-v2 Attribute page 1;
+- extracted final Fantasy proof text for literal `...` occurrences.
+
+Code inspected:
+- Custom-v1 ribbon remains a one-line centered call;
+- Fantasy `classicSingleLineExcerpt` explicitly creates ellipsis;
+- Notes record-aware continuation/packing logic;
+- semantic-identity test strengthening in `3ba83b49...`.
+
+No renderer/product code changes are made in Phase 2.
