@@ -822,3 +822,14 @@ B. preserve the current/spent state somewhere as separate text while leaving the
 The owner states that Equipo Especial has effectively **100% fixed occupied space**.
 
 **Question:** does “fixed” mean the native module's full geometry (both width and height) should be copied as-is whenever it appears, or specifically that its **width** is fixed while its height may extend by adding/repeating native rows?
+
+
+### Clarification 11A — scope of continuity navigation contract
+
+The Historia example is understood exactly.
+
+One remaining scope question is recorded for owner confirmation:
+
+Should the same bidirectional continuity-marker contract (`continua en...` / `proviene de...`) become a **general rule for any semantic text/module that is split across non-contiguous sections/pages**, or should it apply only to narrative modules such as Historia/Trasfondo?
+
+No implementation assumption is made until owner confirms scope.
