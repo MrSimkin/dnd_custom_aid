@@ -241,3 +241,100 @@ Two points remain intentionally open:
 - **Clarification Point 5:** RESOLVED — attribute title = `ETEr`; abbreviated references = `ETE` (e.g. `Lectura de presagios (ETE)`).
 
 No other Batch-1 owner answer remains ambiguous enough to require another question.
+
+
+## Clarification pending from Batch 1 — Point 2
+
+### Clarification Point 2 — exact native score/modifier ornament reuse
+
+The owner separated this from the broader Custom Statistics layout question.
+
+Current understanding to confirm:
+
+For each Custom-v2 attribute module in Extended output, construction should preserve the multi-layer model:
+
+1. **STRUCTURE/background layer:** native/source-matched background color/band;
+2. **native ornament layer:** copy/reuse the **exact page-1 native score + modifier ornament/boxes at native geometry/scale**, repeated for each real attribute as needed;
+3. later semantic layers place title/score/modifier/skills/markers without redrawing a generic replacement for those boxes.
+
+The recovered source crops/measurements in the repair are useful only insofar as they reproduce that exact native ornament. The question is intentionally limited to the ornament/box component; broader page composition is audited separately.
+
+**Owner question:** Is the understanding above exact, including preserving the native score/modifier box geometry rather than merely using a visually similar crop inside a newly invented score/modifier component?
+
+**Status:** PENDING OWNER.
+
+## Batch 2 — pending owner review
+
+### B2-06 — M50800-03 stale template/source underlay
+
+**Original observation:** the 50800 Extended output retained hidden/searchable template text and sometimes visibly leaked unrelated source content into current sections.
+
+**Repair attempted:** commit `6dc8e69c...` removed use of whole clipped source-page forms for repeated Extended headers/components where hidden text could survive. In Custom v2 the header changed from a clipped source form to the exact imported source logo image; Custom v1 similarly replaced broad source crops with isolated source imagery/programmatic structure. The existing semantic OCG/layer model remains.
+
+**Evidence:** the final repair test explicitly rejects stale labels such as `EQUIPO ESPECIAL`, `VÍNCULOS`, `IDEALES`, `HISTORIA`, and `PUNTOS DE VIDA` on Custom Statistics pages. Direct text-layer inspection of the final Mara Custom-v2 Attribute proof found no such unrelated stale labels on Extended pages; occurrences of `TRASFONDO` on the Traits page and `EQUIPO ESPECIAL` on Inventory are legitimate current-page semantics.
+
+**Provisional classification:** **KEEP with regression-strengthening**. The technique appears to fix the observed hidden-text contamination while preserving layered construction, but future regression should scan all relevant Extended roles/families rather than only a first Custom Statistics page.
+
+**Owner question:** Is it acceptable to use an isolated raster/source image for a source fragment such as the logo or native ornament specifically to prevent hidden source-template text, provided that the PDF page itself still preserves the intended independent semantic layers and the whole page is not flattened?
+
+### B2-07 — M50800-08 Traits/Rasgos source reuse
+
+**Original observation/clarification:** Extended Traits/Rasgos must reuse the established sheet visual grammar instead of becoming an unrelated generic multi-panel appendix.
+
+**Repair attempted:** the final Custom-v2 repair keeps a structured overview page with `RASGOS Y ATRIBUTOS`, `CLASE / DOTES`, `RAZA / TRASFONDO / OTROS`, `OTROS RASGOS`, `DETALLES / NOTAS`, and `COMPETENCIAS / IDIOMAS`, using the v2 gray/ruled cadence. Once overview capacity is exhausted, continuation pages switch to two full-width native-like ruled columns titled `DETALLES / NOTAS`.
+
+**Evidence:** final Mara pages 7–10 show one structured overview followed by three dense two-column continuation pages rather than repeating the full six-panel scaffold.
+
+**Provisional classification:** **MODIFY/KEEP candidate**, depending on owner intent. It clearly moves toward the native v2 visual language, but it is still programmatically reconstructed rather than literally copying one complete source component.
+
+**Owner question:** Is the desired rule that the overview may keep these semantically native v2 sections and continuation pages may collapse to the native ruled-row language, or do you require the Traits/Rasgos blocks themselves to be copied more literally from an existing source component before any adaptive continuation occurs?
+
+### B2-08 — M50800-09 Traits ordering
+
+**Original owner clarification:** grouping by semantic category is intentional; a single global numeric 1…26 order across categories is not required. Order should remain coherent **within** each category.
+
+**Repair state:** the code begins from `sortOrder`, splits traits into semantic left/right groups, then applies a `featurePriority` so traits carrying uses/recovery/notes are selected as featured before other traits, with `sortOrder` used inside that priority. The Mara proof therefore begins details in the visible order 01, 04, 02, 03, then 05 onward rather than strict global numeric order.
+
+**Provisional classification:** **PENDING OWNER**. Category grouping is consistent with the clarified requirement; the remaining ambiguity is whether `featurePriority` is allowed to reorder records inside a category.
+
+**Owner question:** Within a category, should original `sortOrder` remain strict, or is it acceptable for “featured” traits with uses/recovery/notes to be promoted ahead of otherwise earlier traits in the same category?
+
+### B2-09 — M50800-10 Traits continuation packing
+
+**Original observation:** old pages repeatedly reserved the complete four/six-panel Traits scaffold even after those sections were exhausted, producing many mostly-empty pages and constraining useful text to a small area.
+
+**Repair attempted:** `d5a113db...` introduced dedicated two-column continuation pages after the overview; `17289a41...` then made packing record-aware so a trait record is kept together when it can fit in the next physical column rather than being split merely to fill the last lines.
+
+**Evidence:** Mara Custom-v2 Attribute moved from the old pathological pages 7–18 pattern to pages 7–10: page 7 is the structured overview; pages 8–10 use nearly the complete two-column writing area for remaining trait records. The old empty category panels are not repeated.
+
+**Provisional classification:** **KEEP / likely real correction** for the packing defect. This does not automatically approve every visual detail of the Traits design.
+
+**Owner question:** Is this the intended adaptive pattern: one structured Traits/Rasgos overview using the family grammar, followed—only when needed—by dense continuation pages that reclaim essentially the full usable writing area while preserving record boundaries?
+
+### B2-10 — M50800-12 Custom-v2 Combat/Actions
+
+**Original observation:** Combat/Actions had header/first-row collision, excessive vertical row height, poor field association, and mostly-empty continuation space.
+
+**Repair attempted:** `0cc63991...` moved the first content rule down from 137 to 154 pt, reduced fixed physical row cadence from 42 to 26 pt, and increased physical capacity from 14 to 22 rows. The renderer preserves explicit columns `TIPO/NOMBRE | RANGO | BONIF. | DAÑO/EFECTO | NOTAS` and wraps overflow onto subsequent physical rows.
+
+**Evidence:** final Mara page 11 has a cleanly separated header and recognizable columns. Packing is materially denser. However logical records often occupy two physical bands and the Notes column uses very small text; the algorithm still uses a fixed 26-pt physical-row cadence rather than a genuinely content-sized logical row.
+
+**Provisional classification:** **PARTIAL / MODIFY**. Header collision and gross row waste are improved; record-level layout/readability is not convincingly closed.
+
+**Owner question:** Should one logical combat/action record behave as one visual row that grows vertically only as much as its wrapped cells need (with all its columns kept associated), rather than being represented as a fixed sequence of 26-pt physical rows as in the current repair?
+
+## Batch 2 evidence
+
+Directly inspected final repair proof:
+
+- `mara-custom-v2-attribute-stress-baseline.pdf` pages 7–12;
+- final source/text layer from repair head `ce695c...`.
+
+Relevant repair commits include:
+
+- underlay: `6dc8e69c...`;
+- Traits adaptive continuation: `d5a113db...`;
+- Traits record boundaries: `17289a41...`;
+- Combat compact/header separation: `0cc63991...`.
+
+Batch 2 is **PENDING OWNER REVIEW**. No renderer/product code changes are permitted.
