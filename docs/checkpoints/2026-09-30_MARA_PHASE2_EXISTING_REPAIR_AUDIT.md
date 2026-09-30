@@ -833,3 +833,36 @@ One remaining scope question is recorded for owner confirmation:
 Should the same bidirectional continuity-marker contract (`continua en...` / `proviene de...`) become a **general rule for any semantic text/module that is split across non-contiguous sections/pages**, or should it apply only to narrative modules such as Historia/Trasfondo?
 
 No implementation assumption is made until owner confirms scope.
+
+
+## Safety checkpoint — owner temporarily away
+
+**State:** SAFE / PERSISTED / NO IMPLEMENTATION WORK
+
+Everything discussed through the owner's latest message has been persisted on branch `audit/mara-phase2-existing-repair`.
+
+Persisted decisions/clarifications include:
+
+- B1-01 long-skill behavior: readable compression is allowed; multiline wrap is allowed when useful; all wrapped lines belonging to one semantic label must use consistent scale.
+- B1-02 / Clarification Point 2: exact native Custom-v2 page-1 score/modifier ornament reuse as a separate layer; source-faithful reconstruction only when copying/reuse is genuinely impossible.
+- source-family physical row reference: bicolour Custom-v1/v2 table rows were authored at 7 mm height for handwriting usability.
+- B1-03: Custom Statistics capacity target supports up to six native-scale attributes per page; three-per-page is not a product rule.
+- B1-04: phantom attribute-card defect may be treated as resolved; phantom skills are not allowed and unused space may be reclaimed where reasonable.
+- B1-05: custom attribute title uses integrated native-style form (e.g. `ETEr`); compact references use the three-letter key (e.g. `ETE`). In per-Attribute mode, do not redundantly suffix skills when parent attribute is already explicit; overflow skills detached from an owning block use keys such as `(FUE)`, `(SAB)`, `(ETE)`.
+- B2-06: isolated source objects may be raster/source-derived to prevent hidden underlay text; source coordinates are not binding; placement must serve the new layout and never cover important content.
+- B2-07/B2-09: Extended pages require a cross-role, constraint-aware layout selector with multiple valid family-native formats chosen according to all remaining content. Do not reserve absent-role slots and do not force every role onto its own page.
+- module constraints already recorded: Rasgos and Trasfondo are roughly half-page-width native modules; Equipo normal is highly flexible; Notes overflow uses the full native Notes page; Actions/Attacks are highly flexible; Equipo Especial fixed-geometry meaning still requires clarification 9A.
+- B2-08: no synthetic feature-priority ordering; default authority is player/stored order, with category grouping preserved where applicable.
+- new tracker requirement: trait-use/ammunition controls must remain handwriting-editable and must not pre-consume the writable marks; exact treatment of stored current/spent state remains clarification 8A.
+- B2-10: Combat/Actions should preserve one logical visual record per action, use content-driven height, and use broad/full-page width on action-heavy Extended layouts to keep special/effect/notes readable.
+- B3-11: Trasfondo/Historia retains its own native/module identity in Extended composition; explicit bidirectional continuation navigation is required between base and extended segments.
+- B3-12: Fantasy Combat/Actions prose continuation is rejected; overflow must preserve/extend the base table grammar.
+
+Open owner clarifications at this safety point:
+
+1. **8A — writable tracker state:** whether stored current/spent state is omitted from the PDF entirely or shown separately while the handwriting tracker remains blank/editable.
+2. **9A — Equipo Especial fixed geometry:** whether both width and height are fixed, or width is fixed while height may extend through repeated native 7 mm rows.
+3. **11A — continuity-marker scope:** whether `continúa en...` / `proviene de...` is a general rule for any split semantic module or specifically narrative modules such as Historia/Trasfondo.
+
+No further Phase 2 audit conclusions should be advanced past these questions while the owner is away.
+No renderer/product code changes are authorized.
