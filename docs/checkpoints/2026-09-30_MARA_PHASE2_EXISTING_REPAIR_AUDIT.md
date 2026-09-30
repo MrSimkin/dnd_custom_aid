@@ -1374,3 +1374,69 @@ Code inspected:
 - semantic-identity test strengthening in `3ba83b49...`.
 
 No renderer/product code changes are made in Phase 2.
+
+
+## Owner responses — Batch 6 partial (23–26)
+
+### B6-23 — Notes continuation identity — BIDIRECTIONAL CONTRACT CONFIRMED
+
+The owner confirms that Notes must use the same explicit bidirectional continuity-navigation pattern already defined for Historia.
+
+Therefore a split Note must identify both:
+- where the source continues to; and
+- where the destination came from.
+
+The previously supplied owner pattern is authoritative in form and intent.
+
+Example adaptation for Notes:
+
+Source segment ends with a visible marker such as:
+`...[continua en sección extendida NOTAS 02 / Nota 8]...`
+
+Destination segment begins with a visible marker such as:
+`...[proviene de sección extendida NOTAS 01 / Nota 8]...`
+
+The precise section label/sequence must identify the actual source and target unambiguously.
+
+**Audit consequence:** destination-only `Nota N (continuación)` is insufficient by itself. The future flow model needs source/target-aware bidirectional continuation metadata.
+
+This also resolves earlier clarification 11A in the direction of a **general continuity principle for semantic content that is split across non-contiguous sections/pages**, not Historia-only.
+
+### B6-24 — Notes packing — CONFIRMED
+
+The owner confirms the packing priority:
+
+1. if the whole next Note fits in a fresh native Notes column, move the whole Note there rather than split it merely to consume the tail of the current column;
+2. split only when the Note itself is too large to fit within a fresh native column;
+3. when split, preserve bidirectional continuation navigation and note identity;
+4. consume all usable native Notes columns before allocating another full native Notes page.
+
+**Audit consequence:** current record-aware packing concept is KEEP-worthy, but must be transplanted onto the full native Notes-page geometry and upgraded to bidirectional continuity markers.
+
+### B6-25 — character-name ribbon — CONFIRMED
+
+The owner confirms the fallback order:
+
+1. render at native/preferred size;
+2. allow reasonable uniform reduction if needed;
+3. if one line still does not fit cleanly, wrap to two centered lines;
+4. center the resulting one- or two-line text block horizontally and vertically within the native ribbon;
+5. never use semantic ellipsis for the character name.
+
+**Audit consequence:** current one-line-only Custom-v1 path is PARTIAL / MODIFY.
+
+### B6-26 — semantic ellipsis — CONFIRMED AS PRODUCT RULE
+
+The owner confirms:
+- meaningful semantic names/identities must never be silently truncated with `...`;
+- first use reasonable uniform compression;
+- then wrap/grow the logical row/module as needed;
+- if a constrained native base surface genuinely cannot contain the complete semantic record, use explicit continuation rather than ellipsis.
+
+The owner asks whether this is already the exact Custom-v1/v2 rule. Repository verification is required before answering; do not conflate intended family grammar with current implementation behavior.
+
+### B6-27 — adaptive continuation architecture — OWNER REQUESTS LAYMAN/WIREFRAME REPHRASE
+
+The prior wording was too architectural.
+
+Re-present B6-27 using concrete page-composition examples/wireframes and plain language. Do not treat it as resolved.
