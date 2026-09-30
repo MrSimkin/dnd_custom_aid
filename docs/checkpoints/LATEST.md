@@ -5,9 +5,9 @@
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md`  
-**Current active route:** Phase 2 existing-repair audit is **ACTIVE**. Phase 1 proved the owner tested `15f86ec...`, not the later `ce695c...` repair. The owner has now authorized Phase 2 audit in batches of at most five review points. Batch 1 covers the Custom-v1 generation blocker plus Custom-v2 Custom Statistics grammar/capacity/phantom/Éter identity. **Audit only: no renderer/product code changes.**  
+**Current active route:** Phase 2 existing-repair audit is **COMPLETE / PENDING PUBLICATION**. Phase 1 proved the owner tested `15f86ec...`, not the later `ce695c...` repair. Phase 2 has now burned down M50800-01…32 against the later repair, resolved every owner-intent clarification, and produced the authoritative KEEP / MODIFY / REPLACE / MISSING mapping plus Phase-3 dependency plan. **Audit only: no renderer/product code changes occurred. Phase 3 has not started.**  
 **Current audit branch:** `audit/mara-phase2-existing-repair`. `repair/pc-sheet-adaptive-continuations-cross-family` remains the implementation evidence under audit at `ce695c...`; it is repository/CI/Worker-preflight green but **not yet owner-runtime verified**.  
-**Current implementation PR:** none — do not promote or merge before provenance and a new uniquely versioned owner candidate pass the rebuilt acceptance ledger.  
+**Current implementation PR:** none. The next renderer implementation is Phase 3 and must not start until the Phase-2 documentation closure is published/merged. Any later owner candidate must use a new unique version/build identity and pass the rebuilt exact-candidate acceptance ledger.  
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
 
 ## Read first on resume
@@ -26,7 +26,7 @@
 12. `docs/PROJECT_STATE.md`;
 13. `docs/BRANCH_STATUS.md`.
 
-**Branch rule:** provenance is now established: the failed owner runtime came from `15f86ec...`, not `ce695c...`. Do not infer that the later repair is correct merely from green CI/proofs; Phase 2 must audit it against every owner observation before any new candidate is promoted.
+**Branch rule:** provenance is established: the failed owner runtime came from `15f86ec...`, not `ce695c...`. The completed Phase-2 burn-down in the canonical checkpoint is now the authority for what survives into Phase 3. Do not infer that `ce695c...` is correct merely from green CI/proofs, and do not begin new renderer work until this documentation closure is merged.
 
 ## Active owner re-QA failure
 
