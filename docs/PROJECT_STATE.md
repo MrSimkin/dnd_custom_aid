@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — owner re-QA **FAILED** and Phase 1 provenance audit is ACTIVE on `audit/mara-phase1-provenance`. Repository-side evidence fingerprints two key materially different `0.5.0-preqa.8 / 50800` APKs: pre-adaptive `15f86ec...` / artifact `10917523331` / APK SHA-256 `ff367e9b...`, and final adaptive-repair `ce695c...` / artifact `10943700272` / APK SHA-256 `68bbe5a0...`. The exact APK used by the owner remains unresolved pending owner-local SHA-256 or the exact file. The full 2026-09-28 acceptance matrix remains binding. No renderer code change is authorized until provenance closes. Current Snapshot and Media/Handouts remain blocked.**
+**Current active package:** PC Sheet PDF Export — Phase 1 provenance is **CLOSED**. The exact owner-supplied `0.5.0-preqa.8 / 50800` APK is byte-for-byte `15f86ec...` / artifact `10917523331` / SHA-256 `ff367e9b7b44d1844bd3358dbf6f5979087536a5ae404a3fe36623a3550a93c6`, not the later adaptive-repair `ce695c...` / artifact `10943700272`. Thus the 2026-09-28 owner QA did not owner-test the later repair branch. Every owner observation remains binding. Next phase is an explicit audit of the existing repair against the full acceptance matrix before any new renderer implementation. Current Snapshot and Media/Handouts remain blocked.**
 
 ### Superseding PDF visual state — 2026-09-20
 
@@ -48,7 +48,7 @@ Current authority is:
 - `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
 - `AGENTS.md` section 6.3.
 
-No renderer code change is authorized until the owner-installed 50800 APK is fingerprinted/classified, the real 50800 artifacts have been walked against the matrix, and each OPEN item has implementation surface + existing native/source reference + regression + actual-candidate evidence mapped. Phase-1 repository evidence and known APK fingerprints are recorded in `docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md`.
+Phase 1 fingerprint/classification is complete and recorded in `docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md`. No new renderer code is authorized yet: Phase 2 must audit the existing adaptive-repair implementation against the full owner matrix and map each OPEN item to existing implementation surface + native/source reference + regression + actual-candidate evidence.
 
 The active owner design clarification is **reuse before reconstruction**: where the sheet already has a correct native component (attributes, Traits/Rasgos, Trasfondo/Historia-style modules, Equipment, Equipo Especial, Notes and analogous sections), extend/copy that grammar instead of inventing a generic Extended replacement. Ordinary Equipment specifically shows compact identity only: no weight, no `Consumible`, no prose descriptions.
 
