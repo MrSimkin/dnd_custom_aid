@@ -1706,3 +1706,33 @@ Generation success alone is insufficient; the exact outputs also participate in 
 Owner intent for M50800-28 through M50800-32 is now clear.
 
 No renderer/product code changes have been made during Phase 2.
+
+
+## Phase-2 pending-owner reconciliation after Batch 7
+
+A scan of historical `PENDING OWNER` / clarification markers shows that most are stale narrative from earlier batches and have been superseded by later owner decisions in this same checkpoint.
+
+Resolved later in the checkpoint and **not to be re-asked**:
+- Clarification Point 2 — native attribute ornament/layering;
+- B2-08 ordering — player/stored order authority, no synthetic feature-priority;
+- B2-09 adaptive page-layout architecture — resolved through the global automatic compositor rule;
+- B4-13 terminology and reclaim behavior — resolved as class-choice modules + global reclaim;
+- Clarification 9A — Equipo Especial fixed native module, repeat as needed;
+- Clarification 11A — bidirectional continuity applies as a general semantic continuity principle;
+- B6-27 — global automatic native-module page compositor confirmed;
+- all Batch-7 acceptance/process questions 28–32 confirmed.
+
+### Only substantive owner clarification still open: 8A — writable tracker state
+
+Already confirmed:
+- trait-use/ammunition controls must remain handwriting-editable;
+- do not pre-fill/consume the writable marks in a way that prevents normal manual use.
+
+Still unresolved:
+if persistent character state says some uses/ammunition are already spent at export time, should the printable PDF:
+
+**A. Paper-sheet authority:** ignore the runtime spent/current state for the writable tracker and print only blank capacity, e.g. `____ / 3` or empty marks; or
+
+**B. Preserve runtime snapshot separately:** keep the handwriting tracker blank/editable but also print the current/spent runtime state elsewhere as non-interfering text.
+
+No implementation assumption is authorized until the owner resolves 8A.
