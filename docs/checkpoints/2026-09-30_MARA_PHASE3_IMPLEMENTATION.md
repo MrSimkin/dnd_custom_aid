@@ -123,3 +123,29 @@ Validation:
 
 Next:
 - Package 2 native-module contracts/geometry capabilities.
+
+
+## Progress — Package 2 native-module contracts
+
+**Status:** COMPLETE / GREEN
+
+Implemented shared capability contracts for every semantic module:
+- native components vs native rows/columns vs logical rows vs whole-module repetition;
+- page-sharing vs full-native-page exclusivity;
+- exhausted-module space release;
+- explicit prohibition on arbitrary geometry resizing.
+
+Owner-critical locked behaviors:
+- Notes = full native page, exclusive;
+- Equipo Especial = repeat whole native module;
+- ordinary Equipment = native rows/columns;
+- Combat/Actions = content-driven logical rows;
+- Traits/Background/Resources/Class choices = shareable only through valid family layouts.
+
+Exact measured coordinates remain family-renderer responsibility; these contracts intentionally do not invent dimensions.
+
+Validation:
+- Scaffold #4394 / `36785716176`: backend PASS; hosted-database PASS; kotlin PASS.
+
+Next:
+- Package 3 constraint-aware Extended-page composer.
