@@ -1672,10 +1672,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(document.numberOfPages >= 6)
             val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
             assertTrue(layers.any { it.startsWith("V1X TRAITS P1 - STRUCTURE") })
-            assertTrue(
-                layers.any { it.startsWith("V1X TRAIT DETAILS P1 - VALUES") },
-                "Current Snapshot must use the reclaimed Custom-v1 trait-detail surface once sibling trait streams are exhausted.",
-            )
+            assertTrue(layers.any { it.startsWith("V1X TRAITS P1 - VALUES") })
             assertTrue(layers.any { it.startsWith("V1X TRAITS P2 - STRUCTURE") })
             assertFalse(layers.any { it.startsWith("V1X STATS") })
 
@@ -2360,7 +2357,10 @@ class DesktopPcSheetWholeDraftRendererTest {
         Loader.loadPDF(pdf).use { document ->
             assertTrue(document.numberOfPages >= 5)
             val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
-            assertTrue(layers.any { it.startsWith("V1X TRAITS P1 - VALUES") })
+            assertTrue(
+                layers.any { it.startsWith("V1X TRAIT DETAILS P1 - VALUES") },
+                "Current Snapshot must use the reclaimed Custom-v1 trait-detail surface once sibling trait streams are exhausted.",
+            )
             assertFalse(
                 layers.any { it.startsWith("V1X INVENTORY P1 - VALUES") },
                 "Ammunition/status metadata alone must not allocate a v1 Equipment continuation.",
