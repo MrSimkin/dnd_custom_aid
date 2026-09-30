@@ -5,7 +5,7 @@
 **Branch:** `audit/mara-phase2-existing-repair`  
 **Base main:** `bf4ed5b7017e63f2e0f1cfb43f60250d1c5ab988`  
 **Repair evidence head under audit:** `ce695c40782e1847ed70a2256885b5b07113feae`  
-**Status:** COMPLETE PENDING PUBLICATION / AUDIT ONLY / NO RENDERER CHANGES  
+**Status:** COMPLETE / PUBLISHED / AUDIT ONLY / NO RENDERER CHANGES  
 **Owner review mode:** batches of at most 5 decision points; unresolved owner questions are accumulated rather than interrupting technical audit.
 
 ## Governing authority
@@ -1911,3 +1911,15 @@ All known M50800-01…32 items now have:
 - explicit Phase-3 action/acceptance direction.
 
 Phase 2 can close after this documentation-only audit state is published through the normal repository review path.
+
+
+## Publication receipt
+
+Phase 2 documentation closure was published to `main` through PR #115.
+
+- PR: #115 — `docs: close Mara Phase 2 existing-repair audit`;
+- merged main commit: `295e4a0faef640c99ea8e8d0bd11022f026bf627`;
+- PR-head Scaffold #4375 / `36783127344`: backend PASS, hosted-database PASS, kotlin PASS;
+- renderer/product changes in Phase 2: **none**.
+
+Phase 2 is closed. Phase 3 implementation may begin only from the authoritative final burn-down in this checkpoint and must preserve the exact-candidate/version/build acceptance gates recorded here.

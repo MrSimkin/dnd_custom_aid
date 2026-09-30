@@ -5,9 +5,9 @@
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md`  
-**Current active route:** Phase 2 existing-repair audit is **COMPLETE / PENDING PUBLICATION**. Phase 1 proved the owner tested `15f86ec...`, not the later `ce695c...` repair. Phase 2 has now burned down M50800-01…32 against the later repair, resolved every owner-intent clarification, and produced the authoritative KEEP / MODIFY / REPLACE / MISSING mapping plus Phase-3 dependency plan. **Audit only: no renderer/product code changes occurred. Phase 3 has not started.**  
-**Current audit branch:** `audit/mara-phase2-existing-repair`. `repair/pc-sheet-adaptive-continuations-cross-family` remains the implementation evidence under audit at `ce695c...`; it is repository/CI/Worker-preflight green but **not yet owner-runtime verified**.  
-**Current implementation PR:** none. The next renderer implementation is Phase 3 and must not start until the Phase-2 documentation closure is published/merged. Any later owner candidate must use a new unique version/build identity and pass the rebuilt exact-candidate acceptance ledger.  
+**Current active route:** Phase 2 existing-repair audit is **COMPLETE / PUBLISHED** on `main` through PR #115 / `295e4a0f...`. M50800-01…32 are burned down against the later repair; all owner-intent clarifications are resolved; the authoritative KEEP / MODIFY / REPLACE / MISSING mapping and Phase-3 dependency plan live in the canonical checkpoint. **No renderer/product code changed in Phase 2. Phase 3 is the next work phase and has not started.**  
+**Completed audit branch:** `audit/mara-phase2-existing-repair`. `repair/pc-sheet-adaptive-continuations-cross-family` remains historical implementation evidence at `ce695c...`; it is repository/CI/Worker-preflight green but **not owner-runtime verified** and is not acceptance authority.  
+**Current implementation PR:** none. The next renderer implementation is Phase 3. Any later owner candidate must use a new unique version/build identity and pass the rebuilt exact-candidate acceptance ledger.  
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
 
 ## Read first on resume
