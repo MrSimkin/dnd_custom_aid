@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Phase 1 provenance is **CLOSED**. The exact owner-supplied `0.5.0-preqa.8 / 50800` APK is byte-for-byte `15f86ec...` / artifact `10917523331` / SHA-256 `ff367e9b7b44d1844bd3358dbf6f5979087536a5ae404a3fe36623a3550a93c6`, not the later adaptive-repair `ce695c...` / artifact `10943700272`. Thus the 2026-09-28 owner QA did not owner-test the later repair branch. Every owner observation remains binding. Next phase is an explicit audit of the existing repair against the full acceptance matrix before any new renderer implementation. Current Snapshot and Media/Handouts remain blocked.**
+**Current active package:** PC Sheet PDF Export — **Phase 3 implementation ACTIVE**. Phase 1 provenance and Phase 2 existing-repair audit are CLOSED/PUBLISHED. The binding authority is the final M50800-01…32 burn-down in `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md`. Active branch: `repair/mara-phase3-semantic-flow-compositor`. Current implementation package starts with shared semantic-flow contracts before native-module/compositor/family-renderer integration. Current Snapshot and Media/Handouts remain blocked.**
 
 ### Superseding PDF visual state — 2026-09-20
 
@@ -48,9 +48,7 @@ Current authority is:
 - `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
 - `AGENTS.md` section 6.3.
 
-Phase 1 fingerprint/classification is complete and recorded in `docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md`. No new renderer code is authorized yet: Phase 2 must audit the existing adaptive-repair implementation against the full owner matrix and map each OPEN item to existing implementation surface + native/source reference + regression + actual-candidate evidence.
-
-The active owner design clarification is **reuse before reconstruction**: where the sheet already has a correct native component (attributes, Traits/Rasgos, Trasfondo/Historia-style modules, Equipment, Equipo Especial, Notes and analogous sections), extend/copy that grammar instead of inventing a generic Extended replacement. Ordinary Equipment specifically shows compact identity only: no weight, no `Consumible`, no prose descriptions.
+Phase 1 provenance and Phase 2 owner-intent mapping are complete. Phase 3 renderer implementation is now authorized and routed by `docs/checkpoints/2026-09-30_MARA_PHASE3_IMPLEMENTATION.md`. The active owner design clarification remains **reuse before reconstruction**: where the sheet already has a correct native component (attributes, Traits/Rasgos, Trasfondo/Historia-style modules, Equipment, Equipo Especial, Notes and analogous sections), extend/copy that grammar instead of inventing a generic Extended replacement. Ordinary Equipment specifically shows compact identity only: no weight, no `Consumible`, no prose descriptions.
 
 The shared primitive foundation has now passed owner Primitive PDF QA. Renderer work may proceed beyond the primitive gate using:
 
