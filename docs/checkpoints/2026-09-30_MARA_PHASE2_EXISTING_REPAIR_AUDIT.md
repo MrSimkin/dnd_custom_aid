@@ -213,26 +213,31 @@ The current repair, which removes the fake attribute cards, is acceptable and ma
 
 ### B1-05 — Éter identity / mode-specific presentation
 
-**Owner clarification:**
+**Owner clarification — RESOLVED:**
 
-The prior audit question may not have represented the desired rule correctly.
+The display rule is now explicit:
 
-Known owner requirements:
+- when the **attribute title/name itself** is rendered, use the integrated native-style identity **`ETEr`**;
+- everywhere the attribute is referenced in abbreviated form, use **`ETE`** only;
+- in per-Ability / por Habilidad presentation, a linked skill therefore appears in the form **`<skill name> (ETE)`**.
 
-- when the attribute itself is shown, the owner expects the identity to appear as **`ETEr`**;
-- in the **per-Ability / por Habilidad** style, the skills should appear together and the relevant attribute key should appear in parentheses as **`(ETE)`**.
+Examples:
 
-The owner is not currently convinced that the existing `ETE · Éter` repair matches this intended behavior.
+- attribute heading: `ETEr`;
+- linked skill reference: `Lectura de presagios (ETE)`;
+- any other compact/keyed reference: `ETE`, not `ETE · Éter`.
 
-**Audit consequence:** do **not** close M50800-07 as KEEP. Reclassify as **PENDING OWNER / likely MODIFY** until the exact display rule is restated and compared against both Custom-v2 modes.
+The final repair already has the correct compact-reference helper for linked skills (`abilityKey(...)` returns the three-letter abbreviation, so `(ETE)` is produced). However, its main custom-attribute title helper currently produces `ETE · Éter`, which does **not** satisfy the owner's title rule.
 
-**Owner status:** clarification required below.
+**Audit consequence:** classify the compact-reference behavior as **KEEP**, but classify the main custom-attribute title formatting as **MODIFY**. M50800-07 is therefore **PARTIALLY RESOLVED / MODIFY** rather than KEEP.
+
+**Owner status:** resolved.
 
 ## Pending clarification after Batch 1
 
 Two points remain intentionally open:
 
 - **Clarification Point 2:** broader Custom Statistics layout/grammar, separated from the native score/modifier-box requirement.
-- **Clarification Point 5:** exact Éter display rule across Custom-v2 modes.
+- **Clarification Point 5:** RESOLVED — attribute title = `ETEr`; abbreviated references = `ETE` (e.g. `Lectura de presagios (ETE)`).
 
 No other Batch-1 owner answer remains ambiguous enough to require another question.
