@@ -29,6 +29,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
 import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetIntegratedAttributeTitle
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetContextualSkillIdentity
 import java.awt.Color
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
@@ -217,7 +219,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 textTopSource(
                     s, resources.corbelBold, resources.firaSemibold,
                     18f + index * 193f, 111f,
-                    keyedName(projection.attribute.name, projection.attribute.abbreviation),
+                    pcSheetIntegratedAttributeTitle(projection.attribute.name, projection.attribute.abbreviation),
                     12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
                 )
                 textAboveRuleSource(
@@ -388,7 +390,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 textTopSource(
                     s, resources.corbelBold, resources.firaSemibold,
                     14f, 142f + index * 96f,
-                    keyedName(projection.attribute.name, projection.attribute.abbreviation),
+                    pcSheetIntegratedAttributeTitle(projection.attribute.name, projection.attribute.abbreviation),
                     12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
                 )
             }
@@ -405,7 +407,7 @@ internal class DesktopCustomV2ExtendedRenderer(
                 textAboveRuleSource(
                     s, resources.corbel, resources.fira,
                     Rule(235f, 308f, y),
-                    keyedName(projection.attribute.name, projection.attribute.abbreviation),
+                    pcSheetIntegratedAttributeTitle(projection.attribute.name, projection.attribute.abbreviation),
                     7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE,
                 )
                 projection.savingThrowTotal?.let {
@@ -415,7 +417,11 @@ internal class DesktopCustomV2ExtendedRenderer(
 
             skills.forEachIndexed { index, projection ->
                 val y = 154f + index * 17f
-                val label = projection.skill.name + " (" + abilityKey(projection.ability, allAttributes) + ")"
+                val label = pcSheetContextualSkillIdentity(
+                    skillName = projection.skill.name,
+                    attributeKey = abilityKey(projection.ability, allAttributes),
+                    ownerAttributeStructurallyVisible = false,
+                )
                 textAboveRuleSource(
                     s, resources.corbel, resources.fira,
                     Rule(399f, 548f, y), label, 7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE,
@@ -2434,19 +2440,6 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private fun textWidth(font: PDFont, text: String, size: Float): Float =
         font.getStringWidth(text) / 1000f * size
-
-    private fun keyedName(name: String, abbreviation: String): String {
-        val cleanName = name.trim()
-        val cleanKey = abbreviation.trim().uppercase().take(3)
-        if (cleanKey.isEmpty()) return cleanName
-        return if (cleanName.length >= cleanKey.length &&
-            cleanName.substring(0, cleanKey.length).equals(cleanKey, ignoreCase = true)
-        ) {
-            cleanKey + cleanName.substring(cleanKey.length)
-        } else {
-            "$cleanKey · $cleanName"
-        }
-    }
 
     private fun builtInKeyedName(ability: CharacterAbility): String = when (ability) {
         CharacterAbility.STRENGTH -> "FUErza"
