@@ -1094,3 +1094,94 @@ The underlying model also supports kinds such as Artificer plans/devices, subcla
 Therefore “Opciones” is not a good owner-facing shorthand for the audit. Future review should call these **Técnicas / Metamagia / Pactos / Invocaciones / otras elecciones de clase**, or “elecciones de clase” as the umbrella term.
 
 B4-13 remains pending owner review under this clarified terminology.
+
+
+## Batch 5 — clarification 13 + Equipo Especial/Notes 19–22
+
+### Clarification B4-13 — what “Options” means
+
+The PDF heading `OPCIONES` is an umbrella over **class-choice records** (`CharacterClassOption`), not one familiar single sheet concept.
+
+In the app these appear through concrete modules such as:
+- **Técnicas** — manoeuvres, shots, runes, flourishes and analogous techniques;
+- **Metamagia**;
+- **Pactos / elecciones de Pacto**;
+- **Invocaciones**.
+
+The underlying model can also represent artificer plans/devices, subclass-state records and other class-choice records.
+
+For owner-facing review, use **elecciones de clase** as the umbrella term, and concrete names such as Técnicas / Metamagia / Pactos / Invocaciones when possible.
+
+**Restated B4-13 question:** when one class-choice stream is exhausted but Resources remain, is the local reclaim rule correct, while both Resources and class-choice modules ultimately participate in the global Extended-page composer instead of automatically owning a dedicated page?
+
+### B5-19 — M50800-19 Equipo Especial custom locations
+
+**Original defect:** custom locations such as `Espalda` or `Bolsa lateral` were painted over fixed canonical location labels.
+
+**Repair state:** the final generic Inventory flow avoids direct overprint by flattening location + item name into text, but that solution is superseded because the owner rejected the generic continuation and requires reuse of the native Equipo Especial module.
+
+**Owner clarification already supplied:** the native Equipo Especial module already contains space for non-common/custom locations.
+
+**Provisional classification:** **REPLACE old repair / requirement essentially clarified**:
+- canonical location rows keep their printed native labels;
+- non-common locations use the native module's dedicated non-common/custom-location capacity;
+- never overprint a canonical label;
+- if more capacity is needed, repeat the full native module.
+
+**Owner question:** confirm that this is the exact rule for custom locations.
+
+### B5-20 — M50800-20 redundant Equipment scaffolds
+
+**Original defect:** later Inventory pages repeated empty Equipment / Equipo Especial structures after their useful content was exhausted.
+
+**Repair attempted:** generic record-flow packing stopped emitting some empty fixed scaffolds and packed surviving records into remaining columns.
+
+**Assessment under current owner architecture:** the local “do not render exhausted content” principle is correct, but the generic flow visual design is rejected. The same principle must move into the global page composer:
+- absent/exhausted modules consume no page slot;
+- surviving modules may use a different valid layout;
+- no page exists solely to preserve an empty Equipment/Equipo Especial template.
+
+**Provisional classification:** **KEEP principle / REPLACE implementation**.
+
+**Owner question:** no new product decision appears necessary; confirm that an exhausted native module should simply disappear from subsequent Extended-page layout selection rather than remain as an empty placeholder.
+
+### B5-21 — M50800-21 Notes design
+
+**Original defect:** a separate generic Extended Notes design was invented even though the sheet already has a native Notes page/module.
+
+**Owner clarification already supplied:** Notes is a special case: overflow Notes should use/copy the **entire native Notes page**, not share a page with unrelated modules.
+
+**Repair state at `ce695c...`:**
+- continuation Notes does **not** copy the native Notes page;
+- it programmatically creates a new `NOTAS · CONTINUACIÓN` page with two gray-banded columns.
+
+**Actual Mara proof:** final page 16 visibly shows this reconstructed two-column gray table.
+
+**Provisional classification:** **REPLACE**. The flow/pagination logic may be reusable, but the visual page must be the native Notes page copied/reused as a whole.
+
+**Owner question:** no new design decision should be needed; confirm that every additional Notes page uses the full native Notes page geometry/visual design as-is, with only the content/layer overlays changing.
+
+### B5-22 — M50800-22 Notes record boundaries
+
+**Original defect:** `Nota 1`, `Nota 2`, etc. ran directly into one another and were difficult to scan.
+
+**Repair attempted:** `noteFlowLines` now treats each paragraph/note as a record and inserts a blank ruled row between records where possible. It also avoids starting a note in the last few lines of a column when the whole note can fit in the next column.
+
+**Actual Mara proof:** page 16 shows visible blank-row separation between `Nota 6`, `Nota 7`, `Nota 8`, `Nota 9` and subsequent narrative records. However the `Nota N — título` line uses essentially the same body rendering; there is no strong explicit heading emphasis.
+
+**Provisional classification:** **PARTIAL / MODIFY**:
+- KEEP record-aware separation;
+- add explicit native-compatible emphasis to the note identity/header.
+
+**Owner question:** should the first line/header of each note be visibly emphasized (for example bold `Nota N — Título`) while the following wrapped body lines remain normal, plus at least one native ruled-row of separation between note records when space permits?
+
+## Batch 5 evidence
+
+Direct final-repair proof inspected:
+- Mara Custom-v2 Attribute page 16.
+
+Code evidence:
+- `noteFlowLines` provides record-aware blank-row separation and continuation labels;
+- `renderNotesContinuationPage` reconstructs rather than copies the native Notes page.
+
+No renderer/product code changes are made in Phase 2.
