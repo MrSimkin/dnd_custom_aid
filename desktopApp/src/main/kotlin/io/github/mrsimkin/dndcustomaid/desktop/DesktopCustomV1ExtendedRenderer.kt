@@ -853,23 +853,68 @@ internal class DesktopCustomV1ExtendedRenderer(
     }
 
     private fun appendResourcesExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val rows = resourceRenderLines(resourceRenderRows(plan))
-        val options = optionRenderLines(plan.snapshot.aggregate.sheet.classOptions.sortedBy { it.sortOrder })
-        val pages = maxOf(
-            1,
-            pageCount(rows.size, RESOURCE_ROWS_PER_PAGE),
-            pageCount(options.size, OPTION_ROWS_PER_PAGE),
+        val resourceGroups = resourceRenderLineGroups(resourceRenderRows(plan))
+        val optionGroups = optionRenderLineGroups(
+            plan.snapshot.aggregate.sheet.classOptions.sortedBy { it.sortOrder },
         )
+        if (resourceGroups.isEmpty() && optionGroups.isEmpty()) return
 
-        repeat(pages) { pageIndex ->
+        var resourceIndex = 0
+        var optionIndex = 0
+        var pageIndex = 0
+
+        while (resourceIndex < resourceGroups.size && optionIndex < optionGroups.size) {
+            val (pageRows, nextResourceIndex) = takeWholeGroups(
+                resourceGroups,
+                resourceIndex,
+                RESOURCE_ROWS_PER_PAGE,
+                "Custom-v1 Resource",
+            )
+            val (pageOptions, nextOptionIndex) = takeWholeGroups(
+                optionGroups,
+                optionIndex,
+                OPTION_ROWS_PER_PAGE,
+                "Custom-v1 Option",
+            )
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderResourcesPage(
                 page = page,
-                rows = rows.pageSlice(pageIndex, RESOURCE_ROWS_PER_PAGE),
-                options = options.pageSlice(pageIndex, OPTION_ROWS_PER_PAGE),
+                rows = pageRows,
+                options = pageOptions,
                 pageIndex = pageIndex,
             )
+            resourceIndex = nextResourceIndex
+            optionIndex = nextOptionIndex
+            pageIndex += 1
+        }
+
+        while (resourceIndex < resourceGroups.size) {
+            val (pageRows, nextResourceIndex) = takeWholeGroups(
+                resourceGroups,
+                resourceIndex,
+                RESOURCE_FULL_PAGE_ROWS,
+                "Custom-v1 Resource",
+            )
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderResourcesOnlyPage(page, pageRows, pageIndex)
+            resourceIndex = nextResourceIndex
+            pageIndex += 1
+        }
+
+        while (optionIndex < optionGroups.size) {
+            val (pageOptions, nextOptionIndex) = takeWholeGroups(
+                optionGroups,
+                optionIndex,
+                OPTION_FULL_PAGE_ROWS,
+                "Custom-v1 Option",
+            )
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderOptionsOnlyPage(page, pageOptions, pageIndex)
+            optionIndex = nextOptionIndex
+            pageIndex += 1
         }
     }
 
@@ -952,8 +997,8 @@ internal class DesktopCustomV1ExtendedRenderer(
             )
     }
 
-    private fun resourceRenderLines(rows: List<ResourceRenderRow>): List<ResourceRenderLine> =
-        rows.flatMap { row ->
+    private fun resourceRenderLineGroups(rows: List<ResourceRenderRow>): List<List<ResourceRenderLine>> =
+        rows.map { row ->
             val nameLines = wrapByWidth(
                 row.name,
                 resources.fira,
@@ -988,9 +1033,9 @@ internal class DesktopCustomV1ExtendedRenderer(
             }
         }
 
-    private fun optionRenderLines(
+    private fun optionRenderLineGroups(
         options: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOption>,
-    ): List<OptionRenderLine> = options.flatMap { option ->
+    ): List<List<OptionRenderLine>> = options.map { option ->
         val nameLines = wrapByWidth(
             option.name,
             resources.fira,
@@ -1020,6 +1065,29 @@ internal class DesktopCustomV1ExtendedRenderer(
         }
     }
 
+    private fun <T> takeWholeGroups(
+        groups: List<List<T>>,
+        startIndex: Int,
+        capacity: Int,
+        label: String,
+    ): Pair<List<T>, Int> {
+        val output = mutableListOf<T>()
+        var index = startIndex
+        while (index < groups.size) {
+            val group = groups[index]
+            require(group.size <= capacity) {
+                "$label record exceeds one continuation page capacity."
+            }
+            if (output.isNotEmpty() && output.size + group.size > capacity) break
+            output += group
+            index += 1
+        }
+        require(output.isNotEmpty() || startIndex >= groups.size) {
+            "$label continuation made no progress."
+        }
+        return output to index
+    }
+
     private fun renderResourcesPage(
         page: PDPage,
         rows: List<ResourceRenderLine>,
@@ -1046,94 +1114,172 @@ internal class DesktopCustomV1ExtendedRenderer(
             centeredText(s, resources.fira, 240.803f, OPTION_HEADER_TOP, 342.992f, 14f, "DESCRIPCIÓN", 7.5f)
         }
         appendLayer(page, "$prefix - VALUES") { s ->
-            rows.forEachIndexed { index, row ->
-                val ruleTop = RESOURCE_FIRST_RULE_TOP + index * RESOURCE_STEP
-                if (row.name.isNotEmpty()) {
-                    ruleText(s, resources.fira, Rule(27.5f, 202f, ruleTop), row.name, 8.4f)
-                }
-                row.numericValue?.let { value ->
-                    centeredText(
-                        s,
-                        resources.firaSemibold,
-                        205f,
-                        ruleTop - RESOURCE_STEP,
-                        180f,
-                        RESOURCE_STEP,
-                        value,
-                        8.6f,
-                    )
-                }
-                if (row.recoveryAndDetail.isNotEmpty()) {
-                    ruleText(
-                        s,
-                        resources.fira,
-                        Rule(400f, 583.795f, ruleTop),
-                        row.recoveryAndDetail,
-                        8.0f,
-                    )
-                }
-            }
-
-            options.forEachIndexed { index, option ->
-                val ruleTop = OPTION_FIRST_RULE_TOP + index * OPTION_STEP
-                if (option.kind.isNotEmpty()) {
-                    centeredText(
-                        s,
-                        resources.heading,
-                        35f,
-                        ruleTop - 18f,
-                        74f,
-                        18f,
-                        option.kind,
-                        12.5f,
-                    )
-                }
-                if (option.name.isNotEmpty()) {
-                    ruleText(s, resources.fira, Rule(126f, 238f, ruleTop), option.name, 8.2f)
-                }
-                if (option.detail.isNotEmpty()) {
-                    ruleText(
-                        s,
-                        resources.fira,
-                        Rule(240.803f, 583.795f, ruleTop),
-                        option.detail,
-                        8.2f,
-                    )
-                }
-            }
+            drawResourceRows(s, rows, RESOURCE_FIRST_RULE_TOP)
+            drawOptionRows(s, options, OPTION_FIRST_RULE_TOP)
         }
         appendLayer(page, "$prefix - MARKERS") { s ->
-            rows.forEachIndexed { index, row ->
-                val current = row.currentValue
-                val maximum = row.maximum
-                if (
-                    current != null &&
-                    maximum != null &&
-                    maximum in 1..RESOURCE_SYMBOL_MAXIMUM &&
-                    current in 0..maximum
-                ) {
-                    drawResourceCounter(
-                        s = s,
-                        font = resources.symbol,
-                        startX = 222f,
-                        centerTop = RESOURCE_FIRST_RULE_TOP + index * RESOURCE_STEP - RESOURCE_STEP / 2f,
-                        current = current,
-                        maximum = maximum,
-                    )
-                }
-            }
+            drawResourceMarkers(s, rows, RESOURCE_FIRST_RULE_TOP)
+            drawOptionMarkers(s, options, OPTION_FIRST_RULE_TOP)
+        }
+    }
 
-            options.forEachIndexed { index, option ->
-                option.active?.let { active ->
-                    val ruleTop = OPTION_FIRST_RULE_TOP + index * OPTION_STEP
-                    drawV1TrainingBox(
-                        s = s,
-                        font = resources.symbol,
-                        centerX = 116f,
-                        centerTop = ruleTop - OPTION_STEP / 2f,
-                        training = if (active) Training.PROFICIENT else Training.NONE,
-                    )
-                }
+    private fun renderResourcesOnlyPage(
+        page: PDPage,
+        rows: List<ResourceRenderLine>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X RESOURCES P${pageIndex + 1} RECLAIM"
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            sourceBands(s, 25f, 585f, RESOURCE_FIRST_RULE_TOP, rows.size, RESOURCE_STEP)
+        }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { s ->
+            centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Recursos · Continuación", 18f)
+            centeredText(s, resources.fira, 27f, 96f, 175f, 14f, "RECURSO", 7.5f)
+            centeredText(s, resources.fira, 205f, 96f, 180f, 14f, "USOS", 7.5f)
+            centeredText(s, resources.fira, 400f, 96f, 183f, 14f, "RESTABLECE", 7.5f)
+        }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            drawResourceRows(s, rows, RESOURCE_FIRST_RULE_TOP)
+        }
+        appendLayer(page, "$prefix - MARKERS") { s ->
+            drawResourceMarkers(s, rows, RESOURCE_FIRST_RULE_TOP)
+        }
+    }
+
+    private fun renderOptionsOnlyPage(
+        page: PDPage,
+        options: List<OptionRenderLine>,
+        pageIndex: Int,
+    ) {
+        val prefix = "V1X OPTIONS P${pageIndex + 1} RECLAIM"
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            sourceBands(s, 25f, 585f, RESOURCE_FIRST_RULE_TOP, options.size, RESOURCE_STEP)
+        }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { s ->
+            centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Opciones · Continuación", 18f)
+            centeredText(s, resources.fira, 35f, 96f, 74f, 14f, "TIPO", 7.5f)
+            centeredText(s, resources.fira, 126f, 96f, 112f, 14f, "OPCIÓN", 7.5f)
+            centeredText(s, resources.fira, 240.803f, 96f, 342.992f, 14f, "DESCRIPCIÓN", 7.5f)
+        }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            drawOptionRows(s, options, RESOURCE_FIRST_RULE_TOP)
+        }
+        appendLayer(page, "$prefix - MARKERS") { s ->
+            drawOptionMarkers(s, options, RESOURCE_FIRST_RULE_TOP)
+        }
+    }
+
+    private fun drawResourceRows(
+        s: PDFormContentStream,
+        rows: List<ResourceRenderLine>,
+        firstRuleTop: Float,
+    ) {
+        rows.forEachIndexed { index, row ->
+            val ruleTop = firstRuleTop + index * RESOURCE_STEP
+            if (row.name.isNotEmpty()) {
+                ruleText(s, resources.fira, Rule(27.5f, 202f, ruleTop), row.name, 8.4f)
+            }
+            row.numericValue?.let { value ->
+                centeredText(
+                    s,
+                    resources.firaSemibold,
+                    205f,
+                    ruleTop - RESOURCE_STEP,
+                    180f,
+                    RESOURCE_STEP,
+                    value,
+                    8.6f,
+                )
+            }
+            if (row.recoveryAndDetail.isNotEmpty()) {
+                ruleText(
+                    s,
+                    resources.fira,
+                    Rule(400f, 583.795f, ruleTop),
+                    row.recoveryAndDetail,
+                    8.0f,
+                )
+            }
+        }
+    }
+
+    private fun drawOptionRows(
+        s: PDFormContentStream,
+        options: List<OptionRenderLine>,
+        firstRuleTop: Float,
+    ) {
+        options.forEachIndexed { index, option ->
+            val ruleTop = firstRuleTop + index * RESOURCE_STEP
+            if (option.kind.isNotEmpty()) {
+                centeredText(
+                    s,
+                    resources.heading,
+                    35f,
+                    ruleTop - 18f,
+                    74f,
+                    18f,
+                    option.kind,
+                    12.5f,
+                )
+            }
+            if (option.name.isNotEmpty()) {
+                ruleText(s, resources.fira, Rule(126f, 238f, ruleTop), option.name, 8.2f)
+            }
+            if (option.detail.isNotEmpty()) {
+                ruleText(
+                    s,
+                    resources.fira,
+                    Rule(240.803f, 583.795f, ruleTop),
+                    option.detail,
+                    8.2f,
+                )
+            }
+        }
+    }
+
+    private fun drawResourceMarkers(
+        s: PDFormContentStream,
+        rows: List<ResourceRenderLine>,
+        firstRuleTop: Float,
+    ) {
+        rows.forEachIndexed { index, row ->
+            val current = row.currentValue
+            val maximum = row.maximum
+            if (
+                current != null &&
+                maximum != null &&
+                maximum in 1..RESOURCE_SYMBOL_MAXIMUM &&
+                current in 0..maximum
+            ) {
+                drawResourceCounter(
+                    s = s,
+                    font = resources.symbol,
+                    startX = 222f,
+                    centerTop = firstRuleTop + index * RESOURCE_STEP - RESOURCE_STEP / 2f,
+                    current = current,
+                    maximum = maximum,
+                )
+            }
+        }
+    }
+
+    private fun drawOptionMarkers(
+        s: PDFormContentStream,
+        options: List<OptionRenderLine>,
+        firstRuleTop: Float,
+    ) {
+        options.forEachIndexed { index, option ->
+            option.active?.let { active ->
+                val ruleTop = firstRuleTop + index * RESOURCE_STEP
+                drawV1TrainingBox(
+                    s = s,
+                    font = resources.symbol,
+                    centerX = 116f,
+                    centerTop = ruleTop - RESOURCE_STEP / 2f,
+                    training = if (active) Training.PROFICIENT else Training.NONE,
+                )
             }
         }
     }
@@ -2553,6 +2699,8 @@ internal class DesktopCustomV1ExtendedRenderer(
 
         const val RESOURCE_FIRST_RULE_TOP = 128.5f
         const val RESOURCE_ROWS_PER_PAGE = 10
+        const val RESOURCE_FULL_PAGE_ROWS = 29
+        const val OPTION_FULL_PAGE_ROWS = 29
         const val RESOURCE_STEP = 20f
         const val RESOURCE_SYMBOL_MAXIMUM = 6
         const val RESOURCE_NAME_TEXT_WIDTH = 171f
