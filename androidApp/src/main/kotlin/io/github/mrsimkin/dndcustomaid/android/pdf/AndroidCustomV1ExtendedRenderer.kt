@@ -1670,6 +1670,7 @@ internal class AndroidCustomV1ExtendedRenderer(
 
         val customModules = stats.attributes.flatMap { projection ->
             linkedByCustom[projection.attribute.id].orEmpty()
+                .flatMap(::skillLines)
                 .chunked(SKILLS_PER_MODULE)
                 .ifEmpty { listOf(emptyList()) }
                 .map { skills ->
@@ -1693,14 +1694,16 @@ internal class AndroidCustomV1ExtendedRenderer(
                         } else {
                             Training.NONE
                         },
-                        skills = skills.map(::skillLine),
+                        skills = skills,
                     )
                 }
         }
 
         val standardModules = CharacterAbility.entries.flatMap { ability ->
-            val grouped = stats.skills.filter { it.ability.builtIn == ability }
-            grouped.chunked(SKILLS_PER_MODULE).map { skills ->
+            val physicalSkillLines = stats.skills
+                .filter { it.ability.builtIn == ability }
+                .flatMap(::skillLines)
+            physicalSkillLines.chunked(SKILLS_PER_MODULE).map { skills ->
                 ModuleSlice(
                     title = builtInKeyedName(ability),
                     score = sheet.abilityScore(ability).toString(),
@@ -1711,7 +1714,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                     } else {
                         Training.NONE
                     },
-                    skills = skills.map(::skillLine),
+                    skills = skills,
                 )
             }
         }
@@ -1719,12 +1722,27 @@ internal class AndroidCustomV1ExtendedRenderer(
         return customModules + standardModules
     }
 
-    private fun skillLine(projection: PcSheetCustomSkillProjection): SkillLine =
-        SkillLine(
-            name = projection.skill.name,
-            total = projection.total?.let(::signed).orEmpty(),
-            training = training(projection.skill.training),
-        )
+    private fun skillLines(projection: PcSheetCustomSkillProjection): List<SkillLine> {
+        val narrowestLabelWidth = COLUMNS.minOf { it.width - 39f }
+        val rawWidthAtApprovedScale =
+            narrowestLabelWidth / (SOURCE_LABEL_HORIZONTAL_SCALE / 100f)
+        val wrapped = wrapByWidth(
+            projection.skill.name,
+            resources.fira,
+            10f,
+            rawWidthAtApprovedScale,
+        ).ifEmpty { listOf(projection.skill.name) }
+
+        return wrapped.mapIndexed { index, line ->
+            SkillLine(
+                name = line,
+                total = projection.total?.let(::signed).orEmpty().takeIf { index == 0 }.orEmpty(),
+                training = if (index == 0) training(projection.skill.training) else Training.NONE,
+                marker = index == 0,
+                horizontalScale = SOURCE_LABEL_HORIZONTAL_SCALE,
+            )
+        }
+    }
 
     private fun renderCustomStatisticsPage(
         page: PDPage,
@@ -1840,6 +1858,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                             ruleTop - SOURCE_LABEL_BASELINE_OFFSET,
                             skill.name,
                             column.width - 39f,
+                            fixedHorizontalScale = skill.horizontalScale,
                         )
                         if (skill.total.isNotEmpty()) {
                             centeredText(
@@ -1872,7 +1891,8 @@ internal class AndroidCustomV1ExtendedRenderer(
                         s, resources.symbol,
                         column.x + 6.2f,
                         ruleTop - 6.2f,
-                        module?.skills?.getOrNull(rowIndex)?.training ?: Training.NONE,
+                        module?.skills?.getOrNull(rowIndex)?.takeIf { it.marker }?.training
+                            ?: Training.NONE,
                     )
                 }
             }
@@ -1972,13 +1992,20 @@ internal class AndroidCustomV1ExtendedRenderer(
         baselineTop: Float,
         value: String,
         maximumWidth: Float,
+        fixedHorizontalScale: Float? = null,
     ) {
         if (value.isBlank()) return
         val size = 10f
         val rawWidth = textWidth(font, value, size)
-        val scale = minOf(SOURCE_LABEL_HORIZONTAL_SCALE, maximumWidth / rawWidth * 100f)
+        val scale = fixedHorizontalScale ?: minOf(
+            SOURCE_LABEL_HORIZONTAL_SCALE,
+            maximumWidth / rawWidth * 100f,
+        )
         require(scale >= MINIMUM_LABEL_HORIZONTAL_SCALE) {
             "Custom-v1 source-matched label requires excessive compression: '$value' ($scale%)"
+        }
+        require(rawWidth * scale / 100f <= maximumWidth + 0.05f) {
+            "Custom-v1 wrapped source-matched label does not fit at uniform scale: '$value' ($scale%)"
         }
         s.beginText()
         s.setNonStrokingColor(Color.BLACK)
@@ -2314,6 +2341,8 @@ internal class AndroidCustomV1ExtendedRenderer(
         val name: String,
         val total: String,
         val training: Training,
+        val marker: Boolean,
+        val horizontalScale: Float,
     )
 
     private data class ColumnGeometry(
