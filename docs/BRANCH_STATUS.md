@@ -1,6 +1,6 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-28 (Chile local time)  
+**Updated:** 2026-09-30 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified functional `main`:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — owner re-QA **FAILED**. Owner runtime from the `0.5.0-preqa.8 / 50800` label produced Fantasy 45 pages, Custom v2 Atributo 28, Custom v2 Habilidad 27, and a blocking Custom-v1 export failure, while the prior branch closure claimed 29/18/16/15. The repair branch remains unmerged evidence only. The clarified pre-fix authority is `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`. **Next boundary is exact APK/source provenance plus item-by-item acceptance mapping; no renderer code change until that matrix is walked against the real 50800 artifacts.**
+**Current normal work:** PC Sheet PDF Export — **Phase 1 provenance audit ACTIVE** after owner re-QA failure. Repository evidence now fingerprints at least two materially different `0.5.0-preqa.8 / 50800` APKs: `15f86ec...` artifact `10917523331` and final adaptive-repair `ce695c...` artifact `10943700272`. The exact owner-installed APK remains unidentified pending its SHA-256/file. The full 2026-09-28 QA matrix remains binding. **No renderer code change until installed-binary provenance is closed.**
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -102,7 +102,7 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-**Sole active non-main branch:** `repair/pc-sheet-adaptive-continuations-cross-family` remains the only relevant repair ref, but it is **NOT accepted as owner-runtime-correct**.
+**Active audit branch:** `audit/mara-phase1-provenance` — repository-side Phase 1 provenance evidence; currently waiting for the owner-local APK fingerprint.\n\n**Relevant repair evidence branch:** `repair/pc-sheet-adaptive-continuations-cross-family` remains **NOT accepted as owner-runtime-correct** and is not the active implementation authority.
 
 **Sole active implementation PR:** none — do not promote/merge until the failed owner re-QA is reconciled.
 
@@ -116,7 +116,7 @@ Current authority:
 - owner runtime: Fantasy **45**, Custom v1 **generation FAIL**, Custom v2 Atributo **28**, Custom v2 Habilidad **27**;
 - prior claimed repaired counts **29 / 18 / 16 / 15** therefore do not match runtime;
 - owner disposition: **RE-QA FAIL**;
-- next technical gate: identify exact installed APK commit/artifact, establish renderer parity, then map every OPEN matrix item to implementation surface + existing native/source reference + regression + actual-candidate evidence **before changing renderer code**;
+- Phase 1 repository finding: pre-adaptive APK `15f86ec...` / artifact `10917523331` / APK SHA-256 `ff367e9b7b44d1844bd3358dbf6f5979087536a5ae404a3fe36623a3550a93c6`; final adaptive APK `ce695c...` / artifact `10943700272` / APK SHA-256 `68bbe5a055920a0c9ffc481f1c73c38a7dbc87867e78bcb72fabe3ff4ce00042`;\n- next technical gate: obtain the SHA-256 (or exact file) of the APK actually used for owner 50800 re-QA, classify it to exact source/artifact, then map every OPEN matrix item to implementation surface + existing native/source reference + regression + actual-candidate evidence **before changing renderer code**;
 - owner reuse-first clarification applies across attributes, Traits/Rasgos, Trasfondo/Historia-style modules, ordinary Equipment, Equipo Especial, Notes and analogous components;
 - ordinary Equipment must not show weight, `Consumible` or prose descriptions;
 - do not reuse `0.5.0-preqa.8 / 50800`;
