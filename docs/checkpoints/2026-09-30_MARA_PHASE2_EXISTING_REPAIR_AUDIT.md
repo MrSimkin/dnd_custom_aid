@@ -143,3 +143,96 @@ No page-count result is treated as acceptance by itself.
 Batch 1 remains **PENDING OWNER REVIEW**. No item above becomes final KEEP/MODIFY/REPLACE until the owner responds.
 
 Phase 2 may continue technical investigation independently, but no renderer changes are permitted.
+
+
+## Owner response — Batch 1
+
+Recorded immediately after owner review. These responses supersede any narrower provisional interpretation above.
+
+### B1-01 — Custom v1 long skill names
+
+**Owner clarification:**
+
+- Compression is acceptable up to a **reasonable, readable limit**.
+- If the available vertical space permits wrapping without breaking the design or overlapping other elements, wrapping to two lines is acceptable/preferred.
+- Compression may still be used where appropriate.
+- **Uniformity across wrapped lines is mandatory:** do not render the first line compressed and the second line uncompressed, because that produces visibly inconsistent typography.
+
+**Audit consequence:** provisional KEEP is narrowed to **KEEP/MODIFY typography behavior**. The multi-line routing is useful, but final acceptance requires a consistent scale decision across all physical lines belonging to the same semantic label and a readable compression floor.
+
+**Owner status:** clarified.
+
+### B1-02 — Custom-v2 native attribute score/modifier boxes
+
+**Owner clarification:**
+
+The prior audit question mixed more than one design issue. For this item, isolate only the score/modifier attribute ornament.
+
+The required construction is explicitly layered:
+
+1. **Layer 1:** background colors / base page color fields.
+2. **Layer 2:** the **exact native score/modifier boxes from page 1**, reused as the visual component.
+3. Additional text/value/marker layers may then be applied as appropriate.
+
+Earlier approved/example PDFs had already demonstrated use of those exact native boxes. The owner requires the native page-1 ornament to be the source of truth, not a generic/programmatic approximation.
+
+**Audit consequence:** source-crop/ornament recovery work is potentially reusable, but only if it reproduces the exact native page-1 boxes as their own layer. Any broader question about the surrounding Custom Statistics page layout must be audited as a **separate item** and must not be conflated with this ornament requirement.
+
+**Owner status:** this ornament requirement is clear. A separate clarification item is required below for the broader layout question.
+
+### B1-03 — Custom Statistics capacity
+
+**Owner clarification:**
+
+The target capacity is **up to six attributes per page at native scale**.
+
+This is supported by the existing visual designs:
+- Custom v2 already demonstrates six attributes can fit;
+- Custom v1 page 1 also demonstrates six attributes in-line at native scale.
+
+Therefore the repair must not preserve an arbitrary three-attribute-per-page limit when six can fit using the native-scale grammar.
+
+**Audit consequence:** the existing `ATTRIBUTE_COLUMNS_PER_PAGE = 3` approach is not acceptable as a product rule. Classification: **MODIFY/REPLACE capacity/layout rule**.
+
+**Owner status:** clarified.
+
+### B1-04 — Phantom custom attributes
+
+**Owner clarification:**
+
+Phantom/empty attribute slots are not inherently objectionable provided that:
+
+- they do **not** create phantom skills beneath them;
+- the physical area associated with unused attributes can be reclaimed by other content **to the reasonable extent that the design permits**.
+
+The current repair, which removes the fake attribute cards, is acceptable and may be treated as resolved. The above nuance remains a design consideration but is not a blocker if it is not applied.
+
+**Audit consequence:** classification remains **KEEP / defect resolved**, with the non-blocking reclaim/phantom-skill consideration recorded.
+
+**Owner status:** resolved.
+
+### B1-05 — Éter identity / mode-specific presentation
+
+**Owner clarification:**
+
+The prior audit question may not have represented the desired rule correctly.
+
+Known owner requirements:
+
+- when the attribute itself is shown, the owner expects the identity to appear as **`ETEr`**;
+- in the **per-Ability / por Habilidad** style, the skills should appear together and the relevant attribute key should appear in parentheses as **`(ETE)`**.
+
+The owner is not currently convinced that the existing `ETE · Éter` repair matches this intended behavior.
+
+**Audit consequence:** do **not** close M50800-07 as KEEP. Reclassify as **PENDING OWNER / likely MODIFY** until the exact display rule is restated and compared against both Custom-v2 modes.
+
+**Owner status:** clarification required below.
+
+## Pending clarification after Batch 1
+
+Two points remain intentionally open:
+
+- **Clarification Point 2:** broader Custom Statistics layout/grammar, separated from the native score/modifier-box requirement.
+- **Clarification Point 5:** exact Éter display rule across Custom-v2 modes.
+
+No other Batch-1 owner answer remains ambiguous enough to require another question.
