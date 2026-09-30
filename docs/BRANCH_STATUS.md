@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — **Phase 1 provenance audit ACTIVE** after owner re-QA failure. Repository evidence now fingerprints at least two materially different `0.5.0-preqa.8 / 50800` APKs: `15f86ec...` artifact `10917523331` and final adaptive-repair `ce695c...` artifact `10943700272`. The exact owner-installed APK remains unidentified pending its SHA-256/file. The full 2026-09-28 QA matrix remains binding. **No renderer code change until installed-binary provenance is closed.**
+**Current normal work:** PC Sheet PDF Export — **Phase 1 provenance CLOSED**. The exact owner-supplied 50800 APK matches `15f86ec...` / artifact `10917523331` byte-for-byte and does not match the final adaptive-repair APK `ce695c...` / artifact `10943700272`. The 2026-09-28 QA therefore remains valid for the pre-adaptive baseline but is not an owner-runtime rejection of the later repair. The full owner QA matrix remains binding. **Next phase is audit-only until the owner explicitly starts Phase 2; no new renderer code yet.**
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -102,12 +102,15 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-**Active audit branch:** `audit/mara-phase1-provenance` — repository-side Phase 1 provenance evidence; currently waiting for the owner-local APK fingerprint.\n\n**Relevant repair evidence branch:** `repair/pc-sheet-adaptive-continuations-cross-family` remains **NOT accepted as owner-runtime-correct** and is not the active implementation authority.
+**Active audit branch:** `audit/mara-phase1-provenance` — Phase 1 provenance closure, ready to integrate.
+
+**Relevant repair evidence branch:** `repair/pc-sheet-adaptive-continuations-cross-family` is repository/CI/Worker-preflight green at its recorded final repair head, but it has **not yet been owner-runtime verified**. It remains evidence for Phase 2 audit, not automatic implementation authority.
 
 **Sole active implementation PR:** none — do not promote/merge until the failed owner re-QA is reconciled.
 
 Current authority:
-- canonical checkpoint: `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
+- canonical checkpoint: `docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md`;
+- parent runtime QA checkpoint: `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
 - consolidated pre-fix matrix: `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`;
 - original acceptance ledger: `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`;
 - superseded claimed closure to audit: `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md`;
@@ -115,8 +118,9 @@ Current authority:
 - prior Scaffold #4088 / `36354213574` and proof artifact `10942589698` are repository evidence only, not owner runtime acceptance;
 - owner runtime: Fantasy **45**, Custom v1 **generation FAIL**, Custom v2 Atributo **28**, Custom v2 Habilidad **27**;
 - prior claimed repaired counts **29 / 18 / 16 / 15** therefore do not match runtime;
-- owner disposition: **RE-QA FAIL**;
-- Phase 1 repository finding: pre-adaptive APK `15f86ec...` / artifact `10917523331` / APK SHA-256 `ff367e9b7b44d1844bd3358dbf6f5979087536a5ae404a3fe36623a3550a93c6`; final adaptive APK `ce695c...` / artifact `10943700272` / APK SHA-256 `68bbe5a055920a0c9ffc481f1c73c38a7dbc87867e78bcb72fabe3ff4ce00042`;\n- next technical gate: obtain the SHA-256 (or exact file) of the APK actually used for owner 50800 re-QA, classify it to exact source/artifact, then map every OPEN matrix item to implementation surface + existing native/source reference + regression + actual-candidate evidence **before changing renderer code**;
+- owner runtime disposition for `15f86ec...`: **QA FAIL**; this result does not classify `ce695c...` because that binary was not the one tested;
+- Phase 1 resolved finding: owner-supplied APK SHA-256 `ff367e9b7b44d1844bd3358dbf6f5979087536a5ae404a3fe36623a3550a93c6` equals pre-adaptive `15f86ec...` / artifact `10917523331`; it does not equal final adaptive APK `ce695c...` / artifact `10943700272` / SHA-256 `68bbe5a055920a0c9ffc481f1c73c38a7dbc87867e78bcb72fabe3ff4ce00042`;
+- next technical gate after owner starts Phase 2: map every OPEN matrix item against the existing adaptive repair using implementation surface + native/source reference + regression + actual-candidate evidence before new renderer code;
 - owner reuse-first clarification applies across attributes, Traits/Rasgos, Trasfondo/Historia-style modules, ordinary Equipment, Equipo Especial, Notes and analogous components;
 - ordinary Equipment must not show weight, `Consumible` or prose descriptions;
 - do not reuse `0.5.0-preqa.8 / 50800`;
@@ -124,7 +128,7 @@ Current authority:
 
 Canonical resume authority:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md -> docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md -> provenance/item mapping -> repair`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md -> docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md -> Phase 2 existing-repair audit -> later candidate`
 
 ## Historical/stale open PRs
 
