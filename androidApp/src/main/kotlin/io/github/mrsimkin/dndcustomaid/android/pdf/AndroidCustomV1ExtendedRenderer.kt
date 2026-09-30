@@ -272,14 +272,6 @@ internal class AndroidCustomV1ExtendedRenderer(
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             fill(s, 0f, 0f, W, H, Color.WHITE)
-            drawSourceCrop(
-                s = s,
-                form = resources.forms[2],
-                x = 20f,
-                top = 15f,
-                width = 145f,
-                height = 58f,
-            )
             TRAIT_RECLAIM_RULES.forEachIndexed { index, top ->
                 if (index % 2 == 0) {
                     fill(
