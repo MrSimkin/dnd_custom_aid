@@ -218,6 +218,80 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     }
 
     @Test
+    fun maraCustomV1TraitsReclaimExhaustedScaffoldAndKeepSemanticRecordsWhole() {
+        val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(
+                permanent = PcSheetExportAggregate(
+                    sheet = document.character,
+                    closure = document.closureState,
+                    successor = document.successorState,
+                ),
+            ),
+        )
+
+        val bytes = ByteArrayOutputStream().use { output ->
+            DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+            output.toByteArray()
+        }
+
+        Loader.loadPDF(bytes).use { pdf ->
+            val pageTexts = (1..pdf.numberOfPages).map { pageNumber ->
+                PDFTextStripper().apply {
+                    startPage = pageNumber
+                    endPage = pageNumber
+                }.getText(pdf).replace(Regex("\\s+"), " ").trim()
+            }
+            val reclaimedPages = pageTexts.filter { page ->
+                page.contains("Detalles de Rasgos", ignoreCase = true) &&
+                    !page.contains("Rasgos de Clase", ignoreCase = true)
+            }
+            assertTrue(
+                reclaimedPages.isNotEmpty(),
+                "Custom v1 must reclaim the page once native left-side Traits streams are exhausted",
+            )
+            reclaimedPages.forEach { page ->
+                listOf(
+                    "Rasgos de Raza",
+                    "Dotes",
+                    "Competencias",
+                    "Idiomas",
+                    "Otros Rasgos y Atributos",
+                ).forEach { exhaustedScaffold ->
+                    assertTrue(
+                        !page.contains(exhaustedScaffold, ignoreCase = true),
+                        "Custom v1 reclaimed Traits pages must not repeat exhausted scaffold $exhaustedScaffold",
+                    )
+                }
+                assertTrue(
+                    page.contains("Rasgo extenso", ignoreCase = true) ||
+                        page.contains("Historia", ignoreCase = true) ||
+                        page.contains("Progreso", ignoreCase = true) ||
+                        page.contains("Agotamiento", ignoreCase = true) ||
+                        page.contains("Movimiento", ignoreCase = true) ||
+                        page.contains("Sentido", ignoreCase = true) ||
+                        page.contains("Efecto temporal", ignoreCase = true),
+                    "Each reclaimed Custom-v1 Traits page must begin from an identifiable semantic record",
+                )
+            }
+
+            val fullText = pageTexts.joinToString(" ")
+            document.character.traits
+                .sortedBy { it.sortOrder }
+                .forEach { trait ->
+                    assertTrue(
+                        fullText.contains(trait.name),
+                        "Custom v1 must preserve trait identity ${trait.name}",
+                    )
+                }
+        }
+    }
+
+    @Test
     fun maraOrdinaryEquipmentProjectionOmitsWeightConsumibleAndDescriptionsAcrossFamilies() {
         val document = fixture("03_mara_siete_umbrales_custom_extended.json")
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
