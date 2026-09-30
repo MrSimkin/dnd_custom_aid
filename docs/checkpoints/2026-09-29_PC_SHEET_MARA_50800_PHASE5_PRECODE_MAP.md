@@ -92,3 +92,29 @@ Primary:
 - post-Phase-4 Notes evidence remains intact;
 - Fantasy and both Custom-v2 outputs retain their prior internal PASS evidence;
 - only then proceed to unique owner-candidate identity and final matrix disposition.
+
+
+## Additional exact-artifact findings discovered during Phase 5
+
+The same 4309 Custom-v1 PDF was inspected beyond Traits before any additional renderer change.
+
+### Resources / Options
+
+Rendered page 33 legitimately uses the split Resources + Options grammar while both streams contain content.
+
+Rendered pages 34–37 retain an empty Options table after Options are exhausted while Resources continue. Page 36 begins with the anonymous tail `recuperación.`, and page 37 again begins with `recuperación.` before the next owning resource identity.
+
+Disposition:
+
+- **M50800-14 / M50800-27 remain blocking for Custom v1**;
+- Resources must reclaim the exhausted Options area;
+- logical Resource records must remain whole across page boundaries;
+- a continuation page may not begin with an anonymous detail tail.
+
+### Equipment / Equipo Especial
+
+Rendered page 38 still contains useful ordinary Equipment identities (`Cuerda...` / `Llave...`) together with the final Equipo Especial record. Therefore the native combined Equipment page is still semantically justified in that exact artifact. No new Custom-v1 M50800-20 blocker is claimed from page 38.
+
+### Sequencing rule
+
+Do not implement the Resources/Options repair until the current Custom-v1 Traits reclaim iteration passes its own CI + exact-artifact gate. Phase 5 repairs remain discrete so a failure can be attributed to one bounded change.
