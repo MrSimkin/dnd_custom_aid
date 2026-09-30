@@ -683,3 +683,142 @@ The five owner decisions in this review set are:
 5. B3-12.
 
 No renderer/product changes are made during this review.
+
+
+## Owner responses — clarification set 8–12
+
+### B2-08 — trait order inside categories — OWNER DIRECTION
+
+The owner rejects both a strict synthetic priority order and the current feature-priority reordering as a universal rule.
+
+Practical character-sheet reality:
+
+- players typically enter race/species traits first;
+- then class traits;
+- then background traits;
+- later additions arrive in irregular order: feats, gifts/blessings, weapon-derived traits, later-level class traits, etc.;
+- therefore there is no semantically correct global system order independent of player entry/order.
+
+Owner direction:
+
+- the strongest candidate authority is the **order supplied by the player / stored sheet order**;
+- do not promote a later trait merely because it has uses/recovery/notes;
+- category grouping may still be used where the visual module requires it, but ordering inside a category should preserve the player-defined/stored order rather than invent a priority heuristic.
+
+**Audit consequence:** current `featurePriority` logic is **MODIFY/REMOVE** unless later evidence proves that stored/player order already encodes the intended visual order.
+
+**Owner status:** substantially resolved; implementation should treat player/stored order as the default authority.
+
+### New cross-cutting requirement — editable use/ammunition trackers
+
+The owner added an important handwriting/editability rule applying at least to:
+
+- trait/use trackers;
+- ammunition trackers.
+
+A generated PDF must not pre-consume/fill the marks representing already-used capacity in a way that prevents the player from editing the printed sheet naturally.
+
+The writable tracker should represent **available capacity / blank state**, e.g. conceptually:
+
+- `○ ○ ○ ○ ○` / empty boxes rather than pre-filled spent marks;
+- or a writable counter shape such as `____ / 3`.
+
+The PDF is a writable character sheet, not merely a snapshot dashboard. Existing state may need separate semantic treatment if it must be conveyed, but the handwriting control itself must remain usable.
+
+**Status:** OWNER REQUIREMENT RECORDED; one clarification remains below about whether current/spent state should be printed elsewhere or omitted entirely.
+
+### B2-09 — adaptive page-layout selector — OWNER DIRECTION WITH MODULE CONSTRAINTS
+
+The owner confirms the multiple-layout selector architecture, with important per-module geometry constraints.
+
+Different modules have different legitimate flexibility:
+
+- **Rasgos:** horizontally occupies approximately half-page width as a native module.
+- **Trasfondo / narrative modules:** likewise normally occupy half-page width.
+- **Equipo especial:** owner states its occupied space is effectively **fixed**; exact meaning/axis requires one clarification below.
+- **Equipo normal:** highly flexible; may expand/contract substantially to fit available page area.
+- **Notas:** exceptional case; when Notes overflow warrants another Notes page, copy/reuse the **entire native Notes page**, rather than sharing it with unrelated modules.
+- **Acciones/Ataques:** highly flexible and may use almost any practical width.
+
+Therefore the page composer must not treat all modules as arbitrary rectangles. Each module exposes family-native placement/size constraints, and the selector chooses among valid page layouts that satisfy those constraints while minimizing wasted space and preserving handwriting usability.
+
+**Audit consequence:** cross-role compositor requirement is CONFIRMED. Layout selection must be constraint-aware, not generic bin-packing.
+
+### B2-10 — Combat/Actions logical row — OWNER CONFIRMED WITH STRONG DESIGN DIRECTION
+
+The owner favors the single logical-row model.
+
+For an Extended page dedicated substantially to actions/attacks:
+
+- use the **full page width** where practical;
+- give generous width to the action's special/effect/notes section to avoid unnecessary wrapping;
+- one action should remain a coherent visual record;
+- row height may grow according to the content that actually needs more lines;
+- avoid splitting one action into several visually independent boxes/bands, because that becomes confusing and difficult to scan.
+
+The base first page may intentionally force concise writing because space is constrained, but an Extended action page should use its additional space to improve readability rather than reproduce that constraint unnecessarily.
+
+**Audit consequence:** current fixed 26-pt physical-band implementation is **PARTIAL / MODIFY**. Keep header/table semantics; move to content-driven logical row height and wider full-page composition when the layout selector chooses an action-heavy page.
+
+### B3-11 — Trasfondo/Historia module identity — OWNER CONFIRMED + CONTINUITY CONTRACT
+
+The owner confirms the original question: Trasfondo/Historia overflow must preserve its own native/module identity and participate in the Extended-page compositor rather than being flattened into generic Traits/Notes prose.
+
+The owner additionally defines an explicit **continuity navigation contract** for text that flows across modules/pages.
+
+Example for Historia:
+
+Base/native section ends with a visible continuation marker:
+
+`...[continua en sección extendida HISTORIA 01]...`
+
+The first Extended Historia segment begins with:
+
+`...[proviene de sección normal HISTORIA]...`
+
+If that Extended segment itself overflows, it ends with:
+
+`...[continua en sección extendida HISTORIA 02]...`
+
+The next Extended segment begins with:
+
+`...[proviene de sección extendida HISTORIA 01]...`
+
+and so on.
+
+Required properties:
+
+- continuation targets are explicitly named;
+- sequence numbers make multiple Extended segments unambiguous;
+- each continuation segment identifies its immediate source;
+- the reader can navigate both forward and backward without guessing;
+- markers must be visible and must not overwrite meaningful content.
+
+**Audit consequence:** existing generic overflow routing does not satisfy this. The future flow model needs source/target-aware continuation metadata and rendering support, not merely text chunks.
+
+**Owner status:** clear and confirmed.
+
+### B3-12 — Fantasy Combat/Actions semantic table — OWNER CONFIRMED
+
+The owner confirms the simple rule:
+
+- Fantasy overflow must preserve/extend the base Combat/Actions table grammar;
+- the current prose/reference continuation is not acceptable.
+
+**Audit consequence:** current Fantasy continuation presentation is **REPLACE**; data extraction can be retained.
+
+## Remaining clarifications from this response
+
+### Clarification 8A — writable tracker state
+
+The owner requires blank/editable use/ammunition controls such as empty marks or `____ / 3`.
+
+**Question:** if the character currently has some uses/ammunition already spent at export time, should the PDF:
+A. omit that spent/current state entirely and show only the blank writable capacity; or
+B. preserve the current/spent state somewhere as separate text while leaving the handwriting tracker itself blank/editable?
+
+### Clarification 9A — Equipo Especial fixed geometry
+
+The owner states that Equipo Especial has effectively **100% fixed occupied space**.
+
+**Question:** does “fixed” mean the native module's full geometry (both width and height) should be copied as-is whenever it appears, or specifically that its **width** is fixed while its height may extend by adding/repeating native rows?
