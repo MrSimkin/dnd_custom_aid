@@ -57,7 +57,7 @@ It is not:
 
 | ID | Area | 50800 failure / owner clarification | Required result | Required candidate evidence | Status |
 | --- | --- | --- | --- | --- | --- |
-| M50800-01 | Candidate provenance | The same `0.5.0-preqa.8 / 50800` identity was reused for materially different binaries, so the runtime/proof mismatch cannot be resolved from the label. | Establish exact source commit/artifact for the runtime APK before speculative repair; every later owner candidate gets a new unique version/build identity. | Commit, CI/run, artifact ID and digest for the next candidate; no reuse of 50800. | OPEN |
+| M50800-01 | Candidate provenance | The same `0.5.0-preqa.8 / 50800` identity was reused for materially different binaries. Phase 1 proved the owner-tested APK is byte-for-byte artifact `10917523331` from `15f86ec...`, not the final adaptive-repair artifact `10943700272` from `ce695c...`. | Provenance of the failed runtime is established. Every later owner candidate must still use a new unique version/build identity higher than the last owner-QA build. | Owner APK SHA-256 `ff367e9b7b44d1844bd3358dbf6f5979087536a5ae404a3fe36623a3550a93c6`; source `15f86ec...`; run #3929 / `36276643170`; artifact `10917523331`. | FIXED — PROVENANCE RESOLVED |
 | M50800-02 | Custom v1 generation | Custom v1 does not produce a PDF and fails on `Lectura de presagios`. | Real Mara Custom v1 must complete generation before owner handoff. | Real-Mara generation smoke + actual generated PDF from exact candidate. | OPEN |
 | M50800-03 | Template/source underlay | Custom-v2 Extended pages retain stale source-template text objects and some leak visibly into current content. | Unrelated source/template objects must not remain searchable/copyable/visible in the wrong semantic page context. Preserve the approved layered source construction rather than flattening the whole page. | Text-layer inspection plus rendered affected pages. | OPEN |
 | M50800-04 | Custom Statistics visual grammar | Extended custom attributes were rebuilt as large generic black/white cards instead of using the already-correct page-1 attribute design. | Reuse the page-1/native Custom-v2 attribute grammar: same visual construction, scale, font roles and spacing logic. | Side-by-side source/page-1 vs Extended render inspection. | OPEN |
@@ -108,7 +108,7 @@ The following are insufficient by themselves:
 
 Before the next renderer repair begins:
 
-1. establish exact provenance/parity for the 50800 runtime APK as far as repository evidence allows;
+1. provenance for the failed 50800 runtime is resolved by `docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md`: owner APK = `15f86ec...` / artifact `10917523331`; preserve that finding;
 2. reopen the real 50800 PDFs/screenshot plus the 2026-09-26 and 2026-09-28 ledgers;
 3. use this matrix to map each OPEN item to:
    - responsible implementation surface;

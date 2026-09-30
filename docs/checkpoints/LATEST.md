@@ -1,12 +1,12 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-09-28 (Chile local time)  
+**Updated:** 2026-09-30 (Chile local time)  
 **Normal integrated trunk:** `main`  
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`  
-**Current active route:** Owner re-QA of the purported adaptive repair **FAILED**. Runtime output from the owner-facing `0.5.0-preqa.8 / 50800` candidate reproduces the original Mara visual/layout defect classes, adds a blocking Custom-v1 export failure, and materially disagrees with the prior repair proof/page counts. The owner has now completed a detailed clarification pass and the consolidated pre-fix authority is `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`. **Next gate is exact binary/source provenance + item-by-item acceptance mapping before any renderer code change.**  
-**Current implementation branch:** `repair/pc-sheet-adaptive-continuations-cross-family` remains unmerged evidence/working state only; its prior closure is not accepted as runtime proof.  
+**Canonical active checkpoint:** `docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md`  
+**Current active route:** Phase 1 provenance is **CLOSED**. The exact owner-supplied 50800 APK is byte-for-byte the pre-adaptive `15f86ec...` artifact `10917523331` (SHA-256 `ff367e9b...`), not the later final adaptive-repair `ce695c...` artifact `10943700272`. Therefore the 2026-09-28 QA is valid evidence for the pre-adaptive baseline but did **not** owner-test the later 100+ commit repair. All owner observations remain binding. **Next phase is the explicit Phase 2 audit of existing repair work against the full QA matrix; do not start Phase 2 or new renderer code until the owner asks to proceed.**  
+**Current audit branch:** `audit/mara-phase1-provenance` contains the completed Phase 1 provenance closure. `repair/pc-sheet-adaptive-continuations-cross-family` remains unmerged repair evidence, now correctly classified as repository/CI/Worker-preflight green but **not yet owner-runtime verified**.  
 **Current implementation PR:** none — do not promote or merge before provenance and a new uniquely versioned owner candidate pass the rebuilt acceptance ledger.  
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
 
@@ -15,16 +15,17 @@
 1. `AGENTS.md`;
 2. `RESUME.md`;
 3. this file;
-4. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
-5. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md` — consolidated owner clarification / mandatory pre-fix checklist;
-6. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md` — original defect/acceptance ledger;
-7. `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md` — superseded claimed closure / evidence to audit, **not** runtime acceptance;
-8. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
-9. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
-10. `docs/PROJECT_STATE.md`;
-11. `docs/BRANCH_STATUS.md`.
+4. `docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md`;
+5. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
+6. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md` — consolidated owner clarification / mandatory pre-fix checklist;
+7. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md` — original defect/acceptance ledger;
+8. `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md` — superseded claimed closure / evidence to audit, **not** runtime acceptance;
+9. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+10. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+11. `docs/PROJECT_STATE.md`;
+12. `docs/BRANCH_STATUS.md`.
 
-**Branch rule:** do not infer success from the repair branch, prior green Scaffold, proof artifact or the reused `50800` version identity. First establish which exact binary/source state produced the owner runtime output.
+**Branch rule:** provenance is now established: the failed owner runtime came from `15f86ec...`, not `ce695c...`. Do not infer that the later repair is correct merely from green CI/proofs; Phase 2 must audit it against every owner observation before any new candidate is promoted.
 
 ## Active owner re-QA failure
 

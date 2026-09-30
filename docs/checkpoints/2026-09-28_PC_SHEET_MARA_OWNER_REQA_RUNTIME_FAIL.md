@@ -356,3 +356,29 @@ Before new layout implementation:
 10. verify every original observation as FIXED/OPEN/CHANGED before asking the owner for another manual visual pass.
 
 The next owner QA APK must have a unique versionName/versionCode and exact commit/artifact provenance.
+
+
+## Provenance resolution — 2026-09-30
+
+Phase 1 later resolved the candidate ambiguity conclusively from the exact APK file supplied by the owner.
+
+Owner-tested APK:
+
+- SHA-256: `ff367e9b7b44d1844bd3358dbf6f5979087536a5ae404a3fe36623a3550a93c6`;
+- byte-for-byte match: artifact `10917523331`;
+- source commit: `15f86ec8285e69969054d40defaa2c16259b8dce`;
+- Scaffold: #3929 / `36276643170`.
+
+It does **not** match the later final adaptive-repair APK:
+
+- artifact `10943700272`;
+- source `ce695c40782e1847ed70a2256885b5b07113feae`;
+- APK SHA-256 `68bbe5a055920a0c9ffc481f1c73c38a7dbc87867e78bcb72fabe3ff4ce00042`.
+
+Therefore the owner QA recorded in this checkpoint remains valid primary evidence for the pre-adaptive `15f86ec...` runtime baseline, but it is **not an owner-runtime rejection of the later `ce695c...` adaptive-repair branch**.
+
+All owner observations in this checkpoint remain mandatory acceptance items. The later repair must be audited against them and must not be assumed correct merely because the wrong APK was previously delivered.
+
+Canonical resolution record:
+
+`docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md`.
