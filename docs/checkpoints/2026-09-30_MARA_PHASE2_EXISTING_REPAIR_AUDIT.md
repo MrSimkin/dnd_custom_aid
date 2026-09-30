@@ -1079,3 +1079,18 @@ This corresponds to prior option **A: full native module geometry fixed and repe
 The owner does not recognize the abbreviated label “Opciones”.
 
 Before asking for a product decision, identify the actual domain/UI name represented by `CharacterClassOption` / the `OPCIONES` section and explain it using concrete examples from the supported kinds. Do not assume owner intent until terminology is clear.
+
+
+### B4-13 terminology clarification — “Options” means class-choice modules
+
+Repository inspection shows that the PDF label `OPCIONES` is an umbrella over `CharacterClassOption` records. In the current app these are surfaced through concrete modules such as:
+
+- **Técnicas** — e.g. manoeuvres, shots, runes, flourishes and similar chosen techniques;
+- **Metamagia** — known Metamagic options;
+- **Pactos** — pact choices and **Invocaciones**.
+
+The underlying model also supports kinds such as Artificer plans/devices, subclass-state records and a generic OTHER kind.
+
+Therefore “Opciones” is not a good owner-facing shorthand for the audit. Future review should call these **Técnicas / Metamagia / Pactos / Invocaciones / otras elecciones de clase**, or “elecciones de clase” as the umbrella term.
+
+B4-13 remains pending owner review under this clarified terminology.
