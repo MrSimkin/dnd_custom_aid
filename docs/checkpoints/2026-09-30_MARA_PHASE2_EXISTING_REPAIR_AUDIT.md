@@ -523,3 +523,163 @@ The owner requests a follow-up only if this interpretation is still unclear.
 ### B2-10 — owner requests clarification by example/wireframe
 
 The owner did not yet resolve the logical-row vs fixed-physical-band Combat/Actions behavior. Re-present with concrete wireframes.
+
+
+## Clarification wireframes + Batch 3 staging
+
+This section records the next owner-review set. It contains unresolved clarifications B2-08/B2-09/B2-10 plus two new audit points, for a maximum of five owner decisions.
+
+### Clarification B2-08 — order inside a category
+
+Current repair behavior can promote a later trait ahead of an earlier trait inside the same semantic category when the later trait has uses/recovery/notes.
+
+Illustrative case:
+
+Source order inside category CLASE:
+- Rasgo A — sortOrder 1
+- Rasgo B — sortOrder 2
+- Rasgo C — sortOrder 3, has uses/recovery
+
+Strict sortOrder would render:
+```
+CLASE
+Rasgo A
+Rasgo B
+Rasgo C [3/3]
+```
+
+Current feature-priority logic may render:
+```
+CLASE
+Rasgo C [3/3]
+Rasgo A
+Rasgo B
+```
+
+**Owner question:** inside one category, is the first or second behavior desired?
+
+### Clarification B2-09 — page-layout selection architecture
+
+Owner intent currently understood as:
+
+- maintain multiple valid family-native Extended page layouts;
+- inspect all remaining overflow roles and their content volume;
+- choose the most appropriate composition for that page;
+- do not reserve absent-role slots;
+- do not force every role onto its own page;
+- when one role ends, remaining roles may reclaim its area on later pages.
+
+Illustrative selection:
+
+```
+Remaining:
+Rasgos = medium
+Equipo = medium
+Notas = none
+Recursos = none
+
+Choose:
++-------------------------------+
+| RASGOS        | EQUIPO        |
+| ...           | ...           |
+| ...           | ...           |
++-------------------------------+
+```
+
+Another state:
+
+```
+Remaining:
+Rasgos = very large
+Equipo = small
+
+Possible chosen layout:
++-------------------------------+
+| RASGOS                        |
+|                               |
+|                               |
++-------------------------------+
+| EQUIPO                        |
++-------------------------------+
+```
+
+The exact variants are not yet designed; Phase 2 only establishes the product rule.
+
+**Owner question:** confirm that this multiple-layout selector interpretation matches the desired architecture.
+
+### Clarification B2-10 — logical Combat/Actions row
+
+Current Custom-v2 repair uses fixed physical bands of ~26 pt. A long logical record may consume multiple bands.
+
+Current-style conceptual result:
+```
++---------+------+-------+----------+-------------+
+| Espada  | 5 ft | +7    | 1d8+4    | primera     |
++---------+------+-------+----------+-------------+
+|         |      |       |          | parte nota  |
++---------+------+-------+----------+-------------+
+|         |      |       |          | segunda     |
++---------+------+-------+----------+-------------+
+```
+
+Proposed logical-row behavior:
+```
++---------+------+-------+----------+-------------+
+| Espada  | 5 ft | +7    | 1d8+4    | primera     |
+|         |      |       |          | parte nota  |
+|         |      |       |          | segunda     |
++---------+------+-------+----------+-------------+
+```
+
+In the second form, the action is one semantic row whose height is determined by the tallest wrapped cell; all columns share the same top/bottom boundary.
+
+**Owner question:** which behavior is desired?
+
+### B3-11 — M50800-11 Trasfondo/Historia and narrative modules
+
+**Original requirement:** when source/native modules already exist for Trasfondo/Historia and analogous narrative sections, Extended overflow should preserve that module identity, hierarchy, font roles and writing rhythm rather than flattening the content into generic text elsewhere.
+
+**Repair state at `ce695c...`:**
+
+Custom-v2 does not create a dedicated native-like narrative overflow module. Instead:
+- `Trasfondo`, `Vínculos`, `Ideales`, and `Historia` overflow is converted to generic wrapped text by `traitSupplementLines(...)` and injected into the Traits/Rasgos detail flow;
+- personality traits/flaws/religion may also be replayed as generic Note paragraphs.
+
+Fantasy similarly converts long background/story overflow to generic labelled reference/continuation text.
+
+**Provisional classification:** **DESVÍO / GAP** under the owner's reuse-first rule and newly clarified cross-role composer architecture. The data routing exists, but the native narrative module is lost.
+
+**Owner question:** should Trasfondo/Historia overflow become its own composable native-style module (copying/reusing the family source section as closely as possible), which the global Extended-page composer may place beside/above/below other active modules depending on remaining content?
+
+### B3-12 — M50800-13 Fantasy Combat/Actions semantic table
+
+**Original requirement:** Fantasy continuation must preserve the semantic scan pattern of the base combat/action table rather than flattening name/bonus/range/damage/notes into prose.
+
+**Repair state at `ce695c...`:**
+
+The Fantasy base page still has a clear table-like `ARMAS Y ACCIONES` region with columns such as:
+- Nombre;
+- Bonif.;
+- Daño / notas.
+
+But overflow continuation `appendCombatPages(...)` still:
+- builds one prose-like string per combat entry;
+- concatenates fields with separators (`Ataque — Nombre · Ataque +X · Efecto/daño... · Alcance... · Notas...`);
+- wraps the resulting text into a ruled text area headed `REFERENCIA DE COMBATE / ACCIÓN / DAÑO`.
+
+Thus the repair did not restore table semantics for Fantasy overflow.
+
+**Provisional classification:** **MISSING / REPLACE continuation presentation**. Data preservation exists; the visual/semantic grammar does not satisfy the QA.
+
+**Owner question:** should Fantasy overflow reuse/extend the existing base `ARMAS Y ACCIONES` table grammar (adding rows/pages and allowing content-driven row height as needed) rather than use the current prose/reference continuation block?
+
+## Gate
+
+The five owner decisions in this review set are:
+1. clarification B2-08;
+2. clarification B2-09;
+3. clarification B2-10;
+4. B3-11;
+5. B3-12.
+
+No renderer/product changes are made during this review.
