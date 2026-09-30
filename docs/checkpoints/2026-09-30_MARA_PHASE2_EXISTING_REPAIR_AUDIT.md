@@ -1440,3 +1440,63 @@ The owner asks whether this is already the exact Custom-v1/v2 rule. Repository v
 The prior wording was too architectural.
 
 Re-present B6-27 using concrete page-composition examples/wireframes and plain language. Do not treat it as resolved.
+
+
+### B6-26 verification — Custom-v1/v2 family rule vs current implementation
+
+Repository inspection confirms the owner's recollection at the **design-rule level**:
+
+- Custom-v1/v2 identity rendering generally favors full semantic text, bounded size reduction, width-aware wrapping, or explicit overflow routing rather than a `...` helper;
+- unlike Fantasy, these renderers do not center their identity strategy around a `classicSingleLineExcerpt(...)` function that deliberately appends ellipsis.
+
+However, this must not be overstated as “fully implemented everywhere”:
+- several base-page paths still use bounded `.take(...)` over wrapped lines because the native base module has finite capacity;
+- correctness therefore depends on the remaining semantic content being routed explicitly to continuation surfaces;
+- Phase 3 must audit each meaningful identity path to ensure no data is silently dropped even when no literal ellipsis is printed.
+
+**Conclusion:** the owner's remembered rule is correct for Custom-v1/v2 family grammar; the current implementation is not yet proven uniformly compliant end-to-end.
+
+### B6-27 layman rephrase staged
+
+Plain-language question to owner:
+
+When content overflows, should the renderer think like a person arranging native sheet blocks on blank continuation pages?
+
+Example state:
+- Rasgos still has content;
+- Equipo still has content;
+- Recursos still has a little content;
+- Historia is finished;
+- Notes is a special full-page case.
+
+Bad/fixed approach:
+```
+PAGE A = always Rasgos template
+PAGE B = always Recursos template
+PAGE C = always Equipo template
+```
+This can leave large blank areas.
+
+Proposed approach:
+```
+What still needs space?
+  Rasgos = much
+  Equipo = medium
+  Recursos = little
+
+Try a valid native-layout arrangement:
++-------------------------------+
+| RASGOS        | EQUIPO        |
+| ...           | ...           |
+| ...           | ...           |
++---------------+---------------+
+| RECURSOS                      |
+| ...                           |
++-------------------------------+
+```
+
+If that arrangement is invalid because module geometry does not allow it, choose another valid layout. If a module is finished, it disappears. If Notes overflows, it gets its own full native Notes page. If Equipo Especial is needed, use/repeat its fixed native module.
+
+The goal is not “fewest pages at any cost”; the goal is “use the available page intelligently while keeping every module looking/behaving like the native sheet”.
+
+**B6-27 remains PENDING OWNER.**
