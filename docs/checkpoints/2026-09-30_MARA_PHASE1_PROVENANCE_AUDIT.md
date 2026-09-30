@@ -4,7 +4,7 @@
 **Phase:** 1 — binary/source provenance and baseline  
 **Branch:** `audit/mara-phase1-provenance`  
 **Base main:** `bc02d6bc3a0cf564af1c092e1cbc8e62ad0b55f4`  
-**Status:** PARTIAL / REPOSITORY-SIDE EVIDENCE COMPLETE / OWNER-LOCAL APK FINGERPRINT REQUIRED  
+**Status:** COMPLETE / OWNER APK IDENTIFIED EXACTLY / PHASE 1 CLOSED  
 **No renderer/product code changed in this phase.**
 
 ## Governing QA authority
@@ -102,11 +102,51 @@ changes the Android renderer so long skills are converted with `flatMap(::skillL
 
 That change is part of the final repaired head `ce695c...` and is absent from `15f86ec...`.
 
-Therefore the owner's exact `Lectura de presagios` failure is **strong evidence that the owner runtime did not exercise the final repaired Custom-v1 path**.
+Therefore the owner's exact `Lectura de presagios` failure was already strong evidence that the owner runtime did not exercise the final repaired Custom-v1 path.
 
-This is not yet conclusive proof of which APK was installed. A runtime-path divergence inside the final binary must remain logically possible until the installed APK fingerprint is known.
+That inference is now confirmed by the exact owner-supplied APK fingerprint below.
 
-## Phase-1 conclusion so far
+## Owner-supplied APK — conclusive match
+
+On 2026-09-30 the owner supplied the exact APK file previously delivered to and installed by the owner for the failed 50800 re-QA:
+
+`dnd-custom-aid-0.5.0-preqa.8-build50800.apk`
+
+Measured locally from the supplied bytes:
+
+- size: **69,499,416 bytes**;
+- SHA-256: `ff367e9b7b44d1844bd3358dbf6f5979087536a5ae404a3fe36623a3550a93c6`.
+
+Byte-for-byte comparison (`cmp`) against recovered GitHub workflow artifacts:
+
+- equals artifact `10917523331` extracted `androidApp-debug.apk`: **YES**;
+- equals artifact `10943700272` extracted `androidApp-debug.apk`: **NO**.
+
+Therefore the owner-tested 50800 APK is conclusively:
+
+- source commit: `15f86ec8285e69969054d40defaa2c16259b8dce`;
+- branch at build time: `main`;
+- Scaffold: #3929 / `36276643170`;
+- artifact: `10917523331`;
+- APK SHA-256: `ff367e9b7b44d1844bd3358dbf6f5979087536a5ae404a3fe36623a3550a93c6`.
+
+It is **not** the final adaptive-repair APK from `ce695c...` / artifact `10943700272`.
+
+## Consequence for the repair branch
+
+The 2026-09-28 owner QA is valid primary evidence of defects in the exact `15f86ec...` runtime baseline. It **did not test the later adaptive repair branch**.
+
+Therefore:
+
+- do not describe `ce695c...` as having failed owner runtime QA;
+- describe it as **repository/CI/Worker-preflight green but not yet owner-runtime verified**;
+- do not discard its 100+ repair commits merely because the owner observed defects in the older APK;
+- do not assume those commits satisfy the owner QA either;
+- every 2026-09-28 owner observation remains in the acceptance ledger and must be audited against the repair implementation and later against the exact next candidate.
+
+The root process defect is now proven: materially different APKs shared the same owner-facing `0.5.0-preqa.8 / 50800` identity, and the older one was the binary delivered/tested by the owner.
+
+## Phase-1 conclusion
 
 Repository-side provenance is now bounded:
 
@@ -119,33 +159,16 @@ Repository-side provenance is now bounded:
 
 No speculative renderer repair is authorized yet.
 
-## Owner evidence needed to close Phase 1
+## Phase-1 closure
 
-Preferred evidence: SHA-256 of the exact local APK file that was installed for the failed 50800 re-QA.
+M50800-01 provenance is resolved for the failed 50800 runtime.
 
-If the original file still exists on Windows, run:
+No owner question remains for Phase 1.
 
-```powershell
-Get-FileHash "FULL_PATH_TO_THE_EXACT_APK_YOU_INSTALLED" -Algorithm SHA256
-```
+The next phase is **not started automatically**. When Phase 2 begins, it must audit every 2026-09-28 observation against the existing adaptive-repair implementation using KEEP / MODIFY / REPLACE (or equivalent) classification before any new renderer code is written.
 
-Return only the SHA-256 value (or upload the exact APK file instead).
+## Next gate
 
-Known direct matches:
+Phase 1 is closed. The complete 2026-09-28 QA matrix remains binding.
 
-- `ff367e9b7b44d1844bd3358dbf6f5979087536a5ae404a3fe36623a3550a93c6` → pre-adaptive-repair `15f86ec...` / artifact `10917523331`;
-- `68bbe5a055920a0c9ffc481f1c73c38a7dbc87867e78bcb72fabe3ff4ce00042` → final adaptive-repair `ce695c...` / artifact `10943700272`.
-
-If neither matches, Phase 1 must identify the matching intermediate 50800 artifact/commit before implementation proceeds.
-
-## Next gate after owner evidence
-
-Once the installed APK fingerprint is known:
-
-1. classify the owner runtime binary as pre-repair / final-repair / intermediate;
-2. map it to exact source commit and workflow artifact where possible;
-3. compare its Android renderer against `ce695c...`;
-4. update M50800-01 with the resolved provenance finding;
-5. only then start Phase 2/3 audit work.
-
-The complete 2026-09-28 QA matrix remains binding regardless of which binary is identified.
+Do not begin new renderer implementation merely because provenance is resolved. Phase 2 must first audit the existing adaptive-repair work against every owner observation and the later owner clarifications, retaining useful work and identifying gaps before code changes.
