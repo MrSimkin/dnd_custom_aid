@@ -17,6 +17,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueK
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetIntegratedAttributeTitle
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
@@ -90,7 +91,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                 emptyList()
             } else {
                 wrapByWidth(
-                    keyedName(projection.attribute.name, projection.attribute.abbreviation) + ": " + note,
+                    pcSheetIntegratedAttributeTitle(projection.attribute.name, projection.attribute.abbreviation) + ": " + note,
                     resources.fira,
                     8.1f,
                     BOTTOM_TEXT_WIDTH,
@@ -2234,20 +2235,6 @@ internal class DesktopCustomV1ExtendedRenderer(
         s.lineTo(endX, H - top)
         s.stroke()
         s.restoreGraphicsState()
-    }
-
-    private fun keyedName(name: String, abbreviation: String): String {
-        val cleanName = name.trim()
-        val cleanKey = abbreviation.trim().uppercase().take(3)
-        if (cleanKey.isEmpty()) return cleanName
-        return if (
-            cleanName.length >= cleanKey.length &&
-            cleanName.substring(0, cleanKey.length).equals(cleanKey, ignoreCase = true)
-        ) {
-            cleanKey + cleanName.substring(cleanKey.length)
-        } else {
-            "$cleanKey · $cleanName"
-        }
     }
 
     private fun builtInKeyedName(ability: CharacterAbility): String = when (ability) {
