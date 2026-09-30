@@ -149,3 +149,26 @@ Validation:
 
 Next:
 - Package 3 constraint-aware Extended-page composer.
+
+
+## Progress — Package 3 constraint-aware Extended-page composer
+
+**Status:** COMPLETE / GREEN
+
+Implemented a renderer-independent compositor that:
+- accepts only family-approved native layout templates supplied by renderers;
+- never invents or resizes geometry;
+- inspects only active semantic module demands;
+- lets exhausted modules disappear instead of reserving placeholders;
+- assigns compatible active modules to available native slots;
+- treats full-page-exclusive modules (Notes) as owning the complete page;
+- returns remaining demand for subsequent pages;
+- fails explicitly when no valid family layout can consume remaining content.
+
+The composer optimizes only among already-valid layouts. Utilization is a selector signal, not permission to deform modules or a page-count target.
+
+Validation:
+- Scaffold #4396 / `36786217919`: backend PASS; hosted-database PASS; kotlin PASS.
+
+Next:
+- selective family-renderer integration, starting with M50800-02 Custom-v1 long-skill generation/wrapping.
