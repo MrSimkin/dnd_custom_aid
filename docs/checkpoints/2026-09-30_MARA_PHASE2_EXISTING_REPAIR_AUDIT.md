@@ -1500,3 +1500,26 @@ If that arrangement is invalid because module geometry does not allow it, choose
 The goal is not “fewest pages at any cost”; the goal is “use the available page intelligently while keeping every module looking/behaving like the native sheet”.
 
 **B6-27 remains PENDING OWNER.**
+
+
+### B6-27 — adaptive continuation architecture — CONFIRMED
+
+The owner confirms the layman rephrasing exactly.
+
+The renderer should behave like an **automatic page layout compositor**:
+
+1. inspect what semantic content still remains to be rendered;
+2. select the corresponding native/family-matched modules;
+3. choose among multiple valid page layouts;
+4. combine compatible active modules on the same page when their native geometry/rules permit;
+5. stop reserving space for modules whose content is exhausted;
+6. allocate another page whenever remaining content cannot fit without distorting native design, handwriting space, readability or semantic continuity.
+
+This is **not** free-form geometric packing:
+- native module geometry and family grammar remain authoritative;
+- fixed modules stay fixed/repeatable;
+- flexible modules may reclaim compatible space only within valid layouts;
+- Notes retains its full-native-page exception;
+- page-count reduction is an outcome, never the optimization target.
+
+**Audit consequence:** M50800-27 is conceptually CLOSED for owner intent. Phase 3 must implement the global constraint-aware compositor while preserving the valid local packing primitives identified during Phase 2.
