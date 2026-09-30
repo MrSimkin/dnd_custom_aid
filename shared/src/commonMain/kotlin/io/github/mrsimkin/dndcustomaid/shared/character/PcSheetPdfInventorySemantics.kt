@@ -7,27 +7,17 @@ package io.github.mrsimkin.dndcustomaid.shared.character
  * not make a normal inventory item consume extra Equipment rows merely because metadata exists.
  */
 fun CharacterInventoryItem.pdfCompactEquipmentLabel(): String =
-    buildList {
-        add(
-            buildString {
-                if (quantity > 1) append(quantity).append(" x ")
-                append(name)
-            },
-        )
-        weightLb?.let { weight ->
-            add(
-                if (weight % 1.0 == 0.0) {
-                    weight.toInt().toString() + " lb"
-                } else {
-                    weight.toString() + " lb"
-                },
-            )
-        }
-    }.joinToString(" · ")
+    buildString {
+        if (quantity > 1) append(quantity).append(" x ")
+        append(name)
+    }
 
 /**
- * Detail text for an ordinary item. This belongs in a details/notes semantic destination, not the
- * ordinary Equipment identity row.
+ * Detail text for an ordinary item.
+ *
+ * This metadata does not belong in Notes and does not belong in the visible ordinary Equipment
+ * identity row. It is retained only as a semantic helper for a future Equipment-specific detail
+ * surface if one is explicitly required.
  */
 fun CharacterInventoryItem.pdfOrdinaryEquipmentDetailOrNull(): String? {
     if (special) return null
@@ -49,8 +39,10 @@ fun CharacterInventoryItem.pdfOrdinaryEquipmentDetailOrNull(): String? {
 
 
 /**
- * Semantic PDF notes: campaign notes plus ordinary-item metadata that does not belong on an
- * Equipment identity row. Special equipment keeps its dedicated location/detail surface.
+ * Semantic PDF notes are actual character/campaign Notes only.
+ *
+ * Ordinary Equipment metadata must not be rerouted into Notes merely to preserve text: semantic
+ * association is part of PDF correctness.
  */
 fun CharacterSheet.pdfCampaignNoteParagraphs(): List<String> = buildList {
     generalNotes.trim().takeIf { it.isNotEmpty() }?.let(::add)
@@ -72,4 +64,4 @@ fun CharacterSheet.pdfOrdinaryEquipmentDetailParagraphs(): List<String> =
         .mapNotNull { it.pdfOrdinaryEquipmentDetailOrNull() }
 
 fun CharacterSheet.pdfNoteParagraphs(): List<String> =
-    pdfCampaignNoteParagraphs() + pdfOrdinaryEquipmentDetailParagraphs()
+    pdfCampaignNoteParagraphs()
