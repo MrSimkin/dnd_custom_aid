@@ -463,20 +463,12 @@ internal class AndroidCustomV2ExtendedRenderer(
         val traits = sheet.traits
             .sortedBy { it.sortOrder }
             .filterNot { isSpeciesIdentityTrait(it, plan) || traitHasDedicatedActionOrResource(it, plan) }
-        fun featurePriority(trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait): Int =
-            if (
-                trait.maxUses != null ||
-                !trait.recovery.isNullOrBlank() ||
-                !trait.notes.isNullOrBlank()
-            ) 0 else 1
-
         val leftTraits = traits.filter {
             it.type == CharacterTraitType.CLASS ||
                 it.type == CharacterTraitType.FEAT ||
                 it.type == CharacterTraitType.GIFT_BLESSING
-        }.sortedWith(compareBy(::featurePriority).thenBy { it.sortOrder })
+        }
         val rightTraits = traits.filterNot { it in leftTraits }
-            .sortedWith(compareBy(::featurePriority).thenBy { it.sortOrder })
 
         val featuredLeft = leftTraits.take(2)
         val featuredRight = rightTraits.take(2)
