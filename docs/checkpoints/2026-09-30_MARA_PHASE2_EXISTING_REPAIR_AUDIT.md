@@ -1185,3 +1185,65 @@ Code evidence:
 - `renderNotesContinuationPage` reconstructs rather than copies the native Notes page.
 
 No renderer/product code changes are made in Phase 2.
+
+
+## Owner responses — Batch 5 (13, 19–22)
+
+### B4-13 — Resources + class-choice streams — CONFIRMED WITH GLOBAL RECLAIM
+
+The owner confirms:
+
+- if the class-choice area (e.g. Técnicas / Metamagia / Pactos / Invocaciones) is exhausted, it should stop reserving space;
+- if there are enough remaining Resources, Resources may expand to use the whole page;
+- if Resources do not need the entire reclaimed area, another compatible Extended module may occupy that space instead, e.g. Inventory/Equipment, Traits or another active role;
+- therefore reclaim is **global**, not merely “Resources gets the former Options half”.
+
+**Audit consequence:** local exhausted-stream detection is KEEP-worthy, but the final behavior belongs to the cross-role page composer. The composer chooses a valid layout based on all remaining active modules/content volume.
+
+### B5-19 — Equipo Especial custom locations — CONFIRMED WITH SOURCE-FAITHFUL FALLBACK
+
+The owner clarifies a two-tier rule:
+
+1. **Preferred:** use the native Equipo Especial module's existing capacity for custom/non-common locations.
+2. **Fallback when that capacity is insufficient/inapplicable:** construct an equivalent location-capable variant **from pieces of the native module**, leaving the location-name field/label blank so the custom location can be written there.
+
+Fallback constraints are strict:
+- use native/source components as building blocks;
+- use the corresponding native font;
+- use the corresponding native font size;
+- preserve native spacing, strokes, fills, row rhythm and visual grammar;
+- never overprint a custom location on top of an existing canonical label.
+
+This fallback is not permission to invent a generic new Equipo Especial design.
+
+**Audit consequence:** current generic text-flow continuation remains REPLACE. Future implementation may use either the exact native module or a source-composed blank-location variant that is visually indistinguishable from the family.
+
+### B5-20 — exhausted Equipment scaffolds — CONFIRMED VIA B4-13
+
+The owner explicitly refers B5-20 to the same rule as B4-13:
+
+- an exhausted module stops reserving space;
+- surviving modules may expand into the reclaimed area if their native geometry permits;
+- otherwise another compatible active Extended module may occupy that space;
+- no empty placeholder exists merely to preserve an earlier template arrangement.
+
+**Audit consequence:** KEEP exhausted-stream detection principle; REPLACE fixed-role page/scaffold architecture with global constraint-aware layout selection.
+
+### B5-21 — Notes design — CONFIRMED
+
+Every additional Notes page uses the complete native Notes page design/geometry as the visual authority.
+
+Only semantic/content layers change.
+
+Notes is not to be recomposed as a generic shared Extended page with unrelated modules.
+
+**Audit consequence:** current reconstructed two-column Notes page is REPLACE; full native Notes-page reuse is required.
+
+### B5-22 — Notes record boundaries — CONFIRMED
+
+The owner confirms:
+- clearly emphasize each note identity/header, e.g. `Nota N — Título`, using native-compatible typography such as bold;
+- preserve visible separation between notes, ideally at least one native ruled-row/line when space permits;
+- the body remains visually subordinate to the note identity.
+
+**Audit consequence:** KEEP record-aware separation primitive; MODIFY rendering so note headers are clearly distinguishable within the native Notes-page grammar.
