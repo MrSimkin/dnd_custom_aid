@@ -226,6 +226,59 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     }
 
     @Test
+    fun maraCustomV2StatisticsKeepNativeSixRowCapacityAndContextualAttributeKeys() {
+        val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+
+        fun render(family: PcSheetVisualFamily): ByteArray {
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(
+                    permanent = PcSheetExportAggregate(
+                        sheet = document.character,
+                        closure = document.closureState,
+                        successor = document.successorState,
+                    ),
+                ),
+            )
+            return ByteArrayOutputStream().use { output ->
+                DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+                output.toByteArray()
+            }
+        }
+
+        Loader.loadPDF(render(PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE)).use { pdf ->
+            val pageTexts = (1..pdf.numberOfPages).map { pageNumber ->
+                PDFTextStripper().apply {
+                    startPage = pageNumber
+                    endPage = pageNumber
+                }.getText(pdf).replace(Regex("\\s+"), " ")
+            }
+            val attributePage = pageTexts.firstOrNull { page ->
+                listOf("FORtuna", "CORdura", "ETEr", "RENombre").all(page::contains)
+            }
+            assertTrue(
+                attributePage != null,
+                "Mara's four custom attributes must share one native-scale Custom Statistics page.",
+            )
+            val whole = pageTexts.joinToString(" ")
+            assertTrue(!whole.contains("ETE · Éter"))
+            assertTrue(whole.contains("Manipulación de éter"))
+            assertTrue(!whole.contains("Manipulación de éter (ETE)"))
+            assertTrue(whole.contains("Lectura de presagios (SAB)"))
+        }
+
+        Loader.loadPDF(render(PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY)).use { pdf ->
+            val whole = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+            assertTrue(whole.contains("ETEr"))
+            assertTrue(!whole.contains("ETE · Éter"))
+            assertTrue(whole.contains("Manipulación de éter (ETE)"))
+        }
+    }
+
+    @Test
     fun maraCustomV1WrapsLongCustomSkillNamesAtReadableSourceScale() {
         val document = fixture("03_mara_siete_umbrales_custom_extended.json")
         val plan = PcSheetPdfExportPlanner.plan(
