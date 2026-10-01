@@ -314,12 +314,32 @@ class DesktopPcSheetRuntimeQaFixtureTest {
 
         assertTrue(bytes.size > 20_000)
         Loader.loadPDF(bytes).use { pdf ->
-            val normalized = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+            val pageTexts = (1..pdf.numberOfPages).map { pageNumber ->
+                PDFTextStripper().apply {
+                    startPage = pageNumber
+                    endPage = pageNumber
+                }.getText(pdf).replace(Regex("\\s+"), " ")
+            }
+            val normalized = pageTexts.joinToString(" ")
             assertTrue(normalized.contains("Mara de los Siete Umbrales"))
             assertTrue(
                 normalized.contains("Lectura de presagios"),
                 "Custom-v1 must preserve the complete long custom-skill identity.",
             )
+            assertTrue(normalized.contains("Nota 1 — Hipótesis"))
+            assertTrue(normalized.contains("Nota 9 — Deuda"))
+            assertTrue(
+                pageTexts.count { it.contains("Nota ") } >= 2,
+                "Mara Notes must consume the native base columns before continuing on full Notes pages.",
+            )
+            pageTexts
+                .filter { it.contains("Nota ") || it.contains("Notas generales") }
+                .forEach { notesPage ->
+                    assertTrue(
+                        !notesPage.contains("Resumen de trasfondo:"),
+                        "Narrative/background content must not be silently rerouted into Notes.",
+                    )
+                }
         }
     }
 
