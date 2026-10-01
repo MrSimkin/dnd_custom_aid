@@ -116,7 +116,7 @@ internal class DesktopPcSheetTemplateProofRenderer(
         if (closure.progressMode == CharacterProgressMode.EXPERIENCE) {
             fillOnRulePx(stream, primitives, 275f, 185f, 225f, closure.experiencePoints.toString(), 9.5f)
         }
-        fillCenteredTextPx(
+        fillCenteredNameRibbonPx(
             stream, primitives, 1042f, 410f, sheet.name,
             13f, 250f, PdfTypographyRole.HANDWRITTEN_NAME,
         )
@@ -422,7 +422,7 @@ private fun drawCustomV2Common(
 
         fillOnRulePx(stream, primitives, 885f, 311f, 93f, classSummary(plan), 10.5f)
         fillOnRulePx(stream, primitives, 777f, 419f, 135f, sheet.background.race, 10.5f)
-        fillCenteredTextPx(
+        fillCenteredNameRibbonPx(
             stream, primitives, 534f, nameCenterY, sheet.name,
             13.5f, 248f, PdfTypographyRole.HANDWRITTEN_NAME, -0.4f,
         )
@@ -766,6 +766,70 @@ private fun drawCustomV2Common(
                 verticalPaddingPt = 0f,
             ),
         )
+    }
+
+    private fun fillCenteredNameRibbonPx(
+        stream: PDPageContentStream,
+        primitives: DesktopPdfRenderingPrimitives,
+        centerXPx: Float,
+        centerYPx: Float,
+        text: String,
+        fontSizePt: Float,
+        maxWidthPx: Float,
+        role: PdfTypographyRole,
+        opticalYOffsetPx: Float = 0f,
+    ) {
+        val minimumReadableSize = maxOf(6f, fontSizePt * 0.80f)
+        val oneLineHeightPx = maxOf(34f, fontSizePt * 3.1f)
+        val oneLineSpec = PdfTextBoxSpec(
+            rect = rectPx(
+                centerXPx - maxWidthPx / 2f,
+                centerYPx + opticalYOffsetPx - oneLineHeightPx / 2f,
+                maxWidthPx,
+                oneLineHeightPx,
+            ),
+            text = text,
+            role = role,
+            preferredSizePt = fontSizePt,
+            minimumSizePt = minimumReadableSize,
+            horizontalAlignment = PdfHorizontalAlignment.CENTER,
+            verticalAlignment = PdfVerticalAlignment.CENTER,
+            wrapPolicy = PdfWrapPolicy.SINGLE_LINE,
+            maximumLines = 1,
+            horizontalPaddingPt = 1f,
+            verticalPaddingPt = 0f,
+        )
+
+        if (!primitives.layoutTextBox(oneLineSpec).hasOverflow) {
+            primitives.drawTextBox(stream, oneLineSpec)
+            return
+        }
+
+        val twoLineHeightPx = maxOf(56f, fontSizePt * 4.8f)
+        val twoLineSpec = PdfTextBoxSpec(
+            rect = rectPx(
+                centerXPx - maxWidthPx / 2f,
+                centerYPx + opticalYOffsetPx - twoLineHeightPx / 2f,
+                maxWidthPx,
+                twoLineHeightPx,
+            ),
+            text = text,
+            role = role,
+            preferredSizePt = fontSizePt,
+            minimumSizePt = minimumReadableSize,
+            horizontalAlignment = PdfHorizontalAlignment.CENTER,
+            verticalAlignment = PdfVerticalAlignment.CENTER,
+            wrapPolicy = PdfWrapPolicy.WORD_WRAP,
+            maximumLines = 2,
+            horizontalPaddingPt = 1f,
+            verticalPaddingPt = 0f,
+            lineHeightMultiplier = 1.05f,
+        )
+        val layout = primitives.layoutTextBox(twoLineSpec)
+        require(!layout.hasOverflow) {
+            "Character name cannot fit the native ribbon without semantic truncation: '$text'"
+        }
+        primitives.drawTextBox(stream, twoLineSpec)
     }
 
     private fun fillCenteredTextPx(
