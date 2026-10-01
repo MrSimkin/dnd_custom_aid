@@ -2000,9 +2000,9 @@ class DesktopPcSheetWholeDraftRendererTest {
         Loader.loadPDF(pdf).use { document ->
             val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
             assertTrue(plan.basePages.any { it.role == PcSheetBasePageRole.NOTES })
-            assertFalse(
+            assertTrue(
                 layers.any { it.startsWith("V1X NOTES") },
-                "Forty short notes fit in the native narrative Notes area plus the dedicated Notes page.",
+                "Notes must continue only after the two native base columns are exhausted.",
             )
             assertFalse(layers.any { it.startsWith("V1X TRAITS") })
             assertFalse(layers.any { it.startsWith("V1X RESOURCES") })
@@ -2010,12 +2010,16 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertFalse(layers.any { it.startsWith("V1X SPELLS") })
 
             val extracted = PDFTextStripper().getText(document)
-            listOf(35, 40).forEach { index ->
+            (1..40).forEach { index ->
                 assertTrue(
                     Regex("Nota\\s+canónica\\s+$index").containsMatchIn(extracted),
-                    "Missing canonical continuation note $index.",
+                    "Missing canonical note $index.",
                 )
             }
+            assertTrue(
+                extracted.indexOf("Nota canónica 1") < extracted.indexOf("Nota canónica 40"),
+                "Native Notes packing must preserve stored note order.",
+            )
 
             val pageIndex = document.numberOfPages - 1
             val image = PDFRenderer(document).renderImageWithDPI(pageIndex, 220f, ImageType.RGB)
