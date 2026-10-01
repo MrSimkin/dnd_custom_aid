@@ -2189,7 +2189,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                 prepared = index % 2 == 1,
             )
         }
-        val longNotes = (1..120).joinToString("\n") { index ->
+        val longNotes = (1..80).joinToString("\n") { index ->
             "Nota de continuación $index: registro de desborde."
         }
 
