@@ -1800,10 +1800,10 @@ internal class AndroidCustomV2ExtendedRenderer(
         val sheet = aggregate.sheet
         val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
+
         val ordinary = ordered.filterNot { it.special }
         val ordinaryLines = ordinary.flatMapIndexed { index, item ->
-            val usage = usageByItem[item.id]
-            val needsFullContinuation =
+            val needsContinuation =
                 index >= BASE_V2_EQUIPMENT_CAPACITY ||
                     wrapByWidth(
                         resources.condensed,
@@ -1811,23 +1811,15 @@ internal class AndroidCustomV2ExtendedRenderer(
                         7.0f,
                         V2_BASE_EQUIPMENT_TEXT_WIDTH,
                     ).size > 1
-            if (needsFullContinuation) {
-                inventoryContinuationLines(item, usage)
-            } else {
-                emptyList()
-            }
+            if (needsContinuation) ordinaryEquipmentContinuationLines(item) else emptyList()
         }
 
         val special = ordered.filter { it.special }
-        val specialContinuation = special.mapIndexedNotNull { index, item ->
+        val baseSpecialIds = positionedSpecialItems(special, BASE_V2_SPECIAL_CAPACITY)
+            .mapTo(mutableSetOf()) { (_, item) -> item.id }
+        val specialContinuation = special.filter { item ->
             val usage = usageByItem[item.id]
-            val baseDetail = buildList {
-                if (item.quantity != 1) add("Cant. " + item.quantity)
-                item.weightLb?.let { add(formatInventoryWeight(it)) }
-                if (item.attuned) add("Sintonizado")
-                item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            }.joinToString(" · ")
+            val baseDetail = specialInventoryDetail(item, usage)
             val baseDetailOverflows =
                 baseDetail.isNotBlank() &&
                     textWidth(resources.fira, baseDetail, 8.5f) > V2_BASE_SPECIAL_DETAIL_WIDTH
@@ -1836,17 +1828,18 @@ internal class AndroidCustomV2ExtendedRenderer(
             val locationOverflows = item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
                 textWidth(resources.fira, it, 7.5f) > V2_BASE_SPECIAL_LOCATION_WIDTH
             } ?: false
-            item.takeIf {
-                index >= BASE_V2_SPECIAL_CAPACITY ||
-                    usageMeaningful(usage) ||
-                    baseNameOverflows ||
-                    baseDetailOverflows ||
-                    locationOverflows
-            }
-        }
 
-        val specialDetailLines = specialContinuation.flatMap(::inventoryDetailContinuationLines)
-        val equipmentContinuationLines = ordinaryLines + specialDetailLines
+            item.id !in baseSpecialIds ||
+                usageMeaningful(usage) ||
+                baseNameOverflows ||
+                baseDetailOverflows ||
+                locationOverflows
+        }
+        val specialPages = packSpecialInventoryRowGroups(
+            specialContinuation.map { item ->
+                specialInventoryFlowRows(item, usageByItem[item.id])
+            },
+        )
 
         val nativeV2Kinds = setOf(
             StandardCurrencyKind.PLATINUM,
@@ -1863,14 +1856,13 @@ internal class AndroidCustomV2ExtendedRenderer(
             .sortedBy { it.sortOrder }
 
         val treasureLines = buildList {
-            // The first adjacent OTROS rows are already consumed on the base page.
             nonNativeCurrencies
                 .drop(BASE_V2_OTHER_CURRENCY_CAPACITY)
                 .forEach { currency ->
                     add(currency.name + ": " + currency.amount)
                 }
             addAll(
-                plan.snapshot.aggregate.successor.preferences.valuablesText
+                aggregate.successor.preferences.valuablesText
                     .split(Regex("[;\\n]+"))
                     .map { it.trim() }
                     .filter { it.isNotEmpty() },
@@ -1879,31 +1871,29 @@ internal class AndroidCustomV2ExtendedRenderer(
             wrapByWidth(resources.fira, value, 8.0f, V2_TREASURE_COLUMN_WIDTH)
         }
 
-        if (equipmentContinuationLines.isEmpty() && specialContinuation.isEmpty() && treasureLines.isEmpty()) return
+        if (ordinaryLines.isEmpty() && specialPages.isEmpty() && treasureLines.isEmpty()) return
 
         val ordinaryCapacity =
             if (treasureLines.isEmpty()) INVENTORY_CONTINUATION_CAPACITY
             else INVENTORY_EQUIPMENT_WITH_TREASURE_CAPACITY
         val pages = maxOf(
-            pageCount(equipmentContinuationLines.size, ordinaryCapacity),
+            pageCount(ordinaryLines.size, ordinaryCapacity),
             pageCount(treasureLines.size, INVENTORY_TREASURE_CAPACITY),
-            pageCount(specialContinuation.size, INVENTORY_SPECIAL_CAPACITY),
+            specialPages.size,
         )
+
         repeat(pages) { pageIndex ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderInventory(
                 page = page,
-                ordinary = equipmentContinuationLines
+                ordinary = ordinaryLines
                     .drop(pageIndex * ordinaryCapacity)
                     .take(ordinaryCapacity),
                 treasure = treasureLines
                     .drop(pageIndex * INVENTORY_TREASURE_CAPACITY)
                     .take(INVENTORY_TREASURE_CAPACITY),
-                special = specialContinuation
-                    .drop(pageIndex * INVENTORY_SPECIAL_CAPACITY)
-                    .take(INVENTORY_SPECIAL_CAPACITY),
-                usageByItem = usageByItem,
+                special = specialPages.getOrNull(pageIndex).orEmpty(),
                 pageIndex = pageIndex,
             )
         }
@@ -1913,32 +1903,50 @@ internal class AndroidCustomV2ExtendedRenderer(
         page: PDPage,
         ordinary: List<String>,
         treasure: List<String>,
-        special: List<CharacterInventoryItem>,
-        usageByItem: Map<kotlin.uuid.Uuid, CharacterInventoryUsage>,
+        special: List<SpecialInventoryFlowRow>,
         pageIndex: Int,
     ) {
-        // PDFBox OCG names are document-global, not page-local. Keep the first-page names exactly
-        // compatible with the existing production proof/tests, and page-scope subsequent inventory
-        // continuation layers so legitimate multi-page overflow cannot collide.
         val prefix = if (pageIndex == 0) "V2X INVENTORY" else "V2X INVENTORY P${pageIndex + 1}"
-
-        val positionedSpecial = positionedSpecialItems(special, INVENTORY_SPECIAL_CAPACITY)
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             pageHeaderStructure(s)
             listOf(14f, 307f).forEach { blockX ->
-                bandedRows(s, blockX, blockX + 277f, 139f, 19, 17f, 0)
+                bandedRows(s, blockX, blockX + 277f, 139f, INVENTORY_ROWS_PER_COLUMN, 17f, 0)
                 verticalRule(s, blockX + 139f, 122f, 462f, 0.45f)
             }
             drawRule(s, 14f, 598f, 480f, 0.8f)
 
-            bandedRows(s, 14f, 598f, 548f, 12, 17f, 0)
-            listOf(30f, 99f, 303f).forEach { x -> verticalRule(s, x, 512f, 752f, 0.45f) }
+            bandedRows(
+                s,
+                14f,
+                598f,
+                INVENTORY_SPECIAL_FIRST_RULE_TOP,
+                INVENTORY_SPECIAL_CAPACITY,
+                INVENTORY_SPECIAL_ROW_STEP,
+                0,
+            )
+            listOf(30f, 99f, 303f).forEach { x ->
+                verticalRule(
+                    s,
+                    x,
+                    512f,
+                    INVENTORY_SPECIAL_FIRST_RULE_TOP +
+                        (INVENTORY_SPECIAL_CAPACITY - 1) * INVENTORY_SPECIAL_ROW_STEP,
+                    0.45f,
+                )
+            }
         }
         appendLayer(page, "$prefix - CLEANUP") { }
         appendLayer(page, "$prefix - LABELS") { s ->
             pageTitle(s, "INVENTARIO / EQUIPO")
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 99f, 277f, 22f), "EQUIPO", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(
+                s,
+                resources.corbelBold,
+                TopRect(14f, 99f, 277f, 22f),
+                "EQUIPO",
+                12.12f,
+                SOURCE_CORBEL_HEADING_SCALE,
+            )
             centeredFixedScale(
                 s,
                 resources.corbelBold,
@@ -1948,17 +1956,20 @@ internal class AndroidCustomV2ExtendedRenderer(
                 SOURCE_CORBEL_HEADING_SCALE,
             )
 
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 489f, 584f, 22f), "EQUIPO ESPECIAL", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
+            centeredFixedScale(
+                s,
+                resources.corbelBold,
+                TopRect(14f, 489f, 584f, 22f),
+                "EQUIPO ESPECIAL",
+                12.12f,
+                SOURCE_CORBEL_HEADING_SCALE,
+            )
             tableLabel(s, 30f, 514f, 69f, "UBICACIÓN")
             tableLabel(s, 99f, 514f, 204f, "NOMBRE")
             tableLabel(s, 303f, 514f, 295f, "DESCRIPCIÓN / ESTADO")
-            SPECIAL_LOCATION_LABELS_DISPLAY.forEachIndexed { row, label ->
-                textAboveRule(s, resources.fira, Rule(34f, 95f, 548f + row * 17f), label, 7.4f, 6.6f, 2.2f)
-            }
         }
         appendLayer(page, "$prefix - VALUES") { s ->
             ordinary.forEachIndexed { index, line ->
-                // When treasure exists, preserve the right block for its own semantic domain.
                 val block = index / INVENTORY_BLOCK_CAPACITY
                 val withinBlock = index % INVENTORY_BLOCK_CAPACITY
                 val column = withinBlock / INVENTORY_ROWS_PER_COLUMN
@@ -1966,22 +1977,16 @@ internal class AndroidCustomV2ExtendedRenderer(
                 val blockX = if (block == 0) 14f else 307f
                 val x1 = blockX + if (column == 0) 4f else 143f
                 val x2 = blockX + if (column == 0) 135f else 273f
-                if (line.contains("— Nota:") || line.contains("— Estado:") ||
-                    line.startsWith("Nota:") || line.startsWith("Estado:")
-                ) {
-                    textAboveRule(s, resources.condensed, Rule(x1, x2, 139f + row * 17f), line, 8.0f, 6.6f, 2.3f)
-                } else {
-                    textAboveRuleScaled(
-                        s,
-                        resources.condensed,
-                        Rule(x1, x2, 139f + row * 17f),
-                        line,
-                        preferredSize = 8.4f,
-                        minimumSize = 7.0f,
-                        clearance = 2.3f,
-                        minimumHorizontalScale = 78f,
-                    )
-                }
+                textAboveRuleScaled(
+                    s,
+                    resources.condensed,
+                    Rule(x1, x2, 139f + row * 17f),
+                    line,
+                    preferredSize = 8.4f,
+                    minimumSize = 7.0f,
+                    clearance = 2.3f,
+                    minimumHorizontalScale = 78f,
+                )
             }
 
             treasure.forEachIndexed { index, value ->
@@ -1996,31 +2001,58 @@ internal class AndroidCustomV2ExtendedRenderer(
                 )
             }
 
-            positionedSpecial.forEach { (row, item) ->
-                val y = 548f + row * 17f
-                if (specialLocationRow(item.location) != row) {
-                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
-                        textAboveRule(s, resources.fira, Rule(34f, 95f, y), it, 7.4f, 6.6f, 2.2f)
-                    }
+            special.forEachIndexed { row, item ->
+                val y = INVENTORY_SPECIAL_FIRST_RULE_TOP + row * INVENTORY_SPECIAL_ROW_STEP
+                if (item.location.isNotEmpty()) {
+                    textAboveRule(
+                        s,
+                        resources.fira,
+                        Rule(34f, 95f, y),
+                        item.location,
+                        7.4f,
+                        6.6f,
+                        2.2f,
+                    )
                 }
-                textAboveRule(s, resources.fira, Rule(103f, 297f, y), inventoryContinuationLabel(item), 8.8f, 7.2f, 2.3f)
-                val detail = buildList {
-                    item.weightLb?.let { add(formatInventoryWeight(it)) }
-                    if (item.attuned) add("Sintonizado")
-                    addAll(inventoryUsageLabels(usageByItem[item.id]))
-                }.joinToString(" · ")
-                if (detail.isNotEmpty()) {
-                    textAboveRule(s, resources.fira, Rule(307f, 594f, y), detail, 8.5f, 7.0f, 2.3f)
+                if (item.name.isNotEmpty()) {
+                    textAboveRuleScaled(
+                        s,
+                        resources.fira,
+                        Rule(103f, 297f, y),
+                        item.name,
+                        preferredSize = 8.8f,
+                        minimumSize = 7.0f,
+                        clearance = 2.3f,
+                        minimumHorizontalScale = 78f,
+                    )
+                }
+                if (item.detail.isNotEmpty()) {
+                    textAboveRule(
+                        s,
+                        resources.fira,
+                        Rule(307f, 594f, y),
+                        item.detail,
+                        8.2f,
+                        6.8f,
+                        2.3f,
+                    )
                 }
             }
         }
         appendLayer(page, "$prefix - MARKERS") { s ->
-            positionedSpecial.forEach { (row, item) ->
-                drawV2TrainingBox(
-                    s,
-                    TopRect(16f, 536f + row * 17f, 8.5f, 9f),
-                    if (item.equipped || item.attuned) Training.PROFICIENT else Training.NONE,
-                )
+            special.forEachIndexed { row, item ->
+                if (item.marker) {
+                    drawV2TrainingBox(
+                        s,
+                        TopRect(
+                            16f,
+                            INVENTORY_SPECIAL_CHECK_FIRST_TOP + row * INVENTORY_SPECIAL_ROW_STEP,
+                            8.5f,
+                            9f,
+                        ),
+                        Training.PROFICIENT,
+                    )
+                }
             }
         }
     }
@@ -2033,48 +2065,98 @@ internal class AndroidCustomV2ExtendedRenderer(
     private fun inventoryBaseLabel(item: CharacterInventoryItem): String =
         item.pdfCompactEquipmentLabel()
 
-    private fun inventoryDetailContinuationLines(
+    private fun ordinaryEquipmentContinuationLines(
         item: CharacterInventoryItem,
     ): List<String> {
-        val descriptiveDetail = buildList {
-            item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-        }.joinToString(" · ")
-        if (descriptiveDetail.isEmpty()) return emptyList()
-
-        return wrapByWidth(
-            resources.condensed,
-            inventoryContinuationLabel(item) + " — Detalle: " + descriptiveDetail,
-            8.2f,
-            V2_EQUIPMENT_COLUMN_WIDTH,
-        )
-    }
-
-    private fun inventoryContinuationLines(
-        item: CharacterInventoryItem,
-        usage: CharacterInventoryUsage?,
-    ): List<String> {
-        val lines = mutableListOf<String>()
-        // True Equipment overflow carries only compact identity; descriptive metadata is routed
-        // to Notes instead of becoming apparent duplicate equipment rows. Long identity labels
-        // may consume multiple physical continuation rows rather than dropping below the compact
-        // readability target.
-        lines += wrapByWidth(
+        val wrapped = wrapByWidth(
             resources.condensed,
             item.pdfCompactEquipmentLabel(),
-            7.0f,
-            INVENTORY_COMPACT_IDENTITY_WRAP_WIDTH,
+            8.4f,
+            INVENTORY_COMPACT_IDENTITY_WRAP_WIDTH - INVENTORY_ORDINARY_CONTINUATION_INDENT_WIDTH,
+        ).ifEmpty { listOf(item.pdfCompactEquipmentLabel()) }
+
+        return wrapped.mapIndexed { index, line ->
+            if (index == 0) line else INVENTORY_ORDINARY_CONTINUATION_PREFIX + line
+        }
+    }
+
+    private fun specialInventoryFlowRows(
+        item: CharacterInventoryItem,
+        usage: CharacterInventoryUsage?,
+    ): List<SpecialInventoryFlowRow> {
+        val locationLines = item.location
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.let {
+                wrapByWidth(
+                    resources.fira,
+                    it,
+                    7.4f,
+                    INVENTORY_SPECIAL_LOCATION_TEXT_WIDTH,
+                )
+            }
+            .orEmpty()
+        val nameLines = wrapByWidth(
+            resources.fira,
+            item.name,
+            8.8f,
+            INVENTORY_SPECIAL_NAME_TEXT_WIDTH,
+        ).ifEmpty { listOf(item.name) }
+        val detailLines = wrapByWidth(
+            resources.fira,
+            specialInventoryDetail(item, usage),
+            8.2f,
+            INVENTORY_SPECIAL_DETAIL_TEXT_WIDTH,
         )
 
-        val operationalStatus = buildList {
-            if (item.equipped) add("Equipado")
-            addAll(inventoryUsageLabels(usage))
-        }.joinToString(" · ")
-        if (operationalStatus.isNotEmpty()) {
-            lines += wrapByWidth(resources.condensed, "Estado: $operationalStatus", 8.2f, V2_EQUIPMENT_COLUMN_WIDTH)
+        val rows = maxOf(1, locationLines.size, nameLines.size, detailLines.size)
+        require(rows <= INVENTORY_SPECIAL_CAPACITY) {
+            "Custom-v2 special Equipment record exceeds one fixed native module: " + item.name
         }
 
-        return lines
+        return (0 until rows).map { index ->
+            SpecialInventoryFlowRow(
+                location = locationLines.getOrNull(index).orEmpty(),
+                name = nameLines.getOrNull(index).orEmpty().let { line ->
+                    if (index == 0 || line.isEmpty()) line
+                    else INVENTORY_SPECIAL_CONTINUATION_PREFIX + line
+                },
+                detail = detailLines.getOrNull(index).orEmpty(),
+                marker = index == 0 && (item.equipped || item.attuned),
+            )
+        }
+    }
+
+    private fun specialInventoryDetail(
+        item: CharacterInventoryItem,
+        usage: CharacterInventoryUsage?,
+    ): String = buildList {
+        if (item.quantity != 1) add("Cant. " + item.quantity)
+        item.weightLb?.let { add(formatInventoryWeight(it)) }
+        if (item.attuned) add("Sintonizado")
+        addAll(inventoryUsageLabels(usage))
+        item.description?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+        item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+    }.distinct().joinToString(" · ")
+
+    private fun packSpecialInventoryRowGroups(
+        groups: List<List<SpecialInventoryFlowRow>>,
+    ): List<List<SpecialInventoryFlowRow>> {
+        val pages = mutableListOf<List<SpecialInventoryFlowRow>>()
+        var current = mutableListOf<SpecialInventoryFlowRow>()
+
+        groups.forEach { group ->
+            require(group.size <= INVENTORY_SPECIAL_CAPACITY) {
+                "Custom-v2 special Equipment record exceeds one fixed native module."
+            }
+            if (current.isNotEmpty() && current.size + group.size > INVENTORY_SPECIAL_CAPACITY) {
+                pages += current.toList()
+                current = mutableListOf()
+            }
+            current.addAll(group)
+        }
+        if (current.isNotEmpty()) pages += current.toList()
+        return pages
     }
 
     private fun positionedSpecialItems(
@@ -2085,8 +2167,10 @@ internal class AndroidCustomV2ExtendedRenderer(
         val positioned = mutableListOf<Pair<Int, CharacterInventoryItem>>()
         items.take(rowCount).forEach { item ->
             val preferred = specialLocationRow(item.location)?.takeIf { it in available }
-            val fallback = available.filter { it >= SPECIAL_LOCATION_LABELS.size }.minOrNull() ?: available.minOrNull()
-            val row = preferred ?: fallback ?: return@forEach
+            val blankFallback = available
+                .filter { it >= SPECIAL_LOCATION_LABELS.size }
+                .minOrNull()
+            val row = preferred ?: blankFallback ?: return@forEach
             available.remove(row)
             positioned += row to item
         }
@@ -3131,6 +3215,13 @@ internal class AndroidCustomV2ExtendedRenderer(
         val height: Float,
     )
 
+    private data class SpecialInventoryFlowRow(
+        val location: String,
+        val name: String,
+        val detail: String,
+        val marker: Boolean,
+    )
+
     private data class ResourceRenderRow(
         val name: String,
         val currentValue: Int,
@@ -3392,7 +3483,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val INVENTORY_TREASURE_CAPACITY = INVENTORY_ROWS_PER_COLUMN
         const val BASE_V2_OTHER_CURRENCY_CAPACITY = 4
         const val V2_TREASURE_COLUMN_WIDTH = 283f
-        const val INVENTORY_SPECIAL_CAPACITY = 12
+        const val INVENTORY_SPECIAL_CAPACITY = 14
         val SPECIAL_LOCATION_LABELS = listOf(
             "cabeza", "rostro", "cuello", "mano izquierda", "mano derecha",
             "brazo izquierdo", "brazo derecho", "pecho", "piernas", "pies",
