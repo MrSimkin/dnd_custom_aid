@@ -26,6 +26,12 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomSkillProjection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetNotePhysicalLine
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetNotePhysicalLineKind
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPackedNotes
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetWrappedNoteRecord
+import io.github.mrsimkin.dndcustomaid.shared.character.packPcSheetNoteColumns
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetNoteRecords
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
@@ -1638,57 +1644,145 @@ internal class DesktopCustomV1ExtendedRenderer(
     }
 
     private fun appendNotesExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val lines = wrapForRulesByChars(notesText(plan), BASE_V1_NOTES_WRAP_CHARS)
-        val overflow = lines.drop(BASE_V1_NOTES_CAPACITY)
-        if (overflow.isEmpty()) return
+        val packed = packedNotes(plan)
+        if (packed.extendedPageCount == 0) return
 
-        val pages = pageCount(overflow.size, NOTES_CONTINUATION_CAPACITY)
-        repeat(pages) { pageIndex ->
+        for (extendedPageIndex in 1..packed.extendedPageCount) {
+            val columns = packed.columns
+                .mapNotNull { segments ->
+                    val address = segments.firstOrNull()?.address ?: return@mapNotNull null
+                    if (address.extendedPageIndex != extendedPageIndex) {
+                        null
+                    } else {
+                        address.columnIndex to segments.flatMap { it.lines }
+                    }
+                }
+                .toMap()
+
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderNotesContinuationPage(
                 page = page,
-                lines = overflow.pageSlice(pageIndex, NOTES_CONTINUATION_CAPACITY),
-                pageIndex = pageIndex,
+                columns = columns,
+                pageIndex = extendedPageIndex,
             )
         }
     }
 
+    private fun packedNotes(plan: PcSheetPdfRenderPlan): PcSheetPackedNotes {
+        val narrowestWidth = minOf(
+            NOTES_LEFT_END_X - NOTES_LEFT_START_X,
+            NOTES_RIGHT_END_X - NOTES_RIGHT_START_X,
+        ) - NOTES_HORIZONTAL_PADDING
+        val wrapped = plan.snapshot.aggregate.sheet.pcSheetNoteRecords().map { record ->
+            PcSheetWrappedNoteRecord(
+                record = record,
+                headingLines = wrapByWidth(
+                    record.heading,
+                    resources.firaSemibold,
+                    NOTES_HEADING_SIZE,
+                    narrowestWidth,
+                ).ifEmpty { listOf(record.heading) },
+                bodyLines = wrapByWidth(
+                    record.body,
+                    resources.fira,
+                    NOTES_BODY_SIZE,
+                    narrowestWidth,
+                ).ifEmpty { listOf(record.body) },
+            )
+        }
+        return packPcSheetNoteColumns(
+            records = wrapped,
+            rowsPerColumn = NOTES_COLUMN_CAPACITY,
+            columnsPerPage = 2,
+        )
+    }
+
     private fun renderNotesContinuationPage(
         page: PDPage,
-        lines: List<String>,
+        columns: Map<Int, List<PcSheetNotePhysicalLine>>,
         pageIndex: Int,
     ) {
-        val prefix = "V1X NOTES P${pageIndex + 1}"
+        val prefix = "V1X NOTES P$pageIndex"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
+            // Notes is the full-page native exception. Reuse the complete source Notes page.
             s.drawForm(resources.forms[4])
         }
         appendLayer(page, "$prefix - CLEANUP") { }
         appendLayer(page, "$prefix - LABELS") { }
         appendLayer(page, "$prefix - VALUES") { s ->
-            lines.take(NOTES_COLUMN_CAPACITY).forEachIndexed { index, line ->
-                ruleText(
-                    s,
-                    resources.fira,
-                    Rule(25f, 267.5f, NOTES_RULES[index]),
-                    line,
-                    8.4f,
-                )
-            }
-            lines.drop(NOTES_COLUMN_CAPACITY)
-                .take(NOTES_COLUMN_CAPACITY)
-                .forEachIndexed { index, line ->
-                    ruleText(
-                        s,
-                        resources.fira,
-                        Rule(311.669f, 583.795f, NOTES_RULES[index]),
-                        line,
-                        8.4f,
-                    )
-                }
+            drawNotesColumn(
+                s = s,
+                lines = columns[1].orEmpty(),
+                startX = NOTES_LEFT_START_X,
+                endX = NOTES_LEFT_END_X,
+            )
+            drawNotesColumn(
+                s = s,
+                lines = columns[2].orEmpty(),
+                startX = NOTES_RIGHT_START_X,
+                endX = NOTES_RIGHT_END_X,
+            )
         }
         appendLayer(page, "$prefix - MARKERS") { }
+    }
+
+    private fun drawNotesColumn(
+        s: PDFormContentStream,
+        lines: List<PcSheetNotePhysicalLine>,
+        startX: Float,
+        endX: Float,
+    ) {
+        require(lines.size <= NOTES_COLUMN_CAPACITY) {
+            "Packed Custom-v1 Extended Notes column exceeds native row capacity."
+        }
+        lines.forEachIndexed { index, line ->
+            if (line.kind == PcSheetNotePhysicalLineKind.SEPARATOR || line.text.isBlank()) {
+                return@forEachIndexed
+            }
+            val (font, preferredSize, minimumSize) = when (line.kind) {
+                PcSheetNotePhysicalLineKind.HEADING ->
+                    Triple(resources.firaSemibold, NOTES_HEADING_SIZE, NOTES_HEADING_MINIMUM_SIZE)
+                PcSheetNotePhysicalLineKind.BODY ->
+                    Triple(resources.fira, NOTES_BODY_SIZE, NOTES_BODY_MINIMUM_SIZE)
+                PcSheetNotePhysicalLineKind.CONTINUITY ->
+                    Triple(resources.firaSemibold, NOTES_CONTINUITY_SIZE, NOTES_CONTINUITY_MINIMUM_SIZE)
+                PcSheetNotePhysicalLineKind.SEPARATOR -> return@forEachIndexed
+            }
+            noteRuleText(
+                s = s,
+                font = font,
+                rule = Rule(startX, endX, NOTES_RULES[index]),
+                value = line.text,
+                preferredSize = preferredSize,
+                minimumSize = minimumSize,
+            )
+        }
+    }
+
+    private fun noteRuleText(
+        s: PDFormContentStream,
+        font: PDFont,
+        rule: Rule,
+        value: String,
+        preferredSize: Float,
+        minimumSize: Float,
+    ) {
+        val available = rule.endX - rule.startX - NOTES_HORIZONTAL_PADDING
+        var actual = preferredSize
+        while (actual > minimumSize && textWidth(font, value, actual) > available) {
+            actual -= 0.2f
+        }
+        require(textWidth(font, value, actual) <= available + 0.05f) {
+            "Custom-v1 native Notes line does not fit without semantic truncation: '$value'"
+        }
+        s.beginText()
+        s.setNonStrokingColor(Color.BLACK)
+        s.setFont(font, actual)
+        s.newLineAtOffset(rule.startX + 1.5f, H - rule.topY + NOTES_BASELINE_CLEARANCE)
+        s.showText(value)
+        s.endText()
     }
 
     private fun narrativeNotesText(plan: PcSheetPdfRenderPlan): String {
@@ -2606,6 +2700,18 @@ internal class DesktopCustomV1ExtendedRenderer(
         )
 
         const val V1_NARRATIVE_NOTE_APPROX_CHARS = 48
+        const val NOTES_HEADING_SIZE = 8.8f
+        const val NOTES_HEADING_MINIMUM_SIZE = 6.4f
+        const val NOTES_BODY_SIZE = 8.4f
+        const val NOTES_BODY_MINIMUM_SIZE = 6.2f
+        const val NOTES_CONTINUITY_SIZE = 7.2f
+        const val NOTES_CONTINUITY_MINIMUM_SIZE = 5.8f
+        const val NOTES_HORIZONTAL_PADDING = 4f
+        const val NOTES_BASELINE_CLEARANCE = 3.2f
+        const val NOTES_LEFT_START_X = 25f
+        const val NOTES_LEFT_END_X = 267.5f
+        const val NOTES_RIGHT_START_X = 311.669f
+        const val NOTES_RIGHT_END_X = 583.795f
         const val BASE_V1_NARRATIVE_NOTE_CAPACITY = 9
         const val BASE_V1_NOTES_WRAP_CHARS = 68
         const val NOTES_COLUMN_CAPACITY = 17
