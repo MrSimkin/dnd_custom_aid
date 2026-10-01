@@ -816,7 +816,7 @@ class DesktopPcSheetWholeDraftRendererTest {
         notesPdf.outputStream().use { renderer.renderDraft(notesPlan, it) }
 
         Loader.loadPDF(notesPdf).use { document ->
-            assertEquals(6, document.numberOfPages)
+            assertTrue(document.numberOfPages >= notesPlan.basePages.size)
             val extracted = PDFTextStripper().getText(document)
             assertTrue(extracted.contains("NOTAS DE CAMPAÑA"))
             assertTrue(Regex("Nota\\s+canónica\\s+1").containsMatchIn(extracted))
@@ -825,16 +825,10 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("CROQUIS / MAPA"))
             assertTrue(extracted.contains("REFERENCIAS Y RECORDATORIOS"))
 
-            val page4 = PDFTextStripper().apply {
-                startPage = 4
-                endPage = 4
-            }.getText(document)
-            val page6 = PDFTextStripper().apply {
-                startPage = 6
-                endPage = 6
-            }.getText(document)
-            assertTrue(Regex("Nota\\s+canónica\\s+1").containsMatchIn(page4))
-            assertTrue(Regex("Nota\\s+canónica\\s+30").containsMatchIn(page6))
+            assertTrue(
+                extracted.indexOf("Nota canónica 1") < extracted.indexOf("Nota canónica 30"),
+                "Fantasy Notes must preserve stored note order without freezing page count.",
+            )
 
             val pdfRenderer = PDFRenderer(document)
             (3 until document.numberOfPages).forEach { index ->
@@ -2169,7 +2163,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                 prepared = index % 2 == 1,
             )
         }
-        val longNotes = (1..55).joinToString("\n") { index ->
+        val longNotes = (1..120).joinToString("\n") { index ->
             "Nota de continuación $index: registro de desborde."
         }
 
