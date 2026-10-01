@@ -1974,7 +1974,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         columns: Map<Int, List<PcSheetNotePhysicalLine>>,
         pageIndex: Int,
     ) {
-        val layerPrefix = "V2X NOTES $pageIndex"
+        val layerPrefix = if (pageIndex == 1) "V2X NOTES" else "V2X NOTES $pageIndex"
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
             // Notes overflow is a whole-page exception: copy the complete native Notes page.
             s.drawForm(resources.forms[4])
