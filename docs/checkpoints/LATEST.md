@@ -4,8 +4,8 @@
 **Normal integrated trunk:** `main`  
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-30_MARA_PHASE3_IMPLEMENTATION.md`  
-**Current active route:** Phase 3 Mara renderer repair implementation is **ACTIVE** on `repair/mara-phase3-semantic-flow-compositor`. Phase 2 is COMPLETE/PUBLISHED and its final burn-down for M50800-01…32 is the binding implementation authority. Phase 3 begins with shared semantic-flow contracts, then native-module contracts, the global Extended-page compositor, family integration, and exact-candidate acceptance.  
+**Canonical active checkpoint:** `docs/checkpoints/2026-09-30_MARA_PHASE3_INTERRUPTION_RECOVERY.md`  
+**Current active route:** Phase 3 Mara renderer repair implementation is **ACTIVE / RECOVERY-CONSOLIDATED** on `repair/mara-phase3-semantic-flow-compositor`. Shared contracts + compositor and substantial family integration are already implemented. Latest validated code comparison point is `5281a9db...` / Scaffold #4488 PASS; the current implementation code head `5e041cc8...` adds Custom-v2 ordinary/Special Equipment semantic separation but is compile-red because Inventory geometry/continuation constants are referenced but not yet declared. Resume from the interruption-recovery checkpoint; do not replay already-published commits.  
 **Completed audit branch:** `audit/mara-phase2-existing-repair` — historical only after Phase-2 publication.  
 **Current implementation branch:** `repair/mara-phase3-semantic-flow-compositor`; implementation PR not yet opened.  
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
@@ -15,19 +15,20 @@
 1. `AGENTS.md`;
 2. `RESUME.md`;
 3. this file;
-4. `docs/checkpoints/2026-09-30_MARA_PHASE3_IMPLEMENTATION.md`;
-5. `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md`;
-6. `docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md`;
-7. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
-8. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md` — consolidated owner clarification / mandatory pre-fix checklist;
-9. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md` — original defect/acceptance ledger;
-10. `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md` — superseded claimed closure / evidence to audit, **not** runtime acceptance;
-11. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
-12. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
-13. `docs/PROJECT_STATE.md`;
-14. `docs/BRANCH_STATUS.md`.
+4. `docs/checkpoints/2026-09-30_MARA_PHASE3_INTERRUPTION_RECOVERY.md` — exact current recovery state / next authorized action;
+5. `docs/checkpoints/2026-09-30_MARA_PHASE3_IMPLEMENTATION.md` — Phase-3 implementation authority and green package history;
+6. `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md` — final M50800-01…32 owner-intent burn-down;
+7. `docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md`;
+8. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
+9. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md` — consolidated owner clarification / mandatory pre-fix checklist;
+10. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md` — original defect/acceptance ledger;
+11. `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md` — superseded claimed closure / evidence to audit, **not** runtime acceptance;
+12. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+13. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+14. `docs/PROJECT_STATE.md`;
+15. `docs/BRANCH_STATUS.md`.
 
-**Branch rule:** current `main` publishes Phase-2 closure; `repair/mara-phase3-semantic-flow-compositor` is the sole non-main implementation authority for Phase 3. Do not resume from the old adaptive-repair branch except as historical evidence explicitly referenced by the Phase-2 burn-down.  
+**Branch rule:** current `main` publishes Phase-2 closure; `repair/mara-phase3-semantic-flow-compositor` is the sole non-main implementation authority for Phase 3. Resume from the recovery checkpoint and current branch state. Do not reset automatically to the latest green comparison head, do not replay the three post-green Custom-v2 Inventory commits, and do not resume from the old adaptive-repair branch except as historical evidence explicitly referenced by the Phase-2 burn-down.  
 
 ## Active owner re-QA failure
 
