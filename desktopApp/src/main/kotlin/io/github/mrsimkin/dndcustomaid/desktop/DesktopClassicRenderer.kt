@@ -668,11 +668,10 @@ internal class DesktopClassicRenderer {
         p: DesktopPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
     ) {
-        val lines = classicCombatReferenceLines(plan)
-        if (lines.isEmpty()) return
+        val rows = classicCombatReferenceRows(plan).map(::layoutClassicCombatRow)
+        if (rows.isEmpty()) return
 
-        val pages = pageCount(lines.size, CLASSIC_COMBAT_LINES_PER_PAGE)
-        repeat(pages) { pageIndex ->
+        packClassicCombatRows(rows).forEach { pageRows ->
             val page = addPage(doc)
             PDPageContentStream(doc, page).use { s ->
                 extendedHeader(s, p, plan.snapshot.aggregate.sheet.name, "COMBATE / ACCIONES")
@@ -683,24 +682,96 @@ internal class DesktopClassicRenderer {
                     112f,
                     564f,
                     606f,
-                    "REFERENCIA DE COMBATE / ACCIÓN / DAÑO",
+                    "ARMAS Y ACCIONES — CONTINUACIÓN",
                 )
-                ruledTextArea(
+                tableHeader(
                     s,
                     p,
-                    36f,
-                    148f,
-                    540f,
-                    552f,
-                    lines.pageSlice(pageIndex, CLASSIC_COMBAT_LINES_PER_PAGE),
-                    8.4f,
+                    CLASSIC_COMBAT_TABLE_X,
+                    CLASSIC_COMBAT_HEADER_TOP,
+                    listOf(
+                        CLASSIC_COMBAT_NAME_WIDTH to "Nombre",
+                        CLASSIC_COMBAT_BONUS_WIDTH to "Bonif.",
+                        CLASSIC_COMBAT_DETAIL_WIDTH to "Daño / notas",
+                    ),
                 )
+
+                var top = CLASSIC_COMBAT_FIRST_ROW_TOP
+                pageRows.forEach { row ->
+                    text(
+                        s,
+                        p,
+                        CLASSIC_COMBAT_TABLE_X + 3f,
+                        top + 3f,
+                        CLASSIC_COMBAT_NAME_WIDTH - 6f,
+                        row.height - 6f,
+                        row.nameLines.joinToString("\n"),
+                        PdfTypographyRole.BODY,
+                        8.5f,
+                        7.2f,
+                        wrap = true,
+                        maxLines = row.nameLines.size.coerceAtLeast(1),
+                        vertical = PdfVerticalAlignment.TOP,
+                    )
+                    text(
+                        s,
+                        p,
+                        CLASSIC_COMBAT_TABLE_X + CLASSIC_COMBAT_NAME_WIDTH + 2f,
+                        top + 3f,
+                        CLASSIC_COMBAT_BONUS_WIDTH - 4f,
+                        row.height - 6f,
+                        row.bonus,
+                        PdfTypographyRole.NUMERIC_COMPACT,
+                        9f,
+                        8f,
+                        align = PdfHorizontalAlignment.CENTER,
+                        vertical = PdfVerticalAlignment.TOP,
+                    )
+                    text(
+                        s,
+                        p,
+                        CLASSIC_COMBAT_TABLE_X + CLASSIC_COMBAT_NAME_WIDTH +
+                            CLASSIC_COMBAT_BONUS_WIDTH + 3f,
+                        top + 3f,
+                        CLASSIC_COMBAT_DETAIL_WIDTH - 6f,
+                        row.height - 6f,
+                        row.detailLines.joinToString("\n"),
+                        PdfTypographyRole.BODY,
+                        8.2f,
+                        7f,
+                        wrap = true,
+                        maxLines = row.detailLines.size.coerceAtLeast(1),
+                        vertical = PdfVerticalAlignment.TOP,
+                    )
+                    top += row.height
+                    hairline(
+                        s,
+                        CLASSIC_COMBAT_TABLE_X,
+                        top,
+                        CLASSIC_COMBAT_TABLE_X + CLASSIC_COMBAT_TABLE_WIDTH,
+                        top,
+                    )
+                }
+
+                val tableBottom = top
+                listOf(
+                    CLASSIC_COMBAT_TABLE_X + CLASSIC_COMBAT_NAME_WIDTH,
+                    CLASSIC_COMBAT_TABLE_X + CLASSIC_COMBAT_NAME_WIDTH + CLASSIC_COMBAT_BONUS_WIDTH,
+                ).forEach { x ->
+                    hairline(
+                        s,
+                        x,
+                        CLASSIC_COMBAT_HEADER_TOP,
+                        x,
+                        tableBottom,
+                    )
+                }
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / COMBATE Y ACCIONES")
             }
         }
     }
 
-    private fun classicCombatReferenceLines(plan: PcSheetPdfRenderPlan): List<String> {
+    private fun classicCombatReferenceRows(plan: PcSheetPdfRenderPlan): List<ClassicCombatReferenceRow> {
         val aggregate = plan.snapshot.aggregate
         val damageByCombatId = aggregate.successor.combatDamage.associateBy { it.combatEntryId }
 
@@ -725,22 +796,65 @@ internal class DesktopClassicRenderer {
                         entry.name.length > CLASSIC_COMBAT_NAME_CHARS ||
                         baseDetail.length > CLASSIC_COMBAT_DETAIL_CHARS ||
                         structuredDamage.isNotBlank()
+
                 if (!needsReference) {
                     null
                 } else {
-                    buildList {
-                        add(combatTypeLabel(entry.type) + " — " + entry.name)
-                        entry.attackModifier?.let { add("Ataque " + signed(it)) }
-                        entry.damageEffect.takeIf { it.isNotBlank() }?.let { add("Efecto / daño: $it") }
-                        entry.rangeText?.takeIf { it.isNotBlank() }?.let { add("Alcance: $it") }
-                        entry.notes?.takeIf { it.isNotBlank() }?.let { add("Notas: $it") }
-                        structuredDamage.takeIf { it.isNotBlank() }?.let { add("Daño estructurado: $it") }
-                    }.joinToString(" · ")
+                    val structuredExtra = structuredDamage.takeIf {
+                        it.isNotBlank() && !it.equals(entry.damageEffect.trim(), ignoreCase = true)
+                    }
+                    ClassicCombatReferenceRow(
+                        name = combatTypeLabel(entry.type) + " — " + entry.name,
+                        bonus = entry.attackModifier?.let(::signed).orEmpty(),
+                        detail = buildList {
+                            entry.damageEffect.takeIf { it.isNotBlank() }?.let(::add)
+                            entry.rangeText?.takeIf { it.isNotBlank() }?.let { add("Alcance: $it") }
+                            entry.notes?.takeIf { it.isNotBlank() }?.let(::add)
+                            structuredExtra?.let { add("Daño: $it") }
+                        }.joinToString(" · "),
+                    )
                 }
             }
-            .flatMap { value ->
-                wrapForChars(value, CLASSIC_COMBAT_REFERENCE_CHARS)
+    }
+
+    private fun layoutClassicCombatRow(row: ClassicCombatReferenceRow): ClassicCombatLayoutRow {
+        val nameLines = wrapForChars(row.name, CLASSIC_COMBAT_CONTINUATION_NAME_CHARS)
+        val detailLines = wrapForChars(row.detail, CLASSIC_COMBAT_CONTINUATION_DETAIL_CHARS)
+        val lineCount = maxOf(1, nameLines.size, detailLines.size)
+        val height = maxOf(
+            CLASSIC_COMBAT_MIN_ROW_HEIGHT,
+            CLASSIC_COMBAT_ROW_VERTICAL_PADDING * 2f +
+                lineCount * CLASSIC_COMBAT_ROW_LINE_HEIGHT,
+        )
+        require(height <= CLASSIC_COMBAT_AVAILABLE_HEIGHT + 0.05f) {
+            "Fantasy combat logical row exceeds one full continuation page: ${row.name}"
+        }
+        return ClassicCombatLayoutRow(
+            nameLines = nameLines.ifEmpty { listOf(row.name) },
+            bonus = row.bonus,
+            detailLines = detailLines.ifEmpty { listOf(row.detail) },
+            height = height,
+        )
+    }
+
+    private fun packClassicCombatRows(
+        rows: List<ClassicCombatLayoutRow>,
+    ): List<List<ClassicCombatLayoutRow>> {
+        val pages = mutableListOf<MutableList<ClassicCombatLayoutRow>>()
+        var current = mutableListOf<ClassicCombatLayoutRow>()
+        var used = 0f
+
+        rows.forEach { row ->
+            if (current.isNotEmpty() && used + row.height > CLASSIC_COMBAT_AVAILABLE_HEIGHT + 0.05f) {
+                pages += current
+                current = mutableListOf()
+                used = 0f
             }
+            current += row
+            used += row.height
+        }
+        if (current.isNotEmpty()) pages += current
+        return pages
     }
 
     private fun characterStatusLabel(status: CharacterStatus): String = when (status) {
@@ -3317,6 +3431,19 @@ private fun ruledTextArea(
         val recovery: String,
         val source: String,
         val notes: String,
+    )
+
+    private data class ClassicCombatReferenceRow(
+        val name: String,
+        val bonus: String,
+        val detail: String,
+    )
+
+    private data class ClassicCombatLayoutRow(
+        val nameLines: List<String>,
+        val bonus: String,
+        val detailLines: List<String>,
+        val height: Float,
     )
 
     private data class ClassicOptionRow(
