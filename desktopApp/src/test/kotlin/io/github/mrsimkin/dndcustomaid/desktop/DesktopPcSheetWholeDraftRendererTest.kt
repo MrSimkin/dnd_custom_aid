@@ -1468,6 +1468,32 @@ class DesktopPcSheetWholeDraftRendererTest {
                     assertTrue(extracted.contains("Curiosidad académica"))
                     assertTrue(extracted.contains("Subestima los riesgos"))
                     assertTrue(extracted.contains("Corellon"))
+
+                    val layerNames = document.documentCatalog.ocProperties
+                        ?.getGroupNames()
+                        ?.toList()
+                        .orEmpty()
+                    assertTrue(
+                        layerNames.contains("V2X NARRATIVE - STRUCTURE"),
+                        "Custom-v2 narrative semantics must own a dedicated BACKGROUND_STORY module.",
+                    )
+                    val narrativePage = (1..document.numberOfPages)
+                        .map { pageNumber ->
+                            PDFTextStripper().apply {
+                                startPage = pageNumber
+                                endPage = pageNumber
+                            }.getText(document).replace(Regex("\\s+"), " ")
+                        }
+                        .firstOrNull { pageText ->
+                            pageText.contains("NARRATIVA / CONTINUACIÓN") &&
+                                pageText.contains("Curiosidad académica") &&
+                                pageText.contains("Subestima los riesgos") &&
+                                pageText.contains("Corellon")
+                        }
+                    assertTrue(
+                        narrativePage != null,
+                        "Personality/flaw/faith text must remain associated with the v2 narrative module.",
+                    )
                 }
 
                 val pdfRenderer = PDFRenderer(document)
