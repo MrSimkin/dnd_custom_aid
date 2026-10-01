@@ -2057,6 +2057,30 @@ internal class AndroidCustomV2ExtendedRenderer(
         s.endText()
     }
 
+    private fun wrapForRulesByChars(text: String, maxChars: Int): List<String> {
+        val paragraphs = text
+            .replace("\r\n", "\n")
+            .split(Regex("\\n+"))
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+
+        val result = mutableListOf<String>()
+        paragraphs.forEach { paragraph ->
+            var current = ""
+            paragraph.split(Regex("\\s+")).forEach { word ->
+                val candidate = if (current.isEmpty()) word else "$current $word"
+                if (candidate.length <= maxChars || current.isEmpty()) {
+                    current = candidate
+                } else {
+                    result += current
+                    current = word
+                }
+            }
+            if (current.isNotEmpty()) result += current
+        }
+        return result
+    }
+
         private fun featureEntry(
         s: PDFormContentStream,
         x: Float,
