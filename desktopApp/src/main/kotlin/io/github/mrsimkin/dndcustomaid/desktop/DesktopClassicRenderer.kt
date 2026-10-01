@@ -29,6 +29,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNu
 import io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetWritableUsesTrackerOrNull
 import java.awt.Color
 import java.io.OutputStream
 import org.apache.pdfbox.pdmodel.PDDocument
@@ -935,8 +936,8 @@ internal class DesktopClassicRenderer {
             }
             trait.description.trim().takeIf { it.isNotEmpty() }?.let(::add)
             trait.source.trim().takeIf { it.isNotEmpty() }?.let { add("Fuente: $it") }
-            trait.maxUses?.let { max ->
-                add("Usos gastados: ${trait.spentUses}/$max")
+            trait.pcSheetWritableUsesTrackerOrNull()?.let { tracker ->
+                add("Usos " + tracker.compactEditableLabel())
             } ?: trait.spentUses.takeIf { it != 0 }?.let { add("Usos gastados: $it") }
             trait.recovery?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Recuperación: $it") }
             trait.activation
