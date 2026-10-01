@@ -919,16 +919,15 @@ internal class DesktopCustomV2ExtendedRenderer(
     }
 
     private fun appendCombatExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val rows = combatReferenceRows(plan).flatMap(::expandCombatReferenceRow)
-        if (rows.isEmpty()) return
+        val logicalRows = combatReferenceRows(plan).map(::layoutCombatReferenceRow)
+        if (logicalRows.isEmpty()) return
 
-        val pages = pageCount(rows.size, COMBAT_ROWS_PER_PAGE)
-        repeat(pages) { pageIndex ->
+        packCombatRows(logicalRows).forEachIndexed { pageIndex, rows ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderCombatPage(
                 page = page,
-                rows = rows.drop(pageIndex * COMBAT_ROWS_PER_PAGE).take(COMBAT_ROWS_PER_PAGE),
+                rows = rows,
                 pageIndex = pageIndex,
             )
         }
@@ -972,13 +971,13 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
     }
 
-    private fun expandCombatReferenceRow(row: CombatReferenceRow): List<CombatReferenceRow> {
-        val nameLines = combatCellLines(resources.fira, Rule(18f, 196f, 0f), row.name)
-        val rangeLines = combatCellLines(resources.fira, Rule(204f, 278f, 0f), row.range)
-        val bonusLines = combatCellLines(resources.firaSemibold, Rule(286f, 330f, 0f), row.bonus)
-        val effectLines = combatCellLines(resources.fira, Rule(338f, 458f, 0f), row.effect)
-        val noteLines = combatCellLines(resources.fira, Rule(466f, 594f, 0f), row.notes)
-        val physicalRows = maxOf(
+    private fun layoutCombatReferenceRow(row: CombatReferenceRow): CombatLayoutRow {
+        val nameLines = combatCellLines(resources.fira, Rule(18f, 166f, 0f), row.name)
+        val rangeLines = combatCellLines(resources.fira, Rule(174f, 230f, 0f), row.range)
+        val bonusLines = combatCellLines(resources.firaSemibold, Rule(236f, 276f, 0f), row.bonus)
+        val effectLines = combatCellLines(resources.fira, Rule(282f, 430f, 0f), row.effect)
+        val noteLines = combatCellLines(resources.fira, Rule(436f, 594f, 0f), row.notes)
+        val maximumLines = maxOf(
             1,
             nameLines.size,
             rangeLines.size,
@@ -986,16 +985,43 @@ internal class DesktopCustomV2ExtendedRenderer(
             effectLines.size,
             noteLines.size,
         )
-
-        return (0 until physicalRows).map { index ->
-            CombatReferenceRow(
-                name = nameLines.getOrElse(index) { "" },
-                range = rangeLines.getOrElse(index) { "" },
-                bonus = bonusLines.getOrElse(index) { "" },
-                effect = effectLines.getOrElse(index) { "" },
-                notes = noteLines.getOrElse(index) { "" },
-            )
+        val height = maxOf(
+            COMBAT_MIN_LOGICAL_ROW_HEIGHT,
+            COMBAT_CELL_VERTICAL_PADDING * 2f + maximumLines * COMBAT_CELL_LINE_HEIGHT,
+        )
+        require(height <= COMBAT_AVAILABLE_DATA_HEIGHT + 0.05f) {
+            "Custom-v2 combat logical row exceeds one full Extended page: ${row.name}"
         }
+        return CombatLayoutRow(
+            row = row,
+            nameLines = nameLines,
+            rangeLines = rangeLines,
+            bonusLines = bonusLines,
+            effectLines = effectLines,
+            noteLines = noteLines,
+            height = height,
+        )
+    }
+
+    private fun packCombatRows(rows: List<CombatLayoutRow>): List<List<CombatLayoutRow>> {
+        val pages = mutableListOf<MutableList<CombatLayoutRow>>()
+        var current = mutableListOf<CombatLayoutRow>()
+        var usedHeight = 0f
+
+        rows.forEach { row ->
+            if (
+                current.isNotEmpty() &&
+                usedHeight + row.height > COMBAT_AVAILABLE_DATA_HEIGHT + 0.05f
+            ) {
+                pages += current
+                current = mutableListOf()
+                usedHeight = 0f
+            }
+            current += row
+            usedHeight += row.height
+        }
+        if (current.isNotEmpty()) pages += current
+        return pages
     }
 
     private fun combatCellLines(
@@ -1020,38 +1046,83 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private fun renderCombatPage(
         page: PDPage,
-        rows: List<CombatReferenceRow>,
+        rows: List<CombatLayoutRow>,
         pageIndex: Int,
     ) {
         val layerPrefix = if (pageIndex == 0) "V2X COMBAT" else "V2X COMBAT ${pageIndex + 1}"
+        val rowTops = mutableListOf<Float>()
+        var cursorTop = COMBAT_FIRST_LOGICAL_ROW_TOP
+        rows.forEach { row ->
+            rowTops += cursorTop
+            cursorTop += row.height
+        }
+
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
             pageHeaderStructure(s)
-            fill(s, 14f, 96f, 584f, 22f, SOURCE_GRAY_LIGHT)
-            bandedRows(s, 14f, 598f, COMBAT_FIRST_RULE_TOP, COMBAT_ROWS_PER_PAGE, COMBAT_ROW_STEP, 0)
-            listOf(200f, 282f, 334f, 462f).forEach { x ->
-                verticalRule(s, x, 120f, COMBAT_FIRST_RULE_TOP + COMBAT_ROWS_PER_PAGE * COMBAT_ROW_STEP, 0.45f)
+            fill(s, 14f, COMBAT_HEADER_TOP, 584f, COMBAT_HEADER_HEIGHT, SOURCE_GRAY_LIGHT)
+
+            rows.forEachIndexed { index, row ->
+                val top = rowTops[index]
+                val tone = if (index % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK
+                fill(s, 14f, top, 584f, row.height, tone)
+                drawRule(s, 14f, 598f, top + row.height, 0.55f)
             }
+
+            val tableBottom = rowTops.lastOrNull()
+                ?.let { it + rows.last().height }
+                ?: COMBAT_FIRST_LOGICAL_ROW_TOP
+            listOf(170f, 232f, 278f, 432f).forEach { x ->
+                verticalRule(s, x, COMBAT_HEADER_TOP, tableBottom, 0.45f)
+            }
+            drawRule(s, 14f, 598f, COMBAT_FIRST_LOGICAL_ROW_TOP, 0.7f)
         }
+
         appendLayer(page, "$layerPrefix - CLEANUP") { }
+
         appendLayer(page, "$layerPrefix - LABELS") { s ->
             pageTitle(s, "COMBATE / ACCIONES")
-            tableLabel(s, 18f, 121f, 178f, "TIPO / NOMBRE")
-            tableLabel(s, 204f, 121f, 74f, "RANGO")
-            tableLabel(s, 286f, 121f, 44f, "BONIF.")
-            tableLabel(s, 338f, 121f, 120f, "DAÑO / EFECTO")
-            tableLabel(s, 466f, 121f, 128f, "NOTAS")
+            tableLabel(s, 18f, COMBAT_HEADER_LABEL_TOP, 148f, "TIPO / NOMBRE")
+            tableLabel(s, 174f, COMBAT_HEADER_LABEL_TOP, 56f, "RANGO")
+            tableLabel(s, 236f, COMBAT_HEADER_LABEL_TOP, 40f, "BONIF.")
+            tableLabel(s, 282f, COMBAT_HEADER_LABEL_TOP, 148f, "DAÑO / EFECTO")
+            tableLabel(s, 436f, COMBAT_HEADER_LABEL_TOP, 158f, "NOTAS")
         }
+
         appendLayer(page, "$layerPrefix - VALUES") { s ->
             rows.forEachIndexed { index, row ->
-                val y = COMBAT_FIRST_RULE_TOP + index * COMBAT_ROW_STEP
-                combatCellText(s, resources.fira, Rule(18f, 196f, y), row.name, 7.8f)
-                combatCellText(s, resources.fira, Rule(204f, 278f, y), row.range, 7.6f)
-                combatCellText(s, resources.firaSemibold, Rule(286f, 330f, y), row.bonus, 7.8f)
-                combatCellText(s, resources.fira, Rule(338f, 458f, y), row.effect, 7.6f)
-                combatCellText(s, resources.fira, Rule(466f, 594f, y), row.notes, 7.4f)
+                val top = rowTops[index]
+                drawCombatCellLines(s, resources.fira, 18f, 166f, top, row.nameLines, 7.8f)
+                drawCombatCellLines(s, resources.fira, 174f, 230f, top, row.rangeLines, 7.6f)
+                drawCombatCellLines(s, resources.firaSemibold, 236f, 276f, top, row.bonusLines, 7.8f)
+                drawCombatCellLines(s, resources.fira, 282f, 430f, top, row.effectLines, 7.6f)
+                drawCombatCellLines(s, resources.fira, 436f, 594f, top, row.noteLines, 7.4f)
             }
         }
+
         appendLayer(page, "$layerPrefix - MARKERS") { }
+    }
+
+    private fun drawCombatCellLines(
+        s: PDFormContentStream,
+        font: PDFont,
+        startX: Float,
+        endX: Float,
+        rowTop: Float,
+        lines: List<String>,
+        preferredSize: Float,
+    ) {
+        lines.forEachIndexed { index, line ->
+            val baselineRuleTop =
+                rowTop + COMBAT_CELL_VERTICAL_PADDING +
+                    (index + 1) * COMBAT_CELL_LINE_HEIGHT - 2f
+            combatCellText(
+                s,
+                font,
+                Rule(startX, endX, baselineRuleTop),
+                line,
+                preferredSize,
+            )
+        }
     }
 
     private fun characterStatusLabel(
@@ -2640,6 +2711,16 @@ internal class DesktopCustomV2ExtendedRenderer(
         val notes: String,
     )
 
+    private data class CombatLayoutRow(
+        val row: CombatReferenceRow,
+        val nameLines: List<String>,
+        val rangeLines: List<String>,
+        val bonusLines: List<String>,
+        val effectLines: List<String>,
+        val noteLines: List<String>,
+        val height: Float,
+    )
+
     private data class ResourceRenderRow(
         val name: String,
         val currentValue: Int,
@@ -2853,11 +2934,17 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val TRAIT_CONTINUATION_TEXT_WIDTH = 281f
         const val TRAIT_PROFICIENCIES_PER_PAGE = 8
         const val BASE_V2_COMBAT_CAPACITY = 8
-        const val COMBAT_ROWS_PER_PAGE = 14
         const val COMBAT_MINIMUM_BODY_SIZE = 6.0f
         const val COMBAT_MINIMUM_HORIZONTAL_SCALE = 72f
-        const val COMBAT_FIRST_RULE_TOP = 137f
-        const val COMBAT_ROW_STEP = 42f
+        const val COMBAT_HEADER_TOP = 96f
+        const val COMBAT_HEADER_HEIGHT = 30f
+        const val COMBAT_HEADER_LABEL_TOP = 113f
+        const val COMBAT_FIRST_LOGICAL_ROW_TOP = 134f
+        const val COMBAT_PAGE_BOTTOM = 758f
+        const val COMBAT_AVAILABLE_DATA_HEIGHT = COMBAT_PAGE_BOTTOM - COMBAT_FIRST_LOGICAL_ROW_TOP
+        const val COMBAT_MIN_LOGICAL_ROW_HEIGHT = 19.84f
+        const val COMBAT_CELL_LINE_HEIGHT = 12f
+        const val COMBAT_CELL_VERTICAL_PADDING = 4f
         const val COMBAT_TEXT_WIDTH = 576f
         const val BASE_V2_EQUIPMENT_CAPACITY = 46
         const val V2_EQUIPMENT_COLUMN_WIDTH = 125f
