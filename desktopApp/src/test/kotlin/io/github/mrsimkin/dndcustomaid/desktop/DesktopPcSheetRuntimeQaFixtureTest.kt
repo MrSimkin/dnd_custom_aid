@@ -263,6 +263,18 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 attributePage != null,
                 "Mara's four custom attributes must share one native-scale Custom Statistics page.",
             )
+            listOf(
+                "EQUIPO ESPECIAL",
+                "VÍNCULOS",
+                "IDEALES",
+                "HISTORIA",
+                "PUNTOS DE VIDA",
+            ).forEach { staleLabel ->
+                assertTrue(
+                    !requireNotNull(attributePage).contains(staleLabel),
+                    "Custom Statistics page leaked stale source-template text: $staleLabel",
+                )
+            }
             val whole = pageTexts.joinToString(" ")
             assertTrue(!whole.contains("ETE · Éter"))
             assertTrue(whole.contains("Manipulación de éter"))
