@@ -1696,7 +1696,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Competencia extendida de prueba"))
             assertTrue(Regex("Nota\\s+de\\s+competencia").containsMatchIn(extracted))
             assertTrue(extracted.contains("Lengua extendida"))
-            assertTrue(extracted.contains("Usos 1 / 2"))
+            assertTrue(extracted.contains("Usos ____(1)/2"))
 
             val image = PDFRenderer(document).renderImageWithDPI(5, 220f, ImageType.RGB)
             val png = File(proofDir, "custom-v1-production-extended-traits-pass2-page-6.png")
