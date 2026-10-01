@@ -2654,6 +2654,16 @@ internal class DesktopCustomV1ExtendedRenderer(
             627.825f, 647.667f, 667.510f, 687.352f, 707.195f, 727.037f,
             746.880f,
         )
+        const val INVENTORY_SPECIAL_LOCATION_TEXT_WIDTH = 82f
+        const val INVENTORY_SPECIAL_NAME_TEXT_WIDTH = 108f
+        const val INVENTORY_SPECIAL_DETAIL_TEXT_WIDTH = 338f
+        const val SPECIAL_CONTINUATION_PREFIX = "  "
+        const val SPECIAL_BLANK_LOCATION_DONOR_EVEN = 10
+        const val SPECIAL_BLANK_LOCATION_DONOR_ODD = 11
+        const val SPECIAL_LOCATION_CELL_X = 25f
+        const val SPECIAL_LOCATION_CELL_WIDTH = 85f
+        const val SPECIAL_LOCATION_CELL_TOP_PAD = 1f
+        const val SPECIAL_LOCATION_CELL_HEIGHT = 13.5f
         const val SPECIAL_CHECK_X = 113.244f
         const val SPECIAL_CHECK_WIDTH = 9.669f
         const val SPECIAL_CHECK_HEIGHT = 12.287f
