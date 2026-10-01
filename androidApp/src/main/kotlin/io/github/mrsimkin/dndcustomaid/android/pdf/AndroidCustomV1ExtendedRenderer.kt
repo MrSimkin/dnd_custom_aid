@@ -21,6 +21,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetIntegratedAttributeTitle
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetWritableUsesTrackerOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
@@ -318,10 +319,8 @@ internal class AndroidCustomV1ExtendedRenderer(
                     trait.description.trim().takeIf { it.isNotEmpty() }?.let(::add)
                     trait.source.trim().takeIf { it.isNotEmpty() }?.let(::add)
                     trait.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-                    if (trait.maxUses != null) {
-                        val maximum = requireNotNull(trait.maxUses)
-                        val remaining = (maximum - trait.spentUses).coerceIn(0, maximum)
-                        add("Usos $remaining / $maximum")
+                    trait.pcSheetWritableUsesTrackerOrNull()?.let { tracker ->
+                        add("Usos " + tracker.compactEditableLabel())
                         trait.recovery?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                     }
                     trait.activation
