@@ -30,6 +30,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
 import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetWritableUsesTrackerOrNull
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetIntegratedAttributeTitle
 import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetContextualSkillIdentity
@@ -1191,10 +1192,9 @@ internal class AndroidCustomV2ExtendedRenderer(
     private fun fullTraitDetailLines(
         trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
     ): List<String> {
-        val uses = trait.maxUses?.let { max ->
-            val current = (max - trait.spentUses).coerceIn(0, max)
+        val uses = trait.pcSheetWritableUsesTrackerOrNull()?.let { tracker ->
             buildString {
-                append("Usos ").append(current).append("/").append(max)
+                append("Usos ").append(tracker.compactEditableLabel())
                 trait.recovery?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
             }
         } ?: trait.recovery?.takeIf { it.isNotBlank() }
@@ -2040,10 +2040,9 @@ internal class AndroidCustomV2ExtendedRenderer(
             )
         }
 
-        val uses = trait.maxUses?.let { max ->
-            val current = (max - trait.spentUses).coerceIn(0, max)
+        val uses = trait.pcSheetWritableUsesTrackerOrNull()?.let { tracker ->
             buildString {
-                append("Usos: ").append(current).append(" / ").append(max)
+                append("Usos: ").append(tracker.compactEditableLabel())
                 trait.recovery?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
             }
         } ?: trait.recovery?.takeIf { it.isNotBlank() }
