@@ -1131,7 +1131,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                         INVENTORY_ORDINARY_TEXT_WIDTH,
                     ).size > 1
             if (needsFullContinuation) {
-                inventoryContinuationLines(item, usage)
+                inventoryContinuationLines(item)
             } else {
                 emptyList()
             }
@@ -1338,28 +1338,20 @@ internal class DesktopCustomV1ExtendedRenderer(
 
     private fun inventoryContinuationLines(
         item: CharacterInventoryItem,
-        usage: CharacterInventoryUsage?,
     ): List<String> {
-        val lines = mutableListOf<String>()
-        // Full continuation is only for an item whose compact identity itself did not fit the
-        // native Equipment capacity. Location/description/notes remain Notes semantics.
-        lines += item.pdfCompactEquipmentLabel()
+        // Ordinary Equipment is an identity/list surface only. Preserve the complete compact
+        // identity across native writing rows; operational state, weight and prose metadata do not
+        // migrate into this module or into Notes.
+        val wrapped = wrapByWidth(
+            item.pdfCompactEquipmentLabel(),
+            resources.condensed,
+            8.4f,
+            INVENTORY_ORDINARY_TEXT_WIDTH - INVENTORY_ORDINARY_CONTINUATION_INDENT_WIDTH,
+        ).ifEmpty { listOf(item.pdfCompactEquipmentLabel()) }
 
-        val operationalStatus = buildList {
-            if (item.equipped) add("Equipado")
-            if (item.attuned) add("Sintonizado")
-            addAll(inventoryUsageLabels(usage))
-        }.joinToString(" · ")
-        if (operationalStatus.isNotEmpty()) {
-            lines += wrapByWidth(
-                "Estado: $operationalStatus",
-                resources.condensed,
-                8.2f,
-                INVENTORY_ORDINARY_TEXT_WIDTH,
-            )
+        return wrapped.mapIndexed { index, line ->
+            if (index == 0) line else INVENTORY_ORDINARY_CONTINUATION_PREFIX + line
         }
-
-        return lines
     }
 
     private fun specialInventoryDetail(
@@ -2556,6 +2548,8 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val INVENTORY_TREASURE_CAPACITY = 4
         const val INVENTORY_SPECIAL_CAPACITY = 13
         const val INVENTORY_ORDINARY_TEXT_WIDTH = 106f
+        const val INVENTORY_ORDINARY_CONTINUATION_INDENT_WIDTH = 10f
+        const val INVENTORY_ORDINARY_CONTINUATION_PREFIX = "  "
         const val V1_BASE_SPECIAL_NAME_WIDTH = 82.5f
         const val V1_BASE_SPECIAL_DETAIL_WIDTH = 343f
         val INVENTORY_ORDINARY_COLUMNS = listOf(
