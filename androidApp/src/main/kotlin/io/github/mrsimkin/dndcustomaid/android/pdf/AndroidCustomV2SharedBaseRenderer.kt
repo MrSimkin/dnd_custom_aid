@@ -4,6 +4,11 @@ package io.github.mrsimkin.dndcustomaid.android.pdf
 
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBidirectionalContinuation
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetContinuationEndpoint
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetContinuationSurface
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSemanticModule
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSemanticRecordRef
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetNotePhysicalLineKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPackedNotes
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetWrappedNoteRecord
@@ -166,10 +171,126 @@ internal class AndroidCustomV2SharedBaseRenderer(
         val backgroundText = listOf(background.name, background.summary)
             .filter { it.isNotBlank() }
             .joinToString(" - ")
-        drawRuledParagraph(s, BACKGROUND_RULES, backgroundText, 9.25f, 2.6f, 2f)
-        drawRuledParagraph(s, BONDS_RULES, background.bonds, 9.25f, 2.6f, 2f)
-        drawRuledParagraph(s, IDEALS_RULES, background.ideals, 9.25f, 2.6f, 2f)
-        drawRuledParagraph(s, STORY_RULES, background.story, 9.25f, 2.8f, 2f)
+
+        drawNarrativeBaseSegment(
+            s = s,
+            stableKey = "background",
+            sectionName = "Trasfondo",
+            rules = BACKGROUND_RULES,
+            text = backgroundText,
+            size = 9.25f,
+            clearance = 2.6f,
+            leftPadding = 2f,
+        )
+        drawNarrativeBaseSegment(
+            s = s,
+            stableKey = "bonds",
+            sectionName = "Vínculos",
+            rules = BONDS_RULES,
+            text = background.bonds,
+            size = 9.25f,
+            clearance = 2.6f,
+            leftPadding = 2f,
+        )
+        drawNarrativeBaseSegment(
+            s = s,
+            stableKey = "ideals",
+            sectionName = "Ideales",
+            rules = IDEALS_RULES,
+            text = background.ideals,
+            size = 9.25f,
+            clearance = 2.6f,
+            leftPadding = 2f,
+        )
+        drawNarrativeBaseSegment(
+            s = s,
+            stableKey = "story",
+            sectionName = "Historia",
+            rules = STORY_RULES,
+            text = background.story,
+            size = 9.25f,
+            clearance = 2.8f,
+            leftPadding = 2f,
+        )
+    }
+
+    private fun drawNarrativeBaseSegment(
+        s: PDFormContentStream,
+        stableKey: String,
+        sectionName: String,
+        rules: List<Rule>,
+        text: String,
+        size: Float,
+        clearance: Float,
+        leftPadding: Float,
+    ) {
+        if (text.isBlank() || rules.isEmpty()) return
+        val width = rules.first().endX - rules.first().startX - leftPadding - 1f
+        val lines = wrapWords(
+            fonts.regular,
+            text.trim().split(Regex("\\s+")),
+            size,
+            width,
+        )
+        if (lines.size <= rules.size) {
+            lines.forEachIndexed { index, line ->
+                textAboveRule(
+                    s,
+                    fonts.regular,
+                    rules[index],
+                    line,
+                    size,
+                    size - 0.75f,
+                    clearance,
+                    leftPadding,
+                )
+            }
+            return
+        }
+
+        val bodyCapacity = (rules.size - 1).coerceAtLeast(0)
+        lines.take(bodyCapacity).forEachIndexed { index, line ->
+            textAboveRule(
+                s,
+                fonts.regular,
+                rules[index],
+                line,
+                size,
+                size - 0.75f,
+                clearance,
+                leftPadding,
+            )
+        }
+
+        val record = PcSheetSemanticRecordRef(
+            module = PcSheetSemanticModule.BACKGROUND_STORY,
+            stableKey = "background:$stableKey",
+            displayName = sectionName,
+        )
+        val link = PcSheetBidirectionalContinuation(
+            record = record,
+            source = PcSheetContinuationEndpoint(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                sectionName = sectionName,
+                surface = PcSheetContinuationSurface.NORMAL,
+            ),
+            target = PcSheetContinuationEndpoint(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                sectionName = sectionName,
+                surface = PcSheetContinuationSurface.EXTENDED,
+                extendedIndex = 1,
+            ),
+        )
+        textAboveRule(
+            s = s,
+            font = fonts.semibold,
+            rule = rules.last(),
+            text = link.sourceMarker(),
+            preferredSize = NARRATIVE_CONTINUITY_SIZE,
+            minimumSize = NARRATIVE_CONTINUITY_MINIMUM_SIZE,
+            clearance = clearance,
+            leftPadding = leftPadding,
+        )
     }
 
     private fun drawSpecialEquipment(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
@@ -472,6 +593,8 @@ internal class AndroidCustomV2SharedBaseRenderer(
         const val SYMBOL_FONT = "fonts/owner/para-hoja-de-pj/v8/Para Hoja de PJ Symbols v8.ttf"
 
         val EQUIPMENT_RULES = List(23) { 114.5f + it * 17f }
+        const val NARRATIVE_CONTINUITY_SIZE = 6.2f
+        const val NARRATIVE_CONTINUITY_MINIMUM_SIZE = 5.2f
         val BACKGROUND_RULES = listOf(114.5f, 131.5f, 148.5f).map { Rule(297.5f, 597.5f, it) }
         val BONDS_RULES = listOf(182.5f, 199.5f, 216.5f).map { Rule(297.5f, 597.5f, it) }
         val IDEALS_RULES = listOf(250.5f, 267.5f, 284.5f).map { Rule(297.5f, 597.5f, it) }
