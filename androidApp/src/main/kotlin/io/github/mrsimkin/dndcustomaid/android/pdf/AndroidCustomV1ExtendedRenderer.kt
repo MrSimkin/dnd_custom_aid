@@ -1676,7 +1676,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                 .ifEmpty { listOf(emptyList()) }
                 .map { skills ->
                     ModuleSlice(
-                        title = keyedName(
+                        title = pcSheetIntegratedAttributeTitle(
                             projection.attribute.name,
                             projection.attribute.abbreviation,
                         ),
