@@ -514,8 +514,12 @@ internal class DesktopCustomV2SharedBaseRenderer(
         val positioned = mutableListOf<Pair<Int, io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem>>()
         items.take(rowCount).forEach { item ->
             val preferred = specialLocationRow(item.location)?.takeIf { it in available }
-            val fallback = available.filter { it >= SPECIAL_LOCATION_LABELS.size }.minOrNull() ?: available.minOrNull()
-            val row = preferred ?: fallback ?: return@forEach
+            val blankFallback = available
+                .filter { it >= SPECIAL_LOCATION_LABELS.size }
+                .minOrNull()
+            // A custom/unmatched location may only use one of the native blank-location rows.
+            // Never fall back onto a canonical body-location label and overprint it.
+            val row = preferred ?: blankFallback ?: return@forEach
             available.remove(row)
             positioned += row to item
         }
