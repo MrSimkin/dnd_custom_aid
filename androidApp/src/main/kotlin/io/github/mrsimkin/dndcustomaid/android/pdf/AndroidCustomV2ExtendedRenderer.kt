@@ -439,7 +439,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                         NARRATIVE_TEXT_END_X,
                         NARRATIVE_FIRST_RULE_TOP + row * NARRATIVE_ROW_STEP,
                     ),
-                    value = line.text,
+                    text = line.text,
                     preferredSize = preferred,
                     minimumSize = minimum,
                     clearance = NARRATIVE_BASELINE_CLEARANCE,
