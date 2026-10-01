@@ -33,6 +33,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.pdfCompactEquipmentLabel
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
 import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetIntegratedAttributeTitle
 import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetContextualSkillIdentity
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetCompactAttributeKey
 import com.tom_roush.harmony.awt.AWTColor as Color
 import com.tom_roush.harmony.awt.geom.AffineTransform
 import android.graphics.Bitmap
@@ -125,59 +126,65 @@ internal class AndroidCustomV2ExtendedRenderer(
             .filter { it.ability.customAttributeId != null }
             .groupBy { it.ability.customAttributeId }
 
-        val attributeSlices = attributes.flatMap { projection ->
+        val attributeRows = attributes.flatMap { projection ->
             val linked = linkedByCustom[projection.attribute.id].orEmpty()
-            val rawNote = projection.attribute.notes.orEmpty().trim()
-            val noteLines = if (rawNote.isEmpty()) {
-                emptyList()
-            } else {
-                val key = projection.attribute.abbreviation.trim().uppercase().take(3)
-                val note = if (key.isNotEmpty() && !rawNote.startsWith("$key:", ignoreCase = true)) {
-                    "$key: $rawNote"
-                } else {
-                    rawNote
+                .sortedBy { it.skill.sortOrder }
+            val noteLines = projection.attribute.notes
+                .orEmpty()
+                .trim()
+                .takeIf { it.isNotEmpty() }
+                ?.let {
+                    wrapByWidth(
+                        resources.fira,
+                        it,
+                        7.7f,
+                        PER_ATTRIBUTE_NOTE_TEXT_WIDTH,
+                    )
                 }
-                wrapByWidth(resources.fira, note, 8.8f, 174f)
-            }
+                .orEmpty()
+
             val slices = maxOf(
                 1,
-                pageCount(linked.size, ATTRIBUTE_LINKED_SKILLS_PER_COLUMN),
-                pageCount(noteLines.size, ATTRIBUTE_NOTE_LINES_PER_COLUMN),
+                pageCount(linked.size, PER_ATTRIBUTE_LINKED_SKILLS_PER_ROW),
+                pageCount(noteLines.size, PER_ATTRIBUTE_NOTE_LINES_PER_ROW),
             )
+
             (0 until slices).map { sliceIndex ->
-                AttributeColumnSlice(
-                    projection = projection,
-                    skills = linked
-                        .drop(sliceIndex * ATTRIBUTE_LINKED_SKILLS_PER_COLUMN)
-                        .take(ATTRIBUTE_LINKED_SKILLS_PER_COLUMN),
-                    noteLines = noteLines
-                        .drop(sliceIndex * ATTRIBUTE_NOTE_LINES_PER_COLUMN)
-                        .take(ATTRIBUTE_NOTE_LINES_PER_COLUMN),
+                PerAttributePageRow(
+                    attribute = AttributeColumnSlice(
+                        projection = projection,
+                        skills = linked
+                            .drop(sliceIndex * PER_ATTRIBUTE_LINKED_SKILLS_PER_ROW)
+                            .take(PER_ATTRIBUTE_LINKED_SKILLS_PER_ROW),
+                        noteLines = noteLines
+                            .drop(sliceIndex * PER_ATTRIBUTE_NOTE_LINES_PER_ROW)
+                            .take(PER_ATTRIBUTE_NOTE_LINES_PER_ROW),
+                    ),
+                    continuation = sliceIndex > 0,
                 )
             }
         }
 
-        val standardSlices = skills
+        val standardRows = skills
             .filter { it.ability.builtIn != null }
-            .groupBy { requireNotNull(it.ability.builtIn) }
-            .toList()
-            .flatMap { (ability, groupedSkills) ->
-                groupedSkills.chunked(STANDARD_SKILLS_PER_COLUMN).map { chunk ->
-                    StandardSkillSlice(ability = ability, skills = chunk)
-                }
+            .sortedBy { it.skill.sortOrder }
+            .chunked(PER_ATTRIBUTE_STANDARD_SKILLS_PER_ROW)
+            .map { group ->
+                PerAttributePageRow(
+                    standardSkills = group,
+                )
             }
 
-        val attributePages = attributeSlices.chunked(ATTRIBUTE_COLUMNS_PER_PAGE)
-        val standardPages = standardSlices.chunked(STANDARD_COLUMNS_PER_PAGE)
-        val pages = maxOf(1, attributePages.size, standardPages.size)
+        val rows = attributeRows + standardRows
+        val pages = rows.chunked(PER_ATTRIBUTE_ROWS_PER_PAGE).ifEmpty { listOf(emptyList()) }
 
-        repeat(pages) { pageIndex ->
+        pages.forEachIndexed { pageIndex, pageRows ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderPerAttributePage(
                 page = page,
-                attributes = attributePages.getOrNull(pageIndex).orEmpty(),
-                standardGroups = standardPages.getOrNull(pageIndex).orEmpty(),
+                rows = pageRows,
+                allAttributes = attributes,
                 pageIndex = pageIndex,
             )
         }
@@ -185,140 +192,247 @@ internal class AndroidCustomV2ExtendedRenderer(
 
     private fun renderPerAttributePage(
         page: PDPage,
-        attributes: List<AttributeColumnSlice>,
-        standardGroups: List<StandardSkillSlice>,
+        rows: List<PerAttributePageRow>,
+        allAttributes: List<PcSheetCustomAttributeProjection>,
         pageIndex: Int,
     ) {
         val layerPrefix = if (pageIndex == 0) "V2X ATTR" else "V2X ATTR ${pageIndex + 1}"
 
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
             pageHeaderStructure(s)
-            val columns = listOf(14f, 207f, 400f)
-            columns.forEach { x ->
-                fill(s, x, 104f, 184f, 244f, SOURCE_GRAY_LIGHT)
-                attributeBandStructure(s, x, 104f, 184f, ATTRIBUTE_LINKED_SKILLS_PER_COLUMN)
-            }
-
-            drawRule(s, 14f, 598f, 365f, 0.8f)
-            columns.forEachIndexed { index, x ->
-                fill(s, x, 392f, 184f, 110f, if (index % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK)
-                drawRule(s, x + 16f, x + 174f, 430f, 0.55f)
-                repeat(STANDARD_SKILLS_PER_COLUMN) { row ->
-                    drawRule(s, x + 16f, x + 174f, 447f + row * 17f, 0.55f)
+            rows.forEachIndexed { index, row ->
+                val top = PER_ATTRIBUTE_FIRST_ROW_TOP + index * PER_ATTRIBUTE_ROW_HEIGHT
+                if (row.attribute != null) {
+                    drawAttributeOrnament(s, 14.3f, top + 18f)
+                    drawRule(s, 108f, 192f, top + 52f, 0.6f)
+                    repeat(PER_ATTRIBUTE_LINKED_SKILLS_PER_ROW) { skillRow ->
+                        val y = top + 32f + skillRow * PER_ATTRIBUTE_ROW_STEP
+                        drawRule(s, 220f, 392f, y, 0.55f)
+                    }
+                    repeat(PER_ATTRIBUTE_NOTE_LINES_PER_ROW) { noteRow ->
+                        val y = top + 32f + noteRow * PER_ATTRIBUTE_ROW_STEP
+                        drawRule(s, 405f, 590f, y, 0.55f)
+                    }
+                } else {
+                    fill(
+                        s,
+                        14f,
+                        top + 8f,
+                        584f,
+                        72f,
+                        if (index % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK,
+                    )
+                    repeat(PER_ATTRIBUTE_STANDARD_SKILLS_PER_ROW) { skillRow ->
+                        val y = top + 34f + skillRow * PER_ATTRIBUTE_ROW_STEP
+                        drawRule(s, 32f, 586f, y, 0.55f)
+                    }
                 }
-            }
-
-            drawRule(s, 14f, 598f, 522f, 0.8f)
-            columns.forEachIndexed { col, x ->
-                bandedRows(s, x, x + 184f, 562f, ATTRIBUTE_NOTE_LINES_PER_COLUMN, 17f, col)
+                drawRule(s, 14f, 598f, top + 88f, 0.7f)
             }
         }
+
         appendLayer(page, "$layerPrefix - CLEANUP") { }
+
         appendLayer(page, "$layerPrefix - LABELS") { s ->
             pageTitle(s, "ESTADÍSTICAS PERSONALIZADAS")
-            attributes.forEachIndexed { index, slice ->
-                val projection = slice.projection
-                textTopSource(
-                    s, resources.corbelBold, resources.firaSemibold,
-                    18f + index * 193f, 111f,
-                    pcSheetIntegratedAttributeTitle(projection.attribute.name, projection.attribute.abbreviation),
-                    12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
-                )
-                textAboveRuleSource(
-                    s, resources.corbel, resources.fira,
-                    Rule(108f + index * 193f, 159f + index * 193f, 151f),
-                    "Tirada de Salvación", 7.75f, 2.0f, SOURCE_CORBEL_COMPACT_SCALE,
-                )
-            }
-            centeredSource(
-                s, resources.corbelBold, resources.firaSemibold,
-                TopRect(14f, 367f, 584f, 22f),
-                "HABILIDADES VINCULADAS A ATRIBUTOS ESTÁNDAR", 10.2f, SOURCE_CORBEL_HEADING_SCALE,
-            )
-            standardGroups.forEachIndexed { index, group ->
-                centeredSource(
-                    s, resources.corbelBold, resources.firaSemibold,
-                    TopRect(14f + index * 193f, 397f, 184f, 22f),
-                    builtInKeyedName(group.ability), 12.12f, SOURCE_CORBEL_ATTRIBUTE_SCALE,
-                )
-            }
-            centeredSource(
-                s, resources.corbelBold, resources.firaSemibold,
-                TopRect(14f, 524f, 584f, 22f),
-                "DEFINICIONES / NOTAS", 12.12f, SOURCE_CORBEL_HEADING_SCALE,
-            )
-        }
-        appendLayer(page, "$layerPrefix - VALUES") { s ->
-            attributes.forEachIndexed { index, slice ->
-                val attr = slice.projection.attribute
-                drawAttributeBandValues(
-                    s,
-                    14f + index * 193f,
-                    104f,
-                    AttributeValues(
-                        score = attr.score.toString(),
-                        modifier = signed(attr.modifier),
-                        save = slice.projection.savingThrowTotal?.let(::signed).orEmpty(),
-                        skills = slice.skills.map { it.skill.name to it.total?.let(::signed).orEmpty() },
-                    ),
-                )
-                slice.noteLines.forEachIndexed { row, line ->
-                    textAboveRule(
-                        s, resources.fira,
-                        Rule(18f + index * 193f, 194f + index * 193f, 562f + row * 17f),
-                        line, 8.8f, 8.0f, 2.2f,
+            rows.forEachIndexed { index, row ->
+                val top = PER_ATTRIBUTE_FIRST_ROW_TOP + index * PER_ATTRIBUTE_ROW_HEIGHT
+                row.attribute?.let { slice ->
+                    val projection = slice.projection
+                    textTopSource(
+                        s,
+                        resources.corbelBold,
+                        resources.firaSemibold,
+                        18f,
+                        top + 2f,
+                        pcSheetIntegratedAttributeTitle(
+                            projection.attribute.name,
+                            projection.attribute.abbreviation,
+                        ) + if (row.continuation) " · CONT." else "",
+                        12.12f,
+                        SOURCE_CORBEL_ATTRIBUTE_SCALE,
                     )
-                }
-            }
-
-            standardGroups.forEachIndexed { col, group ->
-                group.skills.forEachIndexed { row, item ->
-                    val y = 447f + row * 17f
                     textAboveRuleSource(
-                        s, resources.corbel, resources.fira,
-                        Rule(38f + col * 193f, 164f + col * 193f, y),
-                        item.skill.name, 7.75f, 2.2f, SOURCE_CORBEL_COMPACT_SCALE,
+                        s,
+                        resources.corbel,
+                        resources.fira,
+                        Rule(108f, 162f, top + 52f),
+                        "Tirada de Salvación",
+                        7.75f,
+                        2.0f,
+                        SOURCE_CORBEL_COMPACT_SCALE,
                     )
-                    item.total?.let {
+                    centeredSource(
+                        s,
+                        resources.corbelBold,
+                        resources.firaSemibold,
+                        TopRect(220f, top + 8f, 172f, 18f),
+                        "HABILIDADES",
+                        7.8f,
+                        SOURCE_CORBEL_HEADING_SCALE,
+                    )
+                    centeredSource(
+                        s,
+                        resources.corbelBold,
+                        resources.firaSemibold,
+                        TopRect(405f, top + 8f, 185f, 18f),
+                        "NOTAS",
+                        7.8f,
+                        SOURCE_CORBEL_HEADING_SCALE,
+                    )
+                } ?: centeredSource(
+                    s,
+                    resources.corbelBold,
+                    resources.firaSemibold,
+                    TopRect(18f, top + 8f, 570f, 18f),
+                    "HABILIDADES ADICIONALES",
+                    8.4f,
+                    SOURCE_CORBEL_HEADING_SCALE,
+                )
+            }
+        }
+
+        appendLayer(page, "$layerPrefix - VALUES") { s ->
+            rows.forEachIndexed { index, row ->
+                val top = PER_ATTRIBUTE_FIRST_ROW_TOP + index * PER_ATTRIBUTE_ROW_HEIGHT
+                row.attribute?.let { slice ->
+                    val attr = slice.projection.attribute
+                    centered(
+                        s,
+                        resources.firaSemibold,
+                        TopRect(31.8f, top + 26f, 25.5f, 18f),
+                        attr.score.toString(),
+                        17f,
+                    )
+                    centered(
+                        s,
+                        resources.firaSemibold,
+                        TopRect(62.3f, top + 45f, 23f, 16.5f),
+                        signed(attr.modifier),
+                        15.5f,
+                    )
+                    slice.projection.savingThrowTotal?.let { total ->
                         centeredAboveRule(
-                            s, resources.firaSemibold,
-                            Rule(164f + col * 193f, 196f + col * 193f, y),
-                            signed(it), 8.8f, 2.2f,
+                            s,
+                            resources.firaSemibold,
+                            Rule(162f, 192f, top + 52f),
+                            signed(total),
+                            8.8f,
+                            2.0f,
+                        )
+                    }
+
+                    slice.skills.forEachIndexed { skillRow, projection ->
+                        val y = top + 32f + skillRow * PER_ATTRIBUTE_ROW_STEP
+                        textAboveRuleSource(
+                            s,
+                            resources.corbel,
+                            resources.fira,
+                            Rule(232f, 354f, y),
+                            pcSheetContextualSkillIdentity(
+                                skillName = projection.skill.name,
+                                attributeKey = pcSheetCompactAttributeKey(attr.abbreviation),
+                                ownerAttributeStructurallyVisible = true,
+                            ),
+                            7.75f,
+                            2.2f,
+                            SOURCE_CORBEL_COMPACT_SCALE,
+                        )
+                        projection.total?.let { total ->
+                            centeredAboveRule(
+                                s,
+                                resources.firaSemibold,
+                                Rule(354f, 392f, y),
+                                signed(total),
+                                8.8f,
+                                2.2f,
+                            )
+                        }
+                    }
+
+                    slice.noteLines.forEachIndexed { noteRow, note ->
+                        val y = top + 32f + noteRow * PER_ATTRIBUTE_ROW_STEP
+                        textAboveRule(
+                            s,
+                            resources.fira,
+                            Rule(405f, 590f, y),
+                            note,
+                            7.7f,
+                            7.0f,
+                            2.2f,
+                        )
+                    }
+                } ?: row.standardSkills.forEachIndexed { skillRow, projection ->
+                    val y = top + 34f + skillRow * PER_ATTRIBUTE_ROW_STEP
+                    val label = pcSheetContextualSkillIdentity(
+                        skillName = projection.skill.name,
+                        attributeKey = abilityKey(projection.ability, allAttributes),
+                        ownerAttributeStructurallyVisible = false,
+                    )
+                    textAboveRuleSource(
+                        s,
+                        resources.corbel,
+                        resources.fira,
+                        Rule(44f, 522f, y),
+                        label,
+                        7.75f,
+                        2.2f,
+                        SOURCE_CORBEL_COMPACT_SCALE,
+                    )
+                    projection.total?.let { total ->
+                        centeredAboveRule(
+                            s,
+                            resources.firaSemibold,
+                            Rule(522f, 586f, y),
+                            signed(total),
+                            8.8f,
+                            2.2f,
                         )
                     }
                 }
             }
         }
+
         appendLayer(page, "$layerPrefix - MARKERS") { s ->
-            repeat(ATTRIBUTE_COLUMNS_PER_PAGE) { col ->
-                val slice = attributes.getOrNull(col)
-                val projection = slice?.projection
-                val saveTraining = if (
-                    projection?.attribute?.savingThrowEnabled == true &&
-                    projection.attribute.savingThrowProficient
-                ) {
-                    Training.PROFICIENT
-                } else {
-                    Training.NONE
-                }
-                drawV2TrainingBox(s, TopRect(98.5f + col * 193f, 141.5f, 8.5f, 9f), saveTraining)
-
-                repeat(ATTRIBUTE_LINKED_SKILLS_PER_COLUMN) { row ->
+            rows.forEachIndexed { index, row ->
+                val top = PER_ATTRIBUTE_FIRST_ROW_TOP + index * PER_ATTRIBUTE_ROW_HEIGHT
+                row.attribute?.let { slice ->
+                    val projection = slice.projection
+                    val saveTraining = if (
+                        projection.attribute.savingThrowEnabled &&
+                        projection.attribute.savingThrowProficient
+                    ) {
+                        Training.PROFICIENT
+                    } else {
+                        Training.NONE
+                    }
                     drawV2TrainingBox(
                         s,
-                        TopRect(98.5f + col * 193f, 157f + row * 17f, 8.5f, 9f),
-                        slice?.skills?.getOrNull(row)?.let { training(it.skill.training) } ?: Training.NONE,
+                        TopRect(98.5f, top + 42.5f, 8.5f, 9f),
+                        saveTraining,
                     )
-                }
-            }
-
-            repeat(STANDARD_COLUMNS_PER_PAGE) { col ->
-                val group = standardGroups.getOrNull(col)
-                repeat(STANDARD_SKILLS_PER_COLUMN) { row ->
+                    slice.skills.forEachIndexed { skillRow, skill ->
+                        drawV2TrainingBox(
+                            s,
+                            TopRect(
+                                208f,
+                                top + 22.5f + skillRow * PER_ATTRIBUTE_ROW_STEP,
+                                8.5f,
+                                9f,
+                            ),
+                            training(skill.skill.training),
+                        )
+                    }
+                } ?: row.standardSkills.forEachIndexed { skillRow, skill ->
                     drawV2TrainingBox(
                         s,
-                        TopRect(18f + col * 193f, 434f + row * 17f, 8.5f, 9f),
-                        group?.skills?.getOrNull(row)?.let { training(it.skill.training) } ?: Training.NONE,
+                        TopRect(
+                            20f,
+                            top + 24.5f + skillRow * PER_ATTRIBUTE_ROW_STEP,
+                            8.5f,
+                            9f,
+                        ),
+                        training(skill.skill.training),
                     )
                 }
             }
@@ -2486,9 +2600,20 @@ internal class AndroidCustomV2ExtendedRenderer(
     )
 
     private data class StandardSkillSlice(
-        val ability: CharacterAbility,
         val skills: List<PcSheetCustomSkillProjection>,
     )
+
+    private data class PerAttributePageRow(
+        val attribute: AttributeColumnSlice? = null,
+        val standardSkills: List<PcSheetCustomSkillProjection> = emptyList(),
+        val continuation: Boolean = false,
+    ) {
+        init {
+            require((attribute != null) xor standardSkills.isNotEmpty()) {
+                "Per-Attribute native row must represent exactly one semantic row kind."
+            }
+        }
+    }
 
     private data class ResourceRenderLine(
         val name: String,
@@ -2700,6 +2825,14 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val ATTRIBUTE_NOTE_LINES_PER_COLUMN = 10
         const val STANDARD_COLUMNS_PER_PAGE = 3
         const val STANDARD_SKILLS_PER_COLUMN = 4
+        const val PER_ATTRIBUTE_ROWS_PER_PAGE = 6
+        const val PER_ATTRIBUTE_FIRST_ROW_TOP = 104f
+        const val PER_ATTRIBUTE_ROW_HEIGHT = 96f
+        const val PER_ATTRIBUTE_ROW_STEP = 19.84f
+        const val PER_ATTRIBUTE_LINKED_SKILLS_PER_ROW = 3
+        const val PER_ATTRIBUTE_NOTE_LINES_PER_ROW = 3
+        const val PER_ATTRIBUTE_STANDARD_SKILLS_PER_ROW = 3
+        const val PER_ATTRIBUTE_NOTE_TEXT_WIDTH = 180f
         const val ABILITY_ATTRIBUTES_PER_PAGE = 6
         const val ABILITY_SAVES_PER_PAGE = 30
         const val ABILITY_SKILLS_PER_PAGE = 34
