@@ -172,3 +172,36 @@ Validation:
 
 Next:
 - selective family-renderer integration, starting with M50800-02 Custom-v1 long-skill generation/wrapping.
+
+
+## Progress — Family integration checkpoint A
+
+**Status:** REPOSITORY-GREEN / NOT YET OWNER-ACCEPTED
+
+Validated together at implementation head `ff6bc98bb207e021e3345ebc3f4e3bdb12677303`:
+- Custom-v1 long custom-stat skill wrapping with uniform source scale;
+- shared Custom-v1/v2 custom-attribute identity semantics, including integrated title form such as `ETEr` and context-dependent compact owner keys;
+- Custom-v2 Custom Statistics six-row/native-capacity direction;
+- isolated Custom-v2 source logo to prevent stale hidden template text;
+- Custom-v2 Combat/Actions logical-record rows with content-driven height;
+- Fantasy Combat/Actions table-grammar continuation;
+- writable trait-use trackers using the compact paper-first snapshot form `____(current)/max`;
+- Special Equipment fixed-native-row flow groundwork;
+- one-line -> bounded reduction -> two-line centered character-name ribbon fallback;
+- record-aware Notes flow with native-page treatment and bidirectional continuation metadata;
+- Fantasy Notes restored to the frozen native Notes frame geometry rather than a widened replacement;
+- Custom-v2 narrative overflow moved out of Traits into a dedicated `BACKGROUND_STORY` semantic module, including Personality / Flaws / Religion-Faith that previously had no surviving PDF route.
+
+Regression notes:
+- page counts are no longer asserted as acceptance targets;
+- narrative text is tested for semantic-module association, not merely whole-document presence;
+- long Notes stress remains within the Fantasy semantic wrap contract while still forcing continuation.
+
+Validation:
+- Scaffold #4485 / `36804840149`: backend PASS; hosted-database PASS; kotlin PASS;
+- Android debug APK and PDF proof artifacts uploaded by the workflow.
+
+This is an implementation milestone only. It does **not** close M50800 acceptance: actual candidate PDF inspection, global compositor integration, remaining Inventory/Resources/Traits/ellipsis work, all-four-family Mara generation and exact candidate provenance are still required.
+
+Next:
+- repair Custom-v2 Inventory semantics and replace the generic Inventory continuation with native ordinary-Equipment + fixed native Special-Equipment modules.
