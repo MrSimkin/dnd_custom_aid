@@ -572,7 +572,7 @@ internal class AndroidCustomV1ExtendedRenderer(
     }
 
     private fun appendCombatExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val rows = combatReferenceRows(plan)
+        val rows = combatReferenceRows(plan).flatMap(::expandCombatReferenceRow)
         if (rows.isEmpty()) return
 
         val pages = pageCount(rows.size, COMBAT_ROWS_PER_PAGE)
@@ -623,6 +623,51 @@ internal class AndroidCustomV1ExtendedRenderer(
                     )
                 }
             }
+    }
+
+    private fun expandCombatReferenceRow(row: CombatReferenceRow): List<CombatReferenceRow> {
+        val nameLines = combatCellLines(resources.fira, Rule(27.5f, 201f, 0f), row.name)
+        val rangeLines = combatCellLines(resources.fira, Rule(207f, 281f, 0f), row.range)
+        val bonusLines = combatCellLines(resources.firaSemibold, Rule(287f, 331f, 0f), row.bonus)
+        val effectLines = combatCellLines(resources.fira, Rule(337f, 456f, 0f), row.effect)
+        val noteLines = combatCellLines(resources.fira, Rule(462f, 583.795f, 0f), row.notes)
+        val physicalRows = maxOf(
+            1,
+            nameLines.size,
+            rangeLines.size,
+            bonusLines.size,
+            effectLines.size,
+            noteLines.size,
+        )
+
+        return (0 until physicalRows).map { index ->
+            CombatReferenceRow(
+                name = nameLines.getOrElse(index) { "" },
+                range = rangeLines.getOrElse(index) { "" },
+                bonus = bonusLines.getOrElse(index) { "" },
+                effect = effectLines.getOrElse(index) { "" },
+                notes = noteLines.getOrElse(index) { "" },
+            )
+        }
+    }
+
+    private fun combatCellLines(
+        font: PDFont,
+        rule: Rule,
+        value: String,
+        leftPadding: Float = 2f,
+    ): List<String> {
+        val clean = value.trim()
+        if (clean.isEmpty()) return emptyList()
+        val available = rule.endX - rule.startX - leftPadding - 1f
+        val maximumRawWidthAtReadableScale =
+            available / (COMBAT_MINIMUM_HORIZONTAL_SCALE / 100f)
+        return wrapByWidth(
+            clean,
+            font,
+            MINIMUM_BODY_SIZE,
+            maximumRawWidthAtReadableScale,
+        )
     }
 
     private fun renderCombatPage(
