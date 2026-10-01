@@ -150,7 +150,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         }
 
         // Alignment and next-level XP threshold are not represented by the current product model.
-        centered(s, fonts.handwritten, PORTRAIT_NAME_RECT, sheet.name, 14f, 0f)
+        centeredNameRibbon(s, fonts.handwritten, PORTRAIT_NAME_RECT, sheet.name, 14f)
     }
 
     private fun drawDefense(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
@@ -731,6 +731,65 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         s.newLineAtOffset(rule.startX + (rule.endX - rule.startX - width) / 2f, baseline)
         s.showText(text)
         s.endText()
+    }
+
+    private fun centeredNameRibbon(
+        s: PDFormContentStream,
+        font: PDFont,
+        rect: TopRect,
+        text: String,
+        preferredSize: Float,
+    ) {
+        if (text.isBlank()) return
+        val clean = text.trim().replace(Regex("\\s+"), " ")
+        val minimumSize = maxOf(6f, preferredSize * 0.70f)
+        var size = preferredSize
+
+        while (size + 0.001f >= minimumSize) {
+            val candidate = maxOf(size, minimumSize)
+            if (textWidth(font, clean, candidate) <= rect.width - 2f) {
+                centered(s, font, rect, clean, candidate, 0f)
+                return
+            }
+            if (candidate <= minimumSize + 0.001f) break
+            size -= 0.25f
+        }
+
+        size = preferredSize
+        while (size + 0.001f >= minimumSize) {
+            val candidate = maxOf(size, minimumSize)
+            val lines = wrapByWidth(font, clean, candidate, rect.width - 2f)
+            if (lines.size in 1..2) {
+                val ascent =
+                    (font.fontDescriptor?.ascent?.takeIf { it > 0 } ?: 750f) / 1000f * candidate
+                val descent =
+                    abs(font.fontDescriptor?.descent?.takeIf { it < 0 } ?: -250f) / 1000f * candidate
+                val lineHeight = ascent + descent
+                val lineAdvance = lineHeight * 1.05f
+                val blockHeight = lineHeight + (lines.size - 1) * lineAdvance
+                if (blockHeight <= rect.height) {
+                    val bottom = PAGE_HEIGHT - (rect.top + rect.height)
+                    val blockBottom = bottom + (rect.height - blockHeight) / 2f
+                    val firstBaseline = blockBottom + blockHeight - ascent
+                    lines.forEachIndexed { index, line ->
+                        val width = textWidth(font, line, candidate)
+                        s.beginText()
+                        s.setFont(font, candidate)
+                        s.newLineAtOffset(
+                            rect.x + (rect.width - width) / 2f,
+                            firstBaseline - index * lineAdvance,
+                        )
+                        s.showText(line)
+                        s.endText()
+                    }
+                    return
+                }
+            }
+            if (candidate <= minimumSize + 0.001f) break
+            size -= 0.25f
+        }
+
+        error("Character name cannot fit the native Custom-v1 ribbon without truncation: '$text'")
     }
 
     private fun centered(
