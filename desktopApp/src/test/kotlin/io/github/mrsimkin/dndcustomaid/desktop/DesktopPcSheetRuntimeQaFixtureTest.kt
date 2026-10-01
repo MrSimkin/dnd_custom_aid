@@ -357,6 +357,12 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             assertTrue(normalized.contains("del objeto 1"))
             assertTrue(normalized.contains("Protocolo de paradoja 1"))
             assertTrue(normalized.contains("Reserva 10: Sello"))
+            assertTrue(normalized.contains("ARMAS Y ACCIONES"))
+            assertTrue(normalized.contains("Técnica 8 — Descarga prismática"))
+            assertTrue(
+                !normalized.contains("Efecto / daño:"),
+                "Fantasy combat continuation must preserve table grammar instead of prose serialization.",
+            )
         }
     }
 
