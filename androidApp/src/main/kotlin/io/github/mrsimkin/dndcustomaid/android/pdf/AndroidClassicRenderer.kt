@@ -22,6 +22,12 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBaseLayoutMode
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetNotePhysicalLine
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetNotePhysicalLineKind
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPackedNotes
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetWrappedNoteRecord
+import io.github.mrsimkin.dndcustomaid.shared.character.packPcSheetNoteColumns
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetNoteRecords
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
@@ -81,9 +87,10 @@ internal class AndroidClassicRenderer {
             appendTraitsPages(doc, p, plan)
             appendCombatPages(doc, p, plan)
             appendResourcesPages(doc, p, plan)
-            val packedCampaignNotes = appendInventoryPages(doc, p, plan)
+            appendInventoryPages(doc, p, plan)
             appendSpellContinuationPages(doc, p, plan)
-            appendNotesPages(doc, p, plan, packedCampaignNotes)
+            appendNotesPages(doc, p, plan)
+            appendReferencePages(doc, p, plan)
 
             check(overflowDiagnostics.isEmpty()) {
                 "Fantasy Sheet production encountered content outside its bounded base/continuation routing:\n" +
@@ -1584,41 +1591,201 @@ private fun appendSpellContinuationPages(
         doc: PDDocument,
         p: AndroidPdfRenderingPrimitives,
         plan: PcSheetPdfRenderPlan,
-        alreadyPackedEntries: Int,
     ) {
         val sheet = plan.snapshot.aggregate.sheet
-        val entries = classicNoteEntries(plan).drop(alreadyPackedEntries)
-        val references = classicReferenceNoteLines(plan)
-        if (entries.isEmpty() && references.isEmpty()) return
+        val packed = packedClassicNotes(p, plan)
+        if (packed.columns.isEmpty()) return
 
-        val pages = maxOf(
-            1,
-            pageCount(entries.size, CLASSIC_NOTES_ENTRIES_PER_PAGE),
-            pageCount(references.size, CLASSIC_REFERENCE_LINES_PER_PAGE),
-        )
-        repeat(pages) { pageIndex ->
+        val pages = packed.columns
+            .flatMap { segments -> segments.map { it.address.extendedPageIndex } }
+            .distinct()
+            .sorted()
+
+        pages.forEach { pageIndex ->
+            val columns = packed.columns
+                .mapNotNull { segments ->
+                    val address = segments.firstOrNull()?.address ?: return@mapNotNull null
+                    if (address.extendedPageIndex != pageIndex) {
+                        null
+                    } else {
+                        address.columnIndex to segments.flatMap { it.lines }
+                    }
+                }
+                .toMap()
+
             val page = addPage(doc)
             PDPageContentStream(doc, page).use { s ->
                 extendedHeader(s, p, sheet.name, "NOTAS")
-
-                titledFrame(s, p, 24f, 112f, 360f, 606f, "NOTAS DE CAMPAÑA")
-                ruledTextArea(
-                    s, p, 36f, 148f, 336f, 552f,
-                    entries.pageSlice(pageIndex, CLASSIC_NOTES_ENTRIES_PER_PAGE),
-                    8.7f,
+                titledFrame(
+                    s,
+                    p,
+                    CLASSIC_NOTES_FRAME_X,
+                    CLASSIC_NOTES_FRAME_TOP,
+                    CLASSIC_NOTES_FRAME_WIDTH,
+                    CLASSIC_NOTES_FRAME_HEIGHT,
+                    "NOTAS DE CAMPAÑA",
                 )
 
-                titledFrame(s, p, 398f, 112f, 190f, 292f, "CROQUIS / MAPA")
-                grid(s, 410f, 148f, 166f, 240f, 10, 14)
-
-                titledFrame(s, p, 398f, 418f, 190f, 300f, "REFERENCIAS Y RECORDATORIOS")
-                ruledTextArea(
-                    s, p, 410f, 454f, 166f, 246f,
-                    references.pageSlice(pageIndex, CLASSIC_REFERENCE_LINES_PER_PAGE),
-                    8.1f,
+                drawClassicNotesColumn(
+                    s = s,
+                    p = p,
+                    lines = columns[1].orEmpty(),
+                    x = CLASSIC_NOTES_LEFT_X,
+                )
+                drawClassicNotesColumn(
+                    s = s,
+                    p = p,
+                    lines = columns[2].orEmpty(),
+                    x = CLASSIC_NOTES_RIGHT_X,
                 )
 
-                footer(s, p, doc.numberOfPages, "EXTENSIÓN / NOTAS")
+                footer(s, p, doc.numberOfPages, "NOTAS")
+            }
+        }
+    }
+
+    private fun packedClassicNotes(
+        p: AndroidPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ): PcSheetPackedNotes {
+        val records = plan.snapshot.aggregate.sheet.pcSheetNoteRecords()
+        val wrapped = records.map { record ->
+            PcSheetWrappedNoteRecord(
+                record = record,
+                headingLines = classicNoteWrappedLines(
+                    p = p,
+                    text = record.heading,
+                    role = PdfTypographyRole.OPTIONAL_DECORATIVE,
+                    size = CLASSIC_NOTES_HEADING_SIZE,
+                ),
+                bodyLines = classicNoteWrappedLines(
+                    p = p,
+                    text = record.body,
+                    role = PdfTypographyRole.NOTE_TEXT,
+                    size = CLASSIC_NOTES_BODY_SIZE,
+                ),
+            )
+        }
+        return packPcSheetNoteColumns(
+            records = wrapped,
+            rowsPerColumn = CLASSIC_NOTES_ROWS_PER_COLUMN,
+            columnsPerPage = 2,
+        )
+    }
+
+    private fun classicNoteWrappedLines(
+        p: AndroidPdfRenderingPrimitives,
+        text: String,
+        role: PdfTypographyRole,
+        size: Float,
+    ): List<String> {
+        if (text.isBlank()) return emptyList()
+        val layout = p.layoutTextBox(
+            PdfTextBoxSpec(
+                rect = PdfRect(
+                    0f,
+                    0f,
+                    CLASSIC_NOTES_COLUMN_WIDTH - CLASSIC_NOTES_HORIZONTAL_PADDING * 2f,
+                    2_000f,
+                ),
+                text = text.trim(),
+                role = role,
+                preferredSizePt = size,
+                minimumSizePt = size,
+                horizontalAlignment = PdfHorizontalAlignment.LEFT,
+                verticalAlignment = PdfVerticalAlignment.TOP,
+                wrapPolicy = PdfWrapPolicy.WORD_WRAP,
+                maximumLines = 100,
+                horizontalPaddingPt = 0f,
+                verticalPaddingPt = 0f,
+                lineHeightMultiplier = 1f,
+                fontSizeMode = PdfFontSizeMode.FIXED,
+            ),
+        )
+        require(!layout.hasOverflow) {
+            "Fantasy Notes semantic record cannot be wrapped without data loss: '$text'"
+        }
+        return layout.renderedLines.ifEmpty { listOf(text.trim()) }
+    }
+
+    private fun drawClassicNotesColumn(
+        s: PDPageContentStream,
+        p: AndroidPdfRenderingPrimitives,
+        lines: List<PcSheetNotePhysicalLine>,
+        x: Float,
+    ) {
+        require(lines.size <= CLASSIC_NOTES_ROWS_PER_COLUMN) {
+            "Packed Fantasy Notes column exceeds native family capacity."
+        }
+
+        repeat(CLASSIC_NOTES_ROWS_PER_COLUMN) { row ->
+            val ruleTop = CLASSIC_NOTES_FIRST_ROW_TOP + (row + 1) * CLASSIC_NOTES_ROW_STEP
+            hairline(s, x, ruleTop, x + CLASSIC_NOTES_COLUMN_WIDTH, ruleTop)
+        }
+
+        lines.forEachIndexed { row, line ->
+            if (line.kind == PcSheetNotePhysicalLineKind.SEPARATOR || line.text.isBlank()) {
+                return@forEachIndexed
+            }
+            val role = when (line.kind) {
+                PcSheetNotePhysicalLineKind.HEADING,
+                PcSheetNotePhysicalLineKind.CONTINUITY -> PdfTypographyRole.OPTIONAL_DECORATIVE
+                PcSheetNotePhysicalLineKind.BODY -> PdfTypographyRole.NOTE_TEXT
+                PcSheetNotePhysicalLineKind.SEPARATOR -> return@forEachIndexed
+            }
+            val preferred = when (line.kind) {
+                PcSheetNotePhysicalLineKind.HEADING -> CLASSIC_NOTES_HEADING_SIZE
+                PcSheetNotePhysicalLineKind.BODY -> CLASSIC_NOTES_BODY_SIZE
+                PcSheetNotePhysicalLineKind.CONTINUITY -> CLASSIC_NOTES_CONTINUITY_SIZE
+                PcSheetNotePhysicalLineKind.SEPARATOR -> CLASSIC_NOTES_BODY_SIZE
+            }
+            val minimum = when (line.kind) {
+                PcSheetNotePhysicalLineKind.HEADING -> CLASSIC_NOTES_HEADING_MINIMUM
+                PcSheetNotePhysicalLineKind.BODY -> CLASSIC_NOTES_BODY_MINIMUM
+                PcSheetNotePhysicalLineKind.CONTINUITY -> CLASSIC_NOTES_CONTINUITY_MINIMUM
+                PcSheetNotePhysicalLineKind.SEPARATOR -> CLASSIC_NOTES_BODY_MINIMUM
+            }
+            text(
+                s = s,
+                p = p,
+                x = x + CLASSIC_NOTES_HORIZONTAL_PADDING,
+                top = CLASSIC_NOTES_FIRST_ROW_TOP + row * CLASSIC_NOTES_ROW_STEP,
+                width = CLASSIC_NOTES_COLUMN_WIDTH - CLASSIC_NOTES_HORIZONTAL_PADDING * 2f,
+                height = CLASSIC_NOTES_ROW_STEP,
+                value = line.text,
+                role = role,
+                preferred = preferred,
+                minimum = minimum,
+                vertical = PdfVerticalAlignment.BOTTOM,
+            )
+        }
+    }
+
+    private fun appendReferencePages(
+        doc: PDDocument,
+        p: AndroidPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ) {
+        val references = classicReferenceNoteLines(plan)
+        if (references.isEmpty()) return
+
+        references.chunked(CLASSIC_REFERENCE_FULL_PAGE_LINES).forEach { pageLines ->
+            val page = addPage(doc)
+            PDPageContentStream(doc, page).use { s ->
+                extendedHeader(s, p, plan.snapshot.aggregate.sheet.name, "REFERENCIAS")
+                titledFrame(s, p, 24f, 112f, 564f, 606f, "REFERENCIAS Y RECORDATORIOS")
+                ruledTextArea(
+                    s = s,
+                    p = p,
+                    x = 36f,
+                    top = 148f,
+                    width = 540f,
+                    height = 552f,
+                    content = pageLines,
+                    fontSize = 8.3f,
+                    lineGap = 20f,
+                )
+                footer(s, p, doc.numberOfPages, "EXTENSIÓN / REFERENCIAS")
             }
         }
     }
@@ -3579,6 +3746,24 @@ private fun ruledTextArea(
         const val CLASSIC_BASE_HIGH_LEVEL_CAPACITY = 5
         const val CLASSIC_EXT_TOP_ROWS = 9
         const val CLASSIC_EXT_BOTTOM_ROWS = 10
+        const val CLASSIC_NOTES_FRAME_X = 24f
+        const val CLASSIC_NOTES_FRAME_TOP = 112f
+        const val CLASSIC_NOTES_FRAME_WIDTH = 564f
+        const val CLASSIC_NOTES_FRAME_HEIGHT = 606f
+        const val CLASSIC_NOTES_LEFT_X = 36f
+        const val CLASSIC_NOTES_RIGHT_X = 312f
+        const val CLASSIC_NOTES_COLUMN_WIDTH = 264f
+        const val CLASSIC_NOTES_FIRST_ROW_TOP = 148f
+        const val CLASSIC_NOTES_ROW_STEP = 20f
+        const val CLASSIC_NOTES_ROWS_PER_COLUMN = 27
+        const val CLASSIC_NOTES_HORIZONTAL_PADDING = 3f
+        const val CLASSIC_NOTES_HEADING_SIZE = 8.8f
+        const val CLASSIC_NOTES_HEADING_MINIMUM = 6.5f
+        const val CLASSIC_NOTES_BODY_SIZE = 8.4f
+        const val CLASSIC_NOTES_BODY_MINIMUM = 6.3f
+        const val CLASSIC_NOTES_CONTINUITY_SIZE = 7.2f
+        const val CLASSIC_NOTES_CONTINUITY_MINIMUM = 5.8f
+        const val CLASSIC_REFERENCE_FULL_PAGE_LINES = 27
         const val CLASSIC_NOTES_ENTRIES_PER_PAGE = 13
         const val CLASSIC_NOTES_CHARS_PER_LINE = 58
         const val CLASSIC_NOTES_LINES_PER_ENTRY = 2
