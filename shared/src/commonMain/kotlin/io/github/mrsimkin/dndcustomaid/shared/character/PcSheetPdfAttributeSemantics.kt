@@ -4,7 +4,7 @@ package io.github.mrsimkin.dndcustomaid.shared.character
  * Three-letter compact attribute key used when the owning attribute is not structurally obvious.
  */
 fun pcSheetCompactAttributeKey(abbreviation: String): String =
-    abbreviation.trim().uppercase().take(3)
+    foldAttributeKey(abbreviation.trim()).take(3)
 
 /**
  * Integrated source-style attribute title.
