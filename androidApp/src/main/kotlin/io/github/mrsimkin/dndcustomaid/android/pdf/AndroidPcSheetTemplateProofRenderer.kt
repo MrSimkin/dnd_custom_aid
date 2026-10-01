@@ -780,7 +780,7 @@ private fun drawCustomV2Common(
         role: PdfTypographyRole,
         opticalYOffsetPx: Float = 0f,
     ) {
-        val minimumReadableSize = maxOf(6f, fontSizePt * 0.80f)
+        val minimumReadableSize = maxOf(6f, fontSizePt * 0.70f)
         val oneLineHeightPx = maxOf(34f, fontSizePt * 3.1f)
         val oneLineSpec = PdfTextBoxSpec(
             rect = rectPx(
@@ -806,7 +806,7 @@ private fun drawCustomV2Common(
             return
         }
 
-        val twoLineHeightPx = maxOf(56f, fontSizePt * 4.8f)
+        val twoLineHeightPx = maxOf(72f, fontSizePt * 5.6f)
         val twoLineSpec = PdfTextBoxSpec(
             rect = rectPx(
                 centerXPx - maxWidthPx / 2f,
