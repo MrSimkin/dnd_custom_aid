@@ -21,6 +21,11 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountM
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBidirectionalContinuation
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetContinuationEndpoint
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetContinuationSurface
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSemanticModule
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSemanticRecordRef
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomAttributeProjection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomSkillProjection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
@@ -98,6 +103,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             }
         }
 
+        appendNarrativeExtendedPages(plan)
         appendTraitsExtendedPages(plan)
         appendCombatExtendedPages(plan)
 
@@ -106,6 +112,342 @@ internal class AndroidCustomV2ExtendedRenderer(
         appendInventoryExtendedPages(plan)
         appendSpellExtendedPages(plan)
         appendNotesExtendedPages(plan)
+    }
+
+    private fun appendNarrativeExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val records = narrativeFlowRecords(plan)
+        if (records.isEmpty()) return
+
+        packNarrativeModules(records).forEachIndexed { pageIndex, lines ->
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderNarrativeModulePage(
+                page = page,
+                lines = lines,
+                pageIndex = pageIndex,
+            )
+        }
+    }
+
+    private fun narrativeFlowRecords(plan: PcSheetPdfRenderPlan): List<NarrativeFlowRecord> {
+        val background = plan.snapshot.aggregate.sheet.background
+        val records = mutableListOf<NarrativeFlowRecord>()
+
+        fun ref(stableKey: String, sectionName: String) =
+            PcSheetSemanticRecordRef(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                stableKey = "background:$stableKey",
+                displayName = sectionName,
+            )
+
+        fun addBaseOverflow(
+            stableKey: String,
+            sectionName: String,
+            text: String,
+            baseRows: Int,
+        ) {
+            val clean = text.trim()
+            if (clean.isEmpty()) return
+            val baseWrapped = wrapByWidth(
+                resources.fira,
+                clean,
+                NARRATIVE_BASE_BODY_SIZE,
+                NARRATIVE_BASE_TEXT_WIDTH,
+            )
+            if (baseWrapped.size <= baseRows) return
+
+            // Base rendering reserves the final native row for the forward continuation marker
+            // once the record no longer fits. Continue from exactly the first line not printed.
+            val remainingText = baseWrapped
+                .drop((baseRows - 1).coerceAtLeast(0))
+                .joinToString(" ")
+            val extendedLines = wrapByWidth(
+                resources.fira,
+                remainingText,
+                NARRATIVE_BODY_SIZE,
+                NARRATIVE_TEXT_WIDTH,
+            )
+            if (extendedLines.isNotEmpty()) {
+                records += NarrativeFlowRecord(
+                    ref = ref(stableKey, sectionName),
+                    sectionName = sectionName,
+                    bodyLines = extendedLines,
+                    fromNormalSection = true,
+                )
+            }
+        }
+
+        fun addExtendedOnly(
+            stableKey: String,
+            sectionName: String,
+            text: String,
+        ) {
+            val clean = text.trim()
+            if (clean.isEmpty()) return
+            records += NarrativeFlowRecord(
+                ref = ref(stableKey, sectionName),
+                sectionName = sectionName,
+                bodyLines = wrapByWidth(
+                    resources.fira,
+                    clean,
+                    NARRATIVE_BODY_SIZE,
+                    NARRATIVE_TEXT_WIDTH,
+                ).ifEmpty { listOf(clean) },
+                fromNormalSection = false,
+            )
+        }
+
+        val backgroundSummary = listOf(background.name, background.summary)
+            .filter { it.isNotBlank() }
+            .joinToString(" - ")
+        addBaseOverflow("background", "Trasfondo", backgroundSummary, baseRows = 3)
+        addBaseOverflow("bonds", "Vínculos", background.bonds, baseRows = 3)
+        addBaseOverflow("ideals", "Ideales", background.ideals, baseRows = 3)
+        addBaseOverflow("story", "Historia", background.story, baseRows = 11)
+
+        // These are narrative semantics too. The v2 native page has no dedicated writable field
+        // for them, so they begin directly in the Extended BACKGROUND_STORY module rather than
+        // being misrouted into Traits or Notes.
+        addExtendedOnly("personality", "Personalidad", background.personalityTraits)
+        addExtendedOnly("flaws", "Defectos", background.flaws)
+        addExtendedOnly("religion", "Religión / Fe", background.religionFaith)
+
+        return records
+    }
+
+    private fun packNarrativeModules(
+        records: List<NarrativeFlowRecord>,
+    ): List<List<NarrativePhysicalLine>> {
+        val modules = mutableListOf<MutableList<NarrativePhysicalLine>>()
+        var current = mutableListOf<NarrativePhysicalLine>()
+
+        fun flush() {
+            if (current.isNotEmpty()) {
+                modules += current
+                current = mutableListOf()
+            }
+        }
+
+        fun remainingRows(): Int = NARRATIVE_MODULE_ROWS - current.size
+
+        fun normalEndpoint(record: NarrativeFlowRecord) =
+            PcSheetContinuationEndpoint(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                sectionName = record.sectionName,
+                surface = PcSheetContinuationSurface.NORMAL,
+            )
+
+        fun extendedEndpoint(record: NarrativeFlowRecord, index: Int) =
+            PcSheetContinuationEndpoint(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                sectionName = record.sectionName,
+                surface = PcSheetContinuationSurface.EXTENDED,
+                extendedIndex = index,
+            )
+
+        records.forEach { record ->
+            val firstInbound = if (record.fromNormalSection) {
+                PcSheetBidirectionalContinuation(
+                    record = record.ref,
+                    source = normalEndpoint(record),
+                    target = extendedEndpoint(record, 1),
+                ).targetMarker()
+            } else {
+                null
+            }
+
+            val wholeRecordRows =
+                1 + record.bodyLines.size + (if (firstInbound != null) 1 else 0)
+            if (
+                wholeRecordRows <= NARRATIVE_MODULE_ROWS &&
+                current.isNotEmpty() &&
+                wholeRecordRows > remainingRows()
+            ) {
+                flush()
+            }
+
+            if (wholeRecordRows <= remainingRows()) {
+                firstInbound?.let {
+                    current += NarrativePhysicalLine(NarrativeLineKind.CONTINUITY, it)
+                }
+                current += NarrativePhysicalLine(NarrativeLineKind.HEADING, record.sectionName)
+                record.bodyLines.forEach {
+                    current += NarrativePhysicalLine(NarrativeLineKind.BODY, it)
+                }
+                if (remainingRows() > 0) {
+                    current += NarrativePhysicalLine(NarrativeLineKind.SEPARATOR, "")
+                }
+                return@forEach
+            }
+
+            if (current.isNotEmpty()) flush()
+
+            var remaining = record.bodyLines
+            var segmentIndex = 1
+            while (remaining.isNotEmpty()) {
+                val inbound = when {
+                    segmentIndex == 1 && record.fromNormalSection ->
+                        PcSheetBidirectionalContinuation(
+                            record = record.ref,
+                            source = normalEndpoint(record),
+                            target = extendedEndpoint(record, segmentIndex),
+                        ).targetMarker()
+
+                    segmentIndex > 1 ->
+                        PcSheetBidirectionalContinuation(
+                            record = record.ref,
+                            source = extendedEndpoint(record, segmentIndex - 1),
+                            target = extendedEndpoint(record, segmentIndex),
+                        ).targetMarker()
+
+                    else -> null
+                }
+
+                val rowsBeforeBody = 1 + if (inbound != null) 1 else 0
+                val capacityWithoutOutbound = NARRATIVE_MODULE_ROWS - rowsBeforeBody
+                val hasMore = remaining.size > capacityWithoutOutbound
+                val bodyCapacity = capacityWithoutOutbound - if (hasMore) 1 else 0
+                require(bodyCapacity > 0) {
+                    "Custom-v2 native narrative module leaves no room for semantic content."
+                }
+
+                val body = remaining.take(bodyCapacity)
+                remaining = remaining.drop(body.size)
+                val stillHasMore = remaining.isNotEmpty()
+
+                inbound?.let {
+                    current += NarrativePhysicalLine(NarrativeLineKind.CONTINUITY, it)
+                }
+                current += NarrativePhysicalLine(
+                    NarrativeLineKind.HEADING,
+                    record.sectionName + if (segmentIndex > 1) " · CONT." else "",
+                )
+                body.forEach {
+                    current += NarrativePhysicalLine(NarrativeLineKind.BODY, it)
+                }
+
+                if (stillHasMore) {
+                    current += NarrativePhysicalLine(
+                        NarrativeLineKind.CONTINUITY,
+                        PcSheetBidirectionalContinuation(
+                            record = record.ref,
+                            source = extendedEndpoint(record, segmentIndex),
+                            target = extendedEndpoint(record, segmentIndex + 1),
+                        ).sourceMarker(),
+                    )
+                    flush()
+                    segmentIndex += 1
+                }
+            }
+
+            if (current.isNotEmpty() && remainingRows() > 0) {
+                current += NarrativePhysicalLine(NarrativeLineKind.SEPARATOR, "")
+            }
+        }
+
+        flush()
+        return modules.map { it.toList() }
+    }
+
+    private fun renderNarrativeModulePage(
+        page: PDPage,
+        lines: List<NarrativePhysicalLine>,
+        pageIndex: Int,
+    ) {
+        val layerPrefix =
+            if (pageIndex == 0) "V2X NARRATIVE" else "V2X NARRATIVE ${pageIndex + 1}"
+
+        appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
+            pageHeaderStructure(s)
+            fill(
+                s,
+                NARRATIVE_MODULE_X,
+                NARRATIVE_MODULE_HEADER_TOP,
+                NARRATIVE_MODULE_WIDTH,
+                NARRATIVE_MODULE_HEADER_HEIGHT,
+                SOURCE_GRAY_LIGHT,
+            )
+            repeat(NARRATIVE_MODULE_ROWS) { row ->
+                val ruleTop = NARRATIVE_FIRST_RULE_TOP + row * NARRATIVE_ROW_STEP
+                val rowTop = ruleTop - NARRATIVE_ROW_STEP + 0.5f
+                fill(
+                    s,
+                    NARRATIVE_MODULE_X,
+                    rowTop,
+                    NARRATIVE_MODULE_WIDTH,
+                    NARRATIVE_ROW_STEP - 0.5f,
+                    if (row % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK,
+                )
+                drawRule(
+                    s,
+                    NARRATIVE_MODULE_X,
+                    NARRATIVE_MODULE_X + NARRATIVE_MODULE_WIDTH,
+                    ruleTop,
+                    0.55f,
+                )
+            }
+        }
+
+        appendLayer(page, "$layerPrefix - CLEANUP") { }
+
+        appendLayer(page, "$layerPrefix - LABELS") { s ->
+            pageTitle(s, "NARRATIVA / CONTINUACIÓN")
+            centeredSource(
+                s,
+                resources.corbelBold,
+                resources.firaSemibold,
+                TopRect(
+                    NARRATIVE_MODULE_X,
+                    NARRATIVE_MODULE_HEADER_TOP,
+                    NARRATIVE_MODULE_WIDTH,
+                    NARRATIVE_MODULE_HEADER_HEIGHT,
+                ),
+                "TRASFONDO / HISTORIA",
+                8.4f,
+                SOURCE_CORBEL_HEADING_SCALE,
+            )
+        }
+
+        appendLayer(page, "$layerPrefix - VALUES") { s ->
+            lines.forEachIndexed { row, line ->
+                if (line.kind == NarrativeLineKind.SEPARATOR || line.text.isBlank()) {
+                    return@forEachIndexed
+                }
+                val font = when (line.kind) {
+                    NarrativeLineKind.HEADING,
+                    NarrativeLineKind.CONTINUITY -> resources.firaSemibold
+                    NarrativeLineKind.BODY -> resources.fira
+                    NarrativeLineKind.SEPARATOR -> resources.fira
+                }
+                val preferred = when (line.kind) {
+                    NarrativeLineKind.HEADING -> NARRATIVE_HEADING_SIZE
+                    NarrativeLineKind.BODY -> NARRATIVE_BODY_SIZE
+                    NarrativeLineKind.CONTINUITY -> NARRATIVE_CONTINUITY_SIZE
+                    NarrativeLineKind.SEPARATOR -> NARRATIVE_BODY_SIZE
+                }
+                val minimum = when (line.kind) {
+                    NarrativeLineKind.HEADING -> NARRATIVE_HEADING_MINIMUM_SIZE
+                    NarrativeLineKind.BODY -> NARRATIVE_BODY_MINIMUM_SIZE
+                    NarrativeLineKind.CONTINUITY -> NARRATIVE_CONTINUITY_MINIMUM_SIZE
+                    NarrativeLineKind.SEPARATOR -> NARRATIVE_BODY_MINIMUM_SIZE
+                }
+                textAboveRule(
+                    s = s,
+                    font = font,
+                    rule = Rule(
+                        NARRATIVE_TEXT_START_X,
+                        NARRATIVE_TEXT_END_X,
+                        NARRATIVE_FIRST_RULE_TOP + row * NARRATIVE_ROW_STEP,
+                    ),
+                    value = line.text,
+                    preferredSize = preferred,
+                    minimumSize = minimum,
+                    clearance = NARRATIVE_BASELINE_CLEARANCE,
+                )
+            }
+        }
+
+        appendLayer(page, "$layerPrefix - MARKERS") { }
     }
 
     private fun needsTraitsExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
@@ -730,7 +1072,6 @@ internal class AndroidCustomV2ExtendedRenderer(
         val sheet = aggregate.sheet
         val closure = aggregate.closure
         val successor = aggregate.successor
-        val background = sheet.background
         val lines = mutableListOf<String>()
 
         fun addFull(label: String, value: String) {
@@ -740,27 +1081,6 @@ internal class AndroidCustomV2ExtendedRenderer(
             }
         }
 
-        fun addOverflow(label: String, value: String, maxChars: Int, baseLines: Int) {
-            val clean = value.trim()
-            if (clean.isEmpty()) return
-            val overflow = wrapForRulesByChars(clean, maxChars).drop(baseLines)
-            if (overflow.isNotEmpty()) {
-                lines += wrapByWidth(
-                    resources.fira,
-                    "$label (cont.): " + overflow.joinToString(" "),
-                    7.7f,
-                    281f,
-                )
-            }
-        }
-
-        val backgroundSummary = listOf(background.name, background.summary)
-            .filter { it.isNotBlank() }
-            .joinToString(" - ")
-        addOverflow("Trasfondo", backgroundSummary, 76, 3)
-        addOverflow("Vínculos", background.bonds, 76, 3)
-        addOverflow("Ideales", background.ideals, 76, 3)
-        addOverflow("Historia", background.story, 76, 12)
         val orderedClasses = sheet.classes.sortedBy { it.sortOrder }
         val classSummary = orderedClasses.joinToString(" / ") { classLevel ->
             classLevel.name + " " + classLevel.level
@@ -2758,6 +3078,25 @@ internal class AndroidCustomV2ExtendedRenderer(
         }
     }
 
+    private data class NarrativeFlowRecord(
+        val ref: PcSheetSemanticRecordRef,
+        val sectionName: String,
+        val bodyLines: List<String>,
+        val fromNormalSection: Boolean,
+    )
+
+    private data class NarrativePhysicalLine(
+        val kind: NarrativeLineKind,
+        val text: String,
+    )
+
+    private enum class NarrativeLineKind {
+        HEADING,
+        BODY,
+        CONTINUITY,
+        SEPARATOR,
+    }
+
     private data class ResourceRenderLine(
         val name: String,
         val currentValue: Int?,
@@ -2982,6 +3321,25 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val SOURCE_CORBEL_TABLE_SCALE = 86f
         const val SOURCE_MATCHED_MICRO_FIT_DELTA = 2f
         const val COMPACT_LABEL_MICRO_FIT_DELTA = 2f
+        const val NARRATIVE_MODULE_X = 297.5f
+        const val NARRATIVE_MODULE_WIDTH = 300f
+        const val NARRATIVE_MODULE_HEADER_TOP = 98f
+        const val NARRATIVE_MODULE_HEADER_HEIGHT = 20f
+        const val NARRATIVE_FIRST_RULE_TOP = 137f
+        const val NARRATIVE_ROW_STEP = 17f
+        const val NARRATIVE_MODULE_ROWS = 20
+        const val NARRATIVE_TEXT_START_X = 301.5f
+        const val NARRATIVE_TEXT_END_X = 593.5f
+        const val NARRATIVE_BASE_TEXT_WIDTH = 297f
+        const val NARRATIVE_TEXT_WIDTH = NARRATIVE_TEXT_END_X - NARRATIVE_TEXT_START_X
+        const val NARRATIVE_BASE_BODY_SIZE = 9.25f
+        const val NARRATIVE_HEADING_SIZE = 8.8f
+        const val NARRATIVE_HEADING_MINIMUM_SIZE = 6.4f
+        const val NARRATIVE_BODY_SIZE = 8.4f
+        const val NARRATIVE_BODY_MINIMUM_SIZE = 6.2f
+        const val NARRATIVE_CONTINUITY_SIZE = 6.2f
+        const val NARRATIVE_CONTINUITY_MINIMUM_SIZE = 5.2f
+        const val NARRATIVE_BASELINE_CLEARANCE = 2.6f
         const val BASE_V2_TRAIT_CAPACITY = 18
         const val ATTRIBUTE_COLUMNS_PER_PAGE = 3
         const val ATTRIBUTE_LINKED_SKILLS_PER_COLUMN = 6
