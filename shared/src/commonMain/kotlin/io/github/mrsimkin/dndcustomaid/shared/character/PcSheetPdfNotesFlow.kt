@@ -179,7 +179,7 @@ fun packPcSheetNoteColumns(
     var usedRows = 0
 
     fun ensureColumn(index: Int) {
-        while (columns.size <= index) columns += mutableListOf()
+        while (columns.size <= index) columns.add(mutableListOf())
     }
 
     fun address(index: Int): PcSheetNoteColumnAddress =
