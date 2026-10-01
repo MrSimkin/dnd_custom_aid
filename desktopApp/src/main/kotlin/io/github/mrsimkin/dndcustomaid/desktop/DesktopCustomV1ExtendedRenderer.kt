@@ -687,11 +687,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                 verticalRule(s, x, 112f, COMBAT_FIRST_RULE_TOP + COMBAT_ROWS_PER_PAGE * COMBAT_ROW_STEP, 0.45f)
             }
         }
-        appendLayer(page, "$prefix - CLEANUP") { s ->
-            special.indices.forEach { rowIndex ->
-                drawBlankSpecialLocationCell(s, rowIndex)
-            }
-        }
+        appendLayer(page, "$prefix - CLEANUP") { }
         appendLayer(page, "$prefix - LABELS") { s ->
             centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Combate / Acciones", 18f)
             centeredText(s, resources.fira, 27f, 96f, 176f, 14f, "TIPO / NOMBRE", 7.5f)
@@ -1218,7 +1214,11 @@ internal class DesktopCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             s.drawForm(resources.forms[1])
         }
-        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - CLEANUP") { s ->
+            special.indices.forEach { rowIndex ->
+                drawBlankSpecialLocationCell(s, rowIndex)
+            }
+        }
         // The source sheet already identifies this as the Equipment page. Do not add a second
         // heading/subtitle: it collided with the approved "Equipo" title and made the continuation
         // look like a different layout instead of another native page.
