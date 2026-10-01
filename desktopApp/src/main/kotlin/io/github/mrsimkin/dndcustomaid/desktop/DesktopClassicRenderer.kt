@@ -1623,21 +1623,26 @@ private fun appendSpellContinuationPages(
                     CLASSIC_NOTES_FRAME_HEIGHT,
                     "NOTAS DE CAMPAÑA",
                 )
-
                 drawClassicNotesColumn(
                     s = s,
                     p = p,
                     lines = columns[1].orEmpty(),
                     x = CLASSIC_NOTES_LEFT_X,
                 )
-                drawClassicNotesColumn(
-                    s = s,
-                    p = p,
-                    lines = columns[2].orEmpty(),
-                    x = CLASSIC_NOTES_RIGHT_X,
+
+                // A Notes overflow page is the complete native Fantasy Notes page. Keep the
+                // native companion panels as structure, but do not route unrelated semantic
+                // streams into them.
+                titledFrame(s, p, 398f, 112f, 190f, 292f, "CROQUIS / MAPA")
+                grid(s, 410f, 148f, 166f, 240f, 10, 14)
+                titledFrame(s, p, 398f, 418f, 190f, 300f, "REFERENCIAS Y RECORDATORIOS")
+                ruledTextArea(
+                    s, p, 410f, 454f, 166f, 246f,
+                    emptyList(),
+                    8.1f,
                 )
 
-                footer(s, p, doc.numberOfPages, "NOTAS")
+                footer(s, p, doc.numberOfPages, "EXTENSIÓN / NOTAS")
             }
         }
     }
@@ -1667,7 +1672,7 @@ private fun appendSpellContinuationPages(
         return packPcSheetNoteColumns(
             records = wrapped,
             rowsPerColumn = CLASSIC_NOTES_ROWS_PER_COLUMN,
-            columnsPerPage = 2,
+            columnsPerPage = 1,
         )
     }
 
@@ -3746,11 +3751,10 @@ private fun ruledTextArea(
         const val CLASSIC_EXT_BOTTOM_ROWS = 10
         const val CLASSIC_NOTES_FRAME_X = 24f
         const val CLASSIC_NOTES_FRAME_TOP = 112f
-        const val CLASSIC_NOTES_FRAME_WIDTH = 564f
+        const val CLASSIC_NOTES_FRAME_WIDTH = 360f
         const val CLASSIC_NOTES_FRAME_HEIGHT = 606f
         const val CLASSIC_NOTES_LEFT_X = 36f
-        const val CLASSIC_NOTES_RIGHT_X = 312f
-        const val CLASSIC_NOTES_COLUMN_WIDTH = 264f
+        const val CLASSIC_NOTES_COLUMN_WIDTH = 336f
         const val CLASSIC_NOTES_FIRST_ROW_TOP = 148f
         const val CLASSIC_NOTES_ROW_STEP = 20f
         const val CLASSIC_NOTES_ROWS_PER_COLUMN = 27
