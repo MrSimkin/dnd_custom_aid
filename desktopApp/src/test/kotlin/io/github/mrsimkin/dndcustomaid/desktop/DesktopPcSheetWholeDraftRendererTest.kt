@@ -2162,6 +2162,25 @@ class DesktopPcSheetWholeDraftRendererTest {
                 assertFalse(extracted.contains("reactivos."))
                 assertTrue(extracted.contains("Peso 4 lb"))
                 assertTrue(extracted.contains("Foco arcano y arma improvisada."))
+
+                val inventoryPages = (1..document.numberOfPages)
+                    .map { pageNumber ->
+                        PDFTextStripper().apply {
+                            startPage = pageNumber
+                            endPage = pageNumber
+                        }.getText(document).replace(Regex("\\s+"), " ")
+                    }
+                    .filter { it.contains("INVENTARIO / EQUIPO") }
+                assertTrue(inventoryPages.isNotEmpty())
+                assertTrue(
+                    inventoryPages.none { it.contains("Muestras y reactivos.") },
+                    "Ordinary Equipment descriptions must never leak into Equipment continuation.",
+                )
+                assertTrue(
+                    inventoryPages.any { it.contains("Foco arcano y arma improvisada.") },
+                    "Special-item detail must remain associated with Equipo Especial.",
+                )
+
                 assertTrue(extracted.contains("Conjuro adicional 9"))
                 assertTrue(extracted.contains("Nota de continuación 45"))
                 assertFalse(extracted.contains("Especie", ignoreCase = true))
