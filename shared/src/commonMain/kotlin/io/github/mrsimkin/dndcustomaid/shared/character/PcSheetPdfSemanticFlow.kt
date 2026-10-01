@@ -95,9 +95,13 @@ data class PcSheetContinuationEndpoint(
     val surface: PcSheetContinuationSurface,
     val extendedIndex: Int? = null,
     val recordLabel: String? = null,
+    val columnIndex: Int? = null,
 ) {
     init {
         require(sectionName.isNotBlank()) { "Continuation section name is required." }
+        columnIndex?.let {
+            require(it > 0) { "Continuation column index must be positive." }
+        }
         when (surface) {
             PcSheetContinuationSurface.NORMAL ->
                 require(extendedIndex == null) {
@@ -122,6 +126,10 @@ data class PcSheetContinuationEndpoint(
         if (surface == PcSheetContinuationSurface.EXTENDED) {
             append(' ')
             append(requireNotNull(extendedIndex).toString().padStart(2, '0'))
+        }
+        columnIndex?.let {
+            append(" · columna ")
+            append(it)
         }
         recordLabel?.trim()?.takeIf { it.isNotEmpty() }?.let {
             append(" / ")
