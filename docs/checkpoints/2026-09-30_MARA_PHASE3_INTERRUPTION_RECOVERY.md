@@ -5,8 +5,9 @@
 **Phase:** 3 — renderer repair implementation  
 **Branch:** `repair/mara-phase3-semantic-flow-compositor`  
 **Main base:** `c4e65955a5f58f88e0b03807b4616a3f8a9323a8`  
-**Current branch HEAD:** `5e041cc8b76f1bc8b377be00d3dd8d9e1024b775`  
-**Branch relation to main:** 109 commits ahead / 0 behind at this checkpoint  
+**Current implementation code head (last non-documentation commit):** `5e041cc8b76f1bc8b377be00d3dd8d9e1024b775`  
+**Recovery documentation:** this checkpoint and the `LATEST.md` routing update are documentation-only commits on top of that implementation code; always verify the physical branch HEAD before writing.  
+**Branch relation to main at initial recovery capture:** 109 implementation/documentation commits ahead / 0 behind before the recovery-document commits  
 **Open implementation PR:** none  
 **Current status:** ACTIVE / HEAD RED / RECOVERY STATE CONSOLIDATED  
 **Owner visual handoff:** NOT AUTHORIZED YET
@@ -199,7 +200,7 @@ This head includes the safe Custom-v2 Special Equipment custom-location placemen
 
 ## Current HEAD and exact interrupted work
 
-Current HEAD:
+Current implementation code head:
 `5e041cc8b76f1bc8b377be00d3dd8d9e1024b775`
 
 The three commits after the latest green code head are:
@@ -301,8 +302,99 @@ At consolidation time:
 - no workflow is in progress;
 - no open PR exists for the Phase-3 branch;
 - no owner candidate build/version has been issued from Phase 3;
-- the branch HEAD is stable at `5e041cc8...`;
-- the branch is blocked on the listed missing Custom-v2 Inventory constants;
+- the last non-documentation implementation head is `5e041cc8...`;
+- recovery documentation commits are intentionally layered on top and must not be mistaken for new renderer work;
+- the implementation is blocked on the listed missing Custom-v2 Inventory constants;
 - the correct continuation is the **Exact next authorized action** above.
 
 This checkpoint is the operational resume authority until superseded by a later, explicitly published Phase-3 checkpoint.
+
+
+## Copy/paste recovery prompt stored with this checkpoint
+
+Use this after a timeout / connection failure / poll error while this recovery checkpoint remains canonical:
+
+```text
+Continúa por favor desde exactamente donde quedó la Fase 3 antes de la interrupción.
+
+IMPORTANTE:
+- NO reinicies el trabajo.
+- NO reconstruyas el plan desde cero.
+- NO me pidas repetir decisiones ya tomadas.
+- NO repitas commits, PRs, workflows, builds, publicaciones ni cambios que puedan haber alcanzado el repositorio antes del error.
+
+ANTES DE ACTUAR, reancla el trabajo usando el repositorio como autoridad y siguiendo exactamente:
+
+AGENTS.md
+→ RESUME.md
+→ docs/checkpoints/LATEST.md
+→ checkpoint canónico activo indicado por LATEST.md
+→ docs/checkpoints/2026-09-30_MARA_PHASE3_IMPLEMENTATION.md
+→ docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md
+→ las demás autoridades que el checkpoint canónico mande leer.
+
+Si LATEST.md sigue apuntando a:
+docs/checkpoints/2026-09-30_MARA_PHASE3_INTERRUPTION_RECOVERY.md
+
+trata ese archivo como la autoridad operacional inmediata para recuperar:
+- fase y estado exactos;
+- rama y HEAD real actuales;
+- último HEAD de implementación;
+- último estado verde comprobado;
+- commits posteriores ya publicados;
+- decisiones del owner;
+- reglas visuales/semánticas vigentes;
+- trabajo ya implementado;
+- trabajo implementado pero aún no validado;
+- fallos CI actuales;
+- gates pendientes;
+- próximo paso autorizado.
+
+REGLA DE AUTORIDAD:
+- las decisiones finales/clarificaciones más recientes del owner y el burn-down final de Fase 2 prevalecen sobre preguntas, clasificaciones o interpretaciones provisionales anteriores;
+- NO resucites preguntas de Fase 2 que ya fueron respondidas;
+- NO uses memoria del chat como autoridad si contradice el repositorio.
+
+RECUPERACIÓN DE OPERACIONES:
+1. verifica el HEAD físico actual de repair/mara-phase3-semantic-flow-compositor;
+2. revisa los commits recientes;
+3. revisa los workflows recientes y determina si hay alguno en progreso;
+4. verifica si existe un PR abierto;
+5. si una operación pudo haber quedado a medias, comprueba primero si ya ocurrió antes de repetirla;
+6. distingue commits intermedios Desktop-only de paquetes posteriores con paridad Android;
+7. no interpretes un mensaje de commit como PASS: usa evidencia CI/tests;
+8. no hagas rollback automático al último verde; úsalo sólo como punto de comparación, salvo que evidencia técnica obligue a revertir.
+
+ESTADO DE RECUPERACIÓN QUE DEBES VERIFICAR, NO ASUMIR:
+- Fase 3 sigue activa;
+- rama de implementación: repair/mara-phase3-semantic-flow-compositor;
+- main de base de Fase 3: c4e65955a5f58f88e0b03807b4616a3f8a9323a8;
+- último HEAD de código conocido al consolidar: 5e041cc8b76f1bc8b377be00d3dd8d9e1024b775;
+- último código verde conocido antes del blocker actual: 5281a9db168fb5470a5463c3b981a5556609ec6d / Scaffold #4488;
+- los tres commits posteriores 1691ce8d..., d3cd5ff7... y 5e041cc8... YA EXISTEN y NO deben recrearse;
+- no había PR abierto al consolidar;
+- no había workflow en progreso al consolidar;
+- el blocker conocido era compilación de Custom-v2 Inventory por constantes de geometría/continuación referenciadas pero no declaradas en Desktop y Android.
+
+PRIMER PASO AUTORIZADO:
+- verifica que ese blocker siga siendo el actual;
+- si sigue vigente, corrige únicamente las constantes faltantes usando geometría nativa/aprobada o medidas fuente existentes, sin inventar nuevas dimensiones;
+- aplica paridad Desktop/Android;
+- vuelve a ejecutar Scaffold;
+- sólo después de compilar, evalúa el test nuevo de asociación semántica de Equipment;
+- corrige únicamente fallos demostrados y sigue desde allí.
+
+NO avances todavía a:
+- owner APK;
+- reutilización del build 50800;
+- Current Snapshot;
+- Media/Handouts;
+- cierre de Fase 3.
+
+Continúa autónomamente hasta el siguiente límite real de decisión del owner.
+
+Además, conserva el entregable ya solicitado para el cierre de Fase 3:
+al finalizar Fase 3, debes darme un prompt equivalente de recuperación/continuación para entrar a la fase siguiente sin pérdida de contexto.
+```
+
+If a later checkpoint supersedes this one, follow the newer canonical checkpoint instead of freezing the repository to the SHAs recorded above.
