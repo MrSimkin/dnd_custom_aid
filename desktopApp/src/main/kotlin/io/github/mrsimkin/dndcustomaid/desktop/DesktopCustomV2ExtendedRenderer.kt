@@ -2161,12 +2161,15 @@ internal class DesktopCustomV2ExtendedRenderer(
     }
 
     private fun pageHeaderStructure(s: PDFormContentStream) {
-        // Keep the approved logo vector/source-derived, but bound it inside its own form so
-        // viewers never see hidden off-crop source content. This stays in STRUCTURE; no flattening.
-        s.saveGraphicsState()
-        s.transform(Matrix.getTranslateInstance(14f, H - 16f - 60f))
-        s.drawForm(resources.logo)
-        s.restoreGraphicsState()
+        // Draw the exact imported source logo image directly. A clipped whole-page form looks
+        // correct but still exposes hidden source-template text to PDF extraction/copy/search.
+        s.drawImage(
+            resources.logo,
+            V2_LOGO_X,
+            H - V2_LOGO_TOP - V2_LOGO_HEIGHT,
+            V2_LOGO_WIDTH,
+            V2_LOGO_HEIGHT,
+        )
         drawRule(s, 126f, 598f, 79f, 0.6f)
     }
 
@@ -2661,7 +2664,7 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private data class Resources(
         val forms: List<PDFormXObject>,
-        val logo: PDFormXObject,
+        val logo: PDImageXObject,
         val attributeOrnament: PDImageXObject,
         val corbel: PDFont,
         val corbelBold: PDFont,
@@ -2686,7 +2689,9 @@ internal class DesktopCustomV2ExtendedRenderer(
                 }
                 return Resources(
                     forms = forms,
-                    logo = buildVectorLogoForm(doc, forms[2]),
+                    logo = findImportedImage(forms) { image ->
+                        image.width == V2_LOGO_SOURCE_WIDTH && image.height == V2_LOGO_SOURCE_HEIGHT
+                    },
                     attributeOrnament = buildTransparentAttributeOrnament(doc, source),
                     corbel = corbelRegular,
                     corbelBold = corbelBold,
@@ -2727,24 +2732,26 @@ internal class DesktopCustomV2ExtendedRenderer(
                 error("Requested imported source font not found.")
             }
 
-            private fun buildVectorLogoForm(
-                doc: PDDocument,
-                sourceForm: PDFormXObject,
-            ): PDFormXObject {
-                val logo = PDFormXObject(doc).apply {
-                    resources = PDResources()
-                    setBBox(PDRectangle(0f, 0f, 105f, 60f))
+            private fun findImportedImage(
+                forms: List<PDFormXObject>,
+                predicate: (PDImageXObject) -> Boolean,
+            ): PDImageXObject {
+                val visited = mutableSetOf<Int>()
+
+                fun scan(resources: PDResources?): PDImageXObject? {
+                    if (resources == null) return null
+                    if (!visited.add(System.identityHashCode(resources.cosObject))) return null
+                    resources.xObjectNames.forEach { key ->
+                        when (val child = resources.getXObject(key)) {
+                            is PDImageXObject -> if (predicate(child)) return child
+                            is PDFormXObject -> scan(child.resources)?.let { return it }
+                        }
+                    }
+                    return null
                 }
-                PDFormContentStream(logo).use { s ->
-                    s.saveGraphicsState()
-                    s.addRect(0f, 0f, 105f, 60f)
-                    s.clip()
-                    // Source crop is x=14..119 pt, top=16..76 pt => PDF y=716..776.
-                    s.transform(Matrix.getTranslateInstance(-14f, -716f))
-                    s.drawForm(sourceForm)
-                    s.restoreGraphicsState()
-                }
-                return logo
+
+                forms.forEach { form -> scan(form.resources)?.let { return it } }
+                error("Requested imported Custom-v2 source image not found.")
             }
 
             private fun buildTransparentAttributeOrnament(
@@ -2807,6 +2814,12 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val FIRA_SEMIBOLD = "fonts/pdf/text/FiraSans-SemiBold.ttf"
         const val BARLOW_CONDENSED = "fonts/pdf/text/BarlowCondensed-Bold.ttf"
         const val SYMBOL_V8 = "fonts/owner/para-hoja-de-pj/v8/Para Hoja de PJ Symbols v8.ttf"
+        const val V2_LOGO_SOURCE_WIDTH = 453
+        const val V2_LOGO_SOURCE_HEIGHT = 171
+        const val V2_LOGO_X = 14.03f
+        const val V2_LOGO_TOP = 28.77f
+        const val V2_LOGO_WIDTH = 108.68f
+        const val V2_LOGO_HEIGHT = 40.89f
         const val ATTRIBUTE_ORNAMENT_SOURCE_X = 14.32f
         const val ATTRIBUTE_ORNAMENT_SOURCE_TOP = 164.68f
         const val ATTRIBUTE_ORNAMENT_WIDTH = 80.40f
