@@ -687,7 +687,11 @@ internal class DesktopCustomV1ExtendedRenderer(
                 verticalRule(s, x, 112f, COMBAT_FIRST_RULE_TOP + COMBAT_ROWS_PER_PAGE * COMBAT_ROW_STEP, 0.45f)
             }
         }
-        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - CLEANUP") { s ->
+            special.indices.forEach { rowIndex ->
+                drawBlankSpecialLocationCell(s, rowIndex)
+            }
+        }
         appendLayer(page, "$prefix - LABELS") { s ->
             centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Combate / Acciones", 18f)
             centeredText(s, resources.fira, 27f, 96f, 176f, 14f, "TIPO / NOMBRE", 7.5f)
@@ -1156,9 +1160,14 @@ internal class DesktopCustomV1ExtendedRenderer(
                 index >= BASE_V1_SPECIAL_CAPACITY ||
                     usageMeaningful(usage) ||
                     baseNameOverflows ||
-                    baseDetailOverflows
+                    baseDetailOverflows ||
+                    specialLocationNeedsText(item.location)
             }
         }
+        val specialRowGroups = specialContinuation.map { item ->
+            specialInventoryFlowRows(item, usageByItem[item.id])
+        }
+        val specialPages = packSpecialInventoryRowGroups(specialRowGroups)
 
         val treasure = buildList {
             sheet.currencies
@@ -1177,12 +1186,12 @@ internal class DesktopCustomV1ExtendedRenderer(
                 .forEach(::add)
         }
 
-        if (ordinaryLines.isEmpty() && specialContinuation.isEmpty() && treasure.isEmpty()) return
+        if (ordinaryLines.isEmpty() && specialPages.isEmpty() && treasure.isEmpty()) return
 
         val pages = maxOf(
             pageCount(ordinaryLines.size, INVENTORY_ORDINARY_CAPACITY),
             pageCount(treasure.size, INVENTORY_TREASURE_CAPACITY),
-            pageCount(specialContinuation.size, INVENTORY_SPECIAL_CAPACITY),
+            specialPages.size,
         )
         repeat(pages) { pageIndex ->
             val page = PDPage(PDRectangle(W, H))
@@ -1191,8 +1200,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                 page = page,
                 ordinary = ordinaryLines.pageSlice(pageIndex, INVENTORY_ORDINARY_CAPACITY),
                 treasure = treasure.pageSlice(pageIndex, INVENTORY_TREASURE_CAPACITY),
-                special = specialContinuation.pageSlice(pageIndex, INVENTORY_SPECIAL_CAPACITY),
-                usageByItem = usageByItem,
+                special = specialPages.getOrNull(pageIndex).orEmpty(),
                 pageIndex = pageIndex,
             )
         }
@@ -1202,12 +1210,10 @@ internal class DesktopCustomV1ExtendedRenderer(
         page: PDPage,
         ordinary: List<String>,
         treasure: List<TreasureEntry>,
-        special: List<CharacterInventoryItem>,
-        usageByItem: Map<kotlin.uuid.Uuid, CharacterInventoryUsage>,
+        special: List<SpecialInventoryFlowRow>,
         pageIndex: Int,
     ) {
         val prefix = "V1X INVENTORY P${pageIndex + 1}"
-        val positionedSpecial = positionedSpecialItems(special, INVENTORY_SPECIAL_CAPACITY)
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             s.drawForm(resources.forms[1])
@@ -1253,46 +1259,42 @@ internal class DesktopCustomV1ExtendedRenderer(
                 }
             }
 
-            positionedSpecial.forEach { (rowIndex, item) ->
+            special.forEachIndexed { rowIndex, row ->
                 val y = INVENTORY_SPECIAL_RULES[rowIndex]
-                val expectedLocationRow = specialLocationRow(item.location)
-                if (expectedLocationRow != rowIndex) {
-                    item.location?.trim()?.takeIf { it.isNotEmpty() }?.let { location ->
-                        ruleText(
-                            s,
-                            resources.fira,
-                            Rule(25f, 120f, y),
-                            location,
-                            8.0f,
-                        )
-                    }
+                if (row.location.isNotEmpty()) {
+                    ruleText(
+                        s,
+                        resources.fira,
+                        Rule(25f, 110f, y),
+                        row.location,
+                        8.0f,
+                    )
                 }
-                ruleText(
-                    s,
-                    resources.fira,
-                    Rule(126f, 238f, y),
-                    inventoryContinuationLabel(item),
-                    8.2f,
-                )
-                val detail = specialInventoryDetail(item, usageByItem[item.id])
-                if (detail.isNotEmpty()) {
+                if (row.name.isNotEmpty()) {
+                    ruleText(
+                        s,
+                        resources.fira,
+                        Rule(126f, 238f, y),
+                        row.name,
+                        8.2f,
+                    )
+                }
+                if (row.detail.isNotEmpty()) {
                     ruleText(
                         s,
                         resources.fira,
                         Rule(240.803f, 583.795f, y),
-                        detail,
+                        row.detail,
                         8.0f,
                     )
                 }
             }
         }
         appendLayer(page, "$prefix - MARKERS") { s ->
-            positionedSpecial.forEach { (rowIndex, item) ->
-                if (item.equipped || item.attuned) {
-                    val y = INVENTORY_SPECIAL_RULES[rowIndex]
-                    // The imported v1 equipment template already contains the empty checkbox.
-                    // Overlay only the approved v8 check glyph; drawing another square creates a
-                    // visually double-boxed marker and shifts the perceived center.
+            special.forEachIndexed { rowIndex, row ->
+                if (row.marker) {
+                    // The imported v1 module already contains the empty checkbox. Overlay only
+                    // the approved v8 mark at the exact source-box optical center.
                     approvedV8Marker(
                         s = s,
                         font = resources.symbol,
@@ -1365,23 +1367,96 @@ internal class DesktopCustomV1ExtendedRenderer(
         item.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
     }.joinToString(" · ")
 
-    private fun positionedSpecialItems(
-        items: List<CharacterInventoryItem>,
-        rowCount: Int,
-    ): List<Pair<Int, CharacterInventoryItem>> {
-        val available = (0 until rowCount).toMutableSet()
-        val positioned = mutableListOf<Pair<Int, CharacterInventoryItem>>()
-        items.take(rowCount).forEach { item ->
-            val preferred = specialLocationRow(item.location)?.takeIf { it in available }
-            val fallback = available
-                .filter { it >= SPECIAL_LOCATION_LABELS.size }
-                .minOrNull()
-                ?: available.minOrNull()
-            val row = preferred ?: fallback ?: return@forEach
-            available.remove(row)
-            positioned += row to item
+    private fun specialInventoryFlowRows(
+        item: CharacterInventoryItem,
+        usage: CharacterInventoryUsage?,
+    ): List<SpecialInventoryFlowRow> {
+        val locationLines = item.location
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.let {
+                wrapByWidth(
+                    it,
+                    resources.fira,
+                    8.0f,
+                    INVENTORY_SPECIAL_LOCATION_TEXT_WIDTH,
+                )
+            }
+            .orEmpty()
+
+        val nameLines = wrapByWidth(
+            inventoryContinuationLabel(item),
+            resources.fira,
+            8.2f,
+            INVENTORY_SPECIAL_NAME_TEXT_WIDTH,
+        ).ifEmpty { listOf(inventoryContinuationLabel(item)) }
+
+        val detailLines = wrapByWidth(
+            specialInventoryDetail(item, usage),
+            resources.fira,
+            8.0f,
+            INVENTORY_SPECIAL_DETAIL_TEXT_WIDTH,
+        )
+
+        val rows = maxOf(1, locationLines.size, nameLines.size, detailLines.size)
+        require(rows <= INVENTORY_SPECIAL_CAPACITY) {
+            "Custom-v1 special Equipment record exceeds one fixed native module: " +
+                inventoryContinuationLabel(item)
         }
-        return positioned.sortedBy { it.first }
+
+        return (0 until rows).map { index ->
+            SpecialInventoryFlowRow(
+                location = locationLines.getOrNull(index).orEmpty(),
+                name = nameLines.getOrNull(index).orEmpty().let { line ->
+                    if (index == 0 || line.isEmpty()) line else SPECIAL_CONTINUATION_PREFIX + line
+                },
+                detail = detailLines.getOrNull(index).orEmpty(),
+                marker = index == 0 && (item.equipped || item.attuned),
+            )
+        }
+    }
+
+    private fun packSpecialInventoryRowGroups(
+        groups: List<List<SpecialInventoryFlowRow>>,
+    ): List<List<SpecialInventoryFlowRow>> {
+        val pages = mutableListOf<List<SpecialInventoryFlowRow>>()
+        var current = mutableListOf<SpecialInventoryFlowRow>()
+
+        groups.forEach { group ->
+            require(group.size <= INVENTORY_SPECIAL_CAPACITY) {
+                "Custom-v1 special Equipment record exceeds one fixed native module."
+            }
+            if (current.isNotEmpty() && current.size + group.size > INVENTORY_SPECIAL_CAPACITY) {
+                pages += current.toList()
+                current = mutableListOf()
+            }
+            current.addAll(group)
+        }
+        if (current.isNotEmpty()) pages += current.toList()
+        return pages
+    }
+
+    private fun drawBlankSpecialLocationCell(
+        s: PDFormContentStream,
+        rowIndex: Int,
+    ) {
+        val donorRow = if (rowIndex % 2 == 0) {
+            SPECIAL_BLANK_LOCATION_DONOR_EVEN
+        } else {
+            SPECIAL_BLANK_LOCATION_DONOR_ODD
+        }
+        val sourceTop = INVENTORY_SPECIAL_CHECK_TOPS[donorRow] - SPECIAL_LOCATION_CELL_TOP_PAD
+        val targetTop = INVENTORY_SPECIAL_CHECK_TOPS[rowIndex] - SPECIAL_LOCATION_CELL_TOP_PAD
+        drawTranslatedSourceCrop(
+            s = s,
+            form = resources.forms[1],
+            sourceX = SPECIAL_LOCATION_CELL_X,
+            sourceTop = sourceTop,
+            width = SPECIAL_LOCATION_CELL_WIDTH,
+            height = SPECIAL_LOCATION_CELL_HEIGHT,
+            targetX = SPECIAL_LOCATION_CELL_X,
+            targetTop = targetTop,
+        )
     }
 
     private fun specialLocationRow(location: String?): Int? {
@@ -2318,6 +2393,13 @@ internal class DesktopCustomV1ExtendedRenderer(
         val bonus: String,
         val effect: String,
         val notes: String,
+    )
+
+    private data class SpecialInventoryFlowRow(
+        val location: String,
+        val name: String,
+        val detail: String,
+        val marker: Boolean,
     )
 
     private data class TreasureEntry(
