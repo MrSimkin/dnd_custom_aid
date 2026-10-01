@@ -9,6 +9,11 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSkill
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetNotePhysicalLineKind
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPackedNotes
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetWrappedNoteRecord
+import io.github.mrsimkin.dndcustomaid.shared.character.packPcSheetNoteColumns
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetNoteRecords
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.StandardCurrencyKind
@@ -504,26 +509,88 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             .orEmpty()
 
     private fun drawNotesPage(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        val text = dedicatedNotesText(plan)
-        if (text.isBlank()) return
-        val leftWidth = NOTES_LEFT_RULES.first().endX - NOTES_LEFT_RULES.first().startX - 3f
-        val rightWidth = NOTES_RIGHT_RULES.first().endX - NOTES_RIGHT_RULES.first().startX - 3f
-        val leftLines = wrapByWidth(fonts.regular, text, 9.25f, leftWidth)
-        val left = leftLines.take(NOTES_LEFT_RULES.size)
-        left.forEachIndexed { index, line ->
-            textAboveRule(s, fonts.regular, NOTES_LEFT_RULES[index], line, 9.25f, 8.5f, 2.8f, 2f)
+        val packed = packedNotes(plan)
+        val baseColumns = packed.columns.take(2)
+        listOf(NOTES_LEFT_RULES, NOTES_RIGHT_RULES).forEachIndexed { columnIndex, rules ->
+            val physicalLines = baseColumns
+                .getOrNull(columnIndex)
+                .orEmpty()
+                .flatMap { it.lines }
+            require(physicalLines.size <= rules.size) {
+                "Packed Custom-v1 base Notes column exceeds native row capacity."
+            }
+            physicalLines.forEachIndexed { rowIndex, line ->
+                drawNotePhysicalLine(
+                    s = s,
+                    rule = rules[rowIndex],
+                    kind = line.kind,
+                    text = line.text,
+                )
+            }
         }
-        val consumedText = left.joinToString(" ")
-        val remaining = if (left.size < NOTES_LEFT_RULES.size) {
-            emptyList()
-        } else {
-            val words = text.trim().split(Regex("\\s+"))
-            val consumedWords = consumedText.split(Regex("\\s+")).size
-            wrapByWidth(fonts.regular, words.drop(consumedWords).joinToString(" "), 9.25f, rightWidth)
+    }
+
+    private fun packedNotes(plan: PcSheetPdfRenderPlan): PcSheetPackedNotes {
+        val narrowestWidth = minOf(
+            NOTES_LEFT_RULES.first().endX - NOTES_LEFT_RULES.first().startX,
+            NOTES_RIGHT_RULES.first().endX - NOTES_RIGHT_RULES.first().startX,
+        ) - NOTES_HORIZONTAL_PADDING
+
+        val wrapped = plan.snapshot.aggregate.sheet.pcSheetNoteRecords().map { record ->
+            PcSheetWrappedNoteRecord(
+                record = record,
+                headingLines = wrapByWidth(
+                    fonts.semibold,
+                    record.heading,
+                    NOTES_HEADING_SIZE,
+                    narrowestWidth,
+                ).ifEmpty { listOf(record.heading) },
+                bodyLines = wrapByWidth(
+                    fonts.regular,
+                    record.body,
+                    NOTES_BODY_SIZE,
+                    narrowestWidth,
+                ).ifEmpty { listOf(record.body) },
+            )
         }
-        remaining.take(NOTES_RIGHT_RULES.size).forEachIndexed { index, line ->
-            textAboveRule(s, fonts.regular, NOTES_RIGHT_RULES[index], line, 9.25f, 8.5f, 2.8f, 2f)
+
+        return packPcSheetNoteColumns(
+            records = wrapped,
+            rowsPerColumn = NOTES_LEFT_RULES.size,
+            columnsPerPage = 2,
+        )
+    }
+
+    private fun drawNotePhysicalLine(
+        s: PDFormContentStream,
+        rule: Rule,
+        kind: PcSheetNotePhysicalLineKind,
+        text: String,
+    ) {
+        if (kind == PcSheetNotePhysicalLineKind.SEPARATOR || text.isBlank()) return
+        val (font, preferred, minimum) = when (kind) {
+            PcSheetNotePhysicalLineKind.HEADING ->
+                Triple(fonts.semibold, NOTES_HEADING_SIZE, NOTES_HEADING_MINIMUM_SIZE)
+            PcSheetNotePhysicalLineKind.BODY ->
+                Triple(fonts.regular, NOTES_BODY_SIZE, NOTES_BODY_MINIMUM_SIZE)
+            PcSheetNotePhysicalLineKind.CONTINUITY ->
+                Triple(fonts.semibold, NOTES_CONTINUITY_SIZE, NOTES_CONTINUITY_MINIMUM_SIZE)
+            PcSheetNotePhysicalLineKind.SEPARATOR -> return
         }
+
+        val available = rule.endX - rule.startX - NOTES_HORIZONTAL_PADDING
+        var size = preferred
+        while (size > minimum && textWidth(font, text, size) > available) size -= 0.2f
+        require(textWidth(font, text, size) <= available + 0.05f) {
+            "Custom-v1 native Notes line does not fit without semantic truncation: '$text'"
+        }
+        val descent = requireNotNull(font.fontDescriptor).descent / 1000f * size
+        val baseline = PAGE_HEIGHT - rule.topY + NOTES_BASELINE_CLEARANCE - descent
+        s.beginText()
+        s.setFont(font, size)
+        s.newLineAtOffset(rule.startX + 1.5f, baseline)
+        s.showText(text)
+        s.endText()
     }
 
     private fun drawSpellLevel(
@@ -1036,6 +1103,14 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             627.825f, 647.667f, 667.510f, 687.352f, 707.195f, 727.037f,
         )
 
+        const val NOTES_HEADING_SIZE = 8.8f
+        const val NOTES_HEADING_MINIMUM_SIZE = 6.4f
+        const val NOTES_BODY_SIZE = 8.4f
+        const val NOTES_BODY_MINIMUM_SIZE = 6.2f
+        const val NOTES_CONTINUITY_SIZE = 7.2f
+        const val NOTES_CONTINUITY_MINIMUM_SIZE = 5.8f
+        const val NOTES_HORIZONTAL_PADDING = 4f
+        const val NOTES_BASELINE_CLEARANCE = 2.8f
         val NOTES_Y = listOf(109.5f, 129.5f, 149.5f, 169f, 189f, 209f, 229f, 248.5f, 268.5f, 288.5f, 308f, 328f, 348f, 367.5f, 387.5f, 407.5f, 427f)
         val NOTES_LEFT_RULES = NOTES_Y.map { Rule(25f, 267.5f, it) }
         val NOTES_RIGHT_RULES = NOTES_Y.map { Rule(311.669f, 583.795f, it) }
