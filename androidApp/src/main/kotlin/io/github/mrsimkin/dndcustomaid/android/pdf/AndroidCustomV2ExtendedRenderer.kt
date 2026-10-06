@@ -1969,18 +1969,20 @@ internal class AndroidCustomV2ExtendedRenderer(
                 }
             }
 
-            repeat(optionCapacity) { row ->
-                val option = options.getOrNull(row)
-                drawV2TrainingBox(
-                    s,
-                    TopRect(
-                        16f,
-                        optionMarkerFirstTop + row * RESOURCE_ROW_STEP,
-                        8.5f,
-                        9f,
-                    ),
-                    if (option?.active == true) Training.PROFICIENT else Training.NONE,
-                )
+            if (options.isNotEmpty()) {
+                repeat(optionCapacity) { row ->
+                    val option = options.getOrNull(row)
+                    drawV2TrainingBox(
+                        s,
+                        TopRect(
+                            16f,
+                            optionMarkerFirstTop + row * RESOURCE_ROW_STEP,
+                            8.5f,
+                            9f,
+                        ),
+                        if (option?.active == true) Training.PROFICIENT else Training.NONE,
+                    )
+                }
             }
         }
     }
