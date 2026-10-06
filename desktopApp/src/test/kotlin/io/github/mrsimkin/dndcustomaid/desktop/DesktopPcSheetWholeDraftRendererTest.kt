@@ -2333,21 +2333,30 @@ class DesktopPcSheetWholeDraftRendererTest {
                 layers.any { it.startsWith("V1X NARRATIVE P1 - STRUCTURE") },
                 "Narrative overflow must own a dedicated BACKGROUND_STORY surface.",
             )
-            assertFalse(
-                layers.any { it.startsWith("V1X TRAITS") },
-                "Narrative-only overflow must not allocate a Traits continuation page.",
-            )
-
             val pages = (1..document.numberOfPages).map { pageNumber ->
                 pageNumber to PDFTextStripper().apply {
                     startPage = pageNumber
                     endPage = pageNumber
                 }.getText(document).replace(Regex("\\s+"), " ")
             }
-            val extendedText = pages
+            val extendedPages = pages
                 .filter { (pageNumber, _) -> pageNumber > plan.basePages.size }
+            val extendedText = extendedPages.joinToString(" ") { it.second }
+            val traitExtendedText = extendedPages
+                .filter { (_, pageText) ->
+                    pageText.contains("Detalles de Rasgos") ||
+                        pageText.contains("Rasgos de Clase")
+                }
                 .joinToString(" ") { it.second }
 
+            assertFalse(
+                traitExtendedText.contains("PersonalidadNarrativaV1"),
+                "Personality overflow must no longer be associated with Extended Traits.",
+            )
+            assertFalse(
+                traitExtendedText.contains("HistoriaNarrativaV1"),
+                "Story overflow must no longer be associated with Extended Traits.",
+            )
             assertTrue(extendedText.contains("Rasgos de Personalidad"))
             assertTrue(extendedText.contains("Historia del Personaje"))
             assertTrue(
