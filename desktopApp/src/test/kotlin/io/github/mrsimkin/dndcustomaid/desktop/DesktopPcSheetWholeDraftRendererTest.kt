@@ -2401,6 +2401,130 @@ class DesktopPcSheetWholeDraftRendererTest {
     }
 
     @Test
+    fun composesFantasyTraitsAcrossReleasedNativeFramesWithoutSemanticEllipsis() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate()
+        val seed = base.sheet.traits.first()
+
+        val classTraits = (1..20).map { index ->
+            seed.copy(
+                id = uuid("8a000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
+                name = "Rasgo clase Fantasy compositor QA ${index.toString().padStart(2, '0')} completo",
+                source = "Clase QA",
+                type = CharacterTraitType.CLASS,
+                description = "Descripción compacta del rasgo de clase ${index.toString().padStart(2, '0')}.",
+                notes = null,
+                maxUses = null,
+                spentUses = 0,
+                recovery = null,
+                activation = CharacterActivationType.PASSIVE,
+                sortOrder = index,
+            )
+        }
+        val raceTraits = (1..4).map { index ->
+            seed.copy(
+                id = uuid("8b000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
+                name = "Rasgo raza Fantasy compositor QA ${index.toString().padStart(2, '0')} completo",
+                source = "Raza QA",
+                type = CharacterTraitType.SPECIES_RACE,
+                description = "Descripción compacta del rasgo racial ${index.toString().padStart(2, '0')}.",
+                notes = null,
+                maxUses = null,
+                spentUses = 0,
+                recovery = null,
+                activation = CharacterActivationType.PASSIVE,
+                sortOrder = 100 + index,
+            )
+        }
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                traits = classTraits + raceTraits,
+                proficiencies = emptyList(),
+                resources = emptyList(),
+                classOptions = emptyList(),
+                inventoryItems = emptyList(),
+                spells = emptyList(),
+                generalNotes = "",
+                noteCards = emptyList(),
+            ),
+            successor = base.successor.copy(
+                customMarkers = emptyList(),
+                preferences = base.successor.preferences.copy(valuablesText = ""),
+            ),
+        )
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+        val pdf = File(proofDir, "fantasy-traits-native-frame-reclaim.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            val traitPages = (1..document.numberOfPages)
+                .map { pageNumber ->
+                    pageNumber to PDFTextStripper().apply {
+                        startPage = pageNumber
+                        endPage = pageNumber
+                    }.getText(document).replace(Regex("\\s+"), " ")
+                }
+                .filter { (_, pageText) ->
+                    pageText.contains("EXTENSIÓN / RASGOS Y CARACTERÍSTICAS")
+                }
+
+            assertEquals(
+                2,
+                traitPages.size,
+                "Released Fantasy trait frames must be reused before creating a third page.",
+            )
+            val joined = traitPages.joinToString(" ") { it.second }
+            (classTraits + raceTraits).forEach { trait ->
+                assertTrue(joined.contains(trait.name), "Missing complete trait identity ${trait.name}")
+            }
+            assertFalse(
+                joined.contains("..."),
+                "Fantasy Trait identities must wrap rather than ellipsize.",
+            )
+
+            val secondPage = traitPages.last().second
+            assertTrue(
+                Regex("RASGOS Y CARACTERÍSTICAS - CONTINUACIÓN")
+                    .findAll(secondPage)
+                    .count() >= 2,
+                "After the sibling category is exhausted, the surviving Fantasy trait stream " +
+                    "must reclaim the released second native frame.",
+            )
+
+            classTraits.zipWithNext().forEach { (first, second) ->
+                assertTrue(
+                    joined.indexOf(first.name) < joined.indexOf(second.name),
+                    "Stored order must remain coherent inside the Fantasy Class category.",
+                )
+            }
+            raceTraits.zipWithNext().forEach { (first, second) ->
+                assertTrue(
+                    joined.indexOf(first.name) < joined.indexOf(second.name),
+                    "Stored order must remain coherent inside the Fantasy Race category.",
+                )
+            }
+
+            traitPages.forEach { (pageNumber, _) ->
+                val image = PDFRenderer(document).renderImageWithDPI(pageNumber - 1, 220f, ImageType.RGB)
+                assertTrue(
+                    ImageIO.write(
+                        image,
+                        "png",
+                        File(proofDir, "fantasy-traits-native-frame-reclaim-page-$pageNumber.png"),
+                    ),
+                )
+            }
+        }
+    }
+
+    @Test
     fun promotesOwnerApprovedCustomV2TraitsAndResourcesFromRealPlanData() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()
