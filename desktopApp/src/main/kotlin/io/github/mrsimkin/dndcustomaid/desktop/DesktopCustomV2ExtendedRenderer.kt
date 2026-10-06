@@ -3473,6 +3473,19 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val V2_BASE_SPECIAL_LOCATION_WIDTH = 79f
         const val V2_BASE_SPECIAL_NAME_WIDTH = 196f
         const val V2_BASE_SPECIAL_DETAIL_WIDTH = 291f
+        // Reuse the measured Custom-v2 native Equipo Especial module geometry from the shared
+        // source-backed base renderer. The module is fixed-size; additional capacity repeats the
+        // native module instead of stretching it. Continuation indentation mirrors the already
+        // approved native-row treatment used by Custom v1.
+        const val INVENTORY_SPECIAL_FIRST_RULE_TOP = 542.5f
+        const val INVENTORY_SPECIAL_ROW_STEP = 17f
+        const val INVENTORY_SPECIAL_CHECK_FIRST_TOP = 530.5f
+        const val INVENTORY_ORDINARY_CONTINUATION_INDENT_WIDTH = 10f
+        const val INVENTORY_ORDINARY_CONTINUATION_PREFIX = "  "
+        const val INVENTORY_SPECIAL_LOCATION_TEXT_WIDTH = V2_BASE_SPECIAL_LOCATION_WIDTH
+        const val INVENTORY_SPECIAL_NAME_TEXT_WIDTH = V2_BASE_SPECIAL_NAME_WIDTH
+        const val INVENTORY_SPECIAL_DETAIL_TEXT_WIDTH = V2_BASE_SPECIAL_DETAIL_WIDTH
+        const val INVENTORY_SPECIAL_CONTINUATION_PREFIX = "  "
         const val BASE_V2_SPECIAL_CAPACITY = 14
         const val INVENTORY_ROWS_PER_COLUMN = 19
         const val INVENTORY_BLOCK_CAPACITY = 38
