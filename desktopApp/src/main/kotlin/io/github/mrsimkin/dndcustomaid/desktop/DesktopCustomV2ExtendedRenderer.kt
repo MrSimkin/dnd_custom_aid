@@ -1024,12 +1024,12 @@ internal class DesktopCustomV2ExtendedRenderer(
             groupedTraits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
         ) {
             if (groupedTraits.isEmpty()) return
-            val traitBlocks = groupedTraits.map(::traitNativeBlock)
-            blocks += traitBlocks.first().copy(
-                lines = listOf(TraitNativeFlowLine(heading, TraitNativeFlowLineKind.GROUP_HEADING)) +
-                    traitBlocks.first().lines,
+            blocks += TraitNativeBlock(
+                lines = listOf(
+                    TraitNativeFlowLine(heading, TraitNativeFlowLineKind.GROUP_HEADING),
+                ),
             )
-            blocks += traitBlocks.drop(1)
+            blocks += groupedTraits.map(::traitNativeBlock)
         }
 
         addTraitGroup("CLASE / DOTES", leftTraits)
@@ -1053,15 +1053,15 @@ internal class DesktopCustomV2ExtendedRenderer(
                         TraitNativeFlowLine("", TraitNativeFlowLineKind.SEPARATOR),
                 )
             }
-            blocks += proficiencyBlocks.first().copy(
+            blocks += TraitNativeBlock(
                 lines = listOf(
                     TraitNativeFlowLine(
                         "COMPETENCIAS / IDIOMAS",
                         TraitNativeFlowLineKind.GROUP_HEADING,
                     ),
-                ) + proficiencyBlocks.first().lines,
+                ),
             )
-            blocks += proficiencyBlocks.drop(1)
+            blocks += proficiencyBlocks
         }
 
         val supplementLines = traitSupplementLines(plan)
@@ -1075,7 +1075,10 @@ internal class DesktopCustomV2ExtendedRenderer(
                                 if (index == 0) "DETALLES / NOTAS" else "DETALLES / NOTAS (CONT.)",
                                 TraitNativeFlowLineKind.GROUP_HEADING,
                             ),
-                        ) + chunk.map {
+                        ),
+                    )
+                    blocks += TraitNativeBlock(
+                        lines = chunk.map {
                             TraitNativeFlowLine(it, TraitNativeFlowLineKind.SUPPLEMENT)
                         },
                     )
@@ -1152,25 +1155,60 @@ internal class DesktopCustomV2ExtendedRenderer(
     ): List<TraitNativeColumn> {
         val columns = mutableListOf<TraitNativeColumn>()
         var current = mutableListOf<TraitNativeFlowLine>()
+        var currentHeading: String? = null
+        var activeHeading: String? = null
+        var pendingHeading: TraitNativeFlowLine? = null
 
         fun flush() {
             if (current.isNotEmpty()) {
-                columns += TraitNativeColumn(current.toList())
+                columns += TraitNativeColumn(
+                    heading = currentHeading ?: activeHeading,
+                    lines = current.toList(),
+                )
                 current = mutableListOf()
+                currentHeading = null
             }
         }
 
         blocks
             .flatMap(::splitOversizedTraitBlock)
             .forEach { block ->
+                val headingOnly =
+                    block.record == null &&
+                        block.lines.size == 1 &&
+                        block.lines.single().kind == TraitNativeFlowLineKind.GROUP_HEADING
+
+                if (headingOnly) {
+                    val heading = block.lines.single()
+                    activeHeading = heading.text
+                    if (current.isEmpty()) {
+                        currentHeading = heading.text
+                        pendingHeading = null
+                    } else {
+                        pendingHeading = heading
+                    }
+                    return@forEach
+                }
+
                 require(block.lines.size <= TRAIT_NATIVE_ROWS_PER_COLUMN) {
                     "Custom-v2 Traits block exceeds one native column after splitting."
                 }
+
+                val headingRows = if (pendingHeading == null) 0 else 1
                 if (
                     current.isNotEmpty() &&
-                    current.size + block.lines.size > TRAIT_NATIVE_ROWS_PER_COLUMN
+                    current.size + headingRows + block.lines.size > TRAIT_NATIVE_ROWS_PER_COLUMN
                 ) {
                     flush()
+                    currentHeading = activeHeading
+                    pendingHeading = null
+                } else {
+                    pendingHeading?.let(current::add)
+                    pendingHeading = null
+                }
+
+                if (current.isEmpty() && currentHeading == null) {
+                    currentHeading = activeHeading
                 }
                 current.addAll(block.lines)
                 if (current.size == TRAIT_NATIVE_ROWS_PER_COLUMN) {
@@ -1178,6 +1216,9 @@ internal class DesktopCustomV2ExtendedRenderer(
                 }
             }
 
+        check(pendingHeading == null) {
+            "Custom-v2 Traits cannot end with an orphan category heading."
+        }
         flush()
         return columns
     }
@@ -1268,6 +1309,16 @@ internal class DesktopCustomV2ExtendedRenderer(
             columns.forEach { (slotId, column) ->
                 val x = traitColumnStartX(slotId)
                 val width = traitColumnWidth(slotId)
+                if (!column.heading.isNullOrBlank()) {
+                    fill(
+                        s,
+                        x,
+                        TRAIT_NATIVE_HEADER_TOP,
+                        width,
+                        TRAIT_NATIVE_HEADER_HEIGHT,
+                        Color.WHITE,
+                    )
+                }
                 bandedRows(
                     s,
                     x,
@@ -1282,6 +1333,23 @@ internal class DesktopCustomV2ExtendedRenderer(
         appendLayer(page, "$layerPrefix - CLEANUP") { }
         appendLayer(page, "$layerPrefix - LABELS") { s ->
             pageTitle(s, "RASGOS Y ATRIBUTOS")
+            columns.forEach { (slotId, column) ->
+                column.heading?.takeIf { it.isNotBlank() }?.let { heading ->
+                    centeredFixedScale(
+                        s,
+                        resources.corbelBold,
+                        TopRect(
+                            traitColumnStartX(slotId),
+                            TRAIT_NATIVE_HEADER_LABEL_TOP,
+                            traitColumnWidth(slotId),
+                            TRAIT_NATIVE_HEADER_LABEL_HEIGHT,
+                        ),
+                        heading,
+                        TRAIT_GROUP_HEADING_SIZE,
+                        SOURCE_CORBEL_HEADING_SCALE,
+                    )
+                }
+            }
         }
         appendLayer(page, "$layerPrefix - VALUES") { s ->
             columns.forEach { (slotId, column) ->
@@ -3779,6 +3847,7 @@ internal class DesktopCustomV2ExtendedRenderer(
     )
 
     private data class TraitNativeColumn(
+        val heading: String?,
         val lines: List<TraitNativeFlowLine>,
     )
 
@@ -4069,6 +4138,10 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val ABILITY_SKILLS_PER_PAGE = 34
         const val FEATURE_DESCRIPTION_LINES = 3
         const val TRAIT_NATIVE_ROWS_PER_COLUMN = 36
+        const val TRAIT_NATIVE_HEADER_TOP = 96f
+        const val TRAIT_NATIVE_HEADER_HEIGHT = 34f
+        const val TRAIT_NATIVE_HEADER_LABEL_TOP = 99f
+        const val TRAIT_NATIVE_HEADER_LABEL_HEIGHT = 22f
         const val TRAIT_NATIVE_FIRST_RULE_TOP = 137f
         const val TRAIT_NATIVE_ROW_STEP = 17f
         const val TRAIT_LEFT_X = 14f

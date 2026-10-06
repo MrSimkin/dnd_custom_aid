@@ -2379,8 +2379,12 @@ class DesktopPcSheetWholeDraftRendererTest {
                 )
             }
             assertTrue(
-                joined.indexOf(classTraits.last().name) < joined.indexOf(raceTraits.first().name),
-                "Category grouping is intentional: Class/Feat group precedes Race/Background/Other.",
+                joined.contains("CLASE / DOTES"),
+                "Class/Feat grouping must retain its native category heading.",
+            )
+            assertTrue(
+                joined.contains("RAZA / TRASFONDO / OTROS"),
+                "Race/Background/Other grouping must retain its native category heading.",
             )
 
             traitPages.forEach { (pageNumber, _) ->
