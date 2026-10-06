@@ -2176,9 +2176,21 @@ class DesktopPcSheetWholeDraftRendererTest {
                     inventoryPages.none { it.contains("Muestras y reactivos.") },
                     "Ordinary Equipment descriptions must never leak into Equipment continuation.",
                 )
+                val specialEquipmentPages = (1..document.numberOfPages)
+                    .map { pageNumber ->
+                        PDFTextStripper().apply {
+                            startPage = pageNumber
+                            endPage = pageNumber
+                        }.getText(document).replace(Regex("\\s+"), " ")
+                    }
+                    .filter { it.contains("EQUIPO ESPECIAL") }
+                assertTrue(specialEquipmentPages.isNotEmpty())
                 assertTrue(
-                    inventoryPages.any { it.contains("Foco arcano y arma improvisada.") },
-                    "Special-item detail must remain associated with Equipo Especial.",
+                    specialEquipmentPages.any {
+                        it.contains("Bastón de fresno") &&
+                            it.contains("Foco arcano y arma improvisada.")
+                    },
+                    "Special-item detail must remain associated with its native Equipo Especial module.",
                 )
 
                 assertTrue(extracted.contains("Conjuro adicional 9"))
