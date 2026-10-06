@@ -327,8 +327,10 @@ internal class DesktopClassicRenderer {
                     traitNeedsReferenceContinuation(trait)
                 )
         }
-        val traitEntries = (overflowTraits + referenceTraits)
-            .distinctBy { it.id }
+        val continuationIds = (overflowTraits + referenceTraits)
+            .mapTo(mutableSetOf()) { it.id }
+        val traitEntries = orderedTraits
+            .filter { it.id in continuationIds }
             .flatMap(::traitFeatureSlices)
 
         val leftEntries = traitEntries.filter {
