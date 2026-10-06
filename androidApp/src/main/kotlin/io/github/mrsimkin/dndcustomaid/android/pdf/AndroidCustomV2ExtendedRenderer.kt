@@ -26,6 +26,10 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetContinuationEndpo
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetContinuationSurface
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSemanticModule
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSemanticRecordRef
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetModuleDemand
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutSlot
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutTemplate
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageComposer
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomAttributeProjection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomSkillProjection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
@@ -1542,22 +1546,125 @@ internal class AndroidCustomV2ExtendedRenderer(
         if (!needsResourcesExtendedPage(plan)) return
 
         val rows = resourceRenderLines(resourceRenderRows(plan))
-        val options = optionRenderLines(plan.snapshot.aggregate.sheet.classOptions.sortedBy { it.sortOrder })
-        val pages = maxOf(
-            pageCount(rows.size, RESOURCE_ROWS_PER_PAGE),
-            pageCount(options.size, RESOURCE_OPTIONS_PER_PAGE),
+        val options = optionRenderLines(
+            plan.snapshot.aggregate.sheet.classOptions.sortedBy { it.sortOrder },
         )
-        repeat(pages) { pageIndex ->
+        var demands = buildList {
+            if (rows.isNotEmpty()) {
+                add(PcSheetModuleDemand(PcSheetSemanticModule.RESOURCES, rows.size))
+            }
+            if (options.isNotEmpty()) {
+                add(PcSheetModuleDemand(PcSheetSemanticModule.CLASS_CHOICES, options.size))
+            }
+        }
+        if (demands.isEmpty()) return
+
+        var resourceOffset = 0
+        var optionOffset = 0
+        var pageIndex = 0
+
+        while (demands.isNotEmpty()) {
+            val activeModules = demands.mapTo(mutableSetOf()) { it.module }
+            val layouts = resourceCompositionLayouts(activeModules)
+            val step = requireNotNull(
+                PcSheetExtendedPageComposer.composeNextPage(
+                    demands = demands,
+                    layouts = layouts,
+                ),
+            )
+            val resourceCount = step.page.placements
+                .firstOrNull { it.module == PcSheetSemanticModule.RESOURCES }
+                ?.consumedUnits
+                ?: 0
+            val optionCount = step.page.placements
+                .firstOrNull { it.module == PcSheetSemanticModule.CLASS_CHOICES }
+                ?.consumedUnits
+                ?: 0
+
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderResources(
                 page = page,
-                rows = rows.drop(pageIndex * RESOURCE_ROWS_PER_PAGE).take(RESOURCE_ROWS_PER_PAGE),
-                options = options.drop(pageIndex * RESOURCE_OPTIONS_PER_PAGE).take(RESOURCE_OPTIONS_PER_PAGE),
+                rows = rows.drop(resourceOffset).take(resourceCount),
+                options = options.drop(optionOffset).take(optionCount),
                 pageIndex = pageIndex,
+                layoutId = step.page.layoutId,
             )
+
+            resourceOffset += resourceCount
+            optionOffset += optionCount
+            demands = step.remainingDemands
+            pageIndex += 1
+        }
+
+        check(resourceOffset == rows.size) {
+            "Custom-v2 compositor did not consume every Resource line."
+        }
+        check(optionOffset == options.size) {
+            "Custom-v2 compositor did not consume every Class Choice line."
         }
     }
+
+    private fun resourceCompositionLayouts(
+        activeModules: Set<PcSheetSemanticModule>,
+    ): List<PcSheetExtendedLayoutTemplate> =
+        when (activeModules) {
+            setOf(PcSheetSemanticModule.RESOURCES, PcSheetSemanticModule.CLASS_CHOICES) ->
+                listOf(
+                    PcSheetExtendedLayoutTemplate(
+                        id = RESOURCES_OPTIONS_SPLIT_LAYOUT_ID,
+                        slots = listOf(
+                            PcSheetExtendedLayoutSlot(
+                                id = "resources",
+                                capacityByModule = mapOf(
+                                    PcSheetSemanticModule.RESOURCES to RESOURCE_ROWS_PER_PAGE,
+                                ),
+                            ),
+                            PcSheetExtendedLayoutSlot(
+                                id = "class-choices",
+                                capacityByModule = mapOf(
+                                    PcSheetSemanticModule.CLASS_CHOICES to RESOURCE_OPTIONS_PER_PAGE,
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+
+            setOf(PcSheetSemanticModule.RESOURCES) ->
+                listOf(
+                    PcSheetExtendedLayoutTemplate(
+                        id = RESOURCES_FULL_LAYOUT_ID,
+                        slots = listOf(
+                            PcSheetExtendedLayoutSlot(
+                                id = "resources-full",
+                                capacityByModule = mapOf(
+                                    PcSheetSemanticModule.RESOURCES to RESOURCE_FULL_ROWS_PER_PAGE,
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+
+            setOf(PcSheetSemanticModule.CLASS_CHOICES) ->
+                listOf(
+                    PcSheetExtendedLayoutTemplate(
+                        id = OPTIONS_FULL_LAYOUT_ID,
+                        slots = listOf(
+                            PcSheetExtendedLayoutSlot(
+                                id = "class-choices-full",
+                                capacityByModule = mapOf(
+                                    PcSheetSemanticModule.CLASS_CHOICES to RESOURCE_OPTIONS_FULL_PER_PAGE,
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+
+            else -> error(
+                "Unsupported Custom-v2 Resources/Options compositor demand: " +
+                    activeModules.joinToString(),
+            )
+        }
 
     private fun resourceRenderRows(plan: PcSheetPdfRenderPlan): List<ResourceRenderRow> {
         val aggregate = plan.snapshot.aggregate
@@ -1675,37 +1782,113 @@ internal class AndroidCustomV2ExtendedRenderer(
         rows: List<ResourceRenderLine>,
         options: List<OptionRenderLine>,
         pageIndex: Int,
+        layoutId: String,
     ) {
         val layerPrefix = if (pageIndex == 0) "V2X RESOURCES" else "V2X RESOURCES ${pageIndex + 1}"
+        val splitLayout = layoutId == RESOURCES_OPTIONS_SPLIT_LAYOUT_ID
+        val resourcesFullLayout = layoutId == RESOURCES_FULL_LAYOUT_ID
+        val optionsFullLayout = layoutId == OPTIONS_FULL_LAYOUT_ID
+        require(splitLayout || resourcesFullLayout || optionsFullLayout) {
+            "Unknown Custom-v2 Resources/Options layout: $layoutId"
+        }
+        require(!resourcesFullLayout || options.isEmpty()) {
+            "Resources-full layout cannot reserve an Options module."
+        }
+        require(!optionsFullLayout || rows.isEmpty()) {
+            "Options-full layout cannot reserve a Resources module."
+        }
+
+        val optionHeaderTop = if (splitLayout) 337f else 96f
+        val optionHeadingTop = if (splitLayout) 338f else 97f
+        val optionLabelTop = if (splitLayout) 364f else 121f
+        val optionFirstRuleTop = if (splitLayout) 398f else RESOURCE_FIRST_RULE_TOP
+        val optionMarkerFirstTop = optionFirstRuleTop - 12f
+        val resourceCapacity = if (splitLayout) RESOURCE_ROWS_PER_PAGE else RESOURCE_FULL_ROWS_PER_PAGE
+        val optionCapacity = if (splitLayout) RESOURCE_OPTIONS_PER_PAGE else RESOURCE_OPTIONS_FULL_PER_PAGE
 
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
             pageHeaderStructure(s)
-            fill(s, 14f, 96f, 584f, 22f, SOURCE_GRAY_LIGHT)
-            bandedRows(s, 14f, 598f, 150f, RESOURCE_ROWS_PER_PAGE, 17f, 0)
-            listOf(222f, 352f, 475f).forEach { x -> verticalRule(s, x, 120f, 303f, 0.45f) }
 
-            drawRule(s, 14f, 598f, 329f, 0.8f)
-            fill(s, 14f, 337f, 584f, 22f, SOURCE_GRAY_LIGHT)
-            bandedRows(s, 14f, 598f, 398f, RESOURCE_OPTIONS_PER_PAGE, 17f, 1)
-            listOf(30f, 118f, 258f).forEach { x -> verticalRule(s, x, 362f, 704f, 0.45f) }
+            if (rows.isNotEmpty()) {
+                fill(s, 14f, 96f, 584f, 22f, SOURCE_GRAY_LIGHT)
+                bandedRows(
+                    s,
+                    14f,
+                    598f,
+                    RESOURCE_FIRST_RULE_TOP,
+                    resourceCapacity,
+                    RESOURCE_ROW_STEP,
+                    0,
+                )
+                val resourceBottom = if (splitLayout) 303f else RESOURCE_FULL_SECTION_BOTTOM
+                listOf(222f, 352f, 475f).forEach { x ->
+                    verticalRule(s, x, 120f, resourceBottom, 0.45f)
+                }
+            }
+
+            if (options.isNotEmpty()) {
+                if (splitLayout) {
+                    drawRule(s, 14f, 598f, 329f, 0.8f)
+                }
+                fill(s, 14f, optionHeaderTop, 584f, 22f, SOURCE_GRAY_LIGHT)
+                bandedRows(
+                    s,
+                    14f,
+                    598f,
+                    optionFirstRuleTop,
+                    optionCapacity,
+                    RESOURCE_ROW_STEP,
+                    1,
+                )
+                val optionRuleTop = if (splitLayout) 362f else 120f
+                listOf(30f, 118f, 258f).forEach { x ->
+                    verticalRule(s, x, optionRuleTop, RESOURCE_FULL_SECTION_BOTTOM, 0.45f)
+                }
+            }
         }
         appendLayer(page, "$layerPrefix - CLEANUP") { }
         appendLayer(page, "$layerPrefix - LABELS") { s ->
-            pageTitle(s, "RECURSOS Y OPCIONES")
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 97f, 584f, 20f), "RECURSOS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            tableLabel(s, 14f, 121f, 208f, "RECURSO")
-            tableLabel(s, 222f, 121f, 130f, "ACTUAL / MÁX.")
-            tableLabel(s, 352f, 121f, 123f, "RESTABLECE")
-            tableLabel(s, 475f, 121f, 123f, "ORIGEN / NOTAS")
+            pageTitle(
+                s,
+                when {
+                    splitLayout -> "RECURSOS Y OPCIONES"
+                    resourcesFullLayout -> "RECURSOS"
+                    else -> "OPCIONES"
+                },
+            )
 
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 338f, 584f, 20f), "OPCIONES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            tableLabel(s, 30f, 364f, 88f, "TIPO")
-            tableLabel(s, 118f, 364f, 140f, "OPCIÓN")
-            tableLabel(s, 258f, 364f, 340f, "DESCRIPCIÓN / COSTE / ORIGEN")
+            if (rows.isNotEmpty()) {
+                centeredFixedScale(
+                    s,
+                    resources.corbelBold,
+                    TopRect(14f, 97f, 584f, 20f),
+                    "RECURSOS",
+                    12.12f,
+                    SOURCE_CORBEL_HEADING_SCALE,
+                )
+                tableLabel(s, 14f, 121f, 208f, "RECURSO")
+                tableLabel(s, 222f, 121f, 130f, "ACTUAL / MÁX.")
+                tableLabel(s, 352f, 121f, 123f, "RESTABLECE")
+                tableLabel(s, 475f, 121f, 123f, "ORIGEN / NOTAS")
+            }
+
+            if (options.isNotEmpty()) {
+                centeredFixedScale(
+                    s,
+                    resources.corbelBold,
+                    TopRect(14f, optionHeadingTop, 584f, 20f),
+                    "OPCIONES",
+                    12.12f,
+                    SOURCE_CORBEL_HEADING_SCALE,
+                )
+                tableLabel(s, 30f, optionLabelTop, 88f, "TIPO")
+                tableLabel(s, 118f, optionLabelTop, 140f, "OPCIÓN")
+                tableLabel(s, 258f, optionLabelTop, 340f, "DESCRIPCIÓN / COSTE / ORIGEN")
+            }
         }
         appendLayer(page, "$layerPrefix - VALUES") { s ->
             rows.forEachIndexed { index, row ->
-                val y = 150f + index * 17f
+                val y = RESOURCE_FIRST_RULE_TOP + index * RESOURCE_ROW_STEP
                 if (row.name.isNotEmpty()) {
                     textAboveRule(s, resources.fira, Rule(18f, 218f, y), row.name, 7.6f, 6.6f, 2.3f)
                 }
@@ -1727,8 +1910,19 @@ internal class AndroidCustomV2ExtendedRenderer(
                             maximum in 1..9 &&
                             current in 0..maximum
                         if (!canUseSymbols) {
-                            val value = if (maximum == null) current.toString() else current.toString() + "/" + maximum
-                            centeredAboveRule(s, resources.firaSemibold, Rule(226f, 348f, y), value, 8.5f, 2.2f)
+                            val value = if (maximum == null) {
+                                current.toString()
+                            } else {
+                                current.toString() + "/" + maximum
+                            }
+                            centeredAboveRule(
+                                s,
+                                resources.firaSemibold,
+                                Rule(226f, 348f, y),
+                                value,
+                                8.5f,
+                                2.2f,
+                            )
                         }
                     }
                 }
@@ -1742,7 +1936,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             }
 
             options.forEachIndexed { index, option ->
-                val y = 398f + index * 17f
+                val y = optionFirstRuleTop + index * RESOURCE_ROW_STEP
                 if (option.kind.isNotEmpty()) {
                     textAboveRule(s, resources.fira, Rule(34f, 114f, y), option.kind, 7.0f, 6.2f, 2.3f)
                 }
@@ -1768,18 +1962,23 @@ internal class AndroidCustomV2ExtendedRenderer(
                     drawSquareCounter(
                         s,
                         236f,
-                        141.5f + index * 17f,
+                        RESOURCE_COUNTER_FIRST_TOP + index * RESOURCE_ROW_STEP,
                         current,
                         maximum,
                     )
                 }
             }
 
-            repeat(RESOURCE_OPTIONS_PER_PAGE) { row ->
+            repeat(optionCapacity) { row ->
                 val option = options.getOrNull(row)
                 drawV2TrainingBox(
                     s,
-                    TopRect(16f, 386f + row * 17f, 8.5f, 9f),
+                    TopRect(
+                        16f,
+                        optionMarkerFirstTop + row * RESOURCE_ROW_STEP,
+                        8.5f,
+                        9f,
+                    ),
                     if (option?.active == true) Training.PROFICIENT else Training.NONE,
                 )
             }
@@ -3589,6 +3788,19 @@ internal class AndroidCustomV2ExtendedRenderer(
         )
         const val RESOURCE_ROWS_PER_PAGE = 10
         const val RESOURCE_OPTIONS_PER_PAGE = 18
+        // The existing split page already establishes a valid full-width writing area ending at
+        // y=704. When one semantic stream is exhausted, the surviving native table may reclaim
+        // that released area at the same 17 pt row cadence. 33 rows is the largest whole-row
+        // capacity whose last rule (694) remains inside that approved area.
+        const val RESOURCE_FULL_ROWS_PER_PAGE = 33
+        const val RESOURCE_OPTIONS_FULL_PER_PAGE = 33
+        const val RESOURCE_FIRST_RULE_TOP = 150f
+        const val RESOURCE_ROW_STEP = 17f
+        const val RESOURCE_COUNTER_FIRST_TOP = 141.5f
+        const val RESOURCE_FULL_SECTION_BOTTOM = 704f
+        const val RESOURCES_OPTIONS_SPLIT_LAYOUT_ID = "v2-resources-options-split"
+        const val RESOURCES_FULL_LAYOUT_ID = "v2-resources-full"
+        const val OPTIONS_FULL_LAYOUT_ID = "v2-options-full"
         const val NOTES_HEADING_SIZE = 8.8f
         const val NOTES_HEADING_MINIMUM_SIZE = 6.4f
         const val NOTES_BODY_SIZE = 8.4f
