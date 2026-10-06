@@ -2212,6 +2212,70 @@ class DesktopPcSheetWholeDraftRendererTest {
         }
     }
 
+    @Test
+    fun rendersSpecialEquipmentOverflowWithNativeFallbackColumns() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregateWithOverflowContinuations()
+        val overflowSpecial = listOf(
+            inventory(501, "Broche auxiliar QA", 1, null, "Cinturón secundario", true, true, "Reserva auxiliar QA."),
+            inventory(502, "Foco auxiliar QA", 1, null, "Mochila arcana", true, true, "Reserva de foco QA."),
+            inventory(
+                503,
+                "Relicario excedente QA",
+                1,
+                2.0,
+                "Bandolera QA",
+                true,
+                true,
+                "Detalle especial excedente QA.",
+            ),
+        )
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                inventoryItems = base.sheet.inventoryItems + overflowSpecial,
+            ),
+        )
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+
+        val pdf = File(proofDir, "custom-v2-special-equipment-native-fallback.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            val pageTexts = (1..document.numberOfPages).map { pageNumber ->
+                PDFTextStripper().apply {
+                    startPage = pageNumber
+                    endPage = pageNumber
+                }.getText(document).replace(Regex("\\s+"), " ")
+            }
+            val specialPageIndex = pageTexts.indexOfFirst { pageText ->
+                pageText.contains("INVENTARIO / EQUIPO") &&
+                    pageText.contains("EQUIPO ESPECIAL") &&
+                    pageText.contains("Relicario excedente QA")
+            }
+            assertTrue(specialPageIndex >= 0, "Overflow special item must render in Equipo Especial.")
+
+            val location = locateTextBounds(document, "Bandolera QA", expectedYCenter = 542.5f)
+            val name = locateTextBounds(document, "Relicario excedente QA", expectedYCenter = 542.5f)
+            val detail = locateTextBounds(document, "Detalle especial excedente QA.", expectedYCenter = 542.5f)
+
+            assertEquals(specialPageIndex, location.pageIndex)
+            assertEquals(specialPageIndex, name.pageIndex)
+            assertEquals(specialPageIndex, detail.pageIndex)
+            assertTrue(location.bounds.minX in 14f..20f, "Native location column drift: ${location.bounds}")
+            assertTrue(location.bounds.maxX <= 96f, "Native location column overflow: ${location.bounds}")
+            assertTrue(name.bounds.minX in 99f..105f, "Native name column drift: ${name.bounds}")
+            assertTrue(detail.bounds.minX in 303f..309f, "Native detail column drift: ${detail.bounds}")
+        }
+        assertTrue(pdf.length() > 20_000L)
+    }
+
     private fun denseDraftAggregateWithOverflowContinuations(): PcSheetExportAggregate {
         val base = denseDraftAggregate()
         val sourceId = base.sheet.spellcastingSources.single().id

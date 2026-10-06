@@ -1927,6 +1927,9 @@ internal class AndroidCustomV2ExtendedRenderer(
                 bandedRows(s, 307f, 598f, 139f, INVENTORY_TREASURE_CAPACITY, 17f, 1)
             }
             if (hasSpecial) {
+                // M50800-19: continuation uses the source-faithful blank-location fallback of the
+                // fixed native Equipo Especial module. Its row rhythm/columns/state position are
+                // measured from the shared base renderer; no generic checkbox/location column.
                 if (hasOrdinary || hasTreasure) {
                     drawRule(s, 14f, 598f, 480f, 0.8f)
                 }
@@ -1939,7 +1942,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                     INVENTORY_SPECIAL_ROW_STEP,
                     0,
                 )
-                listOf(30f, 99f, 303f).forEach { x ->
+                listOf(99f, 303f).forEach { x ->
                     verticalRule(
                         s,
                         x,
@@ -1993,7 +1996,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                     12.12f,
                     SOURCE_CORBEL_HEADING_SCALE,
                 )
-                tableLabel(s, 30f, 514f, 69f, "UBICACIÓN")
+                tableLabel(s, 14f, 514f, 85f, "UBICACIÓN")
                 tableLabel(s, 99f, 514f, 204f, "NOMBRE")
                 tableLabel(s, 303f, 514f, 295f, "DESCRIPCIÓN / ESTADO")
             }
@@ -2037,34 +2040,33 @@ internal class AndroidCustomV2ExtendedRenderer(
                     textAboveRule(
                         s,
                         resources.fira,
-                        Rule(34f, 95f, y),
+                        Rule(14f, 94f, y),
                         item.location,
-                        7.4f,
-                        6.6f,
+                        8.5f,
+                        7.5f,
                         2.2f,
                     )
                 }
                 if (item.name.isNotEmpty()) {
-                    textAboveRuleScaled(
+                    textAboveRule(
                         s,
                         resources.fira,
-                        Rule(103f, 297f, y),
+                        Rule(99f, 297f, y),
                         item.name,
-                        preferredSize = 8.8f,
-                        minimumSize = 7.0f,
-                        clearance = 2.3f,
-                        minimumHorizontalScale = 78f,
+                        9.25f,
+                        8.5f,
+                        2.5f,
                     )
                 }
                 if (item.detail.isNotEmpty()) {
                     textAboveRule(
                         s,
                         resources.fira,
-                        Rule(307f, 594f, y),
+                        Rule(303f, 596f, y),
                         item.detail,
-                        8.2f,
-                        6.8f,
-                        2.3f,
+                        9.25f,
+                        8.5f,
+                        2.5f,
                     )
                 }
             }
@@ -2075,7 +2077,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                     drawV2TrainingBox(
                         s,
                         TopRect(
-                            16f,
+                            87.5f,
                             INVENTORY_SPECIAL_CHECK_FIRST_TOP + row * INVENTORY_SPECIAL_ROW_STEP,
                             8.5f,
                             9f,
@@ -2121,7 +2123,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                 wrapByWidth(
                     resources.fira,
                     it,
-                    7.4f,
+                    8.5f,
                     INVENTORY_SPECIAL_LOCATION_TEXT_WIDTH,
                 )
             }
@@ -2129,13 +2131,13 @@ internal class AndroidCustomV2ExtendedRenderer(
         val nameLines = wrapByWidth(
             resources.fira,
             item.name,
-            8.8f,
+            9.25f,
             INVENTORY_SPECIAL_NAME_TEXT_WIDTH,
         ).ifEmpty { listOf(item.name) }
         val detailLines = wrapByWidth(
             resources.fira,
             specialInventoryDetail(item, usage),
-            8.2f,
+            9.25f,
             INVENTORY_SPECIAL_DETAIL_TEXT_WIDTH,
         )
 
