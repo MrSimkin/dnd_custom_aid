@@ -1701,7 +1701,6 @@ class DesktopPcSheetWholeDraftRendererTest {
             val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
             assertTrue(layers.any { it.startsWith("V1X TRAITS P1 - STRUCTURE") })
             assertTrue(layers.any { it.startsWith("V1X TRAITS P1 - VALUES") })
-            assertTrue(layers.any { it.startsWith("V1X TRAITS P2 - STRUCTURE") })
             assertFalse(layers.any { it.startsWith("V1X STATS") })
 
             val extracted = PDFTextStripper().getText(document)
@@ -1718,8 +1717,17 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("Lengua extendida"))
             assertTrue(Regex("""Usos\s+_+\s*\(1\)\s*/\s*2""").containsMatchIn(extracted))
 
-            val image = PDFRenderer(document).renderImageWithDPI(5, 220f, ImageType.RGB)
-            val png = File(proofDir, "custom-v1-production-extended-traits-pass2-page-6.png")
+            val traitPageIndex = (0 until document.numberOfPages).first { pageIndex ->
+                PDFTextStripper().apply {
+                    startPage = pageIndex + 1
+                    endPage = pageIndex + 1
+                }.getText(document).contains("Fuente primaria de rasgo")
+            }
+            val image = PDFRenderer(document).renderImageWithDPI(traitPageIndex, 220f, ImageType.RGB)
+            val png = File(
+                proofDir,
+                "custom-v1-production-extended-traits-pass2-page-${traitPageIndex + 1}.png",
+            )
             assertTrue(ImageIO.write(image, "png", png))
             assertTrue(png.length() > 0L)
         }
@@ -2344,8 +2352,7 @@ class DesktopPcSheetWholeDraftRendererTest {
             val extendedText = extendedPages.joinToString(" ") { it.second }
             val traitExtendedText = extendedPages
                 .filter { (_, pageText) ->
-                    pageText.contains("Detalles de Rasgos") ||
-                        pageText.contains("Rasgos de Clase")
+                    pageText.contains("Otros Rasgos y Atributos")
                 }
                 .joinToString(" ") { it.second }
 
@@ -2388,6 +2395,114 @@ class DesktopPcSheetWholeDraftRendererTest {
                     )
                 }
             }
+        }
+    }
+
+    @Test
+    fun composesCustomV1TraitsFromNativeOtherTraitsModulesWithoutFixedScaffold() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate().withoutV1SemanticSupplements()
+        val seed = base.sheet.traits.first()
+        val traits = (1..34).map { index ->
+            seed.copy(
+                id = uuid("8c300000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
+                name = "Rasgo v1 módulo nativo ${index.toString().padStart(2, '0')}",
+                source = "",
+                type = if (index <= 32) CharacterTraitType.CLASS else CharacterTraitType.SPECIES_RACE,
+                description = "",
+                notes = null,
+                maxUses = null,
+                spentUses = 0,
+                recovery = null,
+                activation = CharacterActivationType.PASSIVE,
+                sortOrder = index,
+            )
+        }
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                traits = traits,
+                proficiencies = emptyList(),
+                resources = emptyList(),
+                classOptions = emptyList(),
+                inventoryItems = emptyList(),
+                spells = emptyList(),
+                generalNotes = "",
+                noteCards = emptyList(),
+            ),
+            successor = base.successor.copy(
+                customMarkers = emptyList(),
+                preferences = base.successor.preferences.copy(valuablesText = ""),
+            ),
+        )
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+        val pdf = File(proofDir, "custom-v1-traits-native-module-reclaim.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
+            listOf("STRUCTURE", "CLEANUP", "LABELS", "VALUES", "MARKERS").forEach { role ->
+                assertTrue(
+                    layers.any { it.startsWith("V1X TRAITS P1 - $role") },
+                    "Missing Custom-v1 native Traits layer $role",
+                )
+            }
+            assertFalse(
+                layers.any { it.startsWith("V1X TRAITS P2") },
+                "Four name-only overflow records fit one native Traits module; do not reserve a redundant page.",
+            )
+
+            val traitPages = (plan.basePages.size + 1..document.numberOfPages)
+                .map { pageNumber ->
+                    pageNumber to PDFTextStripper().apply {
+                        startPage = pageNumber
+                        endPage = pageNumber
+                    }.getText(document).replace(Regex("\\s+"), " ")
+                }
+                .filter { (_, pageText) -> pageText.contains("Otros Rasgos y Atributos") }
+
+            assertEquals(1, traitPages.size)
+            val joined = traitPages.single().second
+            assertFalse(
+                joined.contains("Rasgo v1 módulo nativo 30"),
+                "The first 30 trait names are already represented by the two native base surfaces.",
+            )
+            listOf(31, 32, 33, 34).forEach { index ->
+                assertTrue(
+                    joined.contains("Rasgo v1 módulo nativo ${index.toString().padStart(2, '0')}"),
+                    "Missing true Custom-v1 trait-name overflow $index.",
+                )
+            }
+            assertTrue(
+                joined.indexOf("Rasgo v1 módulo nativo 31") <
+                    joined.indexOf("Rasgo v1 módulo nativo 32"),
+                "Stored order must remain coherent inside the Class category.",
+            )
+            assertTrue(
+                joined.indexOf("Rasgo v1 módulo nativo 33") <
+                    joined.indexOf("Rasgo v1 módulo nativo 34"),
+                "Stored order must remain coherent inside the Race category.",
+            )
+            assertTrue(joined.contains("CLASE"))
+            assertTrue(joined.contains("RAZA"))
+            assertFalse(joined.contains("Detalles de Rasgos"))
+            assertFalse(joined.contains("..."))
+
+            val pageNumber = traitPages.single().first
+            val image = PDFRenderer(document).renderImageWithDPI(pageNumber - 1, 220f, ImageType.RGB)
+            assertTrue(
+                ImageIO.write(
+                    image,
+                    "png",
+                    File(proofDir, "custom-v1-traits-native-module-reclaim-page-$pageNumber.png"),
+                ),
+            )
         }
     }
 

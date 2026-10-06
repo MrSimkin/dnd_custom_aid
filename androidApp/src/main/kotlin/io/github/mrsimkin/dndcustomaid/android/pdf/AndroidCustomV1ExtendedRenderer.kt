@@ -85,9 +85,7 @@ internal class AndroidCustomV1ExtendedRenderer(
             appendCustomStatisticsPages(plan)
         }
         appendNarrativeExtendedPages(plan)
-        if (needsTraitsExtendedPage(plan)) {
-            appendTraitsExtendedPages(plan)
-        }
+        appendTraitsExtendedPages(plan)
         appendCombatExtendedPages(plan)
         if (needsResourcesExtendedPage(plan)) {
             appendResourcesExtendedPages(plan)
@@ -368,158 +366,188 @@ internal class AndroidCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - MARKERS") { }
     }
 
-    private fun needsTraitsExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
-        val sheet = plan.snapshot.aggregate.sheet
-        val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
-        val overflowNames = orderedTraits.drop(BASE_V1_TRAIT_NAME_CAPACITY)
-        val rightLines = traitDetailLines(plan, orderedTraits) + traitSupplementLines(plan)
-        return overflowNames.isNotEmpty() ||
-            rightLines.isNotEmpty() ||
-            sheet.proficiencies.isNotEmpty()
-    }
-
     private fun appendTraitsExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val sheet = plan.snapshot.aggregate.sheet
-        val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
-        val overflowTraits = orderedTraits.drop(BASE_V1_TRAIT_NAME_CAPACITY)
+        val flow = packV1TraitFlow(traitFlowBlocks(plan))
+        if (flow.isEmpty()) return
 
-        val classNames = overflowTraits
-            .filter { it.type == CharacterTraitType.CLASS }
-            .map { it.name }
-        val raceNames = overflowTraits
-            .filter { it.type == CharacterTraitType.SPECIES_RACE }
-            .map { it.name }
-        val featNames = overflowTraits
-            .filter { it.type == CharacterTraitType.FEAT }
-            .map { it.name }
-        val otherNames = overflowTraits
-            .filter {
-                it.type == CharacterTraitType.BACKGROUND ||
-                    it.type == CharacterTraitType.GIFT_BLESSING ||
-                    it.type == CharacterTraitType.OTHER
+        var demands = listOf(
+            PcSheetModuleDemand(
+                module = PcSheetSemanticModule.TRAITS,
+                remainingUnits = flow.size,
+            ),
+        )
+        var lineOffset = 0
+        var pageIndex = 0
+
+        while (demands.isNotEmpty()) {
+            val remaining = demands.single().remainingUnits
+            val step = requireNotNull(
+                PcSheetExtendedPageComposer.composeNextPage(
+                    demands = demands,
+                    layouts = v1TraitsCompositionLayouts(remaining),
+                ),
+            )
+            val placementBySlot = step.page.placements.associateBy { it.slotId }
+
+            var cursor = lineOffset
+            val topCount = placementBySlot[V1_TRAIT_TOP_SLOT_ID]?.consumedUnits ?: 0
+            val topLines = flow.drop(cursor).take(topCount)
+            cursor += topCount
+
+            val bottomCount = placementBySlot[V1_TRAIT_BOTTOM_SLOT_ID]?.consumedUnits ?: 0
+            val bottomLines = flow.drop(cursor).take(bottomCount)
+            cursor += bottomCount
+
+            check(topLines.isNotEmpty()) {
+                "Custom-v1 Traits compositor must occupy the top native module first."
             }
-            .map { it.name }
 
-        val proficiencies = proficiencyLines(
-            sheet.proficiencies.filter { it.type != CharacterProficiencyType.LANGUAGE },
-        )
-        val languages = proficiencyLines(
-            sheet.proficiencies.filter { it.type == CharacterProficiencyType.LANGUAGE },
-        )
-
-        // Treat the two right-hand ruled areas as one continuation stream. This avoids
-        // allocating separate mostly-empty pages for "Detalles" and "Notas" when they are
-        // semantically one compact continuation.
-        val rightLines = traitDetailLines(plan, orderedTraits) + traitSupplementLines(plan)
-
-        val pages = maxOf(
-            1,
-            pageCount(classNames.size, TRAIT_LEFT_ROWS),
-            pageCount(raceNames.size, TRAIT_LEFT_ROWS),
-            pageCount(featNames.size, TRAIT_LEFT_ROWS),
-            pageCount(proficiencies.size, TRAIT_LEFT_ROWS),
-            pageCount(languages.size, TRAIT_LEFT_ROWS),
-            pageCount(otherNames.size, TRAIT_OTHER_CAPACITY),
-            pageCount(rightLines.size, TRAIT_RIGHT_CAPACITY),
-        )
-
-        repeat(pages) { pageIndex ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
-            val rightPage = rightLines.pageSlice(pageIndex, TRAIT_RIGHT_CAPACITY)
             renderTraitsPage(
                 page = page,
-                classNames = classNames.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
-                raceNames = raceNames.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
-                featNames = featNames.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
-                proficiencies = proficiencies.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
-                languages = languages.pageSlice(pageIndex, TRAIT_LEFT_ROWS),
-                otherNames = otherNames.pageSlice(pageIndex, TRAIT_OTHER_CAPACITY),
-                detailLines = rightPage.take(TRAIT_DETAIL_ROWS),
-                noteLines = rightPage.drop(TRAIT_DETAIL_ROWS).take(TRAIT_NOTE_ROWS),
+                topLines = topLines,
+                bottomLines = bottomLines,
                 pageIndex = pageIndex,
             )
+
+            lineOffset = cursor
+            demands = step.remainingDemands
+            pageIndex += 1
+        }
+
+        check(lineOffset == flow.size) {
+            "Custom-v1 Traits compositor did not consume every packed native row."
         }
     }
 
+    private fun v1TraitsCompositionLayouts(
+        remainingUnits: Int,
+    ): List<PcSheetExtendedLayoutTemplate> =
+        if (remainingUnits <= V1_TRAIT_ROWS_PER_MODULE) {
+            listOf(
+                PcSheetExtendedLayoutTemplate(
+                    id = V1_TRAIT_SINGLE_LAYOUT_ID,
+                    slots = listOf(
+                        PcSheetExtendedLayoutSlot(
+                            id = V1_TRAIT_TOP_SLOT_ID,
+                            capacityByModule = mapOf(
+                                PcSheetSemanticModule.TRAITS to V1_TRAIT_ROWS_PER_MODULE,
+                            ),
+                        ),
+                    ),
+                ),
+            )
+        } else {
+            listOf(
+                PcSheetExtendedLayoutTemplate(
+                    id = V1_TRAIT_DOUBLE_LAYOUT_ID,
+                    slots = listOf(
+                        PcSheetExtendedLayoutSlot(
+                            id = V1_TRAIT_TOP_SLOT_ID,
+                            capacityByModule = mapOf(
+                                PcSheetSemanticModule.TRAITS to V1_TRAIT_ROWS_PER_MODULE,
+                            ),
+                        ),
+                        PcSheetExtendedLayoutSlot(
+                            id = V1_TRAIT_BOTTOM_SLOT_ID,
+                            capacityByModule = mapOf(
+                                PcSheetSemanticModule.TRAITS to V1_TRAIT_ROWS_PER_MODULE,
+                            ),
+                        ),
+                    ),
+                ),
+            )
+        }
+
     private fun renderTraitsPage(
         page: PDPage,
-        classNames: List<String>,
-        raceNames: List<String>,
-        featNames: List<String>,
-        proficiencies: List<String>,
-        languages: List<String>,
-        otherNames: List<String>,
-        detailLines: List<String>,
-        noteLines: List<String>,
+        topLines: List<V1TraitFlowLine>,
+        bottomLines: List<V1TraitFlowLine>,
         pageIndex: Int,
     ) {
         val prefix = "V1X TRAITS P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            s.drawForm(resources.forms[2])
-        }
-        appendLayer(page, "$prefix - CLEANUP") { s ->
-            headingInteriorMask(s, 24f, 66f, 156f, 35f)
-            headingInteriorMask(s, 24f, 205f, 156f, 35f)
-            headingInteriorMask(s, 24f, 344f, 156f, 35f)
-            headingInteriorMask(s, 24f, 483f, 156f, 35f)
-            headingInteriorMask(s, 24f, 621f, 156f, 35f)
-            headingInteriorMask(s, 215f, 344f, 369f, 35f)
-        }
-        appendLayer(page, "$prefix - LABELS") { s ->
-            centeredText(s, resources.heading, 24f, 66f, 156f, 35f, "Rasgos de Clase", 18f)
-            centeredText(s, resources.heading, 24f, 205f, 156f, 35f, "Rasgos de Raza", 18f)
-            centeredText(s, resources.heading, 24f, 344f, 156f, 35f, "Dotes", 18f)
-            centeredText(s, resources.heading, 24f, 483f, 156f, 35f, "Competencias", 18f)
-            centeredText(s, resources.heading, 24f, 621f, 156f, 35f, "Idiomas", 18f)
-            centeredText(s, resources.heading, 215f, 344f, 369f, 35f, "Detalles de Rasgos", 18f)
-        }
-        appendLayer(page, "$prefix - VALUES") { s ->
-            drawRuledValues(s, 25f, 181f, TRAIT_CLASS_RULES, classNames, 8.6f)
-            drawRuledValues(s, 25f, 181f, TRAIT_RACE_RULES, raceNames, 8.6f)
-            drawRuledValues(s, 25f, 181f, TRAIT_FEAT_RULES, featNames, 8.6f)
-            drawRuledValues(s, 25f, 181f, TRAIT_PROF_RULES, proficiencies, 8.4f)
-            drawRuledValues(s, 25f, 181f, TRAIT_LANGUAGE_RULES, languages, 8.6f)
-
-            TRAIT_OTHER_COLUMNS.forEachIndexed { columnIndex, (startX, endX) ->
-                drawRuledValues(
-                    s,
-                    startX,
-                    endX,
-                    TRAIT_OTHER_RULES,
-                    otherNames
-                        .drop(columnIndex * TRAIT_OTHER_RULES.size)
-                        .take(TRAIT_OTHER_RULES.size),
-                    8.6f,
+            drawTranslatedSourceCrop(
+                s = s,
+                form = resources.forms[2],
+                sourceX = V1_TRAIT_SOURCE_X,
+                sourceTop = V1_TRAIT_SOURCE_TOP,
+                width = V1_TRAIT_MODULE_WIDTH,
+                height = V1_TRAIT_MODULE_HEIGHT,
+                targetX = V1_TRAIT_TARGET_X,
+                targetTop = V1_TRAIT_TARGET_TOPS[0],
+            )
+            if (bottomLines.isNotEmpty()) {
+                drawTranslatedSourceCrop(
+                    s = s,
+                    form = resources.forms[2],
+                    sourceX = V1_TRAIT_SOURCE_X,
+                    sourceTop = V1_TRAIT_SOURCE_TOP,
+                    width = V1_TRAIT_MODULE_WIDTH,
+                    height = V1_TRAIT_MODULE_HEIGHT,
+                    targetX = V1_TRAIT_TARGET_X,
+                    targetTop = V1_TRAIT_TARGET_TOPS[1],
                 )
             }
-
-            drawRuledValues(
-                s,
-                215.291f,
-                583.795f,
-                TRAIT_DETAIL_RULES,
-                detailLines,
-                8.5f,
-            )
-            drawRuledValues(
-                s,
-                215.291f,
-                583.795f,
-                TRAIT_NOTE_RULES,
-                noteLines,
-                8.4f,
-            )
+        }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            drawV1TraitModuleLines(s, topLines, V1_TRAIT_TARGET_TOPS[0])
+            if (bottomLines.isNotEmpty()) {
+                drawV1TraitModuleLines(s, bottomLines, V1_TRAIT_TARGET_TOPS[1])
+            }
         }
         appendLayer(page, "$prefix - MARKERS") { }
     }
 
-    private fun traitDetailLines(
-        plan: PcSheetPdfRenderPlan,
-        traits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
-    ): List<String> {
+    private fun drawV1TraitModuleLines(
+        s: PDFormContentStream,
+        lines: List<V1TraitFlowLine>,
+        targetTop: Float,
+    ) {
+        require(lines.size <= V1_TRAIT_ROWS_PER_MODULE) {
+            "Custom-v1 native Traits module exceeds its physical row capacity."
+        }
+        lines.forEachIndexed { index, line ->
+            if (line.kind == V1TraitFlowLineKind.BLANK || line.text.isBlank()) {
+                return@forEachIndexed
+            }
+            val columnIndex = index / V1_TRAIT_ROWS_PER_COLUMN
+            val rowIndex = index % V1_TRAIT_ROWS_PER_COLUMN
+            val (relativeStartX, relativeEndX) = V1_TRAIT_COLUMN_RANGES[columnIndex]
+            val rule = Rule(
+                startX = V1_TRAIT_TARGET_X + relativeStartX,
+                endX = V1_TRAIT_TARGET_X + relativeEndX,
+                topY = targetTop + V1_TRAIT_RULE_OFFSETS[rowIndex],
+            )
+            when (line.kind) {
+                V1TraitFlowLineKind.GROUP_HEADING ->
+                    ruleText(s, resources.firaSemibold, rule, line.text, V1_TRAIT_GROUP_SIZE)
+
+                V1TraitFlowLineKind.NAME ->
+                    ruleText(s, resources.firaSemibold, rule, line.text, V1_TRAIT_NAME_SIZE)
+
+                V1TraitFlowLineKind.DETAIL ->
+                    ruleText(s, resources.fira, rule, line.text, V1_TRAIT_DETAIL_SIZE)
+
+                V1TraitFlowLineKind.PROFICIENCY,
+                V1TraitFlowLineKind.SUPPLEMENT,
+                -> ruleText(s, resources.fira, rule, line.text, V1_TRAIT_META_SIZE)
+
+                V1TraitFlowLineKind.BLANK -> Unit
+            }
+        }
+    }
+
+    private fun traitFlowBlocks(plan: PcSheetPdfRenderPlan): List<V1TraitFlowBlock> {
         val sheet = plan.snapshot.aggregate.sheet
+        val orderedTraits = sheet.traits.sortedBy { it.sortOrder }
+        val baseVisibleTraitIds = orderedTraits
+            .take(BASE_V1_TRAIT_NAME_CAPACITY)
+            .mapTo(mutableSetOf()) { it.id }
         val resourceNames = sheet.resources
             .map { it.name.trim().lowercase() }
             .filter { it.isNotEmpty() }
@@ -530,40 +558,179 @@ internal class AndroidCustomV1ExtendedRenderer(
             .filter { it.isNotEmpty() }
             .toSet()
 
-        return traits.flatMap { trait ->
+        fun traitBlock(
+            trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+        ): V1TraitFlowBlock? {
             val normalizedName = trait.name.trim().lowercase()
             val hasDedicatedActionOrResource =
                 normalizedName in resourceNames || normalizedName in actionNames
-            if (hasDedicatedActionOrResource) {
-                // The name may remain visible on the base trait surface, but detailed use/action
-                // semantics are authoritative in Resources and Combat, not replayed here.
+            val detailParts = if (hasDedicatedActionOrResource) {
                 emptyList()
             } else {
-                val detail = buildList {
-                    trait.description.trim().takeIf { it.isNotEmpty() }?.let(::add)
-                    trait.source.trim().takeIf { it.isNotEmpty() }?.let(::add)
-                    trait.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                buildList {
+                    trait.description.trim().takeIf { it.isNotEmpty() }?.let {
+                        add(V1TraitFlowLineKind.DETAIL to it)
+                    }
+                    trait.source.trim().takeIf { it.isNotEmpty() }?.let {
+                        add(V1TraitFlowLineKind.DETAIL to "Fuente: $it")
+                    }
+                    trait.notes?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                        add(V1TraitFlowLineKind.DETAIL to "Notas: $it")
+                    }
                     trait.pcSheetWritableUsesTrackerOrNull()?.let { tracker ->
-                        add("Usos " + tracker.compactEditableLabel())
-                        trait.recovery?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
+                        add(V1TraitFlowLineKind.DETAIL to ("Usos " + tracker.compactEditableLabel()))
+                        trait.recovery?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                            add(V1TraitFlowLineKind.DETAIL to "Recuperación: $it")
+                        }
                     }
                     trait.activation
                         ?.takeIf { it != CharacterActivationType.PASSIVE }
-                        ?.let { add(activationLabel(it)) }
-                }.distinct().joinToString(" · ")
+                        ?.let {
+                            add(V1TraitFlowLineKind.DETAIL to "Activación: " + activationLabel(it))
+                        }
+                }.distinct()
+            }
 
-                if (detail.isBlank()) {
-                    emptyList()
-                } else {
-                    wrapByWidth(
-                        trait.name + ": " + detail,
-                        resources.fira,
-                        8.4f,
-                        TRAIT_RIGHT_TEXT_WIDTH,
-                    )
+            val nameNeedsContinuation = trait.id !in baseVisibleTraitIds
+            if (!nameNeedsContinuation && detailParts.isEmpty()) return null
+
+            val lines = mutableListOf<V1TraitFlowLine>()
+            wrapByWidth(
+                trait.name,
+                resources.firaSemibold,
+                V1_TRAIT_NAME_SIZE,
+                V1_TRAIT_NATIVE_TEXT_WIDTH,
+            ).forEach { line ->
+                lines += V1TraitFlowLine(V1TraitFlowLineKind.NAME, line)
+            }
+            detailParts.forEach { (kind, value) ->
+                wrapByWidth(
+                    value,
+                    resources.fira,
+                    V1_TRAIT_DETAIL_SIZE,
+                    V1_TRAIT_NATIVE_TEXT_WIDTH,
+                ).forEach { line ->
+                    lines += V1TraitFlowLine(kind, line)
                 }
             }
+            require(lines.size <= V1_TRAIT_ROWS_PER_MODULE) {
+                "Custom-v1 trait record '${trait.name}' exceeds one native Traits module; " +
+                    "explicit record continuation is required before owner handoff."
+            }
+            return V1TraitFlowBlock(lines)
         }
+
+        val blocks = mutableListOf<V1TraitFlowBlock>()
+        val categories = listOf(
+            "CLASE" to setOf(CharacterTraitType.CLASS),
+            "DOTES" to setOf(CharacterTraitType.FEAT),
+            "RAZA" to setOf(CharacterTraitType.SPECIES_RACE),
+            "TRASFONDO / DON / OTRO" to setOf(
+                CharacterTraitType.BACKGROUND,
+                CharacterTraitType.GIFT_BLESSING,
+                CharacterTraitType.OTHER,
+            ),
+        )
+
+        categories.forEach { (heading, types) ->
+            val categoryBlocks = orderedTraits
+                .filter { it.type in types }
+                .mapNotNull(::traitBlock)
+            if (categoryBlocks.isNotEmpty()) {
+                blocks += categoryBlocks.first().copy(
+                    lines = listOf(
+                        V1TraitFlowLine(V1TraitFlowLineKind.GROUP_HEADING, heading),
+                    ) + categoryBlocks.first().lines,
+                )
+                blocks += categoryBlocks.drop(1)
+            }
+        }
+
+        fun appendReferenceGroup(
+            heading: String,
+            kind: V1TraitFlowLineKind,
+            rawLines: List<String>,
+        ) {
+            val physical = rawLines.flatMap { value ->
+                wrapByWidth(
+                    value,
+                    resources.fira,
+                    V1_TRAIT_META_SIZE,
+                    V1_TRAIT_NATIVE_TEXT_WIDTH,
+                )
+            }
+            if (physical.isEmpty()) return
+            blocks += V1TraitFlowBlock(
+                lines = listOf(
+                    V1TraitFlowLine(V1TraitFlowLineKind.GROUP_HEADING, heading),
+                    V1TraitFlowLine(kind, physical.first()),
+                ),
+            )
+            physical.drop(1).forEach { line ->
+                blocks += V1TraitFlowBlock(
+                    listOf(V1TraitFlowLine(kind, line)),
+                )
+            }
+        }
+
+        appendReferenceGroup(
+            heading = "COMPETENCIAS",
+            kind = V1TraitFlowLineKind.PROFICIENCY,
+            rawLines = proficiencyLines(
+                sheet.proficiencies.filter { it.type != CharacterProficiencyType.LANGUAGE },
+            ),
+        )
+        appendReferenceGroup(
+            heading = "IDIOMAS",
+            kind = V1TraitFlowLineKind.PROFICIENCY,
+            rawLines = proficiencyLines(
+                sheet.proficiencies.filter { it.type == CharacterProficiencyType.LANGUAGE },
+            ),
+        )
+        appendReferenceGroup(
+            heading = "REFERENCIAS",
+            kind = V1TraitFlowLineKind.SUPPLEMENT,
+            rawLines = traitSupplementLines(plan),
+        )
+
+        return blocks
+    }
+
+    private fun packV1TraitFlow(
+        blocks: List<V1TraitFlowBlock>,
+    ): List<V1TraitFlowLine> {
+        if (blocks.isEmpty()) return emptyList()
+
+        val packed = mutableListOf<V1TraitFlowLine>()
+
+        fun pad(count: Int) {
+            repeat(count) {
+                packed += V1TraitFlowLine(V1TraitFlowLineKind.BLANK, "")
+            }
+        }
+
+        blocks.forEach { block ->
+            if (block.lines.isEmpty()) return@forEach
+            require(block.lines.size <= V1_TRAIT_ROWS_PER_MODULE) {
+                "Custom-v1 Traits block exceeds one native module."
+            }
+
+            val moduleOffset = packed.size % V1_TRAIT_ROWS_PER_MODULE
+            val columnOffset = moduleOffset % V1_TRAIT_ROWS_PER_COLUMN
+
+            if (block.lines.size <= V1_TRAIT_ROWS_PER_COLUMN) {
+                val rowsLeftInColumn = V1_TRAIT_ROWS_PER_COLUMN - columnOffset
+                if (block.lines.size > rowsLeftInColumn) {
+                    pad(rowsLeftInColumn)
+                }
+            } else if (moduleOffset != 0) {
+                pad(V1_TRAIT_ROWS_PER_MODULE - moduleOffset)
+            }
+
+            packed += block.lines
+        }
+
+        return packed
     }
 
     private fun traitSupplementLines(plan: PcSheetPdfRenderPlan): List<String> {
@@ -2897,6 +3064,24 @@ internal class AndroidCustomV1ExtendedRenderer(
         val lines: List<String>,
     )
 
+    private enum class V1TraitFlowLineKind {
+        GROUP_HEADING,
+        NAME,
+        DETAIL,
+        PROFICIENCY,
+        SUPPLEMENT,
+        BLANK,
+    }
+
+    private data class V1TraitFlowLine(
+        val kind: V1TraitFlowLineKind,
+        val text: String,
+    )
+
+    private data class V1TraitFlowBlock(
+        val lines: List<V1TraitFlowLine>,
+    )
+
     private data class ModuleSlice(
         val title: String,
         val score: String,
@@ -3034,7 +3219,41 @@ internal class AndroidCustomV1ExtendedRenderer(
         val V1_NARRATIVE_TARGET_TOPS = listOf(66f, 344f, 566f)
         val V1_NARRATIVE_RULE_OFFSETS = listOf(43.996f, 63.839f, 83.681f, 103.524f)
 
-        const val BASE_V1_TRAIT_NAME_CAPACITY = 6
+        // Custom-v1 base renders six names on page 1 and another 24 in the native
+        // "Otros Rasgos y Atributos" module on page 3.
+        const val BASE_V1_TRAIT_NAME_CAPACITY = 30
+
+        // Native page-3 "Otros Rasgos y Atributos" module: two columns x 12 ruled rows.
+        // Repeat/copy the exact module without resizing; coordinates may translate on blank
+        // Extended pages while preserving its source geometry and paper rhythm.
+        const val V1_TRAIT_SINGLE_LAYOUT_ID = "v1-native-traits-single"
+        const val V1_TRAIT_DOUBLE_LAYOUT_ID = "v1-native-traits-double"
+        const val V1_TRAIT_TOP_SLOT_ID = "v1-traits-top"
+        const val V1_TRAIT_BOTTOM_SLOT_ID = "v1-traits-bottom"
+        const val V1_TRAIT_SOURCE_X = 215.291f
+        const val V1_TRAIT_SOURCE_TOP = 66f
+        const val V1_TRAIT_MODULE_WIDTH = 368.504f
+        const val V1_TRAIT_MODULE_HEIGHT = 278f
+        const val V1_TRAIT_TARGET_X = 121.748f
+        const val V1_TRAIT_ROWS_PER_COLUMN = 12
+        const val V1_TRAIT_COLUMNS_PER_MODULE = 2
+        const val V1_TRAIT_ROWS_PER_MODULE =
+            V1_TRAIT_ROWS_PER_COLUMN * V1_TRAIT_COLUMNS_PER_MODULE
+        const val V1_TRAIT_NATIVE_TEXT_WIDTH = 177f
+        const val V1_TRAIT_GROUP_SIZE = 7.7f
+        const val V1_TRAIT_NAME_SIZE = 8.2f
+        const val V1_TRAIT_DETAIL_SIZE = 7.5f
+        const val V1_TRAIT_META_SIZE = 7.3f
+        val V1_TRAIT_TARGET_TOPS = listOf(66f, 390f)
+        val V1_TRAIT_RULE_OFFSETS = listOf(
+            43.5f, 63.5f, 83.5f, 103f, 123f, 143f,
+            163f, 182.5f, 202.5f, 222.5f, 242f, 262f,
+        )
+        val V1_TRAIT_COLUMN_RANGES = listOf(
+            0f to 181.417f,
+            187.087f to 368.504f,
+        )
+
         const val TRAIT_LEFT_ROWS = 3
         const val TRAIT_OTHER_CAPACITY = 12
         const val TRAIT_DETAIL_ROWS = 4
