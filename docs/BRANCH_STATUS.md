@@ -1,6 +1,6 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-09-30 (Chile local time)  
+**Updated:** 2026-10-06 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified functional `main`:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — **Phase 3 renderer repair implementation ACTIVE**. Phase 2 is COMPLETE/PUBLISHED; M50800-01…32 have final dispositions and no owner-intent questions remain. Active implementation begins with shared semantic-flow contracts, then native-module contracts, global Extended-page composition, family integration and exact-candidate proof.**
+**Current normal work:** PC Sheet PDF Export — **Phase 3 ACTIVE / green through Custom-v2 Inventory**. Shared semantic-flow/native-module/compositor contracts are green; Custom-v2 Inventory is green at `d9032bc7...` / Scaffold #4499. **Next package: M50800-27 production integration of the global Extended-page compositor.** Remaining exact-candidate/owner gates stay blocked.**
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -109,18 +109,21 @@ After a closure merges, normal implementation starts from current `main`; do not
 **Historical repair evidence:** `repair/pc-sheet-adaptive-continuations-cross-family` at `ce695c...` remains evidence for reusable primitives identified by the Phase-2 burn-down; it is not acceptance authority and must not be resumed wholesale.
 
 Current authority:
-- canonical checkpoint: `docs/checkpoints/2026-09-30_MARA_PHASE3_IMPLEMENTATION.md`;
+- canonical resume checkpoint: `docs/checkpoints/2026-10-06_MARA_PHASE3_POST_INVENTORY_GREEN.md`;
+- Phase-3 implementation authority: `docs/checkpoints/2026-09-30_MARA_PHASE3_IMPLEMENTATION.md`;
 - binding owner-intent burn-down: `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md`;
 - acceptance matrix: `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`;
 - Phase-1 provenance: owner-tested 50800 APK = `15f86ec...` / SHA-256 `ff367e...`;
 - do not reuse `0.5.0-preqa.8 / 50800`;
 - Current Snapshot and Media/Handouts remain blocked.
 
-Phase-3 first package:
-1. semantic module identity/association;
-2. bidirectional continuation metadata;
-3. compact writable tracker semantics;
-4. no-semantic-ellipsis text-flow policy.
+Phase-3 validated package state:
+1. shared semantic-flow contracts — GREEN;
+2. native-module contracts — GREEN;
+3. global Extended-page composer contract — GREEN;
+4. substantial family integration — GREEN checkpoints;
+5. Custom-v2 Inventory native/semantic package — GREEN at `d9032bc7...` / Scaffold #4499;
+6. current next package — wire the global compositor into actual family production rendering (M50800-27).
 
 No owner visual handoff occurs until exact-candidate all-four-family internal acceptance passes.
 

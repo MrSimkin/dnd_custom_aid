@@ -1,11 +1,11 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-09-30 (Chile local time)  
+**Updated:** 2026-10-06 (Chile local time)  
 **Normal integrated trunk:** `main`  
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-30_MARA_PHASE3_INTERRUPTION_RECOVERY.md`  
-**Current active route:** Phase 3 Mara renderer repair implementation is **ACTIVE / RECOVERY-CONSOLIDATED** on `repair/mara-phase3-semantic-flow-compositor`. Shared contracts + compositor and substantial family integration are already implemented. Latest validated code comparison point is `5281a9db...` / Scaffold #4488 PASS; the current implementation code head `5e041cc8...` adds Custom-v2 ordinary/Special Equipment semantic separation but is compile-red because Inventory geometry/continuation constants are referenced but not yet declared. Resume from the interruption-recovery checkpoint; do not replay already-published commits.  
+**Canonical active checkpoint:** `docs/checkpoints/2026-10-06_MARA_PHASE3_POST_INVENTORY_GREEN.md`  
+**Current active route:** Phase 3 is **ACTIVE / REPOSITORY-GREEN THROUGH CUSTOM-V2 INVENTORY** on `repair/mara-phase3-semantic-flow-compositor`. Custom-v2 Inventory semantic separation, native ordinary Equipment columns, native-geometry Special Equipment fallback and exhausted-submodule release are green at `d9032bc7...` / Scaffold #4499 SUCCESS. **Next active gap: M50800-27 — production integration of the already-green global Extended-page compositor.** Owner candidate remains blocked pending remaining Phase-3 work and exact four-family Mara inspection.  
 **Completed audit branch:** `audit/mara-phase2-existing-repair` — historical only after Phase-2 publication.  
 **Current implementation branch:** `repair/mara-phase3-semantic-flow-compositor`; implementation PR not yet opened.  
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
@@ -15,7 +15,8 @@
 1. `AGENTS.md`;
 2. `RESUME.md`;
 3. this file;
-4. `docs/checkpoints/2026-09-30_MARA_PHASE3_INTERRUPTION_RECOVERY.md` — exact current recovery state / next authorized action;
+4. `docs/checkpoints/2026-10-06_MARA_PHASE3_POST_INVENTORY_GREEN.md` — exact current recovery state / next authorized action;
+5. `docs/checkpoints/2026-09-30_MARA_PHASE3_INTERRUPTION_RECOVERY.md` — historical interruption snapshot / recovery provenance;
 5. `docs/checkpoints/2026-09-30_MARA_PHASE3_IMPLEMENTATION.md` — Phase-3 implementation authority and green package history;
 6. `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md` — final M50800-01…32 owner-intent burn-down;
 7. `docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md`;
