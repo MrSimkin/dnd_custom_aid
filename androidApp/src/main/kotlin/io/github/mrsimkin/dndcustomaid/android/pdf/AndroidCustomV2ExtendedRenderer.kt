@@ -935,7 +935,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                 remainingUnits = columns.size,
             ),
         )
-        var columnOffset = 0
+        val remainingColumns = columns.toMutableList()
         var pageIndex = 0
 
         while (demands.isNotEmpty()) {
@@ -958,7 +958,11 @@ internal class AndroidCustomV2ExtendedRenderer(
                 check(placement.consumedUnits == 1) {
                     "Custom-v2 Traits native-column placement must consume exactly one column."
                 }
-                placement.slotId to columns[columnOffset++]
+                val preferredIndex = remainingColumns.indexOfFirst { column ->
+                    column.preferredSlotId == placement.slotId
+                }
+                val selectedIndex = if (preferredIndex >= 0) preferredIndex else 0
+                placement.slotId to remainingColumns.removeAt(selectedIndex)
             }
 
             val page = PDPage(PDRectangle(W, H))
@@ -973,7 +977,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             pageIndex += 1
         }
 
-        check(columnOffset == columns.size) {
+        check(remainingColumns.isEmpty()) {
             "Custom-v2 Traits compositor did not consume every packed native column."
         }
     }
@@ -1019,27 +1023,37 @@ internal class AndroidCustomV2ExtendedRenderer(
         }
         val rightTraits = traits.filterNot { it in leftTraits }
 
-        val blocks = mutableListOf<TraitNativeBlock>()
+        val leftBlocks = mutableListOf<TraitNativeBlock>()
+        val rightBlocks = mutableListOf<TraitNativeBlock>()
 
         fun addTraitGroup(
+            target: MutableList<TraitNativeBlock>,
             heading: String,
             groupedTraits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
         ) {
             if (groupedTraits.isEmpty()) return
-            blocks += TraitNativeBlock(
+            target += TraitNativeBlock(
                 lines = listOf(
                     TraitNativeFlowLine(heading, TraitNativeFlowLineKind.GROUP_HEADING),
                 ),
             )
-            blocks += groupedTraits.map(::traitNativeBlock)
+            target += groupedTraits.map(::traitNativeBlock)
         }
 
-        addTraitGroup("CLASE / DOTES", leftTraits)
-        addTraitGroup("RAZA / TRASFONDO / OTROS", rightTraits)
+        addTraitGroup(leftBlocks, "CLASE / DOTES", leftTraits)
+        addTraitGroup(rightBlocks, "RAZA / TRASFONDO / OTROS", rightTraits)
 
         val proficiencies = sheet.proficiencies.sortedBy { it.sortOrder }
         if (proficiencies.isNotEmpty()) {
-            val proficiencyBlocks = proficiencies.map { proficiency ->
+            leftBlocks += TraitNativeBlock(
+                lines = listOf(
+                    TraitNativeFlowLine(
+                        "COMPETENCIAS / IDIOMAS",
+                        TraitNativeFlowLineKind.GROUP_HEADING,
+                    ),
+                ),
+            )
+            leftBlocks += proficiencies.map { proficiency ->
                 val label = buildString {
                     append(proficiency.name)
                     proficiency.source?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
@@ -1055,15 +1069,6 @@ internal class AndroidCustomV2ExtendedRenderer(
                         TraitNativeFlowLine("", TraitNativeFlowLineKind.SEPARATOR),
                 )
             }
-            blocks += TraitNativeBlock(
-                lines = listOf(
-                    TraitNativeFlowLine(
-                        "COMPETENCIAS / IDIOMAS",
-                        TraitNativeFlowLineKind.GROUP_HEADING,
-                    ),
-                ),
-            )
-            blocks += proficiencyBlocks
         }
 
         val supplementLines = traitSupplementLines(plan)
@@ -1071,7 +1076,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             supplementLines
                 .chunked(TRAIT_NATIVE_ROWS_PER_COLUMN - 1)
                 .forEachIndexed { index, chunk ->
-                    blocks += TraitNativeBlock(
+                    rightBlocks += TraitNativeBlock(
                         lines = listOf(
                             TraitNativeFlowLine(
                                 if (index == 0) "DETALLES / NOTAS" else "DETALLES / NOTAS (CONT.)",
@@ -1079,7 +1084,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                             ),
                         ),
                     )
-                    blocks += TraitNativeBlock(
+                    rightBlocks += TraitNativeBlock(
                         lines = chunk.map {
                             TraitNativeFlowLine(it, TraitNativeFlowLineKind.SUPPLEMENT)
                         },
@@ -1087,7 +1092,13 @@ internal class AndroidCustomV2ExtendedRenderer(
                 }
         }
 
-        return packTraitNativeColumns(blocks)
+        return packTraitNativeColumns(
+            blocks = leftBlocks,
+            preferredSlotId = TRAIT_LEFT_SLOT_ID,
+        ) + packTraitNativeColumns(
+            blocks = rightBlocks,
+            preferredSlotId = TRAIT_RIGHT_SLOT_ID,
+        )
     }
 
     private fun traitNativeBlock(
@@ -1154,6 +1165,7 @@ internal class AndroidCustomV2ExtendedRenderer(
 
     private fun packTraitNativeColumns(
         blocks: List<TraitNativeBlock>,
+        preferredSlotId: String,
     ): List<TraitNativeColumn> {
         val columns = mutableListOf<TraitNativeColumn>()
         var current = mutableListOf<TraitNativeFlowLine>()
@@ -1164,6 +1176,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         fun flush() {
             if (current.isNotEmpty()) {
                 columns += TraitNativeColumn(
+                    preferredSlotId = preferredSlotId,
                     heading = currentHeading ?: activeHeading,
                     lines = current.toList(),
                 )
@@ -3849,6 +3862,7 @@ internal class AndroidCustomV2ExtendedRenderer(
     )
 
     private data class TraitNativeColumn(
+        val preferredSlotId: String,
         val heading: String?,
         val lines: List<TraitNativeFlowLine>,
     )
