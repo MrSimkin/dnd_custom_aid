@@ -1909,6 +1909,10 @@ class DesktopPcSheetWholeDraftRendererTest {
             "Five Fantasy Resource rows must reclaim the released Options frame.",
         )
         assertTrue(resourcePages.single().contains("Recurso compositor Fantasy QA 5"))
+        assertFalse(
+            resourcePages.single().contains("..."),
+            "Fantasy Resource identities must wrap rather than ellipsize.",
+        )
         assertTrue(resourcePages.single().contains("RECURSOS"))
         assertFalse(
             resourcePages.single().contains("OPCIONES Y ESTADOS RELEVANTES"),
@@ -1939,6 +1943,10 @@ class DesktopPcSheetWholeDraftRendererTest {
             "Five Fantasy Option rows must reclaim the released Resources frame.",
         )
         assertTrue(optionPages.single().contains("Opción compositor Fantasy QA 5"))
+        assertFalse(
+            optionPages.single().contains("..."),
+            "Fantasy Class Choice identities must wrap rather than ellipsize.",
+        )
         assertTrue(optionPages.single().contains("OPCIONES Y ESTADOS RELEVANTES"))
         assertFalse(
             optionPages.single().contains("RECURSOS"),

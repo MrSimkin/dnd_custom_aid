@@ -1320,40 +1320,44 @@ internal class DesktopClassicRenderer {
         val cleanName = name.trim()
         val cleanRecovery = recovery.trim()
         val cleanSource = source.trim()
-        val projectedName = classicSingleLineExcerpt(cleanName, CLASSIC_RESOURCE_NAME_CHARS)
+        val nameChunks = wrapForChars(cleanName, CLASSIC_RESOURCE_NAME_CHARS)
+            .chunked(CLASSIC_RESOURCE_NAME_LINES_PER_ROW)
+            .map { it.joinToString("\n") }
+            .ifEmpty { listOf("") }
+        val sourceChunks = wrapForChars(cleanSource, CLASSIC_RESOURCE_SOURCE_CHARS)
+            .chunked(CLASSIC_RESOURCE_SOURCE_LINES_PER_ROW)
+            .map { it.joinToString("\n") }
+            .ifEmpty { listOf("") }
         val projectedRecovery = classicBaseExcerpt(
             cleanRecovery,
             CLASSIC_RESOURCE_RECOVERY_CHARS,
             CLASSIC_RESOURCE_NOTE_LINES,
         )
-        val projectedSource = classicSingleLineExcerpt(cleanSource, CLASSIC_RESOURCE_SOURCE_CHARS)
         val detailText = buildList {
             notes.trim().takeIf { it.isNotEmpty() }?.let(::add)
-            if (cleanName.length > CLASSIC_RESOURCE_NAME_CHARS) add("Nombre completo: $cleanName")
             if (
                 wrapForChars(cleanRecovery, CLASSIC_RESOURCE_RECOVERY_CHARS).size >
                 CLASSIC_RESOURCE_NOTE_LINES
             ) {
                 add("Recuperación completa: $cleanRecovery")
             }
-            if (cleanSource.length > CLASSIC_RESOURCE_SOURCE_CHARS) add("Fuente completa: $cleanSource")
         }.joinToString(" · ")
         val noteChunks = wrapForChars(detailText, CLASSIC_RESOURCE_NOTE_CHARS)
             .chunked(CLASSIC_RESOURCE_NOTE_LINES)
             .map { it.joinToString("\n") }
             .ifEmpty { listOf("") }
-        return noteChunks.mapIndexed { index, note ->
+        val physicalRows = maxOf(nameChunks.size, sourceChunks.size, noteChunks.size, 1)
+
+        return (0 until physicalRows).map { index ->
             ClassicResourceRow(
-                name = if (index == 0) {
-                    projectedName
-                } else {
-                    classicSingleLineExcerpt("$projectedName (cont.)", CLASSIC_RESOURCE_NAME_CHARS)
+                name = nameChunks.getOrNull(index).orEmpty().let { chunk ->
+                    if (index == 0 || chunk.isEmpty()) chunk else "  $chunk"
                 },
                 value = value.takeIf { index == 0 }.orEmpty(),
                 oneUseAvailable = oneUseAvailable.takeIf { index == 0 },
                 recovery = projectedRecovery.takeIf { index == 0 }.orEmpty(),
-                source = projectedSource.takeIf { index == 0 }.orEmpty(),
-                notes = note,
+                source = sourceChunks.getOrNull(index).orEmpty(),
+                notes = noteChunks.getOrNull(index).orEmpty(),
             )
         }
     }
@@ -1364,33 +1368,39 @@ internal class DesktopClassicRenderer {
             .flatMap { option ->
                 val cleanName = option.name.trim()
                 val cleanSource = option.source.orEmpty().trim()
-                val projectedName = classicSingleLineExcerpt(cleanName, CLASSIC_OPTION_NAME_CHARS)
-                val projectedSource = classicSingleLineExcerpt(cleanSource, CLASSIC_OPTION_SOURCE_CHARS)
+                val nameChunks = wrapForChars(cleanName, CLASSIC_OPTION_NAME_CHARS)
+                    .chunked(CLASSIC_OPTION_NAME_LINES_PER_ROW)
+                    .map { it.joinToString("\n") }
+                    .ifEmpty { listOf("") }
+                val sourceChunks = wrapForChars(cleanSource, CLASSIC_OPTION_SOURCE_CHARS)
+                    .chunked(CLASSIC_OPTION_SOURCE_LINES_PER_ROW)
+                    .map { it.joinToString("\n") }
+                    .ifEmpty { listOf("") }
                 val description = buildList {
-                    if (cleanName.length > CLASSIC_OPTION_NAME_CHARS) add("Nombre completo: $cleanName")
-                    if (cleanSource.length > CLASSIC_OPTION_SOURCE_CHARS) add("Fuente completa: $cleanSource")
                     add("Tipo: " + optionKindLabel(option.kind))
                     option.effectSummary.trim().takeIf { it.isNotEmpty() }?.let(::add)
                     option.costText?.trim()?.takeIf { it.isNotEmpty() }?.let { add("Coste: $it") }
                     if (!option.active) add("Inactiva")
                     option.notes?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
                 }.joinToString(" · ")
-                val chunks = wrapForChars(description, CLASSIC_OPTION_DETAIL_CHARS)
+                val detailChunks = wrapForChars(description, CLASSIC_OPTION_DETAIL_CHARS)
                     .chunked(CLASSIC_OPTION_DETAIL_LINES)
                     .map { it.joinToString("\n") }
                     .ifEmpty { listOf("") }
-                chunks.mapIndexed { index, chunk ->
+                val physicalRows = maxOf(
+                    nameChunks.size,
+                    sourceChunks.size,
+                    detailChunks.size,
+                    1,
+                )
+
+                (0 until physicalRows).map { index ->
                     ClassicOptionRow(
-                        name = if (index == 0) {
-                            projectedName
-                        } else {
-                            classicSingleLineExcerpt(
-                                "$projectedName (cont.)",
-                                CLASSIC_OPTION_NAME_CHARS,
-                            )
+                        name = nameChunks.getOrNull(index).orEmpty().let { chunk ->
+                            if (index == 0 || chunk.isEmpty()) chunk else "  $chunk"
                         },
-                        source = projectedSource.takeIf { index == 0 }.orEmpty(),
-                        description = chunk,
+                        source = sourceChunks.getOrNull(index).orEmpty(),
+                        description = detailChunks.getOrNull(index).orEmpty(),
                     )
                 }
             }
@@ -3322,15 +3332,21 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         description: String,
     ) {
         text(
-            s, p, x, top, 196f, 18f,
-            classicSingleLineExcerpt(name, CLASSIC_OPTION_NAME_CHARS),
+            s, p, x, top, 196f, 48f,
+            name,
             PdfTypographyRole.SPELL_NAME, 9f, 7.8f,
+            wrap = true,
+            maxLines = CLASSIC_OPTION_NAME_LINES_PER_ROW,
+            vertical = PdfVerticalAlignment.TOP,
         )
         text(
-            s, p, x + 202f, top, 118f, 18f,
-            classicSingleLineExcerpt(source, CLASSIC_OPTION_SOURCE_CHARS),
+            s, p, x + 202f, top, 118f, 48f,
+            source,
             PdfTypographyRole.OPTIONAL_DECORATIVE, 7.2f, 6.2f,
+            wrap = true,
+            maxLines = CLASSIC_OPTION_SOURCE_LINES_PER_ROW,
             align = PdfHorizontalAlignment.CENTER,
+            vertical = PdfVerticalAlignment.TOP,
         )
         text(
             s, p, x + 326f, top, width - 326f, 48f,
@@ -3367,25 +3383,31 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         row: ClassicResourceRow,
     ) {
         val values = listOf(
-            classicSingleLineExcerpt(row.name, CLASSIC_RESOURCE_NAME_CHARS),
+            row.name,
             row.value,
             classicBaseExcerpt(
                 row.recovery,
                 CLASSIC_RESOURCE_RECOVERY_CHARS,
                 CLASSIC_RESOURCE_NOTE_LINES,
             ),
-            classicSingleLineExcerpt(row.source, CLASSIC_RESOURCE_SOURCE_CHARS),
+            row.source,
             row.notes,
         )
         val widths = listOf(162f, 68f, 104f, 72f, 134f)
         var cursor = x
         values.forEachIndexed { index, value ->
+            val semanticIdentityColumn = index == 0 || index == 3
             text(
                 s, p, cursor + 3f, top, widths[index] - 6f, 40f, value,
                 if (index == 0) PdfTypographyRole.SPELL_NAME else PdfTypographyRole.BODY,
                 if (index == 0) 8.2f else 7.6f, 6.5f,
-                wrap = index == 2 || index == 4,
-                maxLines = if (index == 2 || index == 4) CLASSIC_RESOURCE_NOTE_LINES else 1,
+                wrap = semanticIdentityColumn || index == 2 || index == 4,
+                maxLines = when (index) {
+                    0 -> CLASSIC_RESOURCE_NAME_LINES_PER_ROW
+                    3 -> CLASSIC_RESOURCE_SOURCE_LINES_PER_ROW
+                    2, 4 -> CLASSIC_RESOURCE_NOTE_LINES
+                    else -> 1
+                },
                 align = if (index == 1) PdfHorizontalAlignment.CENTER else PdfHorizontalAlignment.LEFT,
                 vertical = PdfVerticalAlignment.TOP,
             )
@@ -3887,13 +3909,17 @@ private fun ruledTextArea(
         const val CLASSIC_RESOURCE_FULL_LAYOUT_ID = "fantasy-resources-full"
         const val CLASSIC_OPTION_FULL_LAYOUT_ID = "fantasy-options-full"
         const val CLASSIC_RESOURCE_NAME_CHARS = 24
+        const val CLASSIC_RESOURCE_NAME_LINES_PER_ROW = 2
         const val CLASSIC_RESOURCE_RECOVERY_CHARS = 18
         const val CLASSIC_RESOURCE_SOURCE_CHARS = 12
+        const val CLASSIC_RESOURCE_SOURCE_LINES_PER_ROW = 2
         const val CLASSIC_RESOURCE_NOTE_CHARS = 30
         const val CLASSIC_RESOURCE_NOTE_LINES = 2
         const val CLASSIC_OPTION_ROWS_PER_PAGE = 3
         const val CLASSIC_OPTION_NAME_CHARS = 28
+        const val CLASSIC_OPTION_NAME_LINES_PER_ROW = 2
         const val CLASSIC_OPTION_SOURCE_CHARS = 18
+        const val CLASSIC_OPTION_SOURCE_LINES_PER_ROW = 2
         const val CLASSIC_OPTION_DETAIL_CHARS = 48
         const val CLASSIC_OPTION_DETAIL_LINES = 3
         const val CLASSIC_INVENTORY_ROWS_PER_PAGE = 12
