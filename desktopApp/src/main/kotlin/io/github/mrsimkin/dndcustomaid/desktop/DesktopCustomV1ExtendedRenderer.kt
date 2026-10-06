@@ -82,6 +82,7 @@ internal class DesktopCustomV1ExtendedRenderer(
         ) {
             appendCustomStatisticsPages(plan)
         }
+        appendNarrativeExtendedPages(plan)
         if (needsTraitsExtendedPage(plan)) {
             appendTraitsExtendedPages(plan)
         }
@@ -151,6 +152,218 @@ internal class DesktopCustomV1ExtendedRenderer(
                 pageIndex = pageIndex,
             )
         }
+    }
+
+    private fun appendNarrativeExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val modules = narrativeContinuationModules(plan)
+        if (modules.isEmpty()) return
+
+        var demands = listOf(
+            PcSheetModuleDemand(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                remainingUnits = modules.size,
+            ),
+        )
+        var moduleOffset = 0
+        var pageIndex = 0
+
+        while (demands.isNotEmpty()) {
+            val step = requireNotNull(
+                PcSheetExtendedPageComposer.composeNextPage(
+                    demands = demands,
+                    layouts = listOf(customV1NarrativeLayout()),
+                ),
+            )
+            val consumed = step.page.placements
+                .filter { it.module == PcSheetSemanticModule.BACKGROUND_STORY }
+                .sumOf { it.consumedUnits }
+            val pageModules = modules.drop(moduleOffset).take(consumed)
+            check(pageModules.isNotEmpty()) {
+                "Custom-v1 narrative compositor produced an empty BACKGROUND_STORY page."
+            }
+
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderNarrativeContinuationPage(
+                page = page,
+                modules = pageModules,
+                pageIndex = pageIndex,
+            )
+
+            moduleOffset += consumed
+            demands = step.remainingDemands
+            pageIndex += 1
+        }
+
+        check(moduleOffset == modules.size) {
+            "Custom-v1 narrative compositor did not consume every native narrative module."
+        }
+    }
+
+    private fun customV1NarrativeLayout(): PcSheetExtendedLayoutTemplate =
+        PcSheetExtendedLayoutTemplate(
+            id = V1_NARRATIVE_LAYOUT_ID,
+            slots = (0 until V1_NARRATIVE_MODULES_PER_PAGE).map { index ->
+                PcSheetExtendedLayoutSlot(
+                    id = "v1-narrative-$index",
+                    capacityByModule = mapOf(PcSheetSemanticModule.BACKGROUND_STORY to 1),
+                )
+            },
+        )
+
+    private fun narrativeContinuationModules(
+        plan: PcSheetPdfRenderPlan,
+    ): List<V1NarrativeModule> {
+        val background = plan.snapshot.aggregate.sheet.background
+        val modules = mutableListOf<V1NarrativeModule>()
+
+        fun addOverflow(
+            heading: String,
+            text: String,
+            baseWidth: Float,
+            baseRows: Int,
+        ) {
+            val clean = text.trim()
+            if (clean.isEmpty()) return
+            val baseLines = wrapByWidth(
+                clean,
+                resources.fira,
+                V1_NARRATIVE_BASE_SIZE,
+                baseWidth,
+            )
+            if (baseLines.size <= baseRows) return
+
+            val overflowText = baseLines.drop(baseRows).joinToString(" ")
+            val extendedLines = wrapByWidth(
+                overflowText,
+                resources.fira,
+                V1_NARRATIVE_BODY_SIZE,
+                V1_NARRATIVE_TEXT_WIDTH,
+            )
+            extendedLines
+                .chunked(V1_NARRATIVE_ROWS_PER_MODULE)
+                .forEachIndexed { index, lines ->
+                    modules += V1NarrativeModule(
+                        heading =
+                            if (index == 0) heading else "$heading · CONT.",
+                        lines = lines,
+                    )
+                }
+        }
+
+        addOverflow(
+            heading = "Trasfondo",
+            text = background.name,
+            baseWidth = V1_NARRATIVE_NARROW_BASE_WIDTH,
+            baseRows = 6,
+        )
+        addOverflow(
+            heading = "Rasgos de Personalidad",
+            text = background.personalityTraits,
+            baseWidth = V1_NARRATIVE_NARROW_BASE_WIDTH,
+            baseRows = 6,
+        )
+        addOverflow(
+            heading = "Ideales",
+            text = background.ideals,
+            baseWidth = V1_NARRATIVE_NARROW_BASE_WIDTH,
+            baseRows = 6,
+        )
+        addOverflow(
+            heading = "Vínculos",
+            text = background.bonds,
+            baseWidth = V1_NARRATIVE_NARROW_BASE_WIDTH,
+            baseRows = 6,
+        )
+        addOverflow(
+            heading = "Defectos",
+            text = background.flaws,
+            baseWidth = V1_NARRATIVE_NARROW_BASE_WIDTH,
+            baseRows = 6,
+        )
+        addOverflow(
+            heading = "Historia del Personaje",
+            text = background.story,
+            baseWidth = V1_NARRATIVE_TEXT_WIDTH,
+            baseRows = 4,
+        )
+
+        return modules
+    }
+
+    private fun renderNarrativeContinuationPage(
+        page: PDPage,
+        modules: List<V1NarrativeModule>,
+        pageIndex: Int,
+    ) {
+        require(modules.size <= V1_NARRATIVE_MODULES_PER_PAGE) {
+            "Custom-v1 narrative page exceeds native repeated-module capacity."
+        }
+        val prefix = "V1X NARRATIVE P${pageIndex + 1}"
+
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            drawSourceCrop(s, resources.forms[2], 20f, 18f, 150f, 74f)
+            modules.indices.forEach { index ->
+                drawTranslatedSourceCrop(
+                    s = s,
+                    form = resources.forms[2],
+                    sourceX = V1_NARRATIVE_SOURCE_X,
+                    sourceTop = V1_NARRATIVE_SOURCE_TOP,
+                    width = V1_NARRATIVE_MODULE_WIDTH,
+                    height = V1_NARRATIVE_MODULE_HEIGHT,
+                    targetX = V1_NARRATIVE_TARGET_X,
+                    targetTop = V1_NARRATIVE_TARGET_TOPS[index],
+                )
+            }
+        }
+
+        appendLayer(page, "$prefix - CLEANUP") { s ->
+            modules.indices.forEach { index ->
+                headingInteriorMask(
+                    s = s,
+                    x = V1_NARRATIVE_TARGET_X,
+                    top = V1_NARRATIVE_TARGET_TOPS[index],
+                    width = V1_NARRATIVE_MODULE_WIDTH,
+                    height = V1_NARRATIVE_HEADING_HEIGHT,
+                )
+            }
+        }
+
+        appendLayer(page, "$prefix - LABELS") { s ->
+            modules.forEachIndexed { index, module ->
+                centeredText(
+                    s = s,
+                    font = resources.heading,
+                    x = V1_NARRATIVE_TARGET_X,
+                    top = V1_NARRATIVE_TARGET_TOPS[index],
+                    width = V1_NARRATIVE_MODULE_WIDTH,
+                    height = V1_NARRATIVE_HEADING_HEIGHT,
+                    value = module.heading,
+                    size = V1_NARRATIVE_HEADING_SIZE,
+                )
+            }
+        }
+
+        appendLayer(page, "$prefix - VALUES") { s ->
+            modules.forEachIndexed { moduleIndex, module ->
+                val targetTop = V1_NARRATIVE_TARGET_TOPS[moduleIndex]
+                module.lines.forEachIndexed { lineIndex, line ->
+                    ruleText(
+                        s = s,
+                        font = resources.fira,
+                        rule = Rule(
+                            V1_NARRATIVE_TARGET_X,
+                            V1_NARRATIVE_TARGET_X + V1_NARRATIVE_MODULE_WIDTH,
+                            targetTop + V1_NARRATIVE_RULE_OFFSETS[lineIndex],
+                        ),
+                        value = line,
+                        size = V1_NARRATIVE_BODY_SIZE,
+                    )
+                }
+            }
+        }
+
+        appendLayer(page, "$prefix - MARKERS") { }
     }
 
     private fun needsTraitsExtendedPage(plan: PcSheetPdfRenderPlan): Boolean {
@@ -370,35 +583,6 @@ internal class DesktopCustomV1ExtendedRenderer(
                 )
             }
         }
-
-        fun addCharOverflow(label: String, value: String, maxChars: Int, baseLines: Int) {
-            val overflow = wrapForRulesByChars(value, maxChars).drop(baseLines)
-            if (overflow.isNotEmpty()) {
-                addFull("$label (cont.)", overflow.joinToString(" "))
-            }
-        }
-
-        fun addWidthOverflow(
-            label: String,
-            value: String,
-            size: Float,
-            width: Float,
-            baseLines: Int,
-        ) {
-            val clean = value.trim()
-            if (clean.isEmpty()) return
-            val overflow = wrapByWidth(clean, resources.fira, size, width).drop(baseLines)
-            if (overflow.isNotEmpty()) {
-                addFull("$label (cont.)", overflow.joinToString(" "))
-            }
-        }
-
-        // Preserve only narrative overflow beyond the exact frozen v1 base capacities.
-        addCharOverflow("Rasgos de personalidad", background.personalityTraits, 42, 6)
-        addWidthOverflow("Ideales", background.ideals, 9.25f, 153f, 6)
-        addWidthOverflow("Vínculos", background.bonds, 9.25f, 153f, 6)
-        addWidthOverflow("Defectos", background.flaws, 9.25f, 153f, 6)
-        addWidthOverflow("Historia", background.story, 9.25f, 365f, 4)
 
         successor.speciesIdentity?.name?.trim()?.takeIf {
             it.isNotEmpty() && !it.equals(background.race.trim(), ignoreCase = true)
@@ -2706,6 +2890,11 @@ internal class DesktopCustomV1ExtendedRenderer(
         val active: Boolean?,
     )
 
+    private data class V1NarrativeModule(
+        val heading: String,
+        val lines: List<String>,
+    )
+
     private data class ModuleSlice(
         val title: String,
         val score: String,
@@ -2822,6 +3011,26 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val SKILLS_PER_MODULE = 5
         const val BOTTOM_LINES_PER_PAGE = 15
         const val BOTTOM_TEXT_WIDTH = 150f
+
+        // Source page 3 provides three compatible full-width right-hand slots:
+        // Otros Rasgos (top), Historia del Personaje (middle), and Notas (lower).
+        // Reuse the fixed Historia module at those source-derived positions without resizing.
+        const val V1_NARRATIVE_LAYOUT_ID = "v1-native-narrative-modules"
+        const val V1_NARRATIVE_MODULES_PER_PAGE = 3
+        const val V1_NARRATIVE_ROWS_PER_MODULE = 4
+        const val V1_NARRATIVE_SOURCE_X = 215.291f
+        const val V1_NARRATIVE_SOURCE_TOP = 344f
+        const val V1_NARRATIVE_MODULE_WIDTH = 368.504f
+        const val V1_NARRATIVE_MODULE_HEIGHT = 124f
+        const val V1_NARRATIVE_HEADING_HEIGHT = 35f
+        const val V1_NARRATIVE_TARGET_X = 215.291f
+        const val V1_NARRATIVE_TEXT_WIDTH = 365f
+        const val V1_NARRATIVE_NARROW_BASE_WIDTH = 153f
+        const val V1_NARRATIVE_BASE_SIZE = 9.25f
+        const val V1_NARRATIVE_BODY_SIZE = 8.5f
+        const val V1_NARRATIVE_HEADING_SIZE = 16f
+        val V1_NARRATIVE_TARGET_TOPS = listOf(66f, 344f, 566f)
+        val V1_NARRATIVE_RULE_OFFSETS = listOf(43.996f, 63.839f, 83.681f, 103.524f)
 
         const val BASE_V1_TRAIT_NAME_CAPACITY = 6
         const val TRAIT_LEFT_ROWS = 3

@@ -2283,6 +2283,106 @@ class DesktopPcSheetWholeDraftRendererTest {
     }
 
     @Test
+    fun keepsCustomV1NarrativeOverflowOutOfTraitsAndInNativeStoryModules() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate()
+        val longPersonality = (1..28).joinToString(" ") { index ->
+            "PersonalidadNarrativaV1$index"
+        }
+        val longStory = (1..42).joinToString(" ") { index ->
+            "HistoriaNarrativaV1$index"
+        }
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                traits = emptyList(),
+                proficiencies = emptyList(),
+                resources = emptyList(),
+                classOptions = emptyList(),
+                inventoryItems = emptyList(),
+                spells = emptyList(),
+                generalNotes = "",
+                noteCards = emptyList(),
+                background = base.sheet.background.copy(
+                    name = "Trasfondo breve",
+                    personalityTraits = longPersonality,
+                    ideals = "",
+                    bonds = "",
+                    flaws = "",
+                    story = longStory,
+                ),
+            ),
+            successor = base.successor.copy(
+                customMarkers = emptyList(),
+                preferences = base.successor.preferences.copy(valuablesText = ""),
+            ),
+        )
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+        val pdf = File(proofDir, "custom-v1-narrative-native-module-association.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
+            assertTrue(
+                layers.any { it.startsWith("V1X NARRATIVE P1 - STRUCTURE") },
+                "Narrative overflow must own a dedicated BACKGROUND_STORY surface.",
+            )
+            assertFalse(
+                layers.any { it.startsWith("V1X TRAITS") },
+                "Narrative-only overflow must not allocate a Traits continuation page.",
+            )
+
+            val pages = (1..document.numberOfPages).map { pageNumber ->
+                pageNumber to PDFTextStripper().apply {
+                    startPage = pageNumber
+                    endPage = pageNumber
+                }.getText(document).replace(Regex("\\s+"), " ")
+            }
+            val extendedText = pages
+                .filter { (pageNumber, _) -> pageNumber > plan.basePages.size }
+                .joinToString(" ") { it.second }
+
+            assertTrue(extendedText.contains("Rasgos de Personalidad"))
+            assertTrue(extendedText.contains("Historia del Personaje"))
+            assertTrue(
+                extendedText.contains("PersonalidadNarrativaV128"),
+                "Late personality overflow must survive in the native narrative module.",
+            )
+            assertTrue(
+                extendedText.contains("HistoriaNarrativaV142"),
+                "Late story overflow must survive in the native narrative module.",
+            )
+            assertFalse(
+                extendedText.contains("Detalles de Rasgos"),
+                "Narrative continuation must not reuse the relabeled Traits detail panel.",
+            )
+
+            (plan.basePages.size + 1..document.numberOfPages).forEach { pageNumber ->
+                val pageText = pages.first { it.first == pageNumber }.second
+                if (
+                    pageText.contains("PersonalidadNarrativaV1") ||
+                    pageText.contains("HistoriaNarrativaV1")
+                ) {
+                    val image = PDFRenderer(document).renderImageWithDPI(pageNumber - 1, 220f, ImageType.RGB)
+                    assertTrue(
+                        ImageIO.write(
+                            image,
+                            "png",
+                            File(proofDir, "custom-v1-narrative-native-module-page-$pageNumber.png"),
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
     fun composesCustomV2TraitsAsNativeColumnsWithoutFixedScaffold() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()
