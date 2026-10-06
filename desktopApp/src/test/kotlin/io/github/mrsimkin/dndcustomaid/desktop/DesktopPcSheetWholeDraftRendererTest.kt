@@ -2213,6 +2213,64 @@ class DesktopPcSheetWholeDraftRendererTest {
     }
 
     @Test
+    fun rendersOrdinaryEquipmentOverflowInNativeColumnsWithoutMetadata() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregateWithOverflowContinuations()
+        val ordinary = (1..47).map { index ->
+            inventory(
+                700 + index,
+                if (index == 47) "Equipo ordinario QA 47" else "Equipo ordinario QA $index",
+                if (index == 47) 3 else 1,
+                if (index == 47) 9.5 else null,
+                "Mochila QA",
+                false,
+                index == 47,
+                if (index == 47) "METADATA ORDINARIA QA NO VISIBLE" else "",
+            )
+        }
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                inventoryItems = ordinary,
+            ),
+        )
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+
+        val pdf = File(proofDir, "custom-v2-ordinary-equipment-native-overflow.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            val allText = PDFTextStripper().getText(document).replace(Regex("\\s+"), " ")
+            assertTrue(allText.contains("3 x Equipo ordinario QA 47"))
+            assertFalse(allText.contains("METADATA ORDINARIA QA NO VISIBLE"))
+            assertFalse(allText.contains("9.5 lb"))
+            assertFalse(allText.contains("Equipado"))
+
+            val located = locateTextBounds(
+                document,
+                "3 x Equipo ordinario QA 47",
+                expectedYCenter = 139f,
+            )
+            assertTrue(located.bounds.minX in 14f..18f, "Native Equipment first column drift: ${located.bounds}")
+            assertTrue(located.bounds.maxX <= 151f, "Native Equipment first column overflow: ${located.bounds}")
+
+            val pageText = PDFTextStripper().apply {
+                startPage = located.pageIndex + 1
+                endPage = located.pageIndex + 1
+            }.getText(document)
+            assertTrue(pageText.contains("EQUIPO"))
+            assertFalse(pageText.contains("EQUIPO ESPECIAL"))
+        }
+        assertTrue(pdf.length() > 20_000L)
+    }
+
+    @Test
     fun rendersSpecialEquipmentOverflowWithNativeFallbackColumns() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()

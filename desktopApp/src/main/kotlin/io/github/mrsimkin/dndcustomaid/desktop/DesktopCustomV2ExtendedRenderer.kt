@@ -1800,16 +1800,15 @@ internal class DesktopCustomV2ExtendedRenderer(
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
 
         val ordinary = ordered.filterNot { it.special }
-        val ordinaryLines = ordinary.flatMapIndexed { index, item ->
+        val ordinaryRows = ordinary.flatMapIndexed { index, item ->
             val needsContinuation =
                 index >= BASE_V2_EQUIPMENT_CAPACITY ||
-                    wrapByWidth(
+                    textWidth(
                         resources.condensed,
                         inventoryBaseLabel(item),
-                        7.0f,
-                        V2_BASE_EQUIPMENT_TEXT_WIDTH,
-                    ).size > 1
-            if (needsContinuation) ordinaryEquipmentContinuationLines(item) else emptyList()
+                        INVENTORY_ORDINARY_MINIMUM_SIZE,
+                    ) > V2_BASE_EQUIPMENT_TEXT_WIDTH
+            if (needsContinuation) ordinaryEquipmentContinuationRows(item) else emptyList()
         }
 
         val special = ordered.filter { it.special }
@@ -1869,13 +1868,13 @@ internal class DesktopCustomV2ExtendedRenderer(
             wrapByWidth(resources.fira, value, 8.0f, V2_TREASURE_COLUMN_WIDTH)
         }
 
-        if (ordinaryLines.isEmpty() && specialPages.isEmpty() && treasureLines.isEmpty()) return
+        if (ordinaryRows.isEmpty() && specialPages.isEmpty() && treasureLines.isEmpty()) return
 
         val ordinaryCapacity =
             if (treasureLines.isEmpty()) INVENTORY_CONTINUATION_CAPACITY
             else INVENTORY_EQUIPMENT_WITH_TREASURE_CAPACITY
         val pages = maxOf(
-            pageCount(ordinaryLines.size, ordinaryCapacity),
+            pageCount(ordinaryRows.size, ordinaryCapacity),
             pageCount(treasureLines.size, INVENTORY_TREASURE_CAPACITY),
             specialPages.size,
         )
@@ -1885,7 +1884,7 @@ internal class DesktopCustomV2ExtendedRenderer(
             document.addPage(page)
             renderInventory(
                 page = page,
-                ordinary = ordinaryLines
+                ordinary = ordinaryRows
                     .drop(pageIndex * ordinaryCapacity)
                     .take(ordinaryCapacity),
                 treasure = treasureLines
@@ -1899,7 +1898,7 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private fun renderInventory(
         page: PDPage,
-        ordinary: List<String>,
+        ordinary: List<OrdinaryInventoryFlowRow>,
         treasure: List<String>,
         special: List<SpecialInventoryFlowRow>,
         pageIndex: Int,
@@ -1918,8 +1917,26 @@ internal class DesktopCustomV2ExtendedRenderer(
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             pageHeaderStructure(s)
             ordinaryBlockXs.forEach { blockX ->
-                bandedRows(s, blockX, blockX + 277f, 139f, INVENTORY_ROWS_PER_COLUMN, 17f, 0)
-                verticalRule(s, blockX + 139f, 122f, 462f, 0.45f)
+                // M50800-15/17: repeat the two native Equipment writing columns instead of a
+                // generic split table. Geometry is the base module translated into Extended.
+                bandedRows(
+                    s,
+                    blockX,
+                    blockX + INVENTORY_ORDINARY_COLUMN_WIDTH,
+                    INVENTORY_ORDINARY_FIRST_RULE_TOP,
+                    INVENTORY_ROWS_PER_COLUMN,
+                    INVENTORY_ORDINARY_ROW_STEP,
+                    0,
+                )
+                bandedRows(
+                    s,
+                    blockX + INVENTORY_ORDINARY_SECOND_COLUMN_OFFSET,
+                    blockX + INVENTORY_ORDINARY_MODULE_WIDTH,
+                    INVENTORY_ORDINARY_FIRST_RULE_TOP,
+                    INVENTORY_ROWS_PER_COLUMN,
+                    INVENTORY_ORDINARY_ROW_STEP,
+                    0,
+                )
             }
             if (hasTreasure) {
                 bandedRows(s, 307f, 598f, 139f, INVENTORY_TREASURE_CAPACITY, 17f, 1)
@@ -2000,23 +2017,28 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
         }
         appendLayer(page, "$prefix - VALUES") { s ->
-            ordinary.forEachIndexed { index, line ->
+            ordinary.forEachIndexed { index, flowRow ->
                 val block = index / INVENTORY_BLOCK_CAPACITY
                 val withinBlock = index % INVENTORY_BLOCK_CAPACITY
                 val column = withinBlock / INVENTORY_ROWS_PER_COLUMN
                 val row = withinBlock % INVENTORY_ROWS_PER_COLUMN
                 val blockX = if (block == 0) 14f else 307f
-                val x1 = blockX + if (column == 0) 4f else 143f
-                val x2 = blockX + if (column == 0) 135f else 273f
-                textAboveRuleScaled(
+                val x1 = blockX +
+                    if (column == 0) 0f else INVENTORY_ORDINARY_SECOND_COLUMN_OFFSET
+                val x2 = blockX +
+                    if (column == 0) INVENTORY_ORDINARY_COLUMN_WIDTH else INVENTORY_ORDINARY_MODULE_WIDTH
+                textAboveRule(
                     s,
                     resources.condensed,
-                    Rule(x1, x2, 139f + row * 17f),
-                    line,
-                    preferredSize = 8.4f,
-                    minimumSize = 7.0f,
-                    clearance = 2.3f,
-                    minimumHorizontalScale = 78f,
+                    Rule(
+                        x1,
+                        x2,
+                        INVENTORY_ORDINARY_FIRST_RULE_TOP + row * INVENTORY_ORDINARY_ROW_STEP,
+                    ),
+                    flowRow.text,
+                    flowRow.fontSize,
+                    flowRow.fontSize,
+                    2.5f,
                 )
             }
 
@@ -2095,18 +2117,34 @@ internal class DesktopCustomV2ExtendedRenderer(
     private fun inventoryBaseLabel(item: CharacterInventoryItem): String =
         item.pdfCompactEquipmentLabel()
 
-    private fun ordinaryEquipmentContinuationLines(
+    private fun ordinaryEquipmentContinuationRows(
         item: CharacterInventoryItem,
-    ): List<String> {
+    ): List<OrdinaryInventoryFlowRow> {
+        val label = item.pdfCompactEquipmentLabel()
+        var fittedSize = INVENTORY_ORDINARY_PREFERRED_SIZE
+        while (
+            fittedSize > INVENTORY_ORDINARY_MINIMUM_SIZE &&
+            textWidth(resources.condensed, label, fittedSize) > INVENTORY_ORDINARY_TEXT_WIDTH
+        ) {
+            fittedSize -= 0.25f
+        }
+        if (textWidth(resources.condensed, label, fittedSize) <= INVENTORY_ORDINARY_TEXT_WIDTH + 0.05f) {
+            return listOf(OrdinaryInventoryFlowRow(text = label, fontSize = fittedSize))
+        }
+
         val wrapped = wrapByWidth(
             resources.condensed,
-            item.pdfCompactEquipmentLabel(),
-            8.4f,
-            INVENTORY_COMPACT_IDENTITY_WRAP_WIDTH - INVENTORY_ORDINARY_CONTINUATION_INDENT_WIDTH,
-        ).ifEmpty { listOf(item.pdfCompactEquipmentLabel()) }
+            label,
+            INVENTORY_ORDINARY_MINIMUM_SIZE,
+            INVENTORY_ORDINARY_TEXT_WIDTH - INVENTORY_ORDINARY_CONTINUATION_INDENT_WIDTH,
+        ).ifEmpty { listOf(label) }
 
         return wrapped.mapIndexed { index, line ->
-            if (index == 0) line else INVENTORY_ORDINARY_CONTINUATION_PREFIX + line
+            OrdinaryInventoryFlowRow(
+                text = if (index == 0) line else INVENTORY_ORDINARY_CONTINUATION_PREFIX + line,
+                // Every physical line of one wrapped identity uses the same native minimum scale.
+                fontSize = INVENTORY_ORDINARY_MINIMUM_SIZE,
+            )
         }
     }
 
@@ -3245,6 +3283,11 @@ internal class DesktopCustomV2ExtendedRenderer(
         val height: Float,
     )
 
+    private data class OrdinaryInventoryFlowRow(
+        val text: String,
+        val fontSize: Float,
+    )
+
     private data class SpecialInventoryFlowRow(
         val location: String,
         val name: String,
@@ -3497,11 +3540,18 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val COMBAT_CELL_VERTICAL_PADDING = 4f
         const val COMBAT_TEXT_WIDTH = 576f
         const val BASE_V2_EQUIPMENT_CAPACITY = 46
-        const val V2_EQUIPMENT_COLUMN_WIDTH = 125f
-        // Conservative raw-width ceiling at the 7 pt / 78% compact target for the narrowest
-        // continuation equipment rule (~128 pt usable width).
-        const val INVENTORY_COMPACT_IDENTITY_WRAP_WIDTH = 164f
         const val V2_BASE_EQUIPMENT_TEXT_WIDTH = 132f
+        // Native Custom-v2 ordinary Equipment geometry. The source base renderer writes two
+        // 135.5 pt columns at x=14..149.5 and x=156..291.5 on a 17 pt row cadence. Extended
+        // repeats that same module grammar, translated as needed, instead of inventing a table.
+        const val INVENTORY_ORDINARY_MODULE_WIDTH = 277.5f
+        const val INVENTORY_ORDINARY_COLUMN_WIDTH = 135.5f
+        const val INVENTORY_ORDINARY_SECOND_COLUMN_OFFSET = 142f
+        const val INVENTORY_ORDINARY_FIRST_RULE_TOP = 139f
+        const val INVENTORY_ORDINARY_ROW_STEP = 17f
+        const val INVENTORY_ORDINARY_TEXT_WIDTH = 132.5f
+        const val INVENTORY_ORDINARY_PREFERRED_SIZE = 9.25f
+        const val INVENTORY_ORDINARY_MINIMUM_SIZE = 7.0f
         const val V2_BASE_SPECIAL_LOCATION_WIDTH = 79f
         const val V2_BASE_SPECIAL_NAME_WIDTH = 196f
         const val V2_BASE_SPECIAL_DETAIL_WIDTH = 291f
