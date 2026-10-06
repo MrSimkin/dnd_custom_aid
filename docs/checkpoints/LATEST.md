@@ -4,8 +4,8 @@
 **Normal integrated trunk:** `main`  
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-10-06_MARA_PHASE3_POST_INVENTORY_GREEN.md`  
-**Current active route:** Phase 3 is **ACTIVE / REPOSITORY-GREEN THROUGH CUSTOM-V2 INVENTORY** on `repair/mara-phase3-semantic-flow-compositor`. Custom-v2 Inventory semantic separation, native ordinary Equipment columns, native-geometry Special Equipment fallback and exhausted-submodule release are green at `d9032bc7...` / Scaffold #4499 SUCCESS. **Next active gap: M50800-27 — production integration of the already-green global Extended-page compositor.** Owner candidate remains blocked pending remaining Phase-3 work and exact four-family Mara inspection.  
+**Canonical active checkpoint:** `docs/checkpoints/2026-10-06_MARA_PHASE3_HEALTH_CONSOLIDATION.md`  
+**Current active route:** Phase 3 is **ACTIVE / REPOSITORY-GREEN THROUGH CUSTOM-v1 NARRATIVE ASSOCIATION** on `repair/mara-phase3-semantic-flow-compositor`. Production compositor packages for Custom-v1/v2/Fantasy Resources and Custom-v2/Fantasy Traits are closed; Custom-v1 Narrative semantic association is green at `e6e07a13...` / run `37537059037`. Bounded health consolidation classifies the branch **CONTINUE_WITH_GUARDRAIL**, not an infinite loop. **Next action: one read-only Custom-v1 Traits semantic-ownership preflight, then a bounded implementation only if ownership is determinate.** Owner candidate remains blocked pending remaining Phase-3 work and exact four-family Mara inspection.  
 **Completed audit branch:** `audit/mara-phase2-existing-repair` — historical only after Phase-2 publication.  
 **Current implementation branch:** `repair/mara-phase3-semantic-flow-compositor`; implementation PR not yet opened.  
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
@@ -15,7 +15,7 @@
 1. `AGENTS.md`;
 2. `RESUME.md`;
 3. this file;
-4. `docs/checkpoints/2026-10-06_MARA_PHASE3_POST_INVENTORY_GREEN.md` — exact current recovery state / next authorized action;
+4. `docs/checkpoints/2026-10-06_MARA_PHASE3_HEALTH_CONSOLIDATION.md` — exact current recovery state, anti-loop decision and next authorized action;
 5. `docs/checkpoints/2026-09-30_MARA_PHASE3_INTERRUPTION_RECOVERY.md` — historical interruption snapshot / recovery provenance;
 5. `docs/checkpoints/2026-09-30_MARA_PHASE3_IMPLEMENTATION.md` — Phase-3 implementation authority and green package history;
 6. `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md` — final M50800-01…32 owner-intent burn-down;
@@ -29,7 +29,7 @@
 14. `docs/PROJECT_STATE.md`;
 15. `docs/BRANCH_STATUS.md`.
 
-**Branch rule:** current `main` publishes Phase-2 closure; `repair/mara-phase3-semantic-flow-compositor` is the sole non-main implementation authority for Phase 3. Resume from the recovery checkpoint and current branch state. Do not reset automatically to the latest green comparison head, do not replay the three post-green Custom-v2 Inventory commits, and do not resume from the old adaptive-repair branch except as historical evidence explicitly referenced by the Phase-2 burn-down.  
+**Branch rule:** current `main` publishes Phase-2 closure; `repair/mara-phase3-semantic-flow-compositor` is the sole non-main implementation authority for Phase 3. Resume from the canonical health-consolidation checkpoint and physical branch state. Do not reset automatically to an older green comparison head, do not replay already-published post-Inventory compositor/narrative commits, and do not resume from the old adaptive-repair branch except as historical evidence explicitly referenced by the Phase-2 burn-down.  
 
 ## Active owner re-QA failure
 

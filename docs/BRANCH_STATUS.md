@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — **Phase 3 ACTIVE / green through Custom-v2 Inventory**. Shared semantic-flow/native-module/compositor contracts are green; Custom-v2 Inventory is green at `d9032bc7...` / Scaffold #4499. **Next package: M50800-27 production integration of the global Extended-page compositor.** Remaining exact-candidate/owner gates stay blocked.**
+**Current normal work:** PC Sheet PDF Export — **Phase 3 ACTIVE / green through Custom-v1 Narrative association**. Post-Inventory production compositor packages for Resources/Options and Traits have advanced across Custom-v1/v2/Fantasy; Custom-v1 Narrative association is green at `e6e07a13...` / run `37537059037`. Health consolidation result: **CONTINUE_WITH_GUARDRAIL**. **Next action: one bounded read-only Custom-v1 Traits semantic-ownership preflight before further renderer writes.** Remaining exact-candidate/owner gates stay blocked.**
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -109,7 +109,7 @@ After a closure merges, normal implementation starts from current `main`; do not
 **Historical repair evidence:** `repair/pc-sheet-adaptive-continuations-cross-family` at `ce695c...` remains evidence for reusable primitives identified by the Phase-2 burn-down; it is not acceptance authority and must not be resumed wholesale.
 
 Current authority:
-- canonical resume checkpoint: `docs/checkpoints/2026-10-06_MARA_PHASE3_POST_INVENTORY_GREEN.md`;
+- canonical resume checkpoint: `docs/checkpoints/2026-10-06_MARA_PHASE3_HEALTH_CONSOLIDATION.md`;
 - Phase-3 implementation authority: `docs/checkpoints/2026-09-30_MARA_PHASE3_IMPLEMENTATION.md`;
 - binding owner-intent burn-down: `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md`;
 - acceptance matrix: `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`;
@@ -121,9 +121,14 @@ Phase-3 validated package state:
 1. shared semantic-flow contracts — GREEN;
 2. native-module contracts — GREEN;
 3. global Extended-page composer contract — GREEN;
-4. substantial family integration — GREEN checkpoints;
-5. Custom-v2 Inventory native/semantic package — GREEN at `d9032bc7...` / Scaffold #4499;
-6. current next package — wire the global compositor into actual family production rendering (M50800-27).
+4. Custom-v2 Inventory native/semantic package — GREEN at `d9032bc7...` / Scaffold #4499;
+5. Custom-v2 Resources/Options compositor + cleanup — GREEN at `29102383...`;
+6. Custom-v1 Resources/Options compositor — GREEN at `da623415...`;
+7. Fantasy Resources/Options compositor + semantic wrap — GREEN at `f4dd69da...`;
+8. Custom-v2 Traits native compositor — GREEN at `d8a4e4a8...`;
+9. Fantasy Traits native compositor — GREEN at `fdad9f87...`;
+10. Custom-v1 Narrative semantic association — GREEN at `e6e07a13...` / run `37537059037`;
+11. anti-loop health result — `CONTINUE_WITH_GUARDRAIL`; next action is the bounded Custom-v1 Traits semantic-ownership preflight.
 
 No owner visual handoff occurs until exact-candidate all-four-family internal acceptance passes.
 
