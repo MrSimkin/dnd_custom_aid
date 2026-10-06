@@ -3244,7 +3244,9 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
                         vertical = PdfVerticalAlignment.BOTTOM,
                     )
                 }
-                sourceLines.getOrNull(headerLineIndex)?.let { line ->
+                val sourceLineIndex =
+                    headerLineIndex - (headerRows - sourceLines.size).coerceAtLeast(0)
+                sourceLines.getOrNull(sourceLineIndex)?.let { line ->
                     text(
                         s,
                         p,
