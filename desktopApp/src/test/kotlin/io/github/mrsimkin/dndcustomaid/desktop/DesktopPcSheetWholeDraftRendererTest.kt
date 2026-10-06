@@ -1727,6 +1727,116 @@ class DesktopPcSheetWholeDraftRendererTest {
     }
 
     @Test
+    fun composesCustomV1ResourcesAndOptionsIntoReleasedNativeSpace() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate()
+
+        fun minimalAggregate(
+            resources: List<CharacterResource>,
+            options: List<CharacterClassOption>,
+        ): PcSheetExportAggregate =
+            base.copy(
+                sheet = base.sheet.copy(
+                    inventoryItems = emptyList(),
+                    traits = emptyList(),
+                    proficiencies = emptyList(),
+                    resources = resources,
+                    classOptions = options,
+                    spells = emptyList(),
+                    generalNotes = "",
+                    noteCards = emptyList(),
+                ),
+                successor = base.successor.copy(
+                    customMarkers = emptyList(),
+                    preferences = base.successor.preferences.copy(valuablesText = ""),
+                ),
+            )
+
+        fun renderPages(
+            aggregate: PcSheetExportAggregate,
+            stem: String,
+        ): List<String> {
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(permanent = aggregate),
+            )
+            val pdf = File(proofDir, "$stem.pdf")
+            pdf.outputStream().use { renderer.renderDraft(plan, it) }
+            return Loader.loadPDF(pdf).use { document ->
+                (1..document.numberOfPages).map { pageNumber ->
+                    PDFTextStripper().apply {
+                        startPage = pageNumber
+                        endPage = pageNumber
+                    }.getText(document).replace(Regex("\\s+"), " ")
+                }
+            }
+        }
+
+        val resourceOnly = (1..12).map { index ->
+            CharacterResource(
+                id = uuid("8c000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
+                name = "Recurso compositor V1 QA $index",
+                currentValue = 1,
+                maxValue = 3,
+                recovery = null,
+                source = "QA",
+                notes = null,
+                sortOrder = index,
+            )
+        }
+        val resourcePages = renderPages(
+            aggregate = minimalAggregate(resources = resourceOnly, options = emptyList()),
+            stem = "custom-v1-compositor-resource-reclaim",
+        ).filter { it.contains("Recurso compositor V1 QA") }
+
+        assertEquals(
+            1,
+            resourcePages.size,
+            "A controlled 12-row Custom-v1 Resource stream must reclaim the released Options area.",
+        )
+        assertTrue(resourcePages.single().contains("Recurso compositor V1 QA 12"))
+        assertTrue(resourcePages.single().contains("Recursos"))
+        assertFalse(
+            resourcePages.single().contains("Opciones"),
+            "An exhausted Custom-v1 Options module must not reserve or print its scaffold.",
+        )
+
+        val optionOnly = (1..20).map { index ->
+            CharacterClassOption(
+                id = uuid("8d000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
+                kind = CharacterClassOptionKind.TECHNIQUE,
+                name = "Opción compositor V1 QA $index",
+                source = "QA",
+                costText = "C$index",
+                effectSummary = "E$index",
+                notes = null,
+                active = index % 2 == 0,
+                sortOrder = index,
+            )
+        }
+        val optionPages = renderPages(
+            aggregate = minimalAggregate(resources = emptyList(), options = optionOnly),
+            stem = "custom-v1-compositor-option-reclaim",
+        ).filter { it.contains("Opción compositor V1 QA") }
+
+        assertEquals(
+            1,
+            optionPages.size,
+            "A controlled 20-row Custom-v1 Option stream must reclaim the released Resources area.",
+        )
+        assertTrue(optionPages.single().contains("Opción compositor V1 QA 20"))
+        assertTrue(optionPages.single().contains("Opciones"))
+        assertFalse(
+            optionPages.single().contains("Recursos"),
+            "An exhausted Custom-v1 Resources module must not reserve or print its scaffold.",
+        )
+    }
+
+    @Test
     fun promotesOwnerApprovedCustomV1ResourcesAndOptionsFromRealPlanData() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()

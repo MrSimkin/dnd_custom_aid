@@ -24,6 +24,11 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomSkillProjection
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSemanticModule
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetModuleDemand
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutSlot
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutTemplate
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageComposer
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetNotePhysicalLine
@@ -806,24 +811,126 @@ internal class DesktopCustomV1ExtendedRenderer(
 
     private fun appendResourcesExtendedPages(plan: PcSheetPdfRenderPlan) {
         val rows = resourceRenderLines(resourceRenderRows(plan))
-        val options = optionRenderLines(plan.snapshot.aggregate.sheet.classOptions.sortedBy { it.sortOrder })
-        val pages = maxOf(
-            1,
-            pageCount(rows.size, RESOURCE_ROWS_PER_PAGE),
-            pageCount(options.size, OPTION_ROWS_PER_PAGE),
+        val options = optionRenderLines(
+            plan.snapshot.aggregate.sheet.classOptions.sortedBy { it.sortOrder },
         )
+        var demands = buildList {
+            if (rows.isNotEmpty()) {
+                add(PcSheetModuleDemand(PcSheetSemanticModule.RESOURCES, rows.size))
+            }
+            if (options.isNotEmpty()) {
+                add(PcSheetModuleDemand(PcSheetSemanticModule.CLASS_CHOICES, options.size))
+            }
+        }
+        if (demands.isEmpty()) return
 
-        repeat(pages) { pageIndex ->
+        var resourceOffset = 0
+        var optionOffset = 0
+        var pageIndex = 0
+
+        while (demands.isNotEmpty()) {
+            val layouts = v1ResourceCompositionLayouts(
+                demands.mapTo(mutableSetOf()) { it.module },
+            )
+            val step = requireNotNull(
+                PcSheetExtendedPageComposer.composeNextPage(
+                    demands = demands,
+                    layouts = layouts,
+                ),
+            )
+            val resourceCount = step.page.placements
+                .firstOrNull { it.module == PcSheetSemanticModule.RESOURCES }
+                ?.consumedUnits
+                ?: 0
+            val optionCount = step.page.placements
+                .firstOrNull { it.module == PcSheetSemanticModule.CLASS_CHOICES }
+                ?.consumedUnits
+                ?: 0
+
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderResourcesPage(
                 page = page,
-                rows = rows.pageSlice(pageIndex, RESOURCE_ROWS_PER_PAGE),
-                options = options.pageSlice(pageIndex, OPTION_ROWS_PER_PAGE),
+                rows = rows.drop(resourceOffset).take(resourceCount),
+                options = options.drop(optionOffset).take(optionCount),
                 pageIndex = pageIndex,
+                layoutId = step.page.layoutId,
             )
+
+            resourceOffset += resourceCount
+            optionOffset += optionCount
+            demands = step.remainingDemands
+            pageIndex += 1
+        }
+
+        check(resourceOffset == rows.size) {
+            "Custom-v1 compositor did not consume every Resource line."
+        }
+        check(optionOffset == options.size) {
+            "Custom-v1 compositor did not consume every Class Choice line."
         }
     }
+
+    private fun v1ResourceCompositionLayouts(
+        activeModules: Set<PcSheetSemanticModule>,
+    ): List<PcSheetExtendedLayoutTemplate> =
+        when (activeModules) {
+            setOf(PcSheetSemanticModule.RESOURCES, PcSheetSemanticModule.CLASS_CHOICES) ->
+                listOf(
+                    PcSheetExtendedLayoutTemplate(
+                        id = RESOURCE_OPTIONS_SPLIT_LAYOUT_ID,
+                        slots = listOf(
+                            PcSheetExtendedLayoutSlot(
+                                id = "resources",
+                                capacityByModule = mapOf(
+                                    PcSheetSemanticModule.RESOURCES to RESOURCE_ROWS_PER_PAGE,
+                                ),
+                            ),
+                            PcSheetExtendedLayoutSlot(
+                                id = "class-choices",
+                                capacityByModule = mapOf(
+                                    PcSheetSemanticModule.CLASS_CHOICES to OPTION_ROWS_PER_PAGE,
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+
+            setOf(PcSheetSemanticModule.RESOURCES) ->
+                listOf(
+                    PcSheetExtendedLayoutTemplate(
+                        id = RESOURCE_FULL_LAYOUT_ID,
+                        slots = listOf(
+                            PcSheetExtendedLayoutSlot(
+                                id = "resources-full",
+                                capacityByModule = mapOf(
+                                    PcSheetSemanticModule.RESOURCES to RESOURCE_FULL_ROWS_PER_PAGE,
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+
+            setOf(PcSheetSemanticModule.CLASS_CHOICES) ->
+                listOf(
+                    PcSheetExtendedLayoutTemplate(
+                        id = OPTION_FULL_LAYOUT_ID,
+                        slots = listOf(
+                            PcSheetExtendedLayoutSlot(
+                                id = "class-choices-full",
+                                capacityByModule = mapOf(
+                                    PcSheetSemanticModule.CLASS_CHOICES to OPTION_FULL_ROWS_PER_PAGE,
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+
+            else -> error(
+                "Unsupported Custom-v1 Resources/Options compositor demand: " +
+                    activeModules.joinToString(),
+            )
+        }
 
     private fun resourceRenderRows(plan: PcSheetPdfRenderPlan): List<ResourceRenderRow> {
         val aggregate = plan.snapshot.aggregate
@@ -977,25 +1084,98 @@ internal class DesktopCustomV1ExtendedRenderer(
         rows: List<ResourceRenderLine>,
         options: List<OptionRenderLine>,
         pageIndex: Int,
+        layoutId: String,
     ) {
         val prefix = "V1X RESOURCES P${pageIndex + 1}"
+        val splitLayout = layoutId == RESOURCE_OPTIONS_SPLIT_LAYOUT_ID
+        val resourcesFullLayout = layoutId == RESOURCE_FULL_LAYOUT_ID
+        val optionsFullLayout = layoutId == OPTION_FULL_LAYOUT_ID
+        require(splitLayout || resourcesFullLayout || optionsFullLayout) {
+            "Unknown Custom-v1 Resources/Options layout: $layoutId"
+        }
+        require(!resourcesFullLayout || options.isEmpty()) {
+            "Custom-v1 Resources-full layout cannot reserve Options."
+        }
+        require(!optionsFullLayout || rows.isEmpty()) {
+            "Custom-v1 Options-full layout cannot reserve Resources."
+        }
+
+        val resourceCapacity =
+            if (splitLayout) RESOURCE_ROWS_PER_PAGE else RESOURCE_FULL_ROWS_PER_PAGE
+        val optionCapacity =
+            if (splitLayout) OPTION_ROWS_PER_PAGE else OPTION_FULL_ROWS_PER_PAGE
+        val optionHeadingTop =
+            if (splitLayout) OPTION_HEADING_TOP else RESOURCE_HEADING_TOP
+        val optionHeaderTop =
+            if (splitLayout) OPTION_HEADER_TOP else RESOURCE_HEADER_TOP
+        val optionFirstRuleTop =
+            if (splitLayout) OPTION_FIRST_RULE_TOP else RESOURCE_FIRST_RULE_TOP
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
-            sourceBands(s, 25f, 585f, RESOURCE_FIRST_RULE_TOP, RESOURCE_ROWS_PER_PAGE, RESOURCE_STEP)
-            sourceBands(s, 25f, 585f, OPTION_FIRST_RULE_TOP, OPTION_ROWS_PER_PAGE, OPTION_STEP)
+            if (rows.isNotEmpty()) {
+                sourceBands(
+                    s,
+                    25f,
+                    585f,
+                    RESOURCE_FIRST_RULE_TOP,
+                    resourceCapacity,
+                    RESOURCE_STEP,
+                )
+            }
+            if (options.isNotEmpty()) {
+                sourceBands(
+                    s,
+                    25f,
+                    585f,
+                    optionFirstRuleTop,
+                    optionCapacity,
+                    OPTION_STEP,
+                )
+            }
         }
         appendLayer(page, "$prefix - CLEANUP") { }
         appendLayer(page, "$prefix - LABELS") { s ->
-            centeredText(s, resources.heading, 24f, 66f, 564f, 30f, "Recursos", 18f)
-            centeredText(s, resources.fira, 27f, 96f, 175f, 14f, "RECURSO", 7.5f)
-            centeredText(s, resources.fira, 205f, 96f, 180f, 14f, "USOS", 7.5f)
-            centeredText(s, resources.fira, 400f, 96f, 183f, 14f, "RESTABLECE", 7.5f)
+            if (rows.isNotEmpty()) {
+                centeredText(
+                    s,
+                    resources.heading,
+                    24f,
+                    RESOURCE_HEADING_TOP,
+                    564f,
+                    30f,
+                    "Recursos",
+                    18f,
+                )
+                centeredText(s, resources.fira, 27f, RESOURCE_HEADER_TOP, 175f, 14f, "RECURSO", 7.5f)
+                centeredText(s, resources.fira, 205f, RESOURCE_HEADER_TOP, 180f, 14f, "USOS", 7.5f)
+                centeredText(s, resources.fira, 400f, RESOURCE_HEADER_TOP, 183f, 14f, "RESTABLECE", 7.5f)
+            }
 
-            centeredText(s, resources.heading, 24f, OPTION_HEADING_TOP, 564f, 30f, "Opciones", 18f)
-            centeredText(s, resources.fira, 35f, OPTION_HEADER_TOP, 74f, 14f, "TIPO", 7.5f)
-            centeredText(s, resources.fira, 126f, OPTION_HEADER_TOP, 112f, 14f, "OPCIÓN", 7.5f)
-            centeredText(s, resources.fira, 240.803f, OPTION_HEADER_TOP, 342.992f, 14f, "DESCRIPCIÓN", 7.5f)
+            if (options.isNotEmpty()) {
+                centeredText(
+                    s,
+                    resources.heading,
+                    24f,
+                    optionHeadingTop,
+                    564f,
+                    30f,
+                    "Opciones",
+                    18f,
+                )
+                centeredText(s, resources.fira, 35f, optionHeaderTop, 74f, 14f, "TIPO", 7.5f)
+                centeredText(s, resources.fira, 126f, optionHeaderTop, 112f, 14f, "OPCIÓN", 7.5f)
+                centeredText(
+                    s,
+                    resources.fira,
+                    240.803f,
+                    optionHeaderTop,
+                    342.992f,
+                    14f,
+                    "DESCRIPCIÓN",
+                    7.5f,
+                )
+            }
         }
         appendLayer(page, "$prefix - VALUES") { s ->
             rows.forEachIndexed { index, row ->
@@ -1027,7 +1207,7 @@ internal class DesktopCustomV1ExtendedRenderer(
             }
 
             options.forEachIndexed { index, option ->
-                val ruleTop = OPTION_FIRST_RULE_TOP + index * OPTION_STEP
+                val ruleTop = optionFirstRuleTop + index * OPTION_STEP
                 if (option.kind.isNotEmpty()) {
                     centeredText(
                         s,
@@ -1068,7 +1248,8 @@ internal class DesktopCustomV1ExtendedRenderer(
                         s = s,
                         font = resources.symbol,
                         startX = 222f,
-                        centerTop = RESOURCE_FIRST_RULE_TOP + index * RESOURCE_STEP - RESOURCE_STEP / 2f,
+                        centerTop =
+                            RESOURCE_FIRST_RULE_TOP + index * RESOURCE_STEP - RESOURCE_STEP / 2f,
                         current = current,
                         maximum = maximum,
                     )
@@ -1077,7 +1258,7 @@ internal class DesktopCustomV1ExtendedRenderer(
 
             options.forEachIndexed { index, option ->
                 option.active?.let { active ->
-                    val ruleTop = OPTION_FIRST_RULE_TOP + index * OPTION_STEP
+                    val ruleTop = optionFirstRuleTop + index * OPTION_STEP
                     drawV1TrainingBox(
                         s = s,
                         font = resources.symbol,
@@ -2651,6 +2832,8 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val TRAIT_LEFT_TEXT_WIDTH = 154f
         const val TRAIT_RIGHT_TEXT_WIDTH = 365f
 
+        const val RESOURCE_HEADING_TOP = 66f
+        const val RESOURCE_HEADER_TOP = 96f
         const val RESOURCE_FIRST_RULE_TOP = 128.5f
         const val RESOURCE_ROWS_PER_PAGE = 10
         const val RESOURCE_STEP = 20f
@@ -2662,6 +2845,15 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val OPTION_FIRST_RULE_TOP = 426.5f
         const val OPTION_ROWS_PER_PAGE = 16
         const val OPTION_STEP = 20f
+        // Run-6 establishes one 20 pt native row grammar across both Resource and Option
+        // sections, with the lower split section ending at rule y=726.5. A single surviving
+        // stream may therefore reclaim the page using 30 whole native rows from y=128.5 to
+        // y=708.5 without crossing the approved lower content boundary.
+        const val RESOURCE_FULL_ROWS_PER_PAGE = 30
+        const val OPTION_FULL_ROWS_PER_PAGE = 30
+        const val RESOURCE_OPTIONS_SPLIT_LAYOUT_ID = "v1-resources-options-split"
+        const val RESOURCE_FULL_LAYOUT_ID = "v1-resources-full"
+        const val OPTION_FULL_LAYOUT_ID = "v1-options-full"
         const val OPTION_NAME_TEXT_WIDTH = 108f
         const val OPTION_DETAIL_TEXT_WIDTH = 339f
 
