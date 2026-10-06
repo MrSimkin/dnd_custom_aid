@@ -2173,6 +2173,10 @@ class DesktopPcSheetWholeDraftRendererTest {
                     .filter { it.contains("INVENTARIO / EQUIPO") }
                 assertTrue(inventoryPages.isNotEmpty())
                 assertTrue(
+                    inventoryPages.none { it.contains("EQUIPO ESPECIAL") },
+                    "Exhausted Special Equipment must not reserve an empty Extended module.",
+                )
+                assertTrue(
                     inventoryPages.none { it.contains("Muestras y reactivos.") },
                     "Ordinary Equipment descriptions must never leak into Equipment continuation.",
                 )

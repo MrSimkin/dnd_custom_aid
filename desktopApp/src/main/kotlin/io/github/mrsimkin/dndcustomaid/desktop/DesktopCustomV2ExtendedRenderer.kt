@@ -1905,66 +1905,96 @@ internal class DesktopCustomV2ExtendedRenderer(
         pageIndex: Int,
     ) {
         val prefix = if (pageIndex == 0) "V2X INVENTORY" else "V2X INVENTORY P${pageIndex + 1}"
+        val hasOrdinary = ordinary.isNotEmpty()
+        val hasTreasure = treasure.isNotEmpty()
+        val hasSpecial = special.isNotEmpty()
+        val ordinaryBlockXs = when {
+            !hasOrdinary -> emptyList()
+            hasTreasure -> listOf(14f)
+            ordinary.size > INVENTORY_BLOCK_CAPACITY -> listOf(14f, 307f)
+            else -> listOf(14f)
+        }
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             pageHeaderStructure(s)
-            listOf(14f, 307f).forEach { blockX ->
+            ordinaryBlockXs.forEach { blockX ->
                 bandedRows(s, blockX, blockX + 277f, 139f, INVENTORY_ROWS_PER_COLUMN, 17f, 0)
                 verticalRule(s, blockX + 139f, 122f, 462f, 0.45f)
             }
-            drawRule(s, 14f, 598f, 480f, 0.8f)
-
-            bandedRows(
-                s,
-                14f,
-                598f,
-                INVENTORY_SPECIAL_FIRST_RULE_TOP,
-                INVENTORY_SPECIAL_CAPACITY,
-                INVENTORY_SPECIAL_ROW_STEP,
-                0,
-            )
-            listOf(30f, 99f, 303f).forEach { x ->
-                verticalRule(
+            if (hasTreasure) {
+                bandedRows(s, 307f, 598f, 139f, INVENTORY_TREASURE_CAPACITY, 17f, 1)
+            }
+            if (hasSpecial) {
+                if (hasOrdinary || hasTreasure) {
+                    drawRule(s, 14f, 598f, 480f, 0.8f)
+                }
+                bandedRows(
                     s,
-                    x,
-                    512f,
-                    INVENTORY_SPECIAL_FIRST_RULE_TOP +
-                        (INVENTORY_SPECIAL_CAPACITY - 1) * INVENTORY_SPECIAL_ROW_STEP,
-                    0.45f,
+                    14f,
+                    598f,
+                    INVENTORY_SPECIAL_FIRST_RULE_TOP,
+                    INVENTORY_SPECIAL_CAPACITY,
+                    INVENTORY_SPECIAL_ROW_STEP,
+                    0,
                 )
+                listOf(30f, 99f, 303f).forEach { x ->
+                    verticalRule(
+                        s,
+                        x,
+                        512f,
+                        INVENTORY_SPECIAL_FIRST_RULE_TOP +
+                            (INVENTORY_SPECIAL_CAPACITY - 1) * INVENTORY_SPECIAL_ROW_STEP,
+                        0.45f,
+                    )
+                }
             }
         }
         appendLayer(page, "$prefix - CLEANUP") { }
         appendLayer(page, "$prefix - LABELS") { s ->
             pageTitle(s, "INVENTARIO / EQUIPO")
-            centeredFixedScale(
-                s,
-                resources.corbelBold,
-                TopRect(14f, 99f, 277f, 22f),
-                "EQUIPO",
-                12.12f,
-                SOURCE_CORBEL_HEADING_SCALE,
-            )
-            centeredFixedScale(
-                s,
-                resources.corbelBold,
-                TopRect(307f, 99f, 291f, 22f),
-                if (treasure.isEmpty()) "EQUIPO" else "TESORO / MONEDAS",
-                12.12f,
-                SOURCE_CORBEL_HEADING_SCALE,
-            )
+            if (hasOrdinary) {
+                centeredFixedScale(
+                    s,
+                    resources.corbelBold,
+                    TopRect(14f, 99f, 277f, 22f),
+                    "EQUIPO",
+                    12.12f,
+                    SOURCE_CORBEL_HEADING_SCALE,
+                )
+            }
+            if (hasTreasure) {
+                centeredFixedScale(
+                    s,
+                    resources.corbelBold,
+                    TopRect(307f, 99f, 291f, 22f),
+                    "TESORO / MONEDAS",
+                    12.12f,
+                    SOURCE_CORBEL_HEADING_SCALE,
+                )
+            } else if (ordinary.size > INVENTORY_BLOCK_CAPACITY) {
+                centeredFixedScale(
+                    s,
+                    resources.corbelBold,
+                    TopRect(307f, 99f, 291f, 22f),
+                    "EQUIPO",
+                    12.12f,
+                    SOURCE_CORBEL_HEADING_SCALE,
+                )
+            }
 
-            centeredFixedScale(
-                s,
-                resources.corbelBold,
-                TopRect(14f, 489f, 584f, 22f),
-                "EQUIPO ESPECIAL",
-                12.12f,
-                SOURCE_CORBEL_HEADING_SCALE,
-            )
-            tableLabel(s, 30f, 514f, 69f, "UBICACIÓN")
-            tableLabel(s, 99f, 514f, 204f, "NOMBRE")
-            tableLabel(s, 303f, 514f, 295f, "DESCRIPCIÓN / ESTADO")
+            if (hasSpecial) {
+                centeredFixedScale(
+                    s,
+                    resources.corbelBold,
+                    TopRect(14f, 489f, 584f, 22f),
+                    "EQUIPO ESPECIAL",
+                    12.12f,
+                    SOURCE_CORBEL_HEADING_SCALE,
+                )
+                tableLabel(s, 30f, 514f, 69f, "UBICACIÓN")
+                tableLabel(s, 99f, 514f, 204f, "NOMBRE")
+                tableLabel(s, 303f, 514f, 295f, "DESCRIPCIÓN / ESTADO")
+            }
         }
         appendLayer(page, "$prefix - VALUES") { s ->
             ordinary.forEachIndexed { index, line ->
