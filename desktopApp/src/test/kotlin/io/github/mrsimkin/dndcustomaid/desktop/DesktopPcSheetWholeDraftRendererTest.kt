@@ -2283,6 +2283,120 @@ class DesktopPcSheetWholeDraftRendererTest {
     }
 
     @Test
+    fun composesCustomV2TraitsAsNativeColumnsWithoutFixedScaffold() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate()
+        val seed = base.sheet.traits.first()
+
+        val classTraits = (1..12).map { index ->
+            seed.copy(
+                id = uuid("81000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
+                name = "Rasgo clase compositor QA ${index.toString().padStart(2, '0')}",
+                source = "",
+                type = CharacterTraitType.CLASS,
+                description = "",
+                notes = null,
+                maxUses = null,
+                spentUses = 0,
+                recovery = null,
+                activation = null,
+                sortOrder = index * 2,
+            )
+        }
+        val raceTraits = (1..4).map { index ->
+            seed.copy(
+                id = uuid("82000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
+                name = "Rasgo raza compositor QA ${index.toString().padStart(2, '0')}",
+                source = "",
+                type = CharacterTraitType.SPECIES_RACE,
+                description = "",
+                notes = null,
+                maxUses = null,
+                spentUses = 0,
+                recovery = null,
+                activation = null,
+                sortOrder = index * 2 - 1,
+            )
+        }
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                traits = classTraits + raceTraits,
+                proficiencies = emptyList(),
+                resources = emptyList(),
+                classOptions = emptyList(),
+                inventoryItems = emptyList(),
+                spells = emptyList(),
+                generalNotes = "",
+                noteCards = emptyList(),
+            ),
+            successor = base.successor.copy(
+                customMarkers = emptyList(),
+                preferences = base.successor.preferences.copy(valuablesText = ""),
+            ),
+        )
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(permanent = aggregate),
+        )
+        val pdf = File(proofDir, "custom-v2-traits-native-column-reclaim.pdf")
+        pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+        Loader.loadPDF(pdf).use { document ->
+            val traitPages = (1..document.numberOfPages)
+                .map { pageNumber ->
+                    pageNumber to PDFTextStripper().apply {
+                        startPage = pageNumber
+                        endPage = pageNumber
+                    }.getText(document).replace(Regex("\\s+"), " ")
+                }
+                .filter { (_, pageText) -> pageText.contains("RASGOS Y ATRIBUTOS") }
+
+            assertTrue(traitPages.isNotEmpty())
+            val joined = traitPages.joinToString(" ") { it.second }
+            classTraits.forEach { trait ->
+                assertTrue(joined.contains(trait.name), "Missing class trait ${trait.name}")
+            }
+            raceTraits.forEach { trait ->
+                assertTrue(joined.contains(trait.name), "Missing race trait ${trait.name}")
+            }
+            assertFalse(joined.contains("OTROS RASGOS"))
+            assertFalse(joined.contains("CONTINUACIÓN"))
+
+            classTraits.zipWithNext().forEach { (first, second) ->
+                assertTrue(
+                    joined.indexOf(first.name) < joined.indexOf(second.name),
+                    "Stored order must be preserved inside the Class/Feat category.",
+                )
+            }
+            raceTraits.zipWithNext().forEach { (first, second) ->
+                assertTrue(
+                    joined.indexOf(first.name) < joined.indexOf(second.name),
+                    "Stored order must be preserved inside the Race/Background/Other category.",
+                )
+            }
+            assertTrue(
+                joined.indexOf(classTraits.last().name) < joined.indexOf(raceTraits.first().name),
+                "Category grouping is intentional: Class/Feat group precedes Race/Background/Other.",
+            )
+
+            traitPages.forEach { (pageNumber, _) ->
+                val image = PDFRenderer(document).renderImageWithDPI(pageNumber - 1, 220f, ImageType.RGB)
+                assertTrue(
+                    ImageIO.write(
+                        image,
+                        "png",
+                        File(proofDir, "custom-v2-traits-native-column-reclaim-page-$pageNumber.png"),
+                    ),
+                )
+            }
+        }
+    }
+
+    @Test
     fun promotesOwnerApprovedCustomV2TraitsAndResourcesFromRealPlanData() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()

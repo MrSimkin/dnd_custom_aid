@@ -924,10 +924,92 @@ internal class DesktopCustomV2ExtendedRenderer(
     private fun appendTraitsExtendedPages(plan: PcSheetPdfRenderPlan) {
         if (!needsTraitsExtendedPage(plan)) return
 
+        val columns = traitNativeColumns(plan)
+        if (columns.isEmpty()) return
+
+        var demands = listOf(
+            PcSheetModuleDemand(
+                module = PcSheetSemanticModule.TRAITS,
+                remainingUnits = columns.size,
+            ),
+        )
+        var columnOffset = 0
+        var pageIndex = 0
+
+        while (demands.isNotEmpty()) {
+            val step = requireNotNull(
+                PcSheetExtendedPageComposer.composeNextPage(
+                    demands = demands,
+                    layouts = traitCompositionLayouts(),
+                ),
+            )
+            val placements = step.page.placements
+                .filter { it.module == PcSheetSemanticModule.TRAITS }
+                .sortedBy { placement ->
+                    when (placement.slotId) {
+                        TRAIT_LEFT_SLOT_ID -> 0
+                        TRAIT_RIGHT_SLOT_ID -> 1
+                        else -> error("Unknown Custom-v2 Traits slot: ${placement.slotId}")
+                    }
+                }
+            val pageColumns = placements.map { placement ->
+                check(placement.consumedUnits == 1) {
+                    "Custom-v2 Traits native-column placement must consume exactly one column."
+                }
+                placement.slotId to columns[columnOffset++]
+            }
+
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderTraitsPage(
+                page = page,
+                columns = pageColumns,
+                pageIndex = pageIndex,
+            )
+
+            demands = step.remainingDemands
+            pageIndex += 1
+        }
+
+        check(columnOffset == columns.size) {
+            "Custom-v2 Traits compositor did not consume every packed native column."
+        }
+    }
+
+    private fun traitCompositionLayouts(): List<PcSheetExtendedLayoutTemplate> =
+        listOf(
+            PcSheetExtendedLayoutTemplate(
+                id = TRAIT_SINGLE_COLUMN_LAYOUT_ID,
+                slots = listOf(
+                    PcSheetExtendedLayoutSlot(
+                        id = TRAIT_LEFT_SLOT_ID,
+                        capacityByModule = mapOf(PcSheetSemanticModule.TRAITS to 1),
+                    ),
+                ),
+                priority = 0,
+            ),
+            PcSheetExtendedLayoutTemplate(
+                id = TRAIT_TWO_COLUMN_LAYOUT_ID,
+                slots = listOf(
+                    PcSheetExtendedLayoutSlot(
+                        id = TRAIT_LEFT_SLOT_ID,
+                        capacityByModule = mapOf(PcSheetSemanticModule.TRAITS to 1),
+                    ),
+                    PcSheetExtendedLayoutSlot(
+                        id = TRAIT_RIGHT_SLOT_ID,
+                        capacityByModule = mapOf(PcSheetSemanticModule.TRAITS to 1),
+                    ),
+                ),
+                priority = 1,
+            ),
+        )
+
+    private fun traitNativeColumns(plan: PcSheetPdfRenderPlan): List<TraitNativeColumn> {
         val sheet = plan.snapshot.aggregate.sheet
         val traits = sheet.traits
             .sortedBy { it.sortOrder }
             .filterNot { isSpeciesIdentityTrait(it, plan) || traitHasDedicatedActionOrResource(it, plan) }
+
         val leftTraits = traits.filter {
             it.type == CharacterTraitType.CLASS ||
                 it.type == CharacterTraitType.FEAT ||
@@ -935,139 +1017,376 @@ internal class DesktopCustomV2ExtendedRenderer(
         }
         val rightTraits = traits.filterNot { it in leftTraits }
 
-        val featuredLeft = leftTraits.take(2)
-        val featuredRight = rightTraits.take(2)
-        val featuredIds = (featuredLeft + featuredRight).map { it.id }.toSet()
-        val remaining = traits.filterNot { it.id in featuredIds }
+        val blocks = mutableListOf<TraitNativeBlock>()
 
-        val detailLines = buildList {
-            addAll(traitSupplementLines(plan))
-            featuredLeft.forEach { trait ->
-                addAll(featureOverflowLines(trait, 269f))
-            }
-            featuredRight.forEach { trait ->
-                addAll(featureOverflowLines(trait, 283f))
-            }
-            remaining.forEach { trait ->
-                addAll(fullTraitDetailLines(trait))
-            }
+        fun addTraitGroup(
+            heading: String,
+            groupedTraits: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
+        ) {
+            if (groupedTraits.isEmpty()) return
+            val traitBlocks = groupedTraits.map(::traitNativeBlock)
+            blocks += traitBlocks.first().copy(
+                lines = listOf(TraitNativeFlowLine(heading, TraitNativeFlowLineKind.GROUP_HEADING)) +
+                    traitBlocks.first().lines,
+            )
+            blocks += traitBlocks.drop(1)
         }
+
+        addTraitGroup("CLASE / DOTES", leftTraits)
+        addTraitGroup("RAZA / TRASFONDO / OTROS", rightTraits)
 
         val proficiencies = sheet.proficiencies.sortedBy { it.sortOrder }
-        val pages = maxOf(
-            1,
-            pageCount(remaining.size, TRAIT_NAME_INDEX_PER_PAGE),
-            pageCount(detailLines.size, TRAIT_DETAIL_LINES_PER_PAGE),
-            pageCount(proficiencies.size, TRAIT_PROFICIENCIES_PER_PAGE),
-        )
-
-        repeat(pages) { pageIndex ->
-            val page = PDPage(PDRectangle(W, H))
-            document.addPage(page)
-            renderTraitsPage(
-                page = page,
-                featuredLeft = if (pageIndex == 0) featuredLeft else emptyList(),
-                featuredRight = if (pageIndex == 0) featuredRight else emptyList(),
-                nameIndex = remaining
-                    .drop(pageIndex * TRAIT_NAME_INDEX_PER_PAGE)
-                    .take(TRAIT_NAME_INDEX_PER_PAGE),
-                detailLines = detailLines
-                    .drop(pageIndex * TRAIT_DETAIL_LINES_PER_PAGE)
-                    .take(TRAIT_DETAIL_LINES_PER_PAGE),
-                proficiencies = proficiencies
-                    .drop(pageIndex * TRAIT_PROFICIENCIES_PER_PAGE)
-                    .take(TRAIT_PROFICIENCIES_PER_PAGE),
-                pageIndex = pageIndex,
+        if (proficiencies.isNotEmpty()) {
+            val proficiencyBlocks = proficiencies.map { proficiency ->
+                val label = buildString {
+                    append(proficiency.name)
+                    proficiency.source?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
+                    proficiency.notes?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
+                }
+                TraitNativeBlock(
+                    lines = wrapByWidth(
+                        resources.fira,
+                        label,
+                        TRAIT_PROFICIENCY_SIZE,
+                        TRAIT_NATIVE_TEXT_WIDTH,
+                    ).map { TraitNativeFlowLine(it, TraitNativeFlowLineKind.PROFICIENCY) } +
+                        TraitNativeFlowLine("", TraitNativeFlowLineKind.SEPARATOR),
+                )
+            }
+            blocks += proficiencyBlocks.first().copy(
+                lines = listOf(
+                    TraitNativeFlowLine(
+                        "COMPETENCIAS / IDIOMAS",
+                        TraitNativeFlowLineKind.GROUP_HEADING,
+                    ),
+                ) + proficiencyBlocks.first().lines,
             )
+            blocks += proficiencyBlocks.drop(1)
         }
+
+        val supplementLines = traitSupplementLines(plan)
+        if (supplementLines.isNotEmpty()) {
+            supplementLines
+                .chunked(TRAIT_NATIVE_ROWS_PER_COLUMN - 1)
+                .forEachIndexed { index, chunk ->
+                    blocks += TraitNativeBlock(
+                        lines = listOf(
+                            TraitNativeFlowLine(
+                                if (index == 0) "DETALLES / NOTAS" else "DETALLES / NOTAS (CONT.)",
+                                TraitNativeFlowLineKind.GROUP_HEADING,
+                            ),
+                        ) + chunk.map {
+                            TraitNativeFlowLine(it, TraitNativeFlowLineKind.SUPPLEMENT)
+                        },
+                    )
+                }
+        }
+
+        return packTraitNativeColumns(blocks)
+    }
+
+    private fun traitNativeBlock(
+        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+    ): TraitNativeBlock {
+        val lines = mutableListOf<TraitNativeFlowLine>()
+
+        wrapByWidth(
+            resources.firaSemibold,
+            trait.name.trim(),
+            TRAIT_NAME_SIZE,
+            TRAIT_NATIVE_TEXT_WIDTH,
+        ).forEach { line ->
+            lines += TraitNativeFlowLine(line, TraitNativeFlowLineKind.NAME)
+        }
+
+        val metadata = listOf(
+            traitTypeLabel(trait.type),
+            trait.source.trim(),
+            trait.activation?.let(::activationLabel).orEmpty(),
+        ).filter { it.isNotEmpty() }.joinToString(" · ")
+        if (metadata.isNotEmpty()) {
+            wrapByWidth(
+                resources.fira,
+                metadata,
+                TRAIT_META_SIZE,
+                TRAIT_NATIVE_TEXT_WIDTH,
+            ).forEach { line ->
+                lines += TraitNativeFlowLine(line, TraitNativeFlowLineKind.META)
+            }
+        }
+
+        val uses = trait.pcSheetWritableUsesTrackerOrNull()?.let { tracker ->
+            buildString {
+                append("Usos: ").append(tracker.compactEditableLabel())
+                trait.recovery?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
+            }
+        } ?: trait.recovery?.takeIf { it.isNotBlank() }
+        uses?.let { value ->
+            wrapByWidth(
+                resources.fira,
+                value,
+                TRAIT_META_SIZE,
+                TRAIT_NATIVE_TEXT_WIDTH,
+            ).forEach { line ->
+                lines += TraitNativeFlowLine(line, TraitNativeFlowLineKind.USES)
+            }
+        }
+
+        featureDescriptionLines(trait, TRAIT_NATIVE_TEXT_WIDTH).forEach { line ->
+            lines += TraitNativeFlowLine(line, TraitNativeFlowLineKind.BODY)
+        }
+        lines += TraitNativeFlowLine("", TraitNativeFlowLineKind.SEPARATOR)
+
+        return TraitNativeBlock(
+            lines = lines,
+            record = PcSheetSemanticRecordRef(
+                module = PcSheetSemanticModule.TRAITS,
+                stableKey = trait.id.toString(),
+                displayName = trait.name,
+            ),
+        )
+    }
+
+    private fun packTraitNativeColumns(
+        blocks: List<TraitNativeBlock>,
+    ): List<TraitNativeColumn> {
+        val columns = mutableListOf<TraitNativeColumn>()
+        var current = mutableListOf<TraitNativeFlowLine>()
+
+        fun flush() {
+            if (current.isNotEmpty()) {
+                columns += TraitNativeColumn(current.toList())
+                current = mutableListOf()
+            }
+        }
+
+        blocks
+            .flatMap(::splitOversizedTraitBlock)
+            .forEach { block ->
+                require(block.lines.size <= TRAIT_NATIVE_ROWS_PER_COLUMN) {
+                    "Custom-v2 Traits block exceeds one native column after splitting."
+                }
+                if (
+                    current.isNotEmpty() &&
+                    current.size + block.lines.size > TRAIT_NATIVE_ROWS_PER_COLUMN
+                ) {
+                    flush()
+                }
+                current.addAll(block.lines)
+                if (current.size == TRAIT_NATIVE_ROWS_PER_COLUMN) {
+                    flush()
+                }
+            }
+
+        flush()
+        return columns
+    }
+
+    private fun splitOversizedTraitBlock(
+        block: TraitNativeBlock,
+    ): List<TraitNativeBlock> {
+        if (block.lines.size <= TRAIT_NATIVE_ROWS_PER_COLUMN) return listOf(block)
+
+        val record = block.record
+        if (record == null) {
+            return block.lines
+                .chunked(TRAIT_NATIVE_ROWS_PER_COLUMN)
+                .map { TraitNativeBlock(lines = it) }
+        }
+
+        fun endpoint(index: Int) =
+            PcSheetContinuationEndpoint(
+                module = PcSheetSemanticModule.TRAITS,
+                sectionName = "RASGOS",
+                surface = PcSheetContinuationSurface.EXTENDED,
+                extendedIndex = index,
+            )
+
+        val result = mutableListOf<TraitNativeBlock>()
+        var remaining = block.lines
+        var segmentIndex = 1
+
+        while (remaining.isNotEmpty()) {
+            val inbound = if (segmentIndex > 1) {
+                PcSheetBidirectionalContinuation(
+                    record = record,
+                    source = endpoint(segmentIndex - 1),
+                    target = endpoint(segmentIndex),
+                ).targetMarker()
+            } else {
+                null
+            }
+            val inboundRows = if (inbound == null) 0 else 1
+            val finalCapacity = TRAIT_NATIVE_ROWS_PER_COLUMN - inboundRows
+
+            if (remaining.size <= finalCapacity) {
+                result += TraitNativeBlock(
+                    lines = buildList {
+                        inbound?.let {
+                            add(TraitNativeFlowLine(it, TraitNativeFlowLineKind.CONTINUITY))
+                        }
+                        addAll(remaining)
+                    },
+                    record = record,
+                )
+                remaining = emptyList()
+            } else {
+                val contentCapacity = TRAIT_NATIVE_ROWS_PER_COLUMN - inboundRows - 1
+                require(contentCapacity > 0)
+                val outbound = PcSheetBidirectionalContinuation(
+                    record = record,
+                    source = endpoint(segmentIndex),
+                    target = endpoint(segmentIndex + 1),
+                ).sourceMarker()
+                result += TraitNativeBlock(
+                    lines = buildList {
+                        inbound?.let {
+                            add(TraitNativeFlowLine(it, TraitNativeFlowLineKind.CONTINUITY))
+                        }
+                        addAll(remaining.take(contentCapacity))
+                        add(TraitNativeFlowLine(outbound, TraitNativeFlowLineKind.CONTINUITY))
+                    },
+                    record = record,
+                )
+                remaining = remaining.drop(contentCapacity)
+            }
+            segmentIndex += 1
+        }
+
+        return result
     }
 
     private fun renderTraitsPage(
         page: PDPage,
-        featuredLeft: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
-        featuredRight: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
-        nameIndex: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait>,
-        detailLines: List<String>,
-        proficiencies: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiency>,
+        columns: List<Pair<String, TraitNativeColumn>>,
         pageIndex: Int,
     ) {
         val layerPrefix = if (pageIndex == 0) "V2X TRAITS" else "V2X TRAITS ${pageIndex + 1}"
 
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
             pageHeaderStructure(s)
-            bandedRows(s, 14f, 291f, 137f, 36, 17f, 0)
-            bandedRows(s, 307f, 598f, 137f, 36, 17f, 1)
-            fill(s, 14f, 96f, 277f, 34f, Color.WHITE)
-            fill(s, 307f, 96f, 291f, 34f, Color.WHITE)
-            fill(s, 14f, 358f, 277f, 34f, Color.WHITE)
-            fill(s, 307f, 358f, 291f, 34f, Color.WHITE)
-            fill(s, 14f, 579f, 277f, 34f, Color.WHITE)
-            fill(s, 307f, 579f, 291f, 34f, Color.WHITE)
-            drawRule(s, 14f, 291f, 358f, 0.8f)
-            drawRule(s, 307f, 598f, 358f, 0.8f)
-            drawRule(s, 14f, 291f, 579f, 0.8f)
-            drawRule(s, 307f, 598f, 579f, 0.8f)
+            columns.forEach { (slotId, column) ->
+                val x = traitColumnStartX(slotId)
+                val width = traitColumnWidth(slotId)
+                bandedRows(
+                    s,
+                    x,
+                    x + width,
+                    TRAIT_NATIVE_FIRST_RULE_TOP,
+                    column.lines.size,
+                    TRAIT_NATIVE_ROW_STEP,
+                    if (slotId == TRAIT_LEFT_SLOT_ID) 0 else 1,
+                )
+            }
         }
         appendLayer(page, "$layerPrefix - CLEANUP") { }
         appendLayer(page, "$layerPrefix - LABELS") { s ->
             pageTitle(s, "RASGOS Y ATRIBUTOS")
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 99f, 277f, 22f), "CLASE / DOTES", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredFixedScale(s, resources.corbelBold, TopRect(307f, 99f, 291f, 22f), "RAZA / TRASFONDO / OTROS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 363f, 277f, 22f), "OTROS RASGOS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredFixedScale(s, resources.corbelBold, TopRect(307f, 363f, 291f, 22f), "DETALLES / NOTAS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredFixedScale(s, resources.corbelBold, TopRect(14f, 584f, 277f, 22f), "COMPETENCIAS / IDIOMAS", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
-            centeredFixedScale(s, resources.corbelBold, TopRect(307f, 584f, 291f, 22f), "CONTINUACIÓN", 12.12f, SOURCE_CORBEL_HEADING_SCALE)
         }
         appendLayer(page, "$layerPrefix - VALUES") { s ->
-            var leftFeatureRule = 137f
-            featuredLeft.forEach { trait ->
-                leftFeatureRule = featureEntry(s, 14f, leftFeatureRule, 277f, trait)
-            }
-            var rightFeatureRule = 137f
-            featuredRight.forEach { trait ->
-                rightFeatureRule = featureEntry(s, 307f, rightFeatureRule, 291f, trait)
-            }
+            columns.forEach { (slotId, column) ->
+                val x = traitColumnStartX(slotId)
+                val width = traitColumnWidth(slotId)
+                column.lines.forEachIndexed { index, line ->
+                    val ruleTop = TRAIT_NATIVE_FIRST_RULE_TOP + index * TRAIT_NATIVE_ROW_STEP
+                    when (line.kind) {
+                        TraitNativeFlowLineKind.GROUP_HEADING -> centeredFixedScale(
+                            s,
+                            resources.corbelBold,
+                            TopRect(
+                                x,
+                                ruleTop - TRAIT_NATIVE_ROW_STEP + 0.5f,
+                                width,
+                                TRAIT_NATIVE_ROW_STEP - 0.5f,
+                            ),
+                            line.text,
+                            TRAIT_GROUP_HEADING_SIZE,
+                            SOURCE_CORBEL_HEADING_SCALE,
+                        )
 
-            nameIndex.forEachIndexed { index, trait ->
-                textAboveRule(s, resources.fira, Rule(18f, 287f, 392f + index * 17f), trait.name, 8.1f, 6.5f, 2.2f)
-            }
+                        TraitNativeFlowLineKind.NAME -> textAboveRule(
+                            s,
+                            resources.firaSemibold,
+                            Rule(x + 4f, x + width - 4f, ruleTop),
+                            line.text,
+                            TRAIT_NAME_SIZE,
+                            TRAIT_NAME_MINIMUM_SIZE,
+                            2.7f,
+                        )
 
-            detailLines.take(10).forEachIndexed { index, line ->
-                textAboveRule(s, resources.fira, Rule(311f, 594f, 392f + index * 17f), line, 7.7f, 6.2f, 2.2f)
-            }
+                        TraitNativeFlowLineKind.META,
+                        TraitNativeFlowLineKind.USES,
+                        -> textAboveRule(
+                            s,
+                            resources.fira,
+                            Rule(x + 4f, x + width - 4f, ruleTop),
+                            line.text,
+                            TRAIT_META_SIZE,
+                            TRAIT_META_MINIMUM_SIZE,
+                            2.5f,
+                        )
 
-            proficiencies.forEachIndexed { index, proficiency ->
-                val label = buildString {
-                    append(proficiency.name)
-                    proficiency.source?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
-                    proficiency.notes?.takeIf { it.isNotBlank() }?.let { append(" · ").append(it) }
+                        TraitNativeFlowLineKind.BODY -> textAboveRule(
+                            s,
+                            resources.fira,
+                            Rule(x + 4f, x + width - 4f, ruleTop),
+                            line.text,
+                            TRAIT_BODY_SIZE,
+                            TRAIT_BODY_MINIMUM_SIZE,
+                            2.5f,
+                        )
+
+                        TraitNativeFlowLineKind.PROFICIENCY -> textAboveRule(
+                            s,
+                            resources.fira,
+                            Rule(x + 4f, x + width - 4f, ruleTop),
+                            line.text,
+                            TRAIT_PROFICIENCY_SIZE,
+                            TRAIT_META_MINIMUM_SIZE,
+                            2.4f,
+                        )
+
+                        TraitNativeFlowLineKind.SUPPLEMENT -> textAboveRule(
+                            s,
+                            resources.fira,
+                            Rule(x + 4f, x + width - 4f, ruleTop),
+                            line.text,
+                            TRAIT_SUPPLEMENT_SIZE,
+                            TRAIT_META_MINIMUM_SIZE,
+                            2.4f,
+                        )
+
+                        TraitNativeFlowLineKind.CONTINUITY -> textAboveRule(
+                            s,
+                            resources.firaSemibold,
+                            Rule(x + 4f, x + width - 4f, ruleTop),
+                            line.text,
+                            TRAIT_CONTINUITY_SIZE,
+                            TRAIT_CONTINUITY_MINIMUM_SIZE,
+                            2.2f,
+                        )
+
+                        TraitNativeFlowLineKind.SEPARATOR -> Unit
+                    }
                 }
-                textAboveRule(s, resources.fira, Rule(18f, 287f, 613f + index * 17f), label, 8.0f, 6.2f, 2.2f)
-            }
-
-            detailLines.drop(10).take(8).forEachIndexed { index, line ->
-                textAboveRule(s, resources.fira, Rule(311f, 594f, 613f + index * 17f), line, 7.7f, 6.2f, 2.2f)
             }
         }
         appendLayer(page, "$layerPrefix - MARKERS") { }
     }
 
-    private fun featureOverflowLines(
-        trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
-        width: Float,
-    ): List<String> {
-        val lines = featureDescriptionLines(trait, width)
-        val overflow = lines.drop(FEATURE_DESCRIPTION_LINES)
-        if (overflow.isEmpty()) return emptyList()
+    private fun traitColumnStartX(slotId: String): Float =
+        when (slotId) {
+            TRAIT_LEFT_SLOT_ID -> TRAIT_LEFT_X
+            TRAIT_RIGHT_SLOT_ID -> TRAIT_RIGHT_X
+            else -> error("Unknown Custom-v2 Traits slot: $slotId")
+        }
 
-        val continuationText = trait.name + ": " + overflow.joinToString(" ")
-        return wrapByWidth(
-            resources.fira,
-            continuationText,
-            7.7f,
-            TRAIT_CONTINUATION_TEXT_WIDTH,
-        )
-    }
+    private fun traitColumnWidth(slotId: String): Float =
+        when (slotId) {
+            TRAIT_LEFT_SLOT_ID -> TRAIT_LEFT_WIDTH
+            TRAIT_RIGHT_SLOT_ID -> TRAIT_RIGHT_WIDTH
+            else -> error("Unknown Custom-v2 Traits slot: $slotId")
+        }
 
     private fun traitSupplementLines(plan: PcSheetPdfRenderPlan): List<String> {
         val aggregate = plan.snapshot.aggregate
@@ -1079,7 +1398,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         fun addFull(label: String, value: String) {
             val clean = value.trim()
             if (clean.isNotEmpty()) {
-                lines += wrapByWidth(resources.fira, "$label: $clean", 7.7f, 281f)
+                lines += wrapByWidth(resources.fira, "$label: $clean", 7.7f, TRAIT_NATIVE_TEXT_WIDTH)
             }
         }
 
@@ -3459,6 +3778,32 @@ internal class DesktopCustomV2ExtendedRenderer(
         val detail: String,
     )
 
+    private data class TraitNativeColumn(
+        val lines: List<TraitNativeFlowLine>,
+    )
+
+    private data class TraitNativeBlock(
+        val lines: List<TraitNativeFlowLine>,
+        val record: PcSheetSemanticRecordRef? = null,
+    )
+
+    private data class TraitNativeFlowLine(
+        val text: String,
+        val kind: TraitNativeFlowLineKind,
+    )
+
+    private enum class TraitNativeFlowLineKind {
+        GROUP_HEADING,
+        NAME,
+        META,
+        USES,
+        BODY,
+        PROFICIENCY,
+        SUPPLEMENT,
+        CONTINUITY,
+        SEPARATOR,
+    }
+
     private data class OptionRenderLine(
         val kind: String,
         val name: String,
@@ -3723,10 +4068,29 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val ABILITY_SAVES_PER_PAGE = 30
         const val ABILITY_SKILLS_PER_PAGE = 34
         const val FEATURE_DESCRIPTION_LINES = 3
-        const val TRAIT_NAME_INDEX_PER_PAGE = 10
-        const val TRAIT_DETAIL_LINES_PER_PAGE = 18
-        const val TRAIT_CONTINUATION_TEXT_WIDTH = 281f
-        const val TRAIT_PROFICIENCIES_PER_PAGE = 8
+        const val TRAIT_NATIVE_ROWS_PER_COLUMN = 36
+        const val TRAIT_NATIVE_FIRST_RULE_TOP = 137f
+        const val TRAIT_NATIVE_ROW_STEP = 17f
+        const val TRAIT_LEFT_X = 14f
+        const val TRAIT_LEFT_WIDTH = 277f
+        const val TRAIT_RIGHT_X = 307f
+        const val TRAIT_RIGHT_WIDTH = 291f
+        const val TRAIT_NATIVE_TEXT_WIDTH = 269f
+        const val TRAIT_GROUP_HEADING_SIZE = 8.4f
+        const val TRAIT_NAME_SIZE = 9.0f
+        const val TRAIT_NAME_MINIMUM_SIZE = 7.4f
+        const val TRAIT_META_SIZE = 7.3f
+        const val TRAIT_META_MINIMUM_SIZE = 6.2f
+        const val TRAIT_BODY_SIZE = 7.4f
+        const val TRAIT_BODY_MINIMUM_SIZE = 6.2f
+        const val TRAIT_PROFICIENCY_SIZE = 8.0f
+        const val TRAIT_SUPPLEMENT_SIZE = 7.7f
+        const val TRAIT_CONTINUITY_SIZE = 6.2f
+        const val TRAIT_CONTINUITY_MINIMUM_SIZE = 5.2f
+        const val TRAIT_LEFT_SLOT_ID = "traits-left"
+        const val TRAIT_RIGHT_SLOT_ID = "traits-right"
+        const val TRAIT_SINGLE_COLUMN_LAYOUT_ID = "v2-traits-single-native-column"
+        const val TRAIT_TWO_COLUMN_LAYOUT_ID = "v2-traits-two-native-columns"
         const val BASE_V2_COMBAT_CAPACITY = 8
         const val COMBAT_MINIMUM_BODY_SIZE = 6.0f
         const val COMBAT_MINIMUM_HORIZONTAL_SCALE = 72f
