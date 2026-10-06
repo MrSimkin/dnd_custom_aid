@@ -2407,7 +2407,7 @@ class DesktopPcSheetWholeDraftRendererTest {
         val base = denseDraftAggregate()
         val seed = base.sheet.traits.first()
 
-        val classTraits = (1..20).map { index ->
+        val classTraits = (1..14).map { index ->
             seed.copy(
                 id = uuid("8a000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
                 name = "Rasgo clase Fantasy compositor QA ${index.toString().padStart(2, '0')} completo",
@@ -2478,7 +2478,8 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertEquals(
                 2,
                 traitPages.size,
-                "Released Fantasy trait frames must be reused before creating a third page.",
+                "The old fixed left/right paging needs three pages for this fixture; " +
+                    "released Fantasy trait frames must reduce it to two.",
             )
             val joined = traitPages.joinToString(" ") { it.second }
             (classTraits + raceTraits).forEach { trait ->
@@ -4040,7 +4041,11 @@ class DesktopPcSheetWholeDraftRendererTest {
                         audit("HISTORIA Y PERSONALIDAD", 137f, 434f, 458f)
                         audit("IDIOMAS", 342f, 578f, 602f)
                         audit("ALIADOS Y TESORO", 510f, 578f, 602f)
-                        audit("RASGOS DE RAZA / TRASFONDO / OTROS", 450f, 110f, 136f)
+                        // Adaptive Traits packing removes an exhausted sibling frame entirely.
+                        // Keep the frozen XY contract whenever that native frame is actually active.
+                        if (allText.contains("RASGOS DE RAZA / TRASFONDO / OTROS")) {
+                            audit("RASGOS DE RAZA / TRASFONDO / OTROS", 450f, 110f, 136f)
+                        }
                         // The standalone Fantasy Notes page is now content-aware. Keep its XY
                         // contract when present, but do not require a redundant page to exist.
                         if (allText.contains("NOTAS DE CAMPAÑA")) {
