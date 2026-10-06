@@ -19,6 +19,11 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBaseLayoutMode
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSemanticModule
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetModuleDemand
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutSlot
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutTemplate
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageComposer
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetNotePhysicalLine
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetNotePhysicalLineKind
@@ -1030,45 +1035,198 @@ internal class DesktopClassicRenderer {
     ) {
         val resources = classicResourceRows(plan)
         val options = classicOptionRows(plan)
-        if (resources.isEmpty() && options.isEmpty()) return
-
-        val pages = maxOf(
-            1,
-            pageCount(resources.size, CLASSIC_RESOURCE_ROWS_PER_PAGE),
-            pageCount(options.size, CLASSIC_OPTION_ROWS_PER_PAGE),
-        )
-        repeat(pages) { pageIndex ->
-            val page = addPage(doc)
-            PDPageContentStream(doc, page).use { s ->
-                extendedHeader(s, p, plan.snapshot.aggregate.sheet.name, "RECURSOS Y OPCIONES")
-
-                titledFrame(s, p, 24f, 112f, 564f, 316f, "RECURSOS")
-                resourceTableHeader(s, p, 36f, 148f)
-                val pageResources = resources
-                    .drop(pageIndex * CLASSIC_RESOURCE_ROWS_PER_PAGE)
-                    .take(CLASSIC_RESOURCE_ROWS_PER_PAGE)
-                repeat(CLASSIC_RESOURCE_ROWS_PER_PAGE) { index ->
-                    val top = 176f + index * 48f
-                    pageResources.getOrNull(index)?.let { row ->
-                        resourceTableRow(s, p, 36f, top, row)
-                    } ?: hairline(s, 36f, top + 42f, 576f, top + 42f)
-                }
-                titledFrame(s, p, 24f, 442f, 564f, 276f, "OPCIONES Y ESTADOS RELEVANTES")
-                val pageOptions = options
-                    .drop(pageIndex * CLASSIC_OPTION_ROWS_PER_PAGE)
-                    .take(CLASSIC_OPTION_ROWS_PER_PAGE)
-                pageOptions.forEachIndexed { index, row ->
-                    optionEntry(
-                        s, p, 36f, 478f + index * 68f, 540f,
-                        row.name, row.source, row.description,
-                    )
-                }
-                ruledLines(s, 36f, 682f, 540f, 24f, 1)
-
-                footer(s, p, doc.numberOfPages, "EXTENSIÓN / RECURSOS Y OPCIONES")
+        var demands = buildList {
+            if (resources.isNotEmpty()) {
+                add(PcSheetModuleDemand(PcSheetSemanticModule.RESOURCES, resources.size))
+            }
+            if (options.isNotEmpty()) {
+                add(PcSheetModuleDemand(PcSheetSemanticModule.CLASS_CHOICES, options.size))
             }
         }
+        if (demands.isEmpty()) return
+
+        var resourceOffset = 0
+        var optionOffset = 0
+
+        while (demands.isNotEmpty()) {
+            val layouts = classicResourceCompositionLayouts(
+                demands.mapTo(mutableSetOf()) { it.module },
+            )
+            val step = requireNotNull(
+                PcSheetExtendedPageComposer.composeNextPage(
+                    demands = demands,
+                    layouts = layouts,
+                ),
+            )
+            val resourceCount = step.page.placements
+                .firstOrNull { it.module == PcSheetSemanticModule.RESOURCES }
+                ?.consumedUnits
+                ?: 0
+            val optionCount = step.page.placements
+                .firstOrNull { it.module == PcSheetSemanticModule.CLASS_CHOICES }
+                ?.consumedUnits
+                ?: 0
+            val pageResources = resources.drop(resourceOffset).take(resourceCount)
+            val pageOptions = options.drop(optionOffset).take(optionCount)
+
+            val splitLayout = step.page.layoutId == CLASSIC_RESOURCE_OPTIONS_SPLIT_LAYOUT_ID
+            val resourcesFullLayout = step.page.layoutId == CLASSIC_RESOURCE_FULL_LAYOUT_ID
+            val optionsFullLayout = step.page.layoutId == CLASSIC_OPTION_FULL_LAYOUT_ID
+            require(splitLayout || resourcesFullLayout || optionsFullLayout) {
+                "Unknown Fantasy Resources/Options layout: ${step.page.layoutId}"
+            }
+
+            val page = addPage(doc)
+            PDPageContentStream(doc, page).use { s ->
+                extendedHeader(
+                    s,
+                    p,
+                    plan.snapshot.aggregate.sheet.name,
+                    when {
+                        splitLayout -> "RECURSOS Y OPCIONES"
+                        resourcesFullLayout -> "RECURSOS"
+                        else -> "OPCIONES"
+                    },
+                )
+
+                if (pageResources.isNotEmpty()) {
+                    val frameHeight =
+                        if (splitLayout) CLASSIC_RESOURCE_SPLIT_FRAME_HEIGHT
+                        else CLASSIC_RESOURCE_FULL_FRAME_HEIGHT
+                    titledFrame(s, p, 24f, 112f, 564f, frameHeight, "RECURSOS")
+                    resourceTableHeader(s, p, 36f, 148f)
+                    val capacity =
+                        if (splitLayout) CLASSIC_RESOURCE_ROWS_PER_PAGE
+                        else CLASSIC_RESOURCE_FULL_ROWS_PER_PAGE
+                    repeat(capacity) { index ->
+                        val top = CLASSIC_RESOURCE_FIRST_ROW_TOP + index * CLASSIC_RESOURCE_ROW_STEP
+                        pageResources.getOrNull(index)?.let { row ->
+                            resourceTableRow(s, p, 36f, top, row)
+                        } ?: hairline(s, 36f, top + 42f, 576f, top + 42f)
+                    }
+                }
+
+                if (pageOptions.isNotEmpty()) {
+                    val frameTop =
+                        if (splitLayout) CLASSIC_OPTION_SPLIT_FRAME_TOP
+                        else CLASSIC_FULL_FRAME_TOP
+                    val frameHeight =
+                        if (splitLayout) CLASSIC_OPTION_SPLIT_FRAME_HEIGHT
+                        else CLASSIC_RESOURCE_FULL_FRAME_HEIGHT
+                    titledFrame(
+                        s,
+                        p,
+                        24f,
+                        frameTop,
+                        564f,
+                        frameHeight,
+                        "OPCIONES Y ESTADOS RELEVANTES",
+                    )
+                    val firstTop =
+                        if (splitLayout) CLASSIC_OPTION_SPLIT_FIRST_ROW_TOP
+                        else CLASSIC_OPTION_FULL_FIRST_ROW_TOP
+                    pageOptions.forEachIndexed { index, row ->
+                        optionEntry(
+                            s,
+                            p,
+                            36f,
+                            firstTop + index * CLASSIC_OPTION_ROW_STEP,
+                            540f,
+                            row.name,
+                            row.source,
+                            row.description,
+                        )
+                    }
+                    if (splitLayout) {
+                        ruledLines(s, 36f, 682f, 540f, 24f, 1)
+                    }
+                }
+
+                footer(
+                    s,
+                    p,
+                    doc.numberOfPages,
+                    when {
+                        splitLayout -> "EXTENSIÓN / RECURSOS Y OPCIONES"
+                        resourcesFullLayout -> "EXTENSIÓN / RECURSOS"
+                        else -> "EXTENSIÓN / OPCIONES"
+                    },
+                )
+            }
+
+            resourceOffset += resourceCount
+            optionOffset += optionCount
+            demands = step.remainingDemands
+        }
+
+        check(resourceOffset == resources.size) {
+            "Fantasy compositor did not consume every Resource row."
+        }
+        check(optionOffset == options.size) {
+            "Fantasy compositor did not consume every Class Choice row."
+        }
     }
+
+    private fun classicResourceCompositionLayouts(
+        activeModules: Set<PcSheetSemanticModule>,
+    ): List<PcSheetExtendedLayoutTemplate> =
+        when (activeModules) {
+            setOf(PcSheetSemanticModule.RESOURCES, PcSheetSemanticModule.CLASS_CHOICES) ->
+                listOf(
+                    PcSheetExtendedLayoutTemplate(
+                        id = CLASSIC_RESOURCE_OPTIONS_SPLIT_LAYOUT_ID,
+                        slots = listOf(
+                            PcSheetExtendedLayoutSlot(
+                                id = "resources",
+                                capacityByModule = mapOf(
+                                    PcSheetSemanticModule.RESOURCES to CLASSIC_RESOURCE_ROWS_PER_PAGE,
+                                ),
+                            ),
+                            PcSheetExtendedLayoutSlot(
+                                id = "class-choices",
+                                capacityByModule = mapOf(
+                                    PcSheetSemanticModule.CLASS_CHOICES to CLASSIC_OPTION_ROWS_PER_PAGE,
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+
+            setOf(PcSheetSemanticModule.RESOURCES) ->
+                listOf(
+                    PcSheetExtendedLayoutTemplate(
+                        id = CLASSIC_RESOURCE_FULL_LAYOUT_ID,
+                        slots = listOf(
+                            PcSheetExtendedLayoutSlot(
+                                id = "resources-full",
+                                capacityByModule = mapOf(
+                                    PcSheetSemanticModule.RESOURCES to CLASSIC_RESOURCE_FULL_ROWS_PER_PAGE,
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+
+            setOf(PcSheetSemanticModule.CLASS_CHOICES) ->
+                listOf(
+                    PcSheetExtendedLayoutTemplate(
+                        id = CLASSIC_OPTION_FULL_LAYOUT_ID,
+                        slots = listOf(
+                            PcSheetExtendedLayoutSlot(
+                                id = "class-choices-full",
+                                capacityByModule = mapOf(
+                                    PcSheetSemanticModule.CLASS_CHOICES to CLASSIC_OPTION_FULL_ROWS_PER_PAGE,
+                                ),
+                            ),
+                        ),
+                    ),
+                )
+
+            else -> error(
+                "Unsupported Fantasy Resources/Options compositor demand: " +
+                    activeModules.joinToString(),
+            )
+        }
 
     private fun classicResourceRows(plan: PcSheetPdfRenderPlan): List<ClassicResourceRow> {
         val aggregate = plan.snapshot.aggregate
@@ -3709,6 +3867,25 @@ private fun ruledTextArea(
         const val CLASSIC_COMBAT_PREVIEW_CHARS = 20
         const val CLASSIC_BASE_SLOT_MARKERS = 4
         const val CLASSIC_RESOURCE_ROWS_PER_PAGE = 4
+        // The approved Fantasy continuation page already occupies one 564 x 606 native frame
+        // from y=112 to y=718. Resources use 48 pt row rhythm; 11 complete rows end at y=698.
+        // Options use 68 pt entry rhythm; 8 complete entries end at y=680. These full layouts
+        // reclaim only the sibling frame that has been released; no row/entry geometry changes.
+        const val CLASSIC_RESOURCE_FULL_ROWS_PER_PAGE = 11
+        const val CLASSIC_OPTION_FULL_ROWS_PER_PAGE = 8
+        const val CLASSIC_FULL_FRAME_TOP = 112f
+        const val CLASSIC_RESOURCE_FULL_FRAME_HEIGHT = 606f
+        const val CLASSIC_RESOURCE_SPLIT_FRAME_HEIGHT = 316f
+        const val CLASSIC_OPTION_SPLIT_FRAME_TOP = 442f
+        const val CLASSIC_OPTION_SPLIT_FRAME_HEIGHT = 276f
+        const val CLASSIC_RESOURCE_FIRST_ROW_TOP = 176f
+        const val CLASSIC_RESOURCE_ROW_STEP = 48f
+        const val CLASSIC_OPTION_SPLIT_FIRST_ROW_TOP = 478f
+        const val CLASSIC_OPTION_FULL_FIRST_ROW_TOP = 148f
+        const val CLASSIC_OPTION_ROW_STEP = 68f
+        const val CLASSIC_RESOURCE_OPTIONS_SPLIT_LAYOUT_ID = "fantasy-resources-options-split"
+        const val CLASSIC_RESOURCE_FULL_LAYOUT_ID = "fantasy-resources-full"
+        const val CLASSIC_OPTION_FULL_LAYOUT_ID = "fantasy-options-full"
         const val CLASSIC_RESOURCE_NAME_CHARS = 24
         const val CLASSIC_RESOURCE_RECOVERY_CHARS = 18
         const val CLASSIC_RESOURCE_SOURCE_CHARS = 12

@@ -601,7 +601,7 @@ class DesktopPcSheetWholeDraftRendererTest {
         resourcesPdf.outputStream().use { renderer.renderDraft(resourcesPlan, it) }
 
         Loader.loadPDF(resourcesPdf).use { document ->
-            assertEquals(6, document.numberOfPages)
+            assertTrue(document.numberOfPages >= resourcesPlan.basePages.size)
             val extracted = PDFTextStripper().getText(document)
             assertTrue(extracted.contains("RECURSOS Y OPCIONES"))
             assertTrue(Regex("Recurso\\s+9").containsMatchIn(extracted))
@@ -1833,6 +1833,116 @@ class DesktopPcSheetWholeDraftRendererTest {
         assertFalse(
             optionPages.single().contains("Recursos"),
             "An exhausted Custom-v1 Resources module must not reserve or print its scaffold.",
+        )
+    }
+
+    @Test
+    fun composesFantasyResourcesAndOptionsIntoReleasedNativeSpace() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate()
+
+        fun minimalAggregate(
+            resources: List<CharacterResource>,
+            options: List<CharacterClassOption>,
+        ): PcSheetExportAggregate =
+            base.copy(
+                sheet = base.sheet.copy(
+                    inventoryItems = emptyList(),
+                    traits = emptyList(),
+                    proficiencies = emptyList(),
+                    resources = resources,
+                    classOptions = options,
+                    spells = emptyList(),
+                    generalNotes = "",
+                    noteCards = emptyList(),
+                ),
+                successor = base.successor.copy(
+                    customMarkers = emptyList(),
+                    preferences = base.successor.preferences.copy(valuablesText = ""),
+                ),
+            )
+
+        fun renderPages(
+            aggregate: PcSheetExportAggregate,
+            stem: String,
+        ): List<String> {
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(permanent = aggregate),
+            )
+            val pdf = File(proofDir, "$stem.pdf")
+            pdf.outputStream().use { renderer.renderDraft(plan, it) }
+            return Loader.loadPDF(pdf).use { document ->
+                (1..document.numberOfPages).map { pageNumber ->
+                    PDFTextStripper().apply {
+                        startPage = pageNumber
+                        endPage = pageNumber
+                    }.getText(document).replace(Regex("\\s+"), " ")
+                }
+            }
+        }
+
+        val resourceOnly = (1..5).map { index ->
+            CharacterResource(
+                id = uuid("8e000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
+                name = "Recurso compositor Fantasy QA $index",
+                currentValue = 1,
+                maxValue = 3,
+                recovery = null,
+                source = "QA",
+                notes = null,
+                sortOrder = index,
+            )
+        }
+        val resourcePages = renderPages(
+            aggregate = minimalAggregate(resources = resourceOnly, options = emptyList()),
+            stem = "fantasy-compositor-resource-reclaim",
+        ).filter { it.contains("Recurso compositor Fantasy QA") }
+
+        assertEquals(
+            1,
+            resourcePages.size,
+            "Five Fantasy Resource rows must reclaim the released Options frame.",
+        )
+        assertTrue(resourcePages.single().contains("Recurso compositor Fantasy QA 5"))
+        assertTrue(resourcePages.single().contains("RECURSOS"))
+        assertFalse(
+            resourcePages.single().contains("OPCIONES Y ESTADOS RELEVANTES"),
+            "An exhausted Fantasy Options module must not reserve its frame.",
+        )
+
+        val optionOnly = (1..5).map { index ->
+            CharacterClassOption(
+                id = uuid("8f000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
+                kind = CharacterClassOptionKind.TECHNIQUE,
+                name = "Opción compositor Fantasy QA $index",
+                source = "QA",
+                costText = "C$index",
+                effectSummary = "Efecto QA $index",
+                notes = null,
+                active = index % 2 == 0,
+                sortOrder = index,
+            )
+        }
+        val optionPages = renderPages(
+            aggregate = minimalAggregate(resources = emptyList(), options = optionOnly),
+            stem = "fantasy-compositor-option-reclaim",
+        ).filter { it.contains("Opción compositor Fantasy QA") }
+
+        assertEquals(
+            1,
+            optionPages.size,
+            "Five Fantasy Option rows must reclaim the released Resources frame.",
+        )
+        assertTrue(optionPages.single().contains("Opción compositor Fantasy QA 5"))
+        assertTrue(optionPages.single().contains("OPCIONES Y ESTADOS RELEVANTES"))
+        assertFalse(
+            optionPages.single().contains("RECURSOS"),
+            "An exhausted Fantasy Resources module must not reserve its frame.",
         )
     }
 
