@@ -31,6 +31,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetModuleDemand
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutSlot
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutTemplate
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageComposer
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedGlobalCoordinator
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedGlobalFront
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomAttributeProjection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomSkillProjection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
@@ -95,28 +97,117 @@ internal class AndroidCustomV2ExtendedRenderer(
             "Custom-v2 Extended renderer received a non-v2 visual family."
         }
 
-        if (PcSheetExtendedPageKind.CUSTOM_STATISTICS in plan.mandatoryExtendedPages) {
-            val stats = plan.snapshot.customStatistics
-            require(!stats.isEmpty) { "Mandatory Custom Statistics page requires custom statistics." }
+        val activeModules = activeGlobalExtendedModules(plan)
+        PcSheetExtendedGlobalCoordinator.plan(
+            activeModules = activeModules,
+            fronts = customV2GlobalFronts(),
+        ).forEach { front ->
+            when (front.id) {
+                V2_GLOBAL_STATS_FRONT_ID -> {
+                    val stats = plan.snapshot.customStatistics
+                    require(!stats.isEmpty) { "Mandatory Custom Statistics page requires custom statistics." }
+                    when (plan.request.visualFamily) {
+                        PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ->
+                            appendPerAttributePages(stats.attributes, stats.skills)
+                        PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY ->
+                            appendPerAbilityPages(stats.attributes, stats.skills)
+                        else -> error("Unreachable Custom-v2 family branch.")
+                    }
+                }
 
-            when (plan.request.visualFamily) {
-                PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ->
-                    appendPerAttributePages(stats.attributes, stats.skills)
-                PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY ->
-                    appendPerAbilityPages(stats.attributes, stats.skills)
-                else -> error("Unreachable Custom-v2 family branch.")
+                V2_GLOBAL_NARRATIVE_TRAITS_FRONT_ID -> appendNarrativeAndTraitsExtendedPages(plan)
+                V2_GLOBAL_COMBAT_FRONT_ID -> appendCombatExtendedPages(plan)
+                V2_GLOBAL_RESOURCES_FRONT_ID -> appendResourcesExtendedPages(plan)
+                V2_GLOBAL_INVENTORY_FRONT_ID -> appendInventoryExtendedPages(plan)
+                V2_GLOBAL_SPELLS_FRONT_ID -> appendSpellExtendedPages(plan)
+                V2_GLOBAL_NOTES_FRONT_ID -> appendNotesExtendedPages(plan)
+                else -> error("Unknown Custom-v2 global Extended front: ${front.id}")
             }
         }
-
-        appendNarrativeAndTraitsExtendedPages(plan)
-        appendCombatExtendedPages(plan)
-
-        appendResourcesExtendedPages(plan)
-
-        appendInventoryExtendedPages(plan)
-        appendSpellExtendedPages(plan)
-        appendNotesExtendedPages(plan)
     }
+
+    private fun activeGlobalExtendedModules(
+        plan: PcSheetPdfRenderPlan,
+    ): Set<PcSheetSemanticModule> = buildSet {
+        val aggregate = plan.snapshot.aggregate
+        val stats = plan.snapshot.customStatistics
+
+        if (
+            PcSheetExtendedPageKind.CUSTOM_STATISTICS in plan.mandatoryExtendedPages &&
+            !stats.isEmpty
+        ) {
+            add(PcSheetSemanticModule.CUSTOM_STATISTICS)
+        }
+        if (narrativeFlowRecords(plan).isNotEmpty()) {
+            add(PcSheetSemanticModule.BACKGROUND_STORY)
+        }
+        if (needsTraitsExtendedPage(plan) && traitNativeColumns(plan).isNotEmpty()) {
+            add(PcSheetSemanticModule.TRAITS)
+        }
+        if (combatReferenceRows(plan).isNotEmpty()) {
+            add(PcSheetSemanticModule.COMBAT_ACTIONS)
+        }
+        if (aggregate.sheet.resources.isNotEmpty() || aggregate.successor.customMarkers.isNotEmpty()) {
+            add(PcSheetSemanticModule.RESOURCES)
+        }
+        if (aggregate.sheet.classOptions.isNotEmpty()) {
+            add(PcSheetSemanticModule.CLASS_CHOICES)
+        }
+        addAll(inventoryExtendedModules(plan))
+        if (spellContinuationPageCount(plan) > 0) {
+            add(PcSheetSemanticModule.SPELLS)
+        }
+        if (packedNotes(plan).extendedPageCount > 0) {
+            add(PcSheetSemanticModule.NOTES)
+        }
+    }
+
+    private fun customV2GlobalFronts(): List<PcSheetExtendedGlobalFront> = listOf(
+        PcSheetExtendedGlobalFront(
+            id = V2_GLOBAL_STATS_FRONT_ID,
+            modules = setOf(PcSheetSemanticModule.CUSTOM_STATISTICS),
+            priority = 10,
+        ),
+        PcSheetExtendedGlobalFront(
+            id = V2_GLOBAL_NARRATIVE_TRAITS_FRONT_ID,
+            modules = setOf(
+                PcSheetSemanticModule.BACKGROUND_STORY,
+                PcSheetSemanticModule.TRAITS,
+            ),
+            priority = 20,
+        ),
+        PcSheetExtendedGlobalFront(
+            id = V2_GLOBAL_COMBAT_FRONT_ID,
+            modules = setOf(PcSheetSemanticModule.COMBAT_ACTIONS),
+            priority = 30,
+        ),
+        PcSheetExtendedGlobalFront(
+            id = V2_GLOBAL_RESOURCES_FRONT_ID,
+            modules = setOf(
+                PcSheetSemanticModule.RESOURCES,
+                PcSheetSemanticModule.CLASS_CHOICES,
+            ),
+            priority = 40,
+        ),
+        PcSheetExtendedGlobalFront(
+            id = V2_GLOBAL_INVENTORY_FRONT_ID,
+            modules = setOf(
+                PcSheetSemanticModule.ORDINARY_EQUIPMENT,
+                PcSheetSemanticModule.SPECIAL_EQUIPMENT,
+            ),
+            priority = 50,
+        ),
+        PcSheetExtendedGlobalFront(
+            id = V2_GLOBAL_SPELLS_FRONT_ID,
+            modules = setOf(PcSheetSemanticModule.SPELLS),
+            priority = 60,
+        ),
+        PcSheetExtendedGlobalFront(
+            id = V2_GLOBAL_NOTES_FRONT_ID,
+            modules = setOf(PcSheetSemanticModule.NOTES),
+            priority = 90,
+        ),
+    )
 
     private fun appendNarrativeAndTraitsExtendedPages(plan: PcSheetPdfRenderPlan) {
         val narrativeModules = packNarrativeModules(narrativeFlowRecords(plan))
@@ -2607,6 +2698,93 @@ internal class AndroidCustomV2ExtendedRenderer(
         CharacterRecoveryAmountMode.FIXED -> fixedAmount?.let { "+$it" } ?: "Cantidad fija"
     }
 
+    private fun inventoryExtendedModules(
+        plan: PcSheetPdfRenderPlan,
+    ): Set<PcSheetSemanticModule> {
+        val aggregate = plan.snapshot.aggregate
+        val ordered = aggregate.sheet.inventoryItems.sortedBy { it.sortOrder }
+        val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
+
+        val ordinaryActive = ordered
+            .filterNot { it.special }
+            .withIndex()
+            .any { (index, item) -> ordinaryInventoryNeedsContinuation(index, item) }
+
+        val special = ordered.filter { it.special }
+        val baseSpecialIds = positionedSpecialItems(special, BASE_V2_SPECIAL_CAPACITY)
+            .mapTo(mutableSetOf()) { (_, item) -> item.id }
+        val specialActive = special.any { item ->
+            specialInventoryNeedsContinuation(
+                item = item,
+                usage = usageByItem[item.id],
+                baseSpecialIds = baseSpecialIds,
+            )
+        }
+
+        val nativeV2Kinds = setOf(
+            StandardCurrencyKind.PLATINUM,
+            StandardCurrencyKind.GOLD,
+            StandardCurrencyKind.SILVER,
+            StandardCurrencyKind.COPPER,
+        )
+        val hasTreasureContinuation =
+            aggregate.sheet.currencies
+                .filter { currency ->
+                    val kind = currency.standardCurrencyKindOrNull()
+                    (kind != null && kind !in nativeV2Kinds) ||
+                        (!currency.isDefault && kind == null)
+                }
+                .sortedBy { it.sortOrder }
+                .drop(BASE_V2_OTHER_CURRENCY_CAPACITY)
+                .isNotEmpty() ||
+                aggregate.successor.preferences.valuablesText
+                    .split(Regex("[;\\n]+"))
+                    .any { it.trim().isNotEmpty() }
+
+        return buildSet {
+            if (ordinaryActive || hasTreasureContinuation) {
+                // Treasure continuation shares the family-native Inventory surface.
+                add(PcSheetSemanticModule.ORDINARY_EQUIPMENT)
+            }
+            if (specialActive) {
+                add(PcSheetSemanticModule.SPECIAL_EQUIPMENT)
+            }
+        }
+    }
+
+    private fun ordinaryInventoryNeedsContinuation(
+        index: Int,
+        item: CharacterInventoryItem,
+    ): Boolean =
+        index >= BASE_V2_EQUIPMENT_CAPACITY ||
+            textWidth(
+                resources.condensed,
+                inventoryBaseLabel(item),
+                INVENTORY_ORDINARY_MINIMUM_SIZE,
+            ) > V2_BASE_EQUIPMENT_TEXT_WIDTH
+
+    private fun specialInventoryNeedsContinuation(
+        item: CharacterInventoryItem,
+        usage: CharacterInventoryUsage?,
+        baseSpecialIds: Set<kotlin.uuid.Uuid>,
+    ): Boolean {
+        val baseDetail = specialInventoryDetail(item, usage)
+        val baseDetailOverflows =
+            baseDetail.isNotBlank() &&
+                textWidth(resources.fira, baseDetail, 8.5f) > V2_BASE_SPECIAL_DETAIL_WIDTH
+        val baseNameOverflows =
+            textWidth(resources.fira, item.name, 8.5f) > V2_BASE_SPECIAL_NAME_WIDTH
+        val locationOverflows = item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
+            textWidth(resources.fira, it, 7.5f) > V2_BASE_SPECIAL_LOCATION_WIDTH
+        } ?: false
+
+        return item.id !in baseSpecialIds ||
+            usageMeaningful(usage) ||
+            baseNameOverflows ||
+            baseDetailOverflows ||
+            locationOverflows
+    }
+
     private fun appendInventoryExtendedPages(plan: PcSheetPdfRenderPlan) {
         val aggregate = plan.snapshot.aggregate
         val sheet = aggregate.sheet
@@ -2615,36 +2793,22 @@ internal class AndroidCustomV2ExtendedRenderer(
 
         val ordinary = ordered.filterNot { it.special }
         val ordinaryRows = ordinary.flatMapIndexed { index, item ->
-            val needsContinuation =
-                index >= BASE_V2_EQUIPMENT_CAPACITY ||
-                    textWidth(
-                        resources.condensed,
-                        inventoryBaseLabel(item),
-                        INVENTORY_ORDINARY_MINIMUM_SIZE,
-                    ) > V2_BASE_EQUIPMENT_TEXT_WIDTH
-            if (needsContinuation) ordinaryEquipmentContinuationRows(item) else emptyList()
+            if (ordinaryInventoryNeedsContinuation(index, item)) {
+                ordinaryEquipmentContinuationRows(item)
+            } else {
+                emptyList()
+            }
         }
 
         val special = ordered.filter { it.special }
         val baseSpecialIds = positionedSpecialItems(special, BASE_V2_SPECIAL_CAPACITY)
             .mapTo(mutableSetOf()) { (_, item) -> item.id }
         val specialContinuation = special.filter { item ->
-            val usage = usageByItem[item.id]
-            val baseDetail = specialInventoryDetail(item, usage)
-            val baseDetailOverflows =
-                baseDetail.isNotBlank() &&
-                    textWidth(resources.fira, baseDetail, 8.5f) > V2_BASE_SPECIAL_DETAIL_WIDTH
-            val baseNameOverflows =
-                textWidth(resources.fira, item.name, 8.5f) > V2_BASE_SPECIAL_NAME_WIDTH
-            val locationOverflows = item.location?.trim()?.takeIf { it.isNotEmpty() }?.let {
-                textWidth(resources.fira, it, 7.5f) > V2_BASE_SPECIAL_LOCATION_WIDTH
-            } ?: false
-
-            item.id !in baseSpecialIds ||
-                usageMeaningful(usage) ||
-                baseNameOverflows ||
-                baseDetailOverflows ||
-                locationOverflows
+            specialInventoryNeedsContinuation(
+                item = item,
+                usage = usageByItem[item.id],
+                baseSpecialIds = baseSpecialIds,
+            )
         }
         val specialPages = packSpecialInventoryRowGroups(
             specialContinuation.map { item ->
@@ -3110,6 +3274,24 @@ internal class AndroidCustomV2ExtendedRenderer(
     private fun pageCount(size: Int, capacity: Int): Int =
         if (size <= 0) 0 else (size + capacity - 1) / capacity
 
+    private fun spellContinuationPageCount(plan: PcSheetPdfRenderPlan): Int {
+        val spells = plan.snapshot.aggregate.sheet.spells
+        require(spells.all { it.level in 0..9 }) {
+            "Custom-v2 spell continuation supports spell levels 0 through 9."
+        }
+        val byLevel = spells
+            .groupBy { it.level }
+            .mapValues { (_, entries) ->
+                entries.sortedWith(compareBy<CharacterSpell> { it.sortOrder }.thenBy { it.name.lowercase() })
+            }
+        return SPELL_CONTINUATION_BLOCKS.maxOf { block ->
+            pageCount(
+                byLevel[block.level].orEmpty().drop(block.maxRows).size,
+                block.maxRows,
+            )
+        }
+    }
+
     private fun appendSpellExtendedPages(plan: PcSheetPdfRenderPlan) {
         val spells = plan.snapshot.aggregate.sheet.spells
         require(spells.all { it.level in 0..9 }) {
@@ -3124,9 +3306,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         val overflowByLevel = SPELL_CONTINUATION_BLOCKS.associate { block ->
             block.level to byLevel[block.level].orEmpty().drop(block.maxRows)
         }
-        val pages = SPELL_CONTINUATION_BLOCKS.maxOf { block ->
-            pageCount(overflowByLevel[block.level].orEmpty().size, block.maxRows)
-        }
+        val pages = spellContinuationPageCount(plan)
         if (pages == 0) return
 
         repeat(pages) { pageIndex ->
@@ -4327,6 +4507,13 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val SOURCE_CORBEL_TABLE_SCALE = 86f
         const val SOURCE_MATCHED_MICRO_FIT_DELTA = 2f
         const val COMPACT_LABEL_MICRO_FIT_DELTA = 2f
+        const val V2_GLOBAL_STATS_FRONT_ID = "v2-global-custom-statistics"
+        const val V2_GLOBAL_NARRATIVE_TRAITS_FRONT_ID = "v2-global-narrative-traits"
+        const val V2_GLOBAL_COMBAT_FRONT_ID = "v2-global-combat"
+        const val V2_GLOBAL_RESOURCES_FRONT_ID = "v2-global-resources-options"
+        const val V2_GLOBAL_INVENTORY_FRONT_ID = "v2-global-inventory"
+        const val V2_GLOBAL_SPELLS_FRONT_ID = "v2-global-spells"
+        const val V2_GLOBAL_NOTES_FRONT_ID = "v2-global-notes"
         const val NARRATIVE_TRAITS_MIXED_LAYOUT_ID = "v2-narrative-right-traits-left"
         const val NARRATIVE_MODULE_X = 297.5f
         const val NARRATIVE_MODULE_WIDTH = 300f
