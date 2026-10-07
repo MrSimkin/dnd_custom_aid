@@ -141,40 +141,44 @@ Esta regla controla el tiempo de sesión y reduce interrupciones al owner; **no 
 
 ## 4. FRENTE FUNCIONAL ACTUAL
 
-**CANDIDATE ACCEPTANCE GATE — PREQA.10 / M50800-31 / M50800-32**
+**ADAPTIVE PAGINATION CORE / PHYSICAL SCHEDULER**
 
-Latest validated pre-candidate head:
+Latest rejected candidate:
 
-`e2e2847318d238196e7ee42112b79e571b9bbe1a`
+`0.5.0-preqa.10 / 51000` — `208c570be5d7ac07a613c28c580347b0d91fb613`
 
-Important rejected candidate:
-- `0.5.0-preqa.9 / 50900` at `6d77ac5c...` is **REJECTED INTERNALLY**;
-- its green Fast Gate did not override actual PDF inspection;
-- the rejection was caused by incomplete Inventory reclaim under M50800-27;
-- never reuse `50900`.
+Evidence:
+- Fast Gate `37685159940` — SUCCESS;
+- exact proof artifact `11510478752`;
+- full Scaffold `37685874144` — FAILURE;
+- PR #117 — CLOSED WITHOUT MERGE;
+- preqa.10 MUST NOT be promoted or reused.
 
-Validated repair:
-- product reclaim repair `cfb446aa...`;
-- final regression head `e2e28473...`;
-- Fast Gate `37679563332` — SUCCESS;
-- proof artifact `11507633293`;
-- digest `sha256:7aa1c8e2a52c652432ccc20d923b417c7ac9f3cace9deb800e16c675d692c753`;
-- actual proof pages: Fantasy 34, Custom-v1 31, Custom-v2 Atributo 19, Custom-v2 Habilidad 19;
-- complete semantic audit: 26 Traits / 10 Resources / 8 Options / 34 Inventory / 9 Notes / 7 Markers preserved; no semantic ellipsis;
-- blocking CHANGED-NEW: none observed;
-- `LOOP_SUSPECTED = NO`.
+Owner-warning audit reopens:
+- M50800-10 Traits packing;
+- M50800-14 Resources/Options packing;
+- M50800-24 Notes packing;
+- M50800-27 adaptive pagination architecture;
+- M50800-31 candidate acceptance.
+
+Corrected rule:
+- sparse output is not accepted or rejected by page count alone;
+- each Extended page must be explainable by an exact physical pagination trace;
+- a new page is legal only when the next atomic record/module has no approved compatible placement on the current page;
+- architecture/source review, green CI and selected screenshots are insufficient by themselves.
 
 Exact next action:
-1. set `versionName = "0.5.0-preqa.10"`;
-2. set `versionCode = 51000`;
-3. retain that exact candidate SHA;
-4. run and inspect the exact four-family Mara proof;
-5. mark M50800-01…32 FIXED / OPEN / CHANGED-NEW against those exact artifacts;
-6. if clean, open/use the normal validation PR to trigger full `Scaffold checks` on the exact candidate;
-7. preserve APK/proof artifact IDs and hashes;
-8. only after both exact-candidate gates pass, prepare owner visual-QA handoff.
+1. implement durable pagination trace on the real renderer path;
+2. include trace in the exact Mara proof artifact;
+3. add invariant tests for no-avoidable-new-page / exhausted-stream-release;
+4. run exact Mara and classify suspicious pages as JUSTIFIED_RESIDUAL vs RECLAIM_OPPORTUNITY;
+5. repair only observed reclaim opportunities, one bounded root cause at a time;
+6. repeat trace + PDF inspection across all four families;
+7. only after OPEN -> 0 create a new unique candidate identity.
 
+Do not create `preqa.11` yet.
 Current Snapshot and Media/Handouts remain blocked.
+`LOOP_SUSPECTED = NO` at this restart because the validation model itself has been corrected before another renderer patch.
 
 ## 5. GUARDRAIL ANTI-LOOP
 

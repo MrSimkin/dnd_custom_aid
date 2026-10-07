@@ -643,3 +643,70 @@ For that exact candidate:
 4. if clean, run authoritative full `Scaffold checks` through the normal PR trigger;
 5. preserve exact candidate SHA, Fast Gate run/artifact, full Scaffold run, APK artifact/hash and proof hashes;
 6. only then prepare owner visual-QA handoff.
+
+
+## 2026-10-07 — owner warning audit: preqa.10 rejected / adaptive pagination core reopened
+
+**Status:** CANDIDATE REJECTED / PROCESS GATE CORRECTED / ADAPTIVE PAGINATION CORE OPEN
+
+Rejected candidate:
+- version: `0.5.0-preqa.10 / 51000`;
+- exact SHA: `208c570be5d7ac07a613c28c580347b0d91fb613`;
+- focused Fast Gate `37685159940`: SUCCESS;
+- focused proof artifact `11510478752`;
+- full Scaffold `37685874144`: **FAILURE**;
+- validation PR #117: **CLOSED WITHOUT MERGE**.
+
+Owner-warning audit result:
+- page count itself remains diagnostic only;
+- however, the previous internal closure of M50800-27 relied too heavily on source architecture, semantic preservation and selected-page inspection;
+- the presence of `PcSheetExtendedGlobalCoordinator` proved global semantic ownership, but did **not** prove globally efficient physical pagination;
+- actual candidate inspection still exposes residual/fixed-scaffold patterns that cannot be accepted without demonstrating why each new page is physically necessary;
+- therefore a green focused gate or the existence of a global coordinator is insufficient evidence for adaptive-pagination closure.
+
+Reopened criteria:
+- **M50800-10** Traits packing — REOPENED pending physical-page necessity proof;
+- **M50800-14** Resources/Options packing — REOPENED pending physical-page necessity proof;
+- **M50800-24** Notes packing — REOPENED pending physical-page necessity proof;
+- **M50800-27** adaptive continuation architecture — REOPENED / PRIMARY;
+- **M50800-31** exact candidate acceptance — REOPENED because preqa.10 is rejected;
+- M50800-12/13 Combat remain functionally corrected for table grammar, but residual-space sharing stays under M50800-27 until the physical scheduler proves/repairs it.
+
+Full Scaffold `37685874144` additionally failed five Kotlin tests:
+- `aldrenCustomFamiliesDoNotReplayAmmunitionMetadataAsEquipmentOverflow`;
+- `promotesOwnerApprovedCustomV1ResourcesAndOptionsFromRealPlanData`;
+- `generatesWholeCustomFamilyFirstDraftsForOwnerReview`;
+- `composesCustomV2TraitsAsNativeColumnsWithoutFixedScaffold`;
+- `promotesOwnerApprovedCustomV2TraitsAndResourcesFromRealPlanData`.
+
+These failures reinforce that no owner handoff is authorized.
+
+### Corrected acceptance model
+
+M50800-10/14/20/24/27 may no longer close from architecture/source inspection or page-count reduction alone.
+
+Required evidence for each adaptive front:
+1. **physical pagination trace** from the exact renderer path;
+2. **invariant tests** proving no new page is emitted while an approved compatible placement remains available;
+3. **actual PDF inspection** confirming readability, native grammar and no semantic loss.
+
+A visually sparse last page is not automatically defective. It is valid only if the trace proves the previous page had no compatible legal placement for the next atomic record/module.
+
+### Active front — Adaptive Pagination Core / physical scheduler
+
+First deliverable:
+- durable per-page trace emitted by the exact Mara proof path;
+- trace records: family/front/page ordinal, demand before, legal candidate layouts, chosen layout/slots, units consumed, demand after, and next-page rationale;
+- exact Mara Fast Gate must retain this trace as an artifact alongside the PDFs.
+
+Second deliverable:
+- use that trace to classify every suspicious page as either:
+  - `JUSTIFIED_RESIDUAL`, or
+  - `RECLAIM_OPPORTUNITY`;
+- only `RECLAIM_OPPORTUNITY` pages authorize renderer/layout changes.
+
+Third deliverable:
+- repair the smallest family-approved physical layout/scheduler gaps revealed by the trace;
+- never add page-number- or Mara-specific branches.
+
+Do not create another versionName/versionCode candidate until this front is closed by trace + invariants + real PDFs.
