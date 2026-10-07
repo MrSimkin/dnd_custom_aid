@@ -595,6 +595,17 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                         "Fantasy special-only Inventory must tile complete fixed Special Equipment modules across the available native page area.",
                     )
 
+                    val referencePages = pageTexts.filter { pageText ->
+                        pageText.contains("EXTENSIÓN / REFERENCIAS")
+                    }
+                    assertTrue(
+                        referencePages.any { pageText ->
+                            pageText.contains("Efecto temporal 3") &&
+                                pageText.contains("Efecto temporal 4")
+                        },
+                        "Fantasy References must pack atomic records against the real full-page capacity instead of the stale 12-line preview budget.",
+                    )
+
                     val finalSpecialPages = pageTexts.filter {
                         it.contains("Llave sin cerradura de latón ennegrecido 34")
                     }

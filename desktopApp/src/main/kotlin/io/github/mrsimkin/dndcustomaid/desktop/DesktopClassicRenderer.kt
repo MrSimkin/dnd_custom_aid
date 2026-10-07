@@ -2743,13 +2743,16 @@ private fun appendSpellContinuationPages(
             if (clean.isEmpty()) return
             val wrapped = wrapForChars("$label: $clean", CLASSIC_REFERENCE_CHARS_PER_LINE)
             if (wrapped.isEmpty()) return
-            val usedOnPage = lines.size % CLASSIC_REFERENCE_LINES_PER_PAGE
+            // Keep an atomic reference entry together when it fits a fresh physical page.
+            // This must use the actual 27-line continuation capacity. The legacy 12-line
+            // preview budget previously inserted artificial padding before the 27-line pager.
+            val usedOnPage = lines.size % CLASSIC_REFERENCE_FULL_PAGE_LINES
             if (
                 usedOnPage != 0 &&
-                wrapped.size <= CLASSIC_REFERENCE_LINES_PER_PAGE &&
-                usedOnPage + wrapped.size > CLASSIC_REFERENCE_LINES_PER_PAGE
+                wrapped.size <= CLASSIC_REFERENCE_FULL_PAGE_LINES &&
+                usedOnPage + wrapped.size > CLASSIC_REFERENCE_FULL_PAGE_LINES
             ) {
-                repeat(CLASSIC_REFERENCE_LINES_PER_PAGE - usedOnPage) { lines += "" }
+                repeat(CLASSIC_REFERENCE_FULL_PAGE_LINES - usedOnPage) { lines += "" }
             }
             lines += wrapped
         }
@@ -4914,7 +4917,6 @@ private fun ruledTextArea(
         const val CLASSIC_NOTES_ENTRIES_PER_PAGE = 13
         const val CLASSIC_NOTES_CHARS_PER_LINE = 58
         const val CLASSIC_NOTES_LINES_PER_ENTRY = 2
-        const val CLASSIC_REFERENCE_LINES_PER_PAGE = 12
         const val CLASSIC_REFERENCE_CHARS_PER_LINE = 32
 
         val INk = Color(42, 42, 42)
