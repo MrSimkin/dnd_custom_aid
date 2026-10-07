@@ -34,6 +34,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetModuleDemand
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutSlot
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutTemplate
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageComposer
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedCompositionStep
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPaginationTraceEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedGlobalCoordinator
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedGlobalFront
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
@@ -79,6 +81,7 @@ internal class DesktopCustomV1ExtendedRenderer(
     private val document: PDDocument,
     private val sourceTemplate: PDDocument,
     private val resourceLoader: (String) -> InputStream?,
+    private val paginationTraceSink: (PcSheetPaginationTraceEntry) -> Unit = {},
 ) {
     private val resources by lazy {
         Resources.load(document, sourceTemplate, resourceLoader)
@@ -103,6 +106,22 @@ internal class DesktopCustomV1ExtendedRenderer(
                 else -> error("Unknown Custom-v1 global Extended front: ${front.id}")
             }
         }
+    }
+
+    private var paginationTraceDecisionOrdinal = 0
+
+    private fun recordPaginationTrace(
+        frontId: String,
+        step: PcSheetExtendedCompositionStep,
+    ) {
+        paginationTraceSink(
+            PcSheetPaginationTraceEntry(
+                family = PcSheetVisualFamily.CUSTOM_V1,
+                frontId = frontId,
+                decisionOrdinal = paginationTraceDecisionOrdinal++,
+                composition = step.trace,
+            ),
+        )
     }
 
     private fun activeGlobalExtendedModules(
@@ -272,6 +291,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                 layouts = listOf(customV1NarrativeTraitsLayout()),
             ),
         )
+        recordPaginationTrace(V1_GLOBAL_NARRATIVE_TRAITS_FRONT_ID, step)
         val narrativeConsumed = step.page.placements
             .filter { it.module == PcSheetSemanticModule.BACKGROUND_STORY }
             .sumOf { it.consumedUnits }
@@ -341,6 +361,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                     layouts = listOf(customV1NarrativeLayout()),
                 ),
             )
+            recordPaginationTrace(V1_GLOBAL_NARRATIVE_TRAITS_FRONT_ID, step)
             val consumed = step.page.placements
                 .filter { it.module == PcSheetSemanticModule.BACKGROUND_STORY }
                 .sumOf { it.consumedUnits }
@@ -619,6 +640,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                     layouts = v1TraitsCompositionLayouts(remaining),
                 ),
             )
+            recordPaginationTrace(V1_GLOBAL_NARRATIVE_TRAITS_FRONT_ID, step)
             val placementBySlot = step.page.placements.associateBy { it.slotId }
 
             var cursor = lineOffset
@@ -1462,6 +1484,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                     layouts = layouts,
                 ),
             )
+            recordPaginationTrace(V1_GLOBAL_RESOURCES_FRONT_ID, step)
             val resourceCount = step.page.placements
                 .firstOrNull { it.module == PcSheetSemanticModule.RESOURCES }
                 ?.consumedUnits

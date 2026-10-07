@@ -6,6 +6,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBaseLayoutMode
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPaginationTraceEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -28,6 +29,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
         DesktopPcSheetWholeDraftRenderer::class.java.classLoader.getResourceAsStream(resourcePath)
     },
     private val portraitBytesLoader: (String) -> ByteArray? = { null },
+    private val paginationTraceSink: (PcSheetPaginationTraceEntry) -> Unit = {},
 ) {
     fun renderDraft(
         plan: PcSheetPdfRenderPlan,
@@ -110,7 +112,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
         }
 
         if (plan.request.visualFamily == PcSheetVisualFamily.CLASSIC_DND_STYLE) {
-            DesktopClassicRenderer().renderBase(plan, output)
+            DesktopClassicRenderer(paginationTraceSink).renderBase(plan, output)
             return
         }
 
@@ -152,6 +154,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
                         document = draft,
                         sourceTemplate = sourceTemplate,
                         resourceLoader = resourceLoader,
+                        paginationTraceSink = paginationTraceSink,
                     ).appendExtendedPages(plan)
 
                     draft.save(output)
@@ -203,6 +206,7 @@ internal class DesktopPcSheetWholeDraftRenderer(
                     document = draft,
                     sourceTemplate = sourceTemplate,
                     resourceLoader = resourceLoader,
+                    paginationTraceSink = paginationTraceSink,
                 ).appendExtendedPages(plan)
 
                 draft.save(output)

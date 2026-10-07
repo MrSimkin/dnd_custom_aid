@@ -8,6 +8,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelect
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportPlanner
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPaginationTraceEntry
+import io.github.mrsimkin.dndcustomaid.shared.character.toStableJsonLine
 import java.io.ByteArrayOutputStream
 import java.io.File
 import kotlin.test.Test
@@ -87,7 +89,9 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 ),
             )
             val bytes = ByteArrayOutputStream().use { output ->
-                DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+                DesktopPcSheetWholeDraftRenderer(
+                    paginationTraceSink = paginationTrace::add,
+                ).renderDraft(plan, output)
                 output.toByteArray()
             }
 
@@ -393,6 +397,7 @@ class DesktopPcSheetRuntimeQaFixtureTest {
     @Test
     fun writesExactMaraFourFamilyProofsForPhase3CandidateReview() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val paginationTrace = mutableListOf<PcSheetPaginationTraceEntry>()
         val document = fixture("03_mara_siete_umbrales_custom_extended.json")
         val aggregate = PcSheetExportAggregate(
             sheet = document.character,
@@ -595,6 +600,12 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 }
             }
         }
+
+        val traceFile = File(proofDir, "mara-pagination-trace.jsonl")
+        traceFile.writeText(
+            paginationTrace.joinToString(separator = "\n", postfix = "\n") { it.toStableJsonLine() },
+        )
+        assertTrue(traceFile.length() > 0L, "Exact Mara proof must retain a physical pagination trace.")
     }
 
     private fun fixture(name: String) = assertIs<CharacterBackupDecodeResult.Success>(
