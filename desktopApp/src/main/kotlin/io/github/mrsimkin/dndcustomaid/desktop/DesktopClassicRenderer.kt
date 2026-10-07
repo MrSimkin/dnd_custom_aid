@@ -31,6 +31,10 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutSlo
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutTemplate
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageComposer
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedCompositionStep
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedCompositionTrace
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPhysicalPaginationTrace
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPaginationStreamTrace
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetDirectCompositionTrace
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPaginationTraceEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedGlobalCoordinator
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedGlobalFront
@@ -76,17 +80,22 @@ internal class DesktopClassicRenderer(
 
     private fun recordPaginationTrace(
         frontId: String,
-        step: PcSheetExtendedCompositionStep,
+        trace: PcSheetExtendedCompositionTrace,
     ) {
         paginationTraceSink(
             PcSheetPaginationTraceEntry(
                 family = PcSheetVisualFamily.CLASSIC_DND_STYLE,
                 frontId = frontId,
                 decisionOrdinal = paginationTraceDecisionOrdinal++,
-                composition = step.trace,
+                composition = trace,
             ),
         )
     }
+
+    private fun recordPaginationTrace(
+        frontId: String,
+        step: PcSheetExtendedCompositionStep,
+    ) = recordPaginationTrace(frontId, step.trace)
 
     fun renderBase(
         plan: PcSheetPdfRenderPlan,
@@ -1155,7 +1164,39 @@ internal class DesktopClassicRenderer(
         val rows = classicCombatReferenceRows(plan).map(::layoutClassicCombatRow)
         if (rows.isEmpty()) return
 
-        packClassicCombatRows(rows).forEach { pageRows ->
+        val packedPages = packClassicCombatRows(rows)
+        var combatOffset = 0
+        packedPages.forEach { pageRows ->
+            val remainingBefore = rows.size - combatOffset
+            val remainingAfter = remainingBefore - pageRows.size
+            val usedHeight = pageRows.sumOf { it.height.toDouble() }
+            val nextRow = rows.getOrNull(combatOffset + pageRows.size)
+            recordPaginationTrace(
+                CLASSIC_GLOBAL_COMBAT_FRONT_ID,
+                pcSheetDirectCompositionTrace(
+                    layoutId = "fantasy-combat-content-height",
+                    streams = listOf(
+                        PcSheetPaginationStreamTrace(
+                            "combat-logical-rows",
+                            PcSheetSemanticModule.COMBAT_ACTIONS,
+                            remainingBefore,
+                            pageRows.size,
+                            maxOf(pageRows.size, (CLASSIC_COMBAT_AVAILABLE_HEIGHT / CLASSIC_COMBAT_MIN_ROW_HEIGHT).toInt()),
+                            remainingAfter,
+                        ),
+                    ),
+                    physical = PcSheetPhysicalPaginationTrace(
+                        metric = "height-pt",
+                        used = usedHeight,
+                        capacity = CLASSIC_COMBAT_AVAILABLE_HEIGHT.toDouble(),
+                        nextAtomicUnitSize = nextRow?.height?.toDouble(),
+                        nextAtomicUnitFits = nextRow?.let {
+                            usedHeight + it.height <= CLASSIC_COMBAT_AVAILABLE_HEIGHT + 0.05
+                        },
+                        rationale = if (remainingAfter > 0) "next-logical-row-exceeds-remaining-height" else "front-exhausted",
+                    ),
+                ),
+            )
             val page = addPage(doc)
             PDPageContentStream(doc, page).use { s ->
                 extendedHeader(s, p, plan.snapshot.aggregate.sheet.name, "COMBATE / ACCIONES")
@@ -1252,6 +1293,7 @@ internal class DesktopClassicRenderer(
                 }
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / COMBATE Y ACCIONES")
             }
+            combatOffset += pageRows.size
         }
     }
 
@@ -2071,6 +2113,63 @@ internal class DesktopClassicRenderer(
                 "Fantasy Inventory compositor produced a page with no active module."
             }
 
+            val inventoryStreams = buildList {
+                val ordinaryBefore = ordinaryRows.size - ordinaryOffset
+                if (ordinaryBefore > 0 && pageRows.isNotEmpty()) add(
+                    PcSheetPaginationStreamTrace(
+                        "ordinary-equipment-rows",
+                        PcSheetSemanticModule.ORDINARY_EQUIPMENT,
+                        ordinaryBefore,
+                        pageRows.size,
+                        CLASSIC_INVENTORY_ROWS_PER_PAGE,
+                        ordinaryBefore - pageRows.size,
+                    ),
+                )
+                val specialBefore = specialRows.size - specialOffset
+                if (specialBefore > 0 && pageSpecial.isNotEmpty()) add(
+                    PcSheetPaginationStreamTrace(
+                        "special-equipment-rows",
+                        PcSheetSemanticModule.SPECIAL_EQUIPMENT,
+                        specialBefore,
+                        pageSpecial.size,
+                        specialSlots.size * CLASSIC_SPECIAL_ITEMS_PER_PAGE,
+                        specialBefore - pageSpecial.size,
+                    ),
+                )
+                val notesBefore = noteEntries.size - noteOffset
+                if (notesBefore > 0 && pageNotes.isNotEmpty()) add(
+                    PcSheetPaginationStreamTrace(
+                        "treasure-value-entries",
+                        PcSheetSemanticModule.ORDINARY_EQUIPMENT,
+                        notesBefore,
+                        pageNotes.size,
+                        CLASSIC_INVENTORY_NOTES_PER_PAGE,
+                        notesBefore - pageNotes.size,
+                    ),
+                )
+            }
+            recordPaginationTrace(
+                CLASSIC_GLOBAL_INVENTORY_FRONT_ID,
+                pcSheetDirectCompositionTrace(
+                    layoutId = if (pageRows.isNotEmpty()) {
+                        "fantasy-inventory-ordinary-with-secondary"
+                    } else {
+                        "fantasy-inventory-secondary-grid"
+                    },
+                    streams = inventoryStreams,
+                    physical = PcSheetPhysicalPaginationTrace(
+                        metric = "native-stream-slots",
+                        used = inventoryStreams.sumOf { it.consumedUnits }.toDouble(),
+                        capacity = inventoryStreams.sumOf { it.nativeCapacity }.toDouble(),
+                        rationale = if (inventoryStreams.any { it.remainingAfter > 0 }) {
+                            "remaining-inventory-stream-demand"
+                        } else {
+                            "front-exhausted"
+                        },
+                    ),
+                ),
+            )
+
             val page = addPage(doc)
             PDPageContentStream(doc, page).use { s ->
                 extendedHeader(s, p, sheet.name, "INVENTARIO / EQUIPO")
@@ -2400,18 +2499,51 @@ private fun appendSpellContinuationPages(
             .distinct()
             .sorted()
 
+        val lineCountsByPage = pages.associateWith { currentPageIndex ->
+            packed.columns.mapNotNull { segments ->
+                val address = segments.firstOrNull()?.address ?: return@mapNotNull null
+                if (address.extendedPageIndex != currentPageIndex) null else segments.flatMap { it.lines }
+            }.sumOf { it.size }
+        }
+        var remainingExtendedLines = lineCountsByPage.values.sum()
+
         pages.forEach { pageIndex ->
             val columns = packed.columns
                 .mapNotNull { segments ->
                     val address = segments.firstOrNull()?.address ?: return@mapNotNull null
-                    if (address.extendedPageIndex != pageIndex) {
-                        null
-                    } else {
-                        address.columnIndex to segments.flatMap { it.lines }
-                    }
+                    if (address.extendedPageIndex != pageIndex) null
+                    else address.columnIndex to segments.flatMap { it.lines }
                 }
                 .toMap()
-
+            val consumedLines = columns.values.sumOf { it.size }
+            val remainingAfter = remainingExtendedLines - consumedLines
+            recordPaginationTrace(
+                CLASSIC_GLOBAL_NOTES_FRONT_ID,
+                pcSheetDirectCompositionTrace(
+                    layoutId = "fantasy-notes-full-native-page",
+                    streams = listOf(
+                        PcSheetPaginationStreamTrace(
+                            "notes-physical-lines",
+                            PcSheetSemanticModule.NOTES,
+                            remainingExtendedLines,
+                            consumedLines,
+                            CLASSIC_NOTES_ROWS_PER_COLUMN,
+                            remainingAfter,
+                        ),
+                    ),
+                    physical = PcSheetPhysicalPaginationTrace(
+                        metric = "native-note-rows",
+                        used = consumedLines.toDouble(),
+                        capacity = CLASSIC_NOTES_ROWS_PER_COLUMN.toDouble(),
+                        rationale = if (remainingAfter > 0) {
+                            "packed-note-column-advances-to-next-full-native-page"
+                        } else {
+                            "front-exhausted"
+                        },
+                    ),
+                ),
+            )
+            remainingExtendedLines = remainingAfter
             val page = addPage(doc)
             PDPageContentStream(doc, page).use { s ->
                 extendedHeader(s, p, sheet.name, "NOTAS")

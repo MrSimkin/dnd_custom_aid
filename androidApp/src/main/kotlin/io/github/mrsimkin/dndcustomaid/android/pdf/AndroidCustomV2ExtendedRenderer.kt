@@ -32,6 +32,10 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutSlo
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutTemplate
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageComposer
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedCompositionStep
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedCompositionTrace
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPhysicalPaginationTrace
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPaginationStreamTrace
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetDirectCompositionTrace
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPaginationTraceEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedGlobalCoordinator
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedGlobalFront
@@ -135,17 +139,22 @@ internal class AndroidCustomV2ExtendedRenderer(
 
     private fun recordPaginationTrace(
         frontId: String,
-        step: PcSheetExtendedCompositionStep,
+        trace: PcSheetExtendedCompositionTrace,
     ) {
         paginationTraceSink(
             PcSheetPaginationTraceEntry(
                 family = paginationTraceFamily,
                 frontId = frontId,
                 decisionOrdinal = paginationTraceDecisionOrdinal++,
-                composition = step.trace,
+                composition = trace,
             ),
         )
     }
+
+    private fun recordPaginationTrace(
+        frontId: String,
+        step: PcSheetExtendedCompositionStep,
+    ) = recordPaginationTrace(frontId, step.trace)
 
     private fun activeGlobalExtendedModules(
         plan: PcSheetPdfRenderPlan,
@@ -2006,7 +2015,46 @@ internal class AndroidCustomV2ExtendedRenderer(
         val logicalRows = combatReferenceRows(plan).map(::layoutCombatReferenceRow)
         if (logicalRows.isEmpty()) return
 
-        packCombatRows(logicalRows).forEachIndexed { pageIndex, rows ->
+        val packedPages = packCombatRows(logicalRows)
+        var combatOffset = 0
+        packedPages.forEachIndexed { pageIndex, rows ->
+            val remainingBefore = logicalRows.size - combatOffset
+            val remainingAfter = remainingBefore - rows.size
+            val usedHeight = rows.sumOf { it.height.toDouble() }
+            val nextRow = logicalRows.getOrNull(combatOffset + rows.size)
+            recordPaginationTrace(
+                V2_GLOBAL_COMBAT_FRONT_ID,
+                pcSheetDirectCompositionTrace(
+                    layoutId = "v2-combat-content-height",
+                    streams = listOf(
+                        PcSheetPaginationStreamTrace(
+                            streamId = "combat-logical-rows",
+                            module = PcSheetSemanticModule.COMBAT_ACTIONS,
+                            remainingBefore = remainingBefore,
+                            consumedUnits = rows.size,
+                            nativeCapacity = maxOf(
+                                rows.size,
+                                (COMBAT_AVAILABLE_DATA_HEIGHT / COMBAT_MIN_LOGICAL_ROW_HEIGHT).toInt(),
+                            ),
+                            remainingAfter = remainingAfter,
+                        ),
+                    ),
+                    physical = PcSheetPhysicalPaginationTrace(
+                        metric = "height-pt",
+                        used = usedHeight,
+                        capacity = COMBAT_AVAILABLE_DATA_HEIGHT.toDouble(),
+                        nextAtomicUnitSize = nextRow?.height?.toDouble(),
+                        nextAtomicUnitFits = nextRow?.let {
+                            usedHeight + it.height <= COMBAT_AVAILABLE_DATA_HEIGHT + 0.05
+                        },
+                        rationale = if (remainingAfter > 0) {
+                            "next-logical-row-exceeds-remaining-height"
+                        } else {
+                            "front-exhausted"
+                        },
+                    ),
+                ),
+            )
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderCombatPage(
@@ -2014,6 +2062,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                 rows = rows,
                 pageIndex = pageIndex,
             )
+            combatOffset += rows.size
         }
     }
 
@@ -2927,6 +2976,60 @@ internal class AndroidCustomV2ExtendedRenderer(
                 "Custom-v2 Inventory compositor produced a page with no active native module."
             }
 
+            val inventoryStreams = buildList {
+                val ordinaryBefore = ordinaryRows.size - ordinaryOffset
+                if (ordinaryBefore > 0 && pageOrdinary.isNotEmpty()) add(
+                    PcSheetPaginationStreamTrace(
+                        "ordinary-equipment-rows",
+                        PcSheetSemanticModule.ORDINARY_EQUIPMENT,
+                        ordinaryBefore,
+                        pageOrdinary.size,
+                        ordinaryCapacity,
+                        ordinaryBefore - pageOrdinary.size,
+                    ),
+                )
+                val treasureBefore = treasureLines.size - treasureOffset
+                if (treasureBefore > 0 && pageTreasure.isNotEmpty()) add(
+                    PcSheetPaginationStreamTrace(
+                        "treasure-lines",
+                        PcSheetSemanticModule.ORDINARY_EQUIPMENT,
+                        treasureBefore,
+                        pageTreasure.size,
+                        INVENTORY_TREASURE_CAPACITY,
+                        treasureBefore - pageTreasure.size,
+                    ),
+                )
+                val specialBefore = specialPages.size - specialModuleOffset
+                if (specialBefore > 0 && pageSpecialModules.isNotEmpty()) add(
+                    PcSheetPaginationStreamTrace(
+                        "special-equipment-modules",
+                        PcSheetSemanticModule.SPECIAL_EQUIPMENT,
+                        specialBefore,
+                        pageSpecialModules.size,
+                        specialModuleCapacity,
+                        specialBefore - pageSpecialModules.size,
+                    ),
+                )
+            }
+            recordPaginationTrace(
+                V2_GLOBAL_INVENTORY_FRONT_ID,
+                pcSheetDirectCompositionTrace(
+                    layoutId = if (hasPrimaryInventory) "v2-inventory-primary-with-special"
+                    else "v2-inventory-special-only",
+                    streams = inventoryStreams,
+                    physical = PcSheetPhysicalPaginationTrace(
+                        metric = "native-stream-slots",
+                        used = inventoryStreams.sumOf { it.consumedUnits }.toDouble(),
+                        capacity = inventoryStreams.sumOf { it.nativeCapacity }.toDouble(),
+                        rationale = if (inventoryStreams.any { it.remainingAfter > 0 }) {
+                            "remaining-inventory-stream-demand"
+                        } else {
+                            "front-exhausted"
+                        },
+                    ),
+                ),
+            )
+
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderInventory(
@@ -3492,18 +3595,51 @@ internal class AndroidCustomV2ExtendedRenderer(
         val packed = packedNotes(plan)
         if (packed.extendedPageCount == 0) return
 
+        val extendedLineCounts = (1..packed.extendedPageCount).associateWith { pageIndex ->
+            packed.columns.mapNotNull { segments ->
+                val address = segments.firstOrNull()?.address ?: return@mapNotNull null
+                if (address.extendedPageIndex != pageIndex) null else segments.flatMap { it.lines }
+            }.sumOf { it.size }
+        }
+        var remainingExtendedLines = extendedLineCounts.values.sum()
+
         for (extendedPageIndex in 1..packed.extendedPageCount) {
             val columns = packed.columns
                 .mapNotNull { segments ->
                     val address = segments.firstOrNull()?.address ?: return@mapNotNull null
-                    if (address.extendedPageIndex != extendedPageIndex) {
-                        null
-                    } else {
-                        address.columnIndex to segments.flatMap { it.lines }
-                    }
+                    if (address.extendedPageIndex != extendedPageIndex) null
+                    else address.columnIndex to segments.flatMap { it.lines }
                 }
                 .toMap()
-
+            val consumedLines = columns.values.sumOf { it.size }
+            val remainingAfter = remainingExtendedLines - consumedLines
+            recordPaginationTrace(
+                V2_GLOBAL_NOTES_FRONT_ID,
+                pcSheetDirectCompositionTrace(
+                    layoutId = "v2-notes-full-native-page",
+                    streams = listOf(
+                        PcSheetPaginationStreamTrace(
+                            "notes-physical-lines",
+                            PcSheetSemanticModule.NOTES,
+                            remainingExtendedLines,
+                            consumedLines,
+                            NOTES_COLUMN_CAPACITY * 2,
+                            remainingAfter,
+                        ),
+                    ),
+                    physical = PcSheetPhysicalPaginationTrace(
+                        metric = "native-note-rows",
+                        used = consumedLines.toDouble(),
+                        capacity = (NOTES_COLUMN_CAPACITY * 2).toDouble(),
+                        rationale = if (remainingAfter > 0) {
+                            "packed-note-columns-advance-to-next-native-page"
+                        } else {
+                            "front-exhausted"
+                        },
+                    ),
+                ),
+            )
+            remainingExtendedLines = remainingAfter
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderNotesContinuationPage(
