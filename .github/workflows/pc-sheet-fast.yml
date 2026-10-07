@@ -1,0 +1,65 @@
+name: PC Sheet fast gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - "shared/**"
+      - "desktopApp/**"
+      - "androidApp/**"
+      - "assets/character-sheets/**"
+      - "scripts/generate_android_pc_sheet_renderer.py"
+      - "scripts/check_android_pc_sheet_pdf_delivery.py"
+      - "gradle/**"
+      - "gradle.properties"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - ".github/workflows/pc-sheet-fast.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pc-sheet-fast-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pc-sheet-fast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v7
+      - name: Guard canonical resume route
+        run: python3 scripts/check_resume_route.py
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: "platforms;android-36"
+          log-accepted-android-sdk-licenses: "false"
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          gradle-version: "9.5.0"
+      - name: Guard Android PC sheet renderer sync
+        run: python3 scripts/generate_android_pc_sheet_renderer.py --check
+      - name: Guard Android PC sheet PDF delivery
+        run: python3 scripts/check_android_pc_sheet_pdf_delivery.py
+      - name: Run focused Phase 3 PDF tests
+        run: >-
+          gradle :desktopApp:test
+          --tests "io.github.mrsimkin.dndcustomaid.desktop.DesktopPcSheetWholeDraftRendererTest.classicContinuesLongCanonicalBaseContentWithoutSilentLoss"
+          --tests "io.github.mrsimkin.dndcustomaid.desktop.DesktopPcSheetWholeDraftRendererTest.keepsCustomV1NarrativeOverflowOutOfTraitsAndInNativeStoryModules"
+          --stacktrace
+      - name: Upload focused PC sheet proofs
+        uses: actions/upload-artifact@v7
+        with:
+          name: pc-sheet-fast-proofs
+          path: |
+            desktopApp/build/pc-sheet-proofs/fantasy-canonical-overflow-audit.pdf
+            desktopApp/build/pc-sheet-proofs/custom-v1-narrative-native-module-association.pdf
+          if-no-files-found: error
+          retention-days: 7
