@@ -141,37 +141,40 @@ Esta regla controla el tiempo de sesión y reduce interrupciones al owner; **no 
 
 ## 4. FRENTE FUNCIONAL ACTUAL
 
-**CANDIDATE ACCEPTANCE GATE — M50800-31 / M50800-32**
+**CANDIDATE ACCEPTANCE GATE — PREQA.10 / M50800-31 / M50800-32**
 
-Latest validated functional head:
+Latest validated pre-candidate head:
 
-`80f29afb0faf61cfe186d7e7bcff517796fcab12`
+`e2e2847318d238196e7ee42112b79e571b9bbe1a`
 
-M50800-27 is CLOSED / VALIDATED across all three production families:
-- Custom-v2: `0528e88c...` / Fast Gate `37675327187` / artifact `11506322715`;
-- Custom-v1: `c87df71e...` / Fast Gate `37675920818` / artifact `11506913326`;
-- Fantasy: `80f29afb...` / Fast Gate `37676792397` / artifact `11506284490`.
+Important rejected candidate:
+- `0.5.0-preqa.9 / 50900` at `6d77ac5c...` is **REJECTED INTERNALLY**;
+- its green Fast Gate did not override actual PDF inspection;
+- the rejection was caused by incomplete Inventory reclaim under M50800-27;
+- never reuse `50900`.
 
-All three retained identical extracted text versus the pre-global-coordination exact Mara baseline; representative affected pages were pixel-compared with zero visual differences.
-
-Current ledger:
-- M50800-01…30 = FIXED on pre-candidate line;
-- M50800-31 = PENDING exact-candidate acceptance;
-- M50800-32 = PASS pre-candidate / MUST REPEAT on exact candidate;
-- blocking CHANGED-NEW = none observed.
+Validated repair:
+- product reclaim repair `cfb446aa...`;
+- final regression head `e2e28473...`;
+- Fast Gate `37679563332` — SUCCESS;
+- proof artifact `11507633293`;
+- digest `sha256:7aa1c8e2a52c652432ccc20d923b417c7ac9f3cace9deb800e16c675d692c753`;
+- actual proof pages: Fantasy 34, Custom-v1 31, Custom-v2 Atributo 19, Custom-v2 Habilidad 19;
+- complete semantic audit: 26 Traits / 10 Resources / 8 Options / 34 Inventory / 9 Notes / 7 Markers preserved; no semantic ellipsis;
+- blocking CHANGED-NEW: none observed;
+- `LOOP_SUSPECTED = NO`.
 
 Exact next action:
-1. set `versionName = "0.5.0-preqa.9"`;
-2. set `versionCode = 50900`;
-3. record exact candidate SHA;
-4. run the focused exact four-family Mara gate on that exact SHA and inspect the actual PDFs;
-5. reconcile every M50800-01…32 item as FIXED / OPEN / CHANGED-NEW against those exact candidate artifacts;
-6. if clean, run authoritative full `Scaffold checks` on the exact candidate and preserve APK/PDF/artifact hashes;
-7. only after both exact-candidate gates pass, prepare owner visual-QA handoff.
+1. set `versionName = "0.5.0-preqa.10"`;
+2. set `versionCode = 51000`;
+3. retain that exact candidate SHA;
+4. run and inspect the exact four-family Mara proof;
+5. mark M50800-01…32 FIXED / OPEN / CHANGED-NEW against those exact artifacts;
+6. if clean, open/use the normal validation PR to trigger full `Scaffold checks` on the exact candidate;
+7. preserve APK/proof artifact IDs and hashes;
+8. only after both exact-candidate gates pass, prepare owner visual-QA handoff.
 
-Never reuse `0.5.0-preqa.8 / 50800`.
 Current Snapshot and Media/Handouts remain blocked.
-`LOOP_SUSPECTED = NO`.
 
 ## 5. GUARDRAIL ANTI-LOOP
 

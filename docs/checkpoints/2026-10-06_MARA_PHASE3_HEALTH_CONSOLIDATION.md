@@ -585,3 +585,61 @@ Architectural audit at `80f29afb...` confirms all three production families invo
 8. only then hand off `preqa.9 / 50900` for owner visual QA.
 
 Current Snapshot and Media/Handouts remain blocked until owner disposition.
+
+
+## 2026-10-07 — preqa.9 internal rejection and Inventory reclaim repair
+
+**Status:** PREQA.9 REJECTED INTERNALLY / REPAIR VALIDATED / NEXT CANDIDATE REQUIRED
+
+The first uniquely-versioned Phase-3 candidate was:
+- version: `0.5.0-preqa.9 / 50900`;
+- exact commit: `6d77ac5cbeea95b2d4c0f7e81adfaf2d322921b3`;
+- Fast Gate: `37677309258` — SUCCESS;
+- proof artifact: `11506934322`;
+- artifact digest: `sha256:7dea2b6b04415d1ea850de6765bc783d77177ea1c2c6f671ea9423d5075f3231`.
+
+Actual all-page PDF inspection rejected that candidate before owner handoff:
+- Custom-v2 special-only Inventory pages retained a large exhausted ordinary-Equipment area;
+- Fantasy special-only Inventory pages likewise failed to reclaim all compatible native module area;
+- therefore M50800-27 remained OPEN despite green CI;
+- `preqa.9 / 50900` MUST NOT be reused.
+
+Repair line:
+- product repair: `cfb446aa4e8d79595d58a2a1359d2f2c5054255a` — repeat/reposition complete fixed Special Equipment modules instead of stretching them;
+- regression-scope correction: `b529c613d82e129b39160898957d925e820ffed3`;
+- semantic-token regression correction: `e2e2847318d238196e7ee42112b79e571b9bbe1a`;
+- final Fast Gate: `37679563332` — SUCCESS;
+- proof artifact: `11507633293`;
+- artifact digest: `sha256:7aa1c8e2a52c652432ccc20d923b417c7ac9f3cace9deb800e16c675d692c753`.
+
+Actual repair-proof inspection:
+- Fantasy: **34 pages**, Inventory on pages 25–28; compatible fixed special modules reclaim native sibling/page area without overlap or deformation;
+- Custom-v2 Atributo: **19 pages**, Inventory on pages 16–17; the special-only page carries two complete fixed `EQUIPO ESPECIAL` modules;
+- Custom-v2 Habilidad: **19 pages**, same validated reclaim;
+- Custom-v1 remains **31 pages** and unaffected by this repair;
+- page counts are diagnostic only, never acceptance ceilings.
+
+Semantic/content audit of the exact repair proof:
+- all 26 Traits present;
+- all 10 Resources present;
+- all 8 class Options present;
+- all 34 Inventory identities present;
+- all 9 Notes present;
+- all 7 custom Markers present;
+- zero semantic `...` occurrences;
+- stream identities remain associated with their intended family modules.
+
+M50800-27 is now re-closed on the repaired pre-candidate line, based on actual rendered output rather than source/CI alone.
+
+### Next exact candidate
+
+Advance monotonically to **`0.5.0-preqa.10 / 51000`**.
+Do not reuse `preqa.9 / 50900`.
+
+For that exact candidate:
+1. run the focused four-family Mara gate;
+2. inspect the actual four PDFs again;
+3. reconcile M50800-01…32 as FIXED / OPEN / CHANGED-NEW;
+4. if clean, run authoritative full `Scaffold checks` through the normal PR trigger;
+5. preserve exact candidate SHA, Fast Gate run/artifact, full Scaffold run, APK artifact/hash and proof hashes;
+6. only then prepare owner visual-QA handoff.
