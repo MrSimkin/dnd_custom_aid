@@ -141,42 +141,36 @@ Esta regla controla el tiempo de sesión y reduce interrupciones al owner; **no 
 
 ## 4. FRENTE FUNCIONAL ACTUAL
 
-**M50800-27 — FAMILY-GLOBAL CONSTRAINT-AWARE EXTENDED PLANNING**
+**CANDIDATE ACCEPTANCE GATE — M50800-31 / M50800-32**
 
 Latest validated functional head:
 
-`6886a052da394b84d549f9769161f772f2869947`
+`80f29afb0faf61cfe186d7e7bcff517796fcab12`
 
-Latest exact four-family proof:
-- Fast Gate `37673665059` — SUCCESS;
-- artifact `11505896442`;
-- digest `sha256:25e8dc5080065a9309e013e58d0df4689b7224a8b4df19de5c59711ad5bb14f5`;
-- Fantasy 40 pages / Custom v1 31 / Custom v2 Atributo 20 / Custom v2 Habilidad 20; counts are diagnostic only.
+M50800-27 is CLOSED / VALIDATED across all three production families:
+- Custom-v2: `0528e88c...` / Fast Gate `37675327187` / artifact `11506322715`;
+- Custom-v1: `c87df71e...` / Fast Gate `37675920818` / artifact `11506913326`;
+- Fantasy: `80f29afb...` / Fast Gate `37676792397` / artifact `11506284490`.
 
-Current exact ledger:
-- M50800-01…26 = FIXED;
-- M50800-27 = OPEN / PARTIAL ARCHITECTURE;
-- M50800-28…30 = FIXED;
-- M50800-31 = PENDING HARD GATE;
-- M50800-32 = PASS PRE-CANDIDATE / PENDING CANDIDATE REPEAT;
+All three retained identical extracted text versus the pre-global-coordination exact Mara baseline; representative affected pages were pixel-compared with zero visual differences.
+
+Current ledger:
+- M50800-01…30 = FIXED on pre-candidate line;
+- M50800-31 = PENDING exact-candidate acceptance;
+- M50800-32 = PASS pre-candidate / MUST REPEAT on exact candidate;
 - blocking CHANGED-NEW = none observed.
 
-Why M50800-27 remains open:
-- the shared `PcSheetExtendedPageComposer` is already constraint-aware;
-- several compatible modules already share pages correctly;
-- but family renderers still schedule Extended roles through sequential role groups instead of one family-global planning pass over every active semantic stream.
+Exact next action:
+1. set `versionName = "0.5.0-preqa.9"`;
+2. set `versionCode = 50900`;
+3. record exact candidate SHA;
+4. run the focused exact four-family Mara gate on that exact SHA and inspect the actual PDFs;
+5. reconcile every M50800-01…32 item as FIXED / OPEN / CHANGED-NEW against those exact candidate artifacts;
+6. if clean, run authoritative full `Scaffold checks` on the exact candidate and preserve APK/PDF/artifact hashes;
+7. only after both exact-candidate gates pass, prepare owner visual-QA handoff.
 
-Required next action:
-1. add the smallest family-global planning/coordinator layer that sees all active Extended streams before page emission;
-2. reuse only explicit family-approved native layouts;
-3. keep Notes full-page-exclusive and preserve incompatible/full-width modules;
-4. never invent sharing solely to lower page count;
-5. preserve every already-validated renderer behavior and Desktop/Android parity;
-6. validate through the Fast Gate and real exact Mara proofs;
-7. only after M50800-27 closes repeat the exact ledger and proceed to the unique candidate gate.
-
-Do not create version/build candidate yet.
-Do not reopen M50800-01…26 without new material evidence.
+Never reuse `0.5.0-preqa.8 / 50800`.
+Current Snapshot and Media/Handouts remain blocked.
 `LOOP_SUSPECTED = NO`.
 
 ## 5. GUARDRAIL ANTI-LOOP

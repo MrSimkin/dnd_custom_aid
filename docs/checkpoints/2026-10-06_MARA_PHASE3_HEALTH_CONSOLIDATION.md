@@ -524,3 +524,64 @@ After M50800-27:
 5. only then hand off to owner visual QA.
 
 `LOOP_SUSPECTED = NO`.
+
+
+## 2026-10-07 — M50800-27 family-global coordination closure
+
+**Status:** CLOSED / VALIDATED / LOOP_SUSPECTED=NO
+
+M50800-27 now has a family-global semantic coordination layer before Extended page emission while retaining the already-validated native renderers and local layout compositor.
+
+Shared architecture:
+- `PcSheetExtendedGlobalCoordinator` requires every active semantic module to belong to exactly one family-approved compatibility front before page emission;
+- full-page-exclusive modules remain isolated by `PcSheetNativeModuleContracts`;
+- physical geometry is still owned by family-native layouts and `PcSheetExtendedPageComposer`;
+- no page-count target or arbitrary resizing was introduced.
+
+Validated subfronts:
+
+1. **Custom-v2**
+   - functional commit: `0528e88cca824581d1cd02c347f5746398124203`;
+   - Fast Gate: `37675327187` — SUCCESS;
+   - artifact: `11506322715`;
+   - digest: `sha256:8ab4a8004e99df71fa74c9cd99e79ee1b559a64ea2b5867d84aab922dfa734e8`;
+   - exact Atributo / Habilidad outputs retained the same page counts and identical extracted text as `6886a052...`;
+   - representative Narrative+Traits, Resources and Inventory pages were pixel-compared against `6886a052...`: **0 differing pixels**.
+
+2. **Custom-v1**
+   - functional commit: `c87df71e8d1c6591460566057ccfad9ad1341e18`;
+   - Fast Gate: `37675920818` — SUCCESS;
+   - artifact: `11506913326`;
+   - digest: `sha256:aafcdea4454343f94cf7521b69a1a9ef48cedd8f38662d912d900208b5c3335e`;
+   - exact output retained 31 pages and identical extracted text vs `6886a052...`;
+   - representative Narrative/Traits, Resources and Inventory pages were pixel-compared: **0 differing pixels**.
+
+3. **Fantasy**
+   - functional commit: `80f29afb0faf61cfe186d7e7bcff517796fcab12`;
+   - Fast Gate: `37676792397` — SUCCESS;
+   - artifact: `11506284490`;
+   - digest: `sha256:87ba6b294d95501770384fb968dab17dd121d0d8ae39bc29600e4eff0b89dde3`;
+   - exact Mara remained 40 pages with identical complete extracted text vs `6886a052...`;
+   - representative Statistics, Narrative, Traits, Combat, Resources, Inventory and Notes pages were pixel-compared: **0 differing pixels**.
+
+Architectural audit at `80f29afb...` confirms all three production families invoke `PcSheetExtendedGlobalCoordinator.plan(...)` before emitting Extended semantic pages. Fantasy legacy `REFERENCIAS` remains outside the Phase-3 semantic planner because it is not a `PcSheetSemanticModule`; no new semantic module was invented.
+
+### Ledger after M50800-27
+
+- **M50800-01…30:** FIXED / demonstrated on the current pre-candidate line.
+- **M50800-31:** PENDING exact-candidate acceptance.
+- **M50800-32:** PASS on the pre-candidate line, but MUST be repeated from the exact uniquely-versioned candidate.
+- blocking CHANGED-NEW: none observed.
+
+### Exact next authorized action — candidate gate
+
+1. advance monotonically from `0.5.0-preqa.8 / 50800` to **`0.5.0-preqa.9 / 50900`**;
+2. retain that exact candidate commit identity;
+3. generate Mara in Fantasy, Custom v1, Custom v2 Atributo and Custom v2 Habilidad from that exact commit;
+4. inspect actual candidate PDFs, not only tests;
+5. mark M50800-01…32 FIXED / OPEN / CHANGED-NEW against the exact candidate;
+6. any blocking OPEN/NEW regression blocks handoff;
+7. run authoritative aggregate/full `Scaffold checks` for the exact candidate and preserve commit/run/artifact/APK/PDF provenance;
+8. only then hand off `preqa.9 / 50900` for owner visual QA.
+
+Current Snapshot and Media/Handouts remain blocked until owner disposition.
