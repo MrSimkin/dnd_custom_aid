@@ -1527,9 +1527,7 @@ internal class DesktopClassicRenderer(
         var optionOffset = 0
 
         while (demands.isNotEmpty()) {
-            val layouts = classicResourceCompositionLayouts(
-                demands.mapTo(mutableSetOf()) { it.module },
-            )
+            val layouts = classicResourceCompositionLayouts(demands)
             val step = requireNotNull(
                 PcSheetExtendedPageComposer.composeNextPage(
                     demands = demands,
@@ -1537,14 +1535,14 @@ internal class DesktopClassicRenderer(
                 ),
             )
             recordPaginationTrace(CLASSIC_GLOBAL_RESOURCES_FRONT_ID, step)
-            val resourceCount = step.page.placements
+            val resourcePlacement = step.page.placements
                 .firstOrNull { it.module == PcSheetSemanticModule.RESOURCES }
-                ?.consumedUnits
-                ?: 0
-            val optionCount = step.page.placements
+            val optionPlacement = step.page.placements
                 .firstOrNull { it.module == PcSheetSemanticModule.CLASS_CHOICES }
-                ?.consumedUnits
-                ?: 0
+            val resourceCount = resourcePlacement?.consumedUnits ?: 0
+            val optionCount = optionPlacement?.consumedUnits ?: 0
+            val resourceCapacity = resourcePlacement?.nativeCapacity ?: 0
+            val optionCapacity = optionPlacement?.nativeCapacity ?: 0
             val pageResources = resources.drop(resourceOffset).take(resourceCount)
             val pageOptions = options.drop(optionOffset).take(optionCount)
 
@@ -1569,13 +1567,19 @@ internal class DesktopClassicRenderer(
                 )
 
                 if (pageResources.isNotEmpty()) {
+                    val splitExtraRows =
+                        if (splitLayout) resourceCapacity - CLASSIC_RESOURCE_ROWS_PER_PAGE else 0
                     val frameHeight =
-                        if (splitLayout) CLASSIC_RESOURCE_SPLIT_FRAME_HEIGHT
-                        else CLASSIC_RESOURCE_FULL_FRAME_HEIGHT
+                        if (splitLayout) {
+                            CLASSIC_RESOURCE_SPLIT_FRAME_HEIGHT +
+                                splitExtraRows * CLASSIC_RESOURCE_ROW_STEP
+                        } else {
+                            CLASSIC_RESOURCE_FULL_FRAME_HEIGHT
+                        }
                     titledFrame(s, p, 24f, 112f, 564f, frameHeight, "RECURSOS")
                     resourceTableHeader(s, p, 36f, 148f)
                     val capacity =
-                        if (splitLayout) CLASSIC_RESOURCE_ROWS_PER_PAGE
+                        if (splitLayout) resourceCapacity
                         else CLASSIC_RESOURCE_FULL_ROWS_PER_PAGE
                     repeat(capacity) { index ->
                         val top = CLASSIC_RESOURCE_FIRST_ROW_TOP + index * CLASSIC_RESOURCE_ROW_STEP
@@ -1586,12 +1590,22 @@ internal class DesktopClassicRenderer(
                 }
 
                 if (pageOptions.isNotEmpty()) {
+                    val splitExtraRows =
+                        if (splitLayout) resourceCapacity - CLASSIC_RESOURCE_ROWS_PER_PAGE else 0
                     val frameTop =
-                        if (splitLayout) CLASSIC_OPTION_SPLIT_FRAME_TOP
-                        else CLASSIC_FULL_FRAME_TOP
+                        if (splitLayout) {
+                            CLASSIC_OPTION_SPLIT_FRAME_TOP +
+                                splitExtraRows * CLASSIC_RESOURCE_ROW_STEP
+                        } else {
+                            CLASSIC_FULL_FRAME_TOP
+                        }
                     val frameHeight =
-                        if (splitLayout) CLASSIC_OPTION_SPLIT_FRAME_HEIGHT
-                        else CLASSIC_RESOURCE_FULL_FRAME_HEIGHT
+                        if (splitLayout) {
+                            CLASSIC_OPTION_SPLIT_FRAME_HEIGHT -
+                                splitExtraRows * CLASSIC_RESOURCE_ROW_STEP
+                        } else {
+                            CLASSIC_RESOURCE_FULL_FRAME_HEIGHT
+                        }
                     titledFrame(
                         s,
                         p,
@@ -1602,8 +1616,13 @@ internal class DesktopClassicRenderer(
                         "OPCIONES Y ESTADOS RELEVANTES",
                     )
                     val firstTop =
-                        if (splitLayout) CLASSIC_OPTION_SPLIT_FIRST_ROW_TOP
-                        else CLASSIC_OPTION_FULL_FIRST_ROW_TOP
+                        if (splitLayout) {
+                            CLASSIC_OPTION_SPLIT_FIRST_ROW_TOP +
+                                (resourceCapacity - CLASSIC_RESOURCE_ROWS_PER_PAGE) *
+                                    CLASSIC_RESOURCE_ROW_STEP
+                        } else {
+                            CLASSIC_OPTION_FULL_FIRST_ROW_TOP
+                        }
                     pageOptions.forEachIndexed { index, row ->
                         optionEntry(
                             s,
@@ -1647,10 +1666,23 @@ internal class DesktopClassicRenderer(
     }
 
     private fun classicResourceCompositionLayouts(
-        activeModules: Set<PcSheetSemanticModule>,
-    ): List<PcSheetExtendedLayoutTemplate> =
-        when (activeModules) {
-            setOf(PcSheetSemanticModule.RESOURCES, PcSheetSemanticModule.CLASS_CHOICES) ->
+        demands: List<PcSheetModuleDemand>,
+    ): List<PcSheetExtendedLayoutTemplate> {
+        val demandByModule = demands.associate { it.module to it.remainingUnits }
+        val activeModules = demandByModule.keys
+
+        return when (activeModules) {
+            setOf(PcSheetSemanticModule.RESOURCES, PcSheetSemanticModule.CLASS_CHOICES) -> {
+                val optionCapacity = minOf(
+                    demandByModule.getValue(PcSheetSemanticModule.CLASS_CHOICES),
+                    CLASSIC_OPTION_ROWS_PER_PAGE,
+                )
+                val resourceCapacity = when (optionCapacity) {
+                    1 -> 7
+                    2 -> 6
+                    else -> CLASSIC_RESOURCE_ROWS_PER_PAGE
+                }
+
                 listOf(
                     PcSheetExtendedLayoutTemplate(
                         id = CLASSIC_RESOURCE_OPTIONS_SPLIT_LAYOUT_ID,
@@ -1658,18 +1690,19 @@ internal class DesktopClassicRenderer(
                             PcSheetExtendedLayoutSlot(
                                 id = "resources",
                                 capacityByModule = mapOf(
-                                    PcSheetSemanticModule.RESOURCES to CLASSIC_RESOURCE_ROWS_PER_PAGE,
+                                    PcSheetSemanticModule.RESOURCES to resourceCapacity,
                                 ),
                             ),
                             PcSheetExtendedLayoutSlot(
                                 id = "class-choices",
                                 capacityByModule = mapOf(
-                                    PcSheetSemanticModule.CLASS_CHOICES to CLASSIC_OPTION_ROWS_PER_PAGE,
+                                    PcSheetSemanticModule.CLASS_CHOICES to optionCapacity,
                                 ),
                             ),
                         ),
                     ),
                 )
+            }
 
             setOf(PcSheetSemanticModule.RESOURCES) ->
                 listOf(
@@ -1706,6 +1739,7 @@ internal class DesktopClassicRenderer(
                     activeModules.joinToString(),
             )
         }
+    }
 
 
     private fun resourceTrackerLabel(
@@ -4657,7 +4691,7 @@ private fun ruledTextArea(
         const val CLASSIC_COMBAT_DETAIL_CHARS = 34
         const val CLASSIC_COMBAT_PREVIEW_CHARS = 20
         const val CLASSIC_BASE_SLOT_MARKERS = 4
-        const val CLASSIC_RESOURCE_ROWS_PER_PAGE = 4
+        const val CLASSIC_RESOURCE_ROWS_PER_PAGE = 5
         // The approved Fantasy continuation page already occupies one 564 x 606 native frame
         // from y=112 to y=718. Resources use 48 pt row rhythm; 11 complete rows end at y=698.
         // Options use 68 pt entry rhythm; 8 complete entries end at y=680. These full layouts

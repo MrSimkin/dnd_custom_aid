@@ -124,6 +124,32 @@ class PcSheetPdfExtendedComposerTest {
     }
 
     @Test
+    fun reportsReleasedSiblingCapacityWhenOtherDemandStillRemains() {
+        val step = requireNotNull(
+            PcSheetExtendedPageComposer.composeNextPage(
+                demands = listOf(
+                    PcSheetModuleDemand(PcSheetSemanticModule.RESOURCES, 8),
+                    PcSheetModuleDemand(PcSheetSemanticModule.CLASS_CHOICES, 1),
+                ),
+                layouts = listOf(
+                    PcSheetExtendedLayoutTemplate(
+                        id = "fixed-split",
+                        slots = listOf(
+                            slot("resources", PcSheetSemanticModule.RESOURCES to 4),
+                            slot("options", PcSheetSemanticModule.CLASS_CHOICES to 3),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        assertEquals(
+            setOf(PcSheetSemanticModule.CLASS_CHOICES),
+            step.trace.reclaimableExhaustedModules(),
+        )
+    }
+
+    @Test
     fun fullPageExclusiveNotesCannotBeCombinedWithOtherSlotsInOneTemplate() {
         assertFailsWith<IllegalArgumentException> {
             PcSheetExtendedLayoutTemplate(

@@ -10,6 +10,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPaginationTraceEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.toStableJsonLine
+import io.github.mrsimkin.dndcustomaid.shared.character.reclaimableExhaustedModules
 import java.io.ByteArrayOutputStream
 import java.io.File
 import kotlin.test.Test
@@ -600,6 +601,20 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 }
             }
         }
+
+        val resourceReclaimFindings = paginationTrace
+            .filter { entry -> entry.frontId.contains("resources", ignoreCase = true) }
+            .mapNotNull { entry ->
+                val modules = entry.composition.reclaimableExhaustedModules()
+                if (modules.isEmpty()) null else entry to modules
+            }
+        assertTrue(
+            resourceReclaimFindings.isEmpty(),
+            "Exact Mara Resources/Options trace must not exhaust a partially-used sibling slot while another stream remains: " +
+                resourceReclaimFindings.joinToString { (entry, modules) ->
+                    "${entry.family}/${entry.frontId}#${entry.decisionOrdinal} -> ${modules.joinToString()}"
+                },
+        )
 
         val traceFile = File(proofDir, "mara-pagination-trace.jsonl")
         traceFile.writeText(

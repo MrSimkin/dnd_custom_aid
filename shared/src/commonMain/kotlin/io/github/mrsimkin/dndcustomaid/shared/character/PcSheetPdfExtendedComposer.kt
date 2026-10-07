@@ -102,6 +102,17 @@ fun PcSheetPaginationTraceEntry.toStableJsonLine(): String = buildString {
     append("}}")
 }
 
+fun PcSheetExtendedCompositionTrace.reclaimableExhaustedModules(): Set<PcSheetSemanticModule> {
+    if (demandsAfter.isEmpty()) return emptySet()
+    val remainingModules = demandsAfter.mapTo(mutableSetOf()) { it.module }
+    return placements
+        .filter { placement ->
+            placement.module !in remainingModules &&
+                placement.consumedUnits < placement.nativeCapacity
+        }
+        .mapTo(mutableSetOf()) { it.module }
+}
+
 data class PcSheetModuleDemand(
     val module: PcSheetSemanticModule,
     val remainingUnits: Int,
