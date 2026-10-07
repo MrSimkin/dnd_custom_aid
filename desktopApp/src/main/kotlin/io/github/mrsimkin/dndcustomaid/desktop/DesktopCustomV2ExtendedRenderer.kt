@@ -3611,6 +3611,10 @@ internal class DesktopCustomV2ExtendedRenderer(
                 .toMap()
             val consumedLines = columns.values.sumOf { it.size }
             val remainingAfter = remainingExtendedLines - consumedLines
+            val pageAdvance = packed.columnAdvances.firstOrNull { advance ->
+                advance.from.extendedPageIndex == extendedPageIndex &&
+                    advance.to.extendedPageIndex > extendedPageIndex
+            }
             recordPaginationTrace(
                 V2_GLOBAL_NOTES_FRONT_ID,
                 pcSheetDirectCompositionTrace(
@@ -3629,10 +3633,13 @@ internal class DesktopCustomV2ExtendedRenderer(
                         metric = "native-note-rows",
                         used = consumedLines.toDouble(),
                         capacity = (NOTES_COLUMN_CAPACITY * 2).toDouble(),
-                        rationale = if (remainingAfter > 0) {
-                            "packed-note-columns-advance-to-next-native-page"
-                        } else {
-                            "front-exhausted"
+                        nextAtomicUnitSize = pageAdvance?.atomicRowsRequired?.toDouble(),
+                        nextAtomicUnitFits = pageAdvance?.atomicUnitFitsRemainder,
+                        rationale = when {
+                            remainingAfter <= 0 -> "front-exhausted"
+                            pageAdvance != null ->
+                                "note-page-advance-" + pageAdvance.reason.name.lowercase()
+                            else -> "packed-note-columns-advance-without-recorded-boundary"
                         },
                     ),
                 ),

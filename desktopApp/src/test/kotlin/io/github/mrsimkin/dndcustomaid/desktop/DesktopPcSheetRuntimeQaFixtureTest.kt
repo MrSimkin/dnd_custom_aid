@@ -641,6 +641,18 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 },
         )
 
+        val physicallyAvoidableNotesPages = paginationTrace.filter { entry ->
+            entry.frontId.contains("notes", ignoreCase = true) &&
+                entry.composition.hasPhysicallyAvoidableNextPage()
+        }
+        assertTrue(
+            physicallyAvoidableNotesPages.isEmpty(),
+            "Exact Mara Notes trace must not open another page when the next whole atomic note still fits: " +
+                physicallyAvoidableNotesPages.joinToString { entry ->
+                    entry.family.name + "/" + entry.frontId + "#" + entry.decisionOrdinal
+                },
+        )
+
         val inventorySameStreamWaste = paginationTrace
             .filter { it.frontId.contains("inventory", ignoreCase = true) }
             .mapNotNull { entry ->

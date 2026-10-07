@@ -2517,6 +2517,10 @@ private fun appendSpellContinuationPages(
                 .toMap()
             val consumedLines = columns.values.sumOf { it.size }
             val remainingAfter = remainingExtendedLines - consumedLines
+            val pageAdvance = packed.columnAdvances.firstOrNull { advance ->
+                advance.from.extendedPageIndex == pageIndex &&
+                    advance.to.extendedPageIndex > pageIndex
+            }
             recordPaginationTrace(
                 CLASSIC_GLOBAL_NOTES_FRONT_ID,
                 pcSheetDirectCompositionTrace(
@@ -2535,10 +2539,13 @@ private fun appendSpellContinuationPages(
                         metric = "native-note-rows",
                         used = consumedLines.toDouble(),
                         capacity = CLASSIC_NOTES_ROWS_PER_COLUMN.toDouble(),
-                        rationale = if (remainingAfter > 0) {
-                            "packed-note-column-advances-to-next-full-native-page"
-                        } else {
-                            "front-exhausted"
+                        nextAtomicUnitSize = pageAdvance?.atomicRowsRequired?.toDouble(),
+                        nextAtomicUnitFits = pageAdvance?.atomicUnitFitsRemainder,
+                        rationale = when {
+                            remainingAfter <= 0 -> "front-exhausted"
+                            pageAdvance != null ->
+                                "note-page-advance-" + pageAdvance.reason.name.lowercase()
+                            else -> "packed-note-column-advance-without-recorded-boundary"
                         },
                     ),
                 ),
