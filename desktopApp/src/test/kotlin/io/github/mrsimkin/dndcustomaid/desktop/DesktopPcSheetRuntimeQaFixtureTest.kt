@@ -435,6 +435,22 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     "$family must not consume resource tracker marks to encode current state.",
                 )
 
+                if (family == PcSheetVisualFamily.CUSTOM_V1) {
+                    val pageTexts = (1..rendered.numberOfPages).map { pageNumber ->
+                        PDFTextStripper().apply {
+                            startPage = pageNumber
+                            endPage = pageNumber
+                        }.getText(rendered).replace(Regex("\\s+"), " ")
+                    }
+                    val historyContinuationPage = pageTexts.first {
+                        it.contains("[proviene de sección normal HISTORIA]")
+                    }
+                    assertTrue(
+                        historyContinuationPage.contains("Rasgo extenso 01 — Umbral"),
+                        "Custom-v1 must reclaim the lower native module for Traits when a single Historia module leaves it free.",
+                    )
+                }
+
                 if (family == PcSheetVisualFamily.CLASSIC_DND_STYLE) {
                     val pageTexts = (1..rendered.numberOfPages).map { pageNumber ->
                         PDFTextStripper().apply {

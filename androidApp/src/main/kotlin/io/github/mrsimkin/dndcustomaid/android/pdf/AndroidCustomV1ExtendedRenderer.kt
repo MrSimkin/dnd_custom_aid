@@ -95,8 +95,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         ) {
             appendCustomStatisticsPages(plan)
         }
-        appendNarrativeExtendedPages(plan)
-        appendTraitsExtendedPages(plan)
+        appendNarrativeAndTraitsExtendedPages(plan)
         appendCombatExtendedPages(plan)
         if (needsResourcesExtendedPage(plan)) {
             appendResourcesExtendedPages(plan)
@@ -164,6 +163,80 @@ internal class AndroidCustomV1ExtendedRenderer(
             )
         }
     }
+
+    private fun appendNarrativeAndTraitsExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val narrativeModules = narrativeContinuationModules(plan)
+        val traitFlow = packV1TraitFlow(traitFlowBlocks(plan))
+
+        if (narrativeModules.size != 1 || traitFlow.isEmpty()) {
+            appendNarrativeExtendedPages(plan)
+            appendTraitsExtendedPages(plan)
+            return
+        }
+
+        val step = requireNotNull(
+            PcSheetExtendedPageComposer.composeNextPage(
+                demands = listOf(
+                    PcSheetModuleDemand(
+                        module = PcSheetSemanticModule.BACKGROUND_STORY,
+                        remainingUnits = 1,
+                    ),
+                    PcSheetModuleDemand(
+                        module = PcSheetSemanticModule.TRAITS,
+                        remainingUnits = traitFlow.size,
+                    ),
+                ),
+                layouts = listOf(customV1NarrativeTraitsLayout()),
+            ),
+        )
+        val narrativeConsumed = step.page.placements
+            .filter { it.module == PcSheetSemanticModule.BACKGROUND_STORY }
+            .sumOf { it.consumedUnits }
+        val traitConsumed = step.page.placements
+            .filter { it.module == PcSheetSemanticModule.TRAITS }
+            .sumOf { it.consumedUnits }
+
+        check(narrativeConsumed == 1) {
+            "Custom-v1 mixed Narrative/Traits layout must consume the single narrative module."
+        }
+        check(traitConsumed > 0) {
+            "Custom-v1 mixed Narrative/Traits layout must reclaim the lower native Traits module."
+        }
+
+        val page = PDPage(PDRectangle(W, H))
+        document.addPage(page)
+        renderNarrativeContinuationPage(
+            page = page,
+            modules = narrativeModules,
+            pageIndex = 0,
+        )
+        appendTraitModuleToExistingPage(
+            page = page,
+            lines = traitFlow.take(traitConsumed),
+            targetTop = V1_TRAIT_TARGET_TOPS[1],
+            prefix = "V1X NARRATIVE+TRAITS P1",
+        )
+
+        val remainingTraitFlow = traitFlow.drop(traitConsumed)
+        if (remainingTraitFlow.isNotEmpty()) {
+            appendTraitsExtendedPages(remainingTraitFlow)
+        }
+    }
+
+    private fun customV1NarrativeTraitsLayout(): PcSheetExtendedLayoutTemplate =
+        PcSheetExtendedLayoutTemplate(
+            id = "v1-native-narrative-top-traits-bottom",
+            slots = listOf(
+                PcSheetExtendedLayoutSlot(
+                    id = "v1-narrative-top",
+                    capacityByModule = mapOf(PcSheetSemanticModule.BACKGROUND_STORY to 1),
+                ),
+                PcSheetExtendedLayoutSlot(
+                    id = "v1-traits-bottom",
+                    capacityByModule = mapOf(PcSheetSemanticModule.TRAITS to V1_TRAIT_ROWS_PER_MODULE),
+                ),
+            ),
+        )
 
     private fun appendNarrativeExtendedPages(plan: PcSheetPdfRenderPlan) {
         val modules = narrativeContinuationModules(plan)
@@ -440,8 +513,10 @@ internal class AndroidCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - MARKERS") { }
     }
 
-    private fun appendTraitsExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val flow = packV1TraitFlow(traitFlowBlocks(plan))
+    private fun appendTraitsExtendedPages(plan: PcSheetPdfRenderPlan) =
+        appendTraitsExtendedPages(packV1TraitFlow(traitFlowBlocks(plan)))
+
+    private fun appendTraitsExtendedPages(flow: List<V1TraitFlowLine>) {
         if (flow.isEmpty()) return
 
         var demands = listOf(
@@ -573,6 +648,38 @@ internal class AndroidCustomV1ExtendedRenderer(
             if (bottomLines.isNotEmpty()) {
                 drawV1TraitModuleLines(s, bottomLines, V1_TRAIT_TARGET_TOPS[1])
             }
+        }
+        appendLayer(page, "$prefix - MARKERS") { }
+    }
+
+    private fun appendTraitModuleToExistingPage(
+        page: PDPage,
+        lines: List<V1TraitFlowLine>,
+        targetTop: Float,
+        prefix: String,
+    ) {
+        require(lines.isNotEmpty()) {
+            "Custom-v1 mixed page cannot append an empty Traits module."
+        }
+        require(lines.size <= V1_TRAIT_ROWS_PER_MODULE) {
+            "Custom-v1 mixed page exceeds one native Traits module."
+        }
+        appendLayer(page, "$prefix - STRUCTURE") { s ->
+            drawIsolatedSourceCrop(
+                s = s,
+                sourcePageIndex = 2,
+                sourceX = V1_TRAIT_SOURCE_X,
+                sourceTop = V1_TRAIT_SOURCE_TOP,
+                width = V1_TRAIT_MODULE_WIDTH,
+                height = V1_TRAIT_MODULE_HEIGHT,
+                targetX = V1_TRAIT_TARGET_X,
+                targetTop = targetTop,
+            )
+        }
+        appendLayer(page, "$prefix - CLEANUP") { }
+        appendLayer(page, "$prefix - LABELS") { }
+        appendLayer(page, "$prefix - VALUES") { s ->
+            drawV1TraitModuleLines(s, lines, targetTop)
         }
         appendLayer(page, "$prefix - MARKERS") { }
     }
