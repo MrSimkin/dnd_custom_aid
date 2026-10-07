@@ -251,26 +251,42 @@ internal class AndroidCustomV1ExtendedRenderer(
             }
         }
 
-        val pages = maxOf(
-            1,
-            pageCount(modules.size, MODULES_PER_PAGE),
-            pageCount(definitionLines.size, DEFINITION_LINES_PER_PAGE),
-            pageCount(noteLines.size, NOTE_LINES_PER_PAGE),
-        )
+        if (modules.isEmpty() && definitionLines.isEmpty() && noteLines.isEmpty()) return
 
-        repeat(pages) { pageIndex ->
+        var moduleOffset = 0
+        var definitionOffset = 0
+        var noteOffset = 0
+        var pageIndex = 0
+
+        while (
+            moduleOffset < modules.size ||
+            definitionOffset < definitionLines.size ||
+            noteOffset < noteLines.size
+        ) {
             val pageModules = modules
-                .drop(pageIndex * MODULES_PER_PAGE)
+                .drop(moduleOffset)
                 .take(MODULES_PER_PAGE)
             val pageDefinitions = definitionLines
-                .drop(pageIndex * DEFINITION_LINES_PER_PAGE)
+                .drop(definitionOffset)
                 .take(DEFINITION_LINES_PER_PAGE)
+            val definitionRowsPerColumn =
+                if (pageDefinitions.isEmpty()) 0
+                else (pageDefinitions.size + STAT_SECTION_COLUMNS.size - 1) /
+                    STAT_SECTION_COLUMNS.size
+            check(definitionRowsPerColumn <= STAT_DEFINITION_ROWS_PER_COLUMN) {
+                "Custom-v1 Custom Statistics definitions exceed native split capacity."
+            }
+            val reclaimedDefinitionRows =
+                STAT_DEFINITION_ROWS_PER_COLUMN - definitionRowsPerColumn
+            val noteRowsPerColumn =
+                STAT_NOTE_ROWS_PER_COLUMN + reclaimedDefinitionRows
+            val noteCapacity = noteRowsPerColumn * STAT_SECTION_COLUMNS.size
             val pageNotes = noteLines
-                .drop(pageIndex * NOTE_LINES_PER_PAGE)
-                .take(NOTE_LINES_PER_PAGE)
+                .drop(noteOffset)
+                .take(noteCapacity)
 
             val statsStreams = buildList {
-                val moduleBefore = (modules.size - pageIndex * MODULES_PER_PAGE).coerceAtLeast(0)
+                val moduleBefore = modules.size - moduleOffset
                 if (moduleBefore > 0 && pageModules.isNotEmpty()) {
                     add(
                         PcSheetPaginationStreamTrace(
@@ -283,8 +299,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                         ),
                     )
                 }
-                val definitionBefore =
-                    (definitionLines.size - pageIndex * DEFINITION_LINES_PER_PAGE).coerceAtLeast(0)
+                val definitionBefore = definitionLines.size - definitionOffset
                 if (definitionBefore > 0 && pageDefinitions.isNotEmpty()) {
                     add(
                         PcSheetPaginationStreamTrace(
@@ -292,13 +307,12 @@ internal class AndroidCustomV1ExtendedRenderer(
                             PcSheetSemanticModule.CUSTOM_STATISTICS,
                             definitionBefore,
                             pageDefinitions.size,
-                            DEFINITION_LINES_PER_PAGE,
+                            maxOf(pageDefinitions.size, definitionRowsPerColumn * STAT_SECTION_COLUMNS.size),
                             definitionBefore - pageDefinitions.size,
                         ),
                     )
                 }
-                val noteBefore =
-                    (noteLines.size - pageIndex * NOTE_LINES_PER_PAGE).coerceAtLeast(0)
+                val noteBefore = noteLines.size - noteOffset
                 if (noteBefore > 0 && pageNotes.isNotEmpty()) {
                     add(
                         PcSheetPaginationStreamTrace(
@@ -306,7 +320,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                             PcSheetSemanticModule.CUSTOM_STATISTICS,
                             noteBefore,
                             pageNotes.size,
-                            NOTE_LINES_PER_PAGE,
+                            noteCapacity,
                             noteBefore - pageNotes.size,
                         ),
                     )
@@ -333,6 +347,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                 ),
             )
 
+            val notesShift = reclaimedDefinitionRows * STAT_SECTION_STEP
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderCustomStatisticsPage(
@@ -340,8 +355,27 @@ internal class AndroidCustomV1ExtendedRenderer(
                 modules = pageModules,
                 definitions = pageDefinitions,
                 notes = pageNotes,
+                definitionRowsPerColumn = definitionRowsPerColumn,
+                noteRowsPerColumn = noteRowsPerColumn,
+                notesHeadingTop = NOTES_HEADING_TOP - notesShift,
+                notesFirstRuleTop = NOTES_FIRST_RULE_TOP - notesShift,
                 pageIndex = pageIndex,
             )
+
+            moduleOffset += pageModules.size
+            definitionOffset += pageDefinitions.size
+            noteOffset += pageNotes.size
+            pageIndex += 1
+        }
+
+        check(moduleOffset == modules.size) {
+            "Custom-v1 Custom Statistics did not consume every attribute module."
+        }
+        check(definitionOffset == definitionLines.size) {
+            "Custom-v1 Custom Statistics did not consume every definition line."
+        }
+        check(noteOffset == noteLines.size) {
+            "Custom-v1 Custom Statistics did not consume every note line."
         }
     }
 
@@ -3033,6 +3067,10 @@ internal class AndroidCustomV1ExtendedRenderer(
         modules: List<ModuleSlice>,
         definitions: List<String>,
         notes: List<String>,
+        definitionRowsPerColumn: Int,
+        noteRowsPerColumn: Int,
+        notesHeadingTop: Float,
+        notesFirstRuleTop: Float,
         pageIndex: Int,
     ) {
         val prefix = "V1X STATS P${pageIndex + 1}"
@@ -3060,7 +3098,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                     sourceBands(
                         s, a, b,
                         DEFINITIONS_FIRST_RULE_TOP,
-                        STAT_DEFINITION_ROWS_PER_COLUMN,
+                        definitionRowsPerColumn,
                         STAT_SECTION_STEP,
                     )
                 }
@@ -3069,8 +3107,8 @@ internal class AndroidCustomV1ExtendedRenderer(
                 STAT_SECTION_COLUMNS.forEach { (a, b) ->
                     sourceBands(
                         s, a, b,
-                        NOTES_FIRST_RULE_TOP,
-                        STAT_NOTE_ROWS_PER_COLUMN,
+                        notesFirstRuleTop,
+                        noteRowsPerColumn,
                         STAT_SECTION_STEP,
                     )
                 }
@@ -3117,7 +3155,7 @@ internal class AndroidCustomV1ExtendedRenderer(
             if (notes.isNotEmpty()) {
                 centeredText(
                     s, resources.heading,
-                    24f, NOTES_HEADING_TOP, 564f, 26f,
+                    24f, notesHeadingTop, 564f, 26f,
                     "Notas de Estadísticas Personalizadas", 17f,
                 )
             }
@@ -3178,10 +3216,10 @@ internal class AndroidCustomV1ExtendedRenderer(
             }
 
             drawBottomLines(
-                s, definitions, DEFINITIONS_FIRST_RULE_TOP, STAT_DEFINITION_ROWS_PER_COLUMN,
+                s, definitions, DEFINITIONS_FIRST_RULE_TOP, definitionRowsPerColumn,
             )
             drawBottomLines(
-                s, notes, NOTES_FIRST_RULE_TOP, STAT_NOTE_ROWS_PER_COLUMN,
+                s, notes, notesFirstRuleTop, noteRowsPerColumn,
             )
         }
 

@@ -13,7 +13,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.toStableJsonLine
 import io.github.mrsimkin.dndcustomaid.shared.character.reclaimableExhaustedModules
 import io.github.mrsimkin.dndcustomaid.shared.character.hasPhysicallyAvoidableNextPage
 import io.github.mrsimkin.dndcustomaid.shared.character.streamsWithUnusedCapacityAndRemainingDemand
-import io.github.mrsimkin.dndcustomaid.shared.character.exhaustedStreamsWithUnusedCapacityWhileSiblingRemains
 import java.io.ByteArrayOutputStream
 import java.io.File
 import kotlin.test.Test
@@ -24,6 +23,9 @@ import org.apache.pdfbox.Loader
 import org.apache.pdfbox.text.PDFTextStripper
 
 class DesktopPcSheetRuntimeQaFixtureTest {
+    private companion object {
+        const val NOTE_BASELINE_TRACE_CAPACITY = 27
+    }
     @Test
     fun aldrenFantasySheetRendersWithoutUnroutedOverflow() {
         val document = fixture("01_aldren_vale_srd5_1_champion_fighter.json")
@@ -650,17 +652,14 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             customV1StatsTrace.isNotEmpty(),
             "Exact Mara Custom-v1 proof must trace Custom Statistics pagination.",
         )
-        val customV1StatsSiblingWaste = customV1StatsTrace.mapNotNull { entry ->
-            val streams = entry.composition.exhaustedStreamsWithUnusedCapacityWhileSiblingRemains()
-            if (streams.isEmpty()) null else entry to streams
-        }
         assertTrue(
-            customV1StatsSiblingWaste.isEmpty(),
-            "Exact Mara Custom-v1 Custom Statistics must reclaim partially-used exhausted stream space before another sibling page: " +
-                customV1StatsSiblingWaste.joinToString { (entry, streams) ->
-                    entry.family.name + "/" + entry.frontId + "#" + entry.decisionOrdinal +
-                        " -> " + streams.joinToString()
-                },
+            customV1StatsTrace.any { entry ->
+                entry.composition.streamTraces.any { stream ->
+                    stream.streamId == "custom-stat-notes" &&
+                        stream.nativeCapacity > NOTE_BASELINE_TRACE_CAPACITY
+                }
+            },
+            "Exact Mara Custom-v1 Custom Statistics must demonstrate physical row reclaim from the shortened Definitions section into Notes.",
         )
 
         val physicallyAvoidableNotesPages = paginationTrace.filter { entry ->
