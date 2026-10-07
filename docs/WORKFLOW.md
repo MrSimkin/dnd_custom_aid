@@ -54,13 +54,15 @@ The full `Scaffold checks` workflow remains authoritative aggregate evidence and
 
 `CI_GREEN / VISUAL_PENDING` is a valid intermediate state when automated checks passed but the criterion still requires direct PDF inspection. A connection, polling, server or artifact-download failure is not a code failure: verify the existing GitHub run/artifact before creating another commit or replaying the operation.
 
-For interactive repair turns, do not keep the chat/session alive by repeatedly polling the same fast-gate run. After a commit:
+For interactive repair turns, avoid tight polling loops that keep the chat/session alive solely waiting for CI. After a commit:
 1. verify once that the expected fast-gate run exists and record its run ID;
-2. if that run is `queued` or `in_progress`, stop the current execution at `CI_RUNNING / NO_ACTION` without further polling or writes;
-3. on the next continuation/recovery turn, query that exact run once;
-4. if it completed successfully, inspect the required proof artifact before closing the criterion or opening the next defect.
+2. if that run is `queued` or `in_progress`, do not immediately end the turn when useful independent read-only work remains;
+3. continue safe read-only work that does not depend on the run result, such as burn-down reconciliation, proof archaeology, output review from already-validated artifacts, or diagnosis/preparation of the next criterion;
+4. after a meaningful interval of useful work, the same run may be checked again; polling must remain sparse and never become a tight wait loop;
+5. do not create a dependent corrective commit, rerun, duplicate run or advance the active write-front until the prior run has completed and any required proof artifact has been inspected;
+6. use `CI_RUNNING / NO_ACTION` only when CI is genuinely the sole remaining dependency and no useful independent work remains in the turn.
 
-This async boundary is a timeout-control rule, not permission to skip evidence. Never trigger a duplicate run, replay a commit or advance to another corrective front merely because the existing run is still executing.
+This async discipline controls timeout risk without turning the owner into a manual “continue” trigger and without weakening evidence gates.
 
 ## 6. External-provider capability protocol
 

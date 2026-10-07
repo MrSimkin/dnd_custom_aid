@@ -126,18 +126,18 @@ En `repair/mara-phase3-semantic-flow-compositor`, los pushes ordinarios del rend
 - `CI_GREEN / VISUAL_PENDING` es un estado válido cuando falta inspección PDF real.
 - Si falla polling, conexión, servidor o descarga de artifact, consulta primero el mismo run y su estado físico; no crees otro commit para "hacerlo correr de nuevo".
 
-### Límite de polling interactivo
+### Polling interactivo espaciado + trabajo útil mientras CI corre
 
-Para evitar timeouts causados por mantener una respuesta abierta esperando CI:
+Para evitar timeouts sin convertir al owner en un botón manual de “continúa”:
 
-1. después de un commit, confirma **una sola vez** que existe el `PC Sheet fast gate` esperado y registra su `run_id`;
-2. si el run está `queued` o `in_progress`, termina esa ejecución en `CI_RUNNING / NO_ACTION`;
-3. no vuelvas a consultar ese mismo run repetidamente dentro de la misma respuesta;
-4. en la siguiente continuación/recuperación, consulta **ese run exacto una sola vez**;
-5. si quedó `SUCCESS`, recién entonces descarga/inspecciona el proof requerido antes de cerrar el criterio o abrir el siguiente defecto;
-6. si sigue corriendo, vuelve a conservar `CI_RUNNING / NO_ACTION`, sin writes, reruns ni commits sustitutivos.
+1. después de un commit, confirma una vez que existe el `PC Sheet fast gate` esperado y registra su `run_id`;
+2. si el run está `queued` o `in_progress`, no termines automáticamente la ejecución si todavía existe trabajo read-only independiente y útil;
+3. continúa sólo trabajo que no dependa del resultado pendiente: reconciliar burn-down, revisar evidencia ya validada, inspeccionar outputs previos, localizar el siguiente criterio o preparar diagnóstico sin hacer writes dependientes;
+4. luego de un intervalo material de trabajo útil, puedes consultar **el mismo run exacto** otra vez; el polling debe ser espaciado y nunca un loop de espera;
+5. no hagas un commit correctivo dependiente, rerun, run duplicado ni abras otro frente de write hasta que el run previo complete y, cuando corresponda, su proof real sea inspeccionado;
+6. usa `CI_RUNNING / NO_ACTION` sólo cuando CI sea realmente la única dependencia restante y ya no haya trabajo independiente razonable en ese turno.
 
-Esta regla controla el tiempo de sesión; **no rebaja ningún gate de evidencia** ni permite saltarse la inspección PDF exigida.
+Esta regla controla el tiempo de sesión y reduce interrupciones al owner; **no rebaja ningún gate de evidencia** ni permite saltarse la inspección PDF exigida.
 
 ## 4. FRENTE FUNCIONAL ACTUAL
 
