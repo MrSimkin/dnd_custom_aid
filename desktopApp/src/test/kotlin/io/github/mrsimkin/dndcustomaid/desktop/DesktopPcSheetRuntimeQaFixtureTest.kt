@@ -11,6 +11,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPaginationTraceEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.toStableJsonLine
 import io.github.mrsimkin.dndcustomaid.shared.character.reclaimableExhaustedModules
+import io.github.mrsimkin.dndcustomaid.shared.character.hasPhysicallyAvoidableNextPage
+import io.github.mrsimkin.dndcustomaid.shared.character.streamsWithUnusedCapacityAndRemainingDemand
 import java.io.ByteArrayOutputStream
 import java.io.File
 import kotlin.test.Test
@@ -613,6 +615,44 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             "Exact Mara Resources/Options trace must not exhaust a partially-used sibling slot while another stream remains: " +
                 resourceReclaimFindings.joinToString { (entry, modules) ->
                     "${entry.family}/${entry.frontId}#${entry.decisionOrdinal} -> ${modules.joinToString()}"
+                },
+        )
+
+        val expectedTraceFamilies = proofs.mapTo(mutableSetOf()) { it.first }
+        expectedTraceFamilies.forEach { family ->
+            val familyTrace = paginationTrace.filter { it.family == family }
+            listOf("combat", "inventory", "notes").forEach { frontToken ->
+                assertTrue(
+                    familyTrace.any { it.frontId.contains(frontToken, ignoreCase = true) },
+                    "$family exact Mara trace must cover $frontToken physical pagination.",
+                )
+            }
+        }
+
+        val physicallyAvoidableCombatPages = paginationTrace.filter { entry ->
+            entry.frontId.contains("combat", ignoreCase = true) &&
+                entry.composition.hasPhysicallyAvoidableNextPage()
+        }
+        assertTrue(
+            physicallyAvoidableCombatPages.isEmpty(),
+            "Exact Mara Combat trace must not open another page when the next atomic row still fits: " +
+                physicallyAvoidableCombatPages.joinToString { entry ->
+                    entry.family.name + "/" + entry.frontId + "#" + entry.decisionOrdinal
+                },
+        )
+
+        val inventorySameStreamWaste = paginationTrace
+            .filter { it.frontId.contains("inventory", ignoreCase = true) }
+            .mapNotNull { entry ->
+                val streams = entry.composition.streamsWithUnusedCapacityAndRemainingDemand()
+                if (streams.isEmpty()) null else entry to streams
+            }
+        assertTrue(
+            inventorySameStreamWaste.isEmpty(),
+            "Exact Mara Inventory trace must consume each active stream's native capacity before advancing that same stream: " +
+                inventorySameStreamWaste.joinToString { (entry, streams) ->
+                    entry.family.name + "/" + entry.frontId + "#" + entry.decisionOrdinal +
+                        " -> " + streams.joinToString()
                 },
         )
 
