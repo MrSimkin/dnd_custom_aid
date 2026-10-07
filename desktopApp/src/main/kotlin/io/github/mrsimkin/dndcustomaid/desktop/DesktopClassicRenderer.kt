@@ -10,6 +10,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterMovementType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetWritableTrackerState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryCarryState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
@@ -1517,6 +1518,20 @@ internal class DesktopClassicRenderer {
             )
         }
 
+
+    private fun resourceTrackerLabel(
+        current: Int,
+        maximum: Int?,
+    ): String {
+        val boundedMaximum = maximum?.takeIf { it > 0 && current in 0..it }
+        return boundedMaximum?.let {
+            PcSheetWritableTrackerState(
+                currentAvailable = current,
+                maximum = it,
+            ).compactEditableLabel()
+        } ?: maximum?.let { "$current/$it" } ?: current.toString()
+    }
+
     private fun classicResourceRows(plan: PcSheetPdfRenderPlan): List<ClassicResourceRow> {
         val aggregate = plan.snapshot.aggregate
         val recoveryById = aggregate.closure.resourceRecovery.associateBy { it.resourceId }
@@ -1552,13 +1567,8 @@ internal class DesktopClassicRenderer {
             ).filter { it.isNotEmpty() }.distinct().joinToString(" · ")
             splitClassicResourceRow(
                 name = resource.name,
-                value = if (oneUse) {
-                    ""
-                } else {
-                    maximum?.let { "${resource.currentValue} / $it" }
-                        ?: resource.currentValue.toString()
-                },
-                oneUseAvailable = if (oneUse) resource.currentValue > 0 else null,
+                value = resourceTrackerLabel(resource.currentValue, maximum),
+                oneUseAvailable = null,
                 recovery = recoveryText,
                 source = resource.source.orEmpty().trim(),
                 notes = notes,
@@ -1575,13 +1585,8 @@ internal class DesktopClassicRenderer {
             val oneUse = maximum == 1
             splitClassicResourceRow(
                 name = marker.name,
-                value = if (oneUse) {
-                    ""
-                } else {
-                    maximum?.let { "${marker.currentValue} / $it" }
-                        ?: marker.currentValue.toString()
-                },
-                oneUseAvailable = if (oneUse) marker.currentValue > 0 else null,
+                value = resourceTrackerLabel(marker.currentValue, maximum),
+                oneUseAvailable = null,
                 recovery = buildList {
                     recoveryLabel(marker.recovery.cadence).takeIf { it.isNotEmpty() }?.let(::add)
                     if (!oneUse || marker.recovery.amountMode != CharacterRecoveryAmountMode.TO_MAX) {

@@ -426,6 +426,14 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 assertTrue(normalized.contains("Protocolo de paradoja 1"))
                 assertTrue(normalized.contains("Reserva 10: Sello"))
                 assertTrue(normalized.contains("Astrolabio de cobre con anillos concéntricos 1"))
+                assertTrue(
+                    normalized.contains("____(1)/3"),
+                    "$family must preserve resource capacity as a writable tracker with runtime snapshot.",
+                )
+                assertTrue(
+                    normalized.contains("____(2)/4"),
+                    "$family must not consume resource tracker marks to encode current state.",
+                )
 
                 if (family == PcSheetVisualFamily.CLASSIC_DND_STYLE) {
                     val pageTexts = (1..rendered.numberOfPages).map { pageNumber ->

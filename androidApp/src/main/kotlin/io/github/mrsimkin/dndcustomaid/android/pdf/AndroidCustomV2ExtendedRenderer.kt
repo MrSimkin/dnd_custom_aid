@@ -19,6 +19,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetWritableTrackerState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBidirectionalContinuation
@@ -2154,6 +2155,20 @@ internal class AndroidCustomV2ExtendedRenderer(
             }
         }
 
+
+    private fun resourceTrackerLabel(
+        current: Int,
+        maximum: Int?,
+    ): String {
+        val boundedMaximum = maximum?.takeIf { it > 0 && current in 0..it }
+        return boundedMaximum?.let {
+            PcSheetWritableTrackerState(
+                currentAvailable = current,
+                maximum = it,
+            ).compactEditableLabel()
+        } ?: maximum?.let { "$current/$it" } ?: current.toString()
+    }
+
     private fun optionRenderLines(
         options: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOption>,
     ): List<OptionRenderLine> = options.flatMap { option ->
@@ -2294,37 +2309,15 @@ internal class AndroidCustomV2ExtendedRenderer(
                 }
 
                 val current = row.currentValue
-                val maximum = row.maximum
                 if (current != null) {
-                    if (row.oneUse) {
-                        centeredAboveRule(
-                            s,
-                            resources.firaSemibold,
-                            Rule(226f, 348f, y),
-                            current.coerceIn(0, 1).toString() + " / 1",
-                            8.0f,
-                            2.2f,
-                        )
-                    } else {
-                        val canUseSymbols = maximum != null &&
-                            maximum in 1..9 &&
-                            current in 0..maximum
-                        if (!canUseSymbols) {
-                            val value = if (maximum == null) {
-                                current.toString()
-                            } else {
-                                current.toString() + "/" + maximum
-                            }
-                            centeredAboveRule(
-                                s,
-                                resources.firaSemibold,
-                                Rule(226f, 348f, y),
-                                value,
-                                8.5f,
-                                2.2f,
-                            )
-                        }
-                    }
+                    centeredAboveRule(
+                        s,
+                        resources.firaSemibold,
+                        Rule(226f, 348f, y),
+                        resourceTrackerLabel(current, row.maximum),
+                        8.0f,
+                        2.2f,
+                    )
                 }
 
                 if (row.recovery.isNotEmpty()) {
@@ -2349,26 +2342,8 @@ internal class AndroidCustomV2ExtendedRenderer(
             }
         }
         appendLayer(page, "$layerPrefix - MARKERS") { s ->
-            rows.forEachIndexed { index, row ->
-                val current = row.currentValue
-                val maximum = row.maximum
-                if (
-                    !row.oneUse &&
-                    current != null &&
-                    maximum != null &&
-                    maximum in 1..9 &&
-                    current in 0..maximum
-                ) {
-                    drawSquareCounter(
-                        s,
-                        236f,
-                        RESOURCE_COUNTER_FIRST_TOP + index * RESOURCE_ROW_STEP,
-                        current,
-                        maximum,
-                    )
-                }
-            }
-
+            // Resource capacity remains handwriting-editable. Runtime current/max is rendered
+            // compactly in VALUES as ____(current)/max; do not consume the paper tracker marks.
             if (options.isNotEmpty()) {
                 repeat(optionCapacity) { row ->
                     val option = options.getOrNull(row)

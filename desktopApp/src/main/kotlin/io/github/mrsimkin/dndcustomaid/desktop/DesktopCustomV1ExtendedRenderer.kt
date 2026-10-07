@@ -14,6 +14,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryAmountM
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRecoveryCadence
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrackableValueKind
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetWritableTrackerState
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
 import io.github.mrsimkin.dndcustomaid.shared.character.pdfCampaignNoteParagraphs
@@ -1459,24 +1460,30 @@ internal class DesktopCustomV1ExtendedRenderer(
             val count = maxOf(nameLines.size, detailLines.size, 1)
             (0 until count).map { index ->
                 val firstLine = index == 0
-                val symbolic = firstLine &&
-                    row.maximum != null &&
-                    row.maximum in 1..RESOURCE_SYMBOL_MAXIMUM &&
-                    row.currentValue in 0..row.maximum
                 ResourceRenderLine(
                     name = nameLines.getOrNull(index).orEmpty(),
                     currentValue = row.currentValue.takeIf { firstLine },
                     maximum = row.maximum.takeIf { firstLine },
-                    numericValue = if (firstLine && !symbolic) {
-                        row.maximum?.let { row.currentValue.toString() + "/" + it }
-                            ?: row.currentValue.toString()
-                    } else {
-                        null
-                    },
+                    numericValue = resourceTrackerLabel(row.currentValue, row.maximum)
+                        .takeIf { firstLine },
                     recoveryAndDetail = detailLines.getOrNull(index).orEmpty(),
                 )
             }
         }
+
+
+    private fun resourceTrackerLabel(
+        current: Int,
+        maximum: Int?,
+    ): String {
+        val boundedMaximum = maximum?.takeIf { it > 0 && current in 0..it }
+        return boundedMaximum?.let {
+            PcSheetWritableTrackerState(
+                currentAvailable = current,
+                maximum = it,
+            ).compactEditableLabel()
+        } ?: maximum?.let { "$current/$it" } ?: current.toString()
+    }
 
     private fun optionRenderLines(
         options: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassOption>,
@@ -1666,27 +1673,8 @@ internal class DesktopCustomV1ExtendedRenderer(
             }
         }
         appendLayer(page, "$prefix - MARKERS") { s ->
-            rows.forEachIndexed { index, row ->
-                val current = row.currentValue
-                val maximum = row.maximum
-                if (
-                    current != null &&
-                    maximum != null &&
-                    maximum in 1..RESOURCE_SYMBOL_MAXIMUM &&
-                    current in 0..maximum
-                ) {
-                    drawResourceCounter(
-                        s = s,
-                        font = resources.symbol,
-                        startX = 222f,
-                        centerTop =
-                            RESOURCE_FIRST_RULE_TOP + index * RESOURCE_STEP - RESOURCE_STEP / 2f,
-                        current = current,
-                        maximum = maximum,
-                    )
-                }
-            }
-
+            // Resource capacity remains handwriting-editable. Runtime current/max is rendered
+            // compactly in VALUES as ____(current)/max; do not consume the paper tracker marks.
             options.forEachIndexed { index, option ->
                 option.active?.let { active ->
                     val ruleTop = optionFirstRuleTop + index * OPTION_STEP
