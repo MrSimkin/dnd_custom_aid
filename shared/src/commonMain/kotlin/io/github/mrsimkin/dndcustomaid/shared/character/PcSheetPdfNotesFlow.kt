@@ -208,11 +208,10 @@ fun packPcSheetNoteColumns(
             }
         }
 
-        val requiredWithSeparator = fullLines.size + 1
         if (
             usedRows > 0 &&
             fullLines.size <= rowsPerColumn &&
-            requiredWithSeparator > remainingRows()
+            fullLines.size > remainingRows()
         ) {
             advanceColumn()
         }

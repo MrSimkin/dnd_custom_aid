@@ -61,6 +61,27 @@ class PcSheetPdfNotesFlowTest {
     }
 
     @Test
+    fun noteThatFitsRemainderDoesNotMoveSolelyForOptionalSeparator() {
+        val first = wrapped("note-1", "Nota 1 — A", bodyLines = 2)
+        val second = wrapped("note-2", "Nota 2 — B", bodyLines = 1)
+
+        val packed = packPcSheetNoteColumns(
+            records = listOf(first, second),
+            rowsPerColumn = 6,
+            columnsPerPage = 2,
+        )
+
+        assertEquals(1, packed.columns.size)
+        assertTrue(packed.columns.single().any { it.record.ref.stableKey == "note-1" })
+        assertTrue(packed.columns.single().any { it.record.ref.stableKey == "note-2" })
+        assertEquals(
+            6,
+            packed.columns.single().flatMap { it.lines }.size,
+            "The second note must use the exact remaining rows without demanding an optional separator.",
+        )
+    }
+
+    @Test
     fun oversizedNoteSplitsWithBidirectionalColumnAwareNavigation() {
         val large = wrapped(
             stableKey = "note-8",
