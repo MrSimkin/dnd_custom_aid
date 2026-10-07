@@ -68,5 +68,6 @@ jobs:
             desktopApp/build/pc-sheet-proofs/mara-exact-custom-v1.pdf
             desktopApp/build/pc-sheet-proofs/mara-exact-custom-v2-attribute.pdf
             desktopApp/build/pc-sheet-proofs/mara-exact-custom-v2-ability.pdf
+            desktopApp/build/pc-sheet-proofs/mara-pagination-trace.jsonl
           if-no-files-found: error
           retention-days: 7
