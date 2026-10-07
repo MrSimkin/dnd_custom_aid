@@ -1414,6 +1414,10 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(Regex("3\\s+gastados").containsMatchIn(extracted))
             assertTrue(extracted.contains("Tradición cartográfica"))
             assertTrue(Regex("Iria\\s+Noctis\\s+Cartógrafa\\s+Mayor").containsMatchIn(extracted))
+            assertFalse(
+                extracted.contains("...") || extracted.contains("…"),
+                "Fantasy semantic identities must never be ellipsized in the actual proof PDF.",
+            )
         }
         assertTrue(pdf.length() > 20_000L)
     }

@@ -383,6 +383,10 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 !normalized.contains("Efecto / daño:"),
                 "Fantasy combat continuation must preserve table grammar instead of prose serialization.",
             )
+            assertTrue(
+                !normalized.contains("...") && !normalized.contains("…"),
+                "Real Mara Fantasy output must not contain semantic ellipsis.",
+            )
         }
     }
 

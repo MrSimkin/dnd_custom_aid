@@ -290,11 +290,6 @@ internal class AndroidClassicRenderer {
     private fun classicBaseExcerpt(value: String, maxChars: Int, maxLines: Int): String =
         wrapForChars(value, maxChars).take(maxLines).joinToString("\n")
 
-    private fun classicSingleLineExcerpt(value: String, maxChars: Int): String {
-        val clean = value.trim()
-        if (clean.length <= maxChars) return clean
-        return clean.take((maxChars - 3).coerceAtLeast(1)).trimEnd() + "..."
-    }
 
     private fun appendTraitsPages(
         doc: PDDocument,
@@ -1655,7 +1650,7 @@ internal class AndroidClassicRenderer {
         representedInBase: Boolean,
     ): List<ClassicSpecialItem> {
         val cleanName = item.name.trim()
-        val projectedName = classicSingleLineExcerpt(cleanName, CLASSIC_SPECIAL_ITEM_NAME_CHARS)
+        val projectedName = cleanName
         val detail = buildList {
             if (cleanName.length > CLASSIC_SPECIAL_ITEM_NAME_CHARS) {
                 add("Nombre completo: $cleanName")
@@ -1678,10 +1673,7 @@ internal class AndroidClassicRenderer {
                 name = if (index == 0) {
                     projectedName
                 } else {
-                    classicSingleLineExcerpt(
-                        "$projectedName (cont.)",
-                        CLASSIC_SPECIAL_ITEM_NAME_CHARS,
-                    )
+                    "$projectedName (cont.)"
                 },
                 attuned = item.attuned && index == 0,
                 note = chunk,
@@ -1696,7 +1688,7 @@ private fun classicInventoryRows(
         listOf(
             InventoryRow(
                 quantity = item.quantity.toString(),
-                name = classicSingleLineExcerpt(item.name, CLASSIC_INVENTORY_ROW_NAME_CHARS),
+                name = item.name.trim(),
                 weight = item.weightLb?.let(::formatWeight).orEmpty(),
                 state = "",
                 notes = "",
@@ -2290,8 +2282,10 @@ private fun appendSpellContinuationPages(
                 val top = 300f + index * 23f
                 text(
                     s, p, rightX + 10f, top, 148f, 18f,
-                    classicSingleLineExcerpt(entry.name, CLASSIC_COMBAT_NAME_CHARS),
-                    PdfTypographyRole.BODY, 8.5f, 7.2f,
+                    entry.name,
+                    PdfTypographyRole.BODY, 8.5f, 6.6f,
+                    wrap = true,
+                    maxLines = 2,
                 )
                 text(
                     s, p, rightX + 162f, top, 45f, 18f,
@@ -2306,8 +2300,10 @@ private fun appendSpellContinuationPages(
                 ).joinToString(" · ")
                 text(
                     s, p, rightX + 211f, top, 97f, 18f,
-                    classicSingleLineExcerpt(detail, CLASSIC_COMBAT_PREVIEW_CHARS),
-                    PdfTypographyRole.BODY, 8.2f, 7f,
+                    detail,
+                    PdfTypographyRole.BODY, 8.2f, 6.4f,
+                    wrap = true,
+                    maxLines = 2,
                 )
                 hairline(s, rightX + 10f, top + 20f, rightX + rightW - 10f, top + 20f)
             }
@@ -2332,8 +2328,10 @@ private fun appendSpellContinuationPages(
                 val rowTop = 636f + index * 22f
                 text(
                     s, p, rightX + 10f, rowTop, 134f, 17f,
-                    classicSingleLineExcerpt(trait.name, CLASSIC_SPECIES_NAME_CHARS),
-                    PdfTypographyRole.BODY, 7.8f, 6.8f,
+                    trait.name,
+                    PdfTypographyRole.BODY, 7.8f, 6.2f,
+                    wrap = true,
+                    maxLines = 2,
                 )
                 hairline(s, rightX + 10f, rowTop + 21f, rightX + 144f, rowTop + 21f)
             }
@@ -2427,16 +2425,17 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
                 )
                 text(
                     s, p, 316f, top, 142f, 19f,
-                    classicSingleLineExcerpt(item.name, CLASSIC_BASE_INVENTORY_NAME_CHARS),
-                    PdfTypographyRole.BODY, 8.5f, 7.2f,
+                    item.name,
+                    PdfTypographyRole.BODY, 8.5f, 6.4f,
+                    wrap = true,
+                    maxLines = 2,
                 )
                 text(
                     s, p, 464f, top, 112f, 19f,
-                    classicSingleLineExcerpt(
-                        inventoryBaseNote(item, usageByItem[item.id]),
-                        CLASSIC_BASE_INVENTORY_NOTE_CHARS,
-                    ),
-                    PdfTypographyRole.BODY, 8f, 7f,
+                    inventoryBaseNote(item, usageByItem[item.id]),
+                    PdfTypographyRole.BODY, 8f, 6.4f,
+                    wrap = true,
+                    maxLines = 2,
                 )
                 hairline(s, 276f, top + 21f, 576f, top + 21f)
             }
@@ -2475,26 +2474,20 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             titledFrame(s, p, 264f, 580f, 156f, 138f, "IDIOMAS")
             ruledTextArea(
                 s, p, 276f, 612f, 132f, 92f,
-                languages.take(BASE_LANGUAGE_CAPACITY).map {
-                    classicSingleLineExcerpt(it.name, CLASSIC_BASE_LANGUAGE_NAME_CHARS)
-                },
+                languages.take(BASE_LANGUAGE_CAPACITY).map { it.name },
                 8.8f,
             )
 
             val alliesAndTreasure = buildList {
                 sheet.companions.sortedBy { it.sortOrder }.take(BASE_COMPANION_CAPACITY).forEach { companion ->
                     add(
-                        classicSingleLineExcerpt(
-                            companion.name +
-                                companion.kind.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty(),
-                            CLASSIC_BASE_ALLY_VALUE_CHARS,
-                        ),
+                        companion.name +
+                            companion.kind.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty(),
                     )
                 }
                 aggregate.successor.preferences.valuablesText
                     .split(';').map { it.trim() }.filter { it.isNotEmpty() }
                     .take(CLASSIC_BASE_VALUABLE_CAPACITY)
-                    .map { classicSingleLineExcerpt(it, CLASSIC_BASE_ALLY_VALUE_CHARS) }
                     .forEach(::add)
             }
             titledFrame(s, p, 432f, 580f, 156f, 138f, "ALIADOS Y TESORO")
@@ -2684,13 +2677,15 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         fantasyFrame(s, 24f, 24f, 564f, 72f, 1.05f, fill = PAPER_TINT)
         text(
             s, p, 36f, 31f, 195f, 31f,
-            classicSingleLineExcerpt(name, CLASSIC_HEADER_NAME_CHARS),
-            PdfTypographyRole.CHARACTER_NAME, 18f, 15f,
+            name,
+            PdfTypographyRole.CHARACTER_NAME, 18f, 12.5f,
+            wrap = true,
+            maxLines = 2,
         )
         text(s, p, 36f, 66f, 195f, 12f, "APTITUD MÁGICA", PdfTypographyRole.OPTIONAL_DECORATIVE, 6.8f, 6f)
         text(
             s, p, 239f, 27f, 112f, 15f,
-            classicSingleLineExcerpt(ability, CLASSIC_SPELLCASTING_ABILITY_CHARS),
+            ability,
             PdfTypographyRole.OPTIONAL_DECORATIVE, 9f, 7.5f,
             align = PdfHorizontalAlignment.CENTER)
         miniRunicStat(s, p, 239f, 45f, 112f, 38f, "MODIFICADOR", modifier)
@@ -2752,8 +2747,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             )
             text(
                 s, p, x + 21f, rowTop, width - 31f, 18f,
-                classicSingleLineExcerpt(spell?.name.orEmpty(), CLASSIC_SPELL_NAME_CHARS),
-                PdfTypographyRole.SPELL_NAME, 8.1f, 7f,
+                spell?.name.orEmpty(),
+                PdfTypographyRole.SPELL_NAME, 8.1f, 6.2f,
+                wrap = true,
+                maxLines = 2,
             )
             hairline(s, x + 21f, rowTop + 20f, x + width - 10f, rowTop + 20f)
         }
@@ -2898,8 +2895,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         fantasyFrame(s, 24f, 24f, 564f, 72f, 1.15f, fill = PAPER_TINT)
         text(
             s, p, 36f, 31f, 214f, 37f,
-            classicSingleLineExcerpt(name, CLASSIC_HEADER_NAME_CHARS),
-            PdfTypographyRole.CHARACTER_NAME, 20f, 16f,
+            name,
+            PdfTypographyRole.CHARACTER_NAME, 20f, 12.5f,
+            wrap = true,
+            maxLines = 2,
         )
         hairline(s, 36f, 68f, 250f, 68f)
         text(s, p, 36f, 70f, 214f, 15f, "NOMBRE DEL PERSONAJE", PdfTypographyRole.OPTIONAL_DECORATIVE, 7.2f, 6.5f)
@@ -2913,8 +2912,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             val top = 31f + row * 27f
             text(
                 s, p, x, top, 106f, 14f,
-                classicSingleLineExcerpt(value, CLASSIC_IDENTITY_VALUE_CHARS),
-                PdfTypographyRole.BODY, 8.5f, 7.2f,
+                value,
+                PdfTypographyRole.BODY, 8.5f, 6.0f,
+                wrap = true,
+                maxLines = 2,
             )
             hairline(s, x, top + 14f, x + 106f, top + 14f)
             text(s, p, x, top + 15f, 106f, 9f, label, PdfTypographyRole.OPTIONAL_DECORATIVE, 5.8f, 5.2f)
@@ -2940,8 +2941,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         fantasyFrame(s, 24f, 24f, 564f, 64f, 1.05f, fill = PAPER_TINT)
         text(
             s, p, 36f, 30f, 230f, 33f,
-            classicSingleLineExcerpt(name, CLASSIC_HEADER_NAME_CHARS),
-            PdfTypographyRole.CHARACTER_NAME, 18f, 15f,
+            name,
+            PdfTypographyRole.CHARACTER_NAME, 18f, 12.5f,
+            wrap = true,
+            maxLines = 2,
         )
         hairline(s, 36f, 66f, 266f, 66f)
         text(s, p, 278f, 32f, 298f, 22f, title, PdfTypographyRole.OPTIONAL_DECORATIVE, 12f, 10f,
@@ -3003,8 +3006,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         fantasyFrame(s, 24f, 24f, 564f, 64f, 1.05f, fill = PAPER_TINT)
         text(
             s, p, 36f, 30f, 220f, 33f,
-            classicSingleLineExcerpt(name, CLASSIC_HEADER_NAME_CHARS),
-            PdfTypographyRole.CHARACTER_NAME, 18f, 15f,
+            name,
+            PdfTypographyRole.CHARACTER_NAME, 18f, 12.5f,
+            wrap = true,
+            maxLines = 2,
         )
         hairline(s, 36f, 66f, 256f, 66f)
         text(
@@ -3038,12 +3043,12 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         fantasyFrame(s, x, top, width, height, 0.9f)
         text(
             s, p, x + 8f, top + 7f, width - 16f, 18f,
-            classicSingleLineExcerpt(
-                "$title ($abbreviation)",
-                CLASSIC_CUSTOM_ATTRIBUTE_TITLE_CHARS,
-            ),
+            "$title ($abbreviation)",
             PdfTypographyRole.OPTIONAL_DECORATIVE,
-            10f, 8.5f, align = PdfHorizontalAlignment.CENTER,
+            10f, 7.2f,
+            wrap = true,
+            maxLines = 2,
+            align = PdfHorizontalAlignment.CENTER,
         )
         circleOutline(s, x + 38f, top + 58f, 28f)
         text(
@@ -3060,8 +3065,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         )
         text(
             s, p, x + 10f, top + 101f, width - 20f, 15f,
-            "Habilidades gobernadas por " +
-                classicSingleLineExcerpt(abbreviation, CLASSIC_CUSTOM_ABBREVIATION_CHARS),
+            "Habilidades gobernadas por $abbreviation",
             PdfTypographyRole.OPTIONAL_DECORATIVE, 6.7f, 5.8f,
             align = PdfHorizontalAlignment.CENTER,
         )
@@ -3070,8 +3074,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             trainingMarker(s, p, x + 12f, rowTop + 8f, row.training)
             text(
                 s, p, x + 24f, rowTop, width - 56f, 18f,
-                classicSingleLineExcerpt(row.name, CLASSIC_CUSTOM_SKILL_NAME_CHARS),
-                PdfTypographyRole.BODY, 7.8f, 6.6f,
+                row.name,
+                PdfTypographyRole.BODY, 7.8f, 6.0f,
+                wrap = true,
+                maxLines = 2,
             )
             text(
                 s, p, x + width - 30f, rowTop, 22f, 18f,
@@ -3114,8 +3120,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             trainingMarker(s, p, x + 12f, rowTop + 8f, row.training)
             text(
                 s, p, x + 25f, rowTop, width - 58f, 19f,
-                classicSingleLineExcerpt(row.name, CLASSIC_CUSTOM_SKILL_NAME_CHARS),
-                PdfTypographyRole.BODY, 7.8f, 6.6f,
+                row.name,
+                PdfTypographyRole.BODY, 7.8f, 6.0f,
+                wrap = true,
+                maxLines = 2,
             )
             text(
                 s, p, x + width - 29f, rowTop, 20f, 19f,
@@ -3432,7 +3440,9 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             text(
                 s, p, cursor + 3f, top, widths[index] - 6f, 20f, value,
                 if (index == 1) PdfTypographyRole.SPELL_NAME else PdfTypographyRole.BODY,
-                if (index == 1) 8.3f else 7.6f, 6.5f,
+                if (index == 1) 8.3f else 7.6f, 6.2f,
+                wrap = index == 1,
+                maxLines = if (index == 1) 2 else 1,
                 align = if (index == 0 || index == 2) {
                     PdfHorizontalAlignment.CENTER
                 } else {
@@ -3468,8 +3478,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         )
         text(
             s, p, x + 18f, top, width - 18f, 15f,
-            classicSingleLineExcerpt(name, CLASSIC_SPECIAL_ITEM_NAME_CHARS),
-            PdfTypographyRole.SPELL_NAME, 8.3f, 7.2f,
+            name,
+            PdfTypographyRole.SPELL_NAME, 8.3f, 6.0f,
+            wrap = true,
+            maxLines = 2,
         )
         text(
             s, p, x + 18f, top + 15f, width - 18f, 18f,
