@@ -1,5 +1,107 @@
 package io.github.mrsimkin.dndcustomaid.shared.character
 
+data class PcSheetCompositionScoreTrace(
+    val totalUtilization: Double,
+    val filledSlots: Int,
+    val distinctModules: Int,
+)
+
+data class PcSheetExtendedCompositionTrace(
+    val candidateLayoutIds: List<String>,
+    val eligibleLayoutIds: List<String>,
+    val demandsBefore: List<PcSheetModuleDemand>,
+    val chosenLayoutId: String,
+    val placements: List<PcSheetExtendedPlacement>,
+    val demandsAfter: List<PcSheetModuleDemand>,
+    val score: PcSheetCompositionScoreTrace,
+)
+
+data class PcSheetPaginationTraceEntry(
+    val family: PcSheetVisualFamily,
+    val frontId: String,
+    val decisionOrdinal: Int,
+    val composition: PcSheetExtendedCompositionTrace,
+)
+
+fun PcSheetPaginationTraceEntry.toStableJsonLine(): String = buildString {
+    fun quoted(value: String): String = buildString {
+        append('"')
+        value.forEach { ch ->
+            when (ch) {
+                '\\' -> append("\\\\")
+                '"' -> append("\\\"")
+                '\n' -> append("\\n")
+                '\r' -> append("\\r")
+                '\t' -> append("\\t")
+                else -> append(ch)
+            }
+        }
+        append('"')
+    }
+
+    fun appendDemands(values: List<PcSheetModuleDemand>) {
+        append('[')
+        values.forEachIndexed { index, demand ->
+            if (index > 0) append(',')
+            append("{\"module\":")
+            append(quoted(demand.module.name))
+            append(",\"remainingUnits\":")
+            append(demand.remainingUnits)
+            append('}')
+        }
+        append(']')
+    }
+
+    fun appendPlacements(values: List<PcSheetExtendedPlacement>) {
+        append('[')
+        values.forEachIndexed { index, placement ->
+            if (index > 0) append(',')
+            append("{\"slotId\":")
+            append(quoted(placement.slotId))
+            append(",\"module\":")
+            append(quoted(placement.module.name))
+            append(",\"consumedUnits\":")
+            append(placement.consumedUnits)
+            append(",\"nativeCapacity\":")
+            append(placement.nativeCapacity)
+            append('}')
+        }
+        append(']')
+    }
+
+    append("{\"family\":")
+    append(quoted(family.name))
+    append(",\"frontId\":")
+    append(quoted(frontId))
+    append(",\"decisionOrdinal\":")
+    append(decisionOrdinal)
+    append(",\"candidateLayoutIds\":[")
+    composition.candidateLayoutIds.forEachIndexed { index, id ->
+        if (index > 0) append(',')
+        append(quoted(id))
+    }
+    append("],\"eligibleLayoutIds\":[")
+    composition.eligibleLayoutIds.forEachIndexed { index, id ->
+        if (index > 0) append(',')
+        append(quoted(id))
+    }
+    append("],\"demandsBefore\":")
+    appendDemands(composition.demandsBefore)
+    append(",\"chosenLayoutId\":")
+    append(quoted(composition.chosenLayoutId))
+    append(",\"placements\":")
+    appendPlacements(composition.placements)
+    append(",\"demandsAfter\":")
+    appendDemands(composition.demandsAfter)
+    append(",\"score\":{\"totalUtilization\":")
+    append(composition.score.totalUtilization)
+    append(",\"filledSlots\":")
+    append(composition.score.filledSlots)
+    append(",\"distinctModules\":")
+    append(composition.score.distinctModules)
+    append("}}")
+}
+
 data class PcSheetModuleDemand(
     val module: PcSheetSemanticModule,
     val remainingUnits: Int,
@@ -93,6 +195,7 @@ data class PcSheetComposedExtendedPage(
 data class PcSheetExtendedCompositionStep(
     val page: PcSheetComposedExtendedPage,
     val remainingDemands: List<PcSheetModuleDemand>,
+    val trace: PcSheetExtendedCompositionTrace,
 )
 
 object PcSheetExtendedPageComposer {
@@ -166,6 +269,19 @@ object PcSheetExtendedPageComposer {
                 placements = best.placements,
             ),
             remainingDemands = remaining,
+            trace = PcSheetExtendedCompositionTrace(
+                candidateLayoutIds = candidateLayouts.map { it.id },
+                eligibleLayoutIds = evaluated.map { it.layout.id },
+                demandsBefore = demands,
+                chosenLayoutId = best.layout.id,
+                placements = best.placements,
+                demandsAfter = remaining,
+                score = PcSheetCompositionScoreTrace(
+                    totalUtilization = best.totalUtilization,
+                    filledSlots = best.filledSlots,
+                    distinctModules = best.distinctModules,
+                ),
+            ),
         )
     }
 
