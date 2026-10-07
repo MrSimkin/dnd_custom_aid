@@ -1,6 +1,7 @@
 # Phase 3 — Mara renderer repair implementation
 
 **Date:** 2026-09-30 (Chile local time)  
+**Last updated:** 2026-10-07 (Chile local time)  
 **Phase:** 3 — implementation  
 **Branch:** `repair/mara-phase3-semantic-flow-compositor`  
 **Base main:** `c4e65955a5f58f88e0b03807b4616a3f8a9323a8`  
@@ -343,4 +344,43 @@ Actual visual proof:
 M50800-26 and M50800-29 are demonstrated. Front CI count = 3; OPEN -> 0; `LOOP_SUSPECTED = NO`.
 
 Next:
-- read-only general bidirectional semantic-continuity audit before any further production change.
+- general bidirectional semantic-continuity visual proof is pending; the read-only audit and production correction are already complete.
+
+
+## Progress — general bidirectional semantic continuity
+
+**Status:** CI_GREEN / VISUAL_PENDING
+
+Functional production head:
+
+`516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7`
+
+Read-only audit result:
+
+- Custom-v1 Narrative had split base/Extended records without explicit bidirectional markers;
+- Fantasy Narrative overflow was associated with generic References rather than native narrative continuation surfaces;
+- Fantasy Combat had a forward normal-section cue without the matching Extended reverse marker;
+- Notes and Custom-v2 narrative flows were already bidirectional, while atomic moved rows did not require artificial markers.
+
+Implemented correction:
+
+- shared `PcSheetBidirectionalContinuation` is used for Custom-v1 Narrative source/target/outbound markers;
+- Fantasy Narrative remains in native `HISTORIA Y PERSONALIDAD` continuation modules with source/target directionality;
+- Fantasy Extended Combat identifies `proviene de sección normal COMBATE / ACCIONES`;
+- Desktop/Android parity remains guarded.
+
+Validation:
+
+- Scaffold #4523 / `37560523288`: backend / hosted-database / kotlin SUCCESS;
+- focused CI loop introduced at `768117e...` and finalized at `ab48e71097ef7ef49628507b1f06423a6c8ed916`;
+- final `PC Sheet fast gate` run `37566302657`: SUCCESS;
+- focused artifact `11457979404`: 1,886,765 bytes;
+- digest `sha256:36dcc8222eabb275747344cf26909c3ea4dc8da65afcc1c704b0c97dd1cd7b5f`;
+- only the fast workflow ran on `ab48e71097ef7ef49628507b1f06423a6c8ed916`, while full Scaffold remains available for PR/manual/coherent closure validation.
+
+The front is **not CLOSED** until the actual focused PDFs are directly inspected. Next visual evidence:
+
+- `fantasy-canonical-overflow-audit.pdf`;
+- `custom-v1-narrative-native-module-association.pdf`.
+
+After visual PASS, close continuity and advance to M50800-03 source-geometry/stale-underlay. Do not create a new owner candidate yet.

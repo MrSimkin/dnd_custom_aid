@@ -1,6 +1,6 @@
 # Branch status and repository-ordering map
 
-**Updated:** 2026-10-06 (Chile local time)  
+**Updated:** 2026-10-07 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified functional `main`:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — **Phase 3 ACTIVE / Narrative + Traits + Combat/Actions + Notes + semantic survival VALIDATED; general bidirectional continuity audit NEXT**. Validated production HEAD: `d4e42818223100d96de32e0fe4a278dc0356153e`; Scaffold #4521 / `37557543660` SUCCESS. Proof HEAD: `59b039bdccc8d33a79252536c1d5d7bd10470e0e`; Scaffold #4522 / `37558318363` SUCCESS; proof artifact `11455609450`, digest `sha256:72cb4aba21442a76aa887605cdcc2a05a117c50475f159a8d5471f268529ec97`. M50800-26/29 are demonstrated in current Fantasy + Custom-family outputs; three front CI cycles reduced OPEN to zero and did not trigger anti-loop. Historical source/footer residue remains pending M50800-03, not hidden as fixed. **Next action: read-only general bidirectional continuity audit; code only if a real split-flow directionality gap is demonstrated.** Remaining exact-candidate/owner gates stay blocked.**
+**Current normal work:** PC Sheet PDF Export — **Phase 3 ACTIVE; general bidirectional continuity = CI_GREEN / VISUAL_PENDING**. Functional implementation HEAD `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7` passed full Scaffold #4523 / `37560523288` (backend / hosted-database / kotlin SUCCESS). Infrastructure HEAD `ab48e71097ef7ef49628507b1f06423a6c8ed916` activates the focused `PC Sheet fast gate`; final fast run `37566302657` is SUCCESS with focused proof artifact `11457979404` (1,886,765 bytes; `sha256:36dcc8222eabb275747344cf26909c3ea4dc8da65afcc1c704b0c97dd1cd7b5f`). Only the fast workflow ran on that infrastructure head. **Next action: direct visual inspection of the two focused continuity PDFs; continuity is not CLOSED until that passes.** Source/footer residue M50800-03 remains pending afterward; exact-candidate/owner gates remain blocked.  
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -102,7 +102,7 @@ After a closure merges, normal implementation starts from current `main`; do not
 
 ## Current branch direction
 
-**Active implementation branch:** `repair/mara-phase3-semantic-flow-compositor` — sole non-main continuation authority for Phase 3.
+**Active implementation branch:** `repair/mara-phase3-semantic-flow-compositor` — sole non-main continuation authority for Phase 3. Current functional renderer head: `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7`; current infrastructure head before this documentation consolidation: `ab48e71097ef7ef49628507b1f06423a6c8ed916`.
 
 **Completed audit branch:** `audit/mara-phase2-existing-repair` — Phase-2 historical evidence only.
 
@@ -131,7 +131,12 @@ Phase-3 validated package state:
 9. Fantasy Traits native compositor — GREEN at `fdad9f87...`;
 10. Custom-v1 Narrative semantic association — GREEN at `e6e07a13...` / run `37537059037`;
 11. anti-loop health result — `CONTINUE_WITH_GUARDRAIL`;
-12. current Custom-v1 Traits native-module package — OPEN at `92e460f0...`; first CI cycle #4516 / `37543504407` RED in kotlin, no proof artifact; next allowed attempt is cycle 2/4 and must remain inside this front.
+12. Custom-v1 Traits native-module package — CLOSED / VALIDATED at `c2367e11bef9e92990f0f9efc6e89b13cf07795f`; Scaffold #4518 / `37553725881` SUCCESS; actual proofs inspected.
+13. Combat/Actions — CLOSED / VALIDATED at `fc6fca3776a88dd53b6e636deddfd9f46edac184`; Scaffold #4519 / `37555121975` SUCCESS; actual proofs inspected.
+14. Notes M50800-21…24 — CLOSED / VALIDATED from current #4519 implementation/proofs; no new production rewrite required.
+15. Semantic survival M50800-26/29 — CLOSED / VALIDATED at production `d4e42818223100d96de32e0fe4a278dc0356153e` + proof `59b039bdccc8d33a79252536c1d5d7bd10470e0e`; #4521/#4522 SUCCESS and actual proofs inspected.
+16. General bidirectional semantic continuity — production package at `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7`; full Scaffold #4523 / `37560523288` SUCCESS; **CI_GREEN / VISUAL_PENDING**, therefore not yet CLOSED.
+17. CI feedback-loop repair — `PC Sheet fast gate` active at `ab48e71097ef7ef49628507b1f06423a6c8ed916`; final run `37566302657` SUCCESS; focused artifact `11457979404`; full Scaffold remains for PR/manual/coherent closure validation.
 
 No owner visual handoff occurs until exact-candidate all-four-family internal acceptance passes.
 

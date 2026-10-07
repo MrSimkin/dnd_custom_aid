@@ -1,11 +1,11 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-10-06 (Chile local time)  
+**Updated:** 2026-10-07 (Chile local time)  
 **Normal integrated trunk:** `main`  
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-10-06_MARA_PHASE3_HEALTH_CONSOLIDATION.md`  
-**Current active route:** Phase 3 is **ACTIVE / Narrative + Traits + Combat/Actions + Notes + semantic survival VALIDATED; NEXT FRONT = general bidirectional semantic-continuity audit** on `repair/mara-phase3-semantic-flow-compositor`. Current validated production HEAD is `d4e42818223100d96de32e0fe4a278dc0356153e`; Scaffold #4521 / `37557543660` is backend / hosted-database / kotlin SUCCESS. Current proof HEAD is `59b039bdccc8d33a79252536c1d5d7bd10470e0e`; Scaffold #4522 / `37558318363` is SUCCESS. Proof artifact `11455609450` (`sha256:72cb4aba21442a76aa887605cdcc2a05a117c50475f159a8d5471f268529ec97`) was directly inspected. M50800-26/29 are closed: Fantasy long identity is complete without ellipsis, base Combat uses an explicit continuation cue, the referenced Extended logical row is complete, and all four key family PDFs are free of literal semantic ellipsis. Front count: #4520 RED -> #4521 GREEN -> #4522 GREEN proof, no loop. The visible historical `EXTENSIÓN: NOTAS` / related source residue remains pending M50800-03 stale-underlay/source-geometry work. **Next action: read-only general bidirectional continuity audit across every actually split semantic flow, including whether Fantasy base Combat's forward cue requires a matching destination marker.** Owner candidate remains blocked.  
+**Current active route:** Phase 3 is **ACTIVE** on `repair/mara-phase3-semantic-flow-compositor`. The general bidirectional semantic-continuity audit found material gaps and the smallest coherent production package is implemented at `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7`. Full Scaffold #4523 / `37560523288` is backend / hosted-database / kotlin **SUCCESS**, so the front is **CI_GREEN / VISUAL_PENDING**, not CLOSED: the focused actual PDFs still require direct visual inspection. The CI feedback loop was then repaired without changing renderer semantics: `768117e7854100231af4a55f2b3b62d697c3ad6a` introduced `PC Sheet fast gate`; `ab48e71097ef7ef49628507b1f06423a6c8ed916` routes ordinary pushes on this repair branch through it while retaining full Scaffold for PR/manual/closure use. Final fast validation run `37566302657` is **SUCCESS** and artifact `11457979404` is 1,886,765 bytes with digest `sha256:36dcc8222eabb275747344cf26909c3ea4dc8da65afcc1c704b0c97dd1cd7b5f`; only the fast workflow ran on that infrastructure head. **Next action:** visually inspect `fantasy-canonical-overflow-audit.pdf` and `custom-v1-narrative-native-module-association.pdf` from artifact `11457979404`. If both prove the three continuity gaps visually, close the continuity front; otherwise correct only that same front. Source-geometry/stale-underlay remains next after continuity closure. Owner candidate remains blocked.  
 **Completed audit branch:** `audit/mara-phase2-existing-repair` — historical only after Phase-2 publication.  
 **Current implementation branch:** `repair/mara-phase3-semantic-flow-compositor`; implementation PR not yet opened.  
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
@@ -15,7 +15,7 @@
 1. `AGENTS.md`;
 2. `RESUME.md`;
 3. this file;
-4. `docs/checkpoints/2026-10-06_MARA_PHASE3_HEALTH_CONSOLIDATION.md` — exact current recovery state, anti-loop decision and next authorized action;
+4. `docs/checkpoints/2026-10-06_MARA_PHASE3_HEALTH_CONSOLIDATION.md` — exact current recovery state, continuity/CI status, anti-loop decision and next authorized action;
 5. `docs/checkpoints/2026-10-06_MARA_PHASE3_CONTINUATION_RECOVERY_PROMPT.md` — canonical copy-ready recovery prompt for timeout/connection/server interruption and autonomous burn-down toward the next candidate;
 6. `docs/checkpoints/2026-09-30_MARA_PHASE3_INTERRUPTION_RECOVERY.md` — historical interruption snapshot / recovery provenance;
 7. `docs/checkpoints/2026-09-30_MARA_PHASE3_IMPLEMENTATION.md` — Phase-3 implementation authority and green package history;
@@ -31,6 +31,9 @@
 17. `docs/BRANCH_STATUS.md`.
 
 **Branch rule:** current `main` publishes Phase-2 closure; `repair/mara-phase3-semantic-flow-compositor` is the sole non-main implementation authority for Phase 3. Resume from the canonical health-consolidation checkpoint and physical branch state. Do not reset automatically to an older green comparison head, do not replay already-published post-Inventory compositor/narrative commits, and do not resume from the old adaptive-repair branch except as historical evidence explicitly referenced by the Phase-2 burn-down.  
+
+**Active CI rule for this branch:** ordinary renderer pushes use `PC Sheet fast gate`; full `Scaffold checks` is retained for PR/manual/coherent closure validation. A fast or full green run does not replace required actual-PDF inspection. Connection/polling/download failures must be resolved by re-reading the same physical run/artifact before any replay.
+
 
 ## Active owner re-QA failure
 

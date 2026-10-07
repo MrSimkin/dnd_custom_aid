@@ -1,6 +1,6 @@
 # Project State — global repository navigation
 
-**Last reconstructed:** 2026-09-30 (Chile local time)  
+**Last reconstructed:** 2026-10-07 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
 **Last verified functional `main`:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107 Mara Custom-v2 Extended overflow repair integrated)  
@@ -10,7 +10,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — **Phase 3 implementation ACTIVE / Narrative + Traits + Combat/Actions + Notes + semantic survival VALIDATED; general bidirectional continuity audit NEXT**. Phase 1 provenance and Phase 2 existing-repair audit are CLOSED/PUBLISHED. Binding authority remains the final M50800-01…32 burn-down. Active branch: `repair/mara-phase3-semantic-flow-compositor`. Bounded health decision remains **CONTINUE_WITH_GUARDRAIL**. Validated production HEAD `d4e42818223100d96de32e0fe4a278dc0356153e` passed #4521; proof HEAD `59b039bdccc8d33a79252536c1d5d7bd10470e0e` passed #4522 and its artifact `11455609450` directly demonstrates M50800-26/29 closure. No loop. Source/footer residue remains pending M50800-03. Next work begins read-only on the owner-confirmed general bidirectional semantic-continuity rule. Current Snapshot and Media/Handouts remain blocked.**
+**Current active package:** PC Sheet PDF Export — **Phase 3 ACTIVE; general bidirectional semantic continuity = CI_GREEN / VISUAL_PENDING**. Phase 1 provenance and Phase 2 owner-intent audit remain CLOSED/PUBLISHED. Active branch: `repair/mara-phase3-semantic-flow-compositor`. Functional renderer head `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7` passed full Scaffold #4523 / `37560523288`; the visual continuity gate remains pending. Infrastructure head `ab48e71097ef7ef49628507b1f06423a6c8ed916` installs the focused `PC Sheet fast gate`; final fast run `37566302657` is SUCCESS with artifact `11457979404` / `sha256:36dcc8222eabb275747344cf26909c3ea4dc8da65afcc1c704b0c97dd1cd7b5f`. Ordinary pushes on the active repair branch no longer invoke the full Scaffold; PR/manual/coherent closure validation still can. Next action is direct visual inspection of the two focused continuity PDFs, then M50800-03 source-geometry/stale-underlay if continuity closes. Current Snapshot and Media/Handouts remain blocked.  
 
 ### Superseding PDF visual state — 2026-09-20
 
@@ -49,6 +49,8 @@ Current authority is:
 - `AGENTS.md` section 6.3.
 
 Phase 1 provenance and Phase 2 owner-intent mapping are complete. Phase 3 renderer implementation is now authorized and routed by `docs/checkpoints/2026-09-30_MARA_PHASE3_IMPLEMENTATION.md`. Timeout/connection/server recovery is canonically routed by `docs/checkpoints/2026-10-06_MARA_PHASE3_CONTINUATION_RECOVERY_PROMPT.md`; after a bounded package closes with required proof, authorized burn-down continues toward the next uniquely versioned owner QA candidate unless an anti-loop or owner/manual boundary intervenes. The active owner design clarification remains **reuse before reconstruction**: where the sheet already has a correct native component (attributes, Traits/Rasgos, Trasfondo/Historia-style modules, Equipment, Equipo Especial, Notes and analogous sections), extend/copy that grammar instead of inventing a generic Extended replacement. Ordinary Equipment specifically shows compact identity only: no weight, no `Consumible`, no prose descriptions.
+
+Current Phase-3 operational CI route: `docs/WORKFLOW.md` defines the two-tier loop for this repair branch. `PC Sheet fast gate` is the interactive implementation gate; full `Scaffold checks` is aggregate closure evidence. `CI_GREEN / VISUAL_PENDING` is explicitly valid when direct PDF inspection is still required.
 
 The shared primitive foundation has now passed owner Primitive PDF QA. Renderer work may proceed beyond the primitive gate using:
 
@@ -319,7 +321,7 @@ Owner manual QA for **Aldren Vale / Permanente** across Fantasy Sheet, Custom v1
 
 Read `AGENTS.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`, `docs/checkpoints/LATEST.md`, the checkpoint referenced there, D-0071/D-0072/D-0073/D-0075 and `docs/ROADMAP.md`.
 
-Resume Wave 7 from current `main` after Android PC-sheet Save/Share integration. The PDF visual/layout/text-filling gate is OWNER APPROVED and frozen at renderer `f7e4417c05a2981415ef3648ead740e20469fe33` / proof artifact `10756937024`; preserve the accepted Custom-v2 Equipment / Equipo Especial deviation exactly. PR #86 integrated Desktop Save/Share as `c28ad548113b368413e479de544c85aa8c924ef4`. PR #88 integrated the generated Android renderer bridge as `c5963881bdff2597770d3f6a26992b8567b2a35b`. PR #89 integrated Android Player/authorized-DM Save/Share as `e6e153a53bba8aa532b5c371dcc16849a901a541`; post-merge main Scaffold #3336 / `35909497243` passed. Read `docs/checkpoints/2026-09-23_PC_SHEET_PDF_ANDROID_SAVE_SHARE_PASS.md` first. The first remaining boundary is real Android device/runtime smoke of Save, Share, unsaved-export non-persistence and the Current Snapshot fallback notice. Do not reopen the frozen visual design or start the next Wave 7 package before that manual smoke is recorded.
+Current resume rule: follow `RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-10-06_MARA_PHASE3_HEALTH_CONSOLIDATION.md`. The sole non-main continuation authority is `repair/mara-phase3-semantic-flow-compositor`; do **not** resume from historical main-era Android smoke instructions below. Functional continuity head `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7` is CI-green but visual-pending; the immediate action is direct inspection of focused artifact `11457979404`. Historical sections that follow remain provenance only and do not override the current route.
 
 ### PC Sheet PDF Export — shared semantic/render-plan foundation
 

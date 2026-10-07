@@ -1,6 +1,6 @@
 # Mara Phase 3 — continuation / interruption recovery prompt
 
-**Date:** 2026-10-06 (Chile local time)  
+**Date:** 2026-10-07 (Chile local time)  
 **Scope:** active Mara Phase-3 renderer repair and convergence to the next owner-facing QA candidate  
 **Repository:** `MrSimkin/dnd_custom_aid`  
 **Implementation branch:** `repair/mara-phase3-semantic-flow-compositor`
@@ -71,15 +71,15 @@ Verifica directamente en GitHub, antes de modificar nada:
 
 Últimos anchors conocidos al actualizar este prompt:
 
-- último HEAD funcional **validado** conocido: `c2367e11bef9e92990f0f9efc6e89b13cf07795f`;
-- Custom-v1 Traits: **CLOSED / VALIDATED**;
-- Scaffold #4518 / run `37553725881`: backend SUCCESS, hosted-database SUCCESS, kotlin SUCCESS;
-- proof artifact: `11454232332`;
-- proof digest: `sha256:37645e52aab6949580ca0c87cd5567b655aebeb73f12a810a1a2d65d552f4107`;
-- Traits cerró en tres ciclos: #4516 dos criterios OPEN -> #4517 uno -> #4518 cero;
-- Narrative sigue validado y separado semánticamente en el proof más reciente;
-- residual visible `EXTENSIÓN: NOTAS` continúa OPEN bajo M50800-03 stale-underlay/source-geometry;
-- siguiente frente autorizado: Combat/Actions M50800-12/13, comenzando read-only;
+- último HEAD funcional del renderer: `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7`;
+- frente general de continuidad: **CI_GREEN / VISUAL_PENDING**, no CLOSED;
+- full Scaffold #4523 / run `37560523288`: backend SUCCESS, hosted-database SUCCESS, kotlin SUCCESS;
+- full proof artifact: `11456517371` (~186 MB), disponible pero no necesario para el loop interactivo;
+- HEAD de infraestructura previo a esta consolidación documental: `ab48e71097ef7ef49628507b1f06423a6c8ed916`;
+- `PC Sheet fast gate` final: run `37566302657` SUCCESS;
+- focused artifact: `11457979404` = 1,886,765 bytes;
+- focused artifact digest: `sha256:36dcc8222eabb275747344cf26909c3ea4dc8da65afcc1c704b0c97dd1cd7b5f`;
+- en `ab48e71097ef7ef49628507b1f06423a6c8ed916` sólo corrió el fast gate; el full Scaffold no se disparó;
 - no PR de implementación abierto al último chequeo.
 
 Estos datos son **sólo anchors de recuperación**.
@@ -128,40 +128,26 @@ En `repair/mara-phase3-semantic-flow-compositor`, los pushes ordinarios del rend
 
 ## 4. FRENTE FUNCIONAL ACTUAL
 
-**Traits, Combat/Actions, Notes y M50800-26/29 semantic survival ya están CLOSED / VALIDATED. No los reabras sin nueva evidencia real.**
+**General bidirectional semantic continuity — CI_GREEN / VISUAL_PENDING**
 
-Última evidencia física:
+Ya no corresponde rehacer el audit read-only ni repetir la implementación.
 
-- validated production HEAD: `d4e42818223100d96de32e0fe4a278dc0356153e`;
-- Scaffold #4521 / `37557543660`: backend / hosted-database / kotlin SUCCESS;
-- proof HEAD: `59b039bdccc8d33a79252536c1d5d7bd10470e0e`;
-- Scaffold #4522 / `37558318363`: SUCCESS;
-- proof artifact `11455609450`;
-- digest `sha256:72cb4aba21442a76aa887605cdcc2a05a117c50475f159a8d5471f268529ec97`;
-- Fantasy long character identity complete in two lines with no ellipsis;
-- Fantasy base Combat long detail uses `[continúa en COMBATE / ACCIONES]`;
-- referenced Extended Combat row retains the complete semantic record in native table grammar;
-- current four key family PDFs contain no literal `...` / `…`;
-- M50800-26 / 29 demonstrated;
-- front count: #4520 RED -> #4521 GREEN -> #4522 GREEN focused proof;
-- `LOOP_SUSPECTED = NO`.
+El audit encontró y el commit `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7` corrigió tres gaps materiales:
 
-El siguiente frente autorizado es:
+1. Custom-v1 Narrative base -> Extended sin dirección explícita;
+2. Fantasy Narrative desviado a References y sin continuidad nativa bidireccional;
+3. Fantasy Combat con cue forward pero sin reverse `proviene de...`.
 
-**General bidirectional semantic continuity — read-only first**
+Scaffold #4523 / `37560523288` pasó completo. El fast gate final `37566302657` también pasó y produjo el artifact pequeño `11457979404`.
 
-Antes de cualquier write:
+**Siguiente acción exacta:** inspeccionar visualmente, sin crear un nuevo commit, los PDFs:
 
-1. enumera los flows que realmente pueden partir un mismo registro/módulo entre secciones/páginas no contiguas;
-2. distingue flows atómicos/movidos completos (sin marker necesario) de flows realmente partidos;
-3. verifica uso actual de `PcSheetBidirectionalContinuation` y paridad Desktop/Android;
-4. inspecciona proofs #4522 para Narrative, Notes y otros split flows;
-5. evalúa específicamente si el nuevo cue Fantasy Combat de origen requiere `proviene de...` en destino bajo la regla general del owner;
-6. NO agregues markers a registros que sólo se repiten o mueven enteros;
-7. sólo si queda un gap material, implementa el paquete mínimo y cuenta el primer CI como **ciclo 1/4**;
-8. cierra con CI verde + proof PDF visual real.
+- `fantasy-canonical-overflow-audit.pdf`;
+- `custom-v1-narrative-native-module-association.pdf`.
 
-El residual de source/footer como `EXTENSIÓN: NOTAS` / `EXTENSIÓN: RASGOS` sigue reservado para el frente posterior M50800-03 stale-underlay/source-geometry.
+Si ambos demuestran los marcadores source/target correctos y asociación nativa sin regresión, cerrar continuidad y avanzar a source-geometry/stale-underlay. Si no, mantener este mismo frente OPEN y corregir sólo el defecto visual observado.
+
+No interpretar CI verde como cierre visual.
 
 ## 5. GUARDRAIL ANTI-LOOP
 

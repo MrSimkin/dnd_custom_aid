@@ -1,13 +1,13 @@
 # Mara Phase 3 — compositor health consolidation
 
-**Local date:** 2026-10-06 (Chile)  
+**Local date:** 2026-10-07 (Chile)  
 **Phase:** 3 — renderer repair implementation  
 **Branch:** `repair/mara-phase3-semantic-flow-compositor`  
 **Main base:** `c4e65955a5f58f88e0b03807b4616a3f8a9323a8`  
 **Validated implementation head at capture:** `e6e07a13721d3d56364d6373472a0b5b0074acb6`  
-**Current validated functional implementation HEAD:** `d4e42818223100d96de32e0fe4a278dc0356153e` — semantic-survival production correction validated at Scaffold #4521 (`37557543660`) SUCCESS  
-**Current proof HEAD:** `59b039bdccc8d33a79252536c1d5d7bd10470e0e` — focused Fantasy explicit-continuation proof / Scaffold #4522 (`37558318363`) SUCCESS  
-**Current status:** ACTIVE / NARRATIVE + TRAITS + COMBAT/ACTIONS + NOTES + SEMANTIC SURVIVAL VALIDATED; NEXT FRONT GENERAL BIDIRECTIONAL CONTINUITY AUDIT  
+**Current functional implementation HEAD:** `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7` — general bidirectional continuity package; full Scaffold #4523 (`37560523288`) backend / hosted-database / kotlin SUCCESS; **CI_GREEN / VISUAL_PENDING**  
+**Current infrastructure/proof HEAD before this documentation consolidation:** `ab48e71097ef7ef49628507b1f06423a6c8ed916` — focused fast-gate validation run `37566302657` SUCCESS; artifact `11457979404` / `sha256:36dcc8222eabb275747344cf26909c3ea4dc8da65afcc1c704b0c97dd1cd7b5f`  
+**Current status:** ACTIVE / NARRATIVE + TRAITS + COMBAT/ACTIONS + NOTES + SEMANTIC SURVIVAL VALIDATED; GENERAL BIDIRECTIONAL CONTINUITY = CI_GREEN / VISUAL_PENDING; NEXT = ACTUAL-PDF CONTINUITY INSPECTION  
 **Anti-loop result:** `CONTINUE_WITH_GUARDRAIL`  
 **Open implementation PR:** none at capture  
 **Owner visual handoff:** NOT AUTHORIZED
@@ -336,26 +336,52 @@ Acceptance result:
 - material OPEN decreased to zero; no oscillation or test relaxation;
 - `LOOP_SUSPECTED = NO`.
 
+## General bidirectional continuity implementation — CI green / visual pending
+
+The read-only audit is complete. It found three material directionality gaps without reopening already-closed fronts:
+
+1. **Custom-v1 Narrative** split Personality/Story records base -> Extended without explicit source/target directionality.
+2. **Fantasy Narrative** routed overflow through generic References and lacked the required native bidirectional narrative continuation.
+3. **Fantasy Combat** had the new forward base cue but no matching Extended `proviene de...` marker.
+
+The coherent production correction is `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7` — `fix: make split narrative continuity bidirectional`.
+
+Implemented behavior:
+
+- Custom-v1 Narrative now uses `PcSheetBidirectionalContinuation` in base and Extended native narrative modules;
+- Fantasy Narrative now remains in native `HISTORIA Y PERSONALIDAD` continuation modules with forward/back markers instead of generic `REFERENCIAS`;
+- Fantasy Extended Combat now carries the reverse `proviene de sección normal COMBATE / ACCIONES` marker for the base-referenced row;
+- Desktop/Android parity is preserved.
+
+Automated evidence:
+
+- full Scaffold #4523 / `37560523288`: backend SUCCESS, hosted-database SUCCESS, kotlin SUCCESS;
+- full proof artifact `11456517371` exists but is intentionally not required for the interactive loop because it is ~186 MB;
+- infrastructure-only `768117e...` + `ab48e71097ef7ef49628507b1f06423a6c8ed916` introduced the focused `PC Sheet fast gate` and stopped full Scaffold from running on every ordinary push of this repair branch;
+- first fast comparison run `37565683967`: SUCCESS in about 2m37s, artifact `11458772854` = 1,886,762 bytes;
+- comparison full Scaffold #4524 / `37565683849`: SUCCESS in about 7m07s;
+- final fast run `37566302657`: SUCCESS, artifact `11457979404` = 1,886,765 bytes, digest `sha256:36dcc8222eabb275747344cf26909c3ea4dc8da65afcc1c704b0c97dd1cd7b5f`;
+- on `ab48e71097ef7ef49628507b1f06423a6c8ed916`, only the fast workflow ran, proving the new trigger routing.
+
+This front is deliberately **not** marked CLOSED yet. Green CI proves the code/tests, not the visual criterion.
+
 ## Exact next authorized action
 
-Semantic ellipsis / silent drop is closed. Do **not** reopen M50800-26/29 without new defect evidence.
+1. Download/inspect the focused artifact `11457979404`.
+2. Visually inspect `fantasy-canonical-overflow-audit.pdf` for:
+   - Fantasy Narrative forward marker in the normal section;
+   - native Narrative continuation surface;
+   - reverse `proviene de sección normal HISTORIA` marker;
+   - Fantasy Combat reverse marker matching the base forward cue.
+3. Visually inspect `custom-v1-narrative-native-module-association.pdf` for:
+   - base PERSONALIDAD/HISTORIA forward markers;
+   - Extended native narrative modules;
+   - reverse `proviene de sección normal ...` markers;
+   - any further Extended forward marker where the same record continues again.
+4. If visual evidence passes, mark general bidirectional continuity CLOSED and advance to M50800-03 source-geometry/stale-underlay.
+5. If it fails, keep this same front OPEN and correct only the observed continuity defect under the existing 4-cycle guardrail.
 
-The next authorized front is the bounded **general bidirectional semantic-continuity audit**, beginning read-only from the owner-confirmed general rule:
-
-1. enumerate every current semantic flow that can split one logical record/module across non-contiguous normal/Extended sections or pages;
-2. classify each as:
-   - already bidirectional and visually demonstrated;
-   - atomic/no split possible, therefore no marker required;
-   - forward-only / backward-only / ambiguous, therefore materially OPEN;
-3. inspect shared `PcSheetBidirectionalContinuation` use and current Desktop/Android renderers;
-4. inspect actual #4522 PDFs for visible source/target markers in Narrative, Notes and any other split flow;
-5. treat the new Fantasy base Combat cue as a continuity candidate: determine whether the Extended record also needs an explicit `proviene de...` marker under the general owner rule rather than assuming the forward cue alone is sufficient;
-6. do not add markers to atomic rows that are merely repeated or wholly moved between pages;
-7. only if a real bidirectional gap remains, implement the smallest coherent continuity package;
-8. first functional CI for that package counts as cycle **1/4**;
-9. close only with green CI and actual-PDF visual evidence.
-
-Do not begin source-geometry/stale-underlay, final candidate/versioning, Current Snapshot finalization or Media/Handouts until this continuity front is closed or the guardrail forces a stop/rethink.
+Do not begin source-geometry/stale-underlay, final candidate/versioning, Current Snapshot finalization or Media/Handouts until this continuity visual gate closes.
 
 ## Delivery objective / autonomous burn-down
 
