@@ -554,12 +554,21 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                         !baseEquipmentPage.contains(" lb"),
                         "Fantasy base ordinary Equipment must not project item weight.",
                     )
-                    val firstOrdinaryInventoryPage = inventoryPages.first {
-                        it.contains("INVENTARIO - CONTINUACIÓN")
+                    val firstOrdinaryInventoryPageIndex = pageTexts.indexOfFirst {
+                        it.contains("EXTENSIÓN / INVENTARIO Y EQUIPO") &&
+                            it.contains("INVENTARIO - CONTINUACIÓN")
                     }
+                    assertTrue(firstOrdinaryInventoryPageIndex >= 0)
+                    val firstOrdinaryInventoryPage = pageTexts[firstOrdinaryInventoryPageIndex]
+                    val firstOrdinaryInventoryRaw = PDFTextStripper().apply {
+                        startPage = firstOrdinaryInventoryPageIndex + 1
+                        endPage = firstOrdinaryInventoryPageIndex + 1
+                    }.getText(rendered)
+                    val ordinaryInventorySection = firstOrdinaryInventoryRaw
+                        .substringBefore("OBJETOS ESPECIALES / SINTONIZADOS")
                     assertTrue(
-                        !firstOrdinaryInventoryPage.contains(" lb"),
-                        "Fantasy Extended ordinary Equipment must remain quantity + identity only.",
+                        !ordinaryInventorySection.contains(" lb"),
+                        "Fantasy Extended ordinary Equipment must remain quantity + identity only even when Special Equipment shares the physical page.",
                     )
                     assertTrue(
                         firstOrdinaryInventoryPage.contains("Frasco de tinta que recuerda la última palabra escrita 8"),
