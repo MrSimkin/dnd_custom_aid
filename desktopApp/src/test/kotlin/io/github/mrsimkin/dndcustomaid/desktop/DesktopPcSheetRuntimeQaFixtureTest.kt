@@ -435,6 +435,26 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     "$family must not consume resource tracker marks to encode current state.",
                 )
 
+                if (family == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE) {
+                    val pageTexts = (1..rendered.numberOfPages).map { pageNumber ->
+                        PDFTextStripper().apply {
+                            startPage = pageNumber
+                            endPage = pageNumber
+                        }.getText(rendered).replace(Regex("\\s+"), " ")
+                    }
+                    val customStatisticsPages = pageTexts.filter {
+                        it.contains("ESTADÍSTICAS PERSONALIZADAS")
+                    }
+                    assertEquals(
+                        1,
+                        customStatisticsPages.size,
+                        "Custom-v2 Per-Attribute Mara must not spill one additional-skill row onto a sparse second page.",
+                    )
+                    assertTrue(customStatisticsPages.single().contains("FORtuna"))
+                    assertTrue(customStatisticsPages.single().contains("RENombre"))
+                    assertTrue(customStatisticsPages.single().contains("Improvisación ritual (CAR)"))
+                }
+
                 if (family == PcSheetVisualFamily.CUSTOM_V1) {
                     val pageTexts = (1..rendered.numberOfPages).map { pageNumber ->
                         PDFTextStripper().apply {

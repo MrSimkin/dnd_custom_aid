@@ -530,7 +530,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             }
 
         val rows = attributeRows + standardRows
-        val pages = rows.chunked(PER_ATTRIBUTE_ROWS_PER_PAGE).ifEmpty { listOf(emptyList()) }
+        val pages = packPerAttributeRows(rows)
 
         pages.forEachIndexed { pageIndex, pageRows ->
             val page = PDPage(PDRectangle(W, H))
@@ -542,6 +542,40 @@ internal class AndroidCustomV2ExtendedRenderer(
                 pageIndex = pageIndex,
             )
         }
+    }
+
+    private fun packPerAttributeRows(
+        rows: List<PerAttributePageRow>,
+    ): List<List<PerAttributePageRow>> {
+        if (rows.isEmpty()) return listOf(emptyList())
+
+        val pages = mutableListOf<MutableList<PerAttributePageRow>>()
+        var current = mutableListOf<PerAttributePageRow>()
+        var attributeRowsOnPage = 0
+
+        fun flush() {
+            if (current.isNotEmpty()) {
+                pages += current
+                current = mutableListOf()
+                attributeRowsOnPage = 0
+            }
+        }
+
+        rows.forEach { row ->
+            val isAttributeRow = row.attribute != null
+            val wouldExceedPhysicalRows = current.size >= PER_ATTRIBUTE_PHYSICAL_ROWS_PER_PAGE
+            val wouldExceedAttributeRows =
+                isAttributeRow && attributeRowsOnPage >= PER_ATTRIBUTE_ATTRIBUTE_ROWS_PER_PAGE
+
+            if (wouldExceedPhysicalRows || wouldExceedAttributeRows) {
+                flush()
+            }
+
+            current += row
+            if (isAttributeRow) attributeRowsOnPage += 1
+        }
+        flush()
+        return pages.map { it.toList() }
     }
 
     private fun renderPerAttributePage(
@@ -4116,7 +4150,11 @@ internal class AndroidCustomV2ExtendedRenderer(
         const val ATTRIBUTE_NOTE_LINES_PER_COLUMN = 10
         const val STANDARD_COLUMNS_PER_PAGE = 3
         const val STANDARD_SKILLS_PER_COLUMN = 4
-        const val PER_ATTRIBUTE_ROWS_PER_PAGE = 6
+        // Native geometry physically fits seven 96-pt rows on the page, but owner intent
+        // caps actual attribute modules at six. The seventh physical row is available only to a
+        // non-attribute row such as HABILIDADES ADICIONALES.
+        const val PER_ATTRIBUTE_PHYSICAL_ROWS_PER_PAGE = 7
+        const val PER_ATTRIBUTE_ATTRIBUTE_ROWS_PER_PAGE = 6
         const val PER_ATTRIBUTE_FIRST_ROW_TOP = 104f
         const val PER_ATTRIBUTE_ROW_HEIGHT = 96f
         const val PER_ATTRIBUTE_ROW_STEP = 19.84f
