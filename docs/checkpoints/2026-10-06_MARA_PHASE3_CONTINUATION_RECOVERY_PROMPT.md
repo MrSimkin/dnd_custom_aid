@@ -119,39 +119,35 @@ NO interpretes ausencia de respuesta del agente como ausencia de efectos en GitH
 
 ## 4. FRENTE FUNCIONAL ACTUAL
 
-**Custom-v1 Traits y Combat/Actions ya están CLOSED / VALIDATED. No los reabras sin nueva evidencia de defecto.**
+**Traits, Combat/Actions y Notes ya están CLOSED / VALIDATED. No los reabras sin nueva evidencia real.**
 
-Último cierre demostrado:
+Última evidencia física común:
 
-- functional HEAD: `fc6fca3776a88dd53b6e636deddfd9f46edac184`;
-- Scaffold #4519 / `37555121975`: SUCCESS en los tres jobs;
+- validated functional/proof HEAD: `fc6fca3776a88dd53b6e636deddfd9f46edac184`;
+- Scaffold #4519 / `37555121975`: SUCCESS;
 - proof artifact `11454378341`;
-- proof digest `sha256:6496fd013f3cc627e635c5ba37fb77040b637eb04c5360a9868e041533f1c225`;
-- Custom-v2 Attribute y Ability: filas lógicas de Combat de altura variable inspeccionadas visualmente;
-- Fantasy: continuación `ARMAS Y ACCIONES` en gramática tabular inspeccionada visualmente;
-- M50800-12 / M50800-13: demostrados en el estado actual;
-- contador Combat: ciclo 1/4 -> cierre, `LOOP_SUSPECTED = NO`.
+- digest `sha256:6496fd013f3cc627e635c5ba37fb77040b637eb04c5360a9868e041533f1c225`;
+- Notes M50800-21…24 demostrados visualmente en Custom-v1, Custom-v2 Attribute/Ability y Fantasy;
+- continuidad Notes `continúa en...` / `proviene de...` visible en PDFs actuales;
+- no hubo nuevo write funcional para Notes;
+- `LOOP_SUSPECTED = NO`.
 
 El siguiente frente autorizado es:
 
-**Notes — reconciliación M50800-21…24 + continuidad bidireccional**
+**Semantic ellipsis / silent drop — M50800-26 + M50800-29**
 
 Antes de cualquier write:
 
-1. relee las disposiciones finales M50800-21…24 y la observación QA original;
-2. inspecciona producción actual Fantasy / Custom-v1 / Custom-v2 y paridad Android/Desktop;
-3. inspecciona tests y proofs PDF **actuales**;
-4. verifica:
-   - página Notes de continuación completa/nativa;
-   - identidad `Nota N — Título` enfatizada;
-   - packing por columnas antes de crear otra página;
-   - split sólo cuando la nota no cabe completa en una columna fresca;
-   - `continúa en...` / `proviene de...` explícitos y bidireccionales para splits;
-5. NO reimplementes comportamiento ya demostrado;
-6. sólo si queda un gap material, implementa el paquete mínimo y cuenta su primer CI como **ciclo 1/4**;
-7. para cerrar Notes exige CI verde + proof PDF visual real.
+1. relee disposiciones finales M50800-26 y M50800-29 y la observación QA original;
+2. inspecciona renderers/tests actuales de las cuatro familias;
+3. busca en los proofs #4519 elipsis semántica real y pérdida de tokens/colas de registros;
+4. distingue `...` decorativo/estático de truncación de identidades o contenido generado;
+5. verifica asociación al módulo/registro correcto, no sólo presencia global;
+6. NO reimplementes fixes ya demostrados;
+7. sólo si queda pérdida material, implementa el parche mínimo y cuenta su primer CI como **ciclo 1/4**;
+8. cierra sólo con CI verde + evidencia en PDFs actuales.
 
-El residual `EXTENSIÓN: NOTAS` observado en algunas surfaces copiadas continúa registrado para el posterior M50800-03 stale-underlay/source-geometry audit; no lo confundas con el contrato funcional de Notes M50800-21…24.
+El residual `EXTENSIÓN: NOTAS` continúa reservado para el posterior M50800-03 stale-underlay/source-geometry audit.
 
 ## 5. GUARDRAIL ANTI-LOOP
 

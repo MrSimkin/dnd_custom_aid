@@ -5,8 +5,8 @@
 **Branch:** `repair/mara-phase3-semantic-flow-compositor`  
 **Main base:** `c4e65955a5f58f88e0b03807b4616a3f8a9323a8`  
 **Validated implementation head at capture:** `e6e07a13721d3d56364d6373472a0b5b0074acb6`  
-**Current validated functional implementation HEAD:** `fc6fca3776a88dd53b6e636deddfd9f46edac184` — Combat/Actions acceptance proof CLOSED / Scaffold #4519 (`37555121975`) SUCCESS  
-**Current status:** ACTIVE / NARRATIVE + TRAITS + COMBAT/ACTIONS VALIDATED; NEXT FRONT NOTES READ-ONLY RECONCILIATION  
+**Current validated functional implementation HEAD:** `fc6fca3776a88dd53b6e636deddfd9f46edac184` — current production/proof head validated through Notes at Scaffold #4519 (`37555121975`) SUCCESS  
+**Current status:** ACTIVE / NARRATIVE + TRAITS + COMBAT/ACTIONS + NOTES VALIDATED; NEXT FRONT SEMANTIC ELLIPSIS / SILENT-DROP AUDIT  
 **Anti-loop result:** `CONTINUE_WITH_GUARDRAIL`  
 **Open implementation PR:** none at capture  
 **Owner visual handoff:** NOT AUTHORIZED
@@ -223,26 +223,76 @@ Acceptance result:
 - This front required **1 CI cycle**, OPEN `1 evidence gap -> 0`, `LOOP_SUSPECTED = NO`.
 - Sparse whitespace on low-volume continuation pages is not treated as a defect here because page count/utilization is not an acceptance target. Global cross-module sharing remains governed separately by M50800-27.
 
+## Notes closure after Combat/Actions
+
+The M50800-21…24 Notes front is now **CLOSED / VALIDATED** by read-only reconciliation against the current implementation and the latest actual proof artifact. No production rewrite was necessary.
+
+Current implementation evidence:
+
+- shared `PcSheetPdfNotesFlow.kt` owns semantic Note records only and excludes Background/Narrative;
+- `packPcSheetNoteColumns(...)` moves a whole note to a fresh native column when it fits, splits only an oversized note, preserves separator rows, and emits `PcSheetBidirectionalContinuation` markers that consume physical rows;
+- Custom-v1 reuses the complete source Notes page for each overflow page and keeps two native Notes columns;
+- Custom-v2 uses the same record-aware/native-column flow with the complete native Notes page;
+- Fantasy uses the complete native Notes page geometry, including `NOTAS DE CAMPAÑA`, `CROQUIS / MAPA` and `REFERENCIAS Y RECORDATORIOS`; only the native Notes writing column receives Notes semantics;
+- Android counterparts were previously parity-synced and #4519 passed the Android renderer-sync guard.
+
+Acceptance artifact:
+
+- run: Scaffold #4519 / `37555121975` — backend / hosted-database / kotlin **SUCCESS**;
+- artifact: `11454378341`;
+- digest: `sha256:6496fd013f3cc627e635c5ba37fb77040b637eb04c5360a9868e041533f1c225`.
+
+Actual PDF visual inspection:
+
+1. **Custom-v1**
+   - `owner-review-continuation-cues-custom-v1.pdf`, pages 5 / 11 / 12;
+   - complete native Notes page retained;
+   - base page consumes both Notes columns before Extended page 01;
+   - Extended page 01 consumes both columns before Extended page 02;
+   - final page uses only the remaining left-column capacity because content is exhausted afterward, which is valid;
+   - explicit forward/back markers are visible, including normal -> column 2 -> Extended 01 -> Extended 02.
+   - `custom-v1-production-extended-notes-pass6.pdf`, page 8: bold/native-compatible `Nota N — Título` headings and visible record spacing.
+
+2. **Custom-v2 Attribute / Ability**
+   - `owner-review-continuation-cues-custom-v2-attribute.pdf`, pages 4 / 10;
+   - `owner-review-continuation-cues-custom-v2-ability.pdf`, page 10;
+   - complete native Notes geometry is retained;
+   - both base columns are consumed before the Extended Notes page;
+   - bidirectional markers are visible;
+   - `custom-v2-per-attribute-whole-draft.pdf`, page 4: `Notas generales` plus `Nota 1…4` headings are visibly emphasized and separated.
+
+3. **Fantasy**
+   - `owner-review-continuation-cues-fantasy.pdf`, pages 10 / 11;
+   - the full native Notes page, map panel and reference panel remain intact;
+   - each native Notes writing column/page is filled before another full Notes page is opened;
+   - visible bidirectional markers identify source/destination Notes pages.
+   - `fantasy-production-notes-pass7.pdf`, page 4: `Notas generales` and `Nota N — Título` headings are visually emphasized and records remain separated.
+
+Acceptance result:
+
+- **M50800-21: demonstrated** — overflow Notes pages are complete native Notes pages and remain whole-page-exclusive.
+- **M50800-22: demonstrated** — Note identities are emphasized and records have visible boundaries.
+- **M50800-23: demonstrated** — split Notes carry explicit forward/back navigation.
+- **M50800-24: demonstrated** — native Notes columns are consumed before another Notes page; whole records move rather than being split merely to fill residual rows.
+- No new Notes CI cycle was required because the current #4519 artifact already exercises the current production renderer and contains the necessary actual PDFs.
+- `LOOP_SUSPECTED = NO`.
+
 ## Exact next authorized action
 
-Combat/Actions is closed. Do **not** reopen it without new defect evidence.
+Notes is closed. Do **not** reopen it without new defect evidence.
 
-The next authorized front is **Notes reconciliation (M50800-21…24 + continuity evidence)**, beginning read-only before any code change:
+The next authorized front is a bounded **semantic ellipsis / silent-drop audit (M50800-26 + M50800-29)**, beginning read-only:
 
-1. reopen final Phase-2 dispositions M50800-21, 22, 23 and 24 plus the original QA observations;
-2. inspect current Fantasy, Custom-v1 and Custom-v2 Notes production implementations, Desktop/Android parity and relevant tests;
-3. inspect the latest actual proof PDFs for:
-   - complete native Notes-page geometry on continuation pages;
-   - note identity emphasis;
-   - whole-note packing across native columns before splitting;
-   - explicit bidirectional `continúa en...` / `proviene de...` markers when a note is split;
-4. reconcile existing repository-green Notes work against the final owner contract; do not reimplement already-proven behavior;
-5. classify each Notes criterion as demonstrated vs materially OPEN;
-6. only if a real gap remains, implement the smallest coherent Notes package;
-7. first functional CI for any new Notes write counts as cycle **1/4**;
-8. require green CI plus real PDF visual inspection before closing Notes.
+1. reopen final M50800-26 and M50800-29 acceptance intent plus the original QA evidence;
+2. inspect current family renderers and tests for truncation/ellipsis/silent-drop behavior across meaningful generated identities;
+3. search the latest actual #4519 proofs for semantic `...` and missing late-token/record tails, distinguishing decorative/static text from generated semantic content;
+4. reconcile known fixes already present for Fantasy and Custom-v1/v2 overflow routing;
+5. classify each family as demonstrated vs materially OPEN;
+6. only if a concrete semantic-loss gap remains, implement the smallest localized correction;
+7. first functional CI for any new correction counts as cycle **1/4**;
+8. close only with green CI and actual-PDF evidence that required identities survive in the correct semantic module/record.
 
-Do not begin ellipsis/silent-drop, general continuity audit, source-geometry/stale-underlay, candidate, Current Snapshot or Media/Handouts work until Notes is either closed or the guardrail forces a structural stop/rethink.
+Do not begin the general source-geometry/stale-underlay audit, final candidate/versioning, Current Snapshot finalization or Media/Handouts until this semantic-survival front is closed or the guardrail forces a structural stop/rethink.
 
 ## Delivery objective / autonomous burn-down
 
@@ -266,7 +316,6 @@ That prompt is part of the active recovery contract. After timeout, connection i
 
 At minimum:
 
-- Notes full-native-page behavior, record packing and bidirectional continuity;
 - remaining semantic ellipsis / silent-drop audit;
 - general bidirectional continuity proof in actual output;
 - remaining source-geometry / stale-underlay audit;

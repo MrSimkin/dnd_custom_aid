@@ -286,3 +286,29 @@ M50800-12 / M50800-13 are demonstrated for the current implementation. One CI ac
 
 Next:
 - read-only reconciliation of Notes M50800-21…24 and bidirectional continuity against current production/tests/latest proofs before any code.
+
+
+## Progress — Notes acceptance closure
+
+**Status:** COMPLETE / CURRENT PROOFS INSPECTED / NO NEW PRODUCTION WRITE
+
+Current validated functional/proof head:
+
+`fc6fca3776a88dd53b6e636deddfd9f46edac184`
+
+Validation source:
+- Scaffold #4519 / `37555121975`: backend PASS; hosted-database PASS; kotlin PASS;
+- artifact `11454378341`;
+- digest `sha256:6496fd013f3cc627e635c5ba37fb77040b637eb04c5360a9868e041533f1c225`.
+
+Current shared Notes flow already provides record identity, fresh-column packing, oversized-note-only splitting, separators and physical-row bidirectional markers.
+
+Actual proof inspection demonstrated:
+- Custom-v1 full native Notes pages, two-column packing, explicit forward/back continuity and emphasized `Nota N — Título`;
+- Custom-v2 Attribute/Ability full native Notes pages, base-column exhaustion before Extended Notes, bidirectional continuity and emphasized note records;
+- Fantasy complete native Notes geometry with campaign Notes + map/reference companion panels intact, one native Notes writing column consumed per full page, emphasized record identities and bidirectional continuity.
+
+M50800-21 / 22 / 23 / 24 are demonstrated in the current implementation. No new functional commit or CI cycle was necessary.
+
+Next:
+- bounded read-only M50800-26 / M50800-29 semantic ellipsis and silent-drop audit against current renderers/tests/#4519 proofs.
