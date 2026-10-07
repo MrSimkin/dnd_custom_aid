@@ -30,6 +30,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetModuleDemand
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutSlot
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutTemplate
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageComposer
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedGlobalCoordinator
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedGlobalFront
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetNotePhysicalLine
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetNotePhysicalLineKind
@@ -93,14 +95,25 @@ internal class DesktopClassicRenderer {
             if (plan.basePages.any { it.role == PcSheetBasePageRole.SPELL_LIST }) {
                 drawSpells(doc, p, plan)
             }
-            appendCustomStatisticsPages(doc, p, plan)
-            appendNarrativePages(doc, p, plan)
-            appendTraitsPages(doc, p, plan)
-            appendCombatPages(doc, p, plan)
-            appendResourcesPages(doc, p, plan)
-            appendInventoryPages(doc, p, plan)
-            appendSpellContinuationPages(doc, p, plan)
-            appendNotesPages(doc, p, plan)
+            PcSheetExtendedGlobalCoordinator.plan(
+                activeModules = activeGlobalExtendedModules(p, plan),
+                fronts = classicGlobalFronts(),
+            ).forEach { front ->
+                when (front.id) {
+                    CLASSIC_GLOBAL_STATS_FRONT_ID -> appendCustomStatisticsPages(doc, p, plan)
+                    CLASSIC_GLOBAL_NARRATIVE_FRONT_ID -> appendNarrativePages(doc, p, plan)
+                    CLASSIC_GLOBAL_TRAITS_FRONT_ID -> appendTraitsPages(doc, p, plan)
+                    CLASSIC_GLOBAL_COMBAT_FRONT_ID -> appendCombatPages(doc, p, plan)
+                    CLASSIC_GLOBAL_RESOURCES_FRONT_ID -> appendResourcesPages(doc, p, plan)
+                    CLASSIC_GLOBAL_INVENTORY_FRONT_ID -> appendInventoryPages(doc, p, plan)
+                    CLASSIC_GLOBAL_SPELLS_FRONT_ID -> appendSpellContinuationPages(doc, p, plan)
+                    CLASSIC_GLOBAL_NOTES_FRONT_ID -> appendNotesPages(doc, p, plan)
+                    else -> error("Unknown Fantasy global Extended front: ${front.id}")
+                }
+            }
+
+            // Fantasy reference pages are an auxiliary legacy surface rather than one of the
+            // Phase-3 semantic modules. Keep them after the globally coordinated semantic fronts.
             appendReferencePages(doc, p, plan)
 
             check(overflowDiagnostics.isEmpty()) {
@@ -110,6 +123,99 @@ internal class DesktopClassicRenderer {
             doc.save(output)
         }
     }
+
+    private fun activeGlobalExtendedModules(
+        p: DesktopPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ): Set<PcSheetSemanticModule> = buildSet {
+        val stats = plan.snapshot.customStatistics
+
+        if (
+            PcSheetExtendedPageKind.CUSTOM_STATISTICS in plan.mandatoryExtendedPages &&
+            !stats.isEmpty
+        ) {
+            add(PcSheetSemanticModule.CUSTOM_STATISTICS)
+        }
+        if (classicNarrativeModules(plan).isNotEmpty()) {
+            add(PcSheetSemanticModule.BACKGROUND_STORY)
+        }
+        if (classicTraitColumns(plan).isNotEmpty()) {
+            add(PcSheetSemanticModule.TRAITS)
+        }
+        if (classicCombatReferenceRows(plan).isNotEmpty()) {
+            add(PcSheetSemanticModule.COMBAT_ACTIONS)
+        }
+        if (classicResourceRows(plan).isNotEmpty()) {
+            add(PcSheetSemanticModule.RESOURCES)
+        }
+        if (classicOptionRows(plan).isNotEmpty()) {
+            add(PcSheetSemanticModule.CLASS_CHOICES)
+        }
+
+        val inventory = classicInventoryContinuation(plan)
+        if (inventory.ordinaryRows.isNotEmpty() || inventory.noteEntries.isNotEmpty()) {
+            add(PcSheetSemanticModule.ORDINARY_EQUIPMENT)
+        }
+        if (inventory.specialRows.isNotEmpty()) {
+            add(PcSheetSemanticModule.SPECIAL_EQUIPMENT)
+        }
+
+        if (!classicSpellContinuation(plan).isEmpty) {
+            add(PcSheetSemanticModule.SPELLS)
+        }
+        if (packedClassicNotes(p, plan).columns.isNotEmpty()) {
+            add(PcSheetSemanticModule.NOTES)
+        }
+    }
+
+    private fun classicGlobalFronts(): List<PcSheetExtendedGlobalFront> = listOf(
+        PcSheetExtendedGlobalFront(
+            id = CLASSIC_GLOBAL_STATS_FRONT_ID,
+            modules = setOf(PcSheetSemanticModule.CUSTOM_STATISTICS),
+            priority = 10,
+        ),
+        PcSheetExtendedGlobalFront(
+            id = CLASSIC_GLOBAL_NARRATIVE_FRONT_ID,
+            modules = setOf(PcSheetSemanticModule.BACKGROUND_STORY),
+            priority = 20,
+        ),
+        PcSheetExtendedGlobalFront(
+            id = CLASSIC_GLOBAL_TRAITS_FRONT_ID,
+            modules = setOf(PcSheetSemanticModule.TRAITS),
+            priority = 30,
+        ),
+        PcSheetExtendedGlobalFront(
+            id = CLASSIC_GLOBAL_COMBAT_FRONT_ID,
+            modules = setOf(PcSheetSemanticModule.COMBAT_ACTIONS),
+            priority = 40,
+        ),
+        PcSheetExtendedGlobalFront(
+            id = CLASSIC_GLOBAL_RESOURCES_FRONT_ID,
+            modules = setOf(
+                PcSheetSemanticModule.RESOURCES,
+                PcSheetSemanticModule.CLASS_CHOICES,
+            ),
+            priority = 50,
+        ),
+        PcSheetExtendedGlobalFront(
+            id = CLASSIC_GLOBAL_INVENTORY_FRONT_ID,
+            modules = setOf(
+                PcSheetSemanticModule.ORDINARY_EQUIPMENT,
+                PcSheetSemanticModule.SPECIAL_EQUIPMENT,
+            ),
+            priority = 60,
+        ),
+        PcSheetExtendedGlobalFront(
+            id = CLASSIC_GLOBAL_SPELLS_FRONT_ID,
+            modules = setOf(PcSheetSemanticModule.SPELLS),
+            priority = 70,
+        ),
+        PcSheetExtendedGlobalFront(
+            id = CLASSIC_GLOBAL_NOTES_FRONT_ID,
+            modules = setOf(PcSheetSemanticModule.NOTES),
+            priority = 90,
+        ),
+    )
 
     private fun appendCustomStatisticsPages(
         doc: PDDocument,
@@ -549,11 +655,9 @@ internal class DesktopClassicRenderer {
         return modules
     }
 
-    private fun appendTraitsPages(
-        doc: PDDocument,
-        p: DesktopPdfRenderingPrimitives,
+    private fun classicTraitColumns(
         plan: PcSheetPdfRenderPlan,
-    ) {
+    ): List<ClassicTraitColumn> {
         val sheet = plan.snapshot.aggregate.sheet
         val orderedTraits = sheet.traits
             .sortedBy { it.sortOrder }
@@ -606,6 +710,16 @@ internal class DesktopClassicRenderer {
                     preferredSlotId = CLASSIC_TRAIT_RIGHT_SLOT_ID,
                     heading = "RASGOS DE RAZA / TRASFONDO / OTROS",
                 )
+        return columns
+    }
+
+    private fun appendTraitsPages(
+        doc: PDDocument,
+        p: DesktopPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ) {
+        val sheet = plan.snapshot.aggregate.sheet
+        val columns = classicTraitColumns(plan)
         if (columns.isEmpty()) return
 
         var demands = listOf(
@@ -1780,11 +1894,9 @@ internal class DesktopClassicRenderer {
         CharacterClassOptionKind.OTHER -> "Otro"
     }
 
-    private fun appendInventoryPages(
-        doc: PDDocument,
-        p: DesktopPdfRenderingPrimitives,
+    private fun classicInventoryContinuation(
         plan: PcSheetPdfRenderPlan,
-    ): Int {
+    ): ClassicInventoryContinuationProjection {
         val aggregate = plan.snapshot.aggregate
         val sheet = aggregate.sheet
         val usageByItem = aggregate.closure.inventoryUsage.associateBy { it.itemId }
@@ -1804,9 +1916,6 @@ internal class DesktopClassicRenderer {
             }
             .flatMap { item -> classicInventoryRows(item, usageByItem[item.id]) }
 
-        // Special equipment details belong in the dedicated special-equipment block, never in
-        // the Treasure/Notes block. This may repeat the compact item identity intentionally, but
-        // not the item's data across unrelated semantic destinations.
         val specialRows = specialItems
             .flatMap { item ->
                 classicSpecialItemRows(
@@ -1836,6 +1945,24 @@ internal class DesktopClassicRenderer {
                 .chunked(CLASSIC_INVENTORY_NOTE_LINES)
                 .map { it.joinToString("\n") }
         }
+
+        return ClassicInventoryContinuationProjection(
+            ordinaryRows = ordinaryRows,
+            specialRows = specialRows,
+            noteEntries = noteEntries,
+        )
+    }
+
+    private fun appendInventoryPages(
+        doc: PDDocument,
+        p: DesktopPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ): Int {
+        val sheet = plan.snapshot.aggregate.sheet
+        val projection = classicInventoryContinuation(plan)
+        val ordinaryRows = projection.ordinaryRows
+        val specialRows = projection.specialRows
+        val noteEntries = projection.noteEntries
 
         if (ordinaryRows.isEmpty() && specialRows.isEmpty() && noteEntries.isEmpty()) return 0
 
@@ -2010,13 +2137,10 @@ private fun classicInventoryRows(
         return text.replace('.', ',')
     }
 
-private fun appendSpellContinuationPages(
-        doc: PDDocument,
-        p: DesktopPdfRenderingPrimitives,
+    private fun classicSpellContinuation(
         plan: PcSheetPdfRenderPlan,
-    ) {
+    ): ClassicSpellContinuationProjection {
         val sheet = plan.snapshot.aggregate.sheet
-        val slots = sheet.spellSlots.associateBy { it.level }
         val spellsByLevel = sheet.spells
             .sortedWith(
                 compareBy<io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell> { it.sortOrder }
@@ -2032,13 +2156,12 @@ private fun appendSpellContinuationPages(
             4 to CLASSIC_BASE_LEVEL4_CAPACITY,
             5 to CLASSIC_BASE_LEVEL5_CAPACITY,
         )
-        val overflowByLevel = mutableMapOf<Int, List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell>>()
+        val overflowByLevel =
+            mutableMapOf<Int, List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell>>()
         (1..5).forEach { level ->
             overflowByLevel[level] = spellsByLevel[level].orEmpty().drop(baseCapacities.getValue(level))
         }
 
-        // The legacy/base Classic sheet has one compact 6+ area. Preserve which exact spells were
-        // already represented there, but never collapse their continuation into another 6+ block.
         val consumedHighIds = (6..9)
             .flatMap { level -> spellsByLevel[level].orEmpty() }
             .take(CLASSIC_BASE_HIGH_LEVEL_CAPACITY)
@@ -2046,6 +2169,23 @@ private fun appendSpellContinuationPages(
         (6..9).forEach { level ->
             overflowByLevel[level] = spellsByLevel[level].orEmpty().filter { it.id !in consumedHighIds }
         }
+
+        return ClassicSpellContinuationProjection(
+            cantripOverflow = cantripOverflow,
+            overflowByLevel = overflowByLevel,
+        )
+    }
+
+private fun appendSpellContinuationPages(
+        doc: PDDocument,
+        p: DesktopPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ) {
+        val sheet = plan.snapshot.aggregate.sheet
+        val slots = sheet.spellSlots.associateBy { it.level }
+        val continuation = classicSpellContinuation(plan)
+        val cantripOverflow = continuation.cantripOverflow
+        val overflowByLevel = continuation.overflowByLevel
 
         if (cantripOverflow.isEmpty() && overflowByLevel.values.all { it.isEmpty() }) return
 
@@ -4315,6 +4455,20 @@ private fun ruledTextArea(
         val standardSlices: List<StandardCustomGroupSlice>,
     )
 
+    private data class ClassicInventoryContinuationProjection(
+        val ordinaryRows: List<InventoryRow>,
+        val specialRows: List<ClassicSpecialItem>,
+        val noteEntries: List<String>,
+    )
+
+    private data class ClassicSpellContinuationProjection(
+        val cantripOverflow: List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell>,
+        val overflowByLevel: Map<Int, List<io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell>>,
+    ) {
+        val isEmpty: Boolean
+            get() = cantripOverflow.isEmpty() && overflowByLevel.values.all { it.isEmpty() }
+    }
+
     private data class CustomAttributeSlice(
         val projection: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomAttributeProjection,
         val skills: List<io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomSkillProjection>,
@@ -4333,6 +4487,14 @@ private fun ruledTextArea(
     }
 
     private companion object {
+        const val CLASSIC_GLOBAL_STATS_FRONT_ID = "fantasy-global-custom-statistics"
+        const val CLASSIC_GLOBAL_NARRATIVE_FRONT_ID = "fantasy-global-narrative"
+        const val CLASSIC_GLOBAL_TRAITS_FRONT_ID = "fantasy-global-traits"
+        const val CLASSIC_GLOBAL_COMBAT_FRONT_ID = "fantasy-global-combat"
+        const val CLASSIC_GLOBAL_RESOURCES_FRONT_ID = "fantasy-global-resources-options"
+        const val CLASSIC_GLOBAL_INVENTORY_FRONT_ID = "fantasy-global-inventory"
+        const val CLASSIC_GLOBAL_SPELLS_FRONT_ID = "fantasy-global-spells"
+        const val CLASSIC_GLOBAL_NOTES_FRONT_ID = "fantasy-global-notes"
         const val W = 612f
         const val H = 792f
         const val BASE_COMBAT_CAPACITY = 4
