@@ -89,9 +89,7 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 ),
             )
             val bytes = ByteArrayOutputStream().use { output ->
-                DesktopPcSheetWholeDraftRenderer(
-                    paginationTraceSink = paginationTrace::add,
-                ).renderDraft(plan, output)
+                DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
                 output.toByteArray()
             }
 
@@ -421,7 +419,9 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             )
             val pdf = File(proofDir, fileName)
             pdf.outputStream().use { output ->
-                DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+                DesktopPcSheetWholeDraftRenderer(
+                    paginationTraceSink = paginationTrace::add,
+                ).renderDraft(plan, output)
             }
 
             assertTrue(pdf.length() > 20_000L, "$family must produce a non-trivial exact Mara PDF proof.")
