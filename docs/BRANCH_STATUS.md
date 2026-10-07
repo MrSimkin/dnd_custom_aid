@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — **Phase 3 ACTIVE / green through Custom-v1 Narrative association**. Post-Inventory production compositor packages for Resources/Options and Traits have advanced across Custom-v1/v2/Fantasy; Custom-v1 Narrative association is green at `e6e07a13...` / run `37537059037`. Health consolidation result: **CONTINUE_WITH_GUARDRAIL**. **Next action: one bounded read-only Custom-v1 Traits semantic-ownership preflight before further renderer writes.** Remaining exact-candidate/owner gates stay blocked.**
+**Current normal work:** PC Sheet PDF Export — **Phase 3 ACTIVE / Custom-v1 Narrative validated; Custom-v1 Traits package OPEN / CI RED**. Narrative remains validated at `e6e07a13...` / run `37537059037` / proof `11447835297`. Physical branch HEAD is `92e460f0...`; Scaffold #4516 / `37543504407` failed kotlin on two bounded Custom-v1 Traits/Narrative-association tests and produced no proof artifact. Health consolidation remains **CONTINUE_WITH_GUARDRAIL**. **Next action: repair only this existing Custom-v1 Traits package, cycle 2/4, after the consolidation is presented; no new front.** Remaining exact-candidate/owner gates stay blocked.**
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -128,7 +128,8 @@ Phase-3 validated package state:
 8. Custom-v2 Traits native compositor — GREEN at `d8a4e4a8...`;
 9. Fantasy Traits native compositor — GREEN at `fdad9f87...`;
 10. Custom-v1 Narrative semantic association — GREEN at `e6e07a13...` / run `37537059037`;
-11. anti-loop health result — `CONTINUE_WITH_GUARDRAIL`; next action is the bounded Custom-v1 Traits semantic-ownership preflight.
+11. anti-loop health result — `CONTINUE_WITH_GUARDRAIL`;
+12. current Custom-v1 Traits native-module package — OPEN at `92e460f0...`; first CI cycle #4516 / `37543504407` RED in kotlin, no proof artifact; next allowed attempt is cycle 2/4 and must remain inside this front.
 
 No owner visual handoff occurs until exact-candidate all-four-family internal acceptance passes.
 

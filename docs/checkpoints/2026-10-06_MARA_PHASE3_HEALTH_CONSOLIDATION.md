@@ -5,7 +5,8 @@
 **Branch:** `repair/mara-phase3-semantic-flow-compositor`  
 **Main base:** `c4e65955a5f58f88e0b03807b4616a3f8a9323a8`  
 **Validated implementation head at capture:** `e6e07a13721d3d56364d6373472a0b5b0074acb6`  
-**Current status:** ACTIVE / REPOSITORY-GREEN THROUGH CUSTOM-v1 NARRATIVE ASSOCIATION  
+**Physical branch HEAD after consolidation:** `92e460f005cb1f7f3cb76e3a4d6ebfa34afb04a4` — Custom-v1 Traits package OPEN / CI RED at Scaffold #4516 (`37543504407`)  
+**Current status:** ACTIVE / CUSTOM-v1 NARRATIVE VALIDATED; CUSTOM-v1 TRAITS PACKAGE OPEN  
 **Anti-loop result:** `CONTINUE_WITH_GUARDRAIL`  
 **Open implementation PR:** none at capture  
 **Owner visual handoff:** NOT AUTHORIZED
@@ -85,7 +86,8 @@ Observed post-Inventory CI cycles across the six packages above:
 - material packages closed: **6**;
 - packages reopened after closure under the current regression suite: **0**;
 - largest single-package chain: **Fantasy Traits = 4 cycles**, then closed;
-- current head regression suite: GREEN.
+- audited capture head `e6e07a13...` regression suite: GREEN;
+- physical branch later advanced to `92e460f0...`; its first Custom-v1 Traits cycle is RED and is recorded below rather than being folded backward into the already-completed health sample.
 
 Interpretation: **not an infinite loop**. The sequence shows real convergence, but Traits is a churn-prone implementation surface. Continue only with an explicit guardrail.
 
@@ -107,23 +109,40 @@ A test change is valid only when the old test contradicts the canonical contract
 
 Do not repeat this health consolidation unless one of the guardrail triggers fires or the owner explicitly requests another one.
 
+## Post-consolidation physical-state correction
+
+The branch advanced after this consolidation was first captured. This does **not** invalidate the bounded audit and must not trigger rollback or replay.
+
+Physical state verified on 2026-10-06:
+
+- current branch HEAD: `92e460f005cb1f7f3cb76e3a4d6ebfa34afb04a4` — `feat: compose v1 Traits from native modules`;
+- parent documentation commit: `12172e330b38f26edb6dc0b99e6a0b426e935bdc` — this health consolidation;
+- Narrative validation remains anchored at `e6e07a13721d3d56364d6373472a0b5b0074acb6` / Scaffold #4514 / run `37537059037` — backend, hosted-database and kotlin SUCCESS;
+- Narrative proof artifact: `11447835297`, digest `sha256:059eb8a5214b32b1e7a346f748e0cadea81b552c393395a35ebd82e2dc6cd0c0`;
+- direct proof inspection confirmed native `Rasgos de Personalidad` / `Historia del Personaje` association, late tokens `PersonalidadNarrativaV128` and `HistoriaNarrativaV142`, and no narrative payload in the following Traits surface;
+- current Traits run: Scaffold #4516 / `37543504407` — backend SUCCESS, hosted-database SUCCESS, kotlin FAILURE, no proof artifact;
+- open implementation PR: none.
+
+Current Custom-v1 Traits failure packet:
+
+1. `promotesOwnerApprovedCustomV1TraitsContinuationWithoutCustomStatistics` fails because source-only metadata on a trait already represented in the base sheet is emitted again as Extended trait detail. The current implementation treats `source` alone as sufficient continuation detail.
+2. `keepsCustomV1NarrativeOverflowOutOfTraitsAndInNativeStoryModules` also fails. The new Traits-page selector matches extracted `Otros Rasgos y Atributos` text, which can exist in source/native text on narrative proof pages; therefore this failure is a **regression signal but not proof of a visual Narrative regression**. Do not weaken the semantic contract merely to green the test. Re-establish page/module ownership precisely and require a new proof before closing the Traits package.
+
+Anti-loop consequence: **no LOOP_SUSPECTED trigger yet** for Custom-v1 Traits. This is cycle 1 of the bounded front. It must close or materially reduce its open criteria within the existing four-cycle guardrail; otherwise stop for structural diagnosis.
+
 ## Exact next authorized action
 
-Before another renderer write, perform one bounded **Custom-v1 Traits semantic-ownership preflight**.
+The read-only Custom-v1 Traits semantic-ownership preflight has already been overtaken by a physical implementation commit on the branch. Do **not** restart it and do **not** open another Phase-3 front.
 
-Reason: `DesktopCustomV1ExtendedRenderer.appendTraitsExtendedPages()` still owns a fixed full Traits scaffold and `traitSupplementLines()` still sends several non-trait semantic families into `Detalles de Rasgos`. The newly closed narrative package removed Personality/Ideals/Bonds/Flaws/Story from that leakage, but other categories remain.
+After this consolidation is presented to the owner, the only authorized implementation work is the **existing Custom-v1 Traits native-module package at `92e460f0...`**:
 
-The preflight must:
+1. preserve the native `Otros Rasgos y Atributos` geometry and Android/Desktop parity;
+2. eliminate duplicate source-only detail for already represented traits without dropping meaningful trait content;
+3. restore a precise semantic-association gate so Narrative remains owned by `BACKGROUND_STORY`, without relaxing the canonical contract;
+4. require green CI and inspect the resulting real proof PDF/PNG before declaring M50800-08 / 09 / 10 / 27 progress closed for this package;
+5. count the next CI attempt as cycle 2 of a maximum four-cycle front.
 
-1. enumerate each remaining `traitSupplementLines()` semantic family;
-2. identify whether it is true Traits/Rasgos content, has an existing dedicated renderer/module, or needs a separately named continuation owner;
-3. verify the native Custom-v1 Traits geometry to reuse;
-4. identify the smallest coherent implementation package that fixes M50800-08 / 09 / 10 / 27 without moving unrelated data blindly;
-5. surface an owner question only if Phase-2 authority genuinely does not determine semantic ownership.
-
-This preflight is READ-ONLY and is a single decision packet, not a new audit loop.
-
-If the map is determinate, proceed with one bounded Custom-v1 Traits implementation package. Preserve Android/Desktop generated parity. Maximum **4 CI cycles** for that front before mandatory structural stop/rethink.
+No Combat/Actions, Notes, ellipsis/silent-drop, candidate, Current Snapshot or Media/Handouts work is authorized until this current package is closed or the guardrail forces a stop/rethink.
 
 ## Still pending before owner candidate
 
