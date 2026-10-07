@@ -2315,8 +2315,7 @@ internal class AndroidCustomV2ExtendedRenderer(
         var pageIndex = 0
 
         while (demands.isNotEmpty()) {
-            val activeModules = demands.mapTo(mutableSetOf()) { it.module }
-            val layouts = resourceCompositionLayouts(activeModules)
+            val layouts = resourceCompositionLayouts(demands)
             val step = requireNotNull(
                 PcSheetExtendedPageComposer.composeNextPage(
                     demands = demands,
@@ -2324,14 +2323,12 @@ internal class AndroidCustomV2ExtendedRenderer(
                 ),
             )
             recordPaginationTrace(V2_GLOBAL_RESOURCES_FRONT_ID, step)
-            val resourceCount = step.page.placements
+            val resourcePlacement = step.page.placements
                 .firstOrNull { it.module == PcSheetSemanticModule.RESOURCES }
-                ?.consumedUnits
-                ?: 0
-            val optionCount = step.page.placements
+            val optionPlacement = step.page.placements
                 .firstOrNull { it.module == PcSheetSemanticModule.CLASS_CHOICES }
-                ?.consumedUnits
-                ?: 0
+            val resourceCount = resourcePlacement?.consumedUnits ?: 0
+            val optionCount = optionPlacement?.consumedUnits ?: 0
 
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
@@ -2341,6 +2338,8 @@ internal class AndroidCustomV2ExtendedRenderer(
                 options = options.drop(optionOffset).take(optionCount),
                 pageIndex = pageIndex,
                 layoutId = step.page.layoutId,
+                resourceCapacity = resourcePlacement?.nativeCapacity ?: 0,
+                optionCapacity = optionPlacement?.nativeCapacity ?: 0,
             )
 
             resourceOffset += resourceCount
@@ -2358,10 +2357,20 @@ internal class AndroidCustomV2ExtendedRenderer(
     }
 
     private fun resourceCompositionLayouts(
-        activeModules: Set<PcSheetSemanticModule>,
-    ): List<PcSheetExtendedLayoutTemplate> =
-        when (activeModules) {
-            setOf(PcSheetSemanticModule.RESOURCES, PcSheetSemanticModule.CLASS_CHOICES) ->
+        demands: List<PcSheetModuleDemand>,
+    ): List<PcSheetExtendedLayoutTemplate> {
+        val demandByModule = demands.associate { it.module to it.remainingUnits }
+        val activeModules = demandByModule.keys
+
+        return when (activeModules) {
+            setOf(PcSheetSemanticModule.RESOURCES, PcSheetSemanticModule.CLASS_CHOICES) -> {
+                val optionCapacity = minOf(
+                    demandByModule.getValue(PcSheetSemanticModule.CLASS_CHOICES),
+                    RESOURCE_OPTIONS_PER_PAGE,
+                )
+                val reclaimedRows = RESOURCE_OPTIONS_PER_PAGE - optionCapacity
+                val resourceCapacity = RESOURCE_ROWS_PER_PAGE + reclaimedRows
+
                 listOf(
                     PcSheetExtendedLayoutTemplate(
                         id = RESOURCES_OPTIONS_SPLIT_LAYOUT_ID,
@@ -2369,18 +2378,19 @@ internal class AndroidCustomV2ExtendedRenderer(
                             PcSheetExtendedLayoutSlot(
                                 id = "resources",
                                 capacityByModule = mapOf(
-                                    PcSheetSemanticModule.RESOURCES to RESOURCE_ROWS_PER_PAGE,
+                                    PcSheetSemanticModule.RESOURCES to resourceCapacity,
                                 ),
                             ),
                             PcSheetExtendedLayoutSlot(
                                 id = "class-choices",
                                 capacityByModule = mapOf(
-                                    PcSheetSemanticModule.CLASS_CHOICES to RESOURCE_OPTIONS_PER_PAGE,
+                                    PcSheetSemanticModule.CLASS_CHOICES to optionCapacity,
                                 ),
                             ),
                         ),
                     ),
                 )
+            }
 
             setOf(PcSheetSemanticModule.RESOURCES) ->
                 listOf(
@@ -2417,6 +2427,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                     activeModules.joinToString(),
             )
         }
+    }
 
     private fun resourceRenderRows(plan: PcSheetPdfRenderPlan): List<ResourceRenderRow> {
         val aggregate = plan.snapshot.aggregate
@@ -2549,6 +2560,8 @@ internal class AndroidCustomV2ExtendedRenderer(
         options: List<OptionRenderLine>,
         pageIndex: Int,
         layoutId: String,
+        resourceCapacity: Int,
+        optionCapacity: Int,
     ) {
         val layerPrefix = if (pageIndex == 0) "V2X RESOURCES" else "V2X RESOURCES ${pageIndex + 1}"
         val splitLayout = layoutId == RESOURCES_OPTIONS_SPLIT_LAYOUT_ID
@@ -2564,13 +2577,20 @@ internal class AndroidCustomV2ExtendedRenderer(
             "Options-full layout cannot reserve a Resources module."
         }
 
-        val optionHeaderTop = if (splitLayout) 337f else 96f
-        val optionHeadingTop = if (splitLayout) 338f else 97f
-        val optionLabelTop = if (splitLayout) 364f else 121f
-        val optionFirstRuleTop = if (splitLayout) 398f else RESOURCE_FIRST_RULE_TOP
+        val splitResourceExtraRows =
+            if (splitLayout) resourceCapacity - RESOURCE_ROWS_PER_PAGE else 0
+        require(!splitLayout || splitResourceExtraRows >= 0) {
+            "Custom-v2 adaptive split cannot shrink the native Resources baseline."
+        }
+        require(!splitLayout || resourceCapacity + optionCapacity == RESOURCE_SPLIT_TOTAL_ROW_BUDGET) {
+            "Custom-v2 adaptive split must preserve the measured 28-row physical budget."
+        }
+        val splitShift = splitResourceExtraRows * RESOURCE_ROW_STEP
+        val optionHeaderTop = if (splitLayout) 337f + splitShift else 96f
+        val optionHeadingTop = if (splitLayout) 338f + splitShift else 97f
+        val optionLabelTop = if (splitLayout) 364f + splitShift else 121f
+        val optionFirstRuleTop = if (splitLayout) 398f + splitShift else RESOURCE_FIRST_RULE_TOP
         val optionMarkerFirstTop = optionFirstRuleTop - 12f
-        val resourceCapacity = if (splitLayout) RESOURCE_ROWS_PER_PAGE else RESOURCE_FULL_ROWS_PER_PAGE
-        val optionCapacity = if (splitLayout) RESOURCE_OPTIONS_PER_PAGE else RESOURCE_OPTIONS_FULL_PER_PAGE
 
         appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
             pageHeaderStructure(s)
@@ -2586,7 +2606,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                     RESOURCE_ROW_STEP,
                     0,
                 )
-                val resourceBottom = if (splitLayout) 303f else RESOURCE_FULL_SECTION_BOTTOM
+                val resourceBottom = if (splitLayout) 303f + splitShift else RESOURCE_FULL_SECTION_BOTTOM
                 listOf(222f, 352f, 475f).forEach { x ->
                     verticalRule(s, x, 120f, resourceBottom, 0.45f)
                 }
@@ -2594,7 +2614,7 @@ internal class AndroidCustomV2ExtendedRenderer(
 
             if (options.isNotEmpty()) {
                 if (splitLayout) {
-                    drawRule(s, 14f, 598f, 329f, 0.8f)
+                    drawRule(s, 14f, 598f, 329f + splitShift, 0.8f)
                 }
                 fill(s, 14f, optionHeaderTop, 584f, 22f, SOURCE_GRAY_LIGHT)
                 bandedRows(
@@ -2606,7 +2626,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                     RESOURCE_ROW_STEP,
                     1,
                 )
-                val optionRuleTop = if (splitLayout) 362f else 120f
+                val optionRuleTop = if (splitLayout) 362f + splitShift else 120f
                 listOf(30f, 118f, 258f).forEach { x ->
                     verticalRule(s, x, optionRuleTop, RESOURCE_FULL_SECTION_BOTTOM, 0.45f)
                 }
@@ -4730,6 +4750,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             "Cabeza", "Rostro", "Cuello", "Mano izquierda", "Mano derecha",
             "Brazo izquierdo", "Brazo derecho", "Pecho", "Piernas", "Pies",
         )
+        const val RESOURCE_SPLIT_TOTAL_ROW_BUDGET = 28
         const val RESOURCE_ROWS_PER_PAGE = 10
         const val RESOURCE_OPTIONS_PER_PAGE = 18
         // The existing split page already establishes a valid full-width writing area ending at
