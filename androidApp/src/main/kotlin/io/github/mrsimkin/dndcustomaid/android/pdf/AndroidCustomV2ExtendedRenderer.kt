@@ -720,7 +720,40 @@ internal class AndroidCustomV2ExtendedRenderer(
         val rows = attributeRows + standardRows
         val pages = packPerAttributeRows(rows)
 
+        var rowOffset = 0
         pages.forEachIndexed { pageIndex, pageRows ->
+            val remainingBefore = rows.size - rowOffset
+            val remainingAfter = remainingBefore - pageRows.size
+            recordPaginationTrace(
+                V2_GLOBAL_STATS_FRONT_ID,
+                pcSheetDirectCompositionTrace(
+                    layoutId = "v2-custom-statistics-per-attribute",
+                    streams = listOf(
+                        PcSheetPaginationStreamTrace(
+                            "custom-stat-physical-rows",
+                            PcSheetSemanticModule.CUSTOM_STATISTICS,
+                            remainingBefore,
+                            pageRows.size,
+                            PER_ATTRIBUTE_PHYSICAL_ROWS_PER_PAGE,
+                            remainingAfter,
+                        ),
+                    ),
+                    physical = PcSheetPhysicalPaginationTrace(
+                        metric = "native-stat-rows",
+                        used = pageRows.size.toDouble(),
+                        capacity = PER_ATTRIBUTE_PHYSICAL_ROWS_PER_PAGE.toDouble(),
+                        nextAtomicUnitSize = 1.0.takeIf { remainingAfter > 0 },
+                        nextAtomicUnitFits = (pageRows.size < PER_ATTRIBUTE_PHYSICAL_ROWS_PER_PAGE)
+                            .takeIf { remainingAfter > 0 },
+                        rationale = if (remainingAfter > 0) {
+                            "native-stat-row-capacity-or-attribute-limit-reached"
+                        } else {
+                            "front-exhausted"
+                        },
+                    ),
+                ),
+            )
+
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderPerAttributePage(
@@ -729,6 +762,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                 allAttributes = attributes,
                 pageIndex = pageIndex,
             )
+            rowOffset += pageRows.size
         }
     }
 
@@ -1028,19 +1062,88 @@ internal class AndroidCustomV2ExtendedRenderer(
         )
 
         repeat(pages) { pageIndex ->
+            val pageAttributes = attributes
+                .drop(pageIndex * ABILITY_ATTRIBUTES_PER_PAGE)
+                .take(ABILITY_ATTRIBUTES_PER_PAGE)
+            val pageSaves = saves
+                .drop(pageIndex * ABILITY_SAVES_PER_PAGE)
+                .take(ABILITY_SAVES_PER_PAGE)
+            val pageSkills = skills
+                .drop(pageIndex * ABILITY_SKILLS_PER_PAGE)
+                .take(ABILITY_SKILLS_PER_PAGE)
+
+            val statStreams = buildList {
+                val attributesBefore =
+                    (attributes.size - pageIndex * ABILITY_ATTRIBUTES_PER_PAGE).coerceAtLeast(0)
+                if (attributesBefore > 0 && pageAttributes.isNotEmpty()) {
+                    add(
+                        PcSheetPaginationStreamTrace(
+                            "custom-stat-attributes",
+                            PcSheetSemanticModule.CUSTOM_STATISTICS,
+                            attributesBefore,
+                            pageAttributes.size,
+                            ABILITY_ATTRIBUTES_PER_PAGE,
+                            attributesBefore - pageAttributes.size,
+                        ),
+                    )
+                }
+                val savesBefore =
+                    (saves.size - pageIndex * ABILITY_SAVES_PER_PAGE).coerceAtLeast(0)
+                if (savesBefore > 0 && pageSaves.isNotEmpty()) {
+                    add(
+                        PcSheetPaginationStreamTrace(
+                            "custom-stat-saves",
+                            PcSheetSemanticModule.CUSTOM_STATISTICS,
+                            savesBefore,
+                            pageSaves.size,
+                            ABILITY_SAVES_PER_PAGE,
+                            savesBefore - pageSaves.size,
+                        ),
+                    )
+                }
+                val skillsBefore =
+                    (skills.size - pageIndex * ABILITY_SKILLS_PER_PAGE).coerceAtLeast(0)
+                if (skillsBefore > 0 && pageSkills.isNotEmpty()) {
+                    add(
+                        PcSheetPaginationStreamTrace(
+                            "custom-stat-skills",
+                            PcSheetSemanticModule.CUSTOM_STATISTICS,
+                            skillsBefore,
+                            pageSkills.size,
+                            ABILITY_SKILLS_PER_PAGE,
+                            skillsBefore - pageSkills.size,
+                        ),
+                    )
+                }
+            }
+            check(statStreams.isNotEmpty()) {
+                "Custom-v2 per-ability Custom Statistics produced an empty page."
+            }
+            recordPaginationTrace(
+                V2_GLOBAL_STATS_FRONT_ID,
+                pcSheetDirectCompositionTrace(
+                    layoutId = "v2-custom-statistics-per-ability",
+                    streams = statStreams,
+                    physical = PcSheetPhysicalPaginationTrace(
+                        metric = "native-stat-stream-units",
+                        used = statStreams.sumOf { it.consumedUnits }.toDouble(),
+                        capacity = statStreams.sumOf { it.nativeCapacity }.toDouble(),
+                        rationale = if (statStreams.any { it.remainingAfter > 0 }) {
+                            "remaining-custom-statistics-demand"
+                        } else {
+                            "front-exhausted"
+                        },
+                    ),
+                ),
+            )
+
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderPerAbilityPage(
                 page = page,
-                attributes = attributes
-                    .drop(pageIndex * ABILITY_ATTRIBUTES_PER_PAGE)
-                    .take(ABILITY_ATTRIBUTES_PER_PAGE),
-                saves = saves
-                    .drop(pageIndex * ABILITY_SAVES_PER_PAGE)
-                    .take(ABILITY_SAVES_PER_PAGE),
-                skills = skills
-                    .drop(pageIndex * ABILITY_SKILLS_PER_PAGE)
-                    .take(ABILITY_SKILLS_PER_PAGE),
+                attributes = pageAttributes,
+                saves = pageSaves,
+                skills = pageSkills,
                 allAttributes = attributes,
                 pageIndex = pageIndex,
             )
@@ -1063,7 +1166,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             fill(s, 202f, 104f, 150f, 30f, SOURCE_GRAY_LIGHT)
             fill(s, 366f, 104f, 232f, 30f, SOURCE_GRAY_LIGHT)
 
-            repeat(ABILITY_ATTRIBUTES_PER_PAGE) { index ->
+            attributes.indices.forEach { index ->
                 val top = 136f + index * 96f
                 fill(s, 14f, top, 174f, 94f, if (index % 2 == 0) SOURCE_GRAY_LIGHT else SOURCE_GRAY_DARK)
                 drawAttributeOrnament(s, 14.3f, top + 24f)

@@ -644,6 +644,19 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 },
         )
 
+        listOf(
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
+        ).forEach { family ->
+            assertTrue(
+                paginationTrace.any { entry ->
+                    entry.family == family &&
+                        entry.frontId.contains("custom-statistics", ignoreCase = true)
+                },
+                "$family exact Mara proof must trace Custom Statistics physical pagination.",
+            )
+        }
+
         val customV1StatsTrace = paginationTrace.filter { entry ->
             entry.family == PcSheetVisualFamily.CUSTOM_V1 &&
                 entry.frontId.contains("custom-statistics", ignoreCase = true)
