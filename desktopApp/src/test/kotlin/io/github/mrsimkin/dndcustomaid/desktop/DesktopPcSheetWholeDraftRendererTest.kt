@@ -2301,9 +2301,22 @@ class DesktopPcSheetWholeDraftRendererTest {
         val longStory = (1..42).joinToString(" ") { index ->
             "HistoriaNarrativaV1$index"
         }
+        val associationTrait = base.sheet.traits.first().copy(
+            id = uuid("8c400000-0000-0000-0000-000000000001"),
+            name = "RasgoAsociacionV1",
+            source = "",
+            type = CharacterTraitType.OTHER,
+            description = "DetalleAsociacionV1",
+            notes = null,
+            maxUses = null,
+            spentUses = 0,
+            recovery = null,
+            activation = CharacterActivationType.PASSIVE,
+            sortOrder = 0,
+        )
         val aggregate = base.copy(
             sheet = base.sheet.copy(
-                traits = emptyList(),
+                traits = listOf(associationTrait),
                 proficiencies = emptyList(),
                 resources = emptyList(),
                 classOptions = emptyList(),
@@ -2352,10 +2365,14 @@ class DesktopPcSheetWholeDraftRendererTest {
             val extendedText = extendedPages.joinToString(" ") { it.second }
             val traitExtendedText = extendedPages
                 .filter { (_, pageText) ->
-                    pageText.contains("Otros Rasgos y Atributos")
+                    pageText.contains("DetalleAsociacionV1")
                 }
                 .joinToString(" ") { it.second }
 
+            assertTrue(
+                traitExtendedText.contains("DetalleAsociacionV1"),
+                "Narrative association gate must inspect an actual Traits-owned semantic page.",
+            )
             assertFalse(
                 traitExtendedText.contains("PersonalidadNarrativaV1"),
                 "Personality overflow must no longer be associated with Extended Traits.",
@@ -2465,7 +2482,7 @@ class DesktopPcSheetWholeDraftRendererTest {
                         endPage = pageNumber
                     }.getText(document).replace(Regex("\\s+"), " ")
                 }
-                .filter { (_, pageText) -> pageText.contains("Otros Rasgos y Atributos") }
+                .filter { (_, pageText) -> pageText.contains("Rasgo v1 módulo nativo 31") }
 
             assertEquals(1, traitPages.size)
             val joined = traitPages.single().second

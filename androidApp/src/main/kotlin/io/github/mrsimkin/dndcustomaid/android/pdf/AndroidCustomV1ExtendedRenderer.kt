@@ -564,6 +564,7 @@ internal class AndroidCustomV1ExtendedRenderer(
             val normalizedName = trait.name.trim().lowercase()
             val hasDedicatedActionOrResource =
                 normalizedName in resourceNames || normalizedName in actionNames
+            val nameNeedsContinuation = trait.id !in baseVisibleTraitIds
             val detailParts = if (hasDedicatedActionOrResource) {
                 emptyList()
             } else {
@@ -588,10 +589,19 @@ internal class AndroidCustomV1ExtendedRenderer(
                         ?.let {
                             add(V1TraitFlowLineKind.DETAIL to "Activación: " + activationLabel(it))
                         }
-                }.distinct()
+                }.distinct().let { parts ->
+                    if (
+                        !nameNeedsContinuation &&
+                        parts.size == 1 &&
+                        parts.single().second.startsWith("Fuente: ")
+                    ) {
+                        emptyList()
+                    } else {
+                        parts
+                    }
+                }
             }
 
-            val nameNeedsContinuation = trait.id !in baseVisibleTraitIds
             if (!nameNeedsContinuation && detailParts.isEmpty()) return null
 
             val lines = mutableListOf<V1TraitFlowLine>()
