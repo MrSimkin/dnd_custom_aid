@@ -51,12 +51,16 @@ jobs:
       - name: Guard Android PC sheet PDF delivery
         run: python3 scripts/check_android_pc_sheet_pdf_delivery.py
       - name: Run focused Phase 3 PDF tests
-        run: >-
-          gradle :desktopApp:test
-          --tests "io.github.mrsimkin.dndcustomaid.desktop.DesktopPcSheetWholeDraftRendererTest.classicContinuesLongCanonicalBaseContentWithoutSilentLoss"
-          --tests "io.github.mrsimkin.dndcustomaid.desktop.DesktopPcSheetWholeDraftRendererTest.keepsCustomV1NarrativeOverflowOutOfTraitsAndInNativeStoryModules"
-          --tests "io.github.mrsimkin.dndcustomaid.desktop.DesktopPcSheetRuntimeQaFixtureTest.writesExactMaraFourFamilyProofsForPhase3CandidateReview"
-          --stacktrace
+        run: |
+          gradle :shared:desktopTest \
+            --tests "io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExtendedComposerTest" \
+            --tests "io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfNotesFlowTest" \
+            --stacktrace
+          gradle :desktopApp:test \
+            --tests "io.github.mrsimkin.dndcustomaid.desktop.DesktopPcSheetWholeDraftRendererTest.classicContinuesLongCanonicalBaseContentWithoutSilentLoss" \
+            --tests "io.github.mrsimkin.dndcustomaid.desktop.DesktopPcSheetWholeDraftRendererTest.keepsCustomV1NarrativeOverflowOutOfTraitsAndInNativeStoryModules" \
+            --tests "io.github.mrsimkin.dndcustomaid.desktop.DesktopPcSheetRuntimeQaFixtureTest.writesExactMaraFourFamilyProofsForPhase3CandidateReview" \
+            --stacktrace
       - name: Upload focused PC sheet proofs
         uses: actions/upload-artifact@v7
         with:
