@@ -5,9 +5,9 @@
 **Branch:** `repair/mara-phase3-semantic-flow-compositor`  
 **Main base:** `c4e65955a5f58f88e0b03807b4616a3f8a9323a8`  
 **Validated implementation head at capture:** `e6e07a13721d3d56364d6373472a0b5b0074acb6`  
-**Current functional implementation HEAD:** `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7` — general bidirectional continuity package; full Scaffold #4523 (`37560523288`) backend / hosted-database / kotlin SUCCESS; **CI_GREEN / VISUAL_PENDING**  
+**Current functional implementation HEAD:** `1566bd3c04bd64ec136fbf9c5df510ac60641a66` — M50800-03 isolated Custom-v1 source fragments + role-based continuation-cue routing; fast run `37568418440` SUCCESS; artifact `11459124665` / `sha256:1c9675a4afc5d504f131f15849d81783ba207bd9c304780c30b3fa6f14527d2c`; **CI_GREEN / VISUAL_VALIDATED**  
 **Current infrastructure/proof HEAD before this documentation consolidation:** `ab48e71097ef7ef49628507b1f06423a6c8ed916` — focused fast-gate validation run `37566302657` SUCCESS; artifact `11457979404` / `sha256:36dcc8222eabb275747344cf26909c3ea4dc8da65afcc1c704b0c97dd1cd7b5f`  
-**Current status:** ACTIVE / NARRATIVE + TRAITS + COMBAT/ACTIONS + NOTES + SEMANTIC SURVIVAL + GENERAL BIDIRECTIONAL CONTINUITY VALIDATED; NEXT = M50800-03 SOURCE-GEOMETRY / STALE-UNDERLAY AUDIT  
+**Current status:** ACTIVE / NARRATIVE + TRAITS + COMBAT/ACTIONS + NOTES + SEMANTIC SURVIVAL + GENERAL BIDIRECTIONAL CONTINUITY + M50800-03 SOURCE-GEOMETRY / STALE-UNDERLAY VALIDATED; NEXT = EXACT MARA FOUR-FAMILY PROOF GATE  
 **Anti-loop result:** `CONTINUE_WITH_GUARDRAIL`  
 **Open implementation PR:** none at capture  
 **Owner visual handoff:** NOT AUTHORIZED
@@ -369,20 +369,44 @@ Continuity therefore closes without another renderer commit.
 
 The same visual review reconfirmed the separate pending defect class M50800-03: stale source/footer residue is visibly retained on copied/overlaid pages, including examples such as `EXTENSIÓN: RASGOS`, `EXTENSIÓN: INVENTARIO` and `EXTENSIÓN: NOTAS`. This is not hidden as fixed and does not reopen continuity.
 
+## M50800-03 source-geometry / stale-underlay closure
+
+M50800-03 is now **CLOSED / VALIDATED** at functional head `1566bd3c04bd64ec136fbf9c5df510ac60641a66`.
+
+Criterion -> observed failure -> root cause -> change -> result:
+
+- criterion: unrelated source/template objects must not remain searchable/copyable/visible in the wrong semantic context, while preserving layered/native construction;
+- observed failure: copied Custom-v1 source fragments were visually clipped but still carried the full source page text layer, and fixed page-index cue routing could place `EXTENSIÓN: NOTAS` onto an Extended page when the Notes base page was omitted;
+- root cause: cropped `PDForm` reuse retained non-visible source objects, while cue targeting assumed fixed base-page positions instead of present page roles;
+- change: Custom-v1 PERSONALIDAD/HISTORIA source fragments are isolated raster fragments at 288 dpi rather than whole-page forms, and continuation cues resolve from `PcSheetBasePageRole` values actually present in `plan.basePages`; the complete page is not flattened and STRUCTURE / CLEANUP / LABELS / VALUES / MARKERS architecture remains intact;
+- result: fast run `37568418440` SUCCESS; artifact `11459124665` / `sha256:1c9675a4afc5d504f131f15849d81783ba207bd9c304780c30b3fa6f14527d2c`; Desktop/Android renderer-sync and delivery guards PASS.
+
+Actual artifact inspection:
+
+1. `custom-v1-narrative-native-module-association.pdf`
+   - Extended PERSONALIDAD/HISTORIA pages do not contain searchable `Ideales`, `Vínculos`, `Defectos`, `Notas`, `Otros Rasgos y Atributos`, `EXTENSIÓN: RASGOS`, `EXTENSIÓN: INVENTARIO` or `EXTENSIÓN: NOTAS`;
+   - `EXTENSIÓN: NOTAS` is absent when the Custom-v1 Notes base page is omitted;
+   - rendered pages preserve the native narrative-fragment appearance and geometry, with generated text/continuation markers unobstructed.
+2. `fantasy-canonical-overflow-audit.pdf`
+   - the previously validated Fantasy continuity/table surfaces remain visually clean; no new source-underlay regression was observed.
+
+The visible `Trasfondo` artwork on the isolated Custom-v1 narrative fragment remains part of the narrative/source-native visual context; it is raster content rather than an unrelated searchable source text object. No whole-page flattening was introduced.
+
+Anti-loop result for M50800-03: one corrective cycle after read-only diagnosis; OPEN `1 -> 0`; no oscillation; `LOOP_SUSPECTED = NO`.
+
 ## Exact next authorized action
 
-Begin bounded **M50800-03 source-geometry / stale-underlay audit**:
+Begin the **exact Mara four-family proof gate** from the current source head:
 
-1. reopen the exact owner/acceptance wording for M50800-03;
-2. identify every currently visible stale source/footer residue in the focused/current proofs;
-3. trace each residue to the source/template-copy/overlay implementation surface;
-4. distinguish intended native labels from stale underlay that must be masked/removed;
-5. verify Desktop/Android parity implications;
-6. only then implement the smallest coherent correction;
-7. validate through the fast gate first and inspect the focused actual PDFs;
-8. run full Scaffold only at coherent closure/PR/manual aggregate validation.
+1. generate the exact integrated Mara fixture in Fantasy, Custom v1, Custom v2 · Atributo and Custom v2 · Habilidad from one source head;
+2. retain each real PDF as a proof artifact;
+3. inspect text layer and rendered pages, not only generation/test success;
+4. confirm Android/Desktop renderer parity remains green;
+5. run the M50800-01…32 ledger against those exact outputs as `FIXED` / `OPEN` / `CHANGED-NEW`;
+6. if any blocking defect appears, repair only that observed defect through the fast gate;
+7. if all hard gates pass, then and only then create a unique new versionName/versionCode candidate and run aggregate/full validation.
 
-Do not begin final candidate/versioning, Current Snapshot finalization or Media/Handouts until this source-geometry front is closed or the anti-loop guardrail forces a stop.
+Do not begin Current Snapshot finalization, Media/Handouts or owner handoff before the exact four-family gate and acceptance matrix pass.
 
 ## Delivery objective / autonomous burn-down
 
@@ -406,12 +430,11 @@ That prompt is part of the active recovery contract. After timeout, connection i
 
 At minimum:
 
-- general bidirectional continuity proof in actual output;
-- remaining source-geometry / stale-underlay audit;
-- Android/Desktop parity;
-- exact Mara generation in Fantasy, Custom v1, Custom v2 Atributo and Custom v2 Habilidad from one candidate;
+- exact Mara generation in Fantasy, Custom v1, Custom v2 Atributo and Custom v2 Habilidad from one current source head, with retained real-PDF artifacts;
+- direct text-layer + rendered-page inspection of those four PDFs;
 - exact-candidate M50800-01…32 FIXED / OPEN / CHANGED-NEW inspection;
-- unique versionName/versionCode and complete commit/run/artifact/APK/PDF hash chain.
+- unique versionName/versionCode only after the matrix passes;
+- aggregate/full validation plus complete commit/run/artifact/APK/PDF hash chain for the promoted candidate.
 
 Current Snapshot and Media/Handouts remain blocked. Phase 3 is not closed.
 

@@ -128,30 +128,32 @@ En `repair/mara-phase3-semantic-flow-compositor`, los pushes ordinarios del rend
 
 ## 4. FRENTE FUNCIONAL ACTUAL
 
-**M50800-03 source-geometry / stale-underlay — READ-ONLY ROOT-CAUSE AUDIT FIRST**
+**EXACT MARA FOUR-FAMILY PROOF GATE — ACTUAL OUTPUT FIRST**
 
-General bidirectional semantic continuity ya está **CLOSED / VALIDATED**.
+General bidirectional semantic continuity permanece **CLOSED / VALIDATED**.
 
-Evidencia de cierre:
+M50800-03 source-geometry / stale-underlay está **CLOSED / VALIDATED** en:
 
-- renderer funcional: `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7`;
-- full Scaffold #4523 / `37560523288`: SUCCESS;
-- fast run `37566302657`: SUCCESS;
-- focused artifact `11457979404`, digest `sha256:36dcc8222eabb275747344cf26909c3ea4dc8da65afcc1c704b0c97dd1cd7b5f`;
-- inspección visual directa: Fantasy Combat/Narrative y Custom-v1 PERSONALIDAD/HISTORIA muestran continuidad de ida/vuelta sin clipping/overlap.
+- functional head: `1566bd3c04bd64ec136fbf9c5df510ac60641a66`;
+- fast run: `37568418440` — SUCCESS;
+- artifact: `11459124665`;
+- digest: `sha256:1c9675a4afc5d504f131f15849d81783ba207bd9c304780c30b3fa6f14527d2c`;
+- text-layer PASS: PERSONALIDAD/HISTORIA Custom-v1 ya no retienen labels fuente ajenos ni `EXTENSIÓN: NOTAS`;
+- visual PASS: fragments fuente aislados conservan apariencia/geometría sin cubrir contenido generado;
+- cue routing: resuelto por `PcSheetBasePageRole` presente, no por índice fijo;
+- Android renderer-sync + PDF-delivery guards: PASS.
 
-La misma inspección reconfirmó el frente siguiente: labels/footer/source residue visibles como `EXTENSIÓN: RASGOS`, `EXTENSIÓN: INVENTARIO` y `EXTENSIÓN: NOTAS`.
+No reabras M50800-03 ni continuidad sin nueva evidencia material.
 
 Siguiente acción exacta:
 
-1. reabrir wording owner/acceptance de M50800-03;
-2. inventariar los residuos visibles actuales;
-3. localizar la superficie source/template/overlay que los deja vivos;
-4. distinguir label nativo correcto vs stale-underlay;
-5. revisar paridad Desktop/Android;
-6. sólo después hacer el cambio mínimo;
-7. validar primero con fast gate + proof focalizado;
-8. usar full Scaffold en cierre coherente.
+1. generar Mara exacta desde un mismo source head en Fantasy, Custom v1, Custom v2 · Atributo y Custom v2 · Habilidad;
+2. conservar los cuatro PDFs reales como artifact;
+3. inspeccionar text layer + render visual real;
+4. verificar paridad Android/Desktop;
+5. aplicar M50800-01…32 a esos outputs exactos como `FIXED` / `OPEN` / `CHANGED-NEW`;
+6. si aparece un blocker, corregir sólo ese defecto observado y volver al fast gate;
+7. sólo con hard gates cerrados crear nueva identidad candidata; nunca reutilizar `0.5.0-preqa.8 / 50800`.
 
 ## 5. GUARDRAIL ANTI-LOOP
 
