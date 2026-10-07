@@ -180,6 +180,36 @@ class PcSheetPdfExtendedComposerTest {
     }
 
     @Test
+    fun directTraceReportsPartiallyUsedExhaustedSiblingWhileOtherStreamRemains() {
+        val trace = pcSheetDirectCompositionTrace(
+            layoutId = "stats-mixed",
+            streams = listOf(
+                PcSheetPaginationStreamTrace(
+                    streamId = "attributes",
+                    module = PcSheetSemanticModule.CUSTOM_STATISTICS,
+                    remainingBefore = 2,
+                    consumedUnits = 2,
+                    nativeCapacity = 6,
+                    remainingAfter = 0,
+                ),
+                PcSheetPaginationStreamTrace(
+                    streamId = "notes",
+                    module = PcSheetSemanticModule.CUSTOM_STATISTICS,
+                    remainingBefore = 30,
+                    consumedUnits = 15,
+                    nativeCapacity = 15,
+                    remainingAfter = 15,
+                ),
+            ),
+        )
+
+        assertEquals(
+            setOf("attributes"),
+            trace.exhaustedStreamsWithUnusedCapacityWhileSiblingRemains(),
+        )
+    }
+
+    @Test
     fun fullPageExclusiveNotesCannotBeCombinedWithOtherSlotsInOneTemplate() {
         assertFailsWith<IllegalArgumentException> {
             PcSheetExtendedLayoutTemplate(

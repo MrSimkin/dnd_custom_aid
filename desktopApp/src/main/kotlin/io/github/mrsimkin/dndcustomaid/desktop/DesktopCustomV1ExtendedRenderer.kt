@@ -252,24 +252,92 @@ internal class DesktopCustomV1ExtendedRenderer(
         val pages = maxOf(
             1,
             pageCount(modules.size, MODULES_PER_PAGE),
-            pageCount(definitionLines.size, BOTTOM_LINES_PER_PAGE),
-            pageCount(noteLines.size, BOTTOM_LINES_PER_PAGE),
+            pageCount(definitionLines.size, DEFINITION_LINES_PER_PAGE),
+            pageCount(noteLines.size, NOTE_LINES_PER_PAGE),
         )
 
         repeat(pages) { pageIndex ->
+            val pageModules = modules
+                .drop(pageIndex * MODULES_PER_PAGE)
+                .take(MODULES_PER_PAGE)
+            val pageDefinitions = definitionLines
+                .drop(pageIndex * DEFINITION_LINES_PER_PAGE)
+                .take(DEFINITION_LINES_PER_PAGE)
+            val pageNotes = noteLines
+                .drop(pageIndex * NOTE_LINES_PER_PAGE)
+                .take(NOTE_LINES_PER_PAGE)
+
+            val statsStreams = buildList {
+                val moduleBefore = (modules.size - pageIndex * MODULES_PER_PAGE).coerceAtLeast(0)
+                if (moduleBefore > 0 && pageModules.isNotEmpty()) {
+                    add(
+                        PcSheetPaginationStreamTrace(
+                            "custom-stat-modules",
+                            PcSheetSemanticModule.CUSTOM_STATISTICS,
+                            moduleBefore,
+                            pageModules.size,
+                            MODULES_PER_PAGE,
+                            moduleBefore - pageModules.size,
+                        ),
+                    )
+                }
+                val definitionBefore =
+                    (definitionLines.size - pageIndex * DEFINITION_LINES_PER_PAGE).coerceAtLeast(0)
+                if (definitionBefore > 0 && pageDefinitions.isNotEmpty()) {
+                    add(
+                        PcSheetPaginationStreamTrace(
+                            "custom-stat-definitions",
+                            PcSheetSemanticModule.CUSTOM_STATISTICS,
+                            definitionBefore,
+                            pageDefinitions.size,
+                            DEFINITION_LINES_PER_PAGE,
+                            definitionBefore - pageDefinitions.size,
+                        ),
+                    )
+                }
+                val noteBefore =
+                    (noteLines.size - pageIndex * NOTE_LINES_PER_PAGE).coerceAtLeast(0)
+                if (noteBefore > 0 && pageNotes.isNotEmpty()) {
+                    add(
+                        PcSheetPaginationStreamTrace(
+                            "custom-stat-notes",
+                            PcSheetSemanticModule.CUSTOM_STATISTICS,
+                            noteBefore,
+                            pageNotes.size,
+                            NOTE_LINES_PER_PAGE,
+                            noteBefore - pageNotes.size,
+                        ),
+                    )
+                }
+            }
+            check(statsStreams.isNotEmpty()) {
+                "Custom-v1 Custom Statistics compositor produced a page with no active stream."
+            }
+            recordPaginationTrace(
+                V1_GLOBAL_STATS_FRONT_ID,
+                pcSheetDirectCompositionTrace(
+                    layoutId = "v1-custom-statistics-adaptive-native",
+                    streams = statsStreams,
+                    physical = PcSheetPhysicalPaginationTrace(
+                        metric = "native-stat-stream-units",
+                        used = statsStreams.sumOf { it.consumedUnits }.toDouble(),
+                        capacity = statsStreams.sumOf { it.nativeCapacity }.toDouble(),
+                        rationale = if (statsStreams.any { it.remainingAfter > 0 }) {
+                            "remaining-custom-statistics-demand"
+                        } else {
+                            "front-exhausted"
+                        },
+                    ),
+                ),
+            )
+
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderCustomStatisticsPage(
                 page = page,
-                modules = modules
-                    .drop(pageIndex * MODULES_PER_PAGE)
-                    .take(MODULES_PER_PAGE),
-                definitions = definitionLines
-                    .drop(pageIndex * BOTTOM_LINES_PER_PAGE)
-                    .take(BOTTOM_LINES_PER_PAGE),
-                notes = noteLines
-                    .drop(pageIndex * BOTTOM_LINES_PER_PAGE)
-                    .take(BOTTOM_LINES_PER_PAGE),
+                modules = pageModules,
+                definitions = pageDefinitions,
+                notes = pageNotes,
                 pageIndex = pageIndex,
             )
         }
@@ -2969,7 +3037,7 @@ internal class DesktopCustomV1ExtendedRenderer(
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
             drawIsolatedSourceCrop(s, 0, 20f, 18f, 170f, 74f)
-            COLUMNS.forEach { column ->
+            COLUMNS.take(modules.size).forEach { column ->
                 drawIsolatedSourceCrop(
                     s = s,
                     sourcePageIndex = 0,
@@ -2985,14 +3053,30 @@ internal class DesktopCustomV1ExtendedRenderer(
                     drawRule(s, column.x + 16f, column.x + column.width - 5f, top)
                 }
             }
-            STAT_SECTION_COLUMNS.forEach { (a, b) ->
-                sourceBands(s, a, b, DEFINITIONS_FIRST_RULE_TOP, STAT_SECTION_ROWS, STAT_SECTION_STEP)
-                sourceBands(s, a, b, NOTES_FIRST_RULE_TOP, STAT_SECTION_ROWS, STAT_SECTION_STEP)
+            if (definitions.isNotEmpty()) {
+                STAT_SECTION_COLUMNS.forEach { (a, b) ->
+                    sourceBands(
+                        s, a, b,
+                        DEFINITIONS_FIRST_RULE_TOP,
+                        STAT_DEFINITION_ROWS_PER_COLUMN,
+                        STAT_SECTION_STEP,
+                    )
+                }
+            }
+            if (notes.isNotEmpty()) {
+                STAT_SECTION_COLUMNS.forEach { (a, b) ->
+                    sourceBands(
+                        s, a, b,
+                        NOTES_FIRST_RULE_TOP,
+                        STAT_NOTE_ROWS_PER_COLUMN,
+                        STAT_SECTION_STEP,
+                    )
+                }
             }
         }
 
         appendLayer(page, "$prefix - CLEANUP") { s ->
-            COLUMNS.forEachIndexed { index, _ ->
+            COLUMNS.take(modules.size).forEachIndexed { index, _ ->
                 fill(s, SCORE_X[index] - 18f, STAT_SCORE_VALUE_TOP, 36f, 17f, Color.WHITE)
                 fill(s, MOD_X[index] - 10f, STAT_MOD_VALUE_TOP, 20f, 10f, Color.WHITE)
             }
@@ -3021,16 +3105,20 @@ internal class DesktopCustomV1ExtendedRenderer(
                     preferredSize = 16.5f,
                 )
             }
-            centeredText(
-                s, resources.heading,
-                24f, DEFINITIONS_HEADING_TOP, 564f, 26f,
-                "Definiciones", 17f,
-            )
-            centeredText(
-                s, resources.heading,
-                24f, NOTES_HEADING_TOP, 564f, 26f,
-                "Notas de Estadísticas Personalizadas", 17f,
-            )
+            if (definitions.isNotEmpty()) {
+                centeredText(
+                    s, resources.heading,
+                    24f, DEFINITIONS_HEADING_TOP, 564f, 26f,
+                    "Definiciones", 17f,
+                )
+            }
+            if (notes.isNotEmpty()) {
+                centeredText(
+                    s, resources.heading,
+                    24f, NOTES_HEADING_TOP, 564f, 26f,
+                    "Notas de Estadísticas Personalizadas", 17f,
+                )
+            }
         }
 
         appendLayer(page, "$prefix - VALUES") { s ->
@@ -3087,13 +3175,17 @@ internal class DesktopCustomV1ExtendedRenderer(
                 }
             }
 
-            drawBottomLines(s, definitions, DEFINITIONS_FIRST_RULE_TOP)
-            drawBottomLines(s, notes, NOTES_FIRST_RULE_TOP)
+            drawBottomLines(
+                s, definitions, DEFINITIONS_FIRST_RULE_TOP, STAT_DEFINITION_ROWS_PER_COLUMN,
+            )
+            drawBottomLines(
+                s, notes, NOTES_FIRST_RULE_TOP, STAT_NOTE_ROWS_PER_COLUMN,
+            )
         }
 
         appendLayer(page, "$prefix - MARKERS") { s ->
-            COLUMNS.forEachIndexed { index, column ->
-                val module = modules.getOrNull(index)
+            COLUMNS.take(modules.size).forEachIndexed { index, column ->
+                val module = modules[index]
                 drawV1TrainingBox(
                     s, resources.symbol,
                     column.x + 6.2f,
@@ -3117,11 +3209,12 @@ internal class DesktopCustomV1ExtendedRenderer(
         s: PDFormContentStream,
         lines: List<String>,
         firstRuleTop: Float,
+        rowsPerColumn: Int,
     ) {
         STAT_SECTION_COLUMNS.forEachIndexed { columnIndex, (a, b) ->
             lines
-                .drop(columnIndex * STAT_SECTION_ROWS)
-                .take(STAT_SECTION_ROWS)
+                .drop(columnIndex * rowsPerColumn)
+                .take(rowsPerColumn)
                 .forEachIndexed { rowIndex, value ->
                     ruleText(
                         s, resources.fira,
@@ -3709,7 +3802,8 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val SOURCE_FRAGMENT_DPI = 288f
         const val MODULES_PER_PAGE = 6
         const val SKILLS_PER_MODULE = 5
-        const val BOTTOM_LINES_PER_PAGE = 15
+        const val DEFINITION_LINES_PER_PAGE = 15
+        const val NOTE_LINES_PER_PAGE = 27
         const val BOTTOM_TEXT_WIDTH = 150f
 
         // Source page 3 provides three compatible full-width right-hand slots:
@@ -3941,7 +4035,10 @@ internal class DesktopCustomV1ExtendedRenderer(
         const val DEFINITIONS_FIRST_RULE_TOP = 370f
         const val NOTES_HEADING_TOP = 490f
         const val NOTES_FIRST_RULE_TOP = 535f
-        const val STAT_SECTION_ROWS = 5
+        const val STAT_DEFINITION_ROWS_PER_COLUMN = 5
+        // The approved page leaves native writing space below the old five-row Notes band.
+        // Continue the same 22 pt ruled rhythm through y=711 without crossing the footer zone.
+        const val STAT_NOTE_ROWS_PER_COLUMN = 9
         const val STAT_SECTION_STEP = 22f
 
         const val SOURCE_LABEL_HORIZONTAL_SCALE = 60f

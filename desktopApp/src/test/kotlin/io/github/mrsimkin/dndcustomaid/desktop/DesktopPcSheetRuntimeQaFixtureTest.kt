@@ -13,6 +13,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.toStableJsonLine
 import io.github.mrsimkin.dndcustomaid.shared.character.reclaimableExhaustedModules
 import io.github.mrsimkin.dndcustomaid.shared.character.hasPhysicallyAvoidableNextPage
 import io.github.mrsimkin.dndcustomaid.shared.character.streamsWithUnusedCapacityAndRemainingDemand
+import io.github.mrsimkin.dndcustomaid.shared.character.exhaustedStreamsWithUnusedCapacityWhileSiblingRemains
 import java.io.ByteArrayOutputStream
 import java.io.File
 import kotlin.test.Test
@@ -638,6 +639,27 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             "Exact Mara Combat trace must not open another page when the next atomic row still fits: " +
                 physicallyAvoidableCombatPages.joinToString { entry ->
                     entry.family.name + "/" + entry.frontId + "#" + entry.decisionOrdinal
+                },
+        )
+
+        val customV1StatsTrace = paginationTrace.filter { entry ->
+            entry.family == PcSheetVisualFamily.CUSTOM_V1 &&
+                entry.frontId.contains("custom-statistics", ignoreCase = true)
+        }
+        assertTrue(
+            customV1StatsTrace.isNotEmpty(),
+            "Exact Mara Custom-v1 proof must trace Custom Statistics pagination.",
+        )
+        val customV1StatsSiblingWaste = customV1StatsTrace.mapNotNull { entry ->
+            val streams = entry.composition.exhaustedStreamsWithUnusedCapacityWhileSiblingRemains()
+            if (streams.isEmpty()) null else entry to streams
+        }
+        assertTrue(
+            customV1StatsSiblingWaste.isEmpty(),
+            "Exact Mara Custom-v1 Custom Statistics must reclaim partially-used exhausted stream space before another sibling page: " +
+                customV1StatsSiblingWaste.joinToString { (entry, streams) ->
+                    entry.family.name + "/" + entry.frontId + "#" + entry.decisionOrdinal +
+                        " -> " + streams.joinToString()
                 },
         )
 

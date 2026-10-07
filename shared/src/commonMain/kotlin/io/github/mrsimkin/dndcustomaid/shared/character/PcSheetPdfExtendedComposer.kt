@@ -238,6 +238,16 @@ fun PcSheetExtendedCompositionTrace.streamsWithUnusedCapacityAndRemainingDemand(
         }
         .mapTo(mutableSetOf()) { it.streamId }
 
+fun PcSheetExtendedCompositionTrace.exhaustedStreamsWithUnusedCapacityWhileSiblingRemains(): Set<String> {
+    if (streamTraces.none { it.remainingAfter > 0 }) return emptySet()
+    return streamTraces
+        .filter { stream ->
+            stream.remainingAfter == 0 &&
+                stream.consumedUnits < stream.nativeCapacity
+        }
+        .mapTo(mutableSetOf()) { it.streamId }
+}
+
 fun PcSheetExtendedCompositionTrace.hasPhysicallyAvoidableNextPage(): Boolean =
     demandsAfter.isNotEmpty() && physical?.nextAtomicUnitFits == true
 
