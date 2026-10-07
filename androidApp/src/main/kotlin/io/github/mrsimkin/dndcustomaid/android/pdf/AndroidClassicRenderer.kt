@@ -174,70 +174,120 @@ internal class AndroidClassicRenderer {
             }
         }
 
-        val pages = maxOf(
-            1,
-            pageCount(customSlices.size, CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_PAGE),
-            pageCount(standardSlices.size, CLASSIC_STANDARD_GROUPS_PER_PAGE),
-        )
-        repeat(pages) { pageIndex ->
+        val pages = buildList {
+            var customOffset = 0
+            var standardOffset = 0
+
+            while (customOffset < customSlices.size) {
+                val customRemaining = customSlices.size - customOffset
+                if (customRemaining > CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_ROW) {
+                    val count = minOf(
+                        CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_ATTRIBUTE_ONLY_PAGE,
+                        customRemaining,
+                    )
+                    add(
+                        ClassicCustomStatisticsPage(
+                            customSlices = customSlices.drop(customOffset).take(count),
+                            standardSlices = emptyList(),
+                        ),
+                    )
+                    customOffset += count
+                } else {
+                    val customPage = customSlices.drop(customOffset)
+                    val standardPage = standardSlices
+                        .drop(standardOffset)
+                        .take(CLASSIC_STANDARD_GROUPS_PER_PAGE)
+                    add(
+                        ClassicCustomStatisticsPage(
+                            customSlices = customPage,
+                            standardSlices = standardPage,
+                        ),
+                    )
+                    customOffset = customSlices.size
+                    standardOffset += standardPage.size
+                }
+            }
+
+            while (standardOffset < standardSlices.size) {
+                val standardPage = standardSlices
+                    .drop(standardOffset)
+                    .take(CLASSIC_STANDARD_GROUPS_PER_PAGE)
+                add(
+                    ClassicCustomStatisticsPage(
+                        customSlices = emptyList(),
+                        standardSlices = standardPage,
+                    ),
+                )
+                standardOffset += standardPage.size
+            }
+        }
+        check(pages.isNotEmpty()) {
+            "Fantasy Custom Statistics requires at least one rendered page."
+        }
+
+        pages.forEachIndexed { pageIndex, pageSpec ->
             val page = addPage(doc)
             PDPageContentStream(doc, page).use { s ->
                 extendedHeader(s, p, plan.snapshot.aggregate.sheet.name, "ESTADÍSTICAS PERSONALIZADAS")
 
                 val xPositions = listOf(24f, 212f, 400f)
-                customSlices
-                    .drop(pageIndex * CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_PAGE)
-                    .take(CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_PAGE)
-                    .forEachIndexed { index, slice ->
-                        val attr = slice.projection.attribute
-                        customAttributePanel(
-                            s = s,
-                            p = p,
-                            x = xPositions[index],
-                            top = 112f,
-                            width = 176f,
-                            height = 286f,
-                            title = attr.name,
-                            abbreviation = attr.abbreviation,
-                            score = attr.score.toString(),
-                            modifier = signed(attr.modifier),
-                            save = if (attr.savingThrowEnabled) {
-                                slice.projection.savingThrowTotal?.let(::signed).orEmpty()
-                            } else {
-                                ""
-                            },
-                            saveTraining = if (
-                                attr.savingThrowEnabled && attr.savingThrowProficient
-                            ) {
-                                Training.PROFICIENT
-                            } else {
-                                Training.NONE
-                            },
-                            skills = slice.skills.map { skill ->
-                                SkillRow(
-                                    name = skill.skill.name,
-                                    total = skill.total?.let(::signed).orEmpty(),
-                                    training = training(skill.skill.training),
-                                )
-                            },
-                            note = slice.note,
-                        )
+                pageSpec.customSlices.forEachIndexed { index, slice ->
+                    val attr = slice.projection.attribute
+                    val columnIndex = index % CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_ROW
+                    val rowIndex = index / CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_ROW
+                    check(rowIndex < 2) {
+                        "Fantasy Custom Statistics page exceeds six native attribute panels."
                     }
+                    customAttributePanel(
+                        s = s,
+                        p = p,
+                        x = xPositions[columnIndex],
+                        top = 112f + rowIndex * CLASSIC_CUSTOM_ATTRIBUTE_SECOND_ROW_OFFSET,
+                        width = 176f,
+                        height = 286f,
+                        title = attr.name,
+                        abbreviation = attr.abbreviation,
+                        score = attr.score.toString(),
+                        modifier = signed(attr.modifier),
+                        save = if (attr.savingThrowEnabled) {
+                            slice.projection.savingThrowTotal?.let(::signed).orEmpty()
+                        } else {
+                            ""
+                        },
+                        saveTraining = if (
+                            attr.savingThrowEnabled && attr.savingThrowProficient
+                        ) {
+                            Training.PROFICIENT
+                        } else {
+                            Training.NONE
+                        },
+                        skills = slice.skills.map { skill ->
+                            SkillRow(
+                                name = skill.skill.name,
+                                total = skill.total?.let(::signed).orEmpty(),
+                                training = training(skill.skill.training),
+                            )
+                        },
+                        note = slice.note,
+                    )
+                }
 
-                titledFrame(
-                    s, p, 24f, 414f, 564f, 304f,
-                    "HABILIDADES PERSONALIZADAS VINCULADAS A ATRIBUTOS ESTÁNDAR",
-                )
-                val groupX = listOf(36f, 224f, 412f)
-                standardSlices
-                    .drop(pageIndex * CLASSIC_STANDARD_GROUPS_PER_PAGE)
-                    .take(CLASSIC_STANDARD_GROUPS_PER_PAGE)
-                    .forEachIndexed { index, group ->
+                if (pageSpec.standardSlices.isNotEmpty()) {
+                    check(pageSpec.customSlices.size <= CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_ROW) {
+                        "Fantasy standard custom-skill groups cannot overlap a second attribute row."
+                    }
+                    val frameTop = if (pageSpec.customSlices.isEmpty()) 112f else 414f
+                    titledFrame(
+                        s, p, 24f, frameTop, 564f, 304f,
+                        "HABILIDADES PERSONALIZADAS VINCULADAS A ATRIBUTOS ESTÁNDAR",
+                    )
+                    val groupX = listOf(36f, 224f, 412f)
+                    pageSpec.standardSlices.forEachIndexed { index, group ->
                         standardLinkedCustomGroup(
                             s = s,
                             p = p,
                             x = groupX[index],
-                            top = 450f,
+                            top = frameTop + 36f,
                             width = 164f,
                             title = group.title,
                             skills = group.skills.map { skill ->
@@ -249,12 +299,14 @@ internal class AndroidClassicRenderer {
                             },
                         )
                     }
-                text(
-                    s, p, 36f, 650f, 540f, 52f,
-                    "Cada habilidad conserva visible su atributo gobernante. Las habilidades de un atributo personalizado se agrupan dentro de ese atributo; las vinculadas a un atributo estándar aparecen bajo su nombre y abreviatura.",
-                    PdfTypographyRole.NOTE_TEXT, 8.2f, 7.2f, wrap = true, maxLines = 4,
-                    vertical = PdfVerticalAlignment.TOP,
-                )
+                    text(
+                        s, p, 36f, frameTop + 236f, 540f, 52f,
+                        "Cada habilidad conserva visible su atributo gobernante. Las habilidades de un atributo personalizado se agrupan dentro de ese atributo; las vinculadas a un atributo estándar aparecen bajo su nombre y abreviatura.",
+                        PdfTypographyRole.NOTE_TEXT, 8.2f, 7.2f, wrap = true, maxLines = 4,
+                        vertical = PdfVerticalAlignment.TOP,
+                    )
+                }
+
                 footer(
                     s, p, 4 + pageIndex,
                     "EXTENSIÓN / ESTADÍSTICAS PERSONALIZADAS",
@@ -4259,6 +4311,11 @@ private fun ruledTextArea(
         val clippedTraitIds: Set<kotlin.uuid.Uuid>,
     )
 
+    private data class ClassicCustomStatisticsPage(
+        val customSlices: List<CustomAttributeSlice>,
+        val standardSlices: List<StandardCustomGroupSlice>,
+    )
+
     private data class CustomAttributeSlice(
         val projection: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomAttributeProjection,
         val skills: List<io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomSkillProjection>,
@@ -4320,7 +4377,9 @@ private fun ruledTextArea(
         const val BASE_ADDITIONAL_TRAIT_CAPACITY = 2
         const val BASE_LANGUAGE_CAPACITY = 4
         const val BASE_COMPANION_CAPACITY = 1
-        const val CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_PAGE = 3
+        const val CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_ROW = 3
+        const val CLASSIC_CUSTOM_ATTRIBUTE_PANELS_PER_ATTRIBUTE_ONLY_PAGE = 6
+        const val CLASSIC_CUSTOM_ATTRIBUTE_SECOND_ROW_OFFSET = 302f
         const val CLASSIC_CUSTOM_SKILLS_PER_ATTRIBUTE_PANEL = 4
         const val CLASSIC_CUSTOM_ATTRIBUTE_NOTE_LINES = 3
         const val CLASSIC_STANDARD_GROUPS_PER_PAGE = 3

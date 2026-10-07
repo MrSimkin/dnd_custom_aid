@@ -498,6 +498,19 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                             endPage = pageNumber
                         }.getText(rendered).replace(Regex("\\s+"), " ")
                     }
+                    val fantasyCustomStatisticsPages = pageTexts.filter {
+                        it.contains("EXTENSIÓN / ESTADÍSTICAS PERSONALIZADAS")
+                    }
+                    val maraAttributePage = fantasyCustomStatisticsPages.first {
+                        it.contains("Fortuna (FOR)")
+                    }
+                    assertTrue(maraAttributePage.contains("Cordura (COR)"))
+                    assertTrue(maraAttributePage.contains("Éter (ETE)"))
+                    assertTrue(
+                        maraAttributePage.contains("Renombre (REN)"),
+                        "Fantasy Mara must keep all four custom attributes together at native panel scale.",
+                    )
+
                     val inventoryPages = pageTexts.filter {
                         it.contains("EXTENSIÓN / INVENTARIO Y EQUIPO")
                     }
