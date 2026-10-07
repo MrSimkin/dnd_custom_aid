@@ -2431,6 +2431,33 @@ class DesktopPcSheetWholeDraftRendererTest {
                         pageText.contains("HistoriaNarrativaV11")
                 }
                 .second
+            val firstPersonalityContinuationText = extendedPages
+                .first { (_, pageText) -> pageText.contains("PersonalidadNarrativaV16") }
+                .second
+            val firstHistoryContinuationText = extendedPages
+                .first { (_, pageText) -> pageText.contains("HistoriaNarrativaV113") }
+                .second
+            val staleSourceLabels = listOf(
+                "Ideales",
+                "Vínculos",
+                "Defectos",
+                "Notas",
+                "Otros Rasgos y Atributos",
+            )
+            staleSourceLabels.forEach { staleLabel ->
+                assertFalse(
+                    firstPersonalityContinuationText.contains(staleLabel),
+                    "Isolated Custom-v1 Personality fragment must not retain hidden source label '$staleLabel'.",
+                )
+                assertFalse(
+                    firstHistoryContinuationText.contains(staleLabel),
+                    "Isolated Custom-v1 History fragment must not retain hidden source label '$staleLabel'.",
+                )
+            }
+            assertFalse(
+                firstPersonalityContinuationText.contains("EXTENSIÓN: NOTAS"),
+                "A missing Custom-v1 base Notes page must not redirect its continuation cue onto an Extended page.",
+            )
 
             assertTrue(baseNarrativeText.contains("continúa en sección extendida PERSONALIDAD 01"))
             assertTrue(baseNarrativeText.contains("continúa en sección extendida HISTORIA 01"))

@@ -1,6 +1,7 @@
 package io.github.mrsimkin.dndcustomaid.desktop
 
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBaseLayoutMode
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomStatisticsPresentation
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
@@ -198,7 +199,7 @@ internal class DesktopPcSheetVisualCompletionRenderer(
     ) {
         val kindsByPage = linkedMapOf<Int, MutableList<PcSheetExtendedPageKind>>()
         kinds.sortedBy { it.ordinal }.forEach { kind ->
-            cueTargetPages(plan.request.visualFamily, kind).forEach { pageIndex ->
+            cueTargetPages(plan, kind).forEach { pageIndex ->
                 kindsByPage.getOrPut(pageIndex) { mutableListOf() }.add(kind)
             }
         }
@@ -217,36 +218,53 @@ internal class DesktopPcSheetVisualCompletionRenderer(
     }
 
     private fun cueTargetPages(
+        plan: PcSheetPdfRenderPlan,
+        kind: PcSheetExtendedPageKind,
+    ): List<Int> {
+        val targetRoles = cueTargetRoles(plan.request.visualFamily, kind)
+        return plan.basePages.mapIndexedNotNull { index, page ->
+            index.takeIf { page.role in targetRoles }
+        }
+    }
+
+    private fun cueTargetRoles(
         family: PcSheetVisualFamily,
         kind: PcSheetExtendedPageKind,
-    ): List<Int> = when (family) {
+    ): Set<PcSheetBasePageRole> = when (family) {
         PcSheetVisualFamily.CLASSIC_DND_STYLE -> when (kind) {
-            PcSheetExtendedPageKind.CUSTOM_STATISTICS -> listOf(0)
-            PcSheetExtendedPageKind.TRAITS_AND_FEATURES -> listOf(0)
-            PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS -> listOf(0)
-            PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT -> listOf(1)
-            PcSheetExtendedPageKind.SPELLS -> listOf(2)
-            PcSheetExtendedPageKind.NOTES -> listOf(1)
+            PcSheetExtendedPageKind.CUSTOM_STATISTICS,
+            PcSheetExtendedPageKind.TRAITS_AND_FEATURES,
+            PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS,
+            -> setOf(PcSheetBasePageRole.MAIN)
+            PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT,
+            PcSheetExtendedPageKind.NOTES,
+            -> setOf(PcSheetBasePageRole.EQUIPMENT_AND_NARRATIVE)
+            PcSheetExtendedPageKind.SPELLS -> setOf(PcSheetBasePageRole.SPELL_LIST)
         }
 
         PcSheetVisualFamily.CUSTOM_V1 -> when (kind) {
-            PcSheetExtendedPageKind.CUSTOM_STATISTICS -> listOf(0)
-            PcSheetExtendedPageKind.TRAITS_AND_FEATURES -> listOf(0, 2)
-            PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS -> listOf(0)
-            PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT -> listOf(1)
-            PcSheetExtendedPageKind.SPELLS -> listOf(3)
-            PcSheetExtendedPageKind.NOTES -> listOf(4)
+            PcSheetExtendedPageKind.CUSTOM_STATISTICS,
+            PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS,
+            -> setOf(PcSheetBasePageRole.MAIN)
+            PcSheetExtendedPageKind.TRAITS_AND_FEATURES ->
+                setOf(PcSheetBasePageRole.MAIN, PcSheetBasePageRole.NARRATIVE)
+            PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT ->
+                setOf(PcSheetBasePageRole.EQUIPMENT)
+            PcSheetExtendedPageKind.SPELLS -> setOf(PcSheetBasePageRole.SPELL_LIST)
+            PcSheetExtendedPageKind.NOTES -> setOf(PcSheetBasePageRole.NOTES)
         }
 
         PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
         PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
         -> when (kind) {
-            PcSheetExtendedPageKind.CUSTOM_STATISTICS -> listOf(0)
-            PcSheetExtendedPageKind.TRAITS_AND_FEATURES -> listOf(0)
-            PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS -> listOf(0)
-            PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT -> listOf(1)
-            PcSheetExtendedPageKind.SPELLS -> listOf(2)
-            PcSheetExtendedPageKind.NOTES -> listOf(3)
+            PcSheetExtendedPageKind.CUSTOM_STATISTICS,
+            PcSheetExtendedPageKind.TRAITS_AND_FEATURES,
+            PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS,
+            -> setOf(PcSheetBasePageRole.MAIN)
+            PcSheetExtendedPageKind.INVENTORY_AND_EQUIPMENT ->
+                setOf(PcSheetBasePageRole.EQUIPMENT_AND_NARRATIVE)
+            PcSheetExtendedPageKind.SPELLS -> setOf(PcSheetBasePageRole.SPELL_LIST)
+            PcSheetExtendedPageKind.NOTES -> setOf(PcSheetBasePageRole.NOTES)
         }
     }
 

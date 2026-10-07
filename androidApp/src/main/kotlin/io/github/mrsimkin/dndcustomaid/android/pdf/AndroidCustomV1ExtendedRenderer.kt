@@ -48,8 +48,10 @@ import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
 import io.github.mrsimkin.dndcustomaid.shared.character.standardCurrencyKindOrNull
 import com.tom_roush.harmony.awt.AWTColor as Color
 import com.tom_roush.harmony.awt.geom.AffineTransform
+import android.graphics.Bitmap
 import java.io.InputStream
 import kotlin.math.max
+import kotlin.math.roundToInt
 import com.tom_roush.pdfbox.multipdf.LayerUtility
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.pdmodel.PDFormContentStream
@@ -59,7 +61,10 @@ import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
 import com.tom_roush.pdfbox.pdmodel.font.PDFont
 import com.tom_roush.pdfbox.pdmodel.font.PDType0Font
 import com.tom_roush.pdfbox.pdmodel.graphics.form.PDFormXObject
-import com.tom_roush.pdfbox.util.Matrix
+import com.tom_roush.pdfbox.pdmodel.graphics.image.LosslessFactory
+import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject
+import com.tom_roush.pdfbox.rendering.ImageType
+import com.tom_roush.pdfbox.rendering.PDFRenderer
 
 /**
  * Production promotion of the owner-approved Custom-v1 Extended Run-6 family.
@@ -78,6 +83,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         Resources.load(document, sourceTemplate, resourceLoader)
     }
     private var layerSerial = 0
+    private val isolatedSourceCropCache = mutableMapOf<SourceCropKey, PDImageXObject>()
 
     fun appendExtendedPages(plan: PcSheetPdfRenderPlan) {
         require(plan.request.visualFamily == PcSheetVisualFamily.CUSTOM_V1)
@@ -369,11 +375,11 @@ internal class AndroidCustomV1ExtendedRenderer(
         val prefix = "V1X NARRATIVE P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceCrop(s, resources.forms[2], 20f, 18f, 150f, 74f)
+            drawIsolatedSourceCrop(s, 2, 20f, 18f, 150f, 74f)
             modules.indices.forEach { index ->
-                drawTranslatedSourceCrop(
+                drawIsolatedSourceCrop(
                     s = s,
-                    form = resources.forms[2],
+                    sourcePageIndex = 2,
                     sourceX = V1_NARRATIVE_SOURCE_X,
                     sourceTop = V1_NARRATIVE_SOURCE_TOP,
                     width = V1_NARRATIVE_MODULE_WIDTH,
@@ -536,9 +542,9 @@ internal class AndroidCustomV1ExtendedRenderer(
         val prefix = "V1X TRAITS P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawTranslatedSourceCrop(
+            drawIsolatedSourceCrop(
                 s = s,
-                form = resources.forms[2],
+                sourcePageIndex = 2,
                 sourceX = V1_TRAIT_SOURCE_X,
                 sourceTop = V1_TRAIT_SOURCE_TOP,
                 width = V1_TRAIT_MODULE_WIDTH,
@@ -547,9 +553,9 @@ internal class AndroidCustomV1ExtendedRenderer(
                 targetTop = V1_TRAIT_TARGET_TOPS[0],
             )
             if (bottomLines.isNotEmpty()) {
-                drawTranslatedSourceCrop(
+                drawIsolatedSourceCrop(
                     s = s,
-                    form = resources.forms[2],
+                    sourcePageIndex = 2,
                     sourceX = V1_TRAIT_SOURCE_X,
                     sourceTop = V1_TRAIT_SOURCE_TOP,
                     width = V1_TRAIT_MODULE_WIDTH,
@@ -1112,7 +1118,7 @@ internal class AndroidCustomV1ExtendedRenderer(
     ) {
         val prefix = "V1X COMBAT P${pageIndex + 1}"
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            drawIsolatedSourceCrop(s, 1, 20f, 18f, 150f, 74f)
             sourceBands(
                 s,
                 25f,
@@ -1539,7 +1545,7 @@ internal class AndroidCustomV1ExtendedRenderer(
             if (splitLayout) OPTION_FIRST_RULE_TOP else RESOURCE_FIRST_RULE_TOP
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceCrop(s, resources.forms[1], 20f, 18f, 150f, 74f)
+            drawIsolatedSourceCrop(s, 1, 20f, 18f, 150f, 74f)
             if (rows.isNotEmpty()) {
                 sourceBands(
                     s,
@@ -2061,9 +2067,9 @@ internal class AndroidCustomV1ExtendedRenderer(
         }
         val sourceTop = INVENTORY_SPECIAL_CHECK_TOPS[donorRow] - SPECIAL_LOCATION_CELL_TOP_PAD
         val targetTop = INVENTORY_SPECIAL_CHECK_TOPS[rowIndex] - SPECIAL_LOCATION_CELL_TOP_PAD
-        drawTranslatedSourceCrop(
+        drawIsolatedSourceCrop(
             s = s,
-            form = resources.forms[1],
+            sourcePageIndex = 1,
             sourceX = SPECIAL_LOCATION_CELL_X,
             sourceTop = sourceTop,
             width = SPECIAL_LOCATION_CELL_WIDTH,
@@ -2566,11 +2572,11 @@ internal class AndroidCustomV1ExtendedRenderer(
         val prefix = "V1X STATS P${pageIndex + 1}"
 
         appendLayer(page, "$prefix - STRUCTURE") { s ->
-            drawSourceCrop(s, resources.forms[0], 20f, 18f, 170f, 74f)
+            drawIsolatedSourceCrop(s, 0, 20f, 18f, 170f, 74f)
             COLUMNS.forEach { column ->
-                drawTranslatedSourceCrop(
+                drawIsolatedSourceCrop(
                     s = s,
-                    form = resources.forms[0],
+                    sourcePageIndex = 0,
                     sourceX = SOURCE_WHITE_ATTRIBUTE_X,
                     sourceTop = SOURCE_SCORE_FRAGMENT_TOP,
                     width = column.width,
@@ -2987,38 +2993,66 @@ internal class AndroidCustomV1ExtendedRenderer(
         }
     }
 
-    private fun drawSourceCrop(
+    private fun drawIsolatedSourceCrop(
         s: PDFormContentStream,
-        form: PDFormXObject,
-        x: Float,
-        top: Float,
-        width: Float,
-        height: Float,
-    ) {
-        s.saveGraphicsState()
-        s.addRect(x, H - top - height, width, height)
-        s.clip()
-        s.drawForm(form)
-        s.restoreGraphicsState()
-    }
-
-    private fun drawTranslatedSourceCrop(
-        s: PDFormContentStream,
-        form: PDFormXObject,
+        sourcePageIndex: Int,
         sourceX: Float,
         sourceTop: Float,
         width: Float,
         height: Float,
-        targetX: Float,
-        targetTop: Float,
+        targetX: Float = sourceX,
+        targetTop: Float = sourceTop,
     ) {
-        s.saveGraphicsState()
-        s.addRect(targetX, H - targetTop - height, width, height)
-        s.clip()
-        s.transform(Matrix.getTranslateInstance(targetX - sourceX, sourceTop - targetTop))
-        s.drawForm(form)
-        s.restoreGraphicsState()
+        val key = SourceCropKey(
+            sourcePageIndex = sourcePageIndex,
+            sourceX = sourceX,
+            sourceTop = sourceTop,
+            width = width,
+            height = height,
+        )
+        val image = isolatedSourceCropCache.getOrPut(key) {
+            val scale = SOURCE_FRAGMENT_DPI / 72f
+            val sourceImage = PDFRenderer(sourceTemplate).renderImageWithDPI(
+                sourcePageIndex,
+                SOURCE_FRAGMENT_DPI,
+                ImageType.RGB,
+            )
+            val sourcePixelX = (sourceX * scale).roundToInt()
+            val sourcePixelY = (sourceTop * scale).roundToInt()
+            val pixelWidth = (width * scale).roundToInt().coerceAtLeast(1)
+            val pixelHeight = (height * scale).roundToInt().coerceAtLeast(1)
+            require(
+                sourcePixelX >= 0 &&
+                    sourcePixelY >= 0 &&
+                    sourcePixelX + pixelWidth <= sourceImage.width &&
+                    sourcePixelY + pixelHeight <= sourceImage.height
+            ) {
+                "Custom-v1 isolated source crop exceeds source page bounds."
+            }
+
+            val transparent = newArgbImage(pixelWidth, pixelHeight)
+            repeat(pixelHeight) { y ->
+                repeat(pixelWidth) { x ->
+                    transparent.setPixel(
+                        x,
+                        y,
+                        sourceImage.getPixel(sourcePixelX + x, sourcePixelY + y),
+                    )
+                }
+            }
+            LosslessFactory.createFromImage(document, transparent)
+        }
+        s.drawImage(
+            image,
+            targetX,
+            H - targetTop - height,
+            width,
+            height,
+        )
     }
+
+    private fun newArgbImage(width: Int, height: Int) =
+        Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
 
     private fun fill(
         s: PDFormContentStream,
@@ -3131,6 +3165,14 @@ internal class AndroidCustomV1ExtendedRenderer(
         val name: String,
         val detail: String,
         val active: Boolean?,
+    )
+
+    private data class SourceCropKey(
+        val sourcePageIndex: Int,
+        val sourceX: Float,
+        val sourceTop: Float,
+        val width: Float,
+        val height: Float,
     )
 
     private data class V1NarrativeModule(
@@ -3268,6 +3310,7 @@ internal class AndroidCustomV1ExtendedRenderer(
         const val BARLOW_CONDENSED_RESOURCE = "fonts/pdf/text/BarlowCondensed-Bold.ttf"
         const val SYMBOL_RESOURCE = "fonts/owner/para-hoja-de-pj/v8/Para Hoja de PJ Symbols v8.ttf"
 
+        const val SOURCE_FRAGMENT_DPI = 288f
         const val MODULES_PER_PAGE = 6
         const val SKILLS_PER_MODULE = 5
         const val BOTTOM_LINES_PER_PAGE = 15
