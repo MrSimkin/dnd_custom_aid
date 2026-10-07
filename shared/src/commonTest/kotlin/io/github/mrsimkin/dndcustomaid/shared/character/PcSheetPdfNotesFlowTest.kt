@@ -82,6 +82,31 @@ class PcSheetPdfNotesFlowTest {
     }
 
     @Test
+    fun wholeRecordColumnAdvanceTraceProvesTheRecordDidNotFitTheRemainder() {
+        val first = wrapped("note-1", "Nota 1 — A", bodyLines = 2)
+        val second = wrapped("note-2", "Nota 2 — B", bodyLines = 2)
+
+        val packed = packPcSheetNoteColumns(
+            records = listOf(first, second),
+            rowsPerColumn = 6,
+            columnsPerPage = 2,
+        )
+
+        val advance = packed.columnAdvances.single()
+        assertEquals(
+            PcSheetNoteColumnAdvanceReason.WHOLE_RECORD_DOES_NOT_FIT_REMAINDER,
+            advance.reason,
+        )
+        assertEquals(2, advance.remainingRowsBeforeAdvance)
+        assertEquals(3, advance.atomicRowsRequired)
+        assertTrue(!advance.atomicUnitFitsRemainder)
+        assertEquals(0, advance.from.extendedPageIndex)
+        assertEquals(0, advance.to.extendedPageIndex)
+        assertEquals(1, advance.from.columnIndex)
+        assertEquals(2, advance.to.columnIndex)
+    }
+
+    @Test
     fun oversizedNoteSplitsWithBidirectionalColumnAwareNavigation() {
         val large = wrapped(
             stableKey = "note-8",

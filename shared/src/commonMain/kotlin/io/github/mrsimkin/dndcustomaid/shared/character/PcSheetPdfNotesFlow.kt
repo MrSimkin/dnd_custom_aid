@@ -145,8 +145,40 @@ data class PcSheetPackedNoteSegment(
     val lastSegment: Boolean,
 )
 
+enum class PcSheetNoteColumnAdvanceReason {
+    WHOLE_RECORD_DOES_NOT_FIT_REMAINDER,
+    OVERSIZED_RECORD_STARTS_FRESH,
+    OVERSIZED_RECORD_CONTINUES,
+}
+
+data class PcSheetNoteColumnAdvanceTrace(
+    val record: PcSheetSemanticRecordRef,
+    val from: PcSheetNoteColumnAddress,
+    val to: PcSheetNoteColumnAddress,
+    val usedRowsBeforeAdvance: Int,
+    val rowsPerColumn: Int,
+    val atomicRowsRequired: Int,
+    val reason: PcSheetNoteColumnAdvanceReason,
+) {
+    init {
+        require(usedRowsBeforeAdvance in 0..rowsPerColumn) {
+            "Notes used rows must remain within native column capacity."
+        }
+        require(atomicRowsRequired > 0) {
+            "Notes advance must identify a positive atomic row requirement."
+        }
+    }
+
+    val remainingRowsBeforeAdvance: Int
+        get() = rowsPerColumn - usedRowsBeforeAdvance
+
+    val atomicUnitFitsRemainder: Boolean
+        get() = atomicRowsRequired <= remainingRowsBeforeAdvance
+}
+
 data class PcSheetPackedNotes(
     val columns: List<List<PcSheetPackedNoteSegment>>,
+    val columnAdvances: List<PcSheetNoteColumnAdvanceTrace> = emptyList(),
 ) {
     val extendedPageCount: Int
         get() = columns
@@ -175,6 +207,7 @@ fun packPcSheetNoteColumns(
     if (records.isEmpty()) return PcSheetPackedNotes(emptyList())
 
     val columns = mutableListOf<MutableList<PcSheetPackedNoteSegment>>()
+    val columnAdvances = mutableListOf<PcSheetNoteColumnAdvanceTrace>()
     var columnIndex = 0
     var usedRows = 0
 
@@ -190,7 +223,22 @@ fun packPcSheetNoteColumns(
 
     fun remainingRows(): Int = rowsPerColumn - usedRows
 
-    fun advanceColumn() {
+    fun advanceColumn(
+        record: PcSheetSemanticRecordRef,
+        atomicRowsRequired: Int,
+        reason: PcSheetNoteColumnAdvanceReason,
+    ) {
+        val from = address(columnIndex)
+        val to = address(columnIndex + 1)
+        columnAdvances += PcSheetNoteColumnAdvanceTrace(
+            record = record,
+            from = from,
+            to = to,
+            usedRowsBeforeAdvance = usedRows,
+            rowsPerColumn = rowsPerColumn,
+            atomicRowsRequired = atomicRowsRequired,
+            reason = reason,
+        )
         columnIndex += 1
         usedRows = 0
         ensureColumn(columnIndex)
@@ -213,7 +261,11 @@ fun packPcSheetNoteColumns(
             fullLines.size <= rowsPerColumn &&
             fullLines.size > remainingRows()
         ) {
-            advanceColumn()
+            advanceColumn(
+                record = wrapped.record.ref,
+                atomicRowsRequired = fullLines.size,
+                reason = PcSheetNoteColumnAdvanceReason.WHOLE_RECORD_DOES_NOT_FIT_REMAINDER,
+            )
         }
 
         if (fullLines.size <= remainingRows()) {
@@ -238,7 +290,13 @@ fun packPcSheetNoteColumns(
         }
 
         // Oversized note: split only because the record itself cannot fit a fresh native column.
-        if (usedRows > 0) advanceColumn()
+        if (usedRows > 0) {
+            advanceColumn(
+                record = wrapped.record.ref,
+                atomicRowsRequired = fullLines.size,
+                reason = PcSheetNoteColumnAdvanceReason.OVERSIZED_RECORD_STARTS_FRESH,
+            )
+        }
 
         var remaining = fullLines
         var segmentIndex = 0
@@ -300,7 +358,11 @@ fun packPcSheetNoteColumns(
 
             if (hasMore) {
                 previousAddress = currentAddress
-                advanceColumn()
+                advanceColumn(
+                    record = wrapped.record.ref,
+                    atomicRowsRequired = minOf(remaining.size + 1, rowsPerColumn),
+                    reason = PcSheetNoteColumnAdvanceReason.OVERSIZED_RECORD_CONTINUES,
+                )
                 segmentIndex += 1
             }
         }
@@ -323,5 +385,8 @@ fun packPcSheetNoteColumns(
         }
     }
 
-    return PcSheetPackedNotes(columns.map { it.toList() })
+    return PcSheetPackedNotes(
+        columns = columns.map { it.toList() },
+        columnAdvances = columnAdvances.toList(),
+    )
 }
