@@ -1790,41 +1790,76 @@ internal class AndroidClassicRenderer {
             pageCount(noteEntries.size, CLASSIC_INVENTORY_NOTES_PER_PAGE),
         )
         repeat(pages) { pageIndex ->
+            val pageRows = ordinaryRows
+                .drop(pageIndex * CLASSIC_INVENTORY_ROWS_PER_PAGE)
+                .take(CLASSIC_INVENTORY_ROWS_PER_PAGE)
+            val pageSpecial = specialRows
+                .drop(pageIndex * CLASSIC_SPECIAL_ITEMS_PER_PAGE)
+                .take(CLASSIC_SPECIAL_ITEMS_PER_PAGE)
+            val pageNotes = noteEntries
+                .drop(pageIndex * CLASSIC_INVENTORY_NOTES_PER_PAGE)
+                .take(CLASSIC_INVENTORY_NOTES_PER_PAGE)
+            check(pageRows.isNotEmpty() || pageSpecial.isNotEmpty() || pageNotes.isNotEmpty()) {
+                "Fantasy Inventory compositor produced a page with no active module."
+            }
+
             val page = addPage(doc)
             PDPageContentStream(doc, page).use { s ->
                 extendedHeader(s, p, sheet.name, "INVENTARIO / EQUIPO")
 
-                titledFrame(s, p, 24f, 112f, 564f, 402f, "INVENTARIO - CONTINUACIÓN")
-                inventoryHeader(s, p, 36f, 148f)
-                val pageRows = ordinaryRows
-                    .drop(pageIndex * CLASSIC_INVENTORY_ROWS_PER_PAGE)
-                    .take(CLASSIC_INVENTORY_ROWS_PER_PAGE)
-                pageRows.forEachIndexed { index, row ->
-                    inventoryRow(s, p, 36f, 176f + index * 27f, row)
-                }
-                repeat((CLASSIC_INVENTORY_ROWS_PER_PAGE - pageRows.size).coerceAtLeast(0)) { index ->
-                    inventoryBlankRow(s, 36f, 176f + (pageRows.size + index) * 27f)
+                if (pageRows.isNotEmpty()) {
+                    titledFrame(s, p, 24f, 112f, 564f, 402f, "INVENTARIO - CONTINUACIÓN")
+                    inventoryHeader(s, p, 36f, 148f)
+                    pageRows.forEachIndexed { index, row ->
+                        inventoryRow(s, p, 36f, 176f + index * 27f, row)
+                    }
+                    repeat((CLASSIC_INVENTORY_ROWS_PER_PAGE - pageRows.size).coerceAtLeast(0)) { index ->
+                        inventoryBlankRow(s, 36f, 176f + (pageRows.size + index) * 27f)
+                    }
                 }
 
-                titledFrame(s, p, 24f, 528f, 276f, 190f, "OBJETOS ESPECIALES / SINTONIZADOS")
-                specialRows
-                    .drop(pageIndex * CLASSIC_SPECIAL_ITEMS_PER_PAGE)
-                    .take(CLASSIC_SPECIAL_ITEMS_PER_PAGE)
-                    .forEachIndexed { index, item ->
+                // Keep each native secondary module at its established geometry, but remove
+                // exhausted siblings. When ordinary Equipment is exhausted, the remaining
+                // modules reclaim the vacated top band instead of carrying an empty table.
+                val secondaryTop = if (pageRows.isNotEmpty()) 528f else 112f
+                if (pageSpecial.isNotEmpty()) {
+                    titledFrame(
+                        s,
+                        p,
+                        24f,
+                        secondaryTop,
+                        276f,
+                        190f,
+                        "OBJETOS ESPECIALES / SINTONIZADOS",
+                    )
+                    pageSpecial.forEachIndexed { index, item ->
                         specialItem(
-                            s, p, 36f, 558f + index * 39f, 252f,
-                            item.name, item.attuned, item.note,
+                            s,
+                            p,
+                            36f,
+                            secondaryTop + 30f + index * 39f,
+                            252f,
+                            item.name,
+                            item.attuned,
+                            item.note,
                         )
                     }
+                }
 
-                titledFrame(s, p, 312f, 528f, 276f, 190f, "TESORO / VALORES")
-                ruledTextArea(
-                    s, p, 324f, 564f, 252f, 140f,
-                    noteEntries
-                        .drop(pageIndex * CLASSIC_INVENTORY_NOTES_PER_PAGE)
-                        .take(CLASSIC_INVENTORY_NOTES_PER_PAGE),
-                    8.3f,
-                )
+                if (pageNotes.isNotEmpty()) {
+                    val notesX = if (pageSpecial.isNotEmpty()) 312f else 24f
+                    titledFrame(s, p, notesX, secondaryTop, 276f, 190f, "TESORO / VALORES")
+                    ruledTextArea(
+                        s,
+                        p,
+                        notesX + 12f,
+                        secondaryTop + 36f,
+                        252f,
+                        140f,
+                        pageNotes,
+                        8.3f,
+                    )
+                }
 
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / INVENTARIO Y EQUIPO")
             }

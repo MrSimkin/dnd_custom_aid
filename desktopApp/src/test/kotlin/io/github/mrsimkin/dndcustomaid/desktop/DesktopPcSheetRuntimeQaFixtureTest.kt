@@ -426,6 +426,31 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 assertTrue(normalized.contains("Protocolo de paradoja 1"))
                 assertTrue(normalized.contains("Reserva 10: Sello"))
                 assertTrue(normalized.contains("Astrolabio de cobre con anillos concéntricos 1"))
+
+                if (family == PcSheetVisualFamily.CLASSIC_DND_STYLE) {
+                    val pageTexts = (1..rendered.numberOfPages).map { pageNumber ->
+                        PDFTextStripper().apply {
+                            startPage = pageNumber
+                            endPage = pageNumber
+                        }.getText(rendered).replace(Regex("\\s+"), " ")
+                    }
+                    val inventoryPages = pageTexts.filter {
+                        it.contains("EXTENSIÓN / INVENTARIO Y EQUIPO")
+                    }
+                    assertTrue(inventoryPages.isNotEmpty())
+                    assertTrue(
+                        inventoryPages.none { it.contains("TESORO / VALORES") },
+                        "Fantasy Mara must not retain an exhausted Treasure module.",
+                    )
+                    val finalSpecialPages = pageTexts.filter {
+                        it.contains("Llave sin cerradura de latón ennegrecido 34")
+                    }
+                    assertTrue(finalSpecialPages.isNotEmpty())
+                    assertTrue(
+                        finalSpecialPages.none { it.contains("INVENTARIO - CONTINUACIÓN") },
+                        "Fantasy Mara must remove ordinary Equipment after that stream is exhausted.",
+                    )
+                }
             }
         }
     }
