@@ -141,32 +141,43 @@ Esta regla controla el tiempo de sesión y reduce interrupciones al owner; **no 
 
 ## 4. FRENTE FUNCIONAL ACTUAL
 
-**EXACT MARA FOUR-FAMILY PROOF GATE — ACTUAL OUTPUT FIRST**
+**M50800-27 — FAMILY-GLOBAL CONSTRAINT-AWARE EXTENDED PLANNING**
 
-General bidirectional semantic continuity permanece **CLOSED / VALIDATED**.
+Latest validated functional head:
 
-M50800-03 source-geometry / stale-underlay está **CLOSED / VALIDATED** en:
+`6886a052da394b84d549f9769161f772f2869947`
 
-- functional head: `1566bd3c04bd64ec136fbf9c5df510ac60641a66`;
-- fast run: `37568418440` — SUCCESS;
-- artifact: `11459124665`;
-- digest: `sha256:1c9675a4afc5d504f131f15849d81783ba207bd9c304780c30b3fa6f14527d2c`;
-- text-layer PASS: PERSONALIDAD/HISTORIA Custom-v1 ya no retienen labels fuente ajenos ni `EXTENSIÓN: NOTAS`;
-- visual PASS: fragments fuente aislados conservan apariencia/geometría sin cubrir contenido generado;
-- cue routing: resuelto por `PcSheetBasePageRole` presente, no por índice fijo;
-- Android renderer-sync + PDF-delivery guards: PASS.
+Latest exact four-family proof:
+- Fast Gate `37673665059` — SUCCESS;
+- artifact `11505896442`;
+- digest `sha256:25e8dc5080065a9309e013e58d0df4689b7224a8b4df19de5c59711ad5bb14f5`;
+- Fantasy 40 pages / Custom v1 31 / Custom v2 Atributo 20 / Custom v2 Habilidad 20; counts are diagnostic only.
 
-No reabras M50800-03 ni continuidad sin nueva evidencia material.
+Current exact ledger:
+- M50800-01…26 = FIXED;
+- M50800-27 = OPEN / PARTIAL ARCHITECTURE;
+- M50800-28…30 = FIXED;
+- M50800-31 = PENDING HARD GATE;
+- M50800-32 = PASS PRE-CANDIDATE / PENDING CANDIDATE REPEAT;
+- blocking CHANGED-NEW = none observed.
 
-Siguiente acción exacta:
+Why M50800-27 remains open:
+- the shared `PcSheetExtendedPageComposer` is already constraint-aware;
+- several compatible modules already share pages correctly;
+- but family renderers still schedule Extended roles through sequential role groups instead of one family-global planning pass over every active semantic stream.
 
-1. generar Mara exacta desde un mismo source head en Fantasy, Custom v1, Custom v2 · Atributo y Custom v2 · Habilidad;
-2. conservar los cuatro PDFs reales como artifact;
-3. inspeccionar text layer + render visual real;
-4. verificar paridad Android/Desktop;
-5. aplicar M50800-01…32 a esos outputs exactos como `FIXED` / `OPEN` / `CHANGED-NEW`;
-6. si aparece un blocker, corregir sólo ese defecto observado y volver al fast gate;
-7. sólo con hard gates cerrados crear nueva identidad candidata; nunca reutilizar `0.5.0-preqa.8 / 50800`.
+Required next action:
+1. add the smallest family-global planning/coordinator layer that sees all active Extended streams before page emission;
+2. reuse only explicit family-approved native layouts;
+3. keep Notes full-page-exclusive and preserve incompatible/full-width modules;
+4. never invent sharing solely to lower page count;
+5. preserve every already-validated renderer behavior and Desktop/Android parity;
+6. validate through the Fast Gate and real exact Mara proofs;
+7. only after M50800-27 closes repeat the exact ledger and proceed to the unique candidate gate.
+
+Do not create version/build candidate yet.
+Do not reopen M50800-01…26 without new material evidence.
+`LOOP_SUSPECTED = NO`.
 
 ## 5. GUARDRAIL ANTI-LOOP
 

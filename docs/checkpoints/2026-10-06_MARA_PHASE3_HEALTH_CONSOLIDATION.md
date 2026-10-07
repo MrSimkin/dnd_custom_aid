@@ -453,3 +453,74 @@ First verify:
 GitHub state is authoritative. If the intended write already exists, continue from it. If state is ambiguous, remain read-only until resolved. Never reset automatically to an older green commit.
 
 Maintain the canonical recovery/continuation prompt throughout Phase 3 at `docs/checkpoints/2026-10-06_MARA_PHASE3_CONTINUATION_RECOVERY_PROMPT.md`. At Phase-3 closure, replace or advance it with the next-phase recovery prompt without losing the verified source/run/artifact/candidate chain.
+
+
+## 2026-10-07 — Exact Mara gate reconciliation after current repairs
+
+**Latest validated functional head:** `6886a052da394b84d549f9769161f772f2869947`
+
+Latest exact four-family proof:
+- Fast Gate run: `37673665059` — **SUCCESS**;
+- artifact: `11505896442`;
+- digest: `sha256:25e8dc5080065a9309e013e58d0df4689b7224a8b4df19de5c59711ad5bb14f5`;
+- exact PDFs:
+  - Fantasy: 40 pages;
+  - Custom v1: 31 pages;
+  - Custom v2 · Atributo: 20 pages;
+  - Custom v2 · Habilidad: 20 pages.
+
+Page counts are diagnostic only.
+
+Recent exact-output corrections closed and visually inspected:
+- writable Resource trackers preserve paper-editable marks plus compact runtime snapshot in all four families;
+- Custom-v1 sparse HISTORIA continuation now composes with a native Traits module when geometry permits;
+- Custom-v2 Atributo keeps the extra native HABILIDADES ADICIONALES row on the same statistics page without exceeding six actual attribute rows;
+- Custom-v2 Atributo/Habilidad compose the right-side native Narrative module with a compatible left native Traits column;
+- Fantasy keeps Mara's four custom attributes together using two rows of existing native panels, without resizing;
+- Fantasy custom-attribute headings now reuse shared integrated identity semantics: `FORtuna / CORdura / ETEr / RENombre`.
+
+Exact proof audit also reconfirmed:
+- no semantic `...` / `…` in the four Mara PDFs;
+- required late Trait / Resource / Inventory / Note identities survive;
+- writable tracker snapshots `____(1)/3` and `____(2)/4` survive;
+- Custom-v1 long skill `Lectura de presagios` survives using uniform wrapped-label scale;
+- Custom-v2 Traits are ordered from stored `sortOrder`, with no historical `featurePriority` promotion;
+- sparse final Resource/Trait pages are not automatically defects when the preceding native module is full and no family-approved compatible layout exists.
+
+### Current M50800 ledger
+
+- **M50800-01…26:** `FIXED` for the current exact Mara proof / current validated implementation.
+- **M50800-27:** `OPEN / PARTIAL ARCHITECTURE`.
+  - The shared `PcSheetExtendedPageComposer` is constraint-aware and already drives several native compositions.
+  - Family renderers still invoke composition in sequential role groups (for example Narrative/Traits, then Combat, then Resources, then Inventory) rather than exposing every active Extended stream to one family-global planning pass.
+  - This does not justify page-count-driven rewrites; the remaining task is architectural global coordination while preserving every already-validated native layout.
+- **M50800-28…30:** `FIXED`.
+- **M50800-31:** `PENDING HARD GATE`; candidate identity/provenance must not be created until M50800-27 closes.
+- **M50800-32:** `PASS PRE-CANDIDATE / PENDING CANDIDATE REPEAT`; all four exact Mara families currently generate and were inspected, but the same gate must be repeated from the eventual uniquely-versioned candidate.
+
+No blocking `CHANGED-NEW` defect was observed in the latest exact PDFs.
+
+### Exact next authorized front
+
+**M50800-27 — FAMILY-GLOBAL CONSTRAINT-AWARE EXTENDED PLANNING**
+
+Implement the smallest architecture change that makes each family reason about all active Extended semantic streams before page emission, while:
+- retaining the existing shared compositor;
+- retaining already-approved family-native layouts and fixed geometry;
+- preserving Notes as full-page-exclusive;
+- preserving Combat/full-width and other incompatible modules rather than forcing artificial sharing;
+- combining modules only where an explicit family-approved layout exists;
+- allowing exhausted streams to disappear;
+- avoiding page-count optimization as an objective;
+- keeping Desktop/Android parity.
+
+Do not reopen closed visual criteria merely to make the architecture look more generic.
+
+After M50800-27:
+1. regenerate exact four-family Mara proofs;
+2. reconcile M50800-01…32 once more;
+3. if no blocking OPEN/CHANGED-NEW remains, create a **new unique** versionName/versionCode candidate;
+4. run aggregate/full validation and preserve commit/run/artifact/APK/PDF hash provenance;
+5. only then hand off to owner visual QA.
+
+`LOOP_SUSPECTED = NO`.
