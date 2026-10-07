@@ -468,9 +468,9 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     val inventoryPages = pageTexts.filter { it.contains("INVENTARIO / EQUIPO") }
                     assertTrue(
                         inventoryPages.any { pageText ->
-                            pageText.contains("Cuerda de seda marcada cada siete palmos 15") &&
-                                pageText.contains("Llave sin cerradura de latón ennegrecido 22") &&
-                                pageText.contains("Cuaderno de fórmulas personales y mapas plegables 29")
+                            pageText.contains("Objeto de QA 15") &&
+                                pageText.contains("Objeto de QA 22") &&
+                                pageText.contains("Objeto de QA 29")
                         },
                         "$family must consume two complete fixed Special Equipment modules on a special-only page before adding another page.",
                     )
