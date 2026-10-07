@@ -1314,15 +1314,21 @@ class DesktopPcSheetWholeDraftRendererTest {
                     ),
                 ),
                 combatEntries = base.sheet.combatEntries.take(5).mapIndexed { index, entry ->
-                    if (index == 4) {
-                        entry.copy(
+                    when (index) {
+                        0 -> entry.copy(
+                            name = "Ataque base con referencia explícita",
+                            notes = "DetalleBaseCombatContinuacionQA preservado completo en la tabla Extended.",
+                            sortOrder = index,
+                        )
+
+                        4 -> entry.copy(
                             name = "Acción terminal Classic",
                             type = CharacterCombatEntryType.ACTION,
                             notes = "Entrada preservada fuera de las cuatro filas base.",
                             sortOrder = index,
                         )
-                    } else {
-                        entry.copy(sortOrder = index, notes = null)
+
+                        else -> entry.copy(sortOrder = index, notes = null)
                     }
                 },
                 inventoryItems = emptyList(),
@@ -1410,6 +1416,25 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(Regex("COLA\\s+DEFECTO\\s+AUDITADA").containsMatchIn(extracted))
             assertTrue(Regex("COLA\\s+RASGO\\s+LARGO\\s+AUDITADA").containsMatchIn(extracted))
             assertTrue(extracted.contains("Acción terminal Classic"))
+            val pageTexts = (1..document.numberOfPages).map { pageNumber ->
+                PDFTextStripper().apply {
+                    startPage = pageNumber
+                    endPage = pageNumber
+                }.getText(document).replace(Regex("\\s+"), " ")
+            }
+            assertTrue(
+                pageTexts.first().contains("continúa en COMBATE / ACCIONES"),
+                "Fantasy base Combat must show an explicit continuation cue instead of truncating long detail.",
+            )
+            val combatContinuationPage = pageTexts.firstOrNull { pageText ->
+                pageText.contains("ARMAS Y ACCIONES") &&
+                    pageText.contains("Ataque base con referencia explícita") &&
+                    pageText.contains("DetalleBaseCombatContinuacionQA")
+            }
+            assertTrue(
+                combatContinuationPage != null,
+                "Fantasy Extended Combat must preserve the complete base-row record referenced by the cue.",
+            )
             assertTrue(extracted.contains("7 totales"))
             assertTrue(Regex("3\\s+gastados").containsMatchIn(extracted))
             assertTrue(extracted.contains("Tradición cartográfica"))
