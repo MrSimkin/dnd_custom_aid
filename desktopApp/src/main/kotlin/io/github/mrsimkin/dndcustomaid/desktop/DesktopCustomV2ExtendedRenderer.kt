@@ -106,8 +106,7 @@ internal class DesktopCustomV2ExtendedRenderer(
             }
         }
 
-        appendNarrativeExtendedPages(plan)
-        appendTraitsExtendedPages(plan)
+        appendNarrativeAndTraitsExtendedPages(plan)
         appendCombatExtendedPages(plan)
 
         appendResourcesExtendedPages(plan)
@@ -117,11 +116,77 @@ internal class DesktopCustomV2ExtendedRenderer(
         appendNotesExtendedPages(plan)
     }
 
-    private fun appendNarrativeExtendedPages(plan: PcSheetPdfRenderPlan) {
-        val records = narrativeFlowRecords(plan)
-        if (records.isEmpty()) return
+    private fun appendNarrativeAndTraitsExtendedPages(plan: PcSheetPdfRenderPlan) {
+        val narrativeModules = packNarrativeModules(narrativeFlowRecords(plan))
+        val traitColumns = if (needsTraitsExtendedPage(plan)) traitNativeColumns(plan) else emptyList()
+        val leftTraitIndex = traitColumns.indexOfFirst { it.preferredSlotId == TRAIT_LEFT_SLOT_ID }
 
-        packNarrativeModules(records).forEachIndexed { pageIndex, lines ->
+        if (narrativeModules.size == 1 && leftTraitIndex >= 0) {
+            val step = requireNotNull(
+                PcSheetExtendedPageComposer.composeNextPage(
+                    demands = listOf(
+                        PcSheetModuleDemand(
+                            module = PcSheetSemanticModule.BACKGROUND_STORY,
+                            remainingUnits = 1,
+                        ),
+                        PcSheetModuleDemand(
+                            module = PcSheetSemanticModule.TRAITS,
+                            remainingUnits = 1,
+                        ),
+                    ),
+                    layouts = listOf(narrativeTraitsCompositionLayout()),
+                ),
+            )
+            check(step.remainingDemands.isEmpty()) {
+                "Custom-v2 mixed Narrative/Traits layout must consume both native modules."
+            }
+
+            val remainingTraitColumns = traitColumns.toMutableList()
+            val traitColumn = remainingTraitColumns.removeAt(leftTraitIndex)
+            val page = PDPage(PDRectangle(W, H))
+            document.addPage(page)
+            renderNarrativeModulePage(
+                page = page,
+                lines = narrativeModules.single(),
+                pageIndex = 0,
+                pageTitleValue = "NARRATIVA / RASGOS",
+            )
+            appendTraitColumnToExistingPage(
+                page = page,
+                slotId = TRAIT_LEFT_SLOT_ID,
+                column = traitColumn,
+                layerPrefix = "V2X NARRATIVE+TRAITS",
+            )
+            appendTraitsExtendedPages(remainingTraitColumns)
+            return
+        }
+
+        appendNarrativeExtendedPages(narrativeModules)
+        appendTraitsExtendedPages(traitColumns)
+    }
+
+    private fun narrativeTraitsCompositionLayout(): PcSheetExtendedLayoutTemplate =
+        PcSheetExtendedLayoutTemplate(
+            id = NARRATIVE_TRAITS_MIXED_LAYOUT_ID,
+            slots = listOf(
+                PcSheetExtendedLayoutSlot(
+                    id = "narrative-right",
+                    capacityByModule = mapOf(PcSheetSemanticModule.BACKGROUND_STORY to 1),
+                ),
+                PcSheetExtendedLayoutSlot(
+                    id = TRAIT_LEFT_SLOT_ID,
+                    capacityByModule = mapOf(PcSheetSemanticModule.TRAITS to 1),
+                ),
+            ),
+        )
+
+    private fun appendNarrativeExtendedPages(plan: PcSheetPdfRenderPlan) =
+        appendNarrativeExtendedPages(packNarrativeModules(narrativeFlowRecords(plan)))
+
+    private fun appendNarrativeExtendedPages(modules: List<List<NarrativePhysicalLine>>) {
+        if (modules.isEmpty()) return
+
+        modules.forEachIndexed { pageIndex, lines ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderNarrativeModulePage(
@@ -356,6 +421,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         page: PDPage,
         lines: List<NarrativePhysicalLine>,
         pageIndex: Int,
+        pageTitleValue: String = "NARRATIVA / CONTINUACIÓN",
     ) {
         val layerPrefix =
             if (pageIndex == 0) "V2X NARRATIVE" else "V2X NARRATIVE ${pageIndex + 1}"
@@ -394,7 +460,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         appendLayer(page, "$layerPrefix - CLEANUP") { }
 
         appendLayer(page, "$layerPrefix - LABELS") { s ->
-            pageTitle(s, "NARRATIVA / CONTINUACIÓN")
+            pageTitle(s, pageTitleValue)
             centeredSource(
                 s,
                 resources.corbelBold,
@@ -958,8 +1024,10 @@ internal class DesktopCustomV2ExtendedRenderer(
 
     private fun appendTraitsExtendedPages(plan: PcSheetPdfRenderPlan) {
         if (!needsTraitsExtendedPage(plan)) return
+        appendTraitsExtendedPages(traitNativeColumns(plan))
+    }
 
-        val columns = traitNativeColumns(plan)
+    private fun appendTraitsExtendedPages(columns: List<TraitNativeColumn>) {
         if (columns.isEmpty()) return
 
         var demands = listOf(
@@ -1484,6 +1552,140 @@ internal class DesktopCustomV2ExtendedRenderer(
 
                         TraitNativeFlowLineKind.SEPARATOR -> Unit
                     }
+                }
+            }
+        }
+        appendLayer(page, "$layerPrefix - MARKERS") { }
+    }
+
+    private fun appendTraitColumnToExistingPage(
+        page: PDPage,
+        slotId: String,
+        column: TraitNativeColumn,
+        layerPrefix: String,
+    ) {
+        val x = traitColumnStartX(slotId)
+        val width = traitColumnWidth(slotId)
+        appendLayer(page, "$layerPrefix - STRUCTURE") { s ->
+            if (!column.heading.isNullOrBlank()) {
+                fill(
+                    s,
+                    x,
+                    TRAIT_NATIVE_HEADER_TOP,
+                    width,
+                    TRAIT_NATIVE_HEADER_HEIGHT,
+                    Color.WHITE,
+                )
+            }
+            bandedRows(
+                s,
+                x,
+                x + width,
+                TRAIT_NATIVE_FIRST_RULE_TOP,
+                column.lines.size,
+                TRAIT_NATIVE_ROW_STEP,
+                if (slotId == TRAIT_LEFT_SLOT_ID) 0 else 1,
+            )
+        }
+        appendLayer(page, "$layerPrefix - CLEANUP") { }
+        appendLayer(page, "$layerPrefix - LABELS") { s ->
+            column.heading?.takeIf { it.isNotBlank() }?.let { heading ->
+                centeredFixedScale(
+                    s,
+                    resources.corbelBold,
+                    TopRect(
+                        x,
+                        TRAIT_NATIVE_HEADER_LABEL_TOP,
+                        width,
+                        TRAIT_NATIVE_HEADER_LABEL_HEIGHT,
+                    ),
+                    heading,
+                    TRAIT_GROUP_HEADING_SIZE,
+                    SOURCE_CORBEL_HEADING_SCALE,
+                )
+            }
+        }
+        appendLayer(page, "$layerPrefix - VALUES") { s ->
+            column.lines.forEachIndexed { index, line ->
+                val ruleTop = TRAIT_NATIVE_FIRST_RULE_TOP + index * TRAIT_NATIVE_ROW_STEP
+                when (line.kind) {
+                    TraitNativeFlowLineKind.GROUP_HEADING -> centeredFixedScale(
+                        s,
+                        resources.corbelBold,
+                        TopRect(
+                            x,
+                            ruleTop - TRAIT_NATIVE_ROW_STEP + 0.5f,
+                            width,
+                            TRAIT_NATIVE_ROW_STEP - 0.5f,
+                        ),
+                        line.text,
+                        TRAIT_GROUP_HEADING_SIZE,
+                        SOURCE_CORBEL_HEADING_SCALE,
+                    )
+
+                    TraitNativeFlowLineKind.NAME -> textAboveRule(
+                        s,
+                        resources.firaSemibold,
+                        Rule(x + 4f, x + width - 4f, ruleTop),
+                        line.text,
+                        TRAIT_NAME_SIZE,
+                        TRAIT_NAME_MINIMUM_SIZE,
+                        2.7f,
+                    )
+
+                    TraitNativeFlowLineKind.META,
+                    TraitNativeFlowLineKind.USES,
+                    -> textAboveRule(
+                        s,
+                        resources.fira,
+                        Rule(x + 4f, x + width - 4f, ruleTop),
+                        line.text,
+                        TRAIT_META_SIZE,
+                        TRAIT_META_MINIMUM_SIZE,
+                        2.5f,
+                    )
+
+                    TraitNativeFlowLineKind.BODY -> textAboveRule(
+                        s,
+                        resources.fira,
+                        Rule(x + 4f, x + width - 4f, ruleTop),
+                        line.text,
+                        TRAIT_BODY_SIZE,
+                        TRAIT_BODY_MINIMUM_SIZE,
+                        2.5f,
+                    )
+
+                    TraitNativeFlowLineKind.PROFICIENCY -> textAboveRule(
+                        s,
+                        resources.fira,
+                        Rule(x + 4f, x + width - 4f, ruleTop),
+                        line.text,
+                        TRAIT_PROFICIENCY_SIZE,
+                        TRAIT_META_MINIMUM_SIZE,
+                        2.4f,
+                    )
+
+                    TraitNativeFlowLineKind.SUPPLEMENT -> textAboveRule(
+                        s,
+                        resources.fira,
+                        Rule(x + 4f, x + width - 4f, ruleTop),
+                        line.text,
+                        TRAIT_SUPPLEMENT_SIZE,
+                        TRAIT_META_MINIMUM_SIZE,
+                        2.4f,
+                    )
+
+                    TraitNativeFlowLineKind.CONTINUITY -> textAboveRule(
+                        s,
+                        resources.firaSemibold,
+                        Rule(x + 4f, x + width - 4f, ruleTop),
+                        line.text,
+                        TRAIT_CONTINUITY_SIZE,
+                        TRAIT_CONTINUITY_MINIMUM_SIZE,
+                        2.2f,
+                    )
+
+                    TraitNativeFlowLineKind.SEPARATOR -> Unit
                 }
             }
         }
@@ -4123,6 +4325,7 @@ internal class DesktopCustomV2ExtendedRenderer(
         const val SOURCE_CORBEL_TABLE_SCALE = 86f
         const val SOURCE_MATCHED_MICRO_FIT_DELTA = 2f
         const val COMPACT_LABEL_MICRO_FIT_DELTA = 2f
+        const val NARRATIVE_TRAITS_MIXED_LAYOUT_ID = "v2-narrative-right-traits-left"
         const val NARRATIVE_MODULE_X = 297.5f
         const val NARRATIVE_MODULE_WIDTH = 300f
         const val NARRATIVE_MODULE_HEADER_TOP = 98f

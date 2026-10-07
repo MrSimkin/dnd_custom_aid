@@ -435,6 +435,26 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     "$family must not consume resource tracker marks to encode current state.",
                 )
 
+                if (
+                    family == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ||
+                    family == PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY
+                ) {
+                    val pageTexts = (1..rendered.numberOfPages).map { pageNumber ->
+                        PDFTextStripper().apply {
+                            startPage = pageNumber
+                            endPage = pageNumber
+                        }.getText(rendered).replace(Regex("\\s+"), " ")
+                    }
+                    val mixedNarrativeTraitsPage = pageTexts.first {
+                        it.contains("NARRATIVA / RASGOS")
+                    }
+                    assertTrue(mixedNarrativeTraitsPage.contains("Personalidad"))
+                    assertTrue(
+                        mixedNarrativeTraitsPage.contains("Rasgo extenso 01 — Umbral"),
+                        "$family must reclaim the native left Traits column beside a sparse right-side Narrative module.",
+                    )
+                }
+
                 if (family == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE) {
                     val pageTexts = (1..rendered.numberOfPages).map { pageNumber ->
                         PDFTextStripper().apply {
