@@ -119,35 +119,40 @@ NO interpretes ausencia de respuesta del agente como ausencia de efectos en GitH
 
 ## 4. FRENTE FUNCIONAL ACTUAL
 
-**Traits, Combat/Actions y Notes ya están CLOSED / VALIDATED. No los reabras sin nueva evidencia real.**
+**Traits, Combat/Actions, Notes y M50800-26/29 semantic survival ya están CLOSED / VALIDATED. No los reabras sin nueva evidencia real.**
 
-Última evidencia física común:
+Última evidencia física:
 
-- validated functional/proof HEAD: `fc6fca3776a88dd53b6e636deddfd9f46edac184`;
-- Scaffold #4519 / `37555121975`: SUCCESS;
-- proof artifact `11454378341`;
-- digest `sha256:6496fd013f3cc627e635c5ba37fb77040b637eb04c5360a9868e041533f1c225`;
-- Notes M50800-21…24 demostrados visualmente en Custom-v1, Custom-v2 Attribute/Ability y Fantasy;
-- continuidad Notes `continúa en...` / `proviene de...` visible en PDFs actuales;
-- no hubo nuevo write funcional para Notes;
+- validated production HEAD: `d4e42818223100d96de32e0fe4a278dc0356153e`;
+- Scaffold #4521 / `37557543660`: backend / hosted-database / kotlin SUCCESS;
+- proof HEAD: `59b039bdccc8d33a79252536c1d5d7bd10470e0e`;
+- Scaffold #4522 / `37558318363`: SUCCESS;
+- proof artifact `11455609450`;
+- digest `sha256:72cb4aba21442a76aa887605cdcc2a05a117c50475f159a8d5471f268529ec97`;
+- Fantasy long character identity complete in two lines with no ellipsis;
+- Fantasy base Combat long detail uses `[continúa en COMBATE / ACCIONES]`;
+- referenced Extended Combat row retains the complete semantic record in native table grammar;
+- current four key family PDFs contain no literal `...` / `…`;
+- M50800-26 / 29 demonstrated;
+- front count: #4520 RED -> #4521 GREEN -> #4522 GREEN focused proof;
 - `LOOP_SUSPECTED = NO`.
 
 El siguiente frente autorizado es:
 
-**Semantic ellipsis / silent drop — M50800-26 + M50800-29**
+**General bidirectional semantic continuity — read-only first**
 
 Antes de cualquier write:
 
-1. relee disposiciones finales M50800-26 y M50800-29 y la observación QA original;
-2. inspecciona renderers/tests actuales de las cuatro familias;
-3. busca en los proofs #4519 elipsis semántica real y pérdida de tokens/colas de registros;
-4. distingue `...` decorativo/estático de truncación de identidades o contenido generado;
-5. verifica asociación al módulo/registro correcto, no sólo presencia global;
-6. NO reimplementes fixes ya demostrados;
-7. sólo si queda pérdida material, implementa el parche mínimo y cuenta su primer CI como **ciclo 1/4**;
-8. cierra sólo con CI verde + evidencia en PDFs actuales.
+1. enumera los flows que realmente pueden partir un mismo registro/módulo entre secciones/páginas no contiguas;
+2. distingue flows atómicos/movidos completos (sin marker necesario) de flows realmente partidos;
+3. verifica uso actual de `PcSheetBidirectionalContinuation` y paridad Desktop/Android;
+4. inspecciona proofs #4522 para Narrative, Notes y otros split flows;
+5. evalúa específicamente si el nuevo cue Fantasy Combat de origen requiere `proviene de...` en destino bajo la regla general del owner;
+6. NO agregues markers a registros que sólo se repiten o mueven enteros;
+7. sólo si queda un gap material, implementa el paquete mínimo y cuenta el primer CI como **ciclo 1/4**;
+8. cierra con CI verde + proof PDF visual real.
 
-El residual `EXTENSIÓN: NOTAS` continúa reservado para el posterior M50800-03 stale-underlay/source-geometry audit.
+El residual de source/footer como `EXTENSIÓN: NOTAS` / `EXTENSIÓN: RASGOS` sigue reservado para el frente posterior M50800-03 stale-underlay/source-geometry.
 
 ## 5. GUARDRAIL ANTI-LOOP
 

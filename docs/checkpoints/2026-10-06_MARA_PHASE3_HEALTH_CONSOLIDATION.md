@@ -5,8 +5,9 @@
 **Branch:** `repair/mara-phase3-semantic-flow-compositor`  
 **Main base:** `c4e65955a5f58f88e0b03807b4616a3f8a9323a8`  
 **Validated implementation head at capture:** `e6e07a13721d3d56364d6373472a0b5b0074acb6`  
-**Current validated functional implementation HEAD:** `fc6fca3776a88dd53b6e636deddfd9f46edac184` — current production/proof head validated through Notes at Scaffold #4519 (`37555121975`) SUCCESS  
-**Current status:** ACTIVE / NARRATIVE + TRAITS + COMBAT/ACTIONS + NOTES VALIDATED; NEXT FRONT SEMANTIC ELLIPSIS / SILENT-DROP AUDIT  
+**Current validated functional implementation HEAD:** `d4e42818223100d96de32e0fe4a278dc0356153e` — semantic-survival production correction validated at Scaffold #4521 (`37557543660`) SUCCESS  
+**Current proof HEAD:** `59b039bdccc8d33a79252536c1d5d7bd10470e0e` — focused Fantasy explicit-continuation proof / Scaffold #4522 (`37558318363`) SUCCESS  
+**Current status:** ACTIVE / NARRATIVE + TRAITS + COMBAT/ACTIONS + NOTES + SEMANTIC SURVIVAL VALIDATED; NEXT FRONT GENERAL BIDIRECTIONAL CONTINUITY AUDIT  
 **Anti-loop result:** `CONTINUE_WITH_GUARDRAIL`  
 **Open implementation PR:** none at capture  
 **Owner visual handoff:** NOT AUTHORIZED
@@ -277,22 +278,84 @@ Acceptance result:
 - No new Notes CI cycle was required because the current #4519 artifact already exercises the current production renderer and contains the necessary actual PDFs.
 - `LOOP_SUSPECTED = NO`.
 
+## Semantic ellipsis / silent-drop closure after Notes
+
+The bounded M50800-26 + M50800-29 semantic-survival front is now **CLOSED / VALIDATED**.
+
+Root observation reopened from actual #4519 proofs:
+
+- Fantasy still rendered semantic `...` in generated character identity / combat preview content;
+- production still used `classicSingleLineExcerpt(...)`, which manufactured semantic ellipsis;
+- Custom-v1/v2 already had stronger late-token and association gates in their Extended modules.
+
+Corrective sequence:
+
+1. `8823b089ad328de2b4687b453164b9bf3c7126b0` — remove the Fantasy ellipsis helper and route full semantic text through fit/wrap-aware primitives.
+   - Scaffold #4520 / `37556848852`: **RED**;
+   - the failure was useful and localized: full text exposed real bounded-base overflow rather than hiding it.
+2. `d4e42818223100d96de32e0fe4a278dc0356153e` — preserve full long identity with readable two-line compression and route overlong base Combat preview detail through an explicit `[continúa en COMBATE / ACCIONES]` cue while the complete record remains in the native Extended table.
+   - Scaffold #4521 / `37557543660`: backend / hosted-database / kotlin **SUCCESS**;
+   - proof artifact `11455588060`;
+   - digest `sha256:913c60404bdfb52f0eac5343f593d22388992f35178b73cda9a52228b1d23ceb`.
+3. `59b039bdccc8d33a79252536c1d5d7bd10470e0e` — focused proof hardening only; no renderer change.
+   - verifies the base Combat cue and the complete referenced Extended record;
+   - Scaffold #4522 / `37558318363`: backend / hosted-database / kotlin **SUCCESS**;
+   - proof artifact `11455609450`;
+   - digest `sha256:72cb4aba21442a76aa887605cdcc2a05a117c50475f159a8d5471f268529ec97`.
+
+Actual-PDF acceptance:
+
+- `fantasy-canonical-overflow-audit.pdf`, page 1:
+  - long character name `Iria Noctis Cartógrafa Mayor De La Frontera Septentrional` is complete in two centered lines;
+  - no semantic ellipsis;
+  - base Combat row shows the explicit continuation cue instead of truncated detail.
+- same PDF, page 5:
+  - `ARMAS Y ACCIONES — CONTINUACIÓN` retains native table grammar;
+  - `Ataque base con referencia explícita` and `DetalleBaseCombatContinuacionQA` are complete in the same logical record;
+  - no clipping or semantic ellipsis.
+- text scan of the current four key outputs found no literal `...` or `…` in:
+  - `fantasy-canonical-overflow-audit.pdf`;
+  - `custom-v1-whole-draft.pdf`;
+  - `custom-v2-per-attribute-whole-draft.pdf`;
+  - `custom-v2-per-ability-whole-draft.pdf`.
+
+Association / silent-drop evidence remains semantic, not whole-document-only:
+
+- shared record refs preserve module ownership for Traits, Combat, ordinary/special Equipment, Notes and Spells;
+- Custom-v1 Narrative gates keep narrative payload out of Traits and retain late personality/story tokens in native narrative modules;
+- Custom-v2 Narrative owns a dedicated BACKGROUND_STORY module;
+- Custom-v2 Combat gates require complete semantic/table content in the Combat page;
+- ordinary vs special Equipment gates require the correct native module;
+- Fantasy long-tail gates retain late Narrative/Trait/Combat content.
+
+Acceptance result:
+
+- **M50800-26: demonstrated** — semantic ellipsis is not used; fit/compress/wrap/explicit continuation are the allowed outcomes.
+- **M50800-29: demonstrated** — preservation is checked together with semantic module/record association.
+- front CI count: **3** (#4520 RED -> #4521 GREEN -> #4522 GREEN focused proof);
+- material OPEN decreased to zero; no oscillation or test relaxation;
+- `LOOP_SUSPECTED = NO`.
+
 ## Exact next authorized action
 
-Notes is closed. Do **not** reopen it without new defect evidence.
+Semantic ellipsis / silent drop is closed. Do **not** reopen M50800-26/29 without new defect evidence.
 
-The next authorized front is a bounded **semantic ellipsis / silent-drop audit (M50800-26 + M50800-29)**, beginning read-only:
+The next authorized front is the bounded **general bidirectional semantic-continuity audit**, beginning read-only from the owner-confirmed general rule:
 
-1. reopen final M50800-26 and M50800-29 acceptance intent plus the original QA evidence;
-2. inspect current family renderers and tests for truncation/ellipsis/silent-drop behavior across meaningful generated identities;
-3. search the latest actual #4519 proofs for semantic `...` and missing late-token/record tails, distinguishing decorative/static text from generated semantic content;
-4. reconcile known fixes already present for Fantasy and Custom-v1/v2 overflow routing;
-5. classify each family as demonstrated vs materially OPEN;
-6. only if a concrete semantic-loss gap remains, implement the smallest localized correction;
-7. first functional CI for any new correction counts as cycle **1/4**;
-8. close only with green CI and actual-PDF evidence that required identities survive in the correct semantic module/record.
+1. enumerate every current semantic flow that can split one logical record/module across non-contiguous normal/Extended sections or pages;
+2. classify each as:
+   - already bidirectional and visually demonstrated;
+   - atomic/no split possible, therefore no marker required;
+   - forward-only / backward-only / ambiguous, therefore materially OPEN;
+3. inspect shared `PcSheetBidirectionalContinuation` use and current Desktop/Android renderers;
+4. inspect actual #4522 PDFs for visible source/target markers in Narrative, Notes and any other split flow;
+5. treat the new Fantasy base Combat cue as a continuity candidate: determine whether the Extended record also needs an explicit `proviene de...` marker under the general owner rule rather than assuming the forward cue alone is sufficient;
+6. do not add markers to atomic rows that are merely repeated or wholly moved between pages;
+7. only if a real bidirectional gap remains, implement the smallest coherent continuity package;
+8. first functional CI for that package counts as cycle **1/4**;
+9. close only with green CI and actual-PDF visual evidence.
 
-Do not begin the general source-geometry/stale-underlay audit, final candidate/versioning, Current Snapshot finalization or Media/Handouts until this semantic-survival front is closed or the guardrail forces a structural stop/rethink.
+Do not begin source-geometry/stale-underlay, final candidate/versioning, Current Snapshot finalization or Media/Handouts until this continuity front is closed or the guardrail forces a stop/rethink.
 
 ## Delivery objective / autonomous burn-down
 
@@ -316,7 +379,6 @@ That prompt is part of the active recovery contract. After timeout, connection i
 
 At minimum:
 
-- remaining semantic ellipsis / silent-drop audit;
 - general bidirectional continuity proof in actual output;
 - remaining source-geometry / stale-underlay audit;
 - Android/Desktop parity;

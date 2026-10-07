@@ -312,3 +312,35 @@ M50800-21 / 22 / 23 / 24 are demonstrated in the current implementation. No new 
 
 Next:
 - bounded read-only M50800-26 / M50800-29 semantic ellipsis and silent-drop audit against current renderers/tests/#4519 proofs.
+
+
+## Progress — semantic ellipsis / silent-drop closure
+
+**Status:** COMPLETE / GREEN / ACTUAL PROOFS INSPECTED
+
+Validated production head:
+
+`d4e42818223100d96de32e0fe4a278dc0356153e`
+
+Focused proof head:
+
+`59b039bdccc8d33a79252536c1d5d7bd10470e0e`
+
+Sequence:
+- #4520 / `37556848852`: RED after removing manufactured Fantasy ellipsis; exposed real bounded-base overflow.
+- #4521 / `37557543660`: GREEN after long-identity two-line fit and explicit Fantasy Combat continuation routing.
+- #4522 / `37558318363`: GREEN focused proof; no production renderer change.
+
+Current proof artifact:
+- `11455609450`
+- `sha256:72cb4aba21442a76aa887605cdcc2a05a117c50475f159a8d5471f268529ec97`
+
+Actual visual proof:
+- `fantasy-canonical-overflow-audit.pdf` page 1: complete long character identity, no ellipsis, explicit Combat continuation cue;
+- page 5: complete referenced logical Combat row in native table grammar, no clipping/ellipsis;
+- key Fantasy / Custom-v1 / Custom-v2 Attribute / Custom-v2 Ability PDFs contain no literal semantic ellipsis.
+
+M50800-26 and M50800-29 are demonstrated. Front CI count = 3; OPEN -> 0; `LOOP_SUSPECTED = NO`.
+
+Next:
+- read-only general bidirectional semantic-continuity audit before any further production change.
