@@ -126,6 +126,19 @@ En `repair/mara-phase3-semantic-flow-compositor`, los pushes ordinarios del rend
 - `CI_GREEN / VISUAL_PENDING` es un estado válido cuando falta inspección PDF real.
 - Si falla polling, conexión, servidor o descarga de artifact, consulta primero el mismo run y su estado físico; no crees otro commit para "hacerlo correr de nuevo".
 
+### Límite de polling interactivo
+
+Para evitar timeouts causados por mantener una respuesta abierta esperando CI:
+
+1. después de un commit, confirma **una sola vez** que existe el `PC Sheet fast gate` esperado y registra su `run_id`;
+2. si el run está `queued` o `in_progress`, termina esa ejecución en `CI_RUNNING / NO_ACTION`;
+3. no vuelvas a consultar ese mismo run repetidamente dentro de la misma respuesta;
+4. en la siguiente continuación/recuperación, consulta **ese run exacto una sola vez**;
+5. si quedó `SUCCESS`, recién entonces descarga/inspecciona el proof requerido antes de cerrar el criterio o abrir el siguiente defecto;
+6. si sigue corriendo, vuelve a conservar `CI_RUNNING / NO_ACTION`, sin writes, reruns ni commits sustitutivos.
+
+Esta regla controla el tiempo de sesión; **no rebaja ningún gate de evidencia** ni permite saltarse la inspección PDF exigida.
+
 ## 4. FRENTE FUNCIONAL ACTUAL
 
 **EXACT MARA FOUR-FAMILY PROOF GATE — ACTUAL OUTPUT FIRST**

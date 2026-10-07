@@ -54,6 +54,14 @@ The full `Scaffold checks` workflow remains authoritative aggregate evidence and
 
 `CI_GREEN / VISUAL_PENDING` is a valid intermediate state when automated checks passed but the criterion still requires direct PDF inspection. A connection, polling, server or artifact-download failure is not a code failure: verify the existing GitHub run/artifact before creating another commit or replaying the operation.
 
+For interactive repair turns, do not keep the chat/session alive by repeatedly polling the same fast-gate run. After a commit:
+1. verify once that the expected fast-gate run exists and record its run ID;
+2. if that run is `queued` or `in_progress`, stop the current execution at `CI_RUNNING / NO_ACTION` without further polling or writes;
+3. on the next continuation/recovery turn, query that exact run once;
+4. if it completed successfully, inspect the required proof artifact before closing the criterion or opening the next defect.
+
+This async boundary is a timeout-control rule, not permission to skip evidence. Never trigger a duplicate run, replay a commit or advance to another corrective front merely because the existing run is still executing.
+
 ## 6. External-provider capability protocol
 
 For Cloudflare, Descope, Neon or another authenticated provider:
