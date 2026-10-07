@@ -502,13 +502,17 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                         it.contains("EXTENSIÓN / ESTADÍSTICAS PERSONALIZADAS")
                     }
                     val maraAttributePage = fantasyCustomStatisticsPages.first {
-                        it.contains("Fortuna (FOR)")
+                        it.contains("FORtuna")
                     }
-                    assertTrue(maraAttributePage.contains("Cordura (COR)"))
-                    assertTrue(maraAttributePage.contains("Éter (ETE)"))
+                    assertTrue(maraAttributePage.contains("CORdura"))
+                    assertTrue(maraAttributePage.contains("ETEr"))
                     assertTrue(
-                        maraAttributePage.contains("Renombre (REN)"),
+                        maraAttributePage.contains("RENombre"),
                         "Fantasy Mara must keep all four custom attributes together at native panel scale.",
+                    )
+                    assertTrue(
+                        !maraAttributePage.contains("Éter (ETE)"),
+                        "Fantasy custom-attribute titles must use integrated native-style identity rather than duplicated name/key syntax.",
                     )
 
                     val inventoryPages = pageTexts.filter {

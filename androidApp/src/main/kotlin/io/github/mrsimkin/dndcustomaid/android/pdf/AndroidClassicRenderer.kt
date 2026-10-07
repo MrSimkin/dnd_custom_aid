@@ -49,6 +49,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility
 import io.github.mrsimkin.dndcustomaid.shared.character.spellAttackModifier
 import io.github.mrsimkin.dndcustomaid.shared.character.spellSaveDc
 import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetWritableUsesTrackerOrNull
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetIntegratedAttributeTitle
 import com.tom_roush.harmony.awt.AWTColor as Color
 import java.io.OutputStream
 import com.tom_roush.pdfbox.pdmodel.PDDocument
@@ -3354,7 +3355,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         fantasyFrame(s, x, top, width, height, 0.9f)
         text(
             s, p, x + 8f, top + 7f, width - 16f, 18f,
-            "$title ($abbreviation)",
+            pcSheetIntegratedAttributeTitle(title, abbreviation),
             PdfTypographyRole.OPTIONAL_DECORATIVE,
             10f, 7.2f,
             wrap = true,
