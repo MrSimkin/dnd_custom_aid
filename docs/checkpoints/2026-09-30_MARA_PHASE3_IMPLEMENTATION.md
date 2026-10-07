@@ -221,3 +221,38 @@ This is an implementation milestone only. It does **not** close M50800 acceptanc
 
 Next:
 - repair Custom-v2 Inventory semantics and replace the generic Inventory continuation with native ordinary-Equipment + fixed native Special-Equipment modules.
+
+
+## Progress — Custom-v1 Traits native-module closure
+
+**Status:** COMPLETE / GREEN / ACTUAL PROOF INSPECTED
+
+Validated functional head:
+
+`c2367e11bef9e92990f0f9efc6e89b13cf07795f`
+
+Bounded CI sequence:
+- #4516 / `37543504407`: two open criteria;
+- #4517 / `37553188998`: one open criterion;
+- #4518 / `37553725881`: backend PASS; hosted-database PASS; kotlin PASS.
+
+Proof:
+- artifact `11454232332`;
+- digest `sha256:37645e52aab6949580ca0c87cd5567b655aebeb73f12a810a1a2d65d552f4107`;
+- actual Custom-v1 Traits, pass2 Traits and Narrative PDFs directly inspected.
+
+Closed behavior:
+- native `Otros Rasgos y Atributos` module reused without arbitrary resize;
+- true overflow names retain category grouping and stored order;
+- exhausted/redundant Traits page allocation is avoided for the focused overflow case;
+- source-only metadata on already represented traits no longer creates duplicate continuation detail;
+- real continuation metadata keeps source/tracker/recovery context;
+- Narrative remains associated to native BACKGROUND_STORY surfaces, not Traits;
+- Android/Desktop parity guard passes.
+
+Anti-loop: three cycles, OPEN `2 -> 1 -> 0`, no reopening/oscillation, `LOOP_SUSPECTED = NO`.
+
+Observed but not hidden: visible source/footer text `EXTENSIÓN: NOTAS` remains pending for the later M50800-03 stale-underlay/source-geometry audit. It is not part of this Traits closure.
+
+Next:
+- read-only reconciliation of Custom-v2 + Fantasy Combat/Actions against final M50800-12 / M50800-13, current implementation/tests and actual proofs before any new code.

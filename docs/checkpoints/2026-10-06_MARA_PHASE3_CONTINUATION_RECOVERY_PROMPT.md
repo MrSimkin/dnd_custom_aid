@@ -69,16 +69,18 @@ Verifica directamente en GitHub, antes de modificar nada:
 - artifacts disponibles;
 - si el último write esperado realmente existe.
 
-Últimos anchors conocidos al crear este prompt:
+Últimos anchors conocidos al actualizar este prompt:
 
-- último HEAD funcional de implementación conocido: `92e460f005cb1f7f3cb76e3a4d6ebfa34afb04a4`;
-- paquete: Custom-v1 Traits native-module compositor;
-- Scaffold #4516 / run `37543504407`: backend SUCCESS, hosted-database SUCCESS, kotlin FAILURE;
-- Narrative validado previamente en `e6e07a13721d3d56364d6373472a0b5b0074acb6`;
-- Narrative Scaffold #4514 / run `37537059037`: SUCCESS;
-- Narrative proof artifact: `11447835297`;
-- no PR de implementación abierto al último chequeo;
-- existen commits documentales posteriores al HEAD funcional.
+- último HEAD funcional **validado** conocido: `c2367e11bef9e92990f0f9efc6e89b13cf07795f`;
+- Custom-v1 Traits: **CLOSED / VALIDATED**;
+- Scaffold #4518 / run `37553725881`: backend SUCCESS, hosted-database SUCCESS, kotlin SUCCESS;
+- proof artifact: `11454232332`;
+- proof digest: `sha256:37645e52aab6949580ca0c87cd5567b655aebeb73f12a810a1a2d65d552f4107`;
+- Traits cerró en tres ciclos: #4516 dos criterios OPEN -> #4517 uno -> #4518 cero;
+- Narrative sigue validado y separado semánticamente en el proof más reciente;
+- residual visible `EXTENSIÓN: NOTAS` continúa OPEN bajo M50800-03 stale-underlay/source-geometry;
+- siguiente frente autorizado: Combat/Actions M50800-12/13, comenzando read-only;
+- no PR de implementación abierto al último chequeo.
 
 Estos datos son **sólo anchors de recuperación**.
 
@@ -115,40 +117,37 @@ NO fuerces una rama sobre un HEAD que cambió.
 
 NO interpretes ausencia de respuesta del agente como ausencia de efectos en GitHub.
 
-## 4. FRENTE FUNCIONAL CONOCIDO AL CREAR ESTE PROMPT
+## 4. FRENTE FUNCIONAL ACTUAL
 
-El frente funcional abierto era:
+**Custom-v1 Traits ya está CLOSED / VALIDATED. No lo reabras sin nueva evidencia de defecto.**
 
-**Custom-v1 Traits native-module compositor**
+Evidencia de cierre:
 
-El primer ciclo CI del frente fue #4516 / `37543504407`.
+- functional HEAD: `c2367e11bef9e92990f0f9efc6e89b13cf07795f`;
+- Scaffold #4518 / `37553725881`: SUCCESS en los tres jobs;
+- proof artifact `11454232332`;
+- actual PDFs inspeccionados;
+- OPEN del frente: `2 -> 1 -> 0`;
+- `LOOP_SUSPECTED = NO`.
 
-Fallos conocidos:
+El siguiente frente autorizado es:
 
-1. `promotesOwnerApprovedCustomV1TraitsContinuationWithoutCustomStatistics`
-   - source-only metadata de un trait ya representado en base se vuelve a emitir como detalle Extended;
-   - no se debe duplicar una representación satisfecha sólo porque exista `source`.
+**Combat / Actions — reconciliación M50800-12 + M50800-13**
 
-2. `keepsCustomV1NarrativeOverflowOutOfTraitsAndInNativeStoryModules`
-   - el selector de página Traits puede confundir texto fuente/nativo `Otros Rasgos y Atributos` con ownership semántico real;
-   - NO relajes el contrato Narrative para obtener verde;
-   - reestablece una identificación precisa del módulo/página propietaria.
+Antes de cualquier write:
 
-Narrative en sí estaba **CLOSED / VALIDATED** con CI verde y proof PDF real.
+1. relee las disposiciones finales M50800-12 y M50800-13;
+2. reabre las observaciones QA originales de Combat/Actions;
+3. inspecciona la implementación actual de Custom-v2 y Fantasy;
+4. inspecciona tests y proofs PDF **actuales**;
+5. recuerda que `ff6bc98b...` ya dejó repository-green:
+   - Custom-v2 logical rows con altura por contenido;
+   - Fantasy table-grammar continuation;
+6. NO reimplementes eso sólo porque sea antiguo: determina qué está demostrado actualmente y qué gap real queda contra el contrato final/global compositor;
+7. sólo si queda un gap material, implementa el paquete mínimo y cuenta su primer CI como **ciclo 1/4**;
+8. para cerrar Combat/Actions exige CI verde + proof PDF visual real.
 
-No lo reabras sin evidencia nueva real de regresión.
-
-Si este paquete sigue siendo el actual después de la verificación física:
-
-- el próximo intento funcional cuenta como **ciclo 2/4**;
-- corrige sólo este paquete;
-- conserva geometría nativa `Otros Rasgos y Atributos`;
-- conserva paridad Android/Desktop;
-- exige CI verde;
-- descarga/inspecciona el proof PDF/PNG real;
-- sólo entonces declara el paquete cerrado.
-
-Si GitHub demuestra que este paquete ya avanzó o cerró, NO lo repitas: continúa desde el estado realmente demostrado.
+El residual `EXTENSIÓN: NOTAS` observado en surfaces copiadas no pertenece al frente Combat; permanece registrado para el posterior M50800-03 stale-underlay/source-geometry audit.
 
 ## 5. GUARDRAIL ANTI-LOOP
 

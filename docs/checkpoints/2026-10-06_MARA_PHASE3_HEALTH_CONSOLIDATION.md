@@ -5,8 +5,8 @@
 **Branch:** `repair/mara-phase3-semantic-flow-compositor`  
 **Main base:** `c4e65955a5f58f88e0b03807b4616a3f8a9323a8`  
 **Validated implementation head at capture:** `e6e07a13721d3d56364d6373472a0b5b0074acb6`  
-**Last functional implementation HEAD before documentation consolidation:** `92e460f005cb1f7f3cb76e3a4d6ebfa34afb04a4` — Custom-v1 Traits package OPEN / CI RED at Scaffold #4516 (`37543504407`)  
-**Current status:** ACTIVE / CUSTOM-v1 NARRATIVE VALIDATED; CUSTOM-v1 TRAITS PACKAGE OPEN  
+**Current validated functional implementation HEAD:** `c2367e11bef9e92990f0f9efc6e89b13cf07795f` — Custom-v1 Traits package CLOSED / Scaffold #4518 (`37553725881`) SUCCESS  
+**Current status:** ACTIVE / CUSTOM-v1 NARRATIVE + TRAITS VALIDATED; NEXT FRONT COMBAT/ACTIONS READ-ONLY RECONCILIATION  
 **Anti-loop result:** `CONTINUE_WITH_GUARDRAIL`  
 **Open implementation PR:** none at capture  
 **Owner visual handoff:** NOT AUTHORIZED
@@ -113,9 +113,9 @@ Do not repeat this health consolidation unless one of the guardrail triggers fir
 
 The branch advanced after this consolidation was first captured. This does **not** invalidate the bounded audit and must not trigger rollback or replay.
 
-Physical state verified on 2026-10-06:
+Physical state initially captured on 2026-10-06; superseded for the active route by the later Traits closure recorded below:
 
-- last functional implementation HEAD before documentation-only consolidation: `92e460f005cb1f7f3cb76e3a4d6ebfa34afb04a4` — `feat: compose v1 Traits from native modules`;
+- initial functional implementation head for this bounded front: `92e460f005cb1f7f3cb76e3a4d6ebfa34afb04a4` — `feat: compose v1 Traits from native modules`;
 - parent documentation commit: `12172e330b38f26edb6dc0b99e6a0b426e935bdc` — this health consolidation;
 - Narrative validation remains anchored at `e6e07a13721d3d56364d6373472a0b5b0074acb6` / Scaffold #4514 / run `37537059037` — backend, hosted-database and kotlin SUCCESS;
 - Narrative proof artifact: `11447835297`, digest `sha256:059eb8a5214b32b1e7a346f748e0cadea81b552c393395a35ebd82e2dc6cd0c0`;
@@ -123,26 +123,73 @@ Physical state verified on 2026-10-06:
 - current Traits run: Scaffold #4516 / `37543504407` — backend SUCCESS, hosted-database SUCCESS, kotlin FAILURE, no proof artifact;
 - open implementation PR: none.
 
-Current Custom-v1 Traits failure packet:
+Historical Custom-v1 Traits failure packet at #4516 (now resolved by the closure section below):
 
 1. `promotesOwnerApprovedCustomV1TraitsContinuationWithoutCustomStatistics` fails because source-only metadata on a trait already represented in the base sheet is emitted again as Extended trait detail. The current implementation treats `source` alone as sufficient continuation detail.
 2. `keepsCustomV1NarrativeOverflowOutOfTraitsAndInNativeStoryModules` also fails. The new Traits-page selector matches extracted `Otros Rasgos y Atributos` text, which can exist in source/native text on narrative proof pages; therefore this failure is a **regression signal but not proof of a visual Narrative regression**. Do not weaken the semantic contract merely to green the test. Re-establish page/module ownership precisely and require a new proof before closing the Traits package.
 
-Anti-loop consequence: **no LOOP_SUSPECTED trigger yet** for Custom-v1 Traits. This is cycle 1 of the bounded front. It must close or materially reduce its open criteria within the existing four-cycle guardrail; otherwise stop for structural diagnosis.
+Historical anti-loop state at #4516: no trigger. The front later closed in three cycles with OPEN 2 -> 1 -> 0; see the closure section below.
+
+## Custom-v1 Traits closure after consolidation
+
+The bounded Custom-v1 Traits front is now **CLOSED / VALIDATED**.
+
+Functional sequence:
+
+1. `92e460f0...` — native `Otros Rasgos y Atributos` compositor; Scaffold #4516 / `37543504407` failed two criteria.
+2. `10fa1fdb...` — precise semantic Traits sentinel for Narrative ownership plus first source-metadata correction; Scaffold #4517 / `37553188998` reduced OPEN from two criteria to one.
+3. `c2367e11bef9e92990f0f9efc6e89b13cf07795f` — source-only metadata is suppressed for already represented traits while true overflow and meaningful continuation metadata retain source context; Scaffold #4518 / `37553725881` is backend / hosted-database / kotlin **SUCCESS**.
+
+Proof artifact:
+
+- artifact: `11454232332` — `pc-sheet-populated-template-proofs`;
+- digest: `sha256:37645e52aab6949580ca0c87cd5567b655aebeb73f12a810a1a2d65d552f4107`;
+- inspected actual PDFs, not only extracted text:
+  - `custom-v1-traits-native-module-reclaim.pdf`;
+  - `custom-v1-production-extended-traits-pass2.pdf`;
+  - `custom-v1-narrative-native-module-association.pdf`.
+
+Observed acceptance evidence:
+
+- Custom-v1 Traits reuses the native `Otros Rasgos y Atributos` module geometry;
+- true overflow records 31–34 survive in coherent stored order inside their semantic categories;
+- one small name-only overflow uses one native module rather than reserving a redundant second Traits page;
+- the represented source-only trait no longer creates duplicate Extended metadata;
+- a represented trait with real continuation semantics still preserves source/tracker/recovery context;
+- Narrative late tokens `PersonalidadNarrativaV128` and `HistoriaNarrativaV142` remain on native Narrative/Story surfaces;
+- the actual Traits-owned sentinel page contains no Narrative payload;
+- Desktop/Android renderer parity guard passed.
+
+Anti-loop result for this front:
+
+- CI cycles: **3** (#4516, #4517, #4518);
+- material OPEN progression: **2 -> 1 -> 0**;
+- reopened criteria: **0**;
+- oscillation: **none**;
+- test-relaxation-only closure: **no**;
+- `LOOP_SUSPECTED`: **NO**.
+
+Visible residual observed during proof inspection:
+
+- the historical/source-derived footer text `EXTENSIÓN: NOTAS` is still visible on some copied native continuation surfaces.
+- This was already present outside the Traits-specific correction and is **not hidden or declared fixed here**.
+- Carry it forward under the remaining M50800-03 source-geometry / stale-underlay audit. It does not reopen the now-closed Traits semantic/packing front.
 
 ## Exact next authorized action
 
-The read-only Custom-v1 Traits semantic-ownership preflight has already been overtaken by a physical implementation commit on the branch. Do **not** restart it and do **not** open another Phase-3 front.
+Custom-v1 Traits is closed. Do **not** reopen it without new defect evidence.
 
-After this consolidation is presented to the owner, the only authorized implementation work is the **existing Custom-v1 Traits native-module package at `92e460f0...`**:
+The next authorized front is **Combat / Actions reconciliation**, beginning read-only before any code change:
 
-1. preserve the native `Otros Rasgos y Atributos` geometry and Android/Desktop parity;
-2. eliminate duplicate source-only detail for already represented traits without dropping meaningful trait content;
-3. restore a precise semantic-association gate so Narrative remains owned by `BACKGROUND_STORY`, without relaxing the canonical contract;
-4. require green CI and inspect the resulting real proof PDF/PNG before declaring M50800-08 / 09 / 10 / 27 progress closed for this package;
-5. count the next CI attempt as cycle 2 of a maximum four-cycle front.
+1. reopen final Phase-2 dispositions M50800-12 and M50800-13 plus the original QA observations;
+2. inspect the **current** Custom-v2 and Fantasy Combat/Actions implementation, tests and actual proof PDFs;
+3. reconcile the existing `ff6bc98b...` repository-green logical-row/table-grammar work against the final owner contract and the current global compositor;
+4. classify each requirement as already demonstrated vs still materially OPEN;
+5. if a real gap remains, implement only the smallest coherent Combat/Actions package with Android/Desktop parity;
+6. the first functional CI attempt for that new front counts as cycle **1/4**;
+7. require green CI plus actual PDF visual inspection before closing the front.
 
-No Combat/Actions, Notes, ellipsis/silent-drop, candidate, Current Snapshot or Media/Handouts work is authorized until this current package is closed or the guardrail forces a stop/rethink.
+Do not begin Notes, ellipsis/silent-drop, candidate, Current Snapshot or Media/Handouts work until Combat/Actions is either closed or the guardrail forces a structural stop/rethink.
 
 ## Delivery objective / autonomous burn-down
 
@@ -166,8 +213,7 @@ That prompt is part of the active recovery contract. After timeout, connection i
 
 At minimum:
 
-- Custom-v1 Traits native/compositor reclaim and remaining semantic-ownership correction;
-- remaining Combat/Actions continuation work, including Fantasy table grammar and Custom-v2 logical-row model;
+- remaining Combat/Actions reconciliation/continuation work, including final proof of Fantasy table grammar and Custom-v2 logical-row model;
 - Notes full-native-page behavior and bidirectional continuity;
 - remaining semantic ellipsis / silent-drop audit;
 - general bidirectional continuity proof in actual output;
