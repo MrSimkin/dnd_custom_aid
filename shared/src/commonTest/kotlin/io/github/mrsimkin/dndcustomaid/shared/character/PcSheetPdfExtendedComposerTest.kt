@@ -150,6 +150,36 @@ class PcSheetPdfExtendedComposerTest {
     }
 
     @Test
+    fun directTraceRetainsPhysicalReasonAndDetectsUnusedSameStreamCapacity() {
+        val trace = pcSheetDirectCompositionTrace(
+            layoutId = "direct-page",
+            streams = listOf(
+                PcSheetPaginationStreamTrace(
+                    streamId = "combat",
+                    module = PcSheetSemanticModule.COMBAT_ACTIONS,
+                    remainingBefore = 5,
+                    consumedUnits = 3,
+                    nativeCapacity = 4,
+                    remainingAfter = 2,
+                ),
+            ),
+            physical = PcSheetPhysicalPaginationTrace(
+                metric = "height-pt",
+                used = 500.0,
+                capacity = 526.0,
+                nextAtomicUnitSize = 20.0,
+                nextAtomicUnitFits = true,
+                rationale = "next-unit-check",
+            ),
+        )
+
+        assertEquals(setOf("combat"), trace.streamsWithUnusedCapacityAndRemainingDemand())
+        assertTrue(trace.hasPhysicallyAvoidableNextPage())
+        assertEquals("direct-page", trace.chosenLayoutId)
+        assertEquals("height-pt", trace.physical?.metric)
+    }
+
+    @Test
     fun fullPageExclusiveNotesCannotBeCombinedWithOtherSlotsInOneTemplate() {
         assertFailsWith<IllegalArgumentException> {
             PcSheetExtendedLayoutTemplate(

@@ -6,6 +6,44 @@ data class PcSheetCompositionScoreTrace(
     val distinctModules: Int,
 )
 
+data class PcSheetPaginationStreamTrace(
+    val streamId: String,
+    val module: PcSheetSemanticModule,
+    val remainingBefore: Int,
+    val consumedUnits: Int,
+    val nativeCapacity: Int,
+    val remainingAfter: Int,
+) {
+    init {
+        require(streamId.isNotBlank()) { "Pagination stream id is required." }
+        require(remainingBefore > 0) { "Active pagination stream must begin with positive demand." }
+        require(consumedUnits > 0) { "Pagination stream must consume at least one unit." }
+        require(nativeCapacity > 0) { "Pagination stream native capacity must be positive." }
+        require(consumedUnits <= nativeCapacity) {
+            "Pagination stream cannot consume more than its native capacity."
+        }
+        require(remainingAfter == remainingBefore - consumedUnits) {
+            "Pagination stream remaining demand must match the consumed units."
+        }
+    }
+}
+
+data class PcSheetPhysicalPaginationTrace(
+    val metric: String,
+    val used: Double,
+    val capacity: Double,
+    val nextAtomicUnitSize: Double? = null,
+    val nextAtomicUnitFits: Boolean? = null,
+    val rationale: String,
+) {
+    init {
+        require(metric.isNotBlank()) { "Physical pagination metric is required." }
+        require(used >= 0.0) { "Physical pagination used capacity cannot be negative." }
+        require(capacity > 0.0) { "Physical pagination capacity must be positive." }
+        require(rationale.isNotBlank()) { "Physical pagination rationale is required." }
+    }
+}
+
 data class PcSheetExtendedCompositionTrace(
     val candidateLayoutIds: List<String>,
     val eligibleLayoutIds: List<String>,
@@ -14,6 +52,8 @@ data class PcSheetExtendedCompositionTrace(
     val placements: List<PcSheetExtendedPlacement>,
     val demandsAfter: List<PcSheetModuleDemand>,
     val score: PcSheetCompositionScoreTrace,
+    val streamTraces: List<PcSheetPaginationStreamTrace> = emptyList(),
+    val physical: PcSheetPhysicalPaginationTrace? = null,
 )
 
 data class PcSheetPaginationTraceEntry(
@@ -69,6 +109,27 @@ fun PcSheetPaginationTraceEntry.toStableJsonLine(): String = buildString {
         append(']')
     }
 
+    fun appendStreams(values: List<PcSheetPaginationStreamTrace>) {
+        append('[')
+        values.forEachIndexed { index, stream ->
+            if (index > 0) append(',')
+            append("{\"streamId\":")
+            append(quoted(stream.streamId))
+            append(",\"module\":")
+            append(quoted(stream.module.name))
+            append(",\"remainingBefore\":")
+            append(stream.remainingBefore)
+            append(",\"consumedUnits\":")
+            append(stream.consumedUnits)
+            append(",\"nativeCapacity\":")
+            append(stream.nativeCapacity)
+            append(",\"remainingAfter\":")
+            append(stream.remainingAfter)
+            append('}')
+        }
+        append(']')
+    }
+
     append("{\"family\":")
     append(quoted(family.name))
     append(",\"frontId\":")
@@ -99,8 +160,86 @@ fun PcSheetPaginationTraceEntry.toStableJsonLine(): String = buildString {
     append(composition.score.filledSlots)
     append(",\"distinctModules\":")
     append(composition.score.distinctModules)
-    append("}}")
+    append("}")
+    append(",\"streamTraces\":")
+    appendStreams(composition.streamTraces)
+    append(",\"physical\":")
+    val physical = composition.physical
+    if (physical == null) {
+        append("null")
+    } else {
+        append("{\"metric\":")
+        append(quoted(physical.metric))
+        append(",\"used\":")
+        append(physical.used)
+        append(",\"capacity\":")
+        append(physical.capacity)
+        append(",\"nextAtomicUnitSize\":")
+        physical.nextAtomicUnitSize?.let(::append) ?: append("null")
+        append(",\"nextAtomicUnitFits\":")
+        physical.nextAtomicUnitFits?.let(::append) ?: append("null")
+        append(",\"rationale\":")
+        append(quoted(physical.rationale))
+        append('}')
+    }
+    append('}')
 }
+
+fun pcSheetDirectCompositionTrace(
+    layoutId: String,
+    streams: List<PcSheetPaginationStreamTrace>,
+    physical: PcSheetPhysicalPaginationTrace? = null,
+): PcSheetExtendedCompositionTrace {
+    require(layoutId.isNotBlank()) { "Direct pagination layout id is required." }
+    require(streams.isNotEmpty()) { "Direct pagination trace requires at least one active stream." }
+
+    fun groupedDemands(after: Boolean): List<PcSheetModuleDemand> =
+        streams
+            .groupBy { it.module }
+            .mapNotNull { (module, values) ->
+                val remaining = values.sumOf {
+                    if (after) it.remainingAfter else it.remainingBefore
+                }
+                remaining.takeIf { it > 0 }?.let { PcSheetModuleDemand(module, it) }
+            }
+            .sortedBy { it.module.name }
+
+    val placements = streams.map { stream ->
+        PcSheetExtendedPlacement(
+            slotId = stream.streamId,
+            module = stream.module,
+            consumedUnits = stream.consumedUnits,
+            nativeCapacity = stream.nativeCapacity,
+        )
+    }
+
+    return PcSheetExtendedCompositionTrace(
+        candidateLayoutIds = listOf(layoutId),
+        eligibleLayoutIds = listOf(layoutId),
+        demandsBefore = groupedDemands(after = false),
+        chosenLayoutId = layoutId,
+        placements = placements,
+        demandsAfter = groupedDemands(after = true),
+        score = PcSheetCompositionScoreTrace(
+            totalUtilization = placements.sumOf { it.utilization },
+            filledSlots = placements.size,
+            distinctModules = placements.map { it.module }.distinct().size,
+        ),
+        streamTraces = streams,
+        physical = physical,
+    )
+}
+
+fun PcSheetExtendedCompositionTrace.streamsWithUnusedCapacityAndRemainingDemand(): Set<String> =
+    streamTraces
+        .filter { stream ->
+            stream.remainingAfter > 0 &&
+                stream.consumedUnits < stream.nativeCapacity
+        }
+        .mapTo(mutableSetOf()) { it.streamId }
+
+fun PcSheetExtendedCompositionTrace.hasPhysicallyAvoidableNextPage(): Boolean =
+    demandsAfter.isNotEmpty() && physical?.nextAtomicUnitFits == true
 
 fun PcSheetExtendedCompositionTrace.reclaimableExhaustedModules(): Set<PcSheetSemanticModule> {
     if (demandsAfter.isEmpty()) return emptySet()
