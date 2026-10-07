@@ -60,9 +60,11 @@ Do not reopen owner decisions already resolved unless implementation reveals a g
    - exact four Mara proof hashes;
    - acceptance matrix marked FIXED / OPEN / CHANGED-NEW before owner handoff.
 
-7. **Next-phase recovery prompt**
-   - at Phase-3 closure, provide the owner a ready-to-copy continuation/recovery prompt equivalent to the established timeout/connection-failure prompt;
-   - it must force canonical repo re-anchoring, preserve final/latest owner decisions over superseded provisional text, verify partially-completed operations before repeating them, and route into the next phase without losing references.
+7. **Continuous recovery / continuation prompt**
+   - maintain a ready-to-copy timeout/connection/server-interruption recovery prompt throughout Phase 3, not only at closure;
+   - canonical active prompt: `docs/checkpoints/2026-10-06_MARA_PHASE3_CONTINUATION_RECOVERY_PROMPT.md`;
+   - it must force canonical repo re-anchoring, preserve final/latest owner decisions over superseded provisional text, verify partially-completed operations before repeating them, and distinguish validated functional HEADs from red functional heads and documentation-only commits;
+   - at Phase-3 closure, advance this prompt into the next-phase recovery route without losing references.
 
 ## Cross-cutting owner rules
 
@@ -97,11 +99,25 @@ Stop only for:
 - security/cost/provider boundary;
 - exact owner visual QA handoff after internal candidate acceptance.
 
+## Continuity and candidate-delivery directive
+
+Owner objective: **converge to a new owner-facing QA candidate version**.
+
+Within already-authorized Phase-3 scope, routine technical progression is autonomous:
+
+- work one coherent material front at a time;
+- after green CI plus whatever real proof the criterion requires, record the closure and continue to the next authorized front;
+- do not stop after every green package merely to request routine approval;
+- anti-loop guardrails remain mandatory and override continued commit churn;
+- exact owner candidate creation remains blocked until all blocking Phase-3 acceptance gates pass.
+
+The candidate must receive a new unique `versionName` / `versionCode`; `0.5.0-preqa.8 / 50800` is permanently non-reusable.
+
 ## Gate to Phase 4 / next phase
 
 Phase 3 is not closed until the exact candidate has passed the internal all-four-family acceptance gate and the owner-facing handoff state is recorded.
 
-At closure, provide the point-7 recovery prompt requested by the owner.
+At closure, advance the point-7 recovery prompt into the next phase and preserve the exact source/CI/artifact/proof/candidate provenance chain.
 
 
 ## Progress — Package 1 shared semantic-flow contracts

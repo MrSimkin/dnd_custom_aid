@@ -5,7 +5,7 @@
 **Branch:** `repair/mara-phase3-semantic-flow-compositor`  
 **Main base:** `c4e65955a5f58f88e0b03807b4616a3f8a9323a8`  
 **Validated implementation head at capture:** `e6e07a13721d3d56364d6373472a0b5b0074acb6`  
-**Physical branch HEAD after consolidation:** `92e460f005cb1f7f3cb76e3a4d6ebfa34afb04a4` — Custom-v1 Traits package OPEN / CI RED at Scaffold #4516 (`37543504407`)  
+**Last functional implementation HEAD before documentation consolidation:** `92e460f005cb1f7f3cb76e3a4d6ebfa34afb04a4` — Custom-v1 Traits package OPEN / CI RED at Scaffold #4516 (`37543504407`)  
 **Current status:** ACTIVE / CUSTOM-v1 NARRATIVE VALIDATED; CUSTOM-v1 TRAITS PACKAGE OPEN  
 **Anti-loop result:** `CONTINUE_WITH_GUARDRAIL`  
 **Open implementation PR:** none at capture  
@@ -144,6 +144,24 @@ After this consolidation is presented to the owner, the only authorized implemen
 
 No Combat/Actions, Notes, ellipsis/silent-drop, candidate, Current Snapshot or Media/Handouts work is authorized until this current package is closed or the guardrail forces a stop/rethink.
 
+## Delivery objective / autonomous burn-down
+
+The owner has explicitly reaffirmed the desired outcome: Phase 3 should **converge to a new owner-facing QA candidate version**, not stop indefinitely at intermediate repair packages.
+
+Operational rule from this checkpoint forward:
+
+- close one bounded front at a time;
+- after a front is green **and its required real proof is inspected**, update operative memory and continue to the next authorized material front without asking routine permission;
+- stop only for the anti-loop guardrail, a genuinely new owner decision, a manual/provider/security/cost boundary, or the exact owner visual-QA handoff;
+- do not create the new candidate prematurely: the exact four-family Mara gate, M50800-01…32 exact-candidate review, Android/Desktop parity and full provenance chain remain mandatory;
+- once those gates pass, issue a **new versionName/versionCode/build identity** and never reuse `0.5.0-preqa.8 / 50800`.
+
+Canonical interruption/continuation prompt:
+
+`docs/checkpoints/2026-10-06_MARA_PHASE3_CONTINUATION_RECOVERY_PROMPT.md`
+
+That prompt is part of the active recovery contract. After timeout, connection interruption, polling loss or server error, verify physical GitHub state before replaying any operation.
+
 ## Still pending before owner candidate
 
 At minimum:
@@ -175,4 +193,4 @@ First verify:
 
 GitHub state is authoritative. If the intended write already exists, continue from it. If state is ambiguous, remain read-only until resolved. Never reset automatically to an older green commit.
 
-At Phase-3 closure, retain the owner's requested recovery/continuation prompt for entering the next phase without context loss.
+Maintain the canonical recovery/continuation prompt throughout Phase 3 at `docs/checkpoints/2026-10-06_MARA_PHASE3_CONTINUATION_RECOVERY_PROMPT.md`. At Phase-3 closure, replace or advance it with the next-phase recovery prompt without losing the verified source/run/artifact/candidate chain.

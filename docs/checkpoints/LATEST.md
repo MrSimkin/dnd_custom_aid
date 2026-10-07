@@ -5,7 +5,7 @@
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-10-06_MARA_PHASE3_HEALTH_CONSOLIDATION.md`  
-**Current active route:** Phase 3 is **ACTIVE / NARRATIVE VALIDATED; CURRENT CUSTOM-v1 TRAITS PACKAGE OPEN / CI RED** on `repair/mara-phase3-semantic-flow-compositor`. Custom-v1 Narrative is validated at `e6e07a13...` / run `37537059037` with proof artifact `11447835297`. Health consolidation remains **CONTINUE_WITH_GUARDRAIL**. Physical branch HEAD is `92e460f0...`; Scaffold #4516 / `37543504407` failed only the kotlin job with two Custom-v1 Traits/Narrative-association regression tests and produced no proof artifact. **Next action after presenting the consolidation: repair only this already-open Custom-v1 Traits package, cycle 2/4; do not open another Phase-3 front.** Owner candidate remains blocked.  
+**Current active route:** Phase 3 is **ACTIVE / NARRATIVE VALIDATED; CURRENT CUSTOM-v1 TRAITS PACKAGE OPEN / CI RED** on `repair/mara-phase3-semantic-flow-compositor`. Custom-v1 Narrative is validated at `e6e07a13...` / run `37537059037` with proof artifact `11447835297`. Health consolidation remains **CONTINUE_WITH_GUARDRAIL**. Physical branch HEAD is `92e460f0...`; Scaffold #4516 / `37543504407` failed only the kotlin job with two Custom-v1 Traits/Narrative-association regression tests and produced no proof artifact. **Next action after presenting the consolidation: repair only this already-open Custom-v1 Traits package, cycle 2/4; do not open another Phase-3 front.** Owner candidate remains blocked. The canonical interruption/recovery prompt is `docs/checkpoints/2026-10-06_MARA_PHASE3_CONTINUATION_RECOVERY_PROMPT.md`; after each validated package, continue the authorized burn-down toward a new candidate unless a guardrail or real owner/manual boundary stops work.  
 **Completed audit branch:** `audit/mara-phase2-existing-repair` — historical only after Phase-2 publication.  
 **Current implementation branch:** `repair/mara-phase3-semantic-flow-compositor`; implementation PR not yet opened.  
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
@@ -16,18 +16,19 @@
 2. `RESUME.md`;
 3. this file;
 4. `docs/checkpoints/2026-10-06_MARA_PHASE3_HEALTH_CONSOLIDATION.md` — exact current recovery state, anti-loop decision and next authorized action;
-5. `docs/checkpoints/2026-09-30_MARA_PHASE3_INTERRUPTION_RECOVERY.md` — historical interruption snapshot / recovery provenance;
-5. `docs/checkpoints/2026-09-30_MARA_PHASE3_IMPLEMENTATION.md` — Phase-3 implementation authority and green package history;
-6. `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md` — final M50800-01…32 owner-intent burn-down;
-7. `docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md`;
-8. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
-9. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md` — consolidated owner clarification / mandatory pre-fix checklist;
-10. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md` — original defect/acceptance ledger;
-11. `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md` — superseded claimed closure / evidence to audit, **not** runtime acceptance;
-12. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
-13. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
-14. `docs/PROJECT_STATE.md`;
-15. `docs/BRANCH_STATUS.md`.
+5. `docs/checkpoints/2026-10-06_MARA_PHASE3_CONTINUATION_RECOVERY_PROMPT.md` — canonical copy-ready recovery prompt for timeout/connection/server interruption and autonomous burn-down toward the next candidate;
+6. `docs/checkpoints/2026-09-30_MARA_PHASE3_INTERRUPTION_RECOVERY.md` — historical interruption snapshot / recovery provenance;
+7. `docs/checkpoints/2026-09-30_MARA_PHASE3_IMPLEMENTATION.md` — Phase-3 implementation authority and green package history;
+8. `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md` — final M50800-01…32 owner-intent burn-down;
+9. `docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md`;
+10. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
+11. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md` — consolidated owner clarification / mandatory pre-fix checklist;
+12. `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md` — original defect/acceptance ledger;
+13. `docs/checkpoints/2026-09-27_PC_SHEET_MARA_PREQA8_ADAPTIVE_REPAIR_CLOSURE.md` — superseded claimed closure / evidence to audit, **not** runtime acceptance;
+14. `docs/PC_SHEET_PDF_VISUAL_CONTRACT.md`;
+15. `docs/PC_SHEET_PDF_GEOMETRY_GATES.md`;
+16. `docs/PROJECT_STATE.md`;
+17. `docs/BRANCH_STATUS.md`.
 
 **Branch rule:** current `main` publishes Phase-2 closure; `repair/mara-phase3-semantic-flow-compositor` is the sole non-main implementation authority for Phase 3. Resume from the canonical health-consolidation checkpoint and physical branch state. Do not reset automatically to an older green comparison head, do not replay already-published post-Inventory compositor/narrative commits, and do not resume from the old adaptive-repair branch except as historical evidence explicitly referenced by the Phase-2 burn-down.  
 

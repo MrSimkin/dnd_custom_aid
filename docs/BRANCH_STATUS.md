@@ -115,6 +115,8 @@ Current authority:
 - acceptance matrix: `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`;
 - Phase-1 provenance: owner-tested 50800 APK = `15f86ec...` / SHA-256 `ff367e...`;
 - do not reuse `0.5.0-preqa.8 / 50800`;
+- canonical interruption/recovery prompt: `docs/checkpoints/2026-10-06_MARA_PHASE3_CONTINUATION_RECOVERY_PROMPT.md`;
+- owner objective: continue bounded Phase-3 burn-down autonomously toward a new uniquely versioned owner QA candidate once all hard gates pass;
 - Current Snapshot and Media/Handouts remain blocked.
 
 Phase-3 validated package state:
