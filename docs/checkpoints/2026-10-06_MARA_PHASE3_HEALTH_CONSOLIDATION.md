@@ -7,7 +7,7 @@
 **Validated implementation head at capture:** `e6e07a13721d3d56364d6373472a0b5b0074acb6`  
 **Current functional implementation HEAD:** `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7` — general bidirectional continuity package; full Scaffold #4523 (`37560523288`) backend / hosted-database / kotlin SUCCESS; **CI_GREEN / VISUAL_PENDING**  
 **Current infrastructure/proof HEAD before this documentation consolidation:** `ab48e71097ef7ef49628507b1f06423a6c8ed916` — focused fast-gate validation run `37566302657` SUCCESS; artifact `11457979404` / `sha256:36dcc8222eabb275747344cf26909c3ea4dc8da65afcc1c704b0c97dd1cd7b5f`  
-**Current status:** ACTIVE / NARRATIVE + TRAITS + COMBAT/ACTIONS + NOTES + SEMANTIC SURVIVAL VALIDATED; GENERAL BIDIRECTIONAL CONTINUITY = CI_GREEN / VISUAL_PENDING; NEXT = ACTUAL-PDF CONTINUITY INSPECTION  
+**Current status:** ACTIVE / NARRATIVE + TRAITS + COMBAT/ACTIONS + NOTES + SEMANTIC SURVIVAL + GENERAL BIDIRECTIONAL CONTINUITY VALIDATED; NEXT = M50800-03 SOURCE-GEOMETRY / STALE-UNDERLAY AUDIT  
 **Anti-loop result:** `CONTINUE_WITH_GUARDRAIL`  
 **Open implementation PR:** none at capture  
 **Owner visual handoff:** NOT AUTHORIZED
@@ -336,52 +336,53 @@ Acceptance result:
 - material OPEN decreased to zero; no oscillation or test relaxation;
 - `LOOP_SUSPECTED = NO`.
 
-## General bidirectional continuity implementation — CI green / visual pending
+## General bidirectional continuity closure
 
-The read-only audit is complete. It found three material directionality gaps without reopening already-closed fronts:
+The bounded continuity front is now **CLOSED / VALIDATED**.
 
-1. **Custom-v1 Narrative** split Personality/Story records base -> Extended without explicit source/target directionality.
-2. **Fantasy Narrative** routed overflow through generic References and lacked the required native bidirectional narrative continuation.
-3. **Fantasy Combat** had the new forward base cue but no matching Extended `proviene de...` marker.
+Functional renderer:
 
-The coherent production correction is `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7` — `fix: make split narrative continuity bidirectional`.
-
-Implemented behavior:
-
-- Custom-v1 Narrative now uses `PcSheetBidirectionalContinuation` in base and Extended native narrative modules;
-- Fantasy Narrative now remains in native `HISTORIA Y PERSONALIDAD` continuation modules with forward/back markers instead of generic `REFERENCIAS`;
-- Fantasy Extended Combat now carries the reverse `proviene de sección normal COMBATE / ACCIONES` marker for the base-referenced row;
-- Desktop/Android parity is preserved.
+`516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7`
 
 Automated evidence:
 
-- full Scaffold #4523 / `37560523288`: backend SUCCESS, hosted-database SUCCESS, kotlin SUCCESS;
-- full proof artifact `11456517371` exists but is intentionally not required for the interactive loop because it is ~186 MB;
-- infrastructure-only `768117e...` + `ab48e71097ef7ef49628507b1f06423a6c8ed916` introduced the focused `PC Sheet fast gate` and stopped full Scaffold from running on every ordinary push of this repair branch;
-- first fast comparison run `37565683967`: SUCCESS in about 2m37s, artifact `11458772854` = 1,886,762 bytes;
-- comparison full Scaffold #4524 / `37565683849`: SUCCESS in about 7m07s;
-- final fast run `37566302657`: SUCCESS, artifact `11457979404` = 1,886,765 bytes, digest `sha256:36dcc8222eabb275747344cf26909c3ea4dc8da65afcc1c704b0c97dd1cd7b5f`;
-- on `ab48e71097ef7ef49628507b1f06423a6c8ed916`, only the fast workflow ran, proving the new trigger routing.
+- full Scaffold #4523 / `37560523288`: backend / hosted-database / kotlin SUCCESS;
+- focused `PC Sheet fast gate` run `37566302657`: SUCCESS;
+- focused artifact `11457979404`, digest `sha256:36dcc8222eabb275747344cf26909c3ea4dc8da65afcc1c704b0c97dd1cd7b5f`.
 
-This front is deliberately **not** marked CLOSED yet. Green CI proves the code/tests, not the visual criterion.
+Direct actual-PDF visual inspection completed on:
+
+1. `fantasy-canonical-overflow-audit.pdf`
+   - page 1: base Combat forward cue is visible and readable;
+   - page 2: HISTORIA / PERSONALIDAD / IDEALES / VÍNCULOS / DEFECTOS forward markers are visible;
+   - pages 4-5: native `HISTORIA Y PERSONALIDAD` continuation modules show matching `proviene de sección normal ...` markers;
+   - page 7: Extended Combat shows `proviene de sección normal COMBATE / ACCIONES` inside the native table row;
+   - no clipping or overlap was observed in the continuity markers.
+
+2. `custom-v1-narrative-native-module-association.pdf`
+   - page 3: base PERSONALIDAD and HISTORIA forward markers are visible;
+   - pages 5-7: native PERSONALIDAD / HISTORIA modules show reverse markers and further Extended forward markers where the same record continues;
+   - late payload remains visible and associated with the narrative modules;
+   - no clipping or overlap was observed in the continuity markers.
+
+Continuity therefore closes without another renderer commit.
+
+The same visual review reconfirmed the separate pending defect class M50800-03: stale source/footer residue is visibly retained on copied/overlaid pages, including examples such as `EXTENSIÓN: RASGOS`, `EXTENSIÓN: INVENTARIO` and `EXTENSIÓN: NOTAS`. This is not hidden as fixed and does not reopen continuity.
 
 ## Exact next authorized action
 
-1. Download/inspect the focused artifact `11457979404`.
-2. Visually inspect `fantasy-canonical-overflow-audit.pdf` for:
-   - Fantasy Narrative forward marker in the normal section;
-   - native Narrative continuation surface;
-   - reverse `proviene de sección normal HISTORIA` marker;
-   - Fantasy Combat reverse marker matching the base forward cue.
-3. Visually inspect `custom-v1-narrative-native-module-association.pdf` for:
-   - base PERSONALIDAD/HISTORIA forward markers;
-   - Extended native narrative modules;
-   - reverse `proviene de sección normal ...` markers;
-   - any further Extended forward marker where the same record continues again.
-4. If visual evidence passes, mark general bidirectional continuity CLOSED and advance to M50800-03 source-geometry/stale-underlay.
-5. If it fails, keep this same front OPEN and correct only the observed continuity defect under the existing 4-cycle guardrail.
+Begin bounded **M50800-03 source-geometry / stale-underlay audit**:
 
-Do not begin source-geometry/stale-underlay, final candidate/versioning, Current Snapshot finalization or Media/Handouts until this continuity visual gate closes.
+1. reopen the exact owner/acceptance wording for M50800-03;
+2. identify every currently visible stale source/footer residue in the focused/current proofs;
+3. trace each residue to the source/template-copy/overlay implementation surface;
+4. distinguish intended native labels from stale underlay that must be masked/removed;
+5. verify Desktop/Android parity implications;
+6. only then implement the smallest coherent correction;
+7. validate through the fast gate first and inspect the focused actual PDFs;
+8. run full Scaffold only at coherent closure/PR/manual aggregate validation.
+
+Do not begin final candidate/versioning, Current Snapshot finalization or Media/Handouts until this source-geometry front is closed or the anti-loop guardrail forces a stop.
 
 ## Delivery objective / autonomous burn-down
 

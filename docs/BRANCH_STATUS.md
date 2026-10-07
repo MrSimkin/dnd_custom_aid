@@ -8,7 +8,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — **Phase 3 ACTIVE; general bidirectional continuity = CI_GREEN / VISUAL_PENDING**. Functional implementation HEAD `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7` passed full Scaffold #4523 / `37560523288` (backend / hosted-database / kotlin SUCCESS). Infrastructure HEAD `ab48e71097ef7ef49628507b1f06423a6c8ed916` activates the focused `PC Sheet fast gate`; final fast run `37566302657` is SUCCESS with focused proof artifact `11457979404` (1,886,765 bytes; `sha256:36dcc8222eabb275747344cf26909c3ea4dc8da65afcc1c704b0c97dd1cd7b5f`). Only the fast workflow ran on that infrastructure head. **Next action: direct visual inspection of the two focused continuity PDFs; continuity is not CLOSED until that passes.** Source/footer residue M50800-03 remains pending afterward; exact-candidate/owner gates remain blocked.  
+**Current normal work:** PC Sheet PDF Export — **Phase 3 ACTIVE; general bidirectional continuity CLOSED / VALIDATED; M50800-03 source-geometry / stale-underlay NEXT**. Renderer `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7` passed full Scaffold #4523 and focused fast run `37566302657`; direct visual inspection of artifact `11457979404` confirmed Fantasy + Custom-v1 source/target continuity without marker clipping/overlap. The same proof visibly retains stale footer/source residue (`EXTENSIÓN: RASGOS`, `EXTENSIÓN: INVENTARIO`, `EXTENSIÓN: NOTAS`), which is now the bounded active front. Fast-gate infrastructure remains active; exact-candidate/owner gates remain blocked.  
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -135,8 +135,9 @@ Phase-3 validated package state:
 13. Combat/Actions — CLOSED / VALIDATED at `fc6fca3776a88dd53b6e636deddfd9f46edac184`; Scaffold #4519 / `37555121975` SUCCESS; actual proofs inspected.
 14. Notes M50800-21…24 — CLOSED / VALIDATED from current #4519 implementation/proofs; no new production rewrite required.
 15. Semantic survival M50800-26/29 — CLOSED / VALIDATED at production `d4e42818223100d96de32e0fe4a278dc0356153e` + proof `59b039bdccc8d33a79252536c1d5d7bd10470e0e`; #4521/#4522 SUCCESS and actual proofs inspected.
-16. General bidirectional semantic continuity — production package at `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7`; full Scaffold #4523 / `37560523288` SUCCESS; **CI_GREEN / VISUAL_PENDING**, therefore not yet CLOSED.
+16. General bidirectional semantic continuity — CLOSED / VALIDATED at `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7`; full Scaffold #4523 SUCCESS + direct focused-PDF visual inspection from artifact `11457979404`.
 17. CI feedback-loop repair — `PC Sheet fast gate` active at `ab48e71097ef7ef49628507b1f06423a6c8ed916`; final run `37566302657` SUCCESS; focused artifact `11457979404`; full Scaffold remains for PR/manual/coherent closure validation.
+18. M50800-03 source-geometry / stale-underlay — ACTIVE NEXT FRONT; visible residue reconfirmed during continuity proof inspection; read-only root-cause audit required before code.
 
 No owner visual handoff occurs until exact-candidate all-four-family internal acceptance passes.
 

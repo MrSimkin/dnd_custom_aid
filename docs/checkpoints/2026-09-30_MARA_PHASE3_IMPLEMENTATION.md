@@ -384,3 +384,33 @@ The front is **not CLOSED** until the actual focused PDFs are directly inspected
 - `custom-v1-narrative-native-module-association.pdf`.
 
 After visual PASS, close continuity and advance to M50800-03 source-geometry/stale-underlay. Do not create a new owner candidate yet.
+
+
+## Progress — general bidirectional semantic continuity visual closure
+
+**Status:** COMPLETE / GREEN / ACTUAL PROOFS INSPECTED
+
+Renderer:
+
+`516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7`
+
+Validation:
+
+- Scaffold #4523 / `37560523288`: SUCCESS;
+- fast run `37566302657`: SUCCESS;
+- focused artifact `11457979404`;
+- digest `sha256:36dcc8222eabb275747344cf26909c3ea4dc8da65afcc1c704b0c97dd1cd7b5f`.
+
+Actual-PDF inspection closed:
+
+- Fantasy normal -> Extended Narrative markers;
+- Fantasy Extended Narrative reverse markers;
+- Fantasy normal Combat forward cue -> Extended Combat reverse marker;
+- Custom-v1 normal -> Extended PERSONALIDAD/HISTORIA markers;
+- Custom-v1 Extended -> Extended source/target markers for multi-module records;
+- no marker clipping/overlap observed.
+
+Separate residue observed during the same inspection remains OPEN under M50800-03 and does not reopen continuity.
+
+Next:
+- bounded read-only M50800-03 source-geometry / stale-underlay audit before any production change.

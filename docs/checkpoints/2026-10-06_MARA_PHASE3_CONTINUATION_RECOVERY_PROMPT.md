@@ -128,26 +128,30 @@ En `repair/mara-phase3-semantic-flow-compositor`, los pushes ordinarios del rend
 
 ## 4. FRENTE FUNCIONAL ACTUAL
 
-**General bidirectional semantic continuity — CI_GREEN / VISUAL_PENDING**
+**M50800-03 source-geometry / stale-underlay — READ-ONLY ROOT-CAUSE AUDIT FIRST**
 
-Ya no corresponde rehacer el audit read-only ni repetir la implementación.
+General bidirectional semantic continuity ya está **CLOSED / VALIDATED**.
 
-El audit encontró y el commit `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7` corrigió tres gaps materiales:
+Evidencia de cierre:
 
-1. Custom-v1 Narrative base -> Extended sin dirección explícita;
-2. Fantasy Narrative desviado a References y sin continuidad nativa bidireccional;
-3. Fantasy Combat con cue forward pero sin reverse `proviene de...`.
+- renderer funcional: `516fa0bfac06e9efb70a8dbe4f4d4b3f4d62c1f7`;
+- full Scaffold #4523 / `37560523288`: SUCCESS;
+- fast run `37566302657`: SUCCESS;
+- focused artifact `11457979404`, digest `sha256:36dcc8222eabb275747344cf26909c3ea4dc8da65afcc1c704b0c97dd1cd7b5f`;
+- inspección visual directa: Fantasy Combat/Narrative y Custom-v1 PERSONALIDAD/HISTORIA muestran continuidad de ida/vuelta sin clipping/overlap.
 
-Scaffold #4523 / `37560523288` pasó completo. El fast gate final `37566302657` también pasó y produjo el artifact pequeño `11457979404`.
+La misma inspección reconfirmó el frente siguiente: labels/footer/source residue visibles como `EXTENSIÓN: RASGOS`, `EXTENSIÓN: INVENTARIO` y `EXTENSIÓN: NOTAS`.
 
-**Siguiente acción exacta:** inspeccionar visualmente, sin crear un nuevo commit, los PDFs:
+Siguiente acción exacta:
 
-- `fantasy-canonical-overflow-audit.pdf`;
-- `custom-v1-narrative-native-module-association.pdf`.
-
-Si ambos demuestran los marcadores source/target correctos y asociación nativa sin regresión, cerrar continuidad y avanzar a source-geometry/stale-underlay. Si no, mantener este mismo frente OPEN y corregir sólo el defecto visual observado.
-
-No interpretar CI verde como cierre visual.
+1. reabrir wording owner/acceptance de M50800-03;
+2. inventariar los residuos visibles actuales;
+3. localizar la superficie source/template/overlay que los deja vivos;
+4. distinguir label nativo correcto vs stale-underlay;
+5. revisar paridad Desktop/Android;
+6. sólo después hacer el cambio mínimo;
+7. validar primero con fast gate + proof focalizado;
+8. usar full Scaffold en cierre coherente.
 
 ## 5. GUARDRAIL ANTI-LOOP
 
