@@ -563,6 +563,11 @@ internal class DesktopCustomV1ExtendedRenderer(
             val hasDedicatedActionOrResource =
                 normalizedName in resourceNames || normalizedName in actionNames
             val nameNeedsContinuation = trait.id !in baseVisibleTraitIds
+            val writableTracker = trait.pcSheetWritableUsesTrackerOrNull()
+            val hasContinuationMetadata =
+                trait.notes?.trim()?.isNotEmpty() == true ||
+                    writableTracker != null ||
+                    trait.activation?.takeIf { it != CharacterActivationType.PASSIVE } != null
             val detailParts = if (hasDedicatedActionOrResource) {
                 emptyList()
             } else {
@@ -571,12 +576,14 @@ internal class DesktopCustomV1ExtendedRenderer(
                         add(V1TraitFlowLineKind.DETAIL to it)
                     }
                     trait.source.trim().takeIf { it.isNotEmpty() }?.let {
-                        add(V1TraitFlowLineKind.DETAIL to "Fuente: $it")
+                        if (nameNeedsContinuation || hasContinuationMetadata) {
+                            add(V1TraitFlowLineKind.DETAIL to "Fuente: $it")
+                        }
                     }
                     trait.notes?.trim()?.takeIf { it.isNotEmpty() }?.let {
                         add(V1TraitFlowLineKind.DETAIL to "Notas: $it")
                     }
-                    trait.pcSheetWritableUsesTrackerOrNull()?.let { tracker ->
+                    writableTracker?.let { tracker ->
                         add(V1TraitFlowLineKind.DETAIL to ("Usos " + tracker.compactEditableLabel()))
                         trait.recovery?.trim()?.takeIf { it.isNotEmpty() }?.let {
                             add(V1TraitFlowLineKind.DETAIL to "Recuperación: $it")
@@ -587,17 +594,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                         ?.let {
                             add(V1TraitFlowLineKind.DETAIL to "Activación: " + activationLabel(it))
                         }
-                }.distinct().let { parts ->
-                    if (
-                        !nameNeedsContinuation &&
-                        parts.size == 1 &&
-                        parts.single().second.startsWith("Fuente: ")
-                    ) {
-                        emptyList()
-                    } else {
-                        parts
-                    }
-                }
+                }.distinct()
             }
 
             if (!nameNeedsContinuation && detailParts.isEmpty()) return null
