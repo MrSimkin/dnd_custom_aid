@@ -3,8 +3,8 @@ name: PC Sheet fast gate
 on:
   workflow_dispatch:
   push:
-    branches-ignore:
-      - main
+    branches:
+      - repair/mara-phase3-semantic-flow-compositor
     paths:
       - "shared/**"
       - "desktopApp/**"
@@ -17,6 +17,7 @@ on:
       - "build.gradle.kts"
       - "settings.gradle.kts"
       - ".github/workflows/pc-sheet-fast.yml"
+      - ".github/workflows/scaffold-check.yml"
 
 permissions:
   contents: read
@@ -44,6 +45,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: "9.5.0"
+          cache-read-only: ${{ github.ref != 'refs/heads/repair/mara-phase3-semantic-flow-compositor' }}
       - name: Guard Android PC sheet renderer sync
         run: python3 scripts/generate_android_pc_sheet_renderer.py --check
       - name: Guard Android PC sheet PDF delivery

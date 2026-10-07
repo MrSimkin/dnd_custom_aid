@@ -1,11 +1,18 @@
 name: Scaffold checks
 
 on:
+  workflow_dispatch:
   push:
+    branches-ignore:
+      - repair/mara-phase3-semantic-flow-compositor
   pull_request:
 
 permissions:
   contents: read
+
+concurrency:
+  group: scaffold-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   kotlin:

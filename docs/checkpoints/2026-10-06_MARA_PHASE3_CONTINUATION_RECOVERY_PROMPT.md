@@ -117,6 +117,15 @@ NO fuerces una rama sobre un HEAD que cambió.
 
 NO interpretes ausencia de respuesta del agente como ausencia de efectos en GitHub.
 
+### Ruta CI activa para este branch
+
+En `repair/mara-phase3-semantic-flow-compositor`, los pushes ordinarios del renderer usan primero `PC Sheet fast gate`. No dispares ni repitas el Scaffold completo por cada microcorrección.
+
+- Fast gate = feedback de implementación + proofs focalizados.
+- Full Scaffold = cierre coherente, PR o `workflow_dispatch`.
+- `CI_GREEN / VISUAL_PENDING` es un estado válido cuando falta inspección PDF real.
+- Si falla polling, conexión, servidor o descarga de artifact, consulta primero el mismo run y su estado físico; no crees otro commit para "hacerlo correr de nuevo".
+
 ## 4. FRENTE FUNCIONAL ACTUAL
 
 **Traits, Combat/Actions, Notes y M50800-26/29 semantic survival ya están CLOSED / VALIDATED. No los reabras sin nueva evidencia real.**

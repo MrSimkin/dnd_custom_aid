@@ -38,6 +38,22 @@ Record exact revision/build, checks executed, results, untested areas and eviden
 
 Green CI cannot establish provider deployment/auth behavior. Conversely, provider work that was completed/tested/recorded must not be repeated merely because documentation changed.
 
+### 5.1 Active Mara Phase-3 two-tier CI feedback loop
+
+For `repair/mara-phase3-semantic-flow-compositor`, ordinary pushes use the focused `PC Sheet fast gate` instead of replaying the full repository Scaffold on every renderer iteration.
+
+The fast gate:
+
+- checks the canonical resume route;
+- checks Desktop/Android PC-sheet renderer parity and PDF-delivery guards;
+- runs the focused Phase-3 PDF regression tests for the active continuity front;
+- uploads only the focused proof PDFs;
+- may write Gradle cache for this long-lived repair branch.
+
+The full `Scaffold checks` workflow remains authoritative aggregate evidence and still runs on pull requests, on pushes outside this repair branch, and on explicit manual dispatch. Use it at coherent package/PR closure rather than as the interactive compiler for every small Mara correction.
+
+`CI_GREEN / VISUAL_PENDING` is a valid intermediate state when automated checks passed but the criterion still requires direct PDF inspection. A connection, polling, server or artifact-download failure is not a code failure: verify the existing GitHub run/artifact before creating another commit or replaying the operation.
+
 ## 6. External-provider capability protocol
 
 For Cloudflare, Descope, Neon or another authenticated provider:
