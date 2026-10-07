@@ -119,35 +119,39 @@ NO interpretes ausencia de respuesta del agente como ausencia de efectos en GitH
 
 ## 4. FRENTE FUNCIONAL ACTUAL
 
-**Custom-v1 Traits ya está CLOSED / VALIDATED. No lo reabras sin nueva evidencia de defecto.**
+**Custom-v1 Traits y Combat/Actions ya están CLOSED / VALIDATED. No los reabras sin nueva evidencia de defecto.**
 
-Evidencia de cierre:
+Último cierre demostrado:
 
-- functional HEAD: `c2367e11bef9e92990f0f9efc6e89b13cf07795f`;
-- Scaffold #4518 / `37553725881`: SUCCESS en los tres jobs;
-- proof artifact `11454232332`;
-- actual PDFs inspeccionados;
-- OPEN del frente: `2 -> 1 -> 0`;
-- `LOOP_SUSPECTED = NO`.
+- functional HEAD: `fc6fca3776a88dd53b6e636deddfd9f46edac184`;
+- Scaffold #4519 / `37555121975`: SUCCESS en los tres jobs;
+- proof artifact `11454378341`;
+- proof digest `sha256:6496fd013f3cc627e635c5ba37fb77040b637eb04c5360a9868e041533f1c225`;
+- Custom-v2 Attribute y Ability: filas lógicas de Combat de altura variable inspeccionadas visualmente;
+- Fantasy: continuación `ARMAS Y ACCIONES` en gramática tabular inspeccionada visualmente;
+- M50800-12 / M50800-13: demostrados en el estado actual;
+- contador Combat: ciclo 1/4 -> cierre, `LOOP_SUSPECTED = NO`.
 
 El siguiente frente autorizado es:
 
-**Combat / Actions — reconciliación M50800-12 + M50800-13**
+**Notes — reconciliación M50800-21…24 + continuidad bidireccional**
 
 Antes de cualquier write:
 
-1. relee las disposiciones finales M50800-12 y M50800-13;
-2. reabre las observaciones QA originales de Combat/Actions;
-3. inspecciona la implementación actual de Custom-v2 y Fantasy;
-4. inspecciona tests y proofs PDF **actuales**;
-5. recuerda que `ff6bc98b...` ya dejó repository-green:
-   - Custom-v2 logical rows con altura por contenido;
-   - Fantasy table-grammar continuation;
-6. NO reimplementes eso sólo porque sea antiguo: determina qué está demostrado actualmente y qué gap real queda contra el contrato final/global compositor;
-7. sólo si queda un gap material, implementa el paquete mínimo y cuenta su primer CI como **ciclo 1/4**;
-8. para cerrar Combat/Actions exige CI verde + proof PDF visual real.
+1. relee las disposiciones finales M50800-21…24 y la observación QA original;
+2. inspecciona producción actual Fantasy / Custom-v1 / Custom-v2 y paridad Android/Desktop;
+3. inspecciona tests y proofs PDF **actuales**;
+4. verifica:
+   - página Notes de continuación completa/nativa;
+   - identidad `Nota N — Título` enfatizada;
+   - packing por columnas antes de crear otra página;
+   - split sólo cuando la nota no cabe completa en una columna fresca;
+   - `continúa en...` / `proviene de...` explícitos y bidireccionales para splits;
+5. NO reimplementes comportamiento ya demostrado;
+6. sólo si queda un gap material, implementa el paquete mínimo y cuenta su primer CI como **ciclo 1/4**;
+7. para cerrar Notes exige CI verde + proof PDF visual real.
 
-El residual `EXTENSIÓN: NOTAS` observado en surfaces copiadas no pertenece al frente Combat; permanece registrado para el posterior M50800-03 stale-underlay/source-geometry audit.
+El residual `EXTENSIÓN: NOTAS` observado en algunas surfaces copiadas continúa registrado para el posterior M50800-03 stale-underlay/source-geometry audit; no lo confundas con el contrato funcional de Notes M50800-21…24.
 
 ## 5. GUARDRAIL ANTI-LOOP
 

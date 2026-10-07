@@ -5,8 +5,8 @@
 **Branch:** `repair/mara-phase3-semantic-flow-compositor`  
 **Main base:** `c4e65955a5f58f88e0b03807b4616a3f8a9323a8`  
 **Validated implementation head at capture:** `e6e07a13721d3d56364d6373472a0b5b0074acb6`  
-**Current validated functional implementation HEAD:** `c2367e11bef9e92990f0f9efc6e89b13cf07795f` — Custom-v1 Traits package CLOSED / Scaffold #4518 (`37553725881`) SUCCESS  
-**Current status:** ACTIVE / CUSTOM-v1 NARRATIVE + TRAITS VALIDATED; NEXT FRONT COMBAT/ACTIONS READ-ONLY RECONCILIATION  
+**Current validated functional implementation HEAD:** `fc6fca3776a88dd53b6e636deddfd9f46edac184` — Combat/Actions acceptance proof CLOSED / Scaffold #4519 (`37555121975`) SUCCESS  
+**Current status:** ACTIVE / NARRATIVE + TRAITS + COMBAT/ACTIONS VALIDATED; NEXT FRONT NOTES READ-ONLY RECONCILIATION  
 **Anti-loop result:** `CONTINUE_WITH_GUARDRAIL`  
 **Open implementation PR:** none at capture  
 **Owner visual handoff:** NOT AUTHORIZED
@@ -175,21 +175,74 @@ Visible residual observed during proof inspection:
 - This was already present outside the Traits-specific correction and is **not hidden or declared fixed here**.
 - Carry it forward under the remaining M50800-03 source-geometry / stale-underlay audit. It does not reopen the now-closed Traits semantic/packing front.
 
+## Combat / Actions closure after Traits
+
+The M50800-12 / M50800-13 Combat/Actions front is now **CLOSED / VALIDATED** without renderer reimplementation.
+
+Read-only reconciliation found the current production behavior already present and parity-synced:
+
+- Custom-v2 variable-height logical rows: `c9014c52...` + Android sync `75b88d45...`;
+- Fantasy table-grammar continuation: `66277458...` + test `a53409c8...` + geometry `e7dfe811...` + Android sync `f1ed4022...`;
+- current branch retained those implementations unchanged.
+
+The only material gap was durable visual acceptance evidence for Custom-v2. It was closed by test/proof commit:
+
+`fc6fca3776a88dd53b6e636deddfd9f46edac184` — `test: prove Custom-v2 combat logical-row geometry`
+
+Validation:
+
+- Scaffold #4519 / run `37555121975`: backend / hosted-database / kotlin **SUCCESS**;
+- proof artifact `11454378341`;
+- digest `sha256:6496fd013f3cc627e635c5ba37fb77040b637eb04c5360a9868e041533f1c225`.
+
+Actual PDF inspection:
+
+1. `custom-v2-combat-logical-rows-attribute.pdf`
+   - page 6 visually inspected;
+   - one short row and one wrapped long row occupy different physical heights;
+   - the long action remains one semantic/logical record across Name / Range / Bonus / Effect / Notes;
+   - late token `NotaCombateV2Final` survives;
+   - no clipping, overlap or semantic ellipsis.
+
+2. `custom-v2-combat-logical-rows-ability.pdf`
+   - page 6 visually inspected;
+   - same variable-height logical-row behavior and table grammar;
+   - no clipping, overlap or semantic ellipsis.
+
+3. `fantasy-canonical-overflow-audit.pdf`
+   - page 5 visually inspected;
+   - continuation remains a native-style `ARMAS Y ACCIONES — CONTINUACIÓN` table;
+   - action identity/bonus/detail remain in table columns;
+   - prose flattening does not return.
+
+Acceptance result:
+
+- **M50800-12: demonstrated for current Custom-v2 implementation.**
+- **M50800-13: demonstrated for current Fantasy implementation.**
+- Desktop/Android parity remains preserved by the mirrored production implementation and CI parity guard.
+- This front required **1 CI cycle**, OPEN `1 evidence gap -> 0`, `LOOP_SUSPECTED = NO`.
+- Sparse whitespace on low-volume continuation pages is not treated as a defect here because page count/utilization is not an acceptance target. Global cross-module sharing remains governed separately by M50800-27.
+
 ## Exact next authorized action
 
-Custom-v1 Traits is closed. Do **not** reopen it without new defect evidence.
+Combat/Actions is closed. Do **not** reopen it without new defect evidence.
 
-The next authorized front is **Combat / Actions reconciliation**, beginning read-only before any code change:
+The next authorized front is **Notes reconciliation (M50800-21…24 + continuity evidence)**, beginning read-only before any code change:
 
-1. reopen final Phase-2 dispositions M50800-12 and M50800-13 plus the original QA observations;
-2. inspect the **current** Custom-v2 and Fantasy Combat/Actions implementation, tests and actual proof PDFs;
-3. reconcile the existing `ff6bc98b...` repository-green logical-row/table-grammar work against the final owner contract and the current global compositor;
-4. classify each requirement as already demonstrated vs still materially OPEN;
-5. if a real gap remains, implement only the smallest coherent Combat/Actions package with Android/Desktop parity;
-6. the first functional CI attempt for that new front counts as cycle **1/4**;
-7. require green CI plus actual PDF visual inspection before closing the front.
+1. reopen final Phase-2 dispositions M50800-21, 22, 23 and 24 plus the original QA observations;
+2. inspect current Fantasy, Custom-v1 and Custom-v2 Notes production implementations, Desktop/Android parity and relevant tests;
+3. inspect the latest actual proof PDFs for:
+   - complete native Notes-page geometry on continuation pages;
+   - note identity emphasis;
+   - whole-note packing across native columns before splitting;
+   - explicit bidirectional `continúa en...` / `proviene de...` markers when a note is split;
+4. reconcile existing repository-green Notes work against the final owner contract; do not reimplement already-proven behavior;
+5. classify each Notes criterion as demonstrated vs materially OPEN;
+6. only if a real gap remains, implement the smallest coherent Notes package;
+7. first functional CI for any new Notes write counts as cycle **1/4**;
+8. require green CI plus real PDF visual inspection before closing Notes.
 
-Do not begin Notes, ellipsis/silent-drop, candidate, Current Snapshot or Media/Handouts work until Combat/Actions is either closed or the guardrail forces a structural stop/rethink.
+Do not begin ellipsis/silent-drop, general continuity audit, source-geometry/stale-underlay, candidate, Current Snapshot or Media/Handouts work until Notes is either closed or the guardrail forces a structural stop/rethink.
 
 ## Delivery objective / autonomous burn-down
 
@@ -213,8 +266,7 @@ That prompt is part of the active recovery contract. After timeout, connection i
 
 At minimum:
 
-- remaining Combat/Actions reconciliation/continuation work, including final proof of Fantasy table grammar and Custom-v2 logical-row model;
-- Notes full-native-page behavior and bidirectional continuity;
+- Notes full-native-page behavior, record packing and bidirectional continuity;
 - remaining semantic ellipsis / silent-drop audit;
 - general bidirectional continuity proof in actual output;
 - remaining source-geometry / stale-underlay audit;

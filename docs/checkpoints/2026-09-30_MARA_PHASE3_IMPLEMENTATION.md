@@ -256,3 +256,33 @@ Observed but not hidden: visible source/footer text `EXTENSIÓN: NOTAS` remains 
 
 Next:
 - read-only reconciliation of Custom-v2 + Fantasy Combat/Actions against final M50800-12 / M50800-13, current implementation/tests and actual proofs before any new code.
+
+
+## Progress — Combat/Actions acceptance closure
+
+**Status:** COMPLETE / GREEN / ACTUAL PROOFS INSPECTED
+
+Validated functional head:
+
+`fc6fca3776a88dd53b6e636deddfd9f46edac184`
+
+Current production logic was already in place:
+- Custom-v2 logical rows: `c9014c52...` + Android sync `75b88d45...`;
+- Fantasy table continuation: `66277458...`, semantic gate `a53409c8...`, geometry `e7dfe811...`, Android sync `f1ed4022...`.
+
+The remaining gap was a durable focused visual proof for Custom-v2, added without production renderer changes.
+
+Validation:
+- Scaffold #4519 / `37555121975`: backend PASS; hosted-database PASS; kotlin PASS;
+- proof artifact `11454378341`;
+- digest `sha256:6496fd013f3cc627e635c5ba37fb77040b637eb04c5360a9868e041533f1c225`.
+
+Actual proof inspection:
+- `custom-v2-combat-logical-rows-attribute.pdf` page 6: short row + taller wrapped row, one logical record, full table columns, late token survives, no ellipsis/clipping;
+- `custom-v2-combat-logical-rows-ability.pdf` page 6: same;
+- `fantasy-canonical-overflow-audit.pdf` page 5: native-style `ARMAS Y ACCIONES — CONTINUACIÓN` table, no prose flattening.
+
+M50800-12 / M50800-13 are demonstrated for the current implementation. One CI acceptance cycle; evidence OPEN `1 -> 0`; `LOOP_SUSPECTED = NO`.
+
+Next:
+- read-only reconciliation of Notes M50800-21…24 and bidirectional continuity against current production/tests/latest proofs before any code.
