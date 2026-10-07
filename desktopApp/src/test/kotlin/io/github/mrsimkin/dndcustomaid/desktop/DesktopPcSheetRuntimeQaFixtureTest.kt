@@ -455,6 +455,27 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     )
                 }
 
+                if (
+                    family == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE ||
+                    family == PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY
+                ) {
+                    val pageTexts = (1..rendered.numberOfPages).map { pageNumber ->
+                        PDFTextStripper().apply {
+                            startPage = pageNumber
+                            endPage = pageNumber
+                        }.getText(rendered).replace(Regex("\\s+"), " ")
+                    }
+                    val inventoryPages = pageTexts.filter { it.contains("INVENTARIO / EQUIPO") }
+                    assertTrue(
+                        inventoryPages.any { pageText ->
+                            pageText.contains("Cuerda de seda marcada cada siete palmos 15") &&
+                                pageText.contains("Llave sin cerradura de latón ennegrecido 22") &&
+                                pageText.contains("Cuaderno de fórmulas personales y mapas plegables 29")
+                        },
+                        "$family must consume two complete fixed Special Equipment modules on a special-only page before adding another page.",
+                    )
+                }
+
                 if (family == PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE) {
                     val pageTexts = (1..rendered.numberOfPages).map { pageNumber ->
                         PDFTextStripper().apply {
@@ -540,6 +561,20 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                         !firstOrdinaryInventoryPage.contains(" lb"),
                         "Fantasy Extended ordinary Equipment must remain quantity + identity only.",
                     )
+                    assertTrue(
+                        firstOrdinaryInventoryPage.contains("Frasco de tinta que recuerda la última palabra escrita 8"),
+                        "Fantasy Mara must reclaim the absent Treasure sibling with a second fixed Special Equipment module before adding another page.",
+                    )
+                    assertTrue(
+                        inventoryPages.any { pageText ->
+                            !pageText.contains("INVENTARIO - CONTINUACIÓN") &&
+                                pageText.contains("Cuaderno de fórmulas personales y mapas plegables 23") &&
+                                pageText.contains("Cuaderno de fórmulas personales y mapas plegables 29") &&
+                                pageText.contains("Llave sin cerradura de latón ennegrecido 34")
+                        },
+                        "Fantasy special-only Inventory must tile complete fixed Special Equipment modules across the available native page area.",
+                    )
+
                     val finalSpecialPages = pageTexts.filter {
                         it.contains("Llave sin cerradura de latón ennegrecido 34")
                     }

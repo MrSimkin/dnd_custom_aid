@@ -2848,29 +2848,65 @@ internal class AndroidCustomV2ExtendedRenderer(
 
         if (ordinaryRows.isEmpty() && specialPages.isEmpty() && treasureLines.isEmpty()) return
 
-        val ordinaryCapacity =
-            if (treasureLines.isEmpty()) INVENTORY_CONTINUATION_CAPACITY
-            else INVENTORY_EQUIPMENT_WITH_TREASURE_CAPACITY
-        val pages = maxOf(
-            pageCount(ordinaryRows.size, ordinaryCapacity),
-            pageCount(treasureLines.size, INVENTORY_TREASURE_CAPACITY),
-            specialPages.size,
-        )
+        var ordinaryOffset = 0
+        var treasureOffset = 0
+        var specialModuleOffset = 0
+        var pageIndex = 0
 
-        repeat(pages) { pageIndex ->
+        while (
+            ordinaryOffset < ordinaryRows.size ||
+            treasureOffset < treasureLines.size ||
+            specialModuleOffset < specialPages.size
+        ) {
+            val treasureRemaining = treasureOffset < treasureLines.size
+            val ordinaryCapacity =
+                if (treasureRemaining) INVENTORY_EQUIPMENT_WITH_TREASURE_CAPACITY
+                else INVENTORY_CONTINUATION_CAPACITY
+            val pageOrdinary = ordinaryRows
+                .drop(ordinaryOffset)
+                .take(ordinaryCapacity)
+            val pageTreasure = treasureLines
+                .drop(treasureOffset)
+                .take(INVENTORY_TREASURE_CAPACITY)
+            val hasPrimaryInventory = pageOrdinary.isNotEmpty() || pageTreasure.isNotEmpty()
+            val specialModuleCapacity =
+                if (hasPrimaryInventory) 1 else INVENTORY_SPECIAL_MODULES_PER_SPECIAL_ONLY_PAGE
+            val pageSpecialModules = specialPages
+                .drop(specialModuleOffset)
+                .take(specialModuleCapacity)
+
+            check(
+                pageOrdinary.isNotEmpty() ||
+                    pageTreasure.isNotEmpty() ||
+                    pageSpecialModules.isNotEmpty(),
+            ) {
+                "Custom-v2 Inventory compositor produced a page with no active native module."
+            }
+
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderInventory(
                 page = page,
-                ordinary = ordinaryRows
-                    .drop(pageIndex * ordinaryCapacity)
-                    .take(ordinaryCapacity),
-                treasure = treasureLines
-                    .drop(pageIndex * INVENTORY_TREASURE_CAPACITY)
-                    .take(INVENTORY_TREASURE_CAPACITY),
-                special = specialPages.getOrNull(pageIndex).orEmpty(),
+                ordinary = pageOrdinary,
+                treasure = pageTreasure,
+                specialModules = pageSpecialModules,
                 pageIndex = pageIndex,
             )
+
+            ordinaryOffset += pageOrdinary.size
+            treasureOffset += pageTreasure.size
+            specialModuleOffset += pageSpecialModules.size
+            pageIndex += 1
+        }
+
+        check(ordinaryOffset == ordinaryRows.size) {
+            "Custom-v2 Inventory compositor did not consume every ordinary Equipment row."
+        }
+        check(treasureOffset == treasureLines.size) {
+            "Custom-v2 Inventory compositor did not consume every Treasure row."
+        }
+        check(specialModuleOffset == specialPages.size) {
+            "Custom-v2 Inventory compositor did not consume every fixed Special Equipment module."
         }
     }
 
@@ -2878,13 +2914,34 @@ internal class AndroidCustomV2ExtendedRenderer(
         page: PDPage,
         ordinary: List<OrdinaryInventoryFlowRow>,
         treasure: List<String>,
-        special: List<SpecialInventoryFlowRow>,
+        specialModules: List<List<SpecialInventoryFlowRow>>,
         pageIndex: Int,
     ) {
         val prefix = if (pageIndex == 0) "V2X INVENTORY" else "V2X INVENTORY P${pageIndex + 1}"
         val hasOrdinary = ordinary.isNotEmpty()
         val hasTreasure = treasure.isNotEmpty()
-        val hasSpecial = special.isNotEmpty()
+        val hasPrimaryInventory = hasOrdinary || hasTreasure
+        val specialPlacements = when {
+            specialModules.isEmpty() -> emptyList()
+            hasPrimaryInventory -> {
+                check(specialModules.size == 1) {
+                    "Custom-v2 mixed Inventory page may contain only one fixed Special Equipment module."
+                }
+                listOf(0f to specialModules.single())
+            }
+            else -> {
+                check(specialModules.size <= INVENTORY_SPECIAL_MODULES_PER_SPECIAL_ONLY_PAGE) {
+                    "Custom-v2 special-only page exceeds fixed Special Equipment module capacity."
+                }
+                specialModules.mapIndexed { index, rows ->
+                    val shift =
+                        if (index == 0) INVENTORY_SPECIAL_UPPER_MODULE_SHIFT
+                        else 0f
+                    shift to rows
+                }
+            }
+        }
+        val hasSpecial = specialPlacements.isNotEmpty()
         val ordinaryBlockXs = when {
             !hasOrdinary -> emptyList()
             hasTreasure -> listOf(14f)
@@ -2919,18 +2976,17 @@ internal class AndroidCustomV2ExtendedRenderer(
             if (hasTreasure) {
                 bandedRows(s, 307f, 598f, 139f, INVENTORY_TREASURE_CAPACITY, 17f, 1)
             }
-            if (hasSpecial) {
-                // M50800-19: continuation uses the source-faithful blank-location fallback of the
-                // fixed native Equipo Especial module. Its row rhythm/columns/state position are
-                // measured from the shared base renderer; no generic checkbox/location column.
-                if (hasOrdinary || hasTreasure) {
-                    drawRule(s, 14f, 598f, 480f, 0.8f)
-                }
+            if (hasSpecial && hasPrimaryInventory) {
+                drawRule(s, 14f, 598f, 480f, 0.8f)
+            }
+            specialPlacements.forEach { (shift, _) ->
+                // M50800-18/19/20/27: repeat the complete fixed native Special Equipment module.
+                // Source coordinates are relocatable; geometry, columns and 17 pt row rhythm stay fixed.
                 bandedRows(
                     s,
                     14f,
                     598f,
-                    INVENTORY_SPECIAL_FIRST_RULE_TOP,
+                    INVENTORY_SPECIAL_FIRST_RULE_TOP + shift,
                     INVENTORY_SPECIAL_CAPACITY,
                     INVENTORY_SPECIAL_ROW_STEP,
                     0,
@@ -2939,8 +2995,8 @@ internal class AndroidCustomV2ExtendedRenderer(
                     verticalRule(
                         s,
                         x,
-                        512f,
-                        INVENTORY_SPECIAL_FIRST_RULE_TOP +
+                        512f + shift,
+                        INVENTORY_SPECIAL_FIRST_RULE_TOP + shift +
                             (INVENTORY_SPECIAL_CAPACITY - 1) * INVENTORY_SPECIAL_ROW_STEP,
                         0.45f,
                     )
@@ -2980,18 +3036,18 @@ internal class AndroidCustomV2ExtendedRenderer(
                 )
             }
 
-            if (hasSpecial) {
+            specialPlacements.forEach { (shift, _) ->
                 centeredFixedScale(
                     s,
                     resources.corbelBold,
-                    TopRect(14f, 489f, 584f, 22f),
+                    TopRect(14f, 489f + shift, 584f, 22f),
                     "EQUIPO ESPECIAL",
                     12.12f,
                     SOURCE_CORBEL_HEADING_SCALE,
                 )
-                tableLabel(s, 14f, 514f, 85f, "UBICACIÓN")
-                tableLabel(s, 99f, 514f, 204f, "NOMBRE")
-                tableLabel(s, 303f, 514f, 295f, "DESCRIPCIÓN / ESTADO")
+                tableLabel(s, 14f, 514f + shift, 85f, "UBICACIÓN")
+                tableLabel(s, 99f, 514f + shift, 204f, "NOMBRE")
+                tableLabel(s, 303f, 514f + shift, 295f, "DESCRIPCIÓN / ESTADO")
             }
         }
         appendLayer(page, "$prefix - VALUES") { s ->
@@ -3032,56 +3088,62 @@ internal class AndroidCustomV2ExtendedRenderer(
                 )
             }
 
-            special.forEachIndexed { row, item ->
-                val y = INVENTORY_SPECIAL_FIRST_RULE_TOP + row * INVENTORY_SPECIAL_ROW_STEP
-                if (item.location.isNotEmpty()) {
-                    textAboveRule(
-                        s,
-                        resources.fira,
-                        Rule(14f, 94f, y),
-                        item.location,
-                        8.5f,
-                        7.5f,
-                        2.2f,
-                    )
-                }
-                if (item.name.isNotEmpty()) {
-                    textAboveRule(
-                        s,
-                        resources.fira,
-                        Rule(99f, 297f, y),
-                        item.name,
-                        9.25f,
-                        8.5f,
-                        2.5f,
-                    )
-                }
-                if (item.detail.isNotEmpty()) {
-                    textAboveRule(
-                        s,
-                        resources.fira,
-                        Rule(303f, 596f, y),
-                        item.detail,
-                        9.25f,
-                        8.5f,
-                        2.5f,
-                    )
+            specialPlacements.forEach { (shift, rows) ->
+                rows.forEachIndexed { row, item ->
+                    val y = INVENTORY_SPECIAL_FIRST_RULE_TOP + shift +
+                        row * INVENTORY_SPECIAL_ROW_STEP
+                    if (item.location.isNotEmpty()) {
+                        textAboveRule(
+                            s,
+                            resources.fira,
+                            Rule(14f, 94f, y),
+                            item.location,
+                            8.5f,
+                            7.5f,
+                            2.2f,
+                        )
+                    }
+                    if (item.name.isNotEmpty()) {
+                        textAboveRule(
+                            s,
+                            resources.fira,
+                            Rule(99f, 297f, y),
+                            item.name,
+                            9.25f,
+                            8.5f,
+                            2.5f,
+                        )
+                    }
+                    if (item.detail.isNotEmpty()) {
+                        textAboveRule(
+                            s,
+                            resources.fira,
+                            Rule(303f, 596f, y),
+                            item.detail,
+                            9.25f,
+                            8.5f,
+                            2.5f,
+                        )
+                    }
                 }
             }
         }
         appendLayer(page, "$prefix - MARKERS") { s ->
-            special.forEachIndexed { row, item ->
-                if (item.marker) {
-                    drawV2TrainingBox(
-                        s,
-                        TopRect(
-                            87.5f,
-                            INVENTORY_SPECIAL_CHECK_FIRST_TOP + row * INVENTORY_SPECIAL_ROW_STEP,
-                            8.5f,
-                            9f,
-                        ),
-                        Training.PROFICIENT,
-                    )
+            specialPlacements.forEach { (shift, rows) ->
+                rows.forEachIndexed { row, item ->
+                    if (item.marker) {
+                        drawV2TrainingBox(
+                            s,
+                            TopRect(
+                                87.5f,
+                                INVENTORY_SPECIAL_CHECK_FIRST_TOP + shift +
+                                    row * INVENTORY_SPECIAL_ROW_STEP,
+                                8.5f,
+                                9f,
+                            ),
+                            Training.PROFICIENT,
+                        )
+                    }
                 }
             }
         }
@@ -4616,6 +4678,8 @@ internal class AndroidCustomV2ExtendedRenderer(
         // source-backed base renderer. The module is fixed-size; additional capacity repeats the
         // native module instead of stretching it. Continuation indentation mirrors the already
         // approved native-row treatment used by Custom v1.
+        const val INVENTORY_SPECIAL_UPPER_MODULE_SHIFT = -390f
+        const val INVENTORY_SPECIAL_MODULES_PER_SPECIAL_ONLY_PAGE = 2
         const val INVENTORY_SPECIAL_FIRST_RULE_TOP = 542.5f
         const val INVENTORY_SPECIAL_ROW_STEP = 17f
         const val INVENTORY_SPECIAL_CHECK_FIRST_TOP = 530.5f

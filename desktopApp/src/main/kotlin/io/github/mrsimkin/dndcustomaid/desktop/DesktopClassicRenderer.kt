@@ -1966,23 +1966,52 @@ internal class DesktopClassicRenderer {
 
         if (ordinaryRows.isEmpty() && specialRows.isEmpty() && noteEntries.isEmpty()) return 0
 
-        val pages = maxOf(
-            1,
-            pageCount(ordinaryRows.size, CLASSIC_INVENTORY_ROWS_PER_PAGE),
-            pageCount(specialRows.size, CLASSIC_SPECIAL_ITEMS_PER_PAGE),
-            pageCount(noteEntries.size, CLASSIC_INVENTORY_NOTES_PER_PAGE),
-        )
-        repeat(pages) { pageIndex ->
+        var ordinaryOffset = 0
+        var specialOffset = 0
+        var noteOffset = 0
+
+        while (
+            ordinaryOffset < ordinaryRows.size ||
+            specialOffset < specialRows.size ||
+            noteOffset < noteEntries.size
+        ) {
             val pageRows = ordinaryRows
-                .drop(pageIndex * CLASSIC_INVENTORY_ROWS_PER_PAGE)
+                .drop(ordinaryOffset)
                 .take(CLASSIC_INVENTORY_ROWS_PER_PAGE)
-            val pageSpecial = specialRows
-                .drop(pageIndex * CLASSIC_SPECIAL_ITEMS_PER_PAGE)
-                .take(CLASSIC_SPECIAL_ITEMS_PER_PAGE)
             val pageNotes = noteEntries
-                .drop(pageIndex * CLASSIC_INVENTORY_NOTES_PER_PAGE)
+                .drop(noteOffset)
                 .take(CLASSIC_INVENTORY_NOTES_PER_PAGE)
-            check(pageRows.isNotEmpty() || pageSpecial.isNotEmpty() || pageNotes.isNotEmpty()) {
+
+            val specialSlots = buildList {
+                if (pageRows.isNotEmpty()) {
+                    add(ClassicSpecialModulePlacement(24f, 528f))
+                    if (pageNotes.isEmpty()) {
+                        add(ClassicSpecialModulePlacement(312f, 528f))
+                    }
+                } else {
+                    val allSlots = listOf(
+                        ClassicSpecialModulePlacement(24f, 112f),
+                        ClassicSpecialModulePlacement(312f, 112f),
+                        ClassicSpecialModulePlacement(24f, 314f),
+                        ClassicSpecialModulePlacement(312f, 314f),
+                        ClassicSpecialModulePlacement(24f, 516f),
+                        ClassicSpecialModulePlacement(312f, 516f),
+                    )
+                    if (pageNotes.isNotEmpty() && specialOffset < specialRows.size) {
+                        addAll(allSlots.filterNot { it.x == 312f && it.top == 112f })
+                    } else {
+                        addAll(allSlots)
+                    }
+                }
+            }
+
+            val pageSpecial = specialRows
+                .drop(specialOffset)
+                .take(specialSlots.size * CLASSIC_SPECIAL_ITEMS_PER_PAGE)
+            val specialModules = pageSpecial.chunked(CLASSIC_SPECIAL_ITEMS_PER_PAGE)
+            val usedSpecialSlots = specialSlots.take(specialModules.size)
+
+            check(pageRows.isNotEmpty() || specialModules.isNotEmpty() || pageNotes.isNotEmpty()) {
                 "Fantasy Inventory compositor produced a page with no active module."
             }
 
@@ -2001,26 +2030,22 @@ internal class DesktopClassicRenderer {
                     }
                 }
 
-                // Keep each native secondary module at its established geometry, but remove
-                // exhausted siblings. When ordinary Equipment is exhausted, the remaining
-                // modules reclaim the vacated top band instead of carrying an empty table.
-                val secondaryTop = if (pageRows.isNotEmpty()) 528f else 112f
-                if (pageSpecial.isNotEmpty()) {
+                usedSpecialSlots.zip(specialModules).forEach { (placement, items) ->
                     titledFrame(
                         s,
                         p,
-                        24f,
-                        secondaryTop,
+                        placement.x,
+                        placement.top,
                         276f,
                         190f,
                         "OBJETOS ESPECIALES / SINTONIZADOS",
                     )
-                    pageSpecial.forEachIndexed { index, item ->
+                    items.forEachIndexed { index, item ->
                         specialItem(
                             s,
                             p,
-                            36f,
-                            secondaryTop + 30f + index * 39f,
+                            placement.x + 12f,
+                            placement.top + 30f + index * 39f,
                             252f,
                             item.name,
                             item.attuned,
@@ -2030,13 +2055,30 @@ internal class DesktopClassicRenderer {
                 }
 
                 if (pageNotes.isNotEmpty()) {
-                    val notesX = if (pageSpecial.isNotEmpty()) 312f else 24f
-                    titledFrame(s, p, notesX, secondaryTop, 276f, 190f, "TESORO / VALORES")
+                    val notesPlacement = when {
+                        pageRows.isNotEmpty() && specialModules.isNotEmpty() ->
+                            ClassicSpecialModulePlacement(312f, 528f)
+                        pageRows.isNotEmpty() ->
+                            ClassicSpecialModulePlacement(24f, 528f)
+                        specialModules.isNotEmpty() ->
+                            ClassicSpecialModulePlacement(312f, 112f)
+                        else ->
+                            ClassicSpecialModulePlacement(24f, 112f)
+                    }
+                    titledFrame(
+                        s,
+                        p,
+                        notesPlacement.x,
+                        notesPlacement.top,
+                        276f,
+                        190f,
+                        "TESORO / VALORES",
+                    )
                     ruledTextArea(
                         s,
                         p,
-                        notesX + 12f,
-                        secondaryTop + 36f,
+                        notesPlacement.x + 12f,
+                        notesPlacement.top + 36f,
                         252f,
                         140f,
                         pageNotes,
@@ -2046,6 +2088,20 @@ internal class DesktopClassicRenderer {
 
                 footer(s, p, doc.numberOfPages, "EXTENSIÓN / INVENTARIO Y EQUIPO")
             }
+
+            ordinaryOffset += pageRows.size
+            specialOffset += pageSpecial.size
+            noteOffset += pageNotes.size
+        }
+
+        check(ordinaryOffset == ordinaryRows.size) {
+            "Fantasy Inventory compositor did not consume every ordinary Equipment row."
+        }
+        check(specialOffset == specialRows.size) {
+            "Fantasy Inventory compositor did not consume every fixed Special Equipment row."
+        }
+        check(noteOffset == noteEntries.size) {
+            "Fantasy Inventory compositor did not consume every Treasure/Value row."
         }
         return 0
     }
@@ -4453,6 +4509,11 @@ private fun ruledTextArea(
     private data class ClassicCustomStatisticsPage(
         val customSlices: List<CustomAttributeSlice>,
         val standardSlices: List<StandardCustomGroupSlice>,
+    )
+
+    private data class ClassicSpecialModulePlacement(
+        val x: Float,
+        val top: Float,
     )
 
     private data class ClassicInventoryContinuationProjection(
