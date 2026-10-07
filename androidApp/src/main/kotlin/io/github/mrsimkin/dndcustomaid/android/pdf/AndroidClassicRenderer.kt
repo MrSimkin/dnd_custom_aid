@@ -32,6 +32,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetModuleDemand
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutSlot
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutTemplate
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageComposer
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedCompositionStep
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPaginationTraceEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedGlobalCoordinator
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedGlobalFront
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
@@ -66,9 +68,27 @@ import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
  * PcSheetPdfRenderPlan. The frozen visual grammar remains authoritative; bounded continuation
  * preserves canonical/current-state data that the normal pages cannot express without redesign.
  */
-internal class AndroidClassicRenderer {
+internal class AndroidClassicRenderer(
+    private val paginationTraceSink: (PcSheetPaginationTraceEntry) -> Unit = {},
+) {
     private val overflowDiagnostics = mutableListOf<String>()
     private val baseClippedTraitIds = mutableSetOf<kotlin.uuid.Uuid>()
+
+    private var paginationTraceDecisionOrdinal = 0
+
+    private fun recordPaginationTrace(
+        frontId: String,
+        step: PcSheetExtendedCompositionStep,
+    ) {
+        paginationTraceSink(
+            PcSheetPaginationTraceEntry(
+                family = PcSheetVisualFamily.CLASSIC_DND_STYLE,
+                frontId = frontId,
+                decisionOrdinal = paginationTraceDecisionOrdinal++,
+                composition = step.trace,
+            ),
+        )
+    }
 
     fun renderBase(
         plan: PcSheetPdfRenderPlan,
@@ -739,6 +759,7 @@ internal class AndroidClassicRenderer {
                     layouts = classicTraitCompositionLayouts(),
                 ),
             )
+            recordPaginationTrace(CLASSIC_GLOBAL_TRAITS_FRONT_ID, step)
             val placements = step.page.placements
                 .filter { it.module == PcSheetSemanticModule.TRAITS }
                 .sortedBy { placement ->
@@ -1517,6 +1538,7 @@ internal class AndroidClassicRenderer {
                     layouts = layouts,
                 ),
             )
+            recordPaginationTrace(CLASSIC_GLOBAL_RESOURCES_FRONT_ID, step)
             val resourceCount = step.page.placements
                 .firstOrNull { it.module == PcSheetSemanticModule.RESOURCES }
                 ?.consumedUnits

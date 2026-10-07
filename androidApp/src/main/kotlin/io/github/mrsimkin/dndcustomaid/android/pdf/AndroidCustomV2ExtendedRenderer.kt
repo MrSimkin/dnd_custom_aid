@@ -31,6 +31,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetModuleDemand
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutSlot
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutTemplate
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageComposer
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedCompositionStep
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPaginationTraceEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedGlobalCoordinator
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedGlobalFront
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomAttributeProjection
@@ -87,7 +89,9 @@ internal class AndroidCustomV2ExtendedRenderer(
     private val document: PDDocument,
     sourceTemplate: PDDocument,
     private val resourceLoader: (String) -> InputStream?,
+    private val paginationTraceSink: (PcSheetPaginationTraceEntry) -> Unit = {},
 ) {
+    private var paginationTraceFamily: PcSheetVisualFamily = PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE
     private val layers = LayerUtility(document)
     private val resources = Resources.load(document, sourceTemplate, resourceLoader)
 
@@ -97,6 +101,7 @@ internal class AndroidCustomV2ExtendedRenderer(
             "Custom-v2 Extended renderer received a non-v2 visual family."
         }
 
+        paginationTraceFamily = plan.request.visualFamily
         val activeModules = activeGlobalExtendedModules(plan)
         PcSheetExtendedGlobalCoordinator.plan(
             activeModules = activeModules,
@@ -124,6 +129,22 @@ internal class AndroidCustomV2ExtendedRenderer(
                 else -> error("Unknown Custom-v2 global Extended front: ${front.id}")
             }
         }
+    }
+
+    private var paginationTraceDecisionOrdinal = 0
+
+    private fun recordPaginationTrace(
+        frontId: String,
+        step: PcSheetExtendedCompositionStep,
+    ) {
+        paginationTraceSink(
+            PcSheetPaginationTraceEntry(
+                family = paginationTraceFamily,
+                frontId = frontId,
+                decisionOrdinal = paginationTraceDecisionOrdinal++,
+                composition = step.trace,
+            ),
+        )
     }
 
     private fun activeGlobalExtendedModules(
@@ -230,6 +251,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                     layouts = listOf(narrativeTraitsCompositionLayout()),
                 ),
             )
+            recordPaginationTrace(V2_GLOBAL_NARRATIVE_TRAITS_FRONT_ID, step)
             check(step.remainingDemands.isEmpty()) {
                 "Custom-v2 mixed Narrative/Traits layout must consume both native modules."
             }
@@ -1139,6 +1161,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                     layouts = traitCompositionLayouts(),
                 ),
             )
+            recordPaginationTrace(V2_GLOBAL_NARRATIVE_TRAITS_FRONT_ID, step)
             val placements = step.page.placements
                 .filter { it.module == PcSheetSemanticModule.TRAITS }
                 .sortedBy { placement ->
@@ -2300,6 +2323,7 @@ internal class AndroidCustomV2ExtendedRenderer(
                     layouts = layouts,
                 ),
             )
+            recordPaginationTrace(V2_GLOBAL_RESOURCES_FRONT_ID, step)
             val resourceCount = step.page.placements
                 .firstOrNull { it.module == PcSheetSemanticModule.RESOURCES }
                 ?.consumedUnits
