@@ -1413,7 +1413,12 @@ class DesktopPcSheetWholeDraftRendererTest {
             assertTrue(extracted.contains("7 totales"))
             assertTrue(Regex("3\\s+gastados").containsMatchIn(extracted))
             assertTrue(extracted.contains("Tradición cartográfica"))
-            assertTrue(Regex("Iria\\s+Noctis\\s+Cartógrafa\\s+Mayor").containsMatchIn(extracted))
+            assertTrue(
+                Regex(
+                    "Iria\\s+Noctis\\s+Cartógrafa\\s+Mayor\\s+De\\s+La\\s+Frontera\\s+Septentrional",
+                ).containsMatchIn(extracted),
+                "Fantasy character-name ribbon must preserve the complete long identity.",
+            )
             assertFalse(
                 extracted.contains("...") || extracted.contains("…"),
                 "Fantasy semantic identities must never be ellipsized in the actual proof PDF.",

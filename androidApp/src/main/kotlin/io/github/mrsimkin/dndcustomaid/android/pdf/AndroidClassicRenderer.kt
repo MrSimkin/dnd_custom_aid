@@ -2278,6 +2278,7 @@ private fun appendSpellContinuationPages(
                 listOf(148f to "Nombre", 50f to "Bonif.", 86f to "Daño / notas"),
             )
             val combatEntries = sheet.combatEntries.sortedBy { it.sortOrder }
+            val damageByCombatId = aggregate.successor.combatDamage.associateBy { it.combatEntryId }
             combatEntries.take(BASE_COMBAT_CAPACITY).forEachIndexed { index, entry ->
                 val top = 300f + index * 23f
                 text(
@@ -2298,10 +2299,27 @@ private fun appendSpellContinuationPages(
                     entry.rangeText?.takeIf { it.isNotBlank() },
                     entry.notes?.takeIf { it.isNotBlank() },
                 ).joinToString(" · ")
+                val structuredDamage = damageByCombatId[entry.id]?.components
+                    ?.joinToString(" + ") { component ->
+                        component.expression +
+                            component.typeText?.takeIf { it.isNotBlank() }?.let { " $it" }.orEmpty()
+                    }
+                    .orEmpty()
+                val needsExtendedCombatReference =
+                    entry.type != CharacterCombatEntryType.ATTACK ||
+                        !entry.notes.isNullOrBlank() ||
+                        entry.name.length > CLASSIC_COMBAT_NAME_CHARS ||
+                        detail.length > CLASSIC_COMBAT_DETAIL_CHARS ||
+                        structuredDamage.isNotBlank()
+                val baseDetail = if (needsExtendedCombatReference) {
+                    "[continúa en COMBATE / ACCIONES]"
+                } else {
+                    detail
+                }
                 text(
                     s, p, rightX + 211f, top, 97f, 18f,
-                    detail,
-                    PdfTypographyRole.BODY, 8.2f, 6.4f,
+                    baseDetail,
+                    PdfTypographyRole.BODY, 8.2f, 5.8f,
                     wrap = true,
                     maxLines = 2,
                 )
@@ -2678,7 +2696,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         text(
             s, p, 36f, 31f, 195f, 31f,
             name,
-            PdfTypographyRole.CHARACTER_NAME, 18f, 12.5f,
+            PdfTypographyRole.CHARACTER_NAME, 18f, 8.8f,
             wrap = true,
             maxLines = 2,
         )
@@ -2896,9 +2914,10 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         text(
             s, p, 36f, 31f, 214f, 37f,
             name,
-            PdfTypographyRole.CHARACTER_NAME, 20f, 12.5f,
+            PdfTypographyRole.CHARACTER_NAME, 20f, 8.8f,
             wrap = true,
             maxLines = 2,
+            align = PdfHorizontalAlignment.CENTER,
         )
         hairline(s, 36f, 68f, 250f, 68f)
         text(s, p, 36f, 70f, 214f, 15f, "NOMBRE DEL PERSONAJE", PdfTypographyRole.OPTIONAL_DECORATIVE, 7.2f, 6.5f)
@@ -2913,7 +2932,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
             text(
                 s, p, x, top, 106f, 14f,
                 value,
-                PdfTypographyRole.BODY, 8.5f, 6.0f,
+                PdfTypographyRole.BODY, 8.5f, 5.0f,
                 wrap = true,
                 maxLines = 2,
             )
@@ -2942,7 +2961,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         text(
             s, p, 36f, 30f, 230f, 33f,
             name,
-            PdfTypographyRole.CHARACTER_NAME, 18f, 12.5f,
+            PdfTypographyRole.CHARACTER_NAME, 18f, 8.8f,
             wrap = true,
             maxLines = 2,
         )
@@ -3007,7 +3026,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
         text(
             s, p, 36f, 30f, 220f, 33f,
             name,
-            PdfTypographyRole.CHARACTER_NAME, 18f, 12.5f,
+            PdfTypographyRole.CHARACTER_NAME, 18f, 8.8f,
             wrap = true,
             maxLines = 2,
         )
