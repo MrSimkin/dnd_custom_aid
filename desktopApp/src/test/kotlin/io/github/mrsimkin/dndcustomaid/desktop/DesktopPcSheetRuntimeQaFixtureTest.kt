@@ -442,6 +442,23 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                         inventoryPages.none { it.contains("TESORO / VALORES") },
                         "Fantasy Mara must not retain an exhausted Treasure module.",
                     )
+                    val baseEquipmentPage = pageTexts.first {
+                        it.contains("PERSONAJE / EQUIPO / HISTORIA") &&
+                            it.contains("Cant.") &&
+                            it.contains("Objeto") &&
+                            it.contains("Peso")
+                    }
+                    assertTrue(
+                        !baseEquipmentPage.contains(" lb"),
+                        "Fantasy base ordinary Equipment must not project item weight.",
+                    )
+                    val firstOrdinaryInventoryPage = inventoryPages.first {
+                        it.contains("INVENTARIO - CONTINUACIÓN")
+                    }
+                    assertTrue(
+                        !firstOrdinaryInventoryPage.contains(" lb"),
+                        "Fantasy Extended ordinary Equipment must remain quantity + identity only.",
+                    )
                     val finalSpecialPages = pageTexts.filter {
                         it.contains("Llave sin cerradura de latón ennegrecido 34")
                     }

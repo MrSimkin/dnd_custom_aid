@@ -1910,7 +1910,9 @@ private fun classicInventoryRows(
             InventoryRow(
                 quantity = item.quantity.toString(),
                 name = item.name.trim(),
-                weight = item.weightLb?.let(::formatWeight).orEmpty(),
+                // Owner-confirmed ordinary Equipment content is compact identity only.
+                // Preserve the Fantasy table grammar, but do not project weight/state/detail.
+                weight = "",
                 state = "",
                 notes = "",
             ),
@@ -3017,7 +3019,7 @@ titledFrame(s, p, 264f, 104f, 324f, 316f, "EQUIPO")
     private fun inventoryBaseNote(
         item: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem,
         usage: io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryUsage?,
-    ): String = item.weightLb?.let { formatWeight(it) + " lb" }.orEmpty()
+    ): String = ""
 
     private fun traitSummary(
         trait: io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
