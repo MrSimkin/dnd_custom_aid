@@ -8,6 +8,11 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProgressMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSkill
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpell
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBidirectionalContinuation
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetContinuationEndpoint
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetContinuationSurface
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSemanticModule
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSemanticRecordRef
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetNotePhysicalLineKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPackedNotes
@@ -259,12 +264,47 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         }
     }
 
+    private fun narrativeContinuation(
+        stableKey: String,
+        sectionName: String,
+    ): PcSheetBidirectionalContinuation =
+        PcSheetBidirectionalContinuation(
+            record = PcSheetSemanticRecordRef(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                stableKey = "background:$stableKey",
+                displayName = sectionName,
+            ),
+            source = PcSheetContinuationEndpoint(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                sectionName = sectionName,
+                surface = PcSheetContinuationSurface.NORMAL,
+            ),
+            target = PcSheetContinuationEndpoint(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                sectionName = sectionName,
+                surface = PcSheetContinuationSurface.EXTENDED,
+                extendedIndex = 1,
+            ),
+        )
+
     private fun drawBackgroundFields(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
         val background = plan.snapshot.aggregate.sheet.background
-        drawRuledParagraph(s, fonts.regular, BACKGROUND_RULES, background.name, 9.25f, 2.6f, 2f)
-        drawRuledParagraph(s, fonts.regular, IDEALS_RULES, background.ideals, 9.25f, 2.6f, 2f)
-        drawRuledParagraph(s, fonts.regular, BONDS_RULES, background.bonds, 9.25f, 2.6f, 2f)
-        drawRuledParagraph(s, fonts.regular, FLAWS_RULES, background.flaws, 9.25f, 2.6f, 2f)
+        drawRuledParagraph(
+            s, fonts.regular, BACKGROUND_RULES, background.name, 9.25f, 2.6f, 2f,
+            narrativeContinuation("background", "TRASFONDO"),
+        )
+        drawRuledParagraph(
+            s, fonts.regular, IDEALS_RULES, background.ideals, 9.25f, 2.6f, 2f,
+            narrativeContinuation("ideals", "IDEALES"),
+        )
+        drawRuledParagraph(
+            s, fonts.regular, BONDS_RULES, background.bonds, 9.25f, 2.6f, 2f,
+            narrativeContinuation("bonds", "VÍNCULOS"),
+        )
+        drawRuledParagraph(
+            s, fonts.regular, FLAWS_RULES, background.flaws, 9.25f, 2.6f, 2f,
+            narrativeContinuation("flaws", "DEFECTOS"),
+        )
     }
 
     private fun drawRuledParagraph(
@@ -275,23 +315,43 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
         size: Float,
         clearance: Float,
         leftPadding: Float,
+        continuation: PcSheetBidirectionalContinuation? = null,
     ) {
         val clean = text.trim()
         if (clean.isEmpty() || rules.isEmpty()) return
         val width = rules.first().endX - rules.first().startX - leftPadding - 1f
         val lines = wrapByWidth(font, clean, size, width)
-        rules.zip(lines.take(rules.size)).forEach { (rule, line) ->
+        val hasOverflow = continuation != null && lines.size > rules.size
+        val contentRules = if (hasOverflow) rules.dropLast(1) else rules
+        contentRules.zip(lines.take(contentRules.size)).forEach { (rule, line) ->
             textAboveRule(s, font, rule, line, size, size, clearance, leftPadding)
+        }
+        if (hasOverflow) {
+            textAboveRule(
+                s = s,
+                font = fonts.regular,
+                rule = rules.last(),
+                text = requireNotNull(continuation).sourceMarker(),
+                preferredSize = 6.4f,
+                minimumSize = 4.8f,
+                clearance = clearance,
+                leftPadding = leftPadding,
+            )
         }
     }
 
     private fun drawStory(s: PDFormContentStream, plan: PcSheetPdfRenderPlan) {
-        val story = plan.snapshot.aggregate.sheet.background.story.trim()
-        if (story.isEmpty()) return
-        val lines = wrapByWidth(fonts.regular, story, 9.25f, 365f)
-        STORY_RULE_Y.zip(lines.take(STORY_RULE_Y.size)).forEach { (y, line) ->
-            textAboveRule(s, fonts.regular, Rule(215.291f, 583.795f, y), line, 9.25f, 9f, 2.8f, 2f)
-        }
+        val rules = STORY_RULE_Y.map { y -> Rule(215.291f, 583.795f, y) }
+        drawRuledParagraph(
+            s = s,
+            font = fonts.regular,
+            rules = rules,
+            text = plan.snapshot.aggregate.sheet.background.story,
+            size = 9.25f,
+            clearance = 2.8f,
+            leftPadding = 2f,
+            continuation = narrativeContinuation("story", "HISTORIA"),
+        )
     }
 
 
@@ -304,6 +364,7 @@ private fun renderSpellList(page: PDPage, plan: PcSheetPdfRenderPlan) {
             9.25f,
             2.6f,
             2f,
+            narrativeContinuation("personality", "PERSONALIDAD"),
         )
     }
 

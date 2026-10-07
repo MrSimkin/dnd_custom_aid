@@ -22,6 +22,11 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBaseLayoutMode
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBasePageRole
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedPageKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSemanticModule
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBidirectionalContinuation
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetContinuationEndpoint
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetContinuationSurface
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSemanticRecordRef
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetSemanticRecordRef
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetModuleDemand
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutSlot
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutTemplate
@@ -89,6 +94,7 @@ internal class AndroidClassicRenderer {
                 drawSpells(doc, p, plan)
             }
             appendCustomStatisticsPages(doc, p, plan)
+            appendNarrativePages(doc, p, plan)
             appendTraitsPages(doc, p, plan)
             appendCombatPages(doc, p, plan)
             appendResourcesPages(doc, p, plan)
@@ -290,6 +296,206 @@ internal class AndroidClassicRenderer {
     private fun classicBaseExcerpt(value: String, maxChars: Int, maxLines: Int): String =
         wrapForChars(value, maxChars).take(maxLines).joinToString("\n")
 
+    private fun classicNarrativeContinuation(
+        stableKey: String,
+        sectionName: String,
+        targetIndex: Int = 1,
+    ): PcSheetBidirectionalContinuation =
+        PcSheetBidirectionalContinuation(
+            record = PcSheetSemanticRecordRef(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                stableKey = "background:$stableKey",
+                displayName = sectionName,
+            ),
+            source = PcSheetContinuationEndpoint(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                sectionName = sectionName,
+                surface = PcSheetContinuationSurface.NORMAL,
+            ),
+            target = PcSheetContinuationEndpoint(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                sectionName = sectionName,
+                surface = PcSheetContinuationSurface.EXTENDED,
+                extendedIndex = targetIndex,
+            ),
+        )
+
+    private fun classicBaseNarrativeExcerpt(
+        value: String,
+        maxChars: Int,
+        maxLines: Int,
+        stableKey: String,
+        sectionName: String,
+    ): String {
+        val lines = wrapForChars(value, maxChars)
+        if (lines.size <= maxLines) return lines.joinToString("\n")
+        val visible = lines.take((maxLines - 1).coerceAtLeast(0))
+        return (visible + classicNarrativeContinuation(stableKey, sectionName).sourceMarker())
+            .joinToString("\n")
+    }
+
+    private fun appendNarrativePages(
+        doc: PDDocument,
+        p: AndroidPdfRenderingPrimitives,
+        plan: PcSheetPdfRenderPlan,
+    ) {
+        val modules = classicNarrativeModules(plan)
+        if (modules.isEmpty()) return
+
+        modules.chunked(CLASSIC_NARRATIVE_MODULES_PER_PAGE).forEach { pageModules ->
+            val page = addPage(doc)
+            PDPageContentStream(doc, page).use { s ->
+                extendedHeader(s, p, plan.snapshot.aggregate.sheet.name, "HISTORIA Y PERSONALIDAD")
+                pageModules.forEachIndexed { index, module ->
+                    val placement = CLASSIC_NARRATIVE_MODULE_PLACEMENTS[index]
+                    titledFrame(
+                        s, p,
+                        placement.first, placement.second,
+                        CLASSIC_NARRATIVE_MODULE_WIDTH,
+                        CLASSIC_NARRATIVE_MODULE_HEIGHT,
+                        module.heading,
+                    )
+                    ruledTextArea(
+                        s = s,
+                        p = p,
+                        x = placement.first + 10f,
+                        top = placement.second + 32f,
+                        width = CLASSIC_NARRATIVE_MODULE_WIDTH - 20f,
+                        height = CLASSIC_NARRATIVE_TEXT_HEIGHT,
+                        content = module.lines,
+                        fontSize = CLASSIC_NARRATIVE_BODY_SIZE,
+                        lineGap = CLASSIC_NARRATIVE_ROW_STEP,
+                    )
+                }
+                footer(s, p, doc.numberOfPages, "EXTENSIÓN / HISTORIA Y PERSONALIDAD")
+            }
+        }
+    }
+
+    private fun classicNarrativeModules(plan: PcSheetPdfRenderPlan): List<ClassicNarrativeModule> {
+        val background = plan.snapshot.aggregate.sheet.background
+        val modules = mutableListOf<ClassicNarrativeModule>()
+
+        fun normalEndpoint(sectionName: String) =
+            PcSheetContinuationEndpoint(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                sectionName = sectionName,
+                surface = PcSheetContinuationSurface.NORMAL,
+            )
+
+        fun extendedEndpoint(sectionName: String, index: Int) =
+            PcSheetContinuationEndpoint(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                sectionName = sectionName,
+                surface = PcSheetContinuationSurface.EXTENDED,
+                extendedIndex = index,
+            )
+
+        fun addFlow(
+            stableKey: String,
+            heading: String,
+            sectionName: String,
+            value: String,
+            baseMaxChars: Int?,
+            baseLines: Int?,
+        ) {
+            val clean = value.trim()
+            if (clean.isEmpty()) return
+            val record = PcSheetSemanticRecordRef(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                stableKey = "background:$stableKey",
+                displayName = sectionName,
+            )
+            val fromNormal = baseMaxChars != null && baseLines != null
+            val remainingText = if (fromNormal) {
+                val baseWrapped = wrapForChars(clean, requireNotNull(baseMaxChars))
+                if (baseWrapped.size <= requireNotNull(baseLines)) return
+                baseWrapped.drop((baseLines - 1).coerceAtLeast(0)).joinToString(" ")
+            } else {
+                clean
+            }
+            var remaining = wrapForChars(remainingText, CLASSIC_NARRATIVE_CHARS_PER_LINE)
+            var segmentIndex = 1
+            while (remaining.isNotEmpty()) {
+                val inbound = when {
+                    segmentIndex == 1 && fromNormal ->
+                        PcSheetBidirectionalContinuation(
+                            record = record,
+                            source = normalEndpoint(sectionName),
+                            target = extendedEndpoint(sectionName, segmentIndex),
+                        ).targetMarker()
+                    segmentIndex > 1 ->
+                        PcSheetBidirectionalContinuation(
+                            record = record,
+                            source = extendedEndpoint(sectionName, segmentIndex - 1),
+                            target = extendedEndpoint(sectionName, segmentIndex),
+                        ).targetMarker()
+                    else -> null
+                }
+                val inboundRows = if (inbound == null) 0 else 1
+                val capacityWithoutOutbound = CLASSIC_NARRATIVE_ROWS_PER_MODULE - inboundRows
+                val hasMore = remaining.size > capacityWithoutOutbound
+                val bodyCapacity = capacityWithoutOutbound - if (hasMore) 1 else 0
+                require(bodyCapacity > 0) {
+                    "Fantasy native narrative module leaves no room for semantic content."
+                }
+                val body = remaining.take(bodyCapacity)
+                remaining = remaining.drop(body.size)
+                val lines = buildList {
+                    inbound?.let(::add)
+                    addAll(body)
+                    if (remaining.isNotEmpty()) {
+                        add(
+                            PcSheetBidirectionalContinuation(
+                                record = record,
+                                source = extendedEndpoint(sectionName, segmentIndex),
+                                target = extendedEndpoint(sectionName, segmentIndex + 1),
+                            ).sourceMarker(),
+                        )
+                    }
+                }
+                modules += ClassicNarrativeModule(
+                    heading = if (segmentIndex == 1) heading else "$heading · CONT.",
+                    lines = lines,
+                )
+                segmentIndex += 1
+            }
+        }
+
+        val narrative = listOf(background.name, background.summary, background.story)
+            .filter { it.isNotBlank() }
+            .joinToString(" · ")
+        addFlow(
+            "story", "HISTORIA / TRASFONDO", "HISTORIA",
+            narrative, CLASSIC_BACKGROUND_NARRATIVE_CHARS, CLASSIC_BACKGROUND_NARRATIVE_LINES,
+        )
+        addFlow(
+            "personality", "RASGO DE PERSONALIDAD", "PERSONALIDAD",
+            background.personalityTraits.takeIf { it.isNotBlank() }?.let { "Rasgo: $it" }.orEmpty(),
+            CLASSIC_BACKGROUND_DETAIL_CHARS, CLASSIC_BACKGROUND_DETAIL_LINES,
+        )
+        addFlow(
+            "ideals", "IDEAL", "IDEALES",
+            background.ideals.takeIf { it.isNotBlank() }?.let { "Ideal: $it" }.orEmpty(),
+            CLASSIC_BACKGROUND_DETAIL_CHARS, CLASSIC_BACKGROUND_DETAIL_LINES,
+        )
+        addFlow(
+            "bonds", "VÍNCULO", "VÍNCULOS",
+            background.bonds.takeIf { it.isNotBlank() }?.let { "Vínculo: $it" }.orEmpty(),
+            CLASSIC_BACKGROUND_DETAIL_CHARS, CLASSIC_BACKGROUND_DETAIL_LINES,
+        )
+        addFlow(
+            "flaws", "DEFECTO", "DEFECTOS",
+            background.flaws.takeIf { it.isNotBlank() }?.let { "Defecto: $it" }.orEmpty(),
+            CLASSIC_BACKGROUND_DETAIL_CHARS, CLASSIC_BACKGROUND_DETAIL_LINES,
+        )
+        addFlow(
+            "religion", "FE / RELIGIÓN", "FE / RELIGIÓN",
+            background.religionFaith, null, null,
+        )
+
+        return modules
+    }
 
     private fun appendTraitsPages(
         doc: PDDocument,
@@ -565,43 +771,6 @@ internal class AndroidClassicRenderer {
                 add("Conjuro", "Nivel ${spell.level} · ${spell.name}")
             }
 
-        val narrative = listOf(background.name, background.summary, background.story)
-            .filter { it.isNotBlank() }
-            .joinToString(" · ")
-        addOverflow(
-            "Historia / trasfondo",
-            narrative,
-            CLASSIC_BACKGROUND_NARRATIVE_CHARS,
-            CLASSIC_BACKGROUND_NARRATIVE_LINES,
-        )
-        addOverflow(
-            "Rasgo de personalidad",
-            background.personalityTraits.takeIf { it.isNotBlank() }?.let { "Rasgo: $it" }.orEmpty(),
-            CLASSIC_BACKGROUND_DETAIL_CHARS,
-            CLASSIC_BACKGROUND_DETAIL_LINES,
-        )
-        addOverflow(
-            "Ideal",
-            background.ideals.takeIf { it.isNotBlank() }?.let { "Ideal: $it" }.orEmpty(),
-            CLASSIC_BACKGROUND_DETAIL_CHARS,
-            CLASSIC_BACKGROUND_DETAIL_LINES,
-        )
-        addOverflow(
-            "Vínculo",
-            background.bonds.takeIf { it.isNotBlank() }?.let { "Vínculo: $it" }.orEmpty(),
-            CLASSIC_BACKGROUND_DETAIL_CHARS,
-            CLASSIC_BACKGROUND_DETAIL_LINES,
-        )
-        addOverflow(
-            "Defecto",
-            background.flaws.takeIf { it.isNotBlank() }?.let { "Defecto: $it" }.orEmpty(),
-            CLASSIC_BACKGROUND_DETAIL_CHARS,
-            CLASSIC_BACKGROUND_DETAIL_LINES,
-        )
-
-        background.religionFaith.trim().takeIf { it.isNotEmpty() }?.let {
-            add("Fe / religión", it)
-        }
         if (
             successor.subraceIdentity != null &&
             successor.speciesIdentity?.name?.isNotBlank() == true
@@ -931,10 +1100,29 @@ internal class AndroidClassicRenderer {
                     val structuredExtra = structuredDamage.takeIf {
                         it.isNotBlank() && !it.equals(entry.damageEffect.trim(), ignoreCase = true)
                     }
+                    val reverseMarker = if (index < BASE_COMBAT_CAPACITY) {
+                        PcSheetBidirectionalContinuation(
+                            record = entry.pcSheetSemanticRecordRef(),
+                            source = PcSheetContinuationEndpoint(
+                                module = PcSheetSemanticModule.COMBAT_ACTIONS,
+                                sectionName = "COMBATE / ACCIONES",
+                                surface = PcSheetContinuationSurface.NORMAL,
+                            ),
+                            target = PcSheetContinuationEndpoint(
+                                module = PcSheetSemanticModule.COMBAT_ACTIONS,
+                                sectionName = "COMBATE / ACCIONES",
+                                surface = PcSheetContinuationSurface.EXTENDED,
+                                extendedIndex = 1,
+                            ),
+                        ).targetMarker()
+                    } else {
+                        null
+                    }
                     ClassicCombatReferenceRow(
                         name = combatTypeLabel(entry.type) + " — " + entry.name,
                         bonus = entry.attackModifier?.let(::signed).orEmpty(),
                         detail = buildList {
+                            reverseMarker?.let(::add)
                             entry.damageEffect.takeIf { it.isNotBlank() }?.let(::add)
                             entry.rangeText?.takeIf { it.isNotBlank() }?.let { add("Alcance: $it") }
                             entry.notes?.takeIf { it.isNotBlank() }?.let(::add)
@@ -2395,31 +2583,41 @@ private fun appendSpellContinuationPages(
 
             titledFrame(s, p, 24f, 436f, 226f, 282f, "HISTORIA Y PERSONALIDAD")
             val historyAndPersonality = listOf(
-                classicBaseExcerpt(
+                classicBaseNarrativeExcerpt(
                     listOf(background.name, background.summary, background.story)
                         .filter { it.isNotBlank() }.joinToString(" · "),
                     CLASSIC_BACKGROUND_NARRATIVE_CHARS,
                     CLASSIC_BACKGROUND_NARRATIVE_LINES,
+                    "story",
+                    "HISTORIA",
                 ),
-                classicBaseExcerpt(
+                classicBaseNarrativeExcerpt(
                     background.personalityTraits.takeIf { it.isNotBlank() }?.let { "Rasgo: $it" }.orEmpty(),
                     CLASSIC_BACKGROUND_DETAIL_CHARS,
                     CLASSIC_BACKGROUND_DETAIL_LINES,
+                    "personality",
+                    "PERSONALIDAD",
                 ),
-                classicBaseExcerpt(
+                classicBaseNarrativeExcerpt(
                     background.ideals.takeIf { it.isNotBlank() }?.let { "Ideal: $it" }.orEmpty(),
                     CLASSIC_BACKGROUND_DETAIL_CHARS,
                     CLASSIC_BACKGROUND_DETAIL_LINES,
+                    "ideals",
+                    "IDEALES",
                 ),
-                classicBaseExcerpt(
+                classicBaseNarrativeExcerpt(
                     background.bonds.takeIf { it.isNotBlank() }?.let { "Vínculo: $it" }.orEmpty(),
                     CLASSIC_BACKGROUND_DETAIL_CHARS,
                     CLASSIC_BACKGROUND_DETAIL_LINES,
+                    "bonds",
+                    "VÍNCULOS",
                 ),
-                classicBaseExcerpt(
+                classicBaseNarrativeExcerpt(
                     background.flaws.takeIf { it.isNotBlank() }?.let { "Defecto: $it" }.orEmpty(),
                     CLASSIC_BACKGROUND_DETAIL_CHARS,
                     CLASSIC_BACKGROUND_DETAIL_LINES,
+                    "flaws",
+                    "DEFECTOS",
                 ),
             )
             ruledTextArea(
@@ -3983,6 +4181,11 @@ private fun ruledTextArea(
         val detail: String,
     )
 
+    private data class ClassicNarrativeModule(
+        val heading: String,
+        val lines: List<String>,
+    )
+
     private data class ClassicCombatLayoutRow(
         val nameLines: List<String>,
         val bonus: String,
@@ -4035,6 +4238,20 @@ private fun ruledTextArea(
         const val W = 612f
         const val H = 792f
         const val BASE_COMBAT_CAPACITY = 4
+        const val CLASSIC_NARRATIVE_MODULES_PER_PAGE = 4
+        const val CLASSIC_NARRATIVE_MODULE_WIDTH = 226f
+        const val CLASSIC_NARRATIVE_MODULE_HEIGHT = 282f
+        const val CLASSIC_NARRATIVE_TEXT_HEIGHT = 238f
+        const val CLASSIC_NARRATIVE_ROW_STEP = 20f
+        const val CLASSIC_NARRATIVE_ROWS_PER_MODULE = 11
+        const val CLASSIC_NARRATIVE_BODY_SIZE = 7.6f
+        const val CLASSIC_NARRATIVE_CHARS_PER_LINE = 48
+        val CLASSIC_NARRATIVE_MODULE_PLACEMENTS = listOf(
+            24f to 112f,
+            362f to 112f,
+            24f to 436f,
+            362f to 436f,
+        )
         const val CLASSIC_COMBAT_LINES_PER_PAGE = 27
         const val CLASSIC_COMBAT_REFERENCE_CHARS = 86
         const val CLASSIC_COMBAT_TABLE_X = 36f

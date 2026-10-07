@@ -1435,6 +1435,29 @@ class DesktopPcSheetWholeDraftRendererTest {
                 combatContinuationPage != null,
                 "Fantasy Extended Combat must preserve the complete base-row record referenced by the cue.",
             )
+            assertTrue(
+                requireNotNull(combatContinuationPage)
+                    .contains("proviene de sección normal COMBATE / ACCIONES"),
+                "Fantasy Extended Combat must link back to its normal source row.",
+            )
+            val baseNarrativePage = pageTexts.first { it.contains("HISTORIA Y PERSONALIDAD") }
+            assertTrue(baseNarrativePage.contains("continúa en sección extendida HISTORIA 01"))
+            val storyContinuationPage = pageTexts.firstOrNull { pageText ->
+                pageText.contains("HISTORIA / TRASFONDO") &&
+                    pageText.contains("COLA HISTORIA AUDITADA")
+            }
+            assertTrue(
+                storyContinuationPage != null,
+                "Fantasy narrative overflow must live in native HISTORIA Y PERSONALIDAD continuation modules.",
+            )
+            assertTrue(
+                requireNotNull(storyContinuationPage).contains("proviene de sección normal HISTORIA"),
+                "Fantasy narrative destination must identify its normal source.",
+            )
+            assertFalse(
+                storyContinuationPage.contains("REFERENCIAS Y RECORDATORIOS"),
+                "Fantasy narrative overflow must not be serialized into generic References.",
+            )
             assertTrue(extracted.contains("7 totales"))
             assertTrue(Regex("3\\s+gastados").containsMatchIn(extracted))
             assertTrue(extracted.contains("Tradición cartográfica"))
@@ -2402,6 +2425,22 @@ class DesktopPcSheetWholeDraftRendererTest {
                     pageText.contains("DetalleAsociacionV1")
                 }
                 .joinToString(" ") { it.second }
+            val baseNarrativeText = pages
+                .first { (_, pageText) ->
+                    pageText.contains("PersonalidadNarrativaV11") &&
+                        pageText.contains("HistoriaNarrativaV11")
+                }
+                .second
+
+            assertTrue(baseNarrativeText.contains("continúa en sección extendida PERSONALIDAD 01"))
+            assertTrue(baseNarrativeText.contains("continúa en sección extendida HISTORIA 01"))
+            assertTrue(extendedText.contains("proviene de sección normal PERSONALIDAD"))
+            assertTrue(extendedText.contains("proviene de sección normal HISTORIA"))
+            assertTrue(
+                extendedText.contains("continúa en sección extendida PERSONALIDAD 02") ||
+                    extendedText.contains("continúa en sección extendida HISTORIA 02"),
+                "Multi-module Custom-v1 narrative records must expose the next Extended destination.",
+            )
 
             assertTrue(
                 traitExtendedText.contains("DetalleAsociacionV1"),

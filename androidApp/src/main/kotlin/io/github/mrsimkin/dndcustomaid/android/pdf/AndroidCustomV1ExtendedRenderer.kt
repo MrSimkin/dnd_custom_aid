@@ -27,6 +27,10 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProficiencyType
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterActivationType
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomSkillProjection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSemanticModule
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetBidirectionalContinuation
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetContinuationEndpoint
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetContinuationSurface
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSemanticRecordRef
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetModuleDemand
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutSlot
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedLayoutTemplate
@@ -217,8 +221,25 @@ internal class AndroidCustomV1ExtendedRenderer(
         val background = plan.snapshot.aggregate.sheet.background
         val modules = mutableListOf<V1NarrativeModule>()
 
+        fun normalEndpoint(sectionName: String) =
+            PcSheetContinuationEndpoint(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                sectionName = sectionName,
+                surface = PcSheetContinuationSurface.NORMAL,
+            )
+
+        fun extendedEndpoint(sectionName: String, index: Int) =
+            PcSheetContinuationEndpoint(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                sectionName = sectionName,
+                surface = PcSheetContinuationSurface.EXTENDED,
+                extendedIndex = index,
+            )
+
         fun addOverflow(
+            stableKey: String,
             heading: String,
+            sectionName: String,
             text: String,
             baseWidth: Float,
             baseRows: Int,
@@ -233,56 +254,102 @@ internal class AndroidCustomV1ExtendedRenderer(
             )
             if (baseLines.size <= baseRows) return
 
-            val overflowText = baseLines.drop(baseRows).joinToString(" ")
-            val extendedLines = wrapByWidth(
-                overflowText,
+            val record = PcSheetSemanticRecordRef(
+                module = PcSheetSemanticModule.BACKGROUND_STORY,
+                stableKey = "background:$stableKey",
+                displayName = sectionName,
+            )
+            var remaining = wrapByWidth(
+                baseLines.drop((baseRows - 1).coerceAtLeast(0)).joinToString(" "),
                 resources.fira,
                 V1_NARRATIVE_BODY_SIZE,
                 V1_NARRATIVE_TEXT_WIDTH,
             )
-            extendedLines
-                .chunked(V1_NARRATIVE_ROWS_PER_MODULE)
-                .forEachIndexed { index, lines ->
-                    modules += V1NarrativeModule(
-                        heading =
-                            if (index == 0) heading else "$heading · CONT.",
-                        lines = lines,
-                    )
+            var segmentIndex = 1
+
+            while (remaining.isNotEmpty()) {
+                val inbound = PcSheetBidirectionalContinuation(
+                    record = record,
+                    source = if (segmentIndex == 1) {
+                        normalEndpoint(sectionName)
+                    } else {
+                        extendedEndpoint(sectionName, segmentIndex - 1)
+                    },
+                    target = extendedEndpoint(sectionName, segmentIndex),
+                ).targetMarker()
+                val capacityWithoutOutbound = V1_NARRATIVE_ROWS_PER_MODULE - 1
+                val hasMore = remaining.size > capacityWithoutOutbound
+                val bodyCapacity = capacityWithoutOutbound - if (hasMore) 1 else 0
+                require(bodyCapacity > 0) {
+                    "Custom-v1 native narrative module leaves no room for semantic content."
                 }
+                val body = remaining.take(bodyCapacity)
+                remaining = remaining.drop(body.size)
+                val lines = buildList {
+                    add(inbound)
+                    addAll(body)
+                    if (remaining.isNotEmpty()) {
+                        add(
+                            PcSheetBidirectionalContinuation(
+                                record = record,
+                                source = extendedEndpoint(sectionName, segmentIndex),
+                                target = extendedEndpoint(sectionName, segmentIndex + 1),
+                            ).sourceMarker(),
+                        )
+                    }
+                }
+                modules += V1NarrativeModule(
+                    heading = if (segmentIndex == 1) heading else "$heading · CONT.",
+                    lines = lines,
+                )
+                segmentIndex += 1
+            }
         }
 
         addOverflow(
+            stableKey = "background",
             heading = "Trasfondo",
+            sectionName = "TRASFONDO",
             text = background.name,
             baseWidth = V1_NARRATIVE_NARROW_BASE_WIDTH,
             baseRows = 6,
         )
         addOverflow(
+            stableKey = "personality",
             heading = "Rasgos de Personalidad",
+            sectionName = "PERSONALIDAD",
             text = background.personalityTraits,
             baseWidth = V1_NARRATIVE_NARROW_BASE_WIDTH,
             baseRows = 6,
         )
         addOverflow(
+            stableKey = "ideals",
             heading = "Ideales",
+            sectionName = "IDEALES",
             text = background.ideals,
             baseWidth = V1_NARRATIVE_NARROW_BASE_WIDTH,
             baseRows = 6,
         )
         addOverflow(
+            stableKey = "bonds",
             heading = "Vínculos",
+            sectionName = "VÍNCULOS",
             text = background.bonds,
             baseWidth = V1_NARRATIVE_NARROW_BASE_WIDTH,
             baseRows = 6,
         )
         addOverflow(
+            stableKey = "flaws",
             heading = "Defectos",
+            sectionName = "DEFECTOS",
             text = background.flaws,
             baseWidth = V1_NARRATIVE_NARROW_BASE_WIDTH,
             baseRows = 6,
         )
         addOverflow(
+            stableKey = "story",
             heading = "Historia del Personaje",
+            sectionName = "HISTORIA",
             text = background.story,
             baseWidth = V1_NARRATIVE_TEXT_WIDTH,
             baseRows = 4,
