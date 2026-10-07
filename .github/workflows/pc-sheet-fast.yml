@@ -55,6 +55,7 @@ jobs:
           gradle :desktopApp:test
           --tests "io.github.mrsimkin.dndcustomaid.desktop.DesktopPcSheetWholeDraftRendererTest.classicContinuesLongCanonicalBaseContentWithoutSilentLoss"
           --tests "io.github.mrsimkin.dndcustomaid.desktop.DesktopPcSheetWholeDraftRendererTest.keepsCustomV1NarrativeOverflowOutOfTraitsAndInNativeStoryModules"
+          --tests "io.github.mrsimkin.dndcustomaid.desktop.DesktopPcSheetRuntimeQaFixtureTest.writesExactMaraFourFamilyProofsForPhase3CandidateReview"
           --stacktrace
       - name: Upload focused PC sheet proofs
         uses: actions/upload-artifact@v7
@@ -63,5 +64,9 @@ jobs:
           path: |
             desktopApp/build/pc-sheet-proofs/fantasy-canonical-overflow-audit.pdf
             desktopApp/build/pc-sheet-proofs/custom-v1-narrative-native-module-association.pdf
+            desktopApp/build/pc-sheet-proofs/mara-exact-fantasy.pdf
+            desktopApp/build/pc-sheet-proofs/mara-exact-custom-v1.pdf
+            desktopApp/build/pc-sheet-proofs/mara-exact-custom-v2-attribute.pdf
+            desktopApp/build/pc-sheet-proofs/mara-exact-custom-v2-ability.pdf
           if-no-files-found: error
           retention-days: 7

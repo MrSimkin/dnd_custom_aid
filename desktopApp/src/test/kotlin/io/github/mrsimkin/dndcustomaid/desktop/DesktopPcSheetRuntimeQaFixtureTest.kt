@@ -390,6 +390,46 @@ class DesktopPcSheetRuntimeQaFixtureTest {
         }
     }
 
+    @Test
+    fun writesExactMaraFourFamilyProofsForPhase3CandidateReview() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+        val aggregate = PcSheetExportAggregate(
+            sheet = document.character,
+            closure = document.closureState,
+            successor = document.successorState,
+        )
+        val proofs = listOf(
+            PcSheetVisualFamily.CLASSIC_DND_STYLE to "mara-exact-fantasy.pdf",
+            PcSheetVisualFamily.CUSTOM_V1 to "mara-exact-custom-v1.pdf",
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE to "mara-exact-custom-v2-attribute.pdf",
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY to "mara-exact-custom-v2-ability.pdf",
+        )
+
+        proofs.forEach { (family, fileName) ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(permanent = aggregate),
+            )
+            val pdf = File(proofDir, fileName)
+            pdf.outputStream().use { output ->
+                DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+            }
+
+            assertTrue(pdf.length() > 20_000L, "$family must produce a non-trivial exact Mara PDF proof.")
+            Loader.loadPDF(pdf).use { rendered ->
+                val normalized = PDFTextStripper().getText(rendered).replace(Regex("\\s+"), " ")
+                assertTrue(normalized.contains("Mara de los Siete Umbrales"))
+                assertTrue(normalized.contains("Protocolo de paradoja 1"))
+                assertTrue(normalized.contains("Reserva 10: Sello"))
+                assertTrue(normalized.contains("Astrolabio de cobre con anillos concéntricos 1"))
+            }
+        }
+    }
+
     private fun fixture(name: String) = assertIs<CharacterBackupDecodeResult.Success>(
         CharacterBackupCodec.decode(File(fixtureDirectory(), name).readText()),
     ).document
