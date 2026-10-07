@@ -2642,6 +2642,159 @@ class DesktopPcSheetWholeDraftRendererTest {
     }
 
     @Test
+    fun composesCustomV2CombatAsVariableHeightLogicalRowsWithVisualProof() {
+        val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
+        val renderer = DesktopPcSheetWholeDraftRenderer()
+        val base = denseDraftAggregate()
+        val seed = base.sheet.combatEntries.first()
+
+        val baseAttacks = (1..8).map { index ->
+            seed.copy(
+                id = uuid("8d000000-0000-0000-0000-${index.toString().padStart(12, '0')}"),
+                name = "Ataque base V2 $index",
+                type = CharacterCombatEntryType.ATTACK,
+                attackModifier = 5,
+                damageEffect = "1d6 cortante",
+                rangeText = "Cuerpo a cuerpo",
+                notes = null,
+                sortOrder = index,
+            )
+        }
+        val shortAction = seed.copy(
+            id = uuid("8d000000-0000-0000-0000-000000000009"),
+            name = "Acción lógica V2 breve",
+            type = CharacterCombatEntryType.ACTION,
+            attackModifier = null,
+            damageEffect = "Efecto breve.",
+            rangeText = "Personal",
+            notes = null,
+            sortOrder = 9,
+        )
+        val longAction = seed.copy(
+            id = uuid("8d000000-0000-0000-0000-000000000010"),
+            name = "Acción lógica V2 de concentración resonante prolongada con descriptor final",
+            type = CharacterCombatEntryType.ACTION,
+            attackModifier = 7,
+            damageEffect = "Descarga resonante que conserva completa la identidad del efecto y fuerza varias líneas dentro de una sola fila lógica.",
+            rangeText = "Treinta pies alrededor del objetivo principal",
+            notes = "La nota también debe envolver sin fragmentar el registro semántico. NotaCombateV2Final",
+            sortOrder = 10,
+        )
+        val aggregate = base.copy(
+            sheet = base.sheet.copy(
+                combatEntries = baseAttacks + shortAction + longAction,
+                traits = emptyList(),
+                proficiencies = emptyList(),
+                resources = emptyList(),
+                classOptions = emptyList(),
+                inventoryItems = emptyList(),
+                weaponMasteries = emptyList(),
+                forms = emptyList(),
+                companions = emptyList(),
+                spells = emptyList(),
+                generalNotes = "",
+                noteCards = emptyList(),
+                background = base.sheet.background.copy(
+                    summary = "",
+                    religionFaith = "",
+                    personalityTraits = "",
+                    ideals = "",
+                    bonds = "",
+                    flaws = "",
+                    story = "",
+                ),
+            ),
+            closure = base.closure.copy(
+                customSkills = emptyList(),
+                exhaustionLevel = 0,
+                concentration = null,
+                conditions = emptyList(),
+                defenses = emptyList(),
+                movements = emptyList(),
+                senses = emptyList(),
+                inventoryUsage = emptyList(),
+                temporaryEffects = emptyList(),
+            ),
+            successor = base.successor.copy(
+                customAttributes = emptyList(),
+                customSkillAbilities = emptyList(),
+                combatDamage = emptyList(),
+                customMarkers = emptyList(),
+                resourceConfigurations = emptyList(),
+                speciesIdentity = null,
+                subraceIdentity = null,
+                backgroundIdentity = null,
+                preferences = base.successor.preferences.copy(valuablesText = ""),
+            ),
+        )
+
+        listOf(
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE to "attribute",
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY to "ability",
+        ).forEach { (family, slug) ->
+            val plan = PcSheetPdfExportPlanner.plan(
+                request = PcSheetPdfExportRequest(
+                    visualFamily = family,
+                    stateSelection = PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources = PcSheetExportSources(permanent = aggregate),
+            )
+            val pdf = File(proofDir, "custom-v2-combat-logical-rows-$slug.pdf")
+            pdf.outputStream().use { renderer.renderDraft(plan, it) }
+
+            Loader.loadPDF(pdf).use { document ->
+                val pages = (1..document.numberOfPages).map { pageNumber ->
+                    pageNumber to PDFTextStripper().apply {
+                        startPage = pageNumber
+                        endPage = pageNumber
+                    }.getText(document).replace(Regex("\\s+"), " ")
+                }
+                val combatPages = pages.filter { (_, pageText) ->
+                    pageText.contains(shortAction.name) || pageText.contains("NotaCombateV2Final")
+                }
+                assertEquals(
+                    1,
+                    combatPages.size,
+                    "Both Custom-v2 continuation actions must remain together as logical rows on one valid combat page.",
+                )
+                val (pageNumber, pageText) = combatPages.single()
+                listOf(
+                    "TIPO / NOMBRE",
+                    "RANGO",
+                    "BONIF.",
+                    "DAÑO / EFECTO",
+                    "NOTAS",
+                    shortAction.name,
+                    longAction.name,
+                    "NotaCombateV2Final",
+                ).forEach { expected ->
+                    assertTrue(
+                        pageText.contains(expected),
+                        "Missing Custom-v2 Combat semantic/table content: $expected",
+                    )
+                }
+                assertFalse(
+                    pageText.contains("..."),
+                    "Custom-v2 Combat semantic identities must not be ellipsized.",
+                )
+
+                val layers = document.documentCatalog.ocProperties?.getGroupNames()?.toList().orEmpty()
+                assertTrue(layers.any { it.startsWith("V2X COMBAT") && it.contains("STRUCTURE") })
+                assertTrue(layers.any { it.startsWith("V2X COMBAT") && it.contains("VALUES") })
+
+                val image = PDFRenderer(document).renderImageWithDPI(pageNumber - 1, 220f, ImageType.RGB)
+                assertTrue(
+                    ImageIO.write(
+                        image,
+                        "png",
+                        File(proofDir, "custom-v2-combat-logical-rows-$slug-page-$pageNumber.png"),
+                    ),
+                )
+            }
+        }
+    }
+
+    @Test
     fun composesFantasyTraitsAcrossReleasedNativeFramesWithoutSemanticEllipsis() {
         val proofDir = File(requireNotNull(System.getProperty("pcSheetProofDir"))).apply { mkdirs() }
         val renderer = DesktopPcSheetWholeDraftRenderer()
