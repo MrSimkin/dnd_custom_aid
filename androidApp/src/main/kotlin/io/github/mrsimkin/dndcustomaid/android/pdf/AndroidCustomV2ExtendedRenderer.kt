@@ -1273,7 +1273,6 @@ internal class AndroidCustomV2ExtendedRenderer(
                     layouts = traitCompositionLayouts(),
                 ),
             )
-            recordPaginationTrace(V2_GLOBAL_NARRATIVE_TRAITS_FRONT_ID, step)
             val placements = step.page.placements
                 .filter { it.module == PcSheetSemanticModule.TRAITS }
                 .sortedBy { placement ->
@@ -1293,6 +1292,49 @@ internal class AndroidCustomV2ExtendedRenderer(
                 val selectedIndex = if (preferredIndex >= 0) preferredIndex else 0
                 placement.slotId to remainingColumns.removeAt(selectedIndex)
             }
+
+            // Probe complete native-column reclaim, not visual sparsity or page count.
+            // Transfer only after the primary category stream is exhausted, and only when the
+            // secondary column can move intact with its category heading and no continuity cues.
+            val leftColumn = pageColumns.firstOrNull { it.first == TRAIT_LEFT_SLOT_ID }?.second
+            val rightColumn = pageColumns.firstOrNull { it.first == TRAIT_RIGHT_SLOT_ID }?.second
+            val primaryStreamExhausted = remainingColumns.none {
+                it.preferredSlotId == TRAIT_LEFT_SLOT_ID
+            }
+            val hasLaterDemand = step.remainingDemands.isNotEmpty()
+            val canTransferCompleteColumn =
+                leftColumn != null &&
+                    rightColumn != null &&
+                    primaryStreamExhausted &&
+                    hasLaterDemand &&
+                    rightColumn.heading?.isNotBlank() == true &&
+                    rightColumn.lines.none { it.kind == TraitNativeFlowLineKind.CONTINUITY }
+            val transferRows = if (canTransferCompleteColumn) {
+                requireNotNull(rightColumn).lines.size + 1 // Native in-column category heading.
+            } else {
+                null
+            }
+            val availableRows = leftColumn?.let { TRAIT_NATIVE_ROWS_PER_COLUMN - it.lines.size }
+            recordPaginationTrace(
+                V2_GLOBAL_NARRATIVE_TRAITS_FRONT_ID,
+                step.trace.copy(
+                    physical = PcSheetPhysicalPaginationTrace(
+                        metric = "native-trait-rows",
+                        used = pageColumns.sumOf { it.second.lines.size }.toDouble(),
+                        capacity = pageColumns.size * TRAIT_NATIVE_ROWS_PER_COLUMN.toDouble(),
+                        nextAtomicUnitSize = transferRows?.toDouble(),
+                        nextAtomicUnitFits = transferRows?.let { rows ->
+                            rows <= requireNotNull(availableRows)
+                        },
+                        rationale = when {
+                            transferRows == null -> "native-columns;atomic-transfer-not-eligible"
+                            transferRows <= requireNotNull(availableRows) ->
+                                "exhausted-primary-column-can-reclaim-complete-secondary-column"
+                            else -> "complete-secondary-column-exceeds-native-remainder"
+                        },
+                    ),
+                ),
+            )
 
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)

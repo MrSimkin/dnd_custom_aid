@@ -643,6 +643,24 @@ class DesktopPcSheetRuntimeQaFixtureTest {
             }
         }
 
+        val physicallyAvoidableNativeTraitPages = paginationTrace.filter { entry ->
+            entry.family in setOf(
+                PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+                PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
+            ) &&
+                entry.frontId.contains("narrative-traits", ignoreCase = true) &&
+                entry.composition.hasPhysicallyAvoidableNextPage()
+        }
+        assertTrue(
+            physicallyAvoidableNativeTraitPages.isEmpty(),
+            "A complete native Traits column must reclaim compatible remaining rows of an " +
+                "exhausted primary column before opening another page: " +
+                physicallyAvoidableNativeTraitPages.joinToString { entry ->
+                    entry.family.name + "/" + entry.frontId + "#" + entry.decisionOrdinal +
+                        " -> " + entry.composition.physical?.rationale
+                },
+        )
+
         val physicallyAvoidableCombatPages = paginationTrace.filter { entry ->
             entry.frontId.contains("combat", ignoreCase = true) &&
                 entry.composition.hasPhysicallyAvoidableNextPage()
