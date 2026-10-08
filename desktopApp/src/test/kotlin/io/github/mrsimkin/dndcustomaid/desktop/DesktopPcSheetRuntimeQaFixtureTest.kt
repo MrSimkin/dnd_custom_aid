@@ -658,6 +658,48 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 "still fits its next atomic row.",
         )
 
+        // A globally active sibling cannot make an independently approved full-native
+        // layout disappear from the scheduler's legal alternatives. This checks eligibility,
+        // NOT an arbitrary target page count or an obligation to choose a specific layout.
+        val nativeResourceAlternatives = mapOf(
+            PcSheetVisualFamily.CLASSIC_DND_STYLE to setOf(
+                "fantasy-resources-options-split",
+                "fantasy-resources-full",
+                "fantasy-options-full",
+            ),
+            PcSheetVisualFamily.CUSTOM_V1 to setOf(
+                "v1-resources-options-split",
+                "v1-resources-full",
+                "v1-options-full",
+            ),
+            PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE to setOf(
+                "v2-resources-options-split",
+                "v2-resources-full",
+                "v2-options-full",
+            ),
+            PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY to setOf(
+                "v2-resources-options-split",
+                "v2-resources-full",
+                "v2-options-full",
+            ),
+        )
+        val omittedLegalResourceLayouts = physicalResources.filter { entry ->
+            val activeModules = entry.composition.demandsBefore.map { it.module }.toSet()
+            activeModules.contains(PcSheetSemanticModule.RESOURCES) &&
+                activeModules.contains(PcSheetSemanticModule.CLASS_CHOICES) &&
+                !entry.composition.candidateLayoutIds.toSet().containsAll(
+                    nativeResourceAlternatives.getValue(entry.family),
+                )
+        }
+        assertTrue(
+            omittedLegalResourceLayouts.isEmpty(),
+            "Active Resources and Options must retain all approved native full/split " +
+                "layout candidates for physical scheduling (no implicit fixed-split lock): " +
+                omittedLegalResourceLayouts.joinToString { entry ->
+                    entry.family.name + "/" + entry.frontId + "#" + entry.decisionOrdinal
+                },
+        )
+
         val expectedTraceFamilies = proofs.mapTo(mutableSetOf()) { it.first }
         expectedTraceFamilies.forEach { family ->
             val familyTrace = paginationTrace.filter { it.family == family }
