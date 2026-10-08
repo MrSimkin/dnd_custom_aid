@@ -632,6 +632,32 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 },
         )
 
+        // The exact PDF must expose physical slot evidence on every Resource/Options
+        // page. A green semantic compositor trace is not proof of legal page necessity.
+        val physicalResources = paginationTrace.filter { entry ->
+            entry.frontId.contains("resources", ignoreCase = true)
+        }
+        assertTrue(physicalResources.isNotEmpty(), "Exact Mara Resources trace must not be empty.")
+        val missingPhysicalResources = physicalResources.filter { entry ->
+            entry.composition.physical?.metric != "native-slot-utilization" ||
+                entry.composition.streamTraces.isEmpty() ||
+                entry.composition.streamTraces.sumOf { it.consumedUnits } !=
+                    entry.composition.placements.sumOf { it.consumedUnits }
+        }
+        assertTrue(
+            missingPhysicalResources.isEmpty(),
+            "Exact Mara Resources/Options decisions must report physical native-slot " +
+                "capacity and actual consumption, not just chosen layout ids: " +
+                missingPhysicalResources.joinToString { entry ->
+                    entry.family.name + "/" + entry.frontId + "#" + entry.decisionOrdinal
+                },
+        )
+        assertTrue(
+            physicalResources.none { it.composition.hasPhysicallyAvoidableNextPage() },
+            "Resource/Options may not advance while an active stream's own native slot " +
+                "still fits its next atomic row.",
+        )
+
         val expectedTraceFamilies = proofs.mapTo(mutableSetOf()) { it.first }
         expectedTraceFamilies.forEach { family ->
             val familyTrace = paginationTrace.filter { it.family == family }
