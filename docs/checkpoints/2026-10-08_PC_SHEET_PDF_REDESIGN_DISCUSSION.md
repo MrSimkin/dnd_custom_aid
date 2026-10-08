@@ -28,7 +28,9 @@ Los bocetos anteriores son exploratorios. No hay medidas exactas, ubicación del
 
 **Bloque 01 derecho APROBADO:** tres filas — CA/Iniciativa/Velocidad; Bono por Competencia/Inspiración/Dados de Golpe; PV actuales/PV máximos. Dados de golpe en forma de cadena simple (`5d10 / 3d6`), sin desglose o contadores. PV temporales y salvaciones contra la muerte quedan fuera de este bloque. Sin medidas ni maqueta final aprobadas.
 
-**Continuación inmediata:** discutir módulo de **Ataques** en la sección derecha de la primera página, tomando los campos del PDF proporcionado como inspiración pero sin copiar su geometría. La capacidad y mecanismo de expansión de la sección izquierda siguen pendientes de validación técnica y no autorizan implementación.
+**Bloque 02 — Ataques APROBADO como resumen:** tabla unificada que recoge la lista resumen ya prevista en la App, con columnas `ARMA / ATAQUE / CONJURO`, `BONIFICADOR` y `DAÑO / TIPO DE DAÑO`. No agregar columnas de detalle ni convertir el resumen en descripciones completas. Sin dimensiones definitivas ni política específica de desbordamiento todavía.
+
+**Continuación inmediata:** discutir el siguiente módulo de la derecha (**Rasgos y recursos**), sin confundir la tabla resumen de Ataques con una ficha detallada. La capacidad y mecanismo de expansión de la sección izquierda siguen pendientes de validación técnica y no autorizan implementación.
 
 Consultar una sola decisión cada vez, registrar su estado y detenerse antes de implementar. El propietario resuelve las decisiones de comportamiento y UX.
 
