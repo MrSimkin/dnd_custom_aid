@@ -240,7 +240,7 @@ El lenguaje visual de referencia A usa encabezados claramente diferenciados, mar
 
 **Pendiente de validación visual/técnica:** grosor y número exacto de filetes, ángulos de esquinas, radios, proporciones, acentos decorativos por clase de campo, tamaños, tipografía del texto rellenado e interacción con filas de 7/5 mm. Se mantiene **Barlow Condensed** para encabezados/subencabezados/etiquetas, **versalitas como posibilidad sin validar**, y prioridad de glifos **Para Hoja de PJ Symbols v8 > Font Awesome Free**.
 
-**Continuación:** comparar variantes de detalle del interior C2c con dimensiones de impresión y muestras genuinas de Barlow Condensed, antes de la maqueta integral. **Sin autorización para tocar código, PDF de producto ni plantillas**.
+**PIN EXPLÍCITO — DIFERIDO POR EL PROPIETARIO (2026-10-08):** queda **pospuesto deliberadamente** el trabajo de pruebas ornamentales de C2c, variantes físicas de marcos y casillas, pruebas tipográficas finales (versalitas y fuente de valores rellenados), colores definitivos y afinación visual. La **condición para retomarlo** es disponer de un **modelo completo de las páginas/secciones del rediseño**: primero revisar, definir y ordenar el contenido y la estructura de las **páginas posteriores a la 1**, incluyendo Tesoro, Otros y las extensiones pertinentes. **Las pruebas de ornamentación deben aplicarse al modelo completo**, no a una tarjeta aislada que podría llevar a decisiones erróneas de densidad. No confundir POSPUESTO con DESCARTADO ni deshacer las decisiones ya aprobadas: Azul niebla clásico A, marco externo C2, cartelas interiores C2c como dirección, Barlow Condensed para títulos/etiquetas, Para Hoja de PJ v8 primero y Font Awesome Free segundo. La primera página mantiene lo ya aprobado, pendiente de validación física. **No se autoriza implementar código, PDFs de producto ni plantillas**.
 
 ## 4. Límites del acuerdo
 
@@ -258,7 +258,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**DISEÑO VISUAL PREVIO A MAQUETA INTEGRAL: C2c (cartelas interiores con esquinas recortadas) seleccionado; exterior C2 y Azul niebla clásico A se conservan; Barlow Condensed para títulos/subtítulos/etiquetas; valores y versalitas pendientes de pruebas reales; Para Hoja de PJ v8 primero, Font Awesome Free segundo.**
+**SIGUIENTE FASE: DISEÑO ESTRUCTURAL DE PÁGINAS POSTERIORES A LA 1 (page 2+). PIN ACTIVO: NO realizar todavía pruebas ornamentales/tipográficas finales; retomarlas SOLO sobre el modelo integral completo de todas las páginas.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
