@@ -261,13 +261,35 @@ internal class AndroidCustomV2ExtendedRenderer(
                     layouts = listOf(narrativeTraitsCompositionLayout()),
                 ),
             )
-            recordPaginationTrace(V2_GLOBAL_NARRATIVE_TRAITS_FRONT_ID, step)
             check(step.remainingDemands.isEmpty()) {
                 "Custom-v2 mixed Narrative/Traits layout must consume both native modules."
             }
 
             val remainingTraitColumns = traitColumns.toMutableList()
             val traitColumn = remainingTraitColumns.removeAt(leftTraitIndex)
+            val mixedNarrativeRows = narrativeModules.single().size
+            val mixedTraitsRows = traitColumn.lines.size
+            check(mixedNarrativeRows in 1..NARRATIVE_MODULE_ROWS) {
+                "Mixed Custom-v2 Narrative exceeds its native right module."
+            }
+            check(mixedTraitsRows in 1..TRAIT_NATIVE_ROWS_PER_COLUMN) {
+                "Mixed Custom-v2 Traits exceeds its native left column."
+            }
+            recordPaginationTrace(
+                V2_GLOBAL_NARRATIVE_TRAITS_FRONT_ID,
+                step.trace.copy(
+                    physical = PcSheetPhysicalPaginationTrace(
+                        metric = "native-mixed-narrative-trait-rows",
+                        used = (mixedNarrativeRows + mixedTraitsRows).toDouble(),
+                        capacity = (NARRATIVE_MODULE_ROWS + TRAIT_NATIVE_ROWS_PER_COLUMN).toDouble(),
+                        nextAtomicUnitSize = null,
+                        nextAtomicUnitFits = null,
+                        rationale =
+                            "both-compatible-native-modules-consumed;" +
+                                "remaining-trait-columns-owned-by-traits-scheduler",
+                    ),
+                ),
+            )
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderNarrativeModulePage(

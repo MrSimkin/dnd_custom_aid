@@ -771,6 +771,30 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                     .joinToString { it.frontId + "#" + it.decisionOrdinal },
         )
 
+        val mixedV2NativeEvidence = paginationTrace.filter { entry ->
+            entry.family in setOf(
+                PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE,
+                PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY,
+            ) &&
+                entry.composition.chosenLayoutId == "v2-narrative-right-traits-left"
+        }
+        assertEquals(
+            2,
+            mixedV2NativeEvidence.size,
+            "Both exact Custom-v2 Mara families must exercise the mixed native page.",
+        )
+        assertTrue(
+            mixedV2NativeEvidence.all { entry ->
+                val measured = entry.composition.physical
+                measured?.metric == "native-mixed-narrative-trait-rows" &&
+                    measured.used > 0.0 &&
+                    measured.used <= measured.capacity &&
+                    measured.rationale.contains("remaining-trait-columns-owned")
+            },
+            "Custom-v2 mixed page must record actual source-native row usage " +
+                "without treating separate pending Traits columns as exhausted.",
+        )
+
         val expectedTraceFamilies = proofs.mapTo(mutableSetOf()) { it.first }
         expectedTraceFamilies.forEach { family ->
             val familyTrace = paginationTrace.filter { it.family == family }
