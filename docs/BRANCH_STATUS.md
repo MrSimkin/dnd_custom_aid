@@ -1,5 +1,7 @@
 # Branch status and repository-ordering map
 
+**PDF branch/route update 2026-10-08:** Owner-led redesign contract discussion is active (D-0076; see `docs/checkpoints/LATEST.md`). **No renderer implementation branch is authorized.** This documentation work preserves prior Mara Phase-2 and old repair branch evidence; the formerly planned Phase 3 implementation is deferred. No product code or templates changed by this route decision.
+
 **Updated:** 2026-09-30 (Chile local time)  
 **Owner implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
@@ -8,7 +10,7 @@
 **Wave 5 lifecycle:** COMPLETE / OWNER-QA ACCEPTED / INTEGRATED  
 **Wave 6 core reusable-content lifecycle:** COMPLETE / INTEGRATED  
 **Wave 7 lifecycle:** ACTIVE  
-**Current normal work:** PC Sheet PDF Export — **Phase 1 provenance CLOSED**. The exact owner-supplied 50800 APK matches `15f86ec...` / artifact `10917523331` byte-for-byte and does not match the final adaptive-repair APK `ce695c...` / artifact `10943700272`. The 2026-09-28 QA therefore remains valid for the pre-adaptive baseline but is not an owner-runtime rejection of the later repair. The full owner QA matrix remains binding. **Next phase is audit-only until the owner explicitly starts Phase 2; no new renderer code yet.**
+**Historical 2026-09-30 work snapshot (superseded by 2026-10-08 redesign route):** PC Sheet PDF Export — **Phase 1 provenance CLOSED**. The exact owner-supplied 50800 APK matches `15f86ec...` / artifact `10917523331` byte-for-byte and does not match the final adaptive-repair APK `ce695c...` / artifact `10943700272`. The 2026-09-28 QA therefore remains valid for the pre-adaptive baseline but is not an owner-runtime rejection of the later repair. The full owner QA matrix remains binding. **Next phase is audit-only until the owner explicitly starts Phase 2; no new renderer code yet.**
 
 This file controls branch lifecycle. Branch existence alone never establishes authority.
 
@@ -128,7 +130,7 @@ Current authority:
 
 Canonical resume authority:
 
-`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md -> docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md -> Phase 2 existing-repair audit -> later candidate`
+`RESUME.md -> docs/checkpoints/LATEST.md -> docs/checkpoints/2026-10-08_PC_SHEET_PDF_REDESIGN_DISCUSSION.md -> D-0076 (design only)`
 
 ## Historical/stale open PRs
 
