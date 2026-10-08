@@ -457,6 +457,19 @@ La **opción C general y la página final en blanco SÍ están aprobadas**. **AC
 
 **PIN VISUAL VIGENTE:** decisión documental, sin autorización de código, PDF, fuentes o maquetas ornamentales finales.
 
+### 3.33 Referencias bidireccionales por módulo en continuaciones C2 — alternativa B (APROBADO, 2026-10-08)
+
+**Elección expresa del propietario:** se aprueba la **alternativa B de referencias de ida y vuelta por módulo**, en lugar de la referencia solo de ida (A) o el índice local general de la extensión (C). La señalética es funcional y compacta para consulta de una hoja impresa durante la partida, sin sacrificar área de contenido.
+
+**Contrato estructural aprobado:**
+- Si un módulo tiene excedente, su tramo en la página de origen indica de forma breve **la página física donde continúa** (ejemplo conceptual: `Sigue en p. 4 →`).
+- Cada módulo de una página de extensión compartida C2 se identifica por **su nombre y condición de CONTINUACIÓN**, y contiene una referencia de retorno hacia la página que contiene el tramo anterior u origen identificable (ejemplo conceptual: `← Viene de p. 1`). **No basta una única referencia global de la hoja** si conviven Ataques, Equipo y Rasgos procedentes de páginas diferentes.
+- Si el mismo módulo se extiende a más páginas, cada tramo que tenga continuación informa **dónde sigue**, conservando la navegación bidireccional entre tramos. Las referencias de módulos distintos son independientes, aunque compartan la misma página física.
+- **Numeración real y final:** organizar y paginar el documento antes de resolver las referencias; si cambia la distribución, actualizar todas las referencias afectadas. Las páginas de los ejemplos son didácticas, nunca números preasignados.
+- Mantener los formatos/contratos propios de cada módulo, el encabezado común de toda página y las prioridades C2 de §3.31. La **exclusividad de Notas** y la **última página manuscrita en blanco** no se alteran.
+
+**Alcance todavía NO cerrado:** texto final exacto de las señales, iconografía y flechas, posición física o tamaño, si en cadenas largas se repite además la referencia a la primera página de la sección, manejo pormenorizado de saltos internos y algoritmo concreto de paginación/actualización. La elección B **no aprueba un índice adicional**, proporciones o diseño ornamental, ni autoriza implementar o renderizar el PDF; continúa el PIN VISUAL.
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
@@ -473,7 +486,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**EXTENSIONES C2: composición AUTOMÁTICA APROBADA (§3.32): comparar disposición VERTICAL, DOS COLUMNAS y MIXTA, elegir la mejor sin intervención en cada exportación; se aplican prioridades de §3.31. Ubicación A mantiene continuaciones cerca de fuentes, con mezcla remota posible. NOTAS NUNCA SE MEZCLAN. ÚLTIMA HOJA DE NOTAS EN BLANCO INTACTA. SIGUIENTE DECISIÓN: señalética y referencias cruzadas de continuación; después anexos, no lanzadores y cabida real. PIN VISUAL ACTIVO.**
+**EXTENSIONES C2: composición AUTOMÁTICA APROBADA (§3.32): comparar disposición VERTICAL, DOS COLUMNAS y MIXTA, elegir la mejor sin intervención en cada exportación; se aplican prioridades de §3.31. Ubicación A mantiene continuaciones cerca de fuentes, con mezcla remota posible. NOTAS NUNCA SE MEZCLAN. ÚLTIMA HOJA DE NOTAS EN BLANCO INTACTA. REFERENCIAS BIDIRECCIONALES POR MÓDULO APROBADAS (§3.33, opción B). SIGUIENTE DISCUSIÓN: detalle de navegación en cadenas largas y casos especiales, después anexos, no lanzadores y cabida real. PIN VISUAL ACTIVO.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
