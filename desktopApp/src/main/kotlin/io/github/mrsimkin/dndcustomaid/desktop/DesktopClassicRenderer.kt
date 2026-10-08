@@ -1740,11 +1740,17 @@ internal class DesktopClassicRenderer(
                                 capacityByModule = mapOf(
                                     PcSheetSemanticModule.RESOURCES to resourceCapacity,
                                 ),
+                                measuredNativeAreaPerUnit = mapOf(
+                                    PcSheetSemanticModule.RESOURCES to (CLASSIC_RESOURCE_ROW_STEP * 540f).toDouble(),
+                                ),
                             ),
                             PcSheetExtendedLayoutSlot(
                                 id = "class-choices",
                                 capacityByModule = mapOf(
                                     PcSheetSemanticModule.CLASS_CHOICES to optionCapacity,
+                                ),
+                                measuredNativeAreaPerUnit = mapOf(
+                                    PcSheetSemanticModule.CLASS_CHOICES to (CLASSIC_OPTION_ROW_STEP * 540f).toDouble(),
                                 ),
                             ),
                         ),
@@ -1778,6 +1784,9 @@ internal class DesktopClassicRenderer(
                                 capacityByModule = mapOf(
                                     PcSheetSemanticModule.RESOURCES to CLASSIC_RESOURCE_FULL_ROWS_PER_PAGE,
                                 ),
+                                measuredNativeAreaPerUnit = mapOf(
+                                    PcSheetSemanticModule.RESOURCES to (CLASSIC_RESOURCE_ROW_STEP * 540f).toDouble(),
+                                ),
                             ),
                         ),
                     ),
@@ -1792,6 +1801,9 @@ internal class DesktopClassicRenderer(
                                 id = "class-choices-full",
                                 capacityByModule = mapOf(
                                     PcSheetSemanticModule.CLASS_CHOICES to CLASSIC_OPTION_FULL_ROWS_PER_PAGE,
+                                ),
+                                measuredNativeAreaPerUnit = mapOf(
+                                    PcSheetSemanticModule.CLASS_CHOICES to (CLASSIC_OPTION_ROW_STEP * 540f).toDouble(),
                                 ),
                             ),
                         ),

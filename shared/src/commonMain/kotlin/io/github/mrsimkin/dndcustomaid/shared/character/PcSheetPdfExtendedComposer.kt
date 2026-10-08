@@ -54,6 +54,7 @@ data class PcSheetExtendedCompositionTrace(
     val score: PcSheetCompositionScoreTrace,
     val streamTraces: List<PcSheetPaginationStreamTrace> = emptyList(),
     val physical: PcSheetPhysicalPaginationTrace? = null,
+    val eligibleNativeAreaScores: Map<String, Double> = emptyMap(),
 )
 
 data class PcSheetPaginationTraceEntry(
@@ -146,7 +147,15 @@ fun PcSheetPaginationTraceEntry.toStableJsonLine(): String = buildString {
         if (index > 0) append(',')
         append(quoted(id))
     }
-    append("],\"demandsBefore\":")
+    append("],\"eligibleNativeAreaScores\":{")
+    composition.eligibleNativeAreaScores.entries.forEachIndexed { index, (id, area) ->
+        if (index > 0) append(',')
+        append(quoted(id))
+        append(':')
+        append(area)
+    }
+    append('}')
+    append(",\"demandsBefore\":")
     appendDemands(composition.demandsBefore)
     append(",\"chosenLayoutId\":")
     append(quoted(composition.chosenLayoutId))
@@ -280,12 +289,19 @@ data class PcSheetModuleDemand(
 data class PcSheetExtendedLayoutSlot(
     val id: String,
     val capacityByModule: Map<PcSheetSemanticModule, Int>,
+    /** Measured source-native occupied area (pt squared) for one atomic unit of each module. */
+    val measuredNativeAreaPerUnit: Map<PcSheetSemanticModule, Double> = emptyMap(),
 ) {
     init {
         require(id.isNotBlank()) { "Extended layout slot id is required." }
         require(capacityByModule.isNotEmpty()) { "Extended layout slot must accept at least one module." }
         capacityByModule.forEach { (module, capacity) ->
             require(capacity > 0) { "Slot $id capacity for $module must be positive." }
+        }
+        measuredNativeAreaPerUnit.forEach { (module, area) ->
+            require(module in capacityByModule && area > 0.0 && area.isFinite()) {
+                "Measured native area must be positive and belong to a compatible module."
+            }
         }
     }
 }
@@ -512,6 +528,9 @@ object PcSheetExtendedPageComposer {
             trace = PcSheetExtendedCompositionTrace(
                 candidateLayoutIds = candidateLayouts.map { it.id },
                 eligibleLayoutIds = evaluated.map { it.layout.id },
+                eligibleNativeAreaScores = evaluated.mapNotNull { candidate ->
+                    candidate.measuredNativeArea?.let { candidate.layout.id to it }
+                }.toMap(),
                 demandsBefore = demands,
                 chosenLayoutId = best.layout.id,
                 placements = best.placements,
@@ -590,6 +609,17 @@ object PcSheetExtendedPageComposer {
             get() = placements.size
         val distinctModules: Int
             get() = placements.map { it.module }.distinct().size
+        val measuredNativeArea: Double?
+            get() {
+                val slots = layout.slots.associateBy { it.id }
+                val areas = placements.mapNotNull { placement ->
+                    slots[placement.slotId]?.measuredNativeAreaPerUnit?.get(placement.module)
+                }
+                if (areas.size != placements.size) return null
+                return placements.indices.sumOf { index ->
+                    placements[index].consumedUnits * areas[index]
+                }
+            }
     }
 
     private data class AssignmentScore(

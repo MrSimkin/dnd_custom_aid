@@ -701,6 +701,33 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 },
         )
 
+        // The accepted selector must compare eligible native layouts by measured
+        // occupied source area, not by number of individually filled slots.
+        val fantasyMeasuredAlternatives = physicalResources.filter { entry ->
+            entry.family == PcSheetVisualFamily.CLASSIC_DND_STYLE &&
+                entry.composition.demandsBefore.map { it.module }.toSet() ==
+                    setOf(PcSheetSemanticModule.RESOURCES, PcSheetSemanticModule.CLASS_CHOICES)
+        }
+        assertTrue(
+            fantasyMeasuredAlternatives.isNotEmpty() &&
+                fantasyMeasuredAlternatives.all { it.composition.eligibleNativeAreaScores.size == 3 },
+            "Fantasy exact Mara must record measured physical area of every approved " +
+                "Resources/Options layout alternative.",
+        )
+        val suboptimalNativeAreaChoices = fantasyMeasuredAlternatives.filter { entry ->
+            val scores = entry.composition.eligibleNativeAreaScores
+            scores.getValue(entry.composition.chosenLayoutId) + 0.01 <
+                requireNotNull(scores.values.maxOrNull())
+        }
+        assertTrue(
+            suboptimalNativeAreaChoices.isEmpty(),
+            "Native physical scheduler selected a layout that occupies less legal " +
+                "writing area than another approved compatible layout: " +
+                suboptimalNativeAreaChoices.joinToString { entry ->
+                    entry.family.name + "/" + entry.frontId + "#" + entry.decisionOrdinal
+                },
+        )
+
         val expectedTraceFamilies = proofs.mapTo(mutableSetOf()) { it.first }
         expectedTraceFamilies.forEach { family ->
             val familyTrace = paginationTrace.filter { it.family == family }
