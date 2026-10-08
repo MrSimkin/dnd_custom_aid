@@ -298,6 +298,31 @@ El lenguaje visual de referencia A usa encabezados claramente diferenciados, mar
 
 **PIN visual:** dimensiones, bordes y iconografía para la casilla se comprueban con el modelo completo y no ahora. Regla C híbrida de Equipo Especial y estructura general A de página 2 permanecen vigentes; ninguna modificación del código o PDF autorizada.
 
+### 3.23 Página 3 — Propuesta A: Trasfondo e Historia + expansión de Rasgos (APROBADO, 2026-10-08)
+
+**Elección expresa del propietario:** distribución A de **dos columnas** para la página 3.
+
+- **Izquierda:** Trasfondo (nombre, Religión/Fe, resumen), Perfil narrativo (Rasgos de personalidad, Ideales, Vínculos y Defectos) e Historia del PJ; datos y campos de la App, sin omitir párrafos largos.
+- **Derecha:** «Rasgos y Atributos» como **continuación**, solamente con entradas todavía no impresas en páginas 1 o 2, expresadas como `origen/categoría - nombre` **sin descripciones ni duplicados**.
+- Los «Rasgos de personalidad» narrativos no son las entradas mecánicas de «Rasgos y Atributos».
+- La App contempla imágenes principal/secundaria del trasfondo, pero su inclusión y ubicación en esta exportación **NO están aprobadas**.
+
+**Por resolver:** anchos, alturas, renglones escritos a mano, caso de cero rasgos remanentes, extensión de Historia, imágenes y medición integral. No es aprobación de una composición a escala ni de ornamentación.
+
+### 3.24 Página 4 — Propuesta B: lista de conjuros en tres columnas dinámicas (APROBADO, 2026-10-08)
+
+**Elección expresa del propietario:** aprobar **B** para la página 4, una **lista rápida de conjuros con TRES columnas DINÁMICAS**, agrupada por **niveles**, con **casillas de preparación** junto a las entradas apropiadas. Esto no es una página de descripciones extensas.
+
+- Conjuros reales que estén asociados al PJ, incluidos **Trucos (nivel 0)** y **niveles 1–9** como marco normal; mantener agrupación por nivel, sin exigir igual número de filas por cada uno ni asumir un reparto fijo de niveles por columna. Conservar nombres largos y espacio útil para escritura manual. Si el personaje tiene más entradas de las que caben, continuarlas sin omisiones.
+- **Las casillas representan preparación** cuando aplique al conjuro y a la **fuente de lanzamiento** correspondiente. La App permite un mismo conjuro asociado a varias fuentes con estados de preparación diferentes: no amalgamar esos estados en un único indicador engañoso. El detalle de visualización de varias fuentes/casillas y de conjuros no preparables **queda pendiente**, igual que cómo inicializar marcas a partir de datos verificados. No fingir que todo conjuro es preparable.
+- La primera página ya contiene **Aptitud Mágica, CD, modificador de ataque y control de espacios de conjuro gastados**. **NO duplicar** aquí dichos controles. La página 4 se destina a nombres/seguimiento de preparación y quizá pequeños indicadores complementarios sin describir conjuros.
+- El **Libro de Conjuros opcional**, ya existente en el proyecto, cumple el papel de referencia detallada con descripciones, componentes y otra información; no convertir esta lista rápida en una copia del libro. Componentes ritual/concentración como símbolos compactos son **propuestas no aprobadas todavía**.
+- Los detalles de **niveles épicos 10–12**, si están habilitados para el PJ, se deben resolver consistentemente con la regla condicional acordada en página 1, pero **NO asumir hoy que el modelo actual admite conjuros de esos niveles**. La pantalla de la App revisada gestiona niveles 0–9.
+
+**Pendientes:** orden de lectura y flujo por las tres columnas, reserva manual por nivel, apariencia y significado exacto de casillas según fuente/preparación, no lanzadores y ausencia de conjuros (mostrar u omitir página adicional), desbordamiento, medidas físicas, iconos y leyenda de ritual/concentración, niveles épicos, y representación de fuentes. La estructura B queda aprobada, **no la geometría definitiva**.
+
+**PIN VISUAL VIGENTE:** posponer muestras finales de Barlow Condensed, tipografía para valores y ornamentación C2c hasta contar con el modelo integral de todas las páginas. No se autorizan cambios de código, plantillas ni generador PDF.
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
@@ -314,7 +339,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**PÁGINA 2: Equipo Especial opción C (híbrida adaptable) aprobada; casilla de marcado significa ACTIVO (sin presumir un dato almacenado). SIGUIENTE FASE: diseño estructural de páginas restantes (narrativa, conjuros, notas y extensiones). PIN VISUAL ACTIVO hasta modelo integral completo.**
+**PÁGINAS 3 Y 4 DEFINIDAS: página 3 A (Trasfondo/Historia izquierda; expansión de Rasgos derecha); página 4 B (conjuros por nivel en tres columnas dinámicas y casillas de preparación por fuente cuando corresponda). SIGUIENTE FASE: Notas, continuaciones, reglas de páginas con contenido ausente y uso de imágenes de Trasfondo. PIN VISUAL ACTIVO hasta modelo integral completo.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
