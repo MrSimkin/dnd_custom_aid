@@ -2641,7 +2641,23 @@ internal class DesktopCustomV2ExtendedRenderer(
                             ),
                         ),
                     ),
-                )
+                ) +
+                    resourceCompositionLayouts(
+                        listOf(
+                            PcSheetModuleDemand(
+                                PcSheetSemanticModule.RESOURCES,
+                                demandByModule.getValue(PcSheetSemanticModule.RESOURCES),
+                            ),
+                        ),
+                    ) +
+                    resourceCompositionLayouts(
+                        listOf(
+                            PcSheetModuleDemand(
+                                PcSheetSemanticModule.CLASS_CHOICES,
+                                demandByModule.getValue(PcSheetSemanticModule.CLASS_CHOICES),
+                            ),
+                        ),
+                    )
             }
 
             setOf(PcSheetSemanticModule.RESOURCES) ->

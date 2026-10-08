@@ -1682,7 +1682,9 @@ internal class DesktopCustomV1ExtendedRenderer(
                             ),
                         ),
                     ),
-                )
+                ) +
+                    v1ResourceCompositionLayouts(setOf(PcSheetSemanticModule.RESOURCES)) +
+                    v1ResourceCompositionLayouts(setOf(PcSheetSemanticModule.CLASS_CHOICES))
 
             setOf(PcSheetSemanticModule.RESOURCES) ->
                 listOf(

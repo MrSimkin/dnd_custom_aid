@@ -1749,7 +1749,23 @@ internal class DesktopClassicRenderer(
                             ),
                         ),
                     ),
-                )
+                ) +
+                    classicResourceCompositionLayouts(
+                        listOf(
+                            PcSheetModuleDemand(
+                                PcSheetSemanticModule.RESOURCES,
+                                demandByModule.getValue(PcSheetSemanticModule.RESOURCES),
+                            ),
+                        ),
+                    ) +
+                    classicResourceCompositionLayouts(
+                        listOf(
+                            PcSheetModuleDemand(
+                                PcSheetSemanticModule.CLASS_CHOICES,
+                                demandByModule.getValue(PcSheetSemanticModule.CLASS_CHOICES),
+                            ),
+                        ),
+                    )
             }
 
             setOf(PcSheetSemanticModule.RESOURCES) ->
