@@ -282,11 +282,21 @@ El lenguaje visual de referencia A usa encabezados claramente diferenciados, mar
 - Reservar **un número razonable y adaptable de filas sin datos prellenados** para anotación manual; algunas podrán corresponder a ubicaciones habituales vacías y otras ser de **ubicación personalizable/libre**. No reservar sistemáticamente una fila por cada ubicación canónica vacía, como haría la opción A «todas las ubicaciones visibles», ni eliminar toda referencia para escritura manual como haría la opción B «solo ocupadas».
 - Admitir **ubicaciones personalizadas** como entradas legítimas; no restringir la tabla a las diez ubicaciones de la hoja de inspiración (Cabeza, Rostro, Cuello, Mano Izquierda, Mano Derecha, Brazo Izquierdo, Brazo Derecho, Pecho, Piernas, Pies). La aparición concreta de nombres canónicos vacíos y el número de filas libres se determinarán según capacidad y utilidad.
 - **La sección Equipo Especial mantiene su posición inferior a TODO EL ANCHO** de la página 2, con las tres columnas ya definidas. Seguir el ritmo general de filas de 7 mm cuando la entrada quepa, y admitir mayor altura cuando el nombre/descripción requiera varias líneas. No truncar nombres o descripciones válidas ni rellenar toda la página de cuadros vacíos.
-- La **pequeña casilla de marcado** existente en la hoja de inspiración queda **PENDIENTE de definir en significado y representación** (podría referirse a equipado/activo/sintonizado, pero ninguno se presume). Que el wireframe contenga □ NO constituye aprobación de semántica ni valor marcado.
+- **Casilla de marcado — SIGNIFICADO APROBADO posteriormente en §3.22:** sirve para indicar que un objeto de Equipo Especial está **ACTIVO**. Su tratamiento inicial en la exportación y su geometría quedan por comprobar; no asumir que el objeto está activo sin datos.
 
-**No aprobados aún:** número mínimo/exacto de filas libres; selección de ubicaciones canónicas vacías; política de orden/grupo con múltiples entradas por ubicación; propósito del cuadro marcable; desbordamiento, cortes/continuaciones, ancho de columnas, altura física final y comportamiento sin registros. Se debe proteger contenido real, escritura manual y espacio de Equipo/Tesoro/Rasgos de la misma página.
+**No aprobados aún:** número mínimo/exacto de filas libres; selección de ubicaciones canónicas vacías; política de orden/grupo con múltiples entradas por ubicación; representación e inicialización del cuadro marcable; desbordamiento, cortes/continuaciones, ancho de columnas, altura física final y comportamiento sin registros. Se debe proteger contenido real, escritura manual y espacio de Equipo/Tesoro/Rasgos de la misma página.
 
-**Siguiente decisión sugerida:** aclarar el **significado de la casilla de Equipo Especial**, sin reabrir todavía las pruebas ornamentales. El **PIN VISUAL** del §3.18 sigue activo: ornamentación/tipografías finales solo se validan sobre un modelo estructural completo. Nada de código o PDFs implementados.
+**Casilla de Equipo Especial:** el significado ACTIVO se fija en §3.22. El siguiente paso vuelve al diseño estructural de páginas restantes, sin reabrir todavía las pruebas ornamentales. El **PIN VISUAL** del §3.18 sigue activo: ornamentación/tipografías finales solo se validan sobre un modelo estructural completo. Nada de código o PDFs implementados.
+
+### 3.22 Equipo Especial — casilla «ACTIVO» (APROBADO, 2026-10-08)
+
+**Decisión expresa del propietario, al escoger la SEGUNDA de tres alternativas («equipado», «activo», «libre para marcar»):** la casilla que acompaña el nombre del objeto en **Equipo Especial** representa que el **objeto está ACTIVO**. **No** representa solo que está equipado, **no** es una casilla sin significado y **no** se interpreta por defecto como «sintonizado».
+
+**Comportamiento de papel:** mantener una casilla marcable asociada a cada entrada de Equipo Especial, identificable por su posición/rotulación, para seguimiento manual del estado **activo**. Su significado no crea por sí solo un campo booleano nuevo de la App ni autoriza inventar estados activos.
+
+**Datos iniciales / PENDIENTE:** si hay un estado «activo» respaldado realmente por la App, decidir más adelante cómo se imprime su valor; **si no hay evidencia de un estado almacenado, no pre-marcar la casilla ni afirmar actividad automáticamente**. El mecanismo exacto de relleno, símbolo, impresión, espacio y accesibilidad queda sujeto a la maqueta integral. No confundir las casillas de Equipo Especial con los contadores de Municiones o Conjuros.
+
+**PIN visual:** dimensiones, bordes y iconografía para la casilla se comprueban con el modelo completo y no ahora. Regla C híbrida de Equipo Especial y estructura general A de página 2 permanecen vigentes; ninguna modificación del código o PDF autorizada.
 
 ## 4. Límites del acuerdo
 
@@ -304,7 +314,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**PÁGINA 2: Equipo Especial opción C (híbrida adaptable) aprobada, con ocupadas + algunas filas vacías útiles + custom; casilla de marcado de Equipo Especial aún sin semántica. Próxima decisión estructural: propósito de esa casilla, y luego continuar las páginas restantes (narrativa, conjuros, notas y extensiones). PIN VISUAL ACTIVO hasta contar con modelo integral completo.**
+**PÁGINA 2: Equipo Especial opción C (híbrida adaptable) aprobada; casilla de marcado significa ACTIVO (sin presumir un dato almacenado). SIGUIENTE FASE: diseño estructural de páginas restantes (narrativa, conjuros, notas y extensiones). PIN VISUAL ACTIVO hasta modelo integral completo.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
