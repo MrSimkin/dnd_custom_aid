@@ -1,5 +1,7 @@
 # Project State — global repository navigation
 
+**PDF route update 2026-10-08:** The owner has reopened the PC-sheet PDF contract/architecture. New canonical resume is `docs/checkpoints/2026-10-08_PC_SHEET_PDF_REDESIGN_DISCUSSION.md` and design-decision ledger `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md`. **Design/discussion only; no renderer, template, code or PDF work authorized.** Former Phase 3 repair is deferred; existing D-0074 and QA baselines remain historical/implemented truth, not new design acceptance.
+
 **Last reconstructed:** 2026-09-30 (Chile local time)  
 **Owner integrated-MVP implementation authorization:** GRANTED  
 **Normal integrated trunk:** `main`  
@@ -10,7 +12,7 @@
 **Wave 7:** ACTIVE — Desktop authoring Managers  
 **Integrated Wave 7 repository packages:** Desktop Creature/Monster Manager + Desktop NPC Manager + Desktop Homebrew & Rules lightweight local core + Desktop Place/Shop Manager local core + Desktop Stage Manager retrieval/organization core + lightweight Adventure/Scene Spine + Desktop Dungeon/Zone Manager local core + Desktop Encounter Manager local core + Desktop PC Manager inspection/audit core + PC ownership/controller administration core + PC Sheet PDF Export shared semantic/render-plan foundation  
 **PC authority DEV deployment:** VERIFIED — Worker version `ccdeca47-7622-4eb7-8dfa-a197d62bf3cb`  
-**Current active package:** PC Sheet PDF Export — Phase 1 provenance is **CLOSED**. The exact owner-supplied `0.5.0-preqa.8 / 50800` APK is byte-for-byte `15f86ec...` / artifact `10917523331` / SHA-256 `ff367e9b7b44d1844bd3358dbf6f5979087536a5ae404a3fe36623a3550a93c6`, not the later adaptive-repair `ce695c...` / artifact `10943700272`. Thus the 2026-09-28 owner QA did not owner-test the later repair branch. Every owner observation remains binding. Next phase is an explicit audit of the existing repair against the full acceptance matrix before any new renderer implementation. Current Snapshot and Media/Handouts remain blocked.**
+**Historical package snapshot (superseded as active route 2026-10-08):** PC Sheet PDF Export — Phase 1 provenance is **CLOSED**. The exact owner-supplied `0.5.0-preqa.8 / 50800` APK is byte-for-byte `15f86ec...` / artifact `10917523331` / SHA-256 `ff367e9b7b44d1844bd3358dbf6f5979087536a5ae404a3fe36623a3550a93c6`, not the later adaptive-repair `ce695c...` / artifact `10943700272`. Thus the 2026-09-28 owner QA did not owner-test the later repair branch. Every owner observation remains binding. Next phase is an explicit audit of the existing repair against the full acceptance matrix before any new renderer implementation. Current Snapshot and Media/Handouts remain blocked.**
 
 ### Superseding PDF visual state — 2026-09-20
 

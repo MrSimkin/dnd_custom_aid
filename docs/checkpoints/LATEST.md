@@ -1,13 +1,13 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-09-30 (Chile local time)  
+**Updated:** 2026-10-08 (Chile local time)  
 **Normal integrated trunk:** `main`  
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md`  
-**Current active route:** Phase 2 existing-repair audit is **COMPLETE / PUBLISHED** on `main` through PR #115 / `295e4a0f...`. M50800-01…32 are burned down against the later repair; all owner-intent clarifications are resolved; the authoritative KEEP / MODIFY / REPLACE / MISSING mapping and Phase-3 dependency plan live in the canonical checkpoint. **No renderer/product code changed in Phase 2. Phase 3 is the next work phase and has not started.**  
+**Canonical active checkpoint:** `docs/checkpoints/2026-10-08_PC_SHEET_PDF_REDESIGN_DISCUSSION.md`  
+**Current active route:** **OWNER-LED PDF REDESIGN / DISCUSSION ONLY.** See D-0076 for approved partial product decisions and explicit open questions. No implementation, PDF generation, template edits or automatic restart of the previously planned Phase 3; that Phase 2 closure remains historical evidence.
 **Completed audit branch:** `audit/mara-phase2-existing-repair`. `repair/pc-sheet-adaptive-continuations-cross-family` remains historical implementation evidence at `ce695c...`; it is repository/CI/Worker-preflight green but **not owner-runtime verified** and is not acceptance authority.  
-**Current implementation PR:** none. The next renderer implementation is Phase 3. Any later owner candidate must use a new unique version/build identity and pass the rebuilt exact-candidate acceptance ledger.  
+**Current implementation PR:** none. The former Phase-3 repair plan is deferred while the PDF design contract is being reopened. Any eventual new owner candidate requires independently approved design/implementation authorization and the applicable QA/unique-build gates.
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
 
 ## Read first on resume
@@ -15,7 +15,12 @@
 1. `AGENTS.md`;
 2. `RESUME.md`;
 3. this file;
-4. `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md`;
+4. `docs/checkpoints/2026-10-08_PC_SHEET_PDF_REDESIGN_DISCUSSION.md`;
+5. `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md`.
+
+For historical renderer/acceptance context only (not the active design route):
+
+- `docs/checkpoints/2026-09-30_MARA_PHASE2_EXISTING_REPAIR_AUDIT.md`;
 5. `docs/checkpoints/2026-09-30_MARA_PHASE1_PROVENANCE_AUDIT.md`;
 6. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`;
 7. `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md` — consolidated owner clarification / mandatory pre-fix checklist;
@@ -26,7 +31,7 @@
 12. `docs/PROJECT_STATE.md`;
 13. `docs/BRANCH_STATUS.md`.
 
-**Branch rule:** provenance is established: the failed owner runtime came from `15f86ec...`, not `ce695c...`. The completed Phase-2 burn-down in the canonical checkpoint is now the authority for what survives into Phase 3. Do not infer that `ce695c...` is correct merely from green CI/proofs, and do not begin new renderer work until this documentation closure is merged.
+**Branch rule:** no PDF implementation branch is the active continuation. The current owner-led route is design-only under D-0076. The 2026-09-30 Phase-2 checkpoint, earlier source baselines and QA matrix are historical implementation/acceptance evidence; do not treat them as approval to execute Phase 3 or as a completed modular redesign.
 
 ## Active owner re-QA failure
 
