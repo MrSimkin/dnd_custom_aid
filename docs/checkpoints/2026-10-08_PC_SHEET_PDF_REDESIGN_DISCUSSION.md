@@ -24,6 +24,12 @@ El punto explícitamente cambiado frente a D-0074 es el retrato faltante: **silu
 
 Los bocetos anteriores son exploratorios. No hay medidas exactas, ubicación del nombre en páginas posteriores, composición final, biblioteca, algoritmo universal de packing o regla transversal de desbordamiento aprobados.
 
+**Actualización de continuidad (2026-10-08):** la sección izquierda admite dos variantes de exportación (A: habilidades agrupadas por atributo; B: atributos y listas independientes), adaptabilidad vertical con estiramiento/compresión de bloques de atributos y prioridad para los seis atributos originales. Objetivo sujeto a validación: alojar 2–3 atributos extra y habilidades custom sin perder legibilidad; excedentes a páginas extendidas. La fila de Raza/Alineamiento usa 60/40.
+
+**Bloque 01 derecho APROBADO:** tres filas — CA/Iniciativa/Velocidad; Bono por Competencia/Inspiración/Dados de Golpe; PV actuales/PV máximos. Dados de golpe en forma de cadena simple (`5d10 / 3d6`), sin desglose o contadores. PV temporales y salvaciones contra la muerte quedan fuera de este bloque. Sin medidas ni maqueta final aprobadas.
+
+**Continuación inmediata:** discutir módulo de **Ataques** en la sección derecha de la primera página, tomando los campos del PDF proporcionado como inspiración pero sin copiar su geometría. La capacidad y mecanismo de expansión de la sección izquierda siguen pendientes de validación técnica y no autorizan implementación.
+
 Consultar una sola decisión cada vez, registrar su estado y detenerse antes de implementar. El propietario resuelve las decisiones de comportamiento y UX.
 
 ## Restricciones
