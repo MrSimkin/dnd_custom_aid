@@ -1252,16 +1252,70 @@ internal class DesktopCustomV2ExtendedRenderer(
         appendTraitsExtendedPages(traitNativeColumns(plan))
     }
 
+    /**
+     * Reclaim a legal native column without splitting Traits or changing their within-category
+     * order. Primary (left) and secondary (right) streams were packed independently; when the
+     * last primary column is sparse, an entire same-page secondary column can move after it.
+     *
+     * The secondary stream then advances into the newly freed right slot. The category heading
+     * consumes one native ruled row, and continuity-bearing columns are never relocated.
+     */
+    private fun reclaimTrailingTraitNativeColumn(
+        columns: List<TraitNativeColumn>,
+    ): List<TraitNativeColumn> {
+        val primary = columns.withIndex().filter {
+            it.value.preferredSlotId == TRAIT_LEFT_SLOT_ID
+        }
+        val secondary = columns.withIndex().filter {
+            it.value.preferredSlotId == TRAIT_RIGHT_SLOT_ID
+        }
+        if (primary.isEmpty() || secondary.size <= primary.size) return columns
+
+        // Only the last primary column can release room without interleaving unfinished
+        // primary content with the ordered secondary category.
+        val lastPrimary = primary.last()
+        val samePageSecondary = secondary[primary.lastIndex]
+        val followingSecondary = secondary[primary.size]
+        val heading = samePageSecondary.value.heading?.takeIf { it.isNotBlank() }
+            ?: return columns
+
+        if (
+            listOf(lastPrimary.value, samePageSecondary.value, followingSecondary.value)
+                .any { column ->
+                    column.lines.any { it.kind == TraitNativeFlowLineKind.CONTINUITY }
+                }
+        ) return columns
+
+        val requiredRows = samePageSecondary.value.lines.size + 1
+        if (lastPrimary.value.lines.size + requiredRows > TRAIT_NATIVE_ROWS_PER_COLUMN) {
+            return columns
+        }
+
+        val reclaimedPrimary = lastPrimary.value.copy(
+            lines = lastPrimary.value.lines +
+                TraitNativeFlowLine(heading, TraitNativeFlowLineKind.GROUP_HEADING) +
+                samePageSecondary.value.lines,
+        )
+        return columns.mapIndexedNotNull { index, column ->
+            when (index) {
+                lastPrimary.index -> reclaimedPrimary
+                samePageSecondary.index -> null
+                else -> column
+            }
+        }
+    }
+
     private fun appendTraitsExtendedPages(columns: List<TraitNativeColumn>) {
         if (columns.isEmpty()) return
+        val packedColumns = reclaimTrailingTraitNativeColumn(columns)
 
         var demands = listOf(
             PcSheetModuleDemand(
                 module = PcSheetSemanticModule.TRAITS,
-                remainingUnits = columns.size,
+                remainingUnits = packedColumns.size,
             ),
         )
-        val remainingColumns = columns.toMutableList()
+        val remainingColumns = packedColumns.toMutableList()
         var pageIndex = 0
 
         while (demands.isNotEmpty()) {
