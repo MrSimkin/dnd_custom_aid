@@ -74,6 +74,14 @@ Consultar una sola decisión cada vez, registrar su estado y detenerse antes de 
 
 **APROBACIÓN POSTERIOR — PÁGINA 4 (2026-10-08):** el propietario confirma la **franja superior** Aptitud Mágica / CD / Ataque Mágico, repetida desde página 1. **Cada encabezado de nivel debe integrar estrictamente en UNA sola línea NIVEL + ESPACIOS + GASTADOS/notaciones/casillas**. No usar segunda sublínea, ni truncar ni miniaturizar controles; abreviaturas y cabida a escala física pendientes de prueba. Separar casillas de gasto de las de preparación. Trucos nivel 0 sin contador de espacios ficticio. Orígenes mágicos múltiples se representan con estadísticas correctas. PIN ornamental activo.
 
+**NOTAS — OPCIÓN C HÍBRIDA ADAPTABLE APROBADA (2026-10-08):** las notas de la App se combinan con zona manual rayada y cuadriculada. `CharacterNotesTabV4.kt` registra **Notas generales** y **Notas con título**, cuyos textos reales se preservan sin omitir ni recortar; usar continuación si es necesario.
+
+**PÁGINA FINAL EN BLANCO — OBLIGATORIA, APROBADA:** el propietario pide que la exportación de hoja de PJ **TERMINE con UNA PÁGINA COMPLETA sin notas digitales preimpresas**, al estilo del PDF original: renglones **en dos columnas arriba**, y **cuadrícula abajo** para escribir y dibujar. No sustituirla por un pequeño módulo de renglones ni consumirla como desbordamiento. Conservar logo D&D y nombre del PJ como cabecera en cada página. La integración con Libro de Conjuros opcional/anexos debe resolver un orden que preserve la página en blanco al final; no se modifica aún el exportador real.
+
+**TRES DIAGRAMAS DE C PARA EVALUAR, NO APROBADOS:** C-N1 (tarjetas tituladas arriba, notas generales centro y manual mixto abajo), C-N2 (notas tituladas izquierda, generales derecha, banda manual inferior), C-N3 (notas digitales dominantes, reserva libre pequeña, compensada por última hoja en blanco). **El asistente recomienda C-N1 pero el propietario aún NO escogió variante.** Proporciones, número de filas, capacidad, anexos y formato definitivo quedan pendientes. **PIN VISUAL activo** hasta modelo completo, sin código/plantillas/PDF.
+
+**SIGUIENTE DECISIÓN:** elegir C-N1/C-N2/C-N3 y continuar con reglas de extensiones y contenido ausente.
+
 ## Restricciones
 
 - Trabajo documental solamente; no código, plantillas, PDF ni nuevas pruebas de renderer.
