@@ -352,6 +352,25 @@ El lenguaje visual de referencia A usa encabezados claramente diferenciados, mar
 
 **No autorización:** el acuerdo es documental y estructural. No se autoriza modificar código, renderer, fuentes ni generar PDF de producto.
 
+### 3.27 Página de Notas — opción C híbrida adaptable y página final en blanco (APROBADO, 2026-10-08)
+
+**Elección expresa del propietario:** la sección **Notas** se diseñará con **opción C, híbrida adaptable**, mezclando **Notas generales** y **Notas con título** registradas en la App con un espacio manual útil **rayado y cuadriculado**. Los datos de la App se imprimen sin truncarlos ni perder el título/contenido real; si no caben en una página, se utilizarán páginas de continuación. No se debe convertir la página en un andamio fijo de casillas repetidas independientemente de los datos.
+
+**Condición obligatoria adicional del propietario:** **el exportable debe TERMINAR CON UNA PÁGINA COMPLETA EN BLANCO para anotaciones**, visualmente inspirada en la **última hoja del PDF original**: **mitad/zona superior con renglones divididos en DOS columnas** y **zona inferior con papel cuadriculado** para anotaciones, esquemas y croquis. «En blanco» significa **sin contenido de notas digitales prellenado**: no usar esta última hoja como continuación automática de las notas de la App ni reducirla a un pequeño espacio libre; la hoja final sigue estando disponible para escritura manual. Conservar la regla aprobada de **logo D&D y nombre del PJ en todas las páginas**, incluida la última. La proporción física exacta de renglones/cuadrícula queda por probar; los dibujos no representan escala definitiva.
+
+**Flujo obligatorio:** tras las páginas estructurales y cualquier número de páginas de Notas con contenido, **añadir una página manual en blanco al FINAL de la exportación de hoja del PJ**. Si se incluye el **Libro de Conjuros opcional u otros anexos**, la ordenación de esos anexos debe resolver de forma explícita la exigencia «terminar con la página en blanco»; no dar por implementado un orden incompatible, no eliminar la hoja en blanco ni dejar datos digitales impresos sobre ella. Este punto de integración se comprobará en la fase del modelo completo.
+
+**TRES DIAGRAMAS EXPLORATORIOS para la sección híbrida (NO APROBADOS INDIVIDUALMENTE):**
+- **C-N1 «equilibrada»:** notas con título en tarjetas arriba, notas generales en franja ancha central, espacio manual mixto rayado/cuadriculado abajo. **Es una recomendación del asistente, NO una selección del propietario.**
+- **C-N2 «dos columnas funcionales»:** notas tituladas en una columna y notas generales en la otra, rematando con banda inferior manual.
+- **C-N3 «prioridad a notas digitales»:** notas digitales ocupan el espacio principal y continúa su contenido sin recortes; reserva manual interior menor, apoyándose en la página final siempre en blanco.
+
+La **opción C general y la página final en blanco SÍ están aprobadas**; **la variante interna C-N1/C-N2/C-N3 NO está seleccionada**, tampoco los porcentajes, columnas internas exactas, cantidades de cuadros/líneas, carácter de las páginas de continuación ni medidas. La propuesta no supone aprobación de fuentes/ornamentos.
+
+**Datos de la App revisados:** `CharacterNotesTabV4.kt` distingue **Notas generales** (texto `generalNotes`) y **Notas con título** (cada tarjeta con `title` y `content`). El original `Hoja de PJ v2 - 5.0 - Simkin.pdf` presenta una última hoja de Notas en blanco con renglones a dos columnas superiores y cuadrícula inferior. La nueva exportación debe proteger ambos tipos de contenido sin duplicarlo.
+
+**PIN VISUAL VIGENTE:** pruebas finales de la ornamentación C2c, tipografías de valores y muestras reales solo cuando esté completo el modelo estructural de páginas. Solo se documentan decisiones; no se autoriza implementar código, templates ni PDF.
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
@@ -368,7 +387,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**PÁGINA 4 B CERRADA ESTRUCTURALMENTE: repetición APROBADA de Aptitud Mágica/CD/Ataque en franja superior; cada encabezado de NIVEL/ESPACIOS/GASTADOS debe ser estrictamente de UNA SOLA LÍNEA. SIGUIENTE FASE: página de Notas y extensiones, casos sin conjuros e imágenes de Trasfondo. PIN VISUAL ACTIVO hasta modelo integral completo.**
+**NOTAS OPCIÓN C (híbrida adaptable) y ÚLTIMA PÁGINA BLANCA tipo original APROBADAS. PENDIENTE ELEGIR diagramación interna C-N1/C-N2/C-N3. SIGUIENTE FASE: resolver esa variante, extensiones/continuaciones, casos sin conjuros, anexos y eventual uso de imágenes de Trasfondo. PIN VISUAL ACTIVO hasta modelo integral completo.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
