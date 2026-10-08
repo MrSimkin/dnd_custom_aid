@@ -72,7 +72,20 @@ El propietario aprobó que **ambas** organizaciones de atributos, tiradas de sal
 
 Estas opciones son **variantes de presentación** de la sección izquierda, no personajes distintos ni páginas que deban emitirse simultáneamente. No se ha aprobado copiar las geometrías del PDF de inspiración ni mantener intactas las familias de exportación anteriores. Faltan medidas y visuales definitivos, así como el comportamiento ante estadísticas extra.
 
-**EN DISCUSIÓN — expansibilidad:** cómo soportar atributos/habilidades personalizados y crecimiento del contenido en A y B sin pérdida de información, sin degradar la legibilidad y sin presuponer una política global de anexos o redimensionamiento. D-0074 §4 ofrecía históricamente los modos *Extended Page*, *App Modified Sheet* y *Modified Sheet + Complete Extended Page*. Estos son antecedentes a reevaluar, **no una aprobación automática** del nuevo contrato.
+### 3.6 Expansibilidad de atributos y habilidades — requisitos APROBADOS / validación pendiente
+
+**APROBADO por el propietario:**
+
+- Las **dos** opciones de organización izquierda (A por atributo y B por listas independientes) deben **adaptar la primera página** para alojar datos personalizados, y no expulsarlos automáticamente a anexos.
+- Objetivo declarado de capacidad de la primera página: además de los seis atributos normales, permitir acomodar **aproximadamente dos o tres atributos personalizados**, **con sus habilidades asociadas**. El propietario expresó «2 o 3»; **no** convertirlo todavía en una garantía cuantitativa exacta ni prometer que cualquier número arbitrario de habilidades por atributo cabe físicamente. **Diseñar y validar con escenario de tres**.
+- Deben integrarse igualmente **habilidades personalizadas vinculadas a atributos normales**, no solo las vinculadas a atributos personalizados.
+- Las habilidades personalizadas siguen la **misma semántica funcional** que las habituales: atributo rector indicado explícitamente en los datos (p. ej. `Conocimiento arcano (INT)`), bonificador, estado de competencia/pericia cuando corresponda, y el tratamiento que requiera la variante exportada. No inventar una regla de cálculo nueva por tratarse de un campo personalizado.
+- **Cuando ya no quepa el contenido sin perder legibilidad, crear página(s) de extensión** y continuar allí toda la información restante. No omitir, truncar ni reemplazar por un resumen.
+- Esta expansibilidad se evalúa para **ambas** distribuciones A y B; su redistribución física no tiene por qué ser idéntica.
+
+**EN DISCUSIÓN / PENDIENTE DE VALIDACIÓN TÉCNICA:** demostrar la capacidad de los escenarios 6+2 y 6+3 atributos (incluidas habilidades añadidas tanto a atributos normales como nuevos) con tamaños legibles y sin inutilizar los demás módulos de la primera página; distinguir capacidad base de cargas extremas; definir regla de colocación/continuación para grupos y listas, orden de lectura, indicadores de continuación y composición de la página extendida. El formato exacto del sufijo `(INT)` en cada variante todavía se diseñará: la asociación semántica es obligatoria, pero no se impone una etiqueta redundante dentro de cada grupo A.
+
+**Antecedente histórico:** D-0074 §4 ofrecía modos *Extended Page*, *App Modified Sheet* y *Modified Sheet + Complete Extended Page*. La nueva prioridad explícita es **adaptar la página principal hasta donde permita la legibilidad y después extenderla**, sin aprobación automática de las tres modalidades históricas ni del comportamiento de duplicación.
 
 ## 4. Límites del acuerdo
 
@@ -90,10 +103,10 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**SECCIÓN 01 — DIMENSIONES Y DISTRIBUCIÓN VISUAL DE LA CABECERA.**
+**SECCIÓN 01 — SECCIÓN IZQUIERDA: expansibilidad y continuidad de atributos/habilidades.**
 
-Comparar en pasos pequeños alternativas **compactas** para distribuir los seis elementos obligatorios, el retrato cuadrado y el logo D&D en la zona superior de la primera página, permitiendo, si se aprueba, convivencia vertical con los módulos funcionales. Además, todas las páginas repiten el **nombre del PJ y el logo** (logo arriba a la izquierda); aún no se ha decidido cómo presentar el nombre en las páginas siguientes. Primero discutir **estructura relativa**, sin aprobar medidas exactas, tecnologías o arquitectura definitiva.
+La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. Próximo problema de diseño: decidir cómo cada variante asigna el espacio variable y cómo presenta la continuidad, sin inventar medidas exactas ni modificar el renderer.
 
-**Decisiones más recientes:** ausencia de imagen → **silueta genérica**; identificación mínima de **todas las páginas: logo D&D + nombre del PJ**; primera página compacta; Clase / Nivel a la derecha del retrato; Raza y Alineamiento paralelos 60/40; dos variantes A/B seleccionables para la sección izquierda. **Punto activo de discusión: expansibilidad de atributos y habilidades**; distribución exacta aún en discusión.
+**Decisiones más recientes:** silueta genérica sin retrato; logo + nombre del PJ en todas las páginas; primera página compacta; Clase / Nivel a la derecha del retrato; Raza/Alineamiento 60/40; variantes A/B seleccionables; adaptación de la primera página para unos 2–3 atributos personalizados con habilidades y habilidades custom ligadas a atributos normales; páginas extendidas para lo que no quepa. **Punto activo: mecánica de expansión/continuación y validación de capacidad**.
 
 **Implementación:** BLOQUEADA hasta aprobación explícita de un contrato suficientemente completo y de las validaciones técnicas necesarias.
