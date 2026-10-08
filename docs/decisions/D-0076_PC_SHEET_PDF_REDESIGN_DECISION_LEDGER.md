@@ -91,6 +91,22 @@ Estas opciones son **variantes de presentación** de la sección izquierda, no p
 
 **Antecedente histórico:** D-0074 §4 ofrecía modos *Extended Page*, *App Modified Sheet* y *Modified Sheet + Complete Extended Page*. La nueva prioridad explícita es **adaptar la página principal hasta donde permita la legibilidad y después extenderla**, sin aprobación automática de las tres modalidades históricas ni del comportamiento de duplicación.
 
+### 3.7 Sección derecha / Bloque 01 — Combate y supervivencia (APROBADO)
+
+**Contenido y organización general APROBADOS:** el bloque superior derecho de la primera página se compone de **tres filas compactas** y estos **ocho** campos:
+
+1. Fila 1: **Clase de Armadura**, **Iniciativa**, **Velocidad**.
+2. Fila 2: **Bono por Competencia**, **Inspiración**, **Dados de Golpe**.
+3. Fila 3: **Puntos de Vida actuales** (visualmente destacados) y **Puntos de Vida máximos**.
+
+**Dados de Golpe:** únicamente una expresión textual compacta, p. ej. `2d6` o `5d10 / 3d6`. **No** añadir desgloses, controles de dados usados/disponibles, casillas ni otras estadísticas en este campo.
+
+**Expresamente FUERA de este primer bloque:** **PV temporales** y **salvaciones contra la muerte**. No reintegrarlos en esta zona por deducción del asistente.
+
+**Pendiente de validación visual:** dimensiones físicas, proporciones, espaciado, tipografías, decoración, estado de Inspiración y presentación precisa de valores. El boceto de tres filas es autoridad **estructural**, no maqueta final de píxeles. Los valores mostrados en bocetos son ficticios.
+
+**Siguiente módulo EN DISCUSIÓN:** **Ataques**. La hoja del propietario usa históricamente columnas `Arma / Conjuro`, `Bonificador`, `Daño / Tipo de daño`, solo como inspiración. No se han aprobado todavía columnas definitivas, cantidad de ataques visibles, manejo de renglones largos, contenido custom ni política de extensiones para este módulo.
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
@@ -107,10 +123,10 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**SECCIÓN 01 — SECCIÓN IZQUIERDA: expansibilidad y continuidad de atributos/habilidades.**
+**SECCIÓN 01 — SECCIÓN DERECHA: módulo de Ataques (después de aprobar el bloque 01 de combate).**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
-**Decisiones más recientes:** silueta genérica sin retrato; logo + nombre del PJ en todas las páginas; primera página compacta; Clase / Nivel a la derecha del retrato; Raza/Alineamiento 60/40; variantes A/B seleccionables; adaptación de la primera página para unos 2–3 atributos personalizados con habilidades y habilidades custom ligadas a atributos normales; páginas extendidas para lo que no quepa. **Punto activo: mecánica de expansión/continuación y validación de capacidad**.
+**Decisiones más recientes:** silueta genérica sin retrato; logo + nombre del PJ en todas las páginas; primera página compacta; Clase / Nivel a la derecha del retrato; Raza/Alineamiento 60/40; variantes A/B seleccionables; adaptación de la primera página para unos 2–3 atributos personalizados con habilidades y habilidades custom ligadas a atributos normales; páginas extendidas para lo que no quepa. **Bloque 01 derecho APROBADO (tres filas y ocho campos; dados de golpe solo texto; excluidos PV temporales y salvaciones contra la muerte). Próximo módulo en discusión: ATAQUES.**
 
 **Implementación:** BLOQUEADA hasta aprobación explícita de un contrato suficientemente completo y de las validaciones técnicas necesarias.
