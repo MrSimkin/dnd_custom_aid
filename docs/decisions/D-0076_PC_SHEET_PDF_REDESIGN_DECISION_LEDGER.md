@@ -230,6 +230,18 @@ El lenguaje visual de referencia A usa encabezados claramente diferenciados, mar
 
 **Siguiente acción de diseño:** comparar muestras de **Barlow Condensed auténtica**, versalitas frente a capitalización habitual, y aplicar los tratamientos interiores C2a/b/c sobre el mismo componente de prueba, siempre separando etiquetas de los valores cuya fuente aún no se selecciona. La maqueta física integral queda postergada hasta terminar esta discusión.
 
+### 3.18 C2c — cartelas interiores de esquinas recortadas (APROBADO, 2026-10-08)
+
+**Decisión explícita del propietario:** seleccionar **C2c — Cartelas con esquinas recortadas**, en lugar de las propuestas C2a (filete interior) y C2b (esquinas ornamentadas), como **dirección de diseño para los cuadros interiores de valores y estadísticas** del rediseño.
+
+**Conservar la combinación estructural ya elegida:** estética **A — Azul niebla clásico** + **C2 exterior (marco doble discreto)** + **C2c interior (cartelas con esquinas recortadas)**. El dibujo exploratorio C2c mostraba esquinas achaflanadas, un filete interior tenue y un pequeño acento ornamental; son rasgos de referencia para diseñar, **no medidas ni adorno obligatorio en cada cuadro**.
+
+**Regla funcional:** nunca sacrificar espacio para escribir, legibilidad impresa ni compacidad por la ornamentación. Los **cuadros pequeños que se marcan a mano** (p. ej. Municiones y Lanzamiento de Conjuros) **NO heredan automáticamente cartela ornamental**: deben continuar simples, legibles y cómodos para marcarlos con lápiz. El estilo de las casillas pequeñas sigue sujeto a prueba física.
+
+**Pendiente de validación visual/técnica:** grosor y número exacto de filetes, ángulos de esquinas, radios, proporciones, acentos decorativos por clase de campo, tamaños, tipografía del texto rellenado e interacción con filas de 7/5 mm. Se mantiene **Barlow Condensed** para encabezados/subencabezados/etiquetas, **versalitas como posibilidad sin validar**, y prioridad de glifos **Para Hoja de PJ Symbols v8 > Font Awesome Free**.
+
+**Continuación:** comparar variantes de detalle del interior C2c con dimensiones de impresión y muestras genuinas de Barlow Condensed, antes de la maqueta integral. **Sin autorización para tocar código, PDF de producto ni plantillas**.
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
@@ -246,7 +258,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**DISEÑO VISUAL PREVIO A MAQUETA INTEGRAL: Barlow Condensed aprobada para títulos/subtítulos/etiquetas, muestras reales de versalitas pendientes, fuente de valores pendiente, Para Hoja de PJ v8 primera / Font Awesome Free segunda, y ornamentación interior C2a/b/c sin elección final.**
+**DISEÑO VISUAL PREVIO A MAQUETA INTEGRAL: C2c (cartelas interiores con esquinas recortadas) seleccionado; exterior C2 y Azul niebla clásico A se conservan; Barlow Condensed para títulos/subtítulos/etiquetas; valores y versalitas pendientes de pruebas reales; Para Hoja de PJ v8 primero, Font Awesome Free segundo.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
