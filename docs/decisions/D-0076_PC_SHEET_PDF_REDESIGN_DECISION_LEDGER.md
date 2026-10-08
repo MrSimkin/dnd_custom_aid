@@ -515,6 +515,23 @@ Si no se incluye el Libro de Conjuros, este tramo se omite y la hoja manuscrita 
 
 **PIN VISUAL VIGENTE:** decisión documental estructural; sin cambios de código, renderizador, plantillas o generación de PDFs. La maqueta completa y sus pruebas físicas preceden a implementar.
 
+### 3.37 Página 2 sin Equipo ordinario registrado — alternativa A: reserva manual amplia (APROBADO, 2026-10-08)
+
+**Elección expresa del propietario:** se aprueba la **alternativa A — conservar una zona amplia de Equipo ordinario con renglones escribibles a mano** en la página 2 cuando el personaje no tenga objetos de Equipo ordinario registrados en la App. En este caso **NO omitir Equipo** para expandir Tesoro y **NO reducirlo por defecto a una reserva mínima compacta** (alternativas B/C no seleccionadas).
+
+**Contrato estructural aprobado para el caso sin Equipo ordinario:**
+- Conservar el **módulo Equipo visible en la parte superior izquierda** de página 2, con una reserva **amplia, funcional y realmente escribible** para incorporar posteriormente objetos y cantidades con lápiz. No imprimir inventario ficticio ni filas prellenadas con objetos inexistentes.
+- Mantener **Tesoro inmediatamente debajo de Equipo en la misma columna izquierda**, con monedas reales/custom y celdas manuales; **no eliminar, reducir a ilegibilidad, desplazar fuera de página 2 por defecto ni transformar** Tesoro para sostener la reserva de Equipo. La negociación física de alturas queda pendiente de la maqueta integral.
+- Mantener **Rasgos y Atributos a la derecha** conforme al contenido remanente real y **Equipo Especial en la franja inferior de todo el ancho**, con su regla C híbrida y casilla ACTIVO. La reserva de Equipo ordinario no equivale a Equipo Especial, ni sustituye sus filas y datos.
+- El contrato de Equipo ordinario continúa siendo un **listado compacto de identidad y cantidades**: no añadir peso, campo «Consumible» ni descripciones largas en ese módulo.
+- Cuando existan objetos reales, rige la presentación ordinaria dinámica con sus datos completos y continuaciones cuando se necesiten; la alternativa A elegida ahora resuelve **exclusivamente el estado sin registros**.
+
+**Alcance y tensiones reconocidas:** «amplia» es una prioridad de utilidad manuscrita, **NO** una cifra de renglones, altura fija, fracción obligatoria de página o autorización para desbordar otros módulos. Resolver la cabida respetando integridad de datos → legibilidad/escritura → navegación → ahorro de páginas. El tratamiento del caso donde faltan simultáneamente Equipo, Tesoro, Rasgos y/o Equipo Especial sigue abierto; no extraer de esta decisión una regla universal de vacíos.
+
+**Pendientes de validación técnica y física:** tamaño del área manual y número de renglones, reparto vertical de Equipo/Tesoro, ausencia simultánea de varios contenidos, etiquetas y columnas útiles para anotación, escenarios extremos y continuaciones, dimensiones impresas y eventual impacto en paginación.
+
+**PIN VISUAL VIGENTE:** acuerdo documental de comportamiento, sin implementación, cambios de código/renderizador/plantillas, pruebas ornamentales ni generación de un PDF rediseñado.
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
@@ -531,7 +548,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**EXTENSIONES C2: composición AUTOMÁTICA APROBADA (§3.32): comparar disposición VERTICAL, DOS COLUMNAS y MIXTA, elegir la mejor sin intervención en cada exportación; se aplican prioridades de §3.31. Ubicación A mantiene continuaciones cerca de fuentes, con mezcla remota posible. NOTAS NUNCA SE MEZCLAN. ÚLTIMA HOJA DE NOTAS EN BLANCO INTACTA. REFERENCIAS BIDIRECCIONALES POR MÓDULO APROBADAS (§3.33, opción B). LIBRO DE CONJUROS OPCIONAL UBICADO AL FINAL DEL CONTENIDO DIGITAL (§3.34). SIN CONJUROS REGISTRADOS: OMISIÓN DE PÁGINA DE LISTA RÁPIDA APROBADA (§3.35, A), SIN ALTERAR EL MÓDULO MÁGICO DE P1. PÁGINA 3 SIN RASGOS PENDIENTES: VARIANTE C HÍBRIDA CON RESERVA MANUAL COMPACTA E HISTORIA EN ESPACIO RESTANTE (§3.36). SIGUIENTE DISCUSIÓN: EQUIPO ORDINARIO SIN REGISTROS EN PÁGINA 2; luego otros vacíos, anexos y cabida física. PIN VISUAL ACTIVO.**
+**EXTENSIONES C2: composición AUTOMÁTICA APROBADA (§3.32): comparar disposición VERTICAL, DOS COLUMNAS y MIXTA, elegir la mejor sin intervención en cada exportación; se aplican prioridades de §3.31. Ubicación A mantiene continuaciones cerca de fuentes, con mezcla remota posible. NOTAS NUNCA SE MEZCLAN. ÚLTIMA HOJA DE NOTAS EN BLANCO INTACTA. REFERENCIAS BIDIRECCIONALES POR MÓDULO APROBADAS (§3.33, opción B). LIBRO DE CONJUROS OPCIONAL UBICADO AL FINAL DEL CONTENIDO DIGITAL (§3.34). SIN CONJUROS REGISTRADOS: OMISIÓN DE PÁGINA DE LISTA RÁPIDA APROBADA (§3.35, A), SIN ALTERAR EL MÓDULO MÁGICO DE P1. PÁGINA 3 SIN RASGOS PENDIENTES: VARIANTE C HÍBRIDA CON RESERVA MANUAL COMPACTA E HISTORIA EN ESPACIO RESTANTE (§3.36). EQUIPO ORDINARIO VACÍO EN PÁGINA 2: ALTERNATIVA A — RESERVA MANUAL AMPLIA APROBADA (§3.37), SIN BORRAR TESORO, RASGOS NI EQUIPO ESPECIAL. SIGUIENTE DISCUSIÓN: ATAQUES SIN REGISTROS EN PÁGINA 1; luego otros vacíos, anexos y cabida física. PIN VISUAL ACTIVO.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
