@@ -82,6 +82,10 @@ Consultar una sola decisión cada vez, registrar su estado y detenerse antes de 
 
 **SIGUIENTE FASE:** la variante C-N3 ya está aprobada; continuar con las reglas de extensiones, contenido ausente, anexos opcionales e imágenes de Trasfondo. No reabrir ornamentación hasta la maqueta de todas las páginas.
 
+**EXTENSIONES DINÁMICAS — C2 APROBADA (2026-10-08):** el propietario elige **páginas extra COMPARTIDAS**, permitiendo agrupar remanentes de secciones relacionadas **o diferentes**, incluso procedentes de páginas distintas, **solo cuando queden bien y sea fácil leerlas, localizarlas y escribir sobre ellas**. NO generar automáticamente una página adicional por cada módulo; TAMPOCO mezclar a la fuerza contenido incompatible ni achicar cuadros/textos hasta inutilizarlos. Utilizar los espacios ya previstos en páginas principales (especialmente Rasgos en páginas 1→2→3) antes de activar extensiones. Cada módulo extra mantiene sus columnas/semánticas aprobadas y se rotula «Continuación»; se conserva encabezado con D&D/nombre del PJ. Notas finales en blanco siempre últimas. **C2 de extensiones no es C2 exterior ni C2c interior.** El diagrama con varios módulos en una hoja es ilustrativo, no un compromiso de una página exacta.
+
+**SIGUIENTE DECISIÓN ABIERTA:** ubicación física de las páginas extra compartidas (tras la última base participante vs bloque de extras después de todas las bases), cómo informar referencias a la continuación y optimización física/orden del conjunto. Pendientes políticas de extensiones atípicas, casos sin datos, Libro de Conjuros opcional e imágenes de trasfondo. **PIN VISUAL activo** y NO modificar código/plantillas/PDF.
+
 ## Restricciones
 
 - Trabajo documental solamente; no código, plantillas, PDF ni nuevas pruebas de renderer.

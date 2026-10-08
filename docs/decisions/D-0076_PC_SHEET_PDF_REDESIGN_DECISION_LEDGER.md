@@ -382,6 +382,27 @@ La **opción C general y la página final en blanco SÍ están aprobadas**. **AC
 
 **NO APROBADO todavía:** medidas/proporciones exactas de C-N3, número de tarjetas por hoja, tipografía de texto rellenado, tratamiento de páginas sin notas, corte de notas muy extensas y reglas físicas de desbordamiento; C-N1 y C-N2 quedan como opciones examinadas pero no elegidas. **PIN visual vigente:** las pruebas de ornamentación y tipografías se harán sobre el modelo completo. Ninguna autorización para editar código, plantillas ni generador PDF.
 
+### 3.29 Política general de extensiones: C2 compartidas entre módulos distintos (APROBADO, 2026-10-08)
+
+**Elección expresa del propietario:** tras analizar que una hoja de extensión separada por cada tipo de contenido puede generar páginas casi vacías, elige **C2: «extensiones compartidas entre contenidos relacionados o diferentes cuando quepan bien sin sacrificar legibilidad»**. Esta «C2» es la alternativa de **composición dinámica de páginas adicionales**, distinta de los marcos exteriores C2 ya elegidos en el lenguaje visual, de C2c (cartelas interiores) y de otras opciones A/B/C del proyecto.
+
+**Reglas de producto aprobadas a nivel de principio:**
+- Cuando queden registros válidos que no caben en las páginas principales, **permitir que excedentes de varios módulos compartan una misma página extra**, incluso si proceden de páginas base distintas (p. ej., equipo, monedas custom, Equipo Especial, Rasgos). **No crear obligatoriamente una hoja por módulo/entidad**.
+- **Criterio de combinación:** usar el espacio disponible cuando el resultado sea legible, fácil de localizar durante la partida y práctico para anotar a mano. **No reducir fuentes, casillas o columnas a tamaños inutilizables, no inventar datos, no truncar entradas ni omitir información solo para ahorrar papel**.
+- **Respetar el destino y jerarquía ya fijados:** antes de promover «Rasgos y Atributos» a una extensión extra, utilizar la continuación prevista en páginas 2 y 3; las páginas extendidas no reemplazan sin autorización los módulos obligatorios de las páginas 1–5.
+- En una hoja extra compartida, identificar de forma inequívoca cada módulo y su condición de **CONTINUACIÓN**. Mantener los contratos por módulo: Equipo (objetos/cantidad), Tesoro (monedas/cantidad en subcolumnas con salto a filas), Equipo Especial (Ubicación/Nombre/Descripción y casilla ACTIVO), Rasgos (origen/categoría - nombre sin descripciones), Historia (párrafos), Conjuros (por nivel y cabeceras de UNA línea; casillas de preparación y gasto diferenciadas), Notas (contenido completo).
+- **No mezclar de manera forzada bloques físicamente incompatibles**, como párrafos extensos con tablas densas, si ello degrada lectura/uso. Una página extra adicional es aceptable cuando protege esa calidad; C2 **NO significa maximizar ahorro de papel a cualquier coste**.
+- La cabecera de **logo D&D + nombre del PJ** permanece en cualquier hoja extra, y la **última hoja de Notas en blanco** continúa siendo estrictamente la última, no utilizada para desbordamiento.
+- La posibilidad de agrupar residuos **entre páginas base distintas** puede requerir referencias de continuación/identificadores de página para localizarlos. Deben diseñarse sin numeraciones inventadas; los números físicos se asignarán tras ordenar/paginar.
+
+**Aspectos aún NO aprobados (para seguir afinando C2):**
+- **Dónde se intercalan las extensiones compartidas**: detrás de la última página base involucrada, después de todas las páginas principales o esquema híbrido con referencias de navegación.
+- **Cómo escoger plantillas dinámicas y repartir el espacio** de varias secciones: filas/columnas/anchos, prioridades entre módulos, volumen mínimo de reserva manuscrita, número máximo de módulos por página, orden de aparición, cortes de texto largo y paginación física.
+- **Política para anexos/libro de conjuros opcional**, páginas sin contenido (p. ej. no lanzadores), nivel de repetición de encabezados cuando una lista continúa, estado y ubicación de imágenes del trasfondo.
+- Tratamiento concreto de combinaciones atípicas o muchas fuentes mágicas. Los ejemplos de una sola extensión para 4 módulos son **didácticos, no garantía de cabida ni contrato de número de páginas**.
+
+**PIN VISUAL ACTIVO:** todavía no probar ornamentación C2c ni elegir fuente de valores; esas pruebas se harán sobre el modelo completo. Esta decisión es **documental/de diseño**, no autoriza modificar código, plantillas, renderer, ni generar PDFs.
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
@@ -398,7 +419,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**NOTAS: C-N3 (PRIORIDAD DIGITAL) APROBADA DENTRO DE OPCIÓN C. ÚLTIMA PÁGINA BLANCA INALTERABLE. SIGUIENTE FASE: reglas estructurales de extensiones/continuaciones, casos sin conjuros, anexos opcionales y ubicación de imágenes de Trasfondo. PIN VISUAL ACTIVO hasta modelo integral completo.**
+**EXTENSIONES: política general C2 APROBADA — compartir página entre módulos relacionados o distintos si caben BIEN sin perder legibilidad; no imponer hoja por módulo ni forzar mezclas. SIGUIENTE DECISIÓN: ubicación física/navegación de las extensiones compartidas; luego reglas de reparto, casos sin conjuros, anexos e imágenes de Trasfondo. ÚLTIMA PÁGINA BLANCA INALTERABLE. PIN VISUAL ACTIVO hasta modelo integral.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
