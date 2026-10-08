@@ -18,9 +18,11 @@ El punto explícitamente cambiado frente a D-0074 es el retrato faltante: **silu
 
 ## Continuación actual
 
-**SECCIÓN 01 — DIMENSIONES Y DISTRIBUCIÓN VISUAL DE LA CABECERA**: discutir alternativas de estructura relativa que contengan retrato cuadrado, nombre PJ, nombre del jugador, alineamiento, clase/nivel y raza; logo D&D en esquina superior izquierda de todas las páginas; cabecera completa solo en la primera.
+**SECCIÓN 01 — DIMENSIONES Y DISTRIBUCIÓN VISUAL DE LA CABECERA**: discutir alternativas compactas de estructura relativa que contengan retrato cuadrado, nombre PJ, nombre del jugador, alineamiento, clase/nivel y raza en la primera página; logo D&D en la esquina superior izquierda **y nombre del PJ en TODAS las páginas, incluidos anexos**; cabecera completa solo en la primera. El diseño actual aportado por el propietario es inspiración sobre ahorro de espacio, **no** una plantilla a reproducir.
 
-Los bocetos anteriores son exploratorios. No hay medidas exactas, composición final, biblioteca, algoritmo universal de packing o regla transversal de desbordamiento aprobados.
+**Aclaración del propietario:** la primera página debe ser relativamente compacta y es menos flexible/modular que las secciones posteriores. No reservar por defecto una cabecera gigante ni imponer una rejilla completamente dinámica a la primera página. Las secciones posteriores admiten más flexibilidad, pero sus reglas particulares se discutirán sección por sección.
+
+Los bocetos anteriores son exploratorios. No hay medidas exactas, ubicación del nombre en páginas posteriores, composición final, biblioteca, algoritmo universal de packing o regla transversal de desbordamiento aprobados.
 
 Consultar una sola decisión cada vez, registrar su estado y detenerse antes de implementar. El propietario resuelve las decisiones de comportamiento y UX.
 

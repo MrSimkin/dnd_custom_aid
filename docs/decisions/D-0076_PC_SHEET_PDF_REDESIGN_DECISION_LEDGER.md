@@ -21,13 +21,17 @@ Se evaluaron tres familias de estrategias: (a) composición HTML/CSS con render 
 
 No asumir reglas globales de tamaño fijo, síntesis o desbordamiento. Cada sección debe discutirse caso por caso y solo entonces adquirir requisitos aprobados.
 
+**ACLARACIÓN DEL PROPIETARIO — distribución por páginas:** la primera página es relativamente compacta y menos modular/flexible que las secciones posteriores. No convertir su zona superior en una gran banda de cabecera independiente ni exigir que todos sus módulos comiencen a la misma altura. Los detalles de estructura y qué módulos coexistirán todavía están EN DISCUSIÓN. La mayor flexibilidad/composición modular corresponde a las secciones posteriores y se determinará caso a caso. No inferir un algoritmo global ni posiciones concretas.
+
 ## 3. Cabecera / identidad del PJ — decisiones APROBADAS
 
 ### 3.1 Alcance por página
 
 - La **cabecera completa** de identificación del PJ aparece **solo en la primera página**.
-- **Todas** las páginas, incluidos anexos, exhiben el logo de D&D en la **esquina superior izquierda**.
+- **Todas** las páginas, incluidos anexos, exhiben **el logo de D&D en la esquina superior izquierda Y el nombre del PJ**.
+- En la primera página, el nombre del PJ forma parte de la cabecera completa; en las páginas posteriores se muestra el nombre del PJ sin repetir el resto de los campos de la cabecera.
 - Ninguna página posterior repite la cabecera completa.
+- La posición, tamaño y estilo del nombre del PJ en páginas posteriores quedan **PENDIENTES de diseño**; no inferir que acompañará al logo en la misma línea.
 
 ### 3.2 Elementos obligatorios de la primera página
 
@@ -61,7 +65,7 @@ La cabecera contiene:
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
 
-Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. No trasladar decisiones de un módulo a otro sin consulta expresa.
+Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. Las propuestas A–D de cabecera independiente no han sido aprobadas. La nueva aclaración de compactación obliga a explorar la convivencia de identificación y contenido funcional en la parte superior sin copiar la geometría del PDF aportado por el propietario. Ese PDF es **inspiración de resolución espacial**, no plantilla ni regla a reproducir. No trasladar decisiones de un módulo a otro sin consulta expresa.
 
 ## 5. Método de toma de decisiones — APROBADO
 
@@ -75,8 +79,8 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. No
 
 **SECCIÓN 01 — DIMENSIONES Y DISTRIBUCIÓN VISUAL DE LA CABECERA.**
 
-Comparar en pasos pequeños alternativas para distribuir los seis elementos obligatorios, el retrato cuadrado y el logo D&D en la zona superior de la primera página. Primero discutir **estructura relativa**; todavía no aprobar medidas exactas, tecnologías o la arquitectura definitiva.
+Comparar en pasos pequeños alternativas **compactas** para distribuir los seis elementos obligatorios, el retrato cuadrado y el logo D&D en la zona superior de la primera página, permitiendo, si se aprueba, convivencia vertical con los módulos funcionales. Además, todas las páginas repiten el **nombre del PJ y el logo** (logo arriba a la izquierda); aún no se ha decidido cómo presentar el nombre en las páginas siguientes. Primero discutir **estructura relativa**, sin aprobar medidas exactas, tecnologías o arquitectura definitiva.
 
-**Última decisión aprobada al abrir este registro:** ausencia de imagen → **silueta genérica**.
+**Decisiones más recientes:** ausencia de imagen → **silueta genérica**; identificación mínima de **todas las páginas: logo D&D + nombre del PJ**. Primera página compacta y comparativamente menos modular; distribución exacta aún en discusión.
 
 **Implementación:** BLOQUEADA hasta aprobación explícita de un contrato suficientemente completo y de las validaciones técnicas necesarias.
