@@ -99,6 +99,12 @@ Consultar una sola decisión cada vez, registrar su estado y detenerse antes de 
 
 **SIGUIENTE FASE:** precisar el mecanismo dinámico de composición que respete la exclusividad de Notas, la navegación de excedentes remotos y los anexos opcionales. Diferenciar las recomendaciones del estudio conceptual de decisiones firmes en el ledger D-0076 §3.31.
 
+**APROBACIÓN DE COMPOSICIÓN AUTOMÁTICA C2 (2026-10-08):** el propietario confirma «sí» a que el generador **compare automáticamente** distintas distribuciones de páginas extra compartidas: **VERTICAL, DOS COLUMNAS y MIXTA**, y seleccione por sí mismo la alternativa más adecuada **sin solicitar una elección al usuario en cada exportación**. Debe respetar el orden ya aprobado: integridad de datos → legibilidad y utilidad en papel → facilidad de consulta/navegación → economía de páginas. La ubicación A privilegia cercanía a fuente sin prohibir mezclar módulos lejanos. **No se fijan** algoritmo técnico, pesos/umbrales de optimización, número de hojas, anchos/altos, límites de elementos ni ocupación máxima. Evaluar el conjunto de residuos de forma global es un enfoque candidato; no declarar demostrado el resultado de los casos ficticios T1–T7.
+
+**PROHIBICIÓN EN PIE:** **Notas** mantiene páginas exclusivas C-N3/continuaciones y NUNCA entra a las composiciones mixtas C2. La última hoja rayada/cuadriculada en blanco debe permanecer al final incluso con anexos. No se implementa código/PDF; PIN VISUAL sigue activo.
+
+**SIGUIENTE DECISIÓN EXACTA:** establecer cómo rotular en las páginas originales los módulos que continúan, y cómo localizarlos en una página extendida compartida por varias secciones. Paginar antes de asignar números reales; decidir entre referencias textuales mínimas, referencias destacadas o navegación cruzada bidireccional, sin alterar geometría ornamental final.
+
 ## Restricciones
 
 - Trabajo documental solamente; no código, plantillas, PDF ni nuevas pruebas de renderer.
