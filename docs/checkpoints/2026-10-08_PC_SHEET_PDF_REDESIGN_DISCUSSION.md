@@ -32,7 +32,9 @@ Los bocetos anteriores son exploratorios. No hay medidas exactas, ubicación del
 
 **Bloque 03 derecho — Rasgos y Atributos APROBADO:** cada rasgo aparece como entrada de lista únicamente con categoría/origen y nombre (p. ej. `Rasgo de Clase - Nombre 1` o `Rasgo de Raza - Nombre 2`). Nunca incluir descripciones de rasgos en la hoja, tampoco en extensiones. Clase/raza son ejemplos, no prohibición de otros orígenes reales de la App. Faltan criterios de altura, cortes y nombres largos.
 
-**Continuación inmediata:** discutir la composición espacial de Ataques y Rasgos y Atributos en la columna derecha, y qué módulos adicionales hacen falta. La capacidad y mecanismo de expansión de la sección izquierda siguen pendientes de validación técnica y no autorizan implementación.
+**Opción C APROBADA para el reparto vertical Ataques/Rasgos:** ambos son módulos independientes con altura adaptable al contenido, espacio mínimo útil para anotar manualmente, aprovechamiento mutuo del espacio libre y continuación en extensiones cuando no cabe. Ninguno puede crecer hasta eliminar completamente al otro de la primera página. El diseño **no** fija números de filas, medidas, proporciones ni algoritmo; la reserva de escritura manual no obliga a crear áreas vacías enormes. Las páginas extendidas no deben duplicar grandes módulos ya agotados.
+
+**Continuación inmediata:** examinar los restantes módulos de la primera página, empezando por **Lanzamiento de Conjuros** (en el PDF del propietario incluye espacios por nivel, CD de salvación, modificador de ataque mágico y aptitud mágica). Su lugar/condicionalidad y la convivencia con Ataques/Rasgos aún NO están aprobados. La capacidad y mecanismo de expansión de la sección izquierda siguen pendientes de validación técnica y no autorizan implementación.
 
 Consultar una sola decisión cada vez, registrar su estado y detenerse antes de implementar. El propietario resuelve las decisiones de comportamiento y UX.
 
