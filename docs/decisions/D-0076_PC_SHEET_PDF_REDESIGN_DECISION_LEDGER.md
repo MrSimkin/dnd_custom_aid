@@ -158,6 +158,18 @@ La denominación del módulo es **«Rasgos y Atributos»** (como en la hoja de i
 
 No interpretar esta aprobación como obligación de imprimir descripciones de conjuros o datos ficticios; se refiere a la presencia del módulo en la hoja base.
 
+### 3.12 Sistema visual transversal — filas, tonos y casillas (reglas del propietario APROBADAS)
+
+**Reglas generales de diseño declaradas por el propietario (2026-10-08):**
+
+1. **Renglones/líneas de uso general: 7 mm de altura nominal al imprimir**. Aplicar a módulos de entradas repetidas que utilicen renglones (p. ej., tablas de ataque y listas de rasgos). La medida es un objetivo explícito de diseño físico, no los píxeles de los bocetos de pantalla. Si un registro necesita más de una línea para no recortarse, medir y adaptar su altura preservando lectura y contenido.
+2. **Habilidades pueden usar 5 mm por renglón**, como variante compacta admitida por el propietario, sujeta a legibilidad y uso en papel. No generalizar 5 mm a todas las secciones, ni afirmar que todo nombre/bono cabe en una sola línea de 5 mm.
+3. **Bandas alternadas por fila con distintos tonos (*hues*)**, no solamente alternancia de gris más oscuro/claro. Cada renglón consecutivo debe distinguirse visualmente de su vecino con fondos discretos y agradables; los colores concretos aún no se aprueban. El boceto explora tonos azul niebla y marfil cálido **solo como muestra**, cuidando contraste y bajo consumo de tinta y que la lectura también funcione impresa en escala de grises.
+4. **Casillas de marcado estéticamente cuidadas y realmente utilizables**: cuadradas, claramente delimitadas, sin tamaño tan pequeño que dificulte marcar con lápiz; considerar esquinas suavizadas y trazo limpio. No aprobar todavía dimensiones de casilla, radios, grosor, colores ni cantidad de casillas por nivel; probar en impresión física.
+5. **Criterio transversal:** la hoja debe ser **práctica Y estéticamente atractiva**. Ni la compacidad justifica una tipografía ilegible ni la decoración puede consumir el espacio de escritura o entorpecer la consulta rápida.
+
+**Alcance y pruebas pendientes:** la pauta de 7/5 mm se refiere a altura de líneas/renglones de listas/tablas, NO a que cada caja de estadísticas, atributo o celda de la cuadrícula mágica deba medir exactamente 7 mm. Las alturas de componentes multilineales pueden diferir. Validar a escala de impresión real, contraste y tintas, continuidad entre páginas, nombres largos, y adaptación de 5 mm en habilidades. No convertir una muestra de estilo en plantilla ni layout integral aprobado.
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
