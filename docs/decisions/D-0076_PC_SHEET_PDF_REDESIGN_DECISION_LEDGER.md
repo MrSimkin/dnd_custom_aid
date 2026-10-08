@@ -484,6 +484,19 @@ Si no se incluye el Libro de Conjuros, este tramo se omite y la hoja manuscrita 
 
 **No se decide aquí:** formato interno y portada del Libro, número/capacidad de páginas, reglas de división de entradas, otros anexos opcionales, geometría ni implementación del orden final. Los números de página y referencias se resuelven después de paginar. **PIN VISUAL ACTIVO; ninguna modificación de código, plantilla ni exportador PDF queda autorizada.**
 
+### 3.35 Personaje sin conjuros — omitir la página de lista rápida (alternativa A, APROBADO, 2026-10-08)
+
+**Elección expresa del propietario:** al exportar la Hoja de PJ, **si el personaje no tiene conjuros registrados, NO imprimir una página de Conjuros vacía** (alternativa A). No ofrecer en este caso la selección de una página vacía (alternativa C), ni imprimirla sistemáticamente (alternativa B). El resultado ahorra la hoja que carece de información de conjuros; no generar una hoja sustitutiva.
+
+**Condiciones y salvaguardas:**
+- La condición debe evaluar la **presencia real de conjuros del PJ**, incluidas fuentes ajenas a su clase cuando corresponda (por ejemplo raza, dotes o rasgos). **NO decidir la omisión por nombre/clase/arquetipo** ni suponer una bandera o estructura de datos sin revisar la App.
+- **La sección de Lanzamiento de Conjuros en la página 1 sigue siendo obligatoria para todos los personajes**, incluso cuando se omite la hoja de lista rápida. No inventar Aptitud, CD, modificador ni otros datos ausentes.
+- **Si existen conjuros reales**, se mantiene la página de lista rápida con su contrato aprobado (tres columnas dinámicas, agrupación por nivel, franja superior de referencia, cabeceras de nivel de una sola línea, preparación/gasto diferenciados) y sus continuaciones cuando proceda. No perder conjuros procedentes de fuentes no convencionales.
+- La omisión modifica la **paginación física definitiva** y, por tanto, obliga a asignar/recalcular las referencias bidireccionales conforme a §3.33. Se conservan las Notas exclusivas y la última hoja completa en blanco.
+- Esta decisión afecta exclusivamente a la **página de lista rápida de Conjuros de la Hoja de PJ**. El **Libro de Conjuros**, como anexo opcional situado al final del contenido digital (§3.34), sigue siendo un elemento separado; no se cambia aquí su política de inclusión.
+
+**PENDIENTE de verificación técnica/física:** identificar las fuentes y campos reales de la App con los que se determina si hay conjuros, casos atípicos de datos mágicos y las reglas de contenido ausente para otros módulos. **PIN VISUAL ACTIVO. No se autoriza código, renderer, plantillas ni generación del PDF final.**
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
@@ -500,7 +513,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**EXTENSIONES C2: composición AUTOMÁTICA APROBADA (§3.32): comparar disposición VERTICAL, DOS COLUMNAS y MIXTA, elegir la mejor sin intervención en cada exportación; se aplican prioridades de §3.31. Ubicación A mantiene continuaciones cerca de fuentes, con mezcla remota posible. NOTAS NUNCA SE MEZCLAN. ÚLTIMA HOJA DE NOTAS EN BLANCO INTACTA. REFERENCIAS BIDIRECCIONALES POR MÓDULO APROBADAS (§3.33, opción B). SIGUIENTE DISCUSIÓN: detalle de navegación en cadenas largas y casos especiales, después casos sin contenido, tratamiento de otros anexos y cabida real; Libro de Conjuros ubicado al final del contenido digital (§3.34). PIN VISUAL ACTIVO.**
+**EXTENSIONES C2: composición AUTOMÁTICA APROBADA (§3.32): comparar disposición VERTICAL, DOS COLUMNAS y MIXTA, elegir la mejor sin intervención en cada exportación; se aplican prioridades de §3.31. Ubicación A mantiene continuaciones cerca de fuentes, con mezcla remota posible. NOTAS NUNCA SE MEZCLAN. ÚLTIMA HOJA DE NOTAS EN BLANCO INTACTA. REFERENCIAS BIDIRECCIONALES POR MÓDULO APROBADAS (§3.33, opción B). LIBRO DE CONJUROS OPCIONAL UBICADO AL FINAL DEL CONTENIDO DIGITAL (§3.34). SIN CONJUROS REGISTRADOS: OMISIÓN DE PÁGINA DE LISTA RÁPIDA APROBADA (§3.35, A), SIN ALTERAR EL MÓDULO MÁGICO DE P1. SIGUIENTE DISCUSIÓN: otros casos de contenido ausente, anexos restantes y cabida real. PIN VISUAL ACTIVO.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
