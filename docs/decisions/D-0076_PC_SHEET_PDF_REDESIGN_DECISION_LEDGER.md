@@ -273,6 +273,21 @@ El lenguaje visual de referencia A usa encabezados claramente diferenciados, mar
 
 **PIN VISUAL VIGENTE:** terminar antes la estructura de las demás páginas. Las pruebas decorativas/ornamentales y la tipografía de valores siguen pospuestas hasta un modelo completo. Sin modificación de renderizador ni PDFs.
 
+### 3.21 Página 2 — Equipo Especial: presentación híbrida adaptable C (APROBADO, 2026-10-08)
+
+**Decisión expresa del propietario:** elegir la **opción C «híbrida adaptable»** para la **presentación de filas de Equipo Especial**, dentro de la estructura de **página 2 propuesta A** ya aprobada. Estas letras describen decisiones diferentes; **opción C de Equipo Especial** NO cambia la distribución general A de página 2, ni el acabado interior **C2c** ni la variante A/B de atributos.
+
+**Reglas funcionales APROBADAS de la opción C:**
+- Mostrar primero las **entradas reales de Equipo Especial vinculadas a ubicaciones ocupadas**, conservando sus campos **Ubicación / Nombre / Descripción**, sin inventar datos. Si el modelo de la App permite múltiples objetos en una misma ubicación, mostrar todas las entradas reales en vez de imponer una sola por ubicación.
+- Reservar **un número razonable y adaptable de filas sin datos prellenados** para anotación manual; algunas podrán corresponder a ubicaciones habituales vacías y otras ser de **ubicación personalizable/libre**. No reservar sistemáticamente una fila por cada ubicación canónica vacía, como haría la opción A «todas las ubicaciones visibles», ni eliminar toda referencia para escritura manual como haría la opción B «solo ocupadas».
+- Admitir **ubicaciones personalizadas** como entradas legítimas; no restringir la tabla a las diez ubicaciones de la hoja de inspiración (Cabeza, Rostro, Cuello, Mano Izquierda, Mano Derecha, Brazo Izquierdo, Brazo Derecho, Pecho, Piernas, Pies). La aparición concreta de nombres canónicos vacíos y el número de filas libres se determinarán según capacidad y utilidad.
+- **La sección Equipo Especial mantiene su posición inferior a TODO EL ANCHO** de la página 2, con las tres columnas ya definidas. Seguir el ritmo general de filas de 7 mm cuando la entrada quepa, y admitir mayor altura cuando el nombre/descripción requiera varias líneas. No truncar nombres o descripciones válidas ni rellenar toda la página de cuadros vacíos.
+- La **pequeña casilla de marcado** existente en la hoja de inspiración queda **PENDIENTE de definir en significado y representación** (podría referirse a equipado/activo/sintonizado, pero ninguno se presume). Que el wireframe contenga □ NO constituye aprobación de semántica ni valor marcado.
+
+**No aprobados aún:** número mínimo/exacto de filas libres; selección de ubicaciones canónicas vacías; política de orden/grupo con múltiples entradas por ubicación; propósito del cuadro marcable; desbordamiento, cortes/continuaciones, ancho de columnas, altura física final y comportamiento sin registros. Se debe proteger contenido real, escritura manual y espacio de Equipo/Tesoro/Rasgos de la misma página.
+
+**Siguiente decisión sugerida:** aclarar el **significado de la casilla de Equipo Especial**, sin reabrir todavía las pruebas ornamentales. El **PIN VISUAL** del §3.18 sigue activo: ornamentación/tipografías finales solo se validan sobre un modelo estructural completo. Nada de código o PDFs implementados.
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
@@ -289,7 +304,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**PÁGINA 2: TESORO BAJO EQUIPO (IZQUIERDA), CON MONEDAS CUSTOM Y RENGLONES BLANCOS APROBADOS. SIGUIENTE FASE: completar estructura de páginas restantes (narrativa, conjuros, notas y extensiones) y validar capacidad global; PIN VISUAL ACTIVO hasta contar con modelo integral.**
+**PÁGINA 2: Equipo Especial opción C (híbrida adaptable) aprobada, con ocupadas + algunas filas vacías útiles + custom; casilla de marcado de Equipo Especial aún sin semántica. Próxima decisión estructural: propósito de esa casilla, y luego continuar las páginas restantes (narrativa, conjuros, notas y extensiones). PIN VISUAL ACTIVO hasta contar con modelo integral completo.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
