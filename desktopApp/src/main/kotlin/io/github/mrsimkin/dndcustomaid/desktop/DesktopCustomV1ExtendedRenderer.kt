@@ -403,7 +403,6 @@ internal class DesktopCustomV1ExtendedRenderer(
                 layouts = listOf(customV1NarrativeTraitsLayout()),
             ),
         )
-        recordPaginationTrace(V1_GLOBAL_NARRATIVE_TRAITS_FRONT_ID, step)
         val narrativeConsumed = step.page.placements
             .filter { it.module == PcSheetSemanticModule.BACKGROUND_STORY }
             .sumOf { it.consumedUnits }
@@ -417,6 +416,15 @@ internal class DesktopCustomV1ExtendedRenderer(
         check(traitConsumed > 0) {
             "Custom-v1 mixed Narrative/Traits layout must reclaim the lower native Traits module."
         }
+        recordPaginationTrace(
+            V1_GLOBAL_NARRATIVE_TRAITS_FRONT_ID,
+            traceV1NativeTraitPage(
+                step = step,
+                packedFlow = traitFlow,
+                rowOffset = 0,
+                consumedRows = traitConsumed,
+            ),
+        )
 
         val page = PDPage(PDRectangle(W, H))
         document.addPage(page)
@@ -729,6 +737,64 @@ internal class DesktopCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - MARKERS") { }
     }
 
+    /**
+     * Exact native Traits page evidence: distinguish actual semantic rows, atomic-protection
+     * padding and *trailing legal* capacity. Blank rows inside earlier packed columns cannot
+     * be counted as usable space for a later ordered block.
+     */
+    private fun traceV1NativeTraitPage(
+        step: PcSheetExtendedCompositionStep,
+        packedFlow: List<V1TraitFlowLine>,
+        rowOffset: Int,
+        consumedRows: Int,
+    ): PcSheetExtendedCompositionTrace {
+        require(consumedRows > 0 && rowOffset + consumedRows <= packedFlow.size)
+        val placedRows = packedFlow.subList(rowOffset, rowOffset + consumedRows)
+        val physicalTraitCapacity = step.page.placements
+            .filter { it.module == PcSheetSemanticModule.TRAITS }
+            .sumOf { it.nativeCapacity }
+        require(consumedRows <= physicalTraitCapacity)
+        val paddingRows = placedRows.count { it.kind == V1TraitFlowLineKind.BLANK }
+        val trailingPadding = placedRows.asReversed()
+            .takeWhile { it.kind == V1TraitFlowLineKind.BLANK }.size
+        val legalRemainder = physicalTraitCapacity - consumedRows + trailingPadding
+        val nextBlockOrdinal = packedFlow.getOrNull(rowOffset + consumedRows)?.atomicBlockOrdinal
+        val nextAtomicBlockRows = nextBlockOrdinal?.let { ordinal ->
+            packedFlow.drop(rowOffset + consumedRows)
+                .takeWhile { it.atomicBlockOrdinal == ordinal }.size
+        }
+        val lastBlockOrdinal = placedRows.lastOrNull {
+            it.kind != V1TraitFlowLineKind.BLANK
+        }?.atomicBlockOrdinal
+        check(nextBlockOrdinal == null || nextBlockOrdinal != lastBlockOrdinal) {
+            "Custom-v1 Traits cannot split an original whole native block between pages."
+        }
+        check(nextAtomicBlockRows != 0) { "Custom-v1 next atomic Trait block must not be empty." }
+        val nextFits = nextAtomicBlockRows?.let { rows ->
+            rows <= V1_TRAIT_ROWS_PER_COLUMN && rows <= legalRemainder
+        }
+        return step.trace.copy(
+            physical = PcSheetPhysicalPaginationTrace(
+                metric = "native-trait-rows",
+                used = (consumedRows - paddingRows).toDouble(),
+                capacity = physicalTraitCapacity.toDouble(),
+                paddingUnits = paddingRows.toDouble(),
+                legalRemainder = legalRemainder.toDouble(),
+                nextAtomicUnitSize = nextAtomicBlockRows?.toDouble(),
+                nextAtomicUnitFits = nextFits,
+                rationale = when {
+                    nextAtomicBlockRows == null -> "native-trait-block-stream-exhausted"
+                    nextFits == true ->
+                        "complete-atomic-trait-block-fits-trailing-native-rows"
+                    nextAtomicBlockRows > V1_TRAIT_ROWS_PER_COLUMN ->
+                        "oversized-native-trait-block-requires-fresh-module"
+                    else ->
+                        "next-atomic-trait-block-exceeds-legal-trailing-native-rows"
+                },
+            ),
+        )
+    }
+
     private fun appendTraitsExtendedPages(plan: PcSheetPdfRenderPlan) =
         appendTraitsExtendedPages(packV1TraitFlow(traitFlowBlocks(plan)))
 
@@ -752,7 +818,6 @@ internal class DesktopCustomV1ExtendedRenderer(
                     layouts = v1TraitsCompositionLayouts(remaining),
                 ),
             )
-            recordPaginationTrace(V1_GLOBAL_NARRATIVE_TRAITS_FRONT_ID, step)
             val placementBySlot = step.page.placements.associateBy { it.slotId }
 
             var cursor = lineOffset
@@ -763,6 +828,16 @@ internal class DesktopCustomV1ExtendedRenderer(
             val bottomCount = placementBySlot[V1_TRAIT_BOTTOM_SLOT_ID]?.consumedUnits ?: 0
             val bottomLines = flow.drop(cursor).take(bottomCount)
             cursor += bottomCount
+
+            recordPaginationTrace(
+                V1_GLOBAL_NARRATIVE_TRAITS_FRONT_ID,
+                traceV1NativeTraitPage(
+                    step = step,
+                    packedFlow = flow,
+                    rowOffset = lineOffset,
+                    consumedRows = cursor - lineOffset,
+                ),
+            )
 
             check(topLines.isNotEmpty()) {
                 "Custom-v1 Traits compositor must occupy the top native module first."
@@ -1114,8 +1189,8 @@ internal class DesktopCustomV1ExtendedRenderer(
             }
         }
 
-        blocks.forEach { block ->
-            if (block.lines.isEmpty()) return@forEach
+        blocks.forEachIndexed { ordinal, block ->
+            if (block.lines.isEmpty()) return@forEachIndexed
             require(block.lines.size <= V1_TRAIT_ROWS_PER_MODULE) {
                 "Custom-v1 Traits block exceeds one native module."
             }
@@ -1132,7 +1207,7 @@ internal class DesktopCustomV1ExtendedRenderer(
                 pad(V1_TRAIT_ROWS_PER_MODULE - moduleOffset)
             }
 
-            packed += block.lines
+            packed += block.lines.map { it.copy(atomicBlockOrdinal = ordinal) }
         }
 
         return packed
@@ -3727,6 +3802,8 @@ internal class DesktopCustomV1ExtendedRenderer(
     private data class V1TraitFlowLine(
         val kind: V1TraitFlowLineKind,
         val text: String,
+        /** Stable original whole-block identity; padding rows deliberately have no identity. */
+        val atomicBlockOrdinal: Int? = null,
     )
 
     private data class V1TraitFlowBlock(

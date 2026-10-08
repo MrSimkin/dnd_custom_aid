@@ -35,12 +35,22 @@ data class PcSheetPhysicalPaginationTrace(
     val nextAtomicUnitSize: Double? = null,
     val nextAtomicUnitFits: Boolean? = null,
     val rationale: String,
+    /** Physically printed blank/padding rows reserved by atomic native packing. */
+    val paddingUnits: Double? = null,
+    /** Legal trailing remainder, excluding unusable interior padding. */
+    val legalRemainder: Double? = null,
 ) {
     init {
         require(metric.isNotBlank()) { "Physical pagination metric is required." }
         require(used >= 0.0) { "Physical pagination used capacity cannot be negative." }
         require(capacity > 0.0) { "Physical pagination capacity must be positive." }
         require(rationale.isNotBlank()) { "Physical pagination rationale is required." }
+        require(paddingUnits == null || paddingUnits >= 0.0) {
+            "Physical padding must not be negative."
+        }
+        require(legalRemainder == null || legalRemainder >= 0.0) {
+            "Physical legal remainder must not be negative."
+        }
     }
 }
 
@@ -195,6 +205,14 @@ fun PcSheetPaginationTraceEntry.toStableJsonLine(): String = buildString {
         physical.nextAtomicUnitFits?.let(::append) ?: append("null")
         append(",\"rationale\":")
         append(quoted(physical.rationale))
+        physical.paddingUnits?.let { padding ->
+            append(",\"paddingUnits\":")
+            append(padding)
+        }
+        physical.legalRemainder?.let { remainder ->
+            append(",\"legalRemainder\":")
+            append(remainder)
+        }
         append('}')
     }
     append('}')

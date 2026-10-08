@@ -795,6 +795,37 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 "without treating separate pending Traits columns as exhausted.",
         )
 
+        val v1NativeTraitPages = paginationTrace.filter { entry ->
+            entry.family == PcSheetVisualFamily.CUSTOM_V1 &&
+                entry.frontId == "v1-global-narrative-traits"
+        }
+        assertTrue(v1NativeTraitPages.isNotEmpty())
+        assertTrue(
+            v1NativeTraitPages.all { entry ->
+                val physical = entry.composition.physical
+                physical?.metric == "native-trait-rows" &&
+                    physical.used > 0.0 &&
+                    physical.used + requireNotNull(physical.paddingUnits) <= physical.capacity &&
+                    requireNotNull(physical.legalRemainder) >= 0.0 &&
+                    (
+                        entry.composition.demandsAfter.none {
+                            it.module == PcSheetSemanticModule.TRAITS
+                        } || physical.nextAtomicUnitSize != null
+                    )
+            },
+            "Custom-v1 Traits must distinguish semantic rows, atomic padding, " +
+                "trailing legal remainder and the next complete original block.",
+        )
+        assertTrue(
+            v1NativeTraitPages.none { entry ->
+                entry.composition.hasPhysicallyAvoidableNextPage()
+            },
+            "Custom-v1 Traits must not advance if a complete next original block " +
+                "fits legal trailing native rows: " +
+                v1NativeTraitPages.filter { it.composition.hasPhysicallyAvoidableNextPage() }
+                    .joinToString { it.frontId + "#" + it.decisionOrdinal },
+        )
+
         val expectedTraceFamilies = proofs.mapTo(mutableSetOf()) { it.first }
         expectedTraceFamilies.forEach { family ->
             val familyTrace = paginationTrace.filter { it.family == family }
