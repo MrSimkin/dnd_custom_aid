@@ -34,7 +34,9 @@ Los bocetos anteriores son exploratorios. No hay medidas exactas, ubicación del
 
 **Opción C APROBADA para el reparto vertical Ataques/Rasgos:** ambos son módulos independientes con altura adaptable al contenido, espacio mínimo útil para anotar manualmente, aprovechamiento mutuo del espacio libre y continuación en extensiones cuando no cabe. Ninguno puede crecer hasta eliminar completamente al otro de la primera página. El diseño **no** fija números de filas, medidas, proporciones ni algoritmo; la reserva de escritura manual no obliga a crear áreas vacías enormes. Las páginas extendidas no deben duplicar grandes módulos ya agotados.
 
-**Continuación inmediata:** examinar los restantes módulos de la primera página, empezando por **Lanzamiento de Conjuros** (en el PDF del propietario incluye espacios por nivel, CD de salvación, modificador de ataque mágico y aptitud mágica). Su lugar/condicionalidad y la convivencia con Ataques/Rasgos aún NO están aprobados. La capacidad y mecanismo de expansión de la sección izquierda siguen pendientes de validación técnica y no autorizan implementación.
+**Presencia de Lanzamiento de Conjuros en primera página APROBADA:** debe aparecer **incluso si el PJ no puede lanzar conjuros**; dejar los datos no aplicables sin valores, sin omitir el módulo. El propietario no ha aprobado aún su estructura física detallada, representación de espacios, altura ni localización entre otros módulos.
+
+**Continuación inmediata:** discutir la **maquetación interna** de Lanzamiento de Conjuros y, después, su convivencia con Ataques, Rasgos y restantes elementos de primera página. El PDF del propietario ilustra espacios por nivel, CD de salvación, ataque mágico y aptitud mágica sin que esa geometría quede automáticamente aprobada. La capacidad y mecanismo de expansión de la sección izquierda siguen pendientes de validación técnica; no hay autorización de implementación.
 
 Consultar una sola decisión cada vez, registrar su estado y detenerse antes de implementar. El propietario resuelve las decisiones de comportamiento y UX.
 
