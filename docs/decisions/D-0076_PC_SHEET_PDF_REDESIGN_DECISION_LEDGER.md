@@ -327,16 +327,30 @@ El lenguaje visual de referencia A usa encabezados claramente diferenciados, mar
 
 **Cambio explícito del propietario respecto de §3.24: APROBADO recuperar el contador de espacios en cada encabezado de nivel**, aunque esa información esté repetida desde página 1. Cada módulo de conjuros por nivel tendrá en su propia cabecera un identificador de **NIVEL**, dato de **ESPACIOS** correspondiente y **casillas marcables de ESPACIOS GASTADOS** si proceden. Se recupera la idea de la hoja fuente «NIVEL / ESPACIOS / ESPACIOS GASTADOS» sin copiar obligatoriamente su geometría antigua. **La repetición en papel es intencional** para poder usar la página 4 de forma autónoma.
 
-- En la maqueta de tres columnas dinámicas, se podrán usar **dos sublíneas dentro de cada cabecera de nivel** (nivel/cantidad y gastados/cuadros) cuando no quepa todo horizontalmente; **esta distribución exacta es candidata**, no dimensiones finales. No inventar un número fijo de casillas, espacios, límites máximos ni marcaciones iniciales: usar lo que esté verificado en datos del personaje.
+- **Regla posterior APROBADA en §3.26:** cada encabezado de nivel debe mantener **Nivel + Espacios + Gastados/notaciones y casillas en UNA SOLA LÍNEA horizontal estricta**, sin partirla en dos sublíneas. Ajustar la composición y las abreviaturas sin hacer casillas ilegibles; la cabida física sigue por validar. No inventar números de casillas ni marcas iniciales.
 - **Nivel 0 — Trucos:** incluye bloque de lista, pero no se inventa para él un contador ordinario de espacios de conjuro.
 - Las casillas de **preparación junto a los nombres** se distinguen inequívocamente de las casillas para **gasto de espacios en encabezados**. No confluir preparación con gasto.
 - Si el PJ tiene varias fuentes/orígenes mágicos y sus espacios no corresponden todos al mismo recurso, **no fusionar números o contadores incompatibles**: debe respetarse el contrato real de datos. Los detalles de representación por fuente se diseñarán después.
-- **Candidato favorable pero NO APROBADO todavía:** repetir en la **franja superior de la página 4** los **tres campos de referencia de la página 1** (Aptitud Mágica / CD de salvación / Modificador de Ataque Mágico), incluso a costa de cierta duplicación. El propietario lo formuló como «también podría estar»; no darlo por obligatorio antes de su decisión definitiva. Si la App conoce valores distintos por fuente, la presentación debe identificarlos correctamente y no adjudicar una única CD/aptitud/ataque falsamente universal.
+- **Decisión posterior APROBADA en §3.26:** repetir en una **franja superior obligatoria de página 4** los **tres campos de referencia de página 1**: Aptitud Mágica, CD de salvación y Modificador de Ataque Mágico. Distinguir las fuentes de lanzamiento cuando sus valores difieren y evitar una CD universal ficticia. La duplicación es intencional.
 - Continúa vigente la diferenciación entre esta **lista rápida** y el **Libro de Conjuros opcional** de descripciones detalladas.
 
-**Pendiente para el modelo integral:** confirmar bloque superior de referencia, estado multifuente, líneas y cabida física de cabeceras, número de casillas real, cómo imprimir marcas iniciales, niveles épicos si aplicaran y política de página para no lanzadores.
+**Pendiente para el modelo integral:** resolver representación exacta de múltiples fuentes en la referencia superior, **validar cabida de cada cabecera estrictamente en una línea**, cantidad real de casillas y disposición en casos extremos sin saltos internos, marcas iniciales, niveles épicos si aplicaran y política de página para no lanzadores.
 
 **PIN VISUAL ACTIVO:** no seleccionar todavía dimensiones ornamentales, tipografía de valores ni esquinas definitivas; las pruebas serán sobre el modelo de todas las páginas. Sin cambiar código/renderer/PDF.
+
+### 3.26 Página 4 — Referencia mágica superior + encabezado por nivel EN UNA LÍNEA (APROBADO, 2026-10-08)
+
+**Confirmación explícita del propietario:** **SÍ** repetir sobre la lista de conjuros de página 4 la **franja superior** de referencia con **Aptitud Mágica / CD de salvación / Modificador de Ataque Mágico**. Es deliberadamente redundante respecto de página 1 para que la página 4 se use sin cambiar de hoja. Si hay varios orígenes/fuentes mágicos con estadísticas diferentes, conservar su asociación correcta en lugar de declarar valores universales; la geometría de cada fuente sigue por diseñar.
+
+**RESTRICCIÓN FÍSICA ESTRICTA:** la **CABECERA DE CADA NIVEL** de conjuro debe integrar **NIVEL + ESPACIOS + notaciones/casillas de ESPACIOS GASTADOS en exactamente UNA ÚNICA LÍNEA horizontal**. **PROHIBIDO partir el encabezado de nivel en dos sublíneas**, aun dentro de los módulos dinámicos de las tres columnas B. Esta regla sustituye expresamente la propuesta de cabeceras de dos sublíneas de §3.25. Usar abreviaturas inequívocas y ajustar asignación de anchos sin miniaturizar controles marcables o recortar información.
+
+**Separaciones semánticas:** las casillas de gasto del encabezado de nivel NO son casillas de preparación junto al nombre del conjuro. Nivel 0/Trucos no recibe espacios ordinarios inventados. Los valores impresos y marcas iniciales deben venir de datos reales; no asumir número fijo de casillas ni fusionar fuentes o reservas incompatibles.
+
+**Tensión de cabida identificada:** tres columnas de listas dinámicas y cabeceras de una sola línea pueden entrar en conflicto cuando haya muchos espacios, fuentes particulares o anotaciones. Esta decisión **NO autoriza desbordar el encabezado a una segunda línea**, ocultar datos ni reducir cuadros a tamaños inutilizables. El caso deberá validarse en el modelo físico completo y someterse a nueva decisión de composición si es imposible, manteniendo la preferencia explícita por una línea.
+
+**Pendientes sin cambio:** tamaño real, texto de abreviaturas, indicadores ritual/concentración, orden y paginación, estado múltiple de preparación por origen, niveles épicos condicionales, no lanzadores y casos extremos; casillas y cartelas definitivas se prueban al acabar todas las páginas bajo el PIN visual.
+
+**No autorización:** el acuerdo es documental y estructural. No se autoriza modificar código, renderer, fuentes ni generar PDF de producto.
 
 ## 4. Límites del acuerdo
 
@@ -354,7 +368,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**PÁGINA 4 B: además de conjuros y casillas de preparación, APROBADO incluir ESPACIOS y GASTADOS en cada encabezado de nivel; franja superior repetida de Aptitud Mágica/CD/Ataque es candidata pendiente. SIGUIENTE DECISIÓN: decidir esa franja o continuar con Notas, extensiones y reglas para páginas vacías. PIN VISUAL ACTIVO hasta modelo integral completo.**
+**PÁGINA 4 B CERRADA ESTRUCTURALMENTE: repetición APROBADA de Aptitud Mágica/CD/Ataque en franja superior; cada encabezado de NIVEL/ESPACIOS/GASTADOS debe ser estrictamente de UNA SOLA LÍNEA. SIGUIENTE FASE: página de Notas y extensiones, casos sin conjuros e imágenes de Trasfondo. PIN VISUAL ACTIVO hasta modelo integral completo.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
