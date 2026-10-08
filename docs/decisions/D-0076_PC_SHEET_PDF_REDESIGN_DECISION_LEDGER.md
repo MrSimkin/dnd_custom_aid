@@ -116,6 +116,18 @@ El propietario aclara que este bloque es **la lista resumen de ataques ya conceb
 
 **Pendiente:** número de filas que caben en la primera página, alturas/ancho de columnas, tipografía, saltos de línea, orden de entradas según reglas de la App, datos personalizados y tratamiento del excedente. No aprobar cantidad fija de filas, cortes ni extensión específica de este módulo sin discutirlo. Los valores de las maquetas son ficticios.
 
+### 3.9 Sección derecha / Bloque 03 — Rasgos y Atributos (semántica APROBADA)
+
+**APROBADO por el propietario:** mostrar los rasgos del personaje en una **lista de entradas concisas sin descripciones**. Cada entrada identifica su **origen/categoría** y su **nombre**, por ejemplo:
+- `Rasgo de Clase - Nombre 1`
+- `Rasgo de Raza - Nombre 2`
+
+La denominación del módulo es **«Rasgos y Atributos»** (como en la hoja de inspiración). El patrón de una entrada es **origen - nombre**, tomando las categorías reales y nombres del personaje registrados por la App. Los ejemplos de clase y raza son ilustrativos: **no** implican excluir otros orígenes válidos que el modelo de la App pueda contemplar.
+
+**Regla negativa explícita:** **no imprimir descripciones de los rasgos en la hoja de personaje**, **ni siquiera en páginas de extensión**. No convertir este módulo en fichas explicativas, ni añadir efectos, reglas desarrolladas u otro texto descriptivo. Su función es identificar/listar, no documentar.
+
+**Continuidad y presentación aún por definir:** cantidad de elementos visibles en la primera página; ubicación y altura respecto a Ataques y otros módulos; cuándo mover excedentes a extensiones; manejo de nombres excepcionalmente largos; tratamiento visual para otros orígenes y datos custom. La lista se preservará íntegra sin omisiones; «una línea por rasgo» describe el formato de entrada, no una autorización para cortar texto largo o fijar cantidad de renglones.
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
@@ -132,10 +144,10 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**SECCIÓN 01 — SECCIÓN DERECHA: módulo siguiente a la tabla resumen de Ataques (rasgos y recursos, EN DISCUSIÓN).**
+**SECCIÓN 01 — SECCIÓN DERECHA: composición espacial de Ataques y Rasgos y Atributos, y demás módulos por definir.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
-**Decisiones más recientes:** silueta genérica sin retrato; logo + nombre del PJ en todas las páginas; primera página compacta; Clase / Nivel a la derecha del retrato; Raza/Alineamiento 60/40; variantes A/B seleccionables; adaptación de la primera página para unos 2–3 atributos personalizados con habilidades y habilidades custom ligadas a atributos normales; páginas extendidas para lo que no quepa. **Bloque 01 derecho APROBADO (tres filas y ocho campos, dados de golpe solo texto, sin PV temporales ni salvaciones contra la muerte). Bloque 02 Ataques APROBADO como tabla resumen unificada con tres columnas: ARMA / ATAQUE / CONJURO; BONIFICADOR; DAÑO / TIPO DE DAÑO. Siguiente módulo: rasgos y recursos.**
+**Decisiones más recientes:** silueta genérica sin retrato; logo + nombre del PJ en todas las páginas; primera página compacta; Clase / Nivel a la derecha del retrato; Raza/Alineamiento 60/40; variantes A/B seleccionables; adaptación de la primera página para unos 2–3 atributos personalizados con habilidades y habilidades custom ligadas a atributos normales; páginas extendidas para lo que no quepa. **Bloque 01 derecho APROBADO (tres filas y ocho campos, dados de golpe solo texto, sin PV temporales ni salvaciones contra la muerte). Bloque 02 Ataques APROBADO como tabla resumen unificada con tres columnas: ARMA / ATAQUE / CONJURO; BONIFICADOR; DAÑO / TIPO DE DAÑO. **Bloque 03 Rasgos y Atributos APROBADO** como lista origen - nombre de cada rasgo, sin descripciones en ninguna página. Pendiente distribución espacial y extensiones.**
 
 **Implementación:** BLOQUEADA hasta aprobación explícita de un contrato suficientemente completo y de las validaciones técnicas necesarias.
