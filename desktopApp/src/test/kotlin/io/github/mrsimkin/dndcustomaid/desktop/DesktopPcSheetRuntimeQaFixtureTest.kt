@@ -531,6 +531,25 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                             endPage = pageNumber
                         }.getText(rendered).replace(Regex("\\s+"), " ")
                     }
+                    // An extended Resources/Options page can legitimately use either native
+                    // full-page layout or the mixed page. The originating section must retain
+                    // its continuation cue for ALL three legal representations.
+                    val resourcesOrOptionsPages = pageTexts.drop(plan.basePages.size).filter { pageText ->
+                        pageText.contains("EXTENSIÓN / RECURSOS") ||
+                            pageText.contains("EXTENSIÓN / OPCIONES")
+                    }
+                    assertTrue(
+                        resourcesOrOptionsPages.isNotEmpty(),
+                        "Fantasy exact Mara must include native Resources/Options continuation.",
+                    )
+                    assertTrue(
+                        pageTexts.first().contains(
+                            "EXTENSIÓN: ESTADÍSTICAS / RASGOS / RECURSOS",
+                        ),
+                        "Fantasy native full Resources/Options pages must retain the " +
+                            "originating base-page Resources continuation cue.",
+                    )
+
                     val fantasyCustomStatisticsPages = pageTexts.filter {
                         it.contains("EXTENSIÓN / ESTADÍSTICAS PERSONALIZADAS")
                     }
