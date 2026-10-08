@@ -710,3 +710,30 @@ Third deliverable:
 - never add page-number- or Mara-specific branches.
 
 Do not create another versionName/versionCode candidate until this front is closed by trace + invariants + real PDFs.
+
+## 2026-10-07 — Bounded physical scheduler recovery: Custom-v2 native Traits column reclaim
+
+**Repository branch:** `repair/mara-phase3-semantic-flow-compositor`. This is a later recovery record and supersedes earlier provisional M50800-27 closure claims. It is not a candidate release.
+
+### Physical recovery and causal chain
+
+1. **Starting source truth:** `2e49c39028430d127a3821cbbbfc565ff9f355ba`; Fast Gate `37704485453` SUCCESS; exact Mara artifact `11518783088`, ZIP SHA-256 `3c0e87b9bbd9f245b897c8652f80508cfe6a42b7fa6ba65a8bfebfaec35b6c88`. `3b19cface257f5bbd4ffa03d688da31c5c675bd2` was already published/green; four subsequent commits had landed. PR #117 verified CLOSED WITHOUT MERGE.
+2. **OPEN physical trace gap before:** 77 pagination decisions, only 26 with `physical`, 51 without. The current family-global coordinator proves semantic ownership, **not** legal page necessity.
+3. **Observed `RECLAIM_OPPORTUNITY`:** real Mara Custom-v2 Attribute and Ability page 9 has an exhausted primary (left Competencias) native column retaining enough legal rows to absorb the same-page secondary (right Rasgos) *whole prepacked native column*, plus one group heading. The secondary stream continues on later pages. The original independent packing prevented this placement. No fixture/page-index branch authorized.
+4. **Invariant/proof commit:** `7cffd79957cd44e5f4449cf57438b6ea4e8a8186` — record measured native-column row usage, probe full secondary-column atomic relocation only when primary is exhausted, heading fits, and no continuity marker is relocated. New exact-Mara invariant fails if `hasPhysicallyAvoidableNextPage()`. Fast Gate `37706661199` **FAILURE, expected and causal**, in both Custom-v2 families at `v2-global-narrative-traits#4`: `exhausted-primary-column-can-reclaim-complete-secondary-column`. This was not a compilation problem or arbitrary rerun.
+5. **Bounded generic fix:** `a8efb04ac137e9360afaad29bf845e28b79de81c` — reclaim only the last exhausted primary native column by appending the complete secondary native column with a one-row category heading; preserve secondary stream order; skip continuity-bearing columns and placements that do not fit. Desktop and generated Android mirrors updated together; no Mara/page-specific conditions.
+6. **New Fast Gate:** `37706968931` **SUCCESS**; artifact `11520520529`, ZIP SHA-256 `833e9b59021fa8caffd07ce6278e99adf9c6fb8c66975043735352c95a09c623`. Exact proof zip independently downloaded and verified.
+7. **Exact real four-PDF inspection:** Fantasy 32 pages and Custom-v1 30 pages unchanged in extracted text; both Custom-v2 variants 18 pages and their 23 Extended trait identifiers preserve the original extraction order. Across **all four PDFs**, the extracted *multiset of nonempty text lines is identical* before/after (zero lines added/removed), so no evidence of text loss. Custom-v2 rendered affected pages 9–11 were directly inspected; Attribute/Ability raster outputs for those pages match byte-for-byte in pixel samples. The previously empty primary column now carries native Rasgos rows under an explicit category heading, with no collision observed.
+8. **After-fix trace:** 77 decisions, 36 populated `physical`, 41 still `physical:null`. The observed full-column transfer is no longer eligible at the tested decision; the exact invariant passes. Trace on remaining Custom-v2 columns is **not** complete atomic-block evidence for every later advance.
+
+### Acceptance ledger — do not over-close
+
+- **Bounded observed whole-column reclaim:** `FIXED` (invariant RED -> GREEN, actual PDF inspected, exact artifact recorded).
+- **M50800-10 Traits packing:** **OPEN** globally. Later sparse Details/Notes-only Traits page in Custom-v2 may be legitimate but atomic-block/other-layout eligibility has not been fully demonstrated. Do not judge by page count.
+- **M50800-14 Resources/Options packing:** **OPEN**, all 15 observed resource decisions still lacked physical trace at prior source; candidate layouts and per-stream atomic capacities need proof. Fantasy uses only the split layout when both streams remain active; dedicated native alternatives are not yet audited for legality while both are active.
+- **M50800-24 Notes packing:** **OPEN** for exact candidate acceptance; earlier Notes row advances have measured justified remainders, but whole global/four-family acceptance remains pending.
+- **M50800-27 Adaptive Pagination Core:** **OPEN / PRIMARY**. Global semantic ownership is not an accepted physical scheduler.
+- **M50800-31 exact candidate acceptance:** **BLOCKED**; do not create `0.5.0-preqa.11` / new code until A/B/C closure.
+- **M50800-12/13:** functional Combat fixes retained; residual cross-front behavior still lives under 27.
+
+**Exact next action:** finish physical/atomic traces and no-avoidable-advance invariants for Custom-v2 residual Details/Traits, Fantasy Traits, Custom-v1 Narrative/Traits, and all Resources/Options. Test the chosen native slots **and approved eligible alternatives** before any renderer fix. For every observed reclaim: root cause -> generic invariant -> narrow fix -> new exact artifact/trace -> rendered PDF. Retain no reset, no force push, no replay, no new candidate, no routine owner confirmation.

@@ -334,3 +334,14 @@ informa exactamente:
 Objetivo final de esta ruta:
 
 **converger hasta una nueva versión candidata trazable y visualmente verificada, no acumular indefinidamente reparaciones intermedias.**
+
+## 11. Verified continuation override — 2026-10-07 native Traits reclaim
+
+Before any write, re-read the current physical GitHub HEAD and recent commits; this is a **verified recovery anchor, not an assumed HEAD**.
+
+Most recent **functional** HEAD at this record: `a8efb04ac137e9360afaad29bf845e28b79de81c`.
+- `7cffd79957cd44e5f4449cf57438b6ea4e8a8186`: `test: trace native Custom-v2 Traits column reclaim eligibility`; Fast Gate `37706661199` RED **for the expected exact invariant**, both Custom-v2 families.
+- `a8efb04ac137e9360afaad29bf845e28b79de81c`: `fix: reclaim exhausted Custom-v2 Traits native column`; Fast Gate `37706968931` GREEN; artifact `11520520529` / ZIP SHA-256 `833e9b59021fa8caffd07ce6278e99adf9c6fb8c66975043735352c95a09c623`. Exact Mara four PDFs inspected; unchanged text line multiset and Custom-v2 Traits order, affected rendered pages visually sound.
+- Last candidate PR #117 CLOSED WITHOUT MERGE, preqa.9/10 rejected; preqa.11 **NOT AUTHORIZED**.
+- Bounded native Traits column transfer FIXED, but M50800-10, M50800-14, M50800-24, M50800-27 and M50800-31 **remain OPEN**. Physical trace = 77 entries / 36 physical / 41 without physical, so do not claim scheduler closure.
+- **Next:** demonstrate remaining atomic native placement and alternative-layout eligibility, especially Custom-v2 Details-only residual and three-family Resources/Options; extend invariants, repair only proven generic reclaim; inspect real exact PDF before advancing.
