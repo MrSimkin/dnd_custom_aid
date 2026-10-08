@@ -125,7 +125,13 @@ internal class DesktopPcSheetVisualCompletionRenderer(
             if ("RASGOS Y CARACTERISTICAS" in text || "RASGOS Y ATRIBUTOS" in text) {
                 kinds += PcSheetExtendedPageKind.TRAITS_AND_FEATURES
             }
-            if ("RECURSOS Y OPCIONES" in text) {
+            // A family-native Resource/Options front may legally select a split page
+            // or either whole-page variant. All retain the same originating-section cue.
+            if (
+                "RECURSOS Y OPCIONES" in text ||
+                "EXTENSION / RECURSOS" in text ||
+                "EXTENSION / OPCIONES" in text
+            ) {
                 kinds += PcSheetExtendedPageKind.RESOURCES_AND_OPTIONS
             }
             if ("INVENTARIO / EQUIPO" in text || "EQUIPO - CONTINUACION" in text) {
