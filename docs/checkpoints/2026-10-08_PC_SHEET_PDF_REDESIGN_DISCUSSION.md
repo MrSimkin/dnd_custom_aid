@@ -56,6 +56,10 @@ Consultar una sola decisión cada vez, registrar su estado y detenerse antes de 
 
 **SIGUIENTE PASO — una decisión a la vez:** la ubicación de Tesoro ya está cerrada. Revisar estructura de las páginas restantes (narrativa, conjuros, notas y extensiones) antes de validar la compacidad global de página 2, incluidas monedas custom y reservas en blanco. **PIN visual permanece activo:** probar ornamentación C2c y tipografía definitiva solo sobre un modelo completo, no sobre componentes aislados. No código, plantillas ni PDFs.
 
+**EQUIPO ESPECIAL — opción C híbrida adaptable APROBADA (2026-10-08):** dentro de la estructura general **A de página 2**, conservar Equipo Especial a TODO el ancho inferior con columnas **Ubicación / Nombre / Descripción**. Mostrar primero **filas con ubicaciones ocupadas y datos reales**, respetando posibles múltiples objetos por ubicación si están soportados por la App; reservar **algunas filas de ubicaciones vacías habituales y otras libres/custom para escritura a mano**, sin imprimir todas las ubicaciones vacías ni reducirse solamente a ocupadas. Adaptar las filas a los contenidos y al espacio real, conservar entradas custom y descripciones de equipo especial (no las de Rasgos). **NO fijados:** cantidad exacta de vacías, cuáles ubicaciones, orden de repeticiones, cortes, longitudes, capacidad y dimensiones. La **casilla de marcado del PDF original sigue SIN SEMÁNTICA aprobada**; no asumir equipada/activa/sintonizada. No confundir **opción C de Equipo Especial** con **C2c ornamental** ni con opción A general de página 2.
+
+**SIGUIENTE PASO estructural sugerido:** determinar para qué sirve la casilla de marcado en Equipo Especial, y continuar más adelante con las otras páginas. **PIN visual sigue activo:** no hacer pruebas ornamentales hasta tener modelo completo, ni modificar código/PDF.
+
 ## Restricciones
 
 - Trabajo documental solamente; no código, plantillas, PDF ni nuevas pruebas de renderer.
