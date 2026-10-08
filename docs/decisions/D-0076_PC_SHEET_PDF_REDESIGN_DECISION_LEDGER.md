@@ -497,6 +497,24 @@ Si no se incluye el Libro de Conjuros, este tramo se omite y la hoja manuscrita 
 
 **PENDIENTE de verificación técnica/física:** identificar las fuentes y campos reales de la App con los que se determina si hay conjuros, casos atípicos de datos mágicos y las reglas de contenido ausente para otros módulos. **PIN VISUAL ACTIVO. No se autoriza código, renderer, plantillas ni generación del PDF final.**
 
+### 3.36 Página 3 sin Rasgos y Atributos pendientes — variante C híbrida adaptable (APROBADO, 2026-10-08)
+
+**Decisión expresa del propietario:** elige **C — Híbrida adaptable** para el caso específico en que las entradas mecánicas de **Rasgos y Atributos** del PJ ya fueron impresas en páginas 1 y 2 y **no queda ninguna pendiente para página 3**. Esta regla **complementa, no sustituye**, la estructura general **A** de página 3 aprobada en §3.23. Con Rasgos pendientes, se conserva la composición A normal: narrativa a la izquierda y continuación de Rasgos a la derecha, sin duplicados.
+
+**Contrato funcional del caso sin Rasgos pendientes:**
+- **Columna izquierda:** mantener Trasfondo, Perfil narrativo e Historia, conservando los datos reales y los campos semánticos aprobados.
+- **Parte compacta de la columna derecha:** reservar unas líneas realmente útiles y escribibles **para Rasgos y Atributos mecánicos agregados a lápiz**, aun cuando no exista contenido de ese módulo por imprimir. No reservar por defecto toda la columna para renglones vacíos.
+- **Espacio restante de la derecha:** utilizarlo para **Historia (continuación)** cuando la extensión real de la Historia lo necesite; identificar el módulo y mantener el orden íntegro y inequívoco de lectura desde el tramo inicial. No repetir párrafos, mutilarlos ni inventar contenido.
+- **Historia que cabe en la izquierda:** no forzar una continuación ficticia; el área no utilizada puede seguir siendo escribible, sin exigir un nuevo bloque digital o una página suplementaria para llenarla.
+- **Historia que no cabe en los espacios disponibles:** continuar el texto de forma legible según los principios y navegación C2 aprobados, sin truncarlo ni sacrificar las líneas reservadas al uso manual.
+- La reserva para Rasgos **NO** es el módulo de **Notas**, y nunca introduce Notas digitales C-N3 en una página compartida. Los Rasgos mecánicos mantienen el contrato de **origen/categoría + nombre, sin descripciones**. No confundirlos con los rasgos narrativos de personalidad del Perfil.
+
+**Límites de lo aprobado:** esta es una decisión **condicional de la página 3**, **no** una política universal para todos los módulos vacíos ni autorización para omitir página 3 si todo el contenido narrativo también falta. No altera la página final manuscrita en blanco, la separación obligatoria de Notas, el logo D&D y nombre del PJ en todas las páginas, ni el Libro de Conjuros opcional.
+
+**Pendientes de validación integral:** cantidad y altura de líneas manuales, reparto exacto del área derecha, modo de lectura/flujo de Historia entre columnas, casos extremos con historias largas y la geometría física. También queda pendiente decidir otros módulos con contenido ausente, incluida la sección ordinaria de Equipo en página 2.
+
+**PIN VISUAL VIGENTE:** decisión documental estructural; sin cambios de código, renderizador, plantillas o generación de PDFs. La maqueta completa y sus pruebas físicas preceden a implementar.
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
@@ -513,7 +531,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**EXTENSIONES C2: composición AUTOMÁTICA APROBADA (§3.32): comparar disposición VERTICAL, DOS COLUMNAS y MIXTA, elegir la mejor sin intervención en cada exportación; se aplican prioridades de §3.31. Ubicación A mantiene continuaciones cerca de fuentes, con mezcla remota posible. NOTAS NUNCA SE MEZCLAN. ÚLTIMA HOJA DE NOTAS EN BLANCO INTACTA. REFERENCIAS BIDIRECCIONALES POR MÓDULO APROBADAS (§3.33, opción B). LIBRO DE CONJUROS OPCIONAL UBICADO AL FINAL DEL CONTENIDO DIGITAL (§3.34). SIN CONJUROS REGISTRADOS: OMISIÓN DE PÁGINA DE LISTA RÁPIDA APROBADA (§3.35, A), SIN ALTERAR EL MÓDULO MÁGICO DE P1. SIGUIENTE DISCUSIÓN: otros casos de contenido ausente, anexos restantes y cabida real. PIN VISUAL ACTIVO.**
+**EXTENSIONES C2: composición AUTOMÁTICA APROBADA (§3.32): comparar disposición VERTICAL, DOS COLUMNAS y MIXTA, elegir la mejor sin intervención en cada exportación; se aplican prioridades de §3.31. Ubicación A mantiene continuaciones cerca de fuentes, con mezcla remota posible. NOTAS NUNCA SE MEZCLAN. ÚLTIMA HOJA DE NOTAS EN BLANCO INTACTA. REFERENCIAS BIDIRECCIONALES POR MÓDULO APROBADAS (§3.33, opción B). LIBRO DE CONJUROS OPCIONAL UBICADO AL FINAL DEL CONTENIDO DIGITAL (§3.34). SIN CONJUROS REGISTRADOS: OMISIÓN DE PÁGINA DE LISTA RÁPIDA APROBADA (§3.35, A), SIN ALTERAR EL MÓDULO MÁGICO DE P1. PÁGINA 3 SIN RASGOS PENDIENTES: VARIANTE C HÍBRIDA CON RESERVA MANUAL COMPACTA E HISTORIA EN ESPACIO RESTANTE (§3.36). SIGUIENTE DISCUSIÓN: EQUIPO ORDINARIO SIN REGISTROS EN PÁGINA 2; luego otros vacíos, anexos y cabida física. PIN VISUAL ACTIVO.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
