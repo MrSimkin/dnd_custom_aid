@@ -767,7 +767,6 @@ internal class DesktopClassicRenderer(
                     layouts = classicTraitCompositionLayouts(),
                 ),
             )
-            recordPaginationTrace(CLASSIC_GLOBAL_TRAITS_FRONT_ID, step)
             val placements = step.page.placements
                 .filter { it.module == PcSheetSemanticModule.TRAITS }
                 .sortedBy { placement ->
@@ -787,6 +786,51 @@ internal class DesktopClassicRenderer(
                 val selectedIndex = if (preferredIndex >= 0) preferredIndex else 0
                 placement.slotId to remainingColumns.removeAt(selectedIndex)
             }
+
+            // Report measured native ruled rows and the next complete same-category
+            // feature slice. A whole packed column is not an atomic feature record.
+            // Different headings cannot be silently interleaved within a frozen frame.
+            val usedTraitRows = pageColumns.sumOf { (_, column) ->
+                column.entries.sumOf(::classicFeaturePhysicalRows)
+            }
+            val nextSameCategorySlices = pageColumns.mapNotNull { (_, column) ->
+                val nextEntry = remainingColumns.firstOrNull { pending ->
+                    pending.preferredSlotId == column.preferredSlotId
+                }?.entries?.firstOrNull()
+                nextEntry?.let { candidate ->
+                    classicFeaturePhysicalRows(candidate) to
+                        (CLASSIC_TRAIT_PHYSICAL_ROWS_PER_FRAME -
+                            column.entries.sumOf(::classicFeaturePhysicalRows))
+                }
+            }
+            val pendingTraits = step.remainingDemands.isNotEmpty()
+            val nextSliceFits = nextSameCategorySlices.any { (rows, available) ->
+                rows <= available
+            }
+            recordPaginationTrace(
+                CLASSIC_GLOBAL_TRAITS_FRONT_ID,
+                step.trace.copy(
+                    physical = PcSheetPhysicalPaginationTrace(
+                        metric = "native-trait-rows",
+                        used = usedTraitRows.toDouble(),
+                        capacity = pageColumns.size * CLASSIC_TRAIT_PHYSICAL_ROWS_PER_FRAME.toDouble(),
+                        nextAtomicUnitSize =
+                            nextSameCategorySlices.minOfOrNull { it.first }?.toDouble(),
+                        nextAtomicUnitFits = when {
+                            !pendingTraits -> null
+                            nextSameCategorySlices.isNotEmpty() -> nextSliceFits
+                            else -> null
+                        },
+                        rationale = when {
+                            !pendingTraits -> "trait-stream-exhausted"
+                            nextSliceFits -> "next-complete-trait-slice-fits-same-category-remnant"
+                            nextSameCategorySlices.isNotEmpty() ->
+                                "next-complete-trait-slice-exceeds-same-category-remnant"
+                            else -> "remaining-trait-category-requires-separate-native-frame"
+                        },
+                    ),
+                ),
+            )
 
             val page = addPage(doc)
             PDPageContentStream(doc, page).use { s ->

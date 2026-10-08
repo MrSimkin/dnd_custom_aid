@@ -747,6 +747,29 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 },
         )
 
+        val fantasyTraitPhysical = paginationTrace.filter { entry ->
+            entry.family == PcSheetVisualFamily.CLASSIC_DND_STYLE &&
+                entry.frontId == "fantasy-global-traits"
+        }
+        assertTrue(
+            fantasyTraitPhysical.isNotEmpty() &&
+                fantasyTraitPhysical.all { entry ->
+                    entry.composition.physical?.metric == "native-trait-rows" &&
+                        entry.composition.physical.used <= entry.composition.physical.capacity &&
+                        entry.composition.physical.rationale.isNotBlank()
+                },
+            "Fantasy Traits must trace the physical native ruled-row usage of every page.",
+        )
+        assertTrue(
+            fantasyTraitPhysical.none { entry ->
+                entry.composition.hasPhysicallyAvoidableNextPage()
+            },
+            "Fantasy Traits must not open a page when a complete same-category " +
+                "atomic feature slice fits the prior native frame: " +
+                fantasyTraitPhysical.filter { it.composition.hasPhysicallyAvoidableNextPage() }
+                    .joinToString { it.frontId + "#" + it.decisionOrdinal },
+        )
+
         val expectedTraceFamilies = proofs.mapTo(mutableSetOf()) { it.first }
         expectedTraceFamilies.forEach { family ->
             val familyTrace = paginationTrace.filter { it.family == family }
