@@ -103,7 +103,9 @@ Consultar una sola decisión cada vez, registrar su estado y detenerse antes de 
 
 **PROHIBICIÓN EN PIE:** **Notas** mantiene páginas exclusivas C-N3/continuaciones y NUNCA entra a las composiciones mixtas C2. La última hoja rayada/cuadriculada en blanco debe permanecer al final incluso con anexos. No se implementa código/PDF; PIN VISUAL sigue activo.
 
-**SIGUIENTE DECISIÓN EXACTA:** establecer cómo rotular en las páginas originales los módulos que continúan, y cómo localizarlos en una página extendida compartida por varias secciones. Paginar antes de asignar números reales; decidir entre referencias textuales mínimas, referencias destacadas o navegación cruzada bidireccional, sin alterar geometría ornamental final.
+**REFERENCIAS DE CONTINUACIÓN — ALTERNATIVA B APROBADA (2026-10-08):** el propietario elige **referencias bidireccionales por módulo**. En la página de origen, cada módulo que desborde señala brevemente la página física donde sigue; en cada extensión C2, cada módulo se identifica como **CONTINUACIÓN** y dispone de referencia de regreso al tramo anterior/origen. Si el mismo módulo continúa de nuevo, se indica además su siguiente destino; una extensión compartida lleva referencias **independientes** para Ataques, Equipo, Rasgos u otros módulos que aloje. Los números se calculan sobre la **paginación final**, y se actualizan cuando esta cambie. No se aprueba un índice global como requisito; los ejemplos numéricos no fijan páginas reales. Siguen vigentes las prioridades C2, la exclusividad absoluta de Notas y la última hoja manuscrita en blanco.
+
+**AÚN EN DISCUSIÓN:** formulación gráfica exacta, dimensiones, flechas, tratamientos de cadenas largas (incluida posible referencia al origen inicial), algoritmo real de paginación, anexos y casos sin contenido. **PIN VISUAL ACTIVO.** No implementar código ni exportador PDF.
 
 ## Restricciones
 
