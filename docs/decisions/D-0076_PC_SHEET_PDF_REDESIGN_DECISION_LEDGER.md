@@ -470,6 +470,20 @@ La **opción C general y la página final en blanco SÍ están aprobadas**. **AC
 
 **Alcance todavía NO cerrado:** texto final exacto de las señales, iconografía y flechas, posición física o tamaño, si en cadenas largas se repite además la referencia a la primera página de la sección, manejo pormenorizado de saltos internos y algoritmo concreto de paginación/actualización. La elección B **no aprueba un índice adicional**, proporciones o diseño ornamental, ni autoriza implementar o renderizar el PDF; continúa el PIN VISUAL.
 
+### 3.34 Libro de Conjuros opcional — ubicación B al final del contenido digital (APROBADO, 2026-10-08)
+
+**Elección expresa del propietario:** el **Libro de Conjuros no forma parte técnicamente de la Hoja de PJ**, sino que es un **anexo opcional**; por ello selecciona su **ubicación B, al final del contenido digital del PDF**, en vez de situarlo inmediatamente después de la hoja rápida de Conjuros.
+
+**Orden estructural acordado, cuando se solicita el anexo:**
+1. Páginas ordinarias de la Hoja de PJ y sus extensiones C2, según las políticas ya aprobadas de colocación/paginación.
+2. Páginas exclusivas de **Notas digitales C-N3** y, si existen, sus continuaciones.
+3. **Libro de Conjuros opcional**, con las páginas que necesiten sus contenidos detallados.
+4. **Una última página completa en blanco para escritura manuscrita**, con renglones en dos columnas superiores y cuadrícula inferior, logo D&D y nombre del PJ. **Esta hoja sigue siendo literalmente la última página de todo el PDF**, incluso cuando hay Libro de Conjuros.
+
+Si no se incluye el Libro de Conjuros, este tramo se omite y la hoja manuscrita sigue cerrando la exportación. **Las páginas de Notas nunca se mezclan con el Libro ni con otros módulos**. La lista rápida de Conjuros de la hoja principal conserva sus contratos; no se sustituye por el Libro.
+
+**No se decide aquí:** formato interno y portada del Libro, número/capacidad de páginas, reglas de división de entradas, otros anexos opcionales, geometría ni implementación del orden final. Los números de página y referencias se resuelven después de paginar. **PIN VISUAL ACTIVO; ninguna modificación de código, plantilla ni exportador PDF queda autorizada.**
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
@@ -486,7 +500,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**EXTENSIONES C2: composición AUTOMÁTICA APROBADA (§3.32): comparar disposición VERTICAL, DOS COLUMNAS y MIXTA, elegir la mejor sin intervención en cada exportación; se aplican prioridades de §3.31. Ubicación A mantiene continuaciones cerca de fuentes, con mezcla remota posible. NOTAS NUNCA SE MEZCLAN. ÚLTIMA HOJA DE NOTAS EN BLANCO INTACTA. REFERENCIAS BIDIRECCIONALES POR MÓDULO APROBADAS (§3.33, opción B). SIGUIENTE DISCUSIÓN: detalle de navegación en cadenas largas y casos especiales, después anexos, no lanzadores y cabida real. PIN VISUAL ACTIVO.**
+**EXTENSIONES C2: composición AUTOMÁTICA APROBADA (§3.32): comparar disposición VERTICAL, DOS COLUMNAS y MIXTA, elegir la mejor sin intervención en cada exportación; se aplican prioridades de §3.31. Ubicación A mantiene continuaciones cerca de fuentes, con mezcla remota posible. NOTAS NUNCA SE MEZCLAN. ÚLTIMA HOJA DE NOTAS EN BLANCO INTACTA. REFERENCIAS BIDIRECCIONALES POR MÓDULO APROBADAS (§3.33, opción B). SIGUIENTE DISCUSIÓN: detalle de navegación en cadenas largas y casos especiales, después casos sin contenido, tratamiento de otros anexos y cabida real; Libro de Conjuros ubicado al final del contenido digital (§3.34). PIN VISUAL ACTIVO.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
