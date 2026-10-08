@@ -128,6 +128,18 @@ La denominación del módulo es **«Rasgos y Atributos»** (como en la hoja de i
 
 **Continuidad y presentación aún por definir:** cantidad de elementos visibles en la primera página; ubicación y altura respecto a Ataques y otros módulos; cuándo mover excedentes a extensiones; manejo de nombres excepcionalmente largos; tratamiento visual para otros orígenes y datos custom. La lista se preservará íntegra sin omisiones; «una línea por rasgo» describe el formato de entrada, no una autorización para cortar texto largo o fijar cantidad de renglones.
 
+### 3.10 Ataques + Rasgos y Atributos — reparto vertical OPCIÓN C (APROBADO)
+
+**APROBADO por el propietario:** composición **dinámica con un mínimo útil para escritura manual** entre los módulos independientes de **Ataques** y **Rasgos y Atributos**, dispuestos de forma vertical en la sección derecha debajo del bloque 01 de Combate.
+
+- Ambos módulos conservan una **reserva razonable de espacio escribible**, incluso con pocas entradas, sin imponer una tabla completamente fija.
+- Su altura puede **adaptarse a la cantidad de contenido** real de cada módulo. El espacio que no utilice uno puede aprovecharlo el otro, sin fabricar paneles vacíos de gran tamaño.
+- **Ninguno debe desaparecer ni quedar completamente expulsado de la primera página por el crecimiento del otro**. Cuando la información no quepa legiblemente, trasladar el excedente a una o más páginas de extensión, conservando las entradas sin duplicaciones, omisiones ni descripciones de rasgos.
+- En extensiones, no repetir sin motivo grandes andamiajes o zonas vacías para módulos ya agotados.
+- La reserva manual es una **regla de producto y uso en papel**, no autoriza filas vacías ilimitadas, descartar contenido, ni sacrificar otros elementos esenciales de la primera página.
+
+**EXPRESAMENTE SIN FIJAR:** número de filas de cada módulo, mínimos de filas, medidas físicas, proporciones de altura, umbrales de salto, orden detallado de los excedentes y algoritmo de reparto. Los casos numéricos en wireframes son exclusivamente ilustrativos. La composición debe reconsiderarse cuando se definan los demás módulos de la primera página y validarse con casos reales antes de su implementación.
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
@@ -144,10 +156,10 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**SECCIÓN 01 — SECCIÓN DERECHA: composición espacial de Ataques y Rasgos y Atributos, y demás módulos por definir.**
+**SECCIÓN 01 — SECCIÓN DERECHA: próximos módulos pendientes (empezando por Lanzamiento de Conjuros) y su convivencia con los bloques 01–03.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
-**Decisiones más recientes:** silueta genérica sin retrato; logo + nombre del PJ en todas las páginas; primera página compacta; Clase / Nivel a la derecha del retrato; Raza/Alineamiento 60/40; variantes A/B seleccionables; adaptación de la primera página para unos 2–3 atributos personalizados con habilidades y habilidades custom ligadas a atributos normales; páginas extendidas para lo que no quepa. **Bloque 01 derecho APROBADO:** tres filas y ocho campos; dados de golpe solo texto; sin PV temporales ni salvaciones contra la muerte. **Bloque 02 Ataques APROBADO:** tabla resumen unificada con tres columnas (ARMA / ATAQUE / CONJURO; BONIFICADOR; DAÑO / TIPO DE DAÑO). **Bloque 03 Rasgos y Atributos APROBADO:** lista origen - nombre de cada rasgo, sin descripciones en ninguna página. Pendientes la distribución espacial y las extensiones.
+**Decisiones más recientes:** silueta genérica sin retrato; logo + nombre del PJ en todas las páginas; primera página compacta; Clase / Nivel a la derecha del retrato; Raza/Alineamiento 60/40; variantes A/B seleccionables; adaptación de la primera página para unos 2–3 atributos personalizados con habilidades y habilidades custom ligadas a atributos normales; páginas extendidas para lo que no quepa. **Bloque 01 derecho APROBADO:** tres filas y ocho campos; dados de golpe solo texto; sin PV temporales ni salvaciones contra la muerte. **Bloque 02 Ataques APROBADO:** tabla resumen unificada con tres columnas (ARMA / ATAQUE / CONJURO; BONIFICADOR; DAÑO / TIPO DE DAÑO). **Bloque 03 Rasgos y Atributos APROBADO:** lista origen - nombre de cada rasgo, sin descripciones en ninguna página. **Reparto Ataques/Rasgos aprobado: opción C**, alturas dinámicas, reservas para escritura manual, ninguno desplazado completamente, sin fijar filas/medidas. Continuidades y otros módulos aún por estudiar.
 
 **Implementación:** BLOQUEADA hasta aprobación explícita de un contrato suficientemente completo y de las validaciones técnicas necesarias.
