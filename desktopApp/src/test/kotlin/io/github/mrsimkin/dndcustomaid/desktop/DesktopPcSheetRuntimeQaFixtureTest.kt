@@ -7,6 +7,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportPlanner
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetSemanticModule
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPaginationTraceEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.toStableJsonLine
