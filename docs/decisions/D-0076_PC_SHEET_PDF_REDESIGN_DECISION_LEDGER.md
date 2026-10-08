@@ -365,11 +365,22 @@ El lenguaje visual de referencia A usa encabezados claramente diferenciados, mar
 - **C-N2 «dos columnas funcionales»:** notas tituladas en una columna y notas generales en la otra, rematando con banda inferior manual.
 - **C-N3 «prioridad a notas digitales»:** notas digitales ocupan el espacio principal y continúa su contenido sin recortes; reserva manual interior menor, apoyándose en la página final siempre en blanco.
 
-La **opción C general y la página final en blanco SÍ están aprobadas**; **la variante interna C-N1/C-N2/C-N3 NO está seleccionada**, tampoco los porcentajes, columnas internas exactas, cantidades de cuadros/líneas, carácter de las páginas de continuación ni medidas. La propuesta no supone aprobación de fuentes/ornamentos.
+La **opción C general y la página final en blanco SÍ están aprobadas**. **ACTUALIZACIÓN POSTERIOR: la variante C-N3 quedó seleccionada en §3.28**, en reemplazo de esta frase histórica sobre variantes pendientes. No están aprobados porcentajes, cantidad de tarjetas, columnas internas exactas, medidas ni estilo ornamental.
 
 **Datos de la App revisados:** `CharacterNotesTabV4.kt` distingue **Notas generales** (texto `generalNotes`) y **Notas con título** (cada tarjeta con `title` y `content`). El original `Hoja de PJ v2 - 5.0 - Simkin.pdf` presenta una última hoja de Notas en blanco con renglones a dos columnas superiores y cuadrícula inferior. La nueva exportación debe proteger ambos tipos de contenido sin duplicarlo.
 
 **PIN VISUAL VIGENTE:** pruebas finales de la ornamentación C2c, tipografías de valores y muestras reales solo cuando esté completo el modelo estructural de páginas. Solo se documentan decisiones; no se autoriza implementar código, templates ni PDF.
+
+### 3.28 Página de Notas — variante C-N3, prioridad al contenido digital (APROBADO, 2026-10-08)
+
+**Decisión explícita del propietario:** al comparar C-N1/C-N2/C-N3, selecciona **C-N3 — «Prioridad a las notas digitales»**. Esta es la **variante interna aprobada para la opción C híbrida adaptable** de §3.27, no un cambio al estilo de página 4 ni a otra opción C del proyecto.
+
+- **Distribución conceptual:** **Notas con título** de la App ocupan el área principal, con sus títulos y contenidos íntegros y una jerarquía clara; **Notas generales** aparecen en un módulo amplio a continuación. La estructura debe priorizar el contenido escrito real y expandirse o continuar en páginas adicionales cuando sea necesario, sin trunca­miento ni pérdida de entradas.
+- **Reserva manual secundaria:** permitir un espacio menor de anotaciones libres dentro de la página de notas digitales cuando la capacidad lo permita, sin que esa zona comprima el contenido preexistente. El diseño no establece un porcentaje fijo de área libre, un número fijo de tarjetas ni obliga a crear vacíos grandes.
+- **Última página obligatoria en blanco INTACTA:** después de las páginas con notas digitales y cualquier continuación, la exportación de hoja debe conservar al FINAL una **página completa en blanco** según §3.27: renglones en dos columnas arriba y cuadrícula abajo, más logo y nombre del PJ conforme a la regla de cabeceras. Esta página no se usa para el desbordamiento de notas ni se llena automáticamente con datos digitales.
+- **Con anexos opcionales:** sigue pendiente resolver el orden físico de Libro de Conjuros y extensiones para cumplir siempre la condición de última hoja en blanco. La elección C-N3 no resuelve por sí sola ese orden.
+
+**NO APROBADO todavía:** medidas/proporciones exactas de C-N3, número de tarjetas por hoja, tipografía de texto rellenado, tratamiento de páginas sin notas, corte de notas muy extensas y reglas físicas de desbordamiento; C-N1 y C-N2 quedan como opciones examinadas pero no elegidas. **PIN visual vigente:** las pruebas de ornamentación y tipografías se harán sobre el modelo completo. Ninguna autorización para editar código, plantillas ni generador PDF.
 
 ## 4. Límites del acuerdo
 
@@ -387,7 +398,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**NOTAS OPCIÓN C (híbrida adaptable) y ÚLTIMA PÁGINA BLANCA tipo original APROBADAS. PENDIENTE ELEGIR diagramación interna C-N1/C-N2/C-N3. SIGUIENTE FASE: resolver esa variante, extensiones/continuaciones, casos sin conjuros, anexos y eventual uso de imágenes de Trasfondo. PIN VISUAL ACTIVO hasta modelo integral completo.**
+**NOTAS: C-N3 (PRIORIDAD DIGITAL) APROBADA DENTRO DE OPCIÓN C. ÚLTIMA PÁGINA BLANCA INALTERABLE. SIGUIENTE FASE: reglas estructurales de extensiones/continuaciones, casos sin conjuros, anexos opcionales y ubicación de imágenes de Trasfondo. PIN VISUAL ACTIVO hasta modelo integral completo.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 

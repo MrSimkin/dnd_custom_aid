@@ -78,9 +78,9 @@ Consultar una sola decisión cada vez, registrar su estado y detenerse antes de 
 
 **PÁGINA FINAL EN BLANCO — OBLIGATORIA, APROBADA:** el propietario pide que la exportación de hoja de PJ **TERMINE con UNA PÁGINA COMPLETA sin notas digitales preimpresas**, al estilo del PDF original: renglones **en dos columnas arriba**, y **cuadrícula abajo** para escribir y dibujar. No sustituirla por un pequeño módulo de renglones ni consumirla como desbordamiento. Conservar logo D&D y nombre del PJ como cabecera en cada página. La integración con Libro de Conjuros opcional/anexos debe resolver un orden que preserve la página en blanco al final; no se modifica aún el exportador real.
 
-**TRES DIAGRAMAS DE C PARA EVALUAR, NO APROBADOS:** C-N1 (tarjetas tituladas arriba, notas generales centro y manual mixto abajo), C-N2 (notas tituladas izquierda, generales derecha, banda manual inferior), C-N3 (notas digitales dominantes, reserva libre pequeña, compensada por última hoja en blanco). **El asistente recomienda C-N1 pero el propietario aún NO escogió variante.** Proporciones, número de filas, capacidad, anexos y formato definitivo quedan pendientes. **PIN VISUAL activo** hasta modelo completo, sin código/plantillas/PDF.
+**VARIANTES HISTÓRICAS / DECISIÓN POSTERIOR:** se estudiaron C-N1 (equilibrada), C-N2 (dos columnas) y C-N3 (prioridad digital). **El propietario seleccionó expresamente C-N3**, desplazando la recomendación preliminar C-N1. En las páginas de Notas se priorizan tarjetas de Notas con título y el módulo de Notas generales con su contenido auténtico, más un espacio manual pequeño si cabe; el texto excedente pasa a continuación. La última página entera en blanco, con renglones arriba y cuadrícula abajo, se mantiene independientemente de la cantidad de notas y no recibe contenido digital. Proporciones, número de tarjetas/filas y orden con anexos siguen pendientes. **PIN VISUAL activo**, sin código/plantillas/PDF.
 
-**SIGUIENTE DECISIÓN:** elegir C-N1/C-N2/C-N3 y continuar con reglas de extensiones y contenido ausente.
+**SIGUIENTE FASE:** la variante C-N3 ya está aprobada; continuar con las reglas de extensiones, contenido ausente, anexos opcionales e imágenes de Trasfondo. No reabrir ornamentación hasta la maqueta de todas las páginas.
 
 ## Restricciones
 
