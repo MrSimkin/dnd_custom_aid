@@ -105,7 +105,16 @@ Estas opciones son **variantes de presentación** de la sección izquierda, no p
 
 **Pendiente de validación visual:** dimensiones físicas, proporciones, espaciado, tipografías, decoración, estado de Inspiración y presentación precisa de valores. El boceto de tres filas es autoridad **estructural**, no maqueta final de píxeles. Los valores mostrados en bocetos son ficticios.
 
-**Siguiente módulo EN DISCUSIÓN:** **Ataques**. La hoja del propietario usa históricamente columnas `Arma / Conjuro`, `Bonificador`, `Daño / Tipo de daño`, solo como inspiración. No se han aprobado todavía columnas definitivas, cantidad de ataques visibles, manejo de renglones largos, contenido custom ni política de extensiones para este módulo.
+### 3.8 Sección derecha / Bloque 02 — Ataques (estructura y semántica APROBADAS)
+
+**APROBADO:** tabla **unificada** de resumen de ataques, armas y conjuros, con **tres columnas**, en este orden:
+1. **ARMA / ATAQUE / CONJURO**;
+2. **BONIFICADOR**;
+3. **DAÑO / TIPO DE DAÑO**.
+
+El propietario aclara que este bloque es **la lista resumen de ataques ya concebida en la App**. El exportador debe presentar el resumen correspondiente al PJ, sin reinterpretarlo como inventario completo, ficha detallada del arma/conjuro ni agregar columnas de alcance, propiedades, descripciones extensas o efectos por iniciativa propia. La tabla puede mezclar armas, ataques y conjuros en una sola lista. El contenido factual debe provenir del modelo/resumen existente de la App, no de valores inventados.
+
+**Pendiente:** número de filas que caben en la primera página, alturas/ancho de columnas, tipografía, saltos de línea, orden de entradas según reglas de la App, datos personalizados y tratamiento del excedente. No aprobar cantidad fija de filas, cortes ni extensión específica de este módulo sin discutirlo. Los valores de las maquetas son ficticios.
 
 ## 4. Límites del acuerdo
 
@@ -123,10 +132,10 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**SECCIÓN 01 — SECCIÓN DERECHA: módulo de Ataques (después de aprobar el bloque 01 de combate).**
+**SECCIÓN 01 — SECCIÓN DERECHA: módulo siguiente a la tabla resumen de Ataques (rasgos y recursos, EN DISCUSIÓN).**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
-**Decisiones más recientes:** silueta genérica sin retrato; logo + nombre del PJ en todas las páginas; primera página compacta; Clase / Nivel a la derecha del retrato; Raza/Alineamiento 60/40; variantes A/B seleccionables; adaptación de la primera página para unos 2–3 atributos personalizados con habilidades y habilidades custom ligadas a atributos normales; páginas extendidas para lo que no quepa. **Bloque 01 derecho APROBADO (tres filas y ocho campos; dados de golpe solo texto; excluidos PV temporales y salvaciones contra la muerte). Próximo módulo en discusión: ATAQUES.**
+**Decisiones más recientes:** silueta genérica sin retrato; logo + nombre del PJ en todas las páginas; primera página compacta; Clase / Nivel a la derecha del retrato; Raza/Alineamiento 60/40; variantes A/B seleccionables; adaptación de la primera página para unos 2–3 atributos personalizados con habilidades y habilidades custom ligadas a atributos normales; páginas extendidas para lo que no quepa. **Bloque 01 derecho APROBADO (tres filas y ocho campos, dados de golpe solo texto, sin PV temporales ni salvaciones contra la muerte). Bloque 02 Ataques APROBADO como tabla resumen unificada con tres columnas: ARMA / ATAQUE / CONJURO; BONIFICADOR; DAÑO / TIPO DE DAÑO. Siguiente módulo: rasgos y recursos.**
 
 **Implementación:** BLOQUEADA hasta aprobación explícita de un contrato suficientemente completo y de las validaciones técnicas necesarias.
