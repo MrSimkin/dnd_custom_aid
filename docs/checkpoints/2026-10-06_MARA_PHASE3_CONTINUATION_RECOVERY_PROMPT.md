@@ -345,3 +345,11 @@ Most recent **functional** HEAD at this record: `a8efb04ac137e9360afaad29bf845e2
 - Last candidate PR #117 CLOSED WITHOUT MERGE, preqa.9/10 rejected; preqa.11 **NOT AUTHORIZED**.
 - Bounded native Traits column transfer FIXED, but M50800-10, M50800-14, M50800-24, M50800-27 and M50800-31 **remain OPEN**. Physical trace = 77 entries / 36 physical / 41 without physical, so do not claim scheduler closure.
 - **Next:** demonstrate remaining atomic native placement and alternative-layout eligibility, especially Custom-v2 Details-only residual and three-family Resources/Options; extend invariants, repair only proven generic reclaim; inspect real exact PDF before advancing.
+
+## 12. Verified continuation anchor — 2026-10-07, physical traces complete, global scheduler OPEN
+
+Verify remote HEAD and recent CI before write. At this capture: **functional HEAD** `e49f298c9bddacba2678778e0435b995a4cd3d5e`; run `37714224487` SUCCESS; exact Mara proof artifact `11523426740`, ZIP SHA-256 `6004c6ff733d0d95fef9d8803cf3bd75b5e700ae8be23cd0a7248b4259d8a700`.
+
+**76/76** exact Mara pagination decisions have physical trace and focused invariants; four PDF families preserved their text across the last instrumentation. This is **not** a global-physical closure. The source-native composite feasibility in Custom-v1 (last Traits 2 rows + last Resources 9 rows, Resources top 10 native rows, Traits bottom y=390..668pt) has a diagnostic native-fragment PDF, but no actual renderer proof or semantics-safe global scheduler. See the latest section of `2026-10-06_MARA_PHASE3_HEALTH_CONSOLIDATION.md` for full commit/run/artifact chain and diagnostic reproduction coordinates.
+
+**Next actual task:** global cross-front physical layout compatibility and role/order/continuity eligibility, beginning with Custom-v1 Resources-upper + Traits-lower; establish invariant before generic code change and inspect all four actual PDFs. Do not move trailing Traits after Combat or reorder Resources without proving allowed semantic continuity. M50800-10/14/24/27/31 remain OPEN. Do NOT create preqa.11 / APK, do NOT merge PR #117, no reset/force/replay.
