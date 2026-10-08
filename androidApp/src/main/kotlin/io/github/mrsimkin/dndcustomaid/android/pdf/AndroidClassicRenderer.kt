@@ -1558,12 +1558,14 @@ internal class AndroidClassicRenderer(
     ) {
         val resources = classicResourceRows(plan)
         val options = classicOptionRows(plan)
+        val resourceAtoms = nativeRecordRowSizes(resources.map { it.atomicStart })
+        val optionAtoms = nativeRecordRowSizes(options.map { it.atomicStart })
         var demands = buildList {
             if (resources.isNotEmpty()) {
-                add(PcSheetModuleDemand(PcSheetSemanticModule.RESOURCES, resources.size))
+                add(PcSheetModuleDemand(PcSheetSemanticModule.RESOURCES, resources.size, resourceAtoms))
             }
             if (options.isNotEmpty()) {
-                add(PcSheetModuleDemand(PcSheetSemanticModule.CLASS_CHOICES, options.size))
+                add(PcSheetModuleDemand(PcSheetSemanticModule.CLASS_CHOICES, options.size, optionAtoms))
             }
         }
         if (demands.isEmpty()) return
@@ -1593,6 +1595,16 @@ internal class AndroidClassicRenderer(
             val optionCount = optionPlacement?.consumedUnits ?: 0
             val resourceCapacity = resourcePlacement?.nativeCapacity ?: 0
             val optionCapacity = optionPlacement?.nativeCapacity ?: 0
+            // Renderer hard invariant: no Extended page may cut a logical Resource/Option
+            // record at its physical-row continuation boundary.
+            check(resourceOffset + resourceCount == resources.size ||
+                resources[resourceOffset + resourceCount].atomicStart) {
+                "Fantasy Resources physical scheduler split an atomic native record."
+            }
+            check(optionOffset + optionCount == options.size ||
+                options[optionOffset + optionCount].atomicStart) {
+                "Fantasy Options physical scheduler split an atomic native record."
+            }
             val pageResources = resources.drop(resourceOffset).take(resourceCount)
             val pageOptions = options.drop(optionOffset).take(optionCount)
 
@@ -1833,6 +1845,23 @@ internal class AndroidClassicRenderer(
         } ?: maximum?.let { "$current/$it" } ?: current.toString()
     }
 
+    private fun nativeRecordRowSizes(starts: List<Boolean>): List<Int> {
+        if (starts.isEmpty()) return emptyList()
+        require(starts.first()) { "First row of a native record must identify its start." }
+        val sizes = mutableListOf<Int>()
+        var current = 0
+        starts.forEach { start ->
+            if (start && current > 0) {
+                sizes += current
+                current = 0
+            }
+            current += 1
+        }
+        sizes += current
+        check(sizes.sum() == starts.size)
+        return sizes
+    }
+
     private fun classicResourceRows(plan: PcSheetPdfRenderPlan): List<ClassicResourceRow> {
         val aggregate = plan.snapshot.aggregate
         val recoveryById = aggregate.closure.resourceRecovery.associateBy { it.resourceId }
@@ -1953,6 +1982,7 @@ internal class AndroidClassicRenderer(
                 recovery = projectedRecovery.takeIf { index == 0 }.orEmpty(),
                 source = sourceChunks.getOrNull(index).orEmpty(),
                 notes = noteChunks.getOrNull(index).orEmpty(),
+                atomicStart = index == 0,
             )
         }
     }
@@ -1996,6 +2026,7 @@ internal class AndroidClassicRenderer(
                         },
                         source = sourceChunks.getOrNull(index).orEmpty(),
                         description = detailChunks.getOrNull(index).orEmpty(),
+                        atomicStart = index == 0,
                     )
                 }
             }
@@ -4696,6 +4727,7 @@ private fun ruledTextArea(
         val recovery: String,
         val source: String,
         val notes: String,
+        val atomicStart: Boolean = true,
     )
 
     private data class ClassicCombatReferenceRow(
@@ -4720,6 +4752,7 @@ private fun ruledTextArea(
         val name: String,
         val source: String,
         val description: String,
+        val atomicStart: Boolean = true,
     )
 
     private data class ClassicFeature(

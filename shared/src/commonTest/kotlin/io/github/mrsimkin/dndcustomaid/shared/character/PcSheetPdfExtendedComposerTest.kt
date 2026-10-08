@@ -58,6 +58,38 @@ class PcSheetPdfExtendedComposerTest {
     }
 
     @Test
+    fun atomicNativeRecordsNeverSplitToFillAnInsufficientSlot() {
+        val step = requireNotNull(
+            PcSheetExtendedPageComposer.composeNextPage(
+                demands = listOf(
+                    PcSheetModuleDemand(
+                        PcSheetSemanticModule.CLASS_CHOICES,
+                        remainingUnits = 4,
+                        atomicUnitSizes = listOf(2, 2),
+                    ),
+                ),
+                layouts = listOf(
+                    PcSheetExtendedLayoutTemplate(
+                        id = "three-native-rows",
+                        slots = listOf(slot("options", PcSheetSemanticModule.CLASS_CHOICES to 3)),
+                    ),
+                ),
+            ),
+        )
+        assertEquals(2, step.page.placements.single().consumedUnits)
+        assertEquals(listOf(2), step.remainingDemands.single().atomicUnitSizes)
+        assertEquals(2, step.remainingDemands.single().remainingUnits)
+        val physical = step.traceWithNativeSlotUtilization(
+            PcSheetExtendedLayoutTemplate(
+                id = "three-native-rows",
+                slots = listOf(slot("options", PcSheetSemanticModule.CLASS_CHOICES to 3)),
+            ),
+        ).physical
+        assertEquals(false, physical?.nextAtomicUnitFits)
+        assertEquals(2.0 / 3.0, physical?.nextAtomicUnitSize)
+    }
+
+    @Test
     fun exhaustedModulesDoNotReserveTheirOldSlots() {
         val step = requireNotNull(
             PcSheetExtendedPageComposer.composeNextPage(

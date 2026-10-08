@@ -88,7 +88,13 @@ fun PcSheetPaginationTraceEntry.toStableJsonLine(): String = buildString {
             append(quoted(demand.module.name))
             append(",\"remainingUnits\":")
             append(demand.remainingUnits)
-            append('}')
+            append(",\"atomicUnitSizes\":[")
+            demand.atomicUnitSizes.forEachIndexed { atomIndex, rows ->
+                if (atomIndex > 0) append(',')
+                append(rows)
+            }
+            append("]}")
+
         }
         append(']')
     }
@@ -274,9 +280,45 @@ fun PcSheetExtendedCompositionTrace.reclaimableExhaustedModules(): Set<PcSheetSe
 data class PcSheetModuleDemand(
     val module: PcSheetSemanticModule,
     val remainingUnits: Int,
+    /** Ordered whole-record sizes measured in this module's native physical row units. */
+    val atomicUnitSizes: List<Int> = emptyList(),
 ) {
     init {
         require(remainingUnits > 0) { "Active module demand must be positive." }
+        require(atomicUnitSizes.all { it > 0 }) { "Native atomic records must occupy positive rows." }
+        require(atomicUnitSizes.isEmpty() || atomicUnitSizes.sum() == remainingUnits) {
+            "Ordered native atomic record sizes must exactly cover the remaining physical rows."
+        }
+    }
+
+    fun afterConsuming(rows: Int): PcSheetModuleDemand? {
+        require(rows in 0..remainingUnits)
+        if (rows == remainingUnits) return null
+        if (atomicUnitSizes.isEmpty()) return copy(remainingUnits = remainingUnits - rows)
+        var consumed = rows
+        val remainingAtoms = atomicUnitSizes.dropWhile { atom ->
+            if (consumed >= atom) {
+                consumed -= atom
+                true
+            } else false
+        }
+        require(consumed == 0) { "Physical pagination must never split a native atomic record." }
+        return copy(remainingUnits = remainingUnits - rows, atomicUnitSizes = remainingAtoms)
+    }
+
+    /** Number of complete next atomic native records that fit; never split a record. */
+    fun wholeRowsFitting(alreadyConsumed: Int, capacity: Int): Int {
+        require(capacity >= 0 && alreadyConsumed in 0..remainingUnits)
+        if (atomicUnitSizes.isEmpty()) return minOf(capacity, remainingUnits - alreadyConsumed)
+        val pending = requireNotNull(afterConsuming(alreadyConsumed)) {
+            "Cannot fit records after a completely exhausted demand."
+        }
+        var count = 0
+        pending.atomicUnitSizes.forEach { size ->
+            if (count + size > capacity) return count
+            count += size
+        }
+        return count
     }
 }
 
@@ -389,6 +431,9 @@ fun PcSheetExtendedCompositionStep.traceWithNativeSlotUtilization(
     val slotsById = selectedLayout.slots.associateBy { it.id }
     val before = trace.demandsBefore.associate { it.module to it.remainingUnits }
     val after = trace.demandsAfter.associate { it.module to it.remainingUnits }
+    val afterDemands = trace.demandsAfter.associateBy { it.module }
+    fun nextAtomicRows(module: PcSheetSemanticModule): Int =
+        afterDemands[module]?.atomicUnitSizes?.firstOrNull() ?: 1
     val placedBySlot = page.placements.associateBy { it.slotId }
     require(placedBySlot.size == page.placements.size) {
         "Only one placement is permitted per physical native slot."
@@ -416,25 +461,27 @@ fun PcSheetExtendedCompositionStep.traceWithNativeSlotUtilization(
         )
     }
     val pending = after.isNotEmpty()
-    val compatibleRemainingCapacity = selectedLayout.slots.firstNotNullOfOrNull { slot ->
+    val compatibleRemaining = selectedLayout.slots.firstNotNullOfOrNull { slot ->
         val occupied = placedBySlot[slot.id]
         when {
             occupied != null &&
                 after.getOrDefault(occupied.module, 0) > 0 &&
-                occupied.consumedUnits < occupied.nativeCapacity ->
-                occupied.nativeCapacity
+                occupied.nativeCapacity - occupied.consumedUnits >= nextAtomicRows(occupied.module) ->
+                occupied.module to occupied.nativeCapacity
             occupied == null ->
-                slot.capacityByModule.entries.firstOrNull { (module, _) ->
-                    after.getOrDefault(module, 0) > 0
-                }?.value
+                slot.capacityByModule.entries.firstNotNullOfOrNull { (module, cap) ->
+                    (module to cap).takeIf {
+                        after.getOrDefault(module, 0) > 0 && nextAtomicRows(module) <= cap
+                    }
+                }
             else -> null
         }
     }
-    val nextUnitSlotCapacity = if (pending) {
-        compatibleRemainingCapacity ?: selectedLayout.slots.firstNotNullOfOrNull { slot ->
-            slot.capacityByModule.entries.firstOrNull { (module, _) ->
-                after.getOrDefault(module, 0) > 0
-            }?.value
+    val nextCandidate = if (pending) {
+        compatibleRemaining ?: selectedLayout.slots.firstNotNullOfOrNull { slot ->
+            slot.capacityByModule.entries.firstNotNullOfOrNull { (module, cap) ->
+                (module to cap).takeIf { after.getOrDefault(module, 0) > 0 }
+            }
         }
     } else null
     return trace.copy(
@@ -443,12 +490,14 @@ fun PcSheetExtendedCompositionStep.traceWithNativeSlotUtilization(
             metric = "native-slot-utilization",
             used = page.placements.sumOf { it.utilization },
             capacity = selectedLayout.slots.size.toDouble(),
-            nextAtomicUnitSize = nextUnitSlotCapacity?.let { 1.0 / it },
-            nextAtomicUnitFits = if (pending) compatibleRemainingCapacity != null else null,
+            nextAtomicUnitSize = nextCandidate?.let { (module, cap) ->
+                nextAtomicRows(module).toDouble() / cap
+            },
+            nextAtomicUnitFits = if (pending) compatibleRemaining != null else null,
             rationale = when {
                 !pending -> "resource-option-streams-exhausted"
-                compatibleRemainingCapacity != null -> "next-atomic-unit-fits-native-slot"
-                else -> "chosen-native-slots-exhausted;alternative-layouts-not-yet-proven"
+                compatibleRemaining != null -> "next-whole-native-record-fits-selected-slot"
+                else -> "next-whole-native-record-does-not-fit-selected-slot;alternative-layouts-unproven"
             },
         ),
     )
@@ -489,7 +538,7 @@ object PcSheetExtendedPageComposer {
             }
         }
 
-        val demandByModule = demands.associate { it.module to it.remainingUnits }
+        val demandByModule = demands.associateBy { it.module }
         val evaluated = candidateLayouts.mapNotNull { layout ->
             bestAssignment(layout, demandByModule)?.let { assignment ->
                 EvaluatedLayout(
@@ -499,13 +548,24 @@ object PcSheetExtendedPageComposer {
             }
         }
 
-        val best = evaluated.maxWithOrNull(
+        // Do not reward an extra filled slot over a physically dominant native layout.
+        // Compare measured area only when EVERY eligible layout supplies comparable measures.
+        val allMeasured = evaluated.isNotEmpty() && evaluated.all { it.measuredNativeArea != null }
+        val scoreOrder = if (allMeasured) {
+            compareBy<EvaluatedLayout> { requireNotNull(it.measuredNativeArea) }
+                .thenBy { it.totalUtilization }
+                .thenBy { it.filledSlots }
+                .thenBy { it.distinctModules }
+                .thenBy { -it.layout.priority }
+                .thenBy { it.layout.id }
+        } else {
             compareBy<EvaluatedLayout> { it.totalUtilization }
                 .thenBy { it.filledSlots }
                 .thenBy { it.distinctModules }
                 .thenBy { -it.layout.priority }
-                .thenBy { it.layout.id },
-        ) ?: error(
+                .thenBy { it.layout.id }
+        }
+        val best = evaluated.maxWithOrNull(scoreOrder) ?: error(
             "No valid Extended layout can consume the active modules: " +
                 demands.joinToString { it.module.name },
         )
@@ -515,8 +575,7 @@ object PcSheetExtendedPageComposer {
             .mapValues { (_, placements) -> placements.sumOf { it.consumedUnits } }
 
         val remaining = demands.mapNotNull { demand ->
-            val left = demand.remainingUnits - consumedByModule.getOrDefault(demand.module, 0)
-            if (left > 0) PcSheetModuleDemand(demand.module, left) else null
+            demand.afterConsuming(consumedByModule.getOrDefault(demand.module, 0))
         }
 
         return PcSheetExtendedCompositionStep(
@@ -546,7 +605,7 @@ object PcSheetExtendedPageComposer {
 
     private fun bestAssignment(
         layout: PcSheetExtendedLayoutTemplate,
-        demandByModule: Map<PcSheetSemanticModule, Int>,
+        demandByModule: Map<PcSheetSemanticModule, PcSheetModuleDemand>,
     ): List<PcSheetExtendedPlacement>? {
         var best: AssignmentScore? = null
 
@@ -574,7 +633,10 @@ object PcSheetExtendedPageComposer {
                 val demand = remaining[module] ?: return@forEach
                 if (demand <= 0) return@forEach
 
-                val consumed = minOf(demand, nativeCapacity)
+                val descriptor = requireNotNull(demandByModule[module])
+                val alreadyConsumed = descriptor.remainingUnits - demand
+                val consumed = descriptor.wholeRowsFitting(alreadyConsumed, nativeCapacity)
+                if (consumed == 0) return@forEach
                 val updatedRemaining = remaining.toMutableMap().apply {
                     this[module] = demand - consumed
                 }
@@ -593,7 +655,7 @@ object PcSheetExtendedPageComposer {
 
         search(
             slotIndex = 0,
-            remaining = demandByModule,
+            remaining = demandByModule.mapValues { it.value.remainingUnits },
             placements = emptyList(),
         )
         return best?.placements
