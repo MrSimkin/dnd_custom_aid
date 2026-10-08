@@ -170,6 +170,22 @@ No interpretar esta aprobación como obligación de imprimir descripciones de co
 
 **Alcance y pruebas pendientes:** la pauta de 7/5 mm se refiere a altura de líneas/renglones de listas/tablas, NO a que cada caja de estadísticas, atributo o celda de la cuadrícula mágica deba medir exactamente 7 mm. Las alturas de componentes multilineales pueden diferir. Validar a escala de impresión real, contraste y tintas, continuidad entre páginas, nombres largos, y adaptación de 5 mm en habilidades. No convertir una muestra de estilo en plantilla ni layout integral aprobado.
 
+### 3.13 Línea estética base A — Azul niebla clásico (SELECCIONADA)
+
+**Aprobado por el propietario como DIRECCIÓN ESTÉTICA BASE PROVISIONAL:** de las tres alternativas visuales exploradas (A Azul niebla clásico; B Azul niebla elegante; C Azul niebla arcano), se selecciona **A — Azul niebla clásico** como base de los siguientes wireframes y pruebas. No confundir esta **opción A estética** con la **variante A de agrupación de atributos**: las dos variantes funcionales de atributos A/B **siguen vigentes**.
+
+El lenguaje visual de referencia A usa encabezados claramente diferenciados, marcos contenidos y tonos suaves asociados al azul niebla. El propietario quiere comparar varias propuestas más adelante; **NO** se aprueban aún hexadecimales específicos, identidad visual definitiva, textura/decoración, fuentes, grosores, radios ni geometría de recuadros. Conservan autoridad las reglas ya aprobadas de filas 7 mm / habilidades posiblemente 5 mm, bandas alternadas en diferentes matices y casillas prácticas y estéticamente cuidadas.
+
+### 3.14 Módulos inferiores potenciales de página 1 — evaluación abierta
+
+**Exploración solicitada por el propietario:** revisar si **Tesoro**, **Otros** y **Municiones** realmente necesitan vivir en la primera página. El propietario **duda expresamente** de los tres, en especial de Tesoro/Otros; por ahora **NO** están aprobados como módulos obligatorios de página 1 ni como eliminados de la exportación.
+
+- **Municiones — CANDIDATO VISUAL PRIORITARIO EN PÁGINA 1:** si se incorpora, el propietario indica que su ubicación tentativa inicial es **aquí**, en la primera página, y quiere verlo dibujado. Estudiar módulo de seguimiento compacto con casillas de marcado legibles, nombre/tipo de munición si existe en datos, reserva escribible compatible con las reglas de producto. No aprobar aún presencia obligatoria, cantidad de filas/casillas, controles por tipo o paginación.
+- **Tesoro — PENDIENTE:** comparar integración compacta en página 1 con traslado a página posterior de pertenencias/inventario; no inventar contenido monetario ni decidir omisión.
+- **Otros — PENDIENTE:** cuestionar un módulo genérico sin función clara frente a áreas de anotaciones/notas ya existentes; no eliminar información asociada ni asumir un destino definido.
+
+**Riesgo de capacidad identificado para estudio:** la columna derecha ya considera Combate, Ataques, Rasgos y Atributos y Lanzamiento de Conjuros obligatorio (niveles 1–9, posible 10–12 épico). Encajar además Municiones/Tesoro/Otros exige validar altura y ancho físicos, protección de espacios para escritura manual y continuidad, especialmente porque el módulo de conjuros tiene una matriz horizontal de tres columnas. El boceto inicial con Municiones es exploratorio; NO demuestra cabida a escala real ni aprueba el mapa completo de página.
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
@@ -186,7 +202,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**SECCIÓN 01 — SECCIÓN DERECHA: integración espacial del módulo Lanzamiento de Conjuros (3 columnas + épico opcional), restantes módulos y validación de capacidad.**
+**SECCIÓN 01 — PRIMERA PÁGINA: validación de composición con estética A y candidatos Municiones/Tesoro/Otros, sin aprobarles presencia definitiva.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
