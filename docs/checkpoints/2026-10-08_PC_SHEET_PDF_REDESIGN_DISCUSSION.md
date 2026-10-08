@@ -30,7 +30,9 @@ Los bocetos anteriores son exploratorios. No hay medidas exactas, ubicación del
 
 **Bloque 02 — Ataques APROBADO como resumen:** tabla unificada que recoge la lista resumen ya prevista en la App, con columnas `ARMA / ATAQUE / CONJURO`, `BONIFICADOR` y `DAÑO / TIPO DE DAÑO`. No agregar columnas de detalle ni convertir el resumen en descripciones completas. Sin dimensiones definitivas ni política específica de desbordamiento todavía.
 
-**Continuación inmediata:** discutir el siguiente módulo de la derecha (**Rasgos y recursos**), sin confundir la tabla resumen de Ataques con una ficha detallada. La capacidad y mecanismo de expansión de la sección izquierda siguen pendientes de validación técnica y no autorizan implementación.
+**Bloque 03 derecho — Rasgos y Atributos APROBADO:** cada rasgo aparece como entrada de lista únicamente con categoría/origen y nombre (p. ej. `Rasgo de Clase - Nombre 1` o `Rasgo de Raza - Nombre 2`). Nunca incluir descripciones de rasgos en la hoja, tampoco en extensiones. Clase/raza son ejemplos, no prohibición de otros orígenes reales de la App. Faltan criterios de altura, cortes y nombres largos.
+
+**Continuación inmediata:** discutir la composición espacial de Ataques y Rasgos y Atributos en la columna derecha, y qué módulos adicionales hacen falta. La capacidad y mecanismo de expansión de la sección izquierda siguen pendientes de validación técnica y no autorizan implementación.
 
 Consultar una sola decisión cada vez, registrar su estado y detenerse antes de implementar. El propietario resuelve las decisiones de comportamiento y UX.
 
