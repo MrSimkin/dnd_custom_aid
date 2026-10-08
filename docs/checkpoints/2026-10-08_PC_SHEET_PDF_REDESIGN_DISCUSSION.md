@@ -60,6 +60,12 @@ Consultar una sola decisión cada vez, registrar su estado y detenerse antes de 
 
 **SIGUIENTE PASO estructural:** la semántica de la casilla ya quedó decidida: **ACTIVO**. Continuar ahora con la estructura de las páginas restantes (narrativa, conjuros, notas, extensiones), sin cambiar decisiones previamente cerradas. **PIN visual sigue activo:** no hacer pruebas ornamentales hasta tener modelo completo, ni modificar código/PDF.
 
+**PÁGINA 3 — OPCIÓN A APROBADA:** dos columnas: Trasfondo/Perfil narrativo/Historia del PJ a la izquierda; «Rasgos y Atributos» sobrantes de páginas 1/2 a la derecha, sin duplicados ni descripciones. Campos de la App: nombre, Religión/Fe, resumen, Rasgos de personalidad, Ideales, Vínculos, Defectos e Historia. Imágenes de trasfondo y detalles de extensión pendientes. La decisión está además en `docs/decisions/2026-10-08_page3_narrativa_y_rasgos_opcion_A.md`.
+
+**PÁGINA 4 — OPCIÓN B APROBADA (2026-10-08):** **tres columnas dinámicas** de conjuros **agrupados por nivel**, con trucos nivel 0 y conjuros 1–9 vinculados al PJ y **casillas de preparación cuando correspondan**. Evitar espacios de conjuro gastados o estadísticas mágicas duplicados de la primera página; el Libro de Conjuros opcional seguirá siendo el lugar para descripciones completas. **Preparo por fuente:** estados de preparación pueden diferir entre fuentes de un mismo conjuro; no simplificar a una casilla inequívoca sin resolver el caso y no marcar por defecto sin dato. **Pendientes:** cantidad de líneas libres, orden/flujo, varios orígenes, símbolos de ritual/concentración, presencia si no hay conjuros, niveles épicos condicionales y geometría/overflow.
+
+**SIGUIENTE DECISIÓN:** revisar las páginas de Notas y las continuaciones/extensiones, posteriormente el uso de imágenes narrativas. **PIN visual activo:** probar ornamentación/fuentes sobre el modelo completo solamente. Solo documentación, no PDF ni código.
+
 ## Restricciones
 
 - Trabajo documental solamente; no código, plantillas, PDF ni nuevas pruebas de renderer.
