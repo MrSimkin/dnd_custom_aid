@@ -61,7 +61,18 @@ La cabecera contiene:
   - **Distribución espacial APROBADA (Sección 01):** Clase / Nivel ocupa el ancho libre disponible **a la derecha del retrato cuadrado**, con prioridad de anchura frente a los campos secundarios. No debe extenderse por debajo del retrato para tomar una franja horizontal de página completa. La medida exacta, el tamaño de letra y el tratamiento de multiclases excepcionalmente largas continúan pendientes. Esta aprobación parcial **no** aprueba el boceto C completo ni la ubicación definitiva del nombre del jugador. La disposición de Raza/Alineamiento se aprobó por separado (ver debajo).
 - **Raza:** incluir subraza cuando exista, p. ej. `Elfo — Alto elfo`; sin subraza, `Humano`.
 - **Alineamiento:** nombre completo, p. ej. `Legal Bueno` o `Caótico Neutral`; nunca abreviaturas.
-  - **Distribución espacial APROBADA (Sección 01):** **Raza y Alineamiento en paralelo**, en una misma fila **debajo de Clase / Nivel y a la derecha del retrato**; Raza a la izquierda y Alineamiento a la derecha. La decisión es solo sobre la distribución relativa; quedan **pendientes** anchos de las dos columnas (iguales o asimétricos), proporciones, márgenes, tipografías y manejo de valores largos. No se aprueba la ubicación definitiva del nombre del jugador ni el boceto C completo.
+  - **Distribución espacial APROBADA (Sección 01):** **Raza y Alineamiento en paralelo**, en una misma fila **debajo de Clase / Nivel y a la derecha del retrato**; Raza a la izquierda y Alineamiento a la derecha. La decisión es solo sobre la distribución relativa; **APROBADO: Raza 60 % / Alineamiento 40 % del espacio asignado a su fila**. Quedan pendientes el ancho total de esa fila, las proporciones generales, márgenes, tipografías y el tratamiento de valores excepcionalmente largos. No se aprueba la ubicación definitiva del nombre del jugador ni el boceto C completo.
+
+### 3.5 Sección izquierda de la primera página — dos variantes de exportación APROBADAS
+
+El propietario aprobó que **ambas** organizaciones de atributos, tiradas de salvación y habilidades se ofrezcan **como opciones seleccionables al exportar**, sobre los mismos datos canónicos del PJ:
+
+- **A — Agrupada por atributo:** cada atributo junto a su tirada de salvación y habilidades asociadas.
+- **B — Listas independientes:** bloque de seis atributos, lista separada de tiradas de salvación y lista separada de habilidades.
+
+Estas opciones son **variantes de presentación** de la sección izquierda, no personajes distintos ni páginas que deban emitirse simultáneamente. No se ha aprobado copiar las geometrías del PDF de inspiración ni mantener intactas las familias de exportación anteriores. Faltan medidas y visuales definitivos, así como el comportamiento ante estadísticas extra.
+
+**EN DISCUSIÓN — expansibilidad:** cómo soportar atributos/habilidades personalizados y crecimiento del contenido en A y B sin pérdida de información, sin degradar la legibilidad y sin presuponer una política global de anexos o redimensionamiento. D-0074 §4 ofrecía históricamente los modos *Extended Page*, *App Modified Sheet* y *Modified Sheet + Complete Extended Page*. Estos son antecedentes a reevaluar, **no una aprobación automática** del nuevo contrato.
 
 ## 4. Límites del acuerdo
 
@@ -83,6 +94,6 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 Comparar en pasos pequeños alternativas **compactas** para distribuir los seis elementos obligatorios, el retrato cuadrado y el logo D&D en la zona superior de la primera página, permitiendo, si se aprueba, convivencia vertical con los módulos funcionales. Además, todas las páginas repiten el **nombre del PJ y el logo** (logo arriba a la izquierda); aún no se ha decidido cómo presentar el nombre en las páginas siguientes. Primero discutir **estructura relativa**, sin aprobar medidas exactas, tecnologías o arquitectura definitiva.
 
-**Decisiones más recientes:** ausencia de imagen → **silueta genérica**; identificación mínima de **todas las páginas: logo D&D + nombre del PJ**. Primera página compacta y comparativamente menos modular; distribución exacta aún en discusión.
+**Decisiones más recientes:** ausencia de imagen → **silueta genérica**; identificación mínima de **todas las páginas: logo D&D + nombre del PJ**; primera página compacta; Clase / Nivel a la derecha del retrato; Raza y Alineamiento paralelos 60/40; dos variantes A/B seleccionables para la sección izquierda. **Punto activo de discusión: expansibilidad de atributos y habilidades**; distribución exacta aún en discusión.
 
 **Implementación:** BLOQUEADA hasta aprobación explícita de un contrato suficientemente completo y de las validaciones técnicas necesarias.
