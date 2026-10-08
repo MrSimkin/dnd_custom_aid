@@ -434,9 +434,28 @@ La **opción C general y la página final en blanco SÍ están aprobadas**. **AC
 - Se mantiene **intacta la última hoja totalmente en blanco** de renglones en dos columnas arriba y cuadrícula abajo; es una página exclusivamente manuscrita, **no se utiliza para notas digitales excedentes ni para otro módulo** y debe conservar su lugar **al final de toda la exportación**. El orden definitivo del Libro de Conjuros opcional respecto a esa hoja permanece pendiente de integrar, sin derogar esta exigencia.
 - La combinación de **Notas generales + Notas con título** dentro de páginas de Notas **sí está permitida**, porque ambas pertenecen a la misma sección Notas C-N3. La independencia es frente a **otras secciones**, no entre componentes de Notas.
 
-**Qué NO queda aprobado ahora:** un algoritmo físico particular, umbrales numéricos para aceptar combinaciones lejanas, pesos de optimización, porcentajes de ocupación, reparto de módulos o mediciones de cabida. Los casos T1–T7 del estudio conceptual exploratorio siguen siendo **hipótesis, no pruebas físicas ni decisiones del propietario**. Una eventual implementación puede considerar todos los excedentes conjuntamente antes de paginar, pero ese mecanismo aún requiere validación. No reinterpretar prioridades como tolerancia a recortes.
+**Qué NO queda aprobado ahora:** un algoritmo físico particular, umbrales numéricos para aceptar combinaciones lejanas, pesos de optimización, porcentajes de ocupación, reparto de módulos o mediciones de cabida. Los casos T1–T7 del estudio conceptual exploratorio siguen siendo **hipótesis, no pruebas físicas ni decisiones del propietario**. **Actualización de §3.32: está APROBADO que el generador pruebe automáticamente distribuciones verticales, de dos columnas y mixtas y escoja la mejor sin intervención del usuario**; no se aprueba aún el algoritmo técnico ni una garantía de cabida. La revisión global de todos los excedentes es una propuesta de planificación coherente con este mecanismo, pero el contrato detallado del algoritmo queda pendiente. No reinterpretar prioridades como tolerancia a recortes.
 
 **PIN VISUAL VIGENTE:** el trabajo permanece documental; no cambiar código, plantillas ni generador PDF, ni adelantar QA ornamental/tipográfica hasta tener el modelo integral.
+
+### 3.32 Compositor C2 — selección AUTOMÁTICA de disposiciones candidatas (APROBADO, 2026-10-08)
+
+**Confirmación expresa del propietario («sí»):** al exportar, el generador **probará automáticamente varias familias de distribución** para las páginas extendidas compartidas C2 y **elegirá la que mejor cumpla las reglas del diseño**, **SIN preguntar al jugador qué distribución usar cada vez**.
+
+**Familias mínimas aprobadas para comparar, sin dimensiones todavía:** 
+- **Vertical**: módulos apilados y, cuando convenga, bloques anchos para textos largos como Historia.
+- **Dos columnas**: módulos de listas/tablas compatibles lado a lado, respetando los anchos mínimos legibles.
+- **Mixta**: combinación de zonas de ancho completo y zonas divididas en columnas para adaptarse a módulos de formas distintas.
+
+**Condiciones de decisión ya vinculantes de §3.31:** proteger primero integridad del contenido y sus contratos, luego legibilidad/uso manuscrito, luego facilidad de consulta y proximidad (ubicación A), por último ahorro de páginas. Ninguna familia se impone si falla una de las restricciones duras. Puede mezclar residuos de distintas páginas originales cuando convenga; no debe separar datos semánticamente inseparables ni generar bloques o controles ilegibles. Este acuerdo **no obliga** a escoger siempre una composición distinta ni a ofrecer manualmente una selección de formato.
+
+**NOTAS EXCLUIDAS:** **ninguna página de Notas C-N3 ni continuación admite contenido ajeno a Notas, ni sus excedentes participan en composiciones C2 mixtas**. Mantener notas generales + tituladas en sus propias páginas, con su última hoja manuscrita en blanco de dos columnas rayadas arriba y cuadrícula abajo al final del documento. El diseño interno aprobado de Notas C-N3 permanece, sin convertirlo en un módulo mezclable C2.
+
+**Desglose importante de alcance:** queda aprobado **el comportamiento funcional de probar y seleccionar automáticamente**, pero **no** un algoritmo de optimización concreto, ecuaciones de puntuación, umbrales, proporciones, número mínimo/máximo de módulos, geometrías ni promesa de capacidad. La inspección del conjunto de excedentes antes de ordenar páginas es un enfoque candidato coherente con la selección automática; definir exactamente sus pasos, el manejo de textos largos, referencias cruzadas, orden final y casos extremos requiere estudio/validación posterior.
+
+**Próxima decisión estructural:** cómo hacer legibles las **referencias de continuación** cuando una misma página C2 recibe, por ejemplo, Ataques originarios de P1, Equipo de P2 y Rasgos de P3. Las referencias finales deben usar números reales después de paginar; no inventar referencias prematuras. También permanecen pendientes anexos opcionales y páginas sin contenido.
+
+**PIN VISUAL VIGENTE:** decisión documental, sin autorización de código, PDF, fuentes o maquetas ornamentales finales.
 
 ## 4. Límites del acuerdo
 
@@ -454,7 +473,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**EXTENSIONES C2 + UBICACIÓN A: PRIORIDADES APROBADAS (§3.31): integridad de datos → legibilidad/uso en papel → facilidad de consulta → ahorro de páginas; se PUEDE mezclar contenido de orígenes distantes sin convertirlo en objetivo. EXCEPCIÓN ABSOLUTA: NOTAS NO SE MEZCLA CON NINGÚN OTRO MÓDULO; todas las páginas de Notas C-N3/continuaciones son exclusivas. Última hoja manuscrita en blanco obligatoria e intacta. SIGUIENTE FASE: composición física, navegación, Libro de Conjuros/anexos y casos sin datos. PIN VISUAL ACTIVO.**
+**EXTENSIONES C2: composición AUTOMÁTICA APROBADA (§3.32): comparar disposición VERTICAL, DOS COLUMNAS y MIXTA, elegir la mejor sin intervención en cada exportación; se aplican prioridades de §3.31. Ubicación A mantiene continuaciones cerca de fuentes, con mezcla remota posible. NOTAS NUNCA SE MEZCLAN. ÚLTIMA HOJA DE NOTAS EN BLANCO INTACTA. SIGUIENTE DECISIÓN: señalética y referencias cruzadas de continuación; después anexos, no lanzadores y cabida real. PIN VISUAL ACTIVO.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
