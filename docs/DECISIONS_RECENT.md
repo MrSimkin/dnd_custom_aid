@@ -1,4 +1,4 @@
-# Recent Decision Index — D-0068 through D-0075
+# Recent Decision Index — D-0068 through D-0076
 
 Detailed decision records under `docs/decisions/` are authoritative; this file is navigation only.
 
@@ -58,8 +58,15 @@ Defines cross-surface PC Sheet PDF export behavior and visual families.
 
 Hard external-service budget USD $0; current provider revalidation; intentionally public repository; secret hygiene; object-storage provider selection deferred; owner guidance contract.
 
+## D-0076 — PC Sheet PDF redesign, partial decisions
+
+**Status:** Partial owner approvals / design ACTIVE / implementation NOT authorized  
+**Detailed record:** `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md`
+
+Reopens PDF contract/architecture without erasing D-0074 or previously frozen visual history. Approves a hybrid modular direction and first-page-only full header, square portrait with two crop/fit modes and generic silhouette fallback, field formatting and all-pages top-left D&D logo. Layout measurements and technology remain undecided.
+
 ## Current exact continuation
 
 Read `docs/checkpoints/LATEST.md` and its referenced checkpoint.
 
-Wave 5 is complete/integrated through PR #44. The next normal implementation direction is Wave 6 reusable/persistent content architecture. Reuse the existing Shared scope/provenance/revision/tombstone spine and establish local reusable-content persistence before Wave 7 Manager UI. Do not repeat provider activation or Wave 5 deployment/QA without new evidence.
+Refer to `docs/checkpoints/LATEST.md` for the active route. As of 2026-10-08 the PDF export continuation is owner-led DESIGN ONLY (D-0076); previously planned renderer repair Phase 3 is not authorized during this redesign discussion.
