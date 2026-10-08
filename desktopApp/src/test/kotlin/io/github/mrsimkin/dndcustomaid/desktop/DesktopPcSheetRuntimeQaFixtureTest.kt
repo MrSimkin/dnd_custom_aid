@@ -754,9 +754,10 @@ class DesktopPcSheetRuntimeQaFixtureTest {
         assertTrue(
             fantasyTraitPhysical.isNotEmpty() &&
                 fantasyTraitPhysical.all { entry ->
-                    entry.composition.physical?.metric == "native-trait-rows" &&
-                        entry.composition.physical.used <= entry.composition.physical.capacity &&
-                        entry.composition.physical.rationale.isNotBlank()
+                    val physical = entry.composition.physical
+                    physical?.metric == "native-trait-rows" &&
+                        physical.used <= physical.capacity &&
+                        physical.rationale.isNotBlank()
                 },
             "Fantasy Traits must trace the physical native ruled-row usage of every page.",
         )
