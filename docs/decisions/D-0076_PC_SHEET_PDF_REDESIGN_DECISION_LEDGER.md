@@ -249,13 +249,27 @@ El lenguaje visual de referencia A usa encabezados claramente diferenciados, mar
 **Estructura APROBADA para página 2:**
 - **Zona superior en DOS columnas:** **Equipo** a la izquierda y **Rasgos y Atributos** a la derecha.
 - **Equipo Especial** debajo de ambas, **ocupando todo el ancho disponible** de la zona de contenido, con campos de **Ubicación / Nombre / Descripción** (incluidas ubicaciones personalizadas). No confundir las descripciones de equipo especial con las descripciones de rasgos, estas últimas expresamente prohibidas.
-- **Tesoro es parte de página 2** y debe integrarse conservando el principio de una página útil y compacta. **Distribución interna de Tesoro EN DISCUSIÓN:** colocarlo debajo de Equipo (candidato recomendado), como franja transversal u otra solución sin quitar amplitud útil a Equipo Especial. No interpretar el wireframe como aprobación exacta de lugar, tamaño, filas, tipos de moneda o bloque de objetos de valor.
+- **Tesoro es parte de página 2. La ubicación interna quedó APROBADA posteriormente en §3.20:** **debajo de Equipo dentro de la columna izquierda**; no utilizar una franja horizontal de ancho completo ni desplazar Equipo Especial. La estructura interna de monedas, filas y dimensiones sigue abierta salvo los requisitos explícitos añadidos en §3.20.
 - **Equipo ordinario:** listado de objetos y cantidades, sin inventar peso, «Consumible» ni descripciones largas en ese módulo.
 - **Rasgos y Atributos:** lista de **origen/categoría - nombre**, SIN descripciones. Su función en página 2 es la **continuación, no repetición**, de entradas que no cupieron en página 1; ofrecer espacio manual razonable cuando corresponda y evitar grandes andamios vacíos.
 
 **Pendiente:** distribución fina y capacidad entre Equipo/Rasgos/Tesoro; política de desbordamiento hacia extensiones para cargas atípicas; tratamiento de ausencia de inventario/rasgos; cabida de ubicaciones especiales, unidades de tesoro y nombres largos; alturas, dimensiones, proporciones y texto de valores. El layout se valida en la maqueta completa, NO se implementa aún.
 
 **PIN VISUAL VIGENTE:** no iniciar pruebas finales de ornamentación, tipografías de valores, versalitas, esquinas o grosores hasta completar el diseño estructural de todas las páginas. Las decisiones visuales aprobadas (Azul niebla A / exterior C2 / interior C2c / Barlow Condensed para rótulos / fuente del propietario v8 primero y Font Awesome Free segundo) continúan intactas.
+
+### 3.20 Página 2 — Tesoro debajo de Equipo, monedas custom y espacio escribible (APROBADO, 2026-10-08)
+
+**Decisión expresa del propietario:** en la estructura A de página 2, **Tesoro va inmediatamente debajo del módulo Equipo, dentro de la columna izquierda**. El panel **Rasgos y Atributos** continúa en la columna derecha, y **Equipo Especial** permanece debajo con ancho completo. Esta decisión cierra la posición general de Tesoro debatida en §3.19; **no** aprueba dimensiones ni proporciones finales.
+
+**Contenido mínimo de Tesoro APROBADO:**
+- Admitir **monedas personalizadas / custom** del personaje, además de las monedas habituales que correspondan; no limitar el modelo visual a un catálogo fijo de denominaciones.
+- Mantener **espacios en blanco realmente escribibles a mano** para denominaciones y cantidades que el jugador desee anotar. Los renglones en blanco son intencionales aun si no existen monedas custom cargadas. No confundirlos con celdas vacías accidentales ni eliminarlos todos por compactación automática.
+- Si el personaje tiene monedas custom registradas, mostrarlas respetando sus **nombres y cantidades reales**, sin inventar datos ni reemplazarlos por guiones vacíos. La reserva de renglones manuales complementa los datos.
+- El PDF de inspiración incluye **Platino, Oro, Plata y Cobre**; su representación figura como referencia del diseño anterior, **sin cerrar aún** si se fijan exclusivamente estas cuatro, si existen otras monedas admitidas por el modelo de la App, su orden, ni las dimensiones de los campos.
+
+**PENDIENTE:** cantidad mínima de renglones en blanco, disposición de monedas y cantidades, capacidad con múltiples monedas personalizadas, tratamiento de moneda inusual o sin cantidad, expansión/continuación y ajuste físico compatible con Equipo a la izquierda, Rasgos a la derecha y Equipo Especial a todo el ancho.
+
+**PIN VISUAL VIGENTE:** terminar antes la estructura de las demás páginas. Las pruebas decorativas/ornamentales y la tipografía de valores siguen pospuestas hasta un modelo completo. Sin modificación de renderizador ni PDFs.
 
 ## 4. Límites del acuerdo
 
@@ -273,7 +287,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**PÁGINA 2 ESTRUCTURA A APROBADA CON TESORO; SIGUIENTE DECISIÓN: distribución interna de Tesoro y capacidad de Equipo/Rasgos/Equipo Especial; posteriormente demás páginas (narrativa, conjuros, notas y extensiones). PIN VISUAL ACTIVO: posponer pruebas ornamentales hasta el modelo integral completo.**
+**PÁGINA 2: TESORO BAJO EQUIPO (IZQUIERDA), CON MONEDAS CUSTOM Y RENGLONES BLANCOS APROBADOS. SIGUIENTE FASE: completar estructura de páginas restantes (narrativa, conjuros, notas y extensiones) y validar capacidad global; PIN VISUAL ACTIVO hasta contar con modelo integral.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
