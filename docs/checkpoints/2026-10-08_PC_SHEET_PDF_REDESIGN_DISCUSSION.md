@@ -107,6 +107,10 @@ Consultar una sola decisión cada vez, registrar su estado y detenerse antes de 
 
 **AÚN EN DISCUSIÓN:** formulación gráfica exacta, dimensiones, flechas, tratamientos de cadenas largas (incluida posible referencia al origen inicial), algoritmo real de paginación, anexos y casos sin contenido. **PIN VISUAL ACTIVO.** No implementar código ni exportador PDF.
 
+**LIBRO DE CONJUROS OPCIONAL — UBICACIÓN B APROBADA (2026-10-08):** el propietario confirma que el Libro es un **anexo**, no parte técnica de la Hoja de PJ, y lo sitúa **al final del contenido digital del PDF**: tras las páginas de la hoja y sus extensiones, y tras **Notas digitales C-N3 con sus continuaciones**, pero **ANTES de la última hoja completamente en blanco**, que debe seguir siendo literalmente la página final. Si no se solicita el anexo, se omite. La lista rápida de Conjuros no cambia; las Notas nunca comparten página con el Libro. Solo se decide la ubicación B, no su diseño interno, la posición de otros anexos ni la composición física. **PIN VISUAL ACTIVO; sin implementación.**
+
+**SIGUIENTES TEMAS PENDIENTES:** casos de personaje sin determinados contenidos, otros anexos, imágenes de trasfondo y validación física integral. La cuestión secundaria de repetir el origen inicial en cadenas largas C2 puede diferirse a las pruebas estructurales.
+
 ## Restricciones
 
 - Trabajo documental solamente; no código, plantillas, PDF ni nuevas pruebas de renderer.
