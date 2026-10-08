@@ -216,6 +216,20 @@ El lenguaje visual de referencia A usa encabezados claramente diferenciados, mar
 
 **No se ha aprobado** una familia Sans específica, pareja tipográfica ni tipografía final de título o texto. Las fuentes históricas son referencias y recursos de contraste, no aprobación automática del rediseño.
 
+### 3.17 Tipografía de estructura, jerarquía de glifos y ornamentación interior (2026-10-08)
+
+**Tipografía estructural APROBADA:** utilizar la familia **Barlow Condensed** para **encabezados, subencabezados y etiquetas/rotulación de campos** de la hoja rediseñada. Esta aprobación es un **rol funcional de familia**, NO significa usar Barlow Condensed para todos los valores de PJ, texto manuscrito simulado, respuestas o campos rellenados. **El tipo de letra de los valores/escrito/rellenado sigue PENDIENTE**, como pidió el propietario. La selección previa C2 y Azul niebla clásico A siguen como orientación exterior.
+
+**Versalitas SOLO EN ESTUDIO:** el propietario contempla títulos en **versalitas** y desea evaluar la variante real, comparándola con títulos Barlow Condensed de capitalización normal. Comprobar si existen versalitas OpenType reales o un archivo que las soporte; no denominar versalitas a simples mayúsculas, ni aprobar el efecto simulado sin muestras reales. Asegurar acentos, eñes, contraste y legibilidad a escala.
+
+**Jerarquía de glifos APROBADA:** usar preferentemente **«Para Hoja de PJ» (última versión aprobada verificable: «Para Hoja de PJ Symbols v8» en el repo)** para iconos/símbolos y estados del juego que su vocabulario soporte; utilizar **Font Awesome Free** como **fuente secundaria/complementaria**. No sustituir arbitrariamente glifos de la fuente del propietario por Font Awesome. La aplicación/embebido de Font Awesome y su versión concreta deben verificarse técnicamente, sin presumir que el paquete ya está presente.
+
+**Marcos interiores — EN EXPLORACIÓN, C2 NO CERRADO INTERNAMENTE:** el propietario considera demasiado sobrios los **cuadros interiores de C2** y quiere que resulten **levemente más ornamentales**, sin sacrificar utilidad y compacidad. Se mantiene C2 como referencia de **marco exterior doble discreto**, pero **no** está aprobada una geometría interior definitiva. Alternativas de wireframe para debatir: **C2a filete interior**, **C2b pequeños remates en esquinas**, **C2c cartela con esquinas recortadas**; son opciones ilustrativas, no aceptación implícita de C2b/C2c ni de detalles de iconos.
+
+**Limitación física importante:** los cuadros **de datos/valores** pueden tener ornamentación en esquinas o remates si la prueba impresa lo permite; las **casillas pequeñas marcables a lápiz** deben mantenerse inequívocas, sencillas y de tamaño cómodo. No decorar todas las minicasillas con marcos dobles, ni consumir espacio de escritura con filetes, ni convertir un glifo decorativo en un indicador de estado de juego.
+
+**Siguiente acción de diseño:** comparar muestras de **Barlow Condensed auténtica**, versalitas frente a capitalización habitual, y aplicar los tratamientos interiores C2a/b/c sobre el mismo componente de prueba, siempre separando etiquetas de los valores cuya fuente aún no se selecciona. La maqueta física integral queda postergada hasta terminar esta discusión.
+
 ## 4. Límites del acuerdo
 
 **No están aprobados todavía:** tamaño de página o márgenes nuevos, altura/ancho de cabecera, colocación exacta de campos, columna del retrato, relación exacta logo/retrato, proporciones, tratamiento de nombres largos, detalles visuales del ícono de silueta, ubicación/salto de módulos distintos de cabecera, motor de PDF y criterios universales de overflow.
@@ -232,7 +246,7 @@ Los bocetos previos fueron **exploratorios**, no un diseño final confirmado. La
 
 ## 6. Punto de continuación exacto
 
-**DISEÑO VISUAL PREVIO A LA MAQUETA INTEGRAL: comparativas de tipografías sans condensadas REALES, símbolo v8 + Font Awesome, marco C2 y comprobación de Municiones con dos subfilas posibles.**
+**DISEÑO VISUAL PREVIO A MAQUETA INTEGRAL: Barlow Condensed aprobada para títulos/subtítulos/etiquetas, muestras reales de versalitas pendientes, fuente de valores pendiente, Para Hoja de PJ v8 primera / Font Awesome Free segunda, y ornamentación interior C2a/b/c sin elección final.**
 
 La primera página conserva cabecera compacta y estructura relativamente restringida. En la sección izquierda ya están aprobadas **dos variantes de exportación** (A agrupada por atributo, B con listas independientes) y su **adaptación para 2–3 atributos personalizados y habilidades vinculadas tanto a estos como a los atributos normales**, con **extensión cuando no quepan**. **Aprobado:** crecimiento vertical dinámico con posibilidad explícita de **estirar/comprimir elementos de atributos** para utilizar el espacio, también aceptando vacíos residuales; prioridad para los **6 atributos originales**, grupos juntos cuando sea posible y continuación en extensión si falta capacidad. **Pendiente:** mecanismos concretos de corte/continuación por variante A/B y validación de capacidad. No inventar medidas exactas ni modificar el renderer.
 
