@@ -358,6 +358,86 @@ data class PcSheetExtendedCompositionStep(
     val trace: PcSheetExtendedCompositionTrace,
 )
 
+
+/**
+ * Evidence for each actually chosen native layout. Native slot fractions are normalized;
+ * per-stream rows/entries retain their distinct real capacities and cannot be added as
+ * interchangeable physical heights. This does not prove omitted alternative layouts illegal.
+ */
+fun PcSheetExtendedCompositionStep.traceWithNativeSlotUtilization(
+    selectedLayout: PcSheetExtendedLayoutTemplate,
+): PcSheetExtendedCompositionTrace {
+    require(page.layoutId == selectedLayout.id) {
+        "Physical native-slot trace must use the selected layout."
+    }
+    val slotsById = selectedLayout.slots.associateBy { it.id }
+    val before = trace.demandsBefore.associate { it.module to it.remainingUnits }
+    val after = trace.demandsAfter.associate { it.module to it.remainingUnits }
+    val placedBySlot = page.placements.associateBy { it.slotId }
+    require(placedBySlot.size == page.placements.size) {
+        "Only one placement is permitted per physical native slot."
+    }
+    val alreadyConsumed = mutableMapOf<PcSheetSemanticModule, Int>()
+    val streams = page.placements.map { placement ->
+        val slot = requireNotNull(slotsById[placement.slotId]) {
+            "Placed native slot is missing from the selected physical layout."
+        }
+        require(slot.capacityByModule[placement.module] == placement.nativeCapacity) {
+            "Physical trace capacity differs from the native layout contract."
+        }
+        val remainingBefore =
+            requireNotNull(before[placement.module]) -
+                alreadyConsumed.getOrDefault(placement.module, 0)
+        alreadyConsumed[placement.module] =
+            alreadyConsumed.getOrDefault(placement.module, 0) + placement.consumedUnits
+        PcSheetPaginationStreamTrace(
+            streamId = placement.slotId,
+            module = placement.module,
+            remainingBefore = remainingBefore,
+            consumedUnits = placement.consumedUnits,
+            nativeCapacity = placement.nativeCapacity,
+            remainingAfter = remainingBefore - placement.consumedUnits,
+        )
+    }
+    val pending = after.isNotEmpty()
+    val compatibleRemainingCapacity = selectedLayout.slots.firstNotNullOfOrNull { slot ->
+        val occupied = placedBySlot[slot.id]
+        when {
+            occupied != null &&
+                after.getOrDefault(occupied.module, 0) > 0 &&
+                occupied.consumedUnits < occupied.nativeCapacity ->
+                occupied.nativeCapacity
+            occupied == null ->
+                slot.capacityByModule.entries.firstOrNull { (module, _) ->
+                    after.getOrDefault(module, 0) > 0
+                }?.value
+            else -> null
+        }
+    }
+    val nextUnitSlotCapacity = if (pending) {
+        compatibleRemainingCapacity ?: selectedLayout.slots.firstNotNullOfOrNull { slot ->
+            slot.capacityByModule.entries.firstOrNull { (module, _) ->
+                after.getOrDefault(module, 0) > 0
+            }?.value
+        }
+    } else null
+    return trace.copy(
+        streamTraces = streams,
+        physical = PcSheetPhysicalPaginationTrace(
+            metric = "native-slot-utilization",
+            used = page.placements.sumOf { it.utilization },
+            capacity = selectedLayout.slots.size.toDouble(),
+            nextAtomicUnitSize = nextUnitSlotCapacity?.let { 1.0 / it },
+            nextAtomicUnitFits = if (pending) compatibleRemainingCapacity != null else null,
+            rationale = when {
+                !pending -> "resource-option-streams-exhausted"
+                compatibleRemainingCapacity != null -> "next-atomic-unit-fits-native-slot"
+                else -> "chosen-native-slots-exhausted;alternative-layouts-not-yet-proven"
+            },
+        ),
+    )
+}
+
 object PcSheetExtendedPageComposer {
     fun composeNextPage(
         demands: List<PcSheetModuleDemand>,

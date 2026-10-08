@@ -40,6 +40,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedCompositi
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedCompositionTrace
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPhysicalPaginationTrace
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPaginationStreamTrace
+import io.github.mrsimkin.dndcustomaid.shared.character.traceWithNativeSlotUtilization
 import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetDirectCompositionTrace
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPaginationTraceEntry
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExtendedGlobalCoordinator
@@ -1621,7 +1622,12 @@ internal class AndroidCustomV1ExtendedRenderer(
                     layouts = layouts,
                 ),
             )
-            recordPaginationTrace(V1_GLOBAL_RESOURCES_FRONT_ID, step)
+            recordPaginationTrace(
+                V1_GLOBAL_RESOURCES_FRONT_ID,
+                step.traceWithNativeSlotUtilization(
+                    layouts.single { it.id == step.page.layoutId },
+                ),
+            )
             val resourceCount = step.page.placements
                 .firstOrNull { it.module == PcSheetSemanticModule.RESOURCES }
                 ?.consumedUnits
