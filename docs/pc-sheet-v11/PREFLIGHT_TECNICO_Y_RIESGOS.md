@@ -33,6 +33,8 @@
 | R-09: pérdida de ruta futura | **ALTA** | **PARCIAL** | `main` aún dice fase documentación | Crear checkpoint V11 y pointer `LATEST.md` coherentes **en la rama**; hasta fusionar el PR, main NO retomará V11 automáticamente. No afirmar lo contrario. |
 | R-10: coste/permisos | **BAJA** | **CONTROLADA** | Export local, logo para uso privado 100 % personal ya decidido | No pedir de nuevo permiso o dirección estética; no nuevos proveedores, nube, costes ni despliegues. |
 
+**Procedimiento operativo de prevención, detección, recuperación, evidencia y STOP para R-01..R-12:** [PROTOCOLO_RIESGOS_Y_RECUPERACION.md](PROTOCOLO_RIESGOS_Y_RECUPERACION.md). Este documento no acredita PASS de ningún riesgo abierto.
+
 ## Puertas y presupuestos de intentos
 
 `G0=PARCIAL`; `G1=NO INICIADO`; `G2=NO INICIADO`; `G3=NO INICIADO`; `G4=NO INICIADO`; `G5=NO INICIADO`; `G6=NO INICIADO`.
