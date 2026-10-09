@@ -1,7 +1,7 @@
 # Checkpoint — rediseño del contrato PDF de hojas de PJ
 
 **Fecha:** 2026-10-08 (Chile)  
-**Estado:** DISEÑO ACTIVO / DECISIONES PARCIALES / SIN IMPLEMENTACIÓN  
+**Estado:** CIERRE CONCEPTUAL AGRUPADO APROBADO / REVISIÓN VISUAL INTEGRAL PENDIENTE / SIN IMPLEMENTACIÓN  
 **Rama de implementación activa:** ninguna.
 
 ## Cambio de ruta autorizado por el propietario
@@ -137,7 +137,11 @@ Consultar una sola decisión cada vez, registrar su estado y detenerse antes de 
 
 **DECISIÓN 48 — LIBRO DE CONJUROS, FICHA QUE NO CABE EN LA COLUMNA: ALTERNATIVA A APROBADA (2026-10-08):** el propietario selecciona **MANTENER LA FICHA UNIDA**: si el conjuro no cabe en el espacio restante de la columna actual, pero cabe íntegro en una siguiente columna disponible, moverlo completo allí y aceptar el hueco residual. Si la descripción **supera una columna entera vacía**, permitir continuación legible entre columnas o páginas **sin perder texto**, con identificación del conjuro; preferir cortes naturales, señalización exacta y paginación sujetas a especificación/validación técnica. Siguen aprobadas las **DOS columnas del Libro (§3.46)** y la ficha esencial de **nombre, nivel, escuela y descripción completa (§3.47)**. No encoger fuentes hasta ilegibilidad ni llenar con otras secciones las páginas del Libro. **D-0076 §3.48; PIN VISUAL VIGENTE; solo documentación, sin código/PDF.**
 
-**CONTINUACIÓN DE DISEÑO — REVISIÓN AGRUPADA, NO MÁS COMBINACIONES REDUNDANTES:** identificar únicamente decisiones funcionales realmente bloqueantes (múltiples fuentes/estados de magia, integridad de textos y datos custom extremos, fuente/selección de retrato, anexos adicionales si existen); después pasar a **maqueta integral y validación impresa** antes de cerrar el PIN VISUAL. Señales minuciosas de continuación y umbrales físicos se pueden especificar técnicamente salvo conflicto que requiera nueva aprobación.
+**CIERRE CONCEPTUAL AGRUPADO — APROBADO POR EL PROPIETARIO (2026-10-08; D-0076 §7):** conservar **las 48 decisiones §§3.1–3.48** sin reabrirlas por cuestiones menores. **No agregar anexos** distintos del **Libro de Conjuros opcional**; las continuaciones C2, las Notas digitales C-N3 y la última hoja manuscrita no son anexos nuevos. **DELEGACIÓN TÉCNICA ACOTADA:** verificar campos, medidas, tipografías aún pendientes, paginación/cortes, casillas, cabida, referencias y casos extremos **sin alterar el comportamiento aprobado**, y proponer el modelo físico integrado. Consultar al propietario **solo incompatibilidades materiales demostradas** de contenido, semántica, legibilidad, funcionamiento o alcance mediante una sola consulta agrupada, no microdecisiones redundantes. **No equivale a aprobación de maqueta ni a permiso para implementar o generar PDFs**; PIN VISUAL activo.
+
+**RESUMEN INTEGRAL PARA PRÓXIMA REVISIÓN VISUAL (DOCUMENTO DE PREPARACIÓN, NO MAQUETA):** `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_VISUAL_REVIEW_BRIEF.md`. Contiene orden de páginas, mapa de P1/P2/P3, lista rápida de conjuros condicional, C2 mixtas, Notas exclusivas, Libro de dos columnas, última hoja manual, estética, escenarios de prueba y matriz de responsabilidad. **SIGUIENTE PASO:** revisar ese brief, preparar y comparar en fase autorizada **propuestas VISUALES INTEGRALES a escala real** del documento completo, con evidencia de legibilidad y datos válidos, para aceptación explícita del propietario. No crear nuevas decisiones numeradas automáticamente. La ruta de implementación sigue **BLOQUEADA** hasta autorización expresa posterior.
+
+
 
 ## Restricciones
 
