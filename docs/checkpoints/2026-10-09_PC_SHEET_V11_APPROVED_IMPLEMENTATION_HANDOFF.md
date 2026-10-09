@@ -20,9 +20,10 @@ El propietario aprobó visualmente el paquete de maqueta V11, ambas variantes A/
 2. `docs/pc-sheet-v11/CONTRATO_VISUAL_APROBADO.md`: autoridad específica del diseño V11.
 3. `docs/pc-sheet-v11/PREFLIGHT_TECNICO_Y_RIESGOS.md`: mapa de código validado, R-01..R-10 y estado G0..G6.
 4. `docs/pc-sheet-v11/ARTEFACTOS_Y_PROCEDENCIA.md`: nombres y hash del golden; **el ZIP no está versionado** y debe recuperarse/committearse antes de declarar G0 PASS.
-5. `docs/pc-sheet-v11/PLAN_TECNICO_IMPLEMENTACION_V11.md` y `docs/pc-sheet-v11/PROMPT_WORKER_IMPLEMENTAR_V11.md`: contrato de ejecución anti-loop; **una rama y una PR, hasta 3 pasadas/gate, STOP si persiste**.
-6. Por gate de QA `AGENTS.md §6.3`: reabrir **evidencia original** de `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`, `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`, `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md` y los PDFs reales originales, no solo auditorías secundarias.
-7. Inspeccionar fuente real `PcSheetPdfExportFoundation.kt`, `AndroidPcSheetExportService.kt`, `DesktopPcSheetExportService.kt`, renderers y pruebas antes de modificar código.
+5. `docs/pc-sheet-v11/PROTOCOLO_RIESGOS_Y_RECUPERACION.md`: matriz ejecutable R-01..R-12 (detector, contención, prueba y STOP). El riesgo registrado NO pasa a resuelto por publicarse este protocolo.
+6. `docs/pc-sheet-v11/PLAN_TECNICO_IMPLEMENTACION_V11.md` y `docs/pc-sheet-v11/PROMPT_WORKER_IMPLEMENTAR_V11.md`: contrato de ejecución anti-loop; **una rama y una PR, hasta 3 pasadas/gate, STOP si persiste**.
+7. Por gate de QA `AGENTS.md §6.3`: reabrir **evidencia original** de `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`, `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`, `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md` y los PDFs reales originales, no solo auditorías secundarias.
+8. Inspeccionar fuente real `PcSheetPdfExportFoundation.kt`, `AndroidPcSheetExportService.kt`, `DesktopPcSheetExportService.kt`, renderers y pruebas antes de modificar código.
 
 ## Gate presente
 
