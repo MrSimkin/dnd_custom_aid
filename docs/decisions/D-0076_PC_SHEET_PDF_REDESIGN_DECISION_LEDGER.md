@@ -307,7 +307,7 @@ El lenguaje visual de referencia A usa encabezados claramente diferenciados, mar
 - Los «Rasgos de personalidad» narrativos no son las entradas mecánicas de «Rasgos y Atributos».
 - **RECTIFICADO por §3.45:** las dos imágenes mencionadas inicialmente como «principal/secundaria del trasfondo» fueron identificadas por el propietario como **dos opciones para el retrato del PJ**, NO imágenes para esta página narrativa. **Decisión A: página 3 solo texto, sin imágenes de Trasfondo**.
 
-**Por resolver:** anchos, alturas, renglones escritos a mano, caso de cero rasgos remanentes, extensión de Historia, imágenes y medición integral. No es aprobación de una composición a escala ni de ornamentación.
+**Por resolver:** anchos, alturas, renglones escritos a mano, extensión de Historia y medición integral. El caso de cero Rasgos se resolvió en §3.36 y la ausencia de ilustraciones de Trasfondo en §3.45. No es aprobación de una composición a escala ni de ornamentación.
 
 ### 3.24 Página 4 — Propuesta B: lista de conjuros en tres columnas dinámicas (APROBADO, 2026-10-08)
 
