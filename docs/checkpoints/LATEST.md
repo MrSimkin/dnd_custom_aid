@@ -5,7 +5,7 @@
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-10-08_PC_SHEET_PDF_REDESIGN_DISCUSSION.md`  
-**Current active route:** **OWNER-LED PDF REDESIGN / DISCUSSION ONLY.** See D-0076 for approved partial product decisions and explicit open questions. No implementation, PDF generation, template edits or automatic restart of the previously planned Phase 3; that Phase 2 closure remains historical evidence.
+**Current active route:** **OWNER-LED PDF REDESIGN / CONCEPTUAL CLOSEOUT APPROVED / VISUAL REVIEW PREPARATION — DOCUMENTATION ONLY.** D-0076 §§3.1–3.48 remain approved; §7 authorizes grouped closeout, delegation of non-material layout details and no additional annex except optional Spellbook. See the canonical checkpoint and `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_VISUAL_REVIEW_BRIEF.md`. **No implementation, PDF generation, template edits, renderer changes or automatic restart of the previously planned Phase 3; historical Phase 2 closure is evidence only.**
 **Completed audit branch:** `audit/mara-phase2-existing-repair`. `repair/pc-sheet-adaptive-continuations-cross-family` remains historical implementation evidence at `ce695c...`; it is repository/CI/Worker-preflight green but **not owner-runtime verified** and is not acceptance authority.  
 **Current implementation PR:** none. The former Phase-3 repair plan is deferred while the PDF design contract is being reopened. Any eventual new owner candidate requires independently approved design/implementation authorization and the applicable QA/unique-build gates.
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
@@ -16,7 +16,8 @@
 2. `RESUME.md`;
 3. this file;
 4. `docs/checkpoints/2026-10-08_PC_SHEET_PDF_REDESIGN_DISCUSSION.md`;
-5. `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md`.
+5. `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md` — §§3.1–3.48 + grouped closeout §7.
+6. `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_VISUAL_REVIEW_BRIEF.md` — consolidated summary for next visual review, not an approved mockup.
 
 For historical renderer/acceptance context only (not the active design route):
 
