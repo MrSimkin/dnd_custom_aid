@@ -17,7 +17,7 @@
 3. this `LATEST.md`;
 4. `docs/checkpoints/2026-10-09_PC_SHEET_V11_APPROVED_IMPLEMENTATION_HANDOFF.md`;
 5. `docs/pc-sheet-v11/CONTRATO_VISUAL_APROBADO.md` — aprobación V11 + dos microajustes;
-6. `docs/pc-sheet-v11/PROCEDIMIENTO_QA_SIN_PERDIDA.md` + `qa/REGISTRO_QA_V11.json` — toda observación y proceso Q0–Q7, nunca cierre por tests solos;
+6. `docs/pc-sheet-v11/PROCEDIMIENTO_QA_SIN_PERDIDA.md` + `qa/REGISTRO_QA_V11.json` + `qa/PLANTILLA_CIERRE_POR_RONDA.md` — cada QA Q0–Q7 planificado, cambio real y comprobación; no cierre por tests solos;
 7. `docs/pc-sheet-v11/PROTOCOLO_RIESGOS_Y_RECUPERACION.md` y `PROTOCOLO_ROMPER_CICLO_Y_REPLANIFICAR.md` — riesgos y recuperación RCR-1;
 8. `docs/pc-sheet-v11/PREFLIGHT_TECNICO_Y_RIESGOS.md` + `G0_MAPA_SEMANTICO_PRELIMINAR.md` — G0 todavía parcial;
 9. `docs/pc-sheet-v11/ARTEFACTOS_Y_PROCEDENCIA.md` + `G0_UNICO_PASO_MANUAL_CUSTODIA_GOLDEN.md` — ZIP V11 no versionado en Git;
