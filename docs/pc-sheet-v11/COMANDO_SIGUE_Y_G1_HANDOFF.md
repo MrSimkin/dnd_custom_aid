@@ -1,5 +1,7 @@
 # V11 — Comando «sigue» y preparación de G1
 
+**Main routing integrado:** PR documental [#174](https://github.com/MrSimkin/dnd_custom_aid/pull/174) **MERGED** mediante commit de main `0c009f10d5e66880d68fa3732491c6fc3e172f22`. Main ahora apunta al checkpoint `docs/checkpoints/2026-10-09_PC_SHEET_V11_IMPLEMENTATION_RESUME_ROUTE.md` y desde allí a esta rama. Este merge fue solo documental; **PR #173 permanece abierta y sin fusionar**. Antes de la integración futura de #173, conciliar los cambios de ruta de `main` sin revivir el viejo design-only checkpoint.
+
 **Estado verificado:** 2026-10-09, PR #173 **DRAFT y sin fusionar**, `main` base `27bd199633f1068ca481c387973d38f35cbb0c48`. V11 **visualmente aprobada**, implementación Kotlin **NO INICIADA**. **G0 PARCIAL, G1–G6 NO INICIADOS**. No inferir nuevos estados del texto; comprobar GitHub y CI al ejecutar.
 
 ## 1. «Sigue» en cualquier sesión nueva
