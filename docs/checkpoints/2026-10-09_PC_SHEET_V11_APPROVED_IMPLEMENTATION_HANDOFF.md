@@ -35,6 +35,10 @@ Tras el reporte del propietario sobre QA cíclica sin corrección efectiva, se f
 
 **R-01 VERIFIED / GOLDEN DURABLE (2026-10-09):** ZIP original archivado en `docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip` sobre esta rama; SHA-256 `35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a`; 1.520.026 bytes; SHA de objeto Git `99ed18a2c59b71440cb8b96fafea5d8df1832bd6`. GitHub Actions `PC Sheet V11 golden archive integrity` run [38009729554](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38009729554), commit `b7ca78bac9d7d884f6ab37be809685cd59a0d5fc`: comprobación SHA-256 **sobre bytes recuperados mediante checkout**, ZIP testzip PASS, 20 entradas y 8 PDFs. Esto cierra SOLO preservación R-01; G0 sigue PARCIAL y renderer/QA APK no iniciado.
 
+## Continuidad entre chats — orden «sigue»
+
+**Desde main** se prepara una ruta documental independiente para apuntar a esta PR sin fusionar la implementación. Al recibir «sigue» con repositorio identificado: seguir `AGENTS → RESUME → LATEST → checkpoint canónico de main → esta rama PR #173 HEAD actual → docs/pc-sheet-v11/COMANDO_SIGUE_Y_G1_HANDOFF.md`. La guía nueva contiene el primer paso seguro de G0, G1 y las observaciones sin pérdida; cualquier implementación debe registrar commit, evidencia y nuevo estado. No revivir el diseño 2026-10-08 de main ni iniciar rama de producto paralela.
+
 ## Gate presente
 
 - **G0**: parcialmente revisado. Ya existe `G0_MAPA_SEMANTICO_PRELIMINAR.md` con evidencia de código y divergencia de Conjuros; RCR-1 fue autorizado y publicado, **sin gastar ninguna recuperación**. Fuente de verdad del contrato y paths de código registrados; ZIP golden **VERIFICADO / R-01 RESUELTO**; faltan matriz campo-por-campo completa en datos reales, inspección exhaustiva de QA original de Mara y ambiente de compilación/ejecución.
