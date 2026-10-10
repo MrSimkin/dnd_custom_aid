@@ -22,7 +22,7 @@
 
 | ID | Criticidad | Estado | Evidencia concreta | Resolución y criterio de cierre |
 |---|---|---|---|---|
-| R-01: golden V11 ausente del Git | **ALTA / preservación** | **OPEN** | ZIP local 1 520 026 bytes SHA-256 documentado; no objeto Git | Guardar ZIP íntegro en repo/almacenamiento durable con hash comprobado y referencia versionada. Cerrar solo tras lectura independiente. |
+| R-01: golden V11 en Git | **ALTA / preservación** | **VERIFICADO** | Blob Git `99ed18a2c59b71440cb8b96fafea5d8df1832bd6`, Actions run `38009729554` confirmó SHA-256, 1.520.026 bytes, 20 entradas, 8 PDF tras checkout | Custodia íntegra y reproducible en rama; no sustituye implementación ni cierre G0. |
 | R-02: datos reales/semántica | **CRÍTICA** | **OPEN** | `PcSheetPdfExportRequest` no tiene V11 ni variante; fixture Python es inventado | Trazar cada campo desde `CharacterSheet` / closure/successor/spells/notes, estado nulo vs cero, slots, ACTIVO, imágenes y permanencia/actual; pruebas de fuente→PDF para todos los IDs. |
 | R-03: overflow no total | **CRÍTICA** | **OPEN** | V11 Python aborta cuando una ficha Libro excede columna y en otros casos de overflow; no portarlo | Fragmentación exacta de texto/límites, progreso monótono, corte tipográfico seguro, pruebas extremas sin pérdidas o hang. |
 | R-04: doble backend | **ALTA** | **OPEN** | `AndroidPcSheetWholeDraftRenderer` y `DesktopPcSheetWholeDraftRenderer` diferentes | Un plan geométrico/paginación compartido; renderizadores delgados con mismas coordenadas y caracteres; paridad medible, no solo counts. |
@@ -43,7 +43,7 @@
 
 `G0=PARCIAL`; `G1=NO INICIADO`; `G2=NO INICIADO`; `G3=NO INICIADO`; `G4=NO INICIADO`; `G5=NO INICIADO`; `G6=NO INICIADO`.
 
-1. G0: revisar **QA original** (no solo sus síntesis), PDF real y diseños V11 A/B, confirmar recursos y **recuperación del ZIP golden**; mapa `source→module→test` antes de tocar renderer.
+1. G0: ZIP golden **ya recuperable y verificado** (R-01 PASS); completar revisión de **QA original** (no solo síntesis), PDFs reales de Mara, diseños V11 A/B, recursos y mapa `source→module→test` antes de tocar renderer.
 2. G1: integrar tipos/mapper V11 y tests de casos reales. **STOP** si semántica requerida no existe.
 3. G2: compositor con crecimiento y progreso demostrable, repacking/NOTAS, referencias físicas y texto íntegro.
 4. G3: fuentes y logo en ambos backends, selector A/B opt-in y export local funcional.
@@ -55,4 +55,4 @@ Por gate: pasada inicial + **máximo dos reparaciones normales**. Persistiendo l
 
 ## Precisión del presente preflight
 
-Esta revisión se basó en lectura GitHub de código/documentos y revisión del ZIP original en el entorno del asistente. **No** se clonó/buildió el repo localmente (la conexión de red del contenedor a GitHub no resolvió DNS), ni se ejecutó Gradle, CI o prueba runtime. Todo G1–G6 permanece PENDIENTE. No usar este registro como acreditación de implementación.
+La fase incluye ahora verificación independiente de ZIP en Actions run 38009729554; los demás puntos de preflight siguen pendientes. La revisión de código se basó en lectura GitHub y el ZIP de referencia. **No** se clonó/buildió el repo localmente (la conexión de red del contenedor a GitHub no resolvió DNS), ni se ejecutó Gradle, CI o prueba runtime. Todo G1–G6 permanece PENDIENTE. No usar este registro como acreditación de implementación.
