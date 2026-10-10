@@ -47,6 +47,12 @@ Secuencia en **la misma PR #173**, después de G0 PASS:
 
 Si la frase recibida es únicamente «sigue» **dentro de una sesión ya identificada con este repo**, interpretarla como este prompt. En un chat nuevo sin contexto, el usuario debe incluir al menos `MrSimkin/dnd_custom_aid` para desambiguar el proyecto.
 
+## 4a. Convergencia de ramas antes de fusionar PR #173
+
+Luego de integrar la PR documental #174 en main, **main y la PR #173 difieren en rutas de documentación** (`AGENTS.md`, `docs/checkpoints/LATEST.md`, `docs/PROJECT_STATE.md`, `docs/BRANCH_STATUS.md`). **La PR #173 fue marcada `mergeable=false` al verificar**. Esto **NO bloquea investigación G0 ni código aislado G1**, pero **SÍ bloquea eventual merge** hasta resolver coherentemente los conflictos. 
+
+Acción de Worker en una fase segura anterior a G6: traer `main` vigente a la **misma rama PR #173**, reconciliando los cuatro documentos sin sobrescribir el checkpoint canónico de main que apunta a PR #173; conservar el checkpoint histórico de rama y su registro QA. Validar `scripts/check_resume_route.py`, workflow Scaffold y QA ledger tras esa sincronización. Registrar commits e invalidaciones; **no usar force-push ni reset --hard**. No crear rama paralela de implementación ni fusionar PR #173 automáticamente. Si no existe una operación de merge segura disponible, dejar `BLOCKED` SOLO para la promoción final y continuar G0/G1 de forma segura.
+
 ## 5. Handoff
 
 - **Rama única de implementación**: `docs/pc-sheet-v11-approved-implementation-handoff` / PR #173.
