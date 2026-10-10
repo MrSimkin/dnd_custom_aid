@@ -14,14 +14,18 @@
 
 1. `AGENTS.md`;
 2. `RESUME.md`;
-3. this file;
-4. `docs/checkpoints/2026-10-09_PC_SHEET_V11_APPROVED_IMPLEMENTATION_HANDOFF.md`;  
-5. `docs/pc-sheet-v11/CONTRATO_VISUAL_APROBADO.md` + `PREFLIGHT_TECNICO_Y_RIESGOS.md` + `ARTEFACTOS_Y_PROCEDENCIA.md`;  
-6. `docs/pc-sheet-v11/PROTOCOLO_RIESGOS_Y_RECUPERACION.md` — prevención, detector, recuperación, prueba y STOP de R-01..R-12 (**no es un PASS técnico**);
-10. `docs/pc-sheet-v11/PLAN_TECNICO_IMPLEMENTACION_V11.md` + `PROMPT_WORKER_IMPLEMENTAR_V11.md`;  
-11. `docs/checkpoints/2026-10-08_PC_SHEET_PDF_REDESIGN_DISCUSSION.md` — HISTÓRICO de cierre conceptual;
-12. `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md` — §§3.1–3.48 + grouped closeout §7;
-13. `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_VISUAL_REVIEW_BRIEF.md` — brief histórico de revisión previa, NO maqueta aprobada.
+3. this `LATEST.md`;
+4. `docs/checkpoints/2026-10-09_PC_SHEET_V11_APPROVED_IMPLEMENTATION_HANDOFF.md`;
+5. `docs/pc-sheet-v11/CONTRATO_VISUAL_APROBADO.md` — aprobación V11 + dos microajustes;
+6. `docs/pc-sheet-v11/PROCEDIMIENTO_QA_SIN_PERDIDA.md` + `qa/REGISTRO_QA_V11.json` — toda observación y proceso Q0–Q7, nunca cierre por tests solos;
+7. `docs/pc-sheet-v11/PROTOCOLO_RIESGOS_Y_RECUPERACION.md` y `PROTOCOLO_ROMPER_CICLO_Y_REPLANIFICAR.md` — riesgos y recuperación RCR-1;
+8. `docs/pc-sheet-v11/PREFLIGHT_TECNICO_Y_RIESGOS.md` + `G0_MAPA_SEMANTICO_PRELIMINAR.md` — G0 todavía parcial;
+9. `docs/pc-sheet-v11/ARTEFACTOS_Y_PROCEDENCIA.md` + `G0_UNICO_PASO_MANUAL_CUSTODIA_GOLDEN.md` — ZIP V11 no versionado en Git;
+10. `docs/pc-sheet-v11/PLAN_TECNICO_IMPLEMENTACION_V11.md` y `PROMPT_WORKER_IMPLEMENTAR_V11.md` — G0–G6;
+11. `docs/checkpoints/2026-10-08_PC_SHEET_PDF_REDESIGN_DISCUSSION.md` — cierre conceptual anterior, histórico;
+12. `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md` y `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_VISUAL_REVIEW_BRIEF.md` — decisiones históricas, superadas solo donde V11 lo indique.
+
+**CI del registro QA:** `scripts/check_v11_qa_registry.py` y `.github/workflows/pc-sheet-v11-qa-ledger.yml`. Preservar 32 puntos M50800 y V11-QA-001/002; el QA real no está cerrado.
 
 For historical renderer/acceptance context only (not the active design route):
 
