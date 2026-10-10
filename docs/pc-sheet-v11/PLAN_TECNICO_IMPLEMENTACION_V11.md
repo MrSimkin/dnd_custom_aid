@@ -68,13 +68,15 @@ Implementar en la aplicación una **opción de exportación independiente, opt-i
 ## F. Protocolo anti-loop estricto
 
 1. **Una sola rama y una sola PR** para este objetivo; no crear ramas alternativas especulativas ni emitir una secuencia de prototipos V12/V13. V11 es golden visual, no plantilla de iteraciones estéticas.
-2. **Tres pasadas por gate como máximo:** primera implementación + **máximo dos ciclos de corrección**, cada uno con diagnóstico causal distinto, prueba que reproduzca fallo y evidencia final. Repetir la misma acción sin hipótesis/evidencia está prohibido.
-3. Si un gate falla luego de la segunda corrección, **STOP**: sin más código ni nuevos tests especulativos. Entregar diagnóstico, archivos/líneas, comando fallido, evidencia, riesgo y propuesta mínima de salida, en un solo informe. Retomar solo por nueva instrucción del usuario.
+2. **Tres pasadas normales por gate:** primera implementación + **máximo dos ciclos de corrección**; diagnóstico causal, prueba de reproducción y evidencia. Repetir lo mismo sin una hipótesis verificable está prohibido.
+3. Tras el tercer fallo, **PAUSA y triage** según `PROTOCOLO_ROMPER_CICLO_Y_REPLANIFICAR.md` (RCR-1): si existe evidencia de causa y una alternativa realmente distinta, se autoriza **un retroceso de hasta dos gates** al último checkpoint PASS y **dos pasadas de recuperación como máximo**. Máximo **una recuperación por gate/causa y dos globales**. Sin condiciones objetivas para recuperar, `BLOCKED`/`STOP`; si falla recuperación, **STOP definitivo**. Documentar causa, evidencia e invalidaciones sin más experimentación a ciegas.
 4. **No convertir recomendaciones en requisitos sobre la marcha.** Si un asunto es opcional, anotarlo como deuda futura fuera de alcance; no consume un ciclo. Si es bloqueante (pérdida, cuelgue, generación fallida, regresión), debe resolverse dentro del gate o STOP.
 5. **No reabrir aprobaciones visuales de V11**; solo corregir desvíos mensurables. La nueva tipografía/logo puede obligar a ajustar la medida del texto, pero no a rediseñar secciones.
 6. **No pedir al propietario respuestas ya dadas**: proyecto 100 % personal, logo original, tamaño Carta, A/B, último Notas, diseño V11 aprobado, dos ajustes menores, cero huecos injustificados.
 7. **No afirmar PASS por CI solamente** ni por tests derivados del mismo modelo que generan los PDFs. Inspección independiente de PDFs finales y binario exacto. Un PASS parcial no reemplaza al gate restante.
 8. **No hacer merge, despliegue, cambios de backend o publicación** como parte de esta ejecución. Finalizar entregando PR lista para revisión o paquete STOP.
+
+**Precedencia:** `PROTOCOLO_ROMPER_CICLO_Y_REPLANIFICAR.md` sustituye el antiguo STOP automático, pero NO relaja un solo criterio de aceptación. Las dependencias faltantes no generan intentos ficticios.
 
 ## G. Entregables obligatorios del Worker para revisión independiente
 
