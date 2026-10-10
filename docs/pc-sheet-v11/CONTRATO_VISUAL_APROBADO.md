@@ -2,7 +2,7 @@
 
 **Estado:** APROBACIÓN VISUAL EXPLÍCITA; implementación y QA runtime **NO** aprobadas ni ejecutadas.
 **Autoridad:** revisión iterativa V8→V9→V10→V11 por el propietario, última respuesta "la aprobación visual de la maqueta está dada ahora". Este contrato especifica el resultado aprobado, no declara que Kotlin lo genere.
-**Referencia:** ZIP `dnd_custom_aid_V11_Carta_revision.zip` SHA-256 `35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a`. El ZIP no está incorporado a esta rama; consultar `ARTEFACTOS_Y_PROCEDENCIA.md`.
+**Referencia:** ZIP `dnd_custom_aid_V11_Carta_revision.zip` SHA-256 `35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a`. ZIP **incorporado a esta rama** en `docs/pc-sheet-v11/` y verificado desde GitHub Actions (run 38009729554; SHA-256, 20 entradas y 8 PDFs). Consultar `ARTEFACTOS_Y_PROCEDENCIA.md`.
 **Jerarquía:** los acuerdos V11 posteriores del propietario prevalecen únicamente en los puntos incompatibles con el antiguo D-0076 y su brief. D-0076 conserva íntegra su historia; no reescribirla. Esta V11 representa una **opción nueva de exportación** sin alterar familias legacy.
 
 ## Decisiones globales congeladas
