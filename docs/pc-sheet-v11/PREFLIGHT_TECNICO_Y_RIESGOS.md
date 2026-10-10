@@ -29,11 +29,11 @@
 | R-05: regresiones históricas | **CRÍTICA** | **OPEN** | Re-QA Mara Fantasy 45p; Custom v1 falla; v2 28/27 pese a cierre previo | Reabrir defectos originales y artefactos reales, generar Mara en 4 familias legadas y V11, verificar contra candidato exacto. Cero fallos y sin cambios inadvertidos a legados. |
 | R-06: recursos tipográficos/logo | **MEDIA-ALTA** | **PARCIAL** | TTF Barlow, Fira y Symbols v8 y PDF originales presentes | Medición real + embed, caracteres Ñ/acentos/símbolos y recorte de logo del asset, verificar ambos empaquetados; no inferir que estar en Git = renderizar bien. |
 | R-07: validación de binario instalado | **ALTA** | **OPEN** | No hay APK candidato V11 ni PDFs de runtime | Nueva versión/versionCode, SHA256, CI/commit/artifact exactos, export Android real + Desktop, inspección independiente páginas/geometría. |
-| R-08: bucle interminable | **ALTA** | **CONTROL DOCUMENTAL** | Plan limita a 1 implementación + 2 reparaciones por gate | Mantener una rama y una PR, métricas/evidencia por intento, STOP al 3.er intento fallido. No reemplazar bloqueantes por ideas opcionales. |
+| R-08: bucle interminable | **ALTA** | **CONTROL DOCUMENTAL** | RCR-1: 1 implementación + 2 reparaciones normales; alternativa distinta permite recuperación estrictamente acotada | Misma rama y PR; tras 3.er fallo triage y como máximo retroceso de dos gates y 2 pasadas de recuperación (máximo 2 globales). Sin causa verificable: BLOCKED/STOP. No alterar gates. |
 | R-09: pérdida de ruta futura | **ALTA** | **PARCIAL** | `main` aún dice fase documentación | Crear checkpoint V11 y pointer `LATEST.md` coherentes **en la rama**; hasta fusionar el PR, main NO retomará V11 automáticamente. No afirmar lo contrario. |
 | R-10: coste/permisos | **BAJA** | **CONTROLADA** | Export local, logo para uso privado 100 % personal ya decidido | No pedir de nuevo permiso o dirección estética; no nuevos proveedores, nube, costes ni despliegues. |
 
-**Procedimiento operativo de prevención, detección, recuperación, evidencia y STOP para R-01..R-12:** [PROTOCOLO_RIESGOS_Y_RECUPERACION.md](PROTOCOLO_RIESGOS_Y_RECUPERACION.md). Este documento no acredita PASS de ningún riesgo abierto.
+**Procedimiento operativo R-01..R-12:** [PROTOCOLO_RIESGOS_Y_RECUPERACION.md](PROTOCOLO_RIESGOS_Y_RECUPERACION.md). **Mecanismo autorizado para romper el ciclo:** [PROTOCOLO_ROMPER_CICLO_Y_REPLANIFICAR.md](PROTOCOLO_ROMPER_CICLO_Y_REPLANIFICAR.md) (RCR-1). Ninguno acredita PASS de riesgos abiertos.
 
 ## Puertas y presupuestos de intentos
 
@@ -47,7 +47,7 @@
 6. G5: APK/artefacto versionados y correlación real runtime/CI.
 7. G6: una PR revisable y paquete de evidencia; **NO MERGE** sin autorización.
 
-Por gate: pasada inicial + **máximo dos reparaciones**. Cada reparación necesita diagnóstico causal, prueba que falle antes y pase después. Si persiste cualquier criterio bloqueante: **STOP** con reporte e instrucciones mínimas, sin V12/V13 ni más branches.
+Por gate: pasada inicial + **máximo dos reparaciones normales**. Persistiendo la causa, efectuar triage RCR-1: **alternativa demostrablemente distinta + retroceso de 1–2 gates + hasta 2 pasadas de recuperación**, una vez por gate/causa y máximo dos en toda V11; de lo contrario BLOCKED/STOP. Nunca V12/V13, nueva rama o criterio de aceptación rebajado.
 
 ## Precisión del presente preflight
 
