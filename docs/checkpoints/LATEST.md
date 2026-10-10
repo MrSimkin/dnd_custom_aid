@@ -16,6 +16,7 @@
 2. `RESUME.md`;
 3. this `LATEST.md`;
 4. `docs/checkpoints/2026-10-09_PC_SHEET_V11_APPROVED_IMPLEMENTATION_HANDOFF.md`;
+4a. `docs/pc-sheet-v11/COMANDO_SIGUE_Y_G1_HANDOFF.md` — comando «sigue», controles G0 verificables, próxima etapa G1 y prompt de retoma;
 5. `docs/pc-sheet-v11/CONTRATO_VISUAL_APROBADO.md` — aprobación V11 + dos microajustes;
 6. `docs/pc-sheet-v11/PROCEDIMIENTO_QA_SIN_PERDIDA.md` + `qa/REGISTRO_QA_V11.json` + `qa/PLANTILLA_CIERRE_POR_RONDA.md` — cada QA Q0–Q7 planificado, cambio real y comprobación; no cierre por tests solos;
 7. `docs/pc-sheet-v11/PROTOCOLO_RIESGOS_Y_RECUPERACION.md` y `PROTOCOLO_ROMPER_CICLO_Y_REPLANIFICAR.md` — riesgos y recuperación RCR-1;
