@@ -86,4 +86,4 @@ DECISIÓN: PASS y revalidar / BLOCKED con condición concreta / STOP
 
 ## 6. Siguiente acción ya autorizada para el Worker
 
-Sin pedir al propietario confirmar este procedimiento: seguir G0 de la PR #173, conservar el golden ZIP de manera durable y cotejar sus bytes, inspeccionar pruebas originales y mapa semántico real; completar lo seguro. Si falta capacidad material, registrar `BLOCKED` en el punto exacto y conservar toda evidencia útil. **No retroceder ficticiamente gates aún no ejecutados** ni usar el modo recuperación para saltarse G0.
+Sin pedir al propietario confirmar este procedimiento: seguir G0 de la PR #173. **La custodia del golden V11 ya se realizó y verificó** (Actions #38009729554, R-01 VERIFICADO); no pedir otra subida. Inspeccionar pruebas originales Mara, completar mapa semántico y preflight de compilación; completar lo seguro. Si falta capacidad material, registrar `BLOCKED` en el punto exacto y conservar toda evidencia útil. **No retroceder ficticiamente gates aún no ejecutados** ni usar el modo recuperación para saltarse G0.
