@@ -35,6 +35,8 @@
 
 **Procedimiento operativo R-01..R-12:** [PROTOCOLO_RIESGOS_Y_RECUPERACION.md](PROTOCOLO_RIESGOS_Y_RECUPERACION.md). **Mecanismo autorizado para romper el ciclo:** [PROTOCOLO_ROMPER_CICLO_Y_REPLANIFICAR.md](PROTOCOLO_ROMPER_CICLO_Y_REPLANIFICAR.md) (RCR-1). Ninguno acredita PASS de riesgos abiertos.
 
+**Primer mapa semántico basado en código real:** [G0_MAPA_SEMANTICO_PRELIMINAR.md](G0_MAPA_SEMANTICO_PRELIMINAR.md). Confirma que P4 legacy se activa también por capacidad/ranuras/fuentes mágicas, mientras V11 exige conjuros reales; y que `ACTIVO` no se deriva de equipado/sintonizado. Aún no implica G0 PASS.
+
 ## Puertas y presupuestos de intentos
 
 `G0=PARCIAL`; `G1=NO INICIADO`; `G2=NO INICIADO`; `G3=NO INICIADO`; `G4=NO INICIADO`; `G5=NO INICIADO`; `G6=NO INICIADO`.
