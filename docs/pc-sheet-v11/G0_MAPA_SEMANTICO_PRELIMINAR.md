@@ -26,14 +26,14 @@ Abrir `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md
 
 ## Problemas de disponibilidad constatados
 
-- ZIP golden V11 original **sí está en entorno de trabajo**: 1,520,026 bytes y SHA-256 `35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a`; inventario ZIP accesible. **Pero no existe versión almacenada en GitHub.** Falta R-01 PASS de recuperación byte-a-byte desde Git.
+- ZIP golden V11 **VERIFICADO y versionado en Git**: SHA-256 `35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a`, Git blob `99ed18a2c59b71440cb8b96fafea5d8df1832bd6`, Actions run #38009729554 confirmó 1.520.026 bytes y 8 PDFs desde checkout. **R-01 CERRADO.**
 - Un intento controlado de acceso Git directo desde contenedor falló por DNS: `fatal: unable to access ... Could not resolve host: github.com`. El conector GitHub sí permite operaciones de archivos de texto. No probar rutas de credenciales, ni declarar que el ZIP quedó versionado.
 - Sin clon local confiable no se corrieron `Gradle`, compilación, test Android/Desktop ni extracción de PDFs de la App. **G0 PARCIAL / G1–G6 NO INICIADOS.**
 - RCR-1 se encuentra **aprobado y documentado**; aún no tiene sentido usar recuperación, pues no hay tres intentos reales ni checkpoint previo PASS fallido.
 
 ## Próximo procedimiento determinista
 
-1. Custodiar/recuperar golden ZIP en fuente durable con verificación SHA post-descarga; preservar los ocho PDFs.
+1. **HECHO**: golden ZIP custodiado y SHA comprobado después de checkout en GitHub Actions (run #38009729554); conservar como baseline V11.
 2. Reabrir PDFs originales y fixture Mara de QA, hacer la matriz de observaciones `original → renderer → test → candidato`.
 3. Completar mapeo de campos reales desde `CharacterClosureState`, `CharacterSuccessorState` y la UI export real. No inventar semántica ACTIVO.
 4. Solo al completar G0 pasar a G1 y empezar cambios productivos; conservar PR sin fusionar y contador de intentos en cero.
