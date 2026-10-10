@@ -27,6 +27,10 @@ El propietario aprobó visualmente el paquete de maqueta V11, ambas variantes A/
 9. Por gate de QA `AGENTS.md §6.3`: reabrir **evidencia original** de `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`, `docs/checkpoints/2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md`, `docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md` y los PDFs reales originales, no solo auditorías secundarias.
 10. Inspeccionar fuente real `PcSheetPdfExportFoundation.kt`, `AndroidPcSheetExportService.kt`, `DesktopPcSheetExportService.kt`, renderers y pruebas antes de modificar código.
 
+## QA anti-pérdida autorizado y publicado
+
+Tras el reporte del propietario sobre QA cíclica sin corrección efectiva, se fijó el flujo `Q0–Q7` de `docs/pc-sheet-v11/PROCEDIMIENTO_QA_SIN_PERDIDA.md`. El ledger `docs/pc-sheet-v11/qa/REGISTRO_QA_V11.json` conserva literalidad de V11-QA-001/002 y referencias a los 32 M50800; `scripts/check_v11_qa_registry.py` rechaza omisiones, falsos cierres sin cambio productivo y pruebas de APK obsoletas; la workflow `.github/workflows/pc-sheet-v11-qa-ledger.yml` ejecuta los controles (su resultado CI debe consultarse; su existencia no es PASS). Cada QA futuro debe producir plan Q2, diff de código, artefacto nuevo y cotejo de todas las observaciones antes de solicitar una nueva revisión. G0 sigue PARCIAL, no existe implementación V11.
+
 ## Gate presente
 
 - **G0**: parcialmente revisado. Ya existe `G0_MAPA_SEMANTICO_PRELIMINAR.md` con evidencia de código y divergencia de Conjuros; RCR-1 fue autorizado y publicado, **sin gastar ninguna recuperación**. Fuente de verdad del contrato y paths de código registrados; faltan ZIP golden versionado/restituible, matriz campo-por-campo en datos reales, inspección artefactos QA originales exhaustiva y ambiente de compilación.
