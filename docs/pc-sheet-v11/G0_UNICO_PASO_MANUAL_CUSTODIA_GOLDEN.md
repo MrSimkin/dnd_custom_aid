@@ -1,8 +1,8 @@
 # G0 — Único paso manual de custodia del golden V11 (cuando Git directo no esté disponible)
 
-**Estado:** R-01 OPEN / BLOQUEO DE CAPACIDAD, NO fallo de diseño. El Worker tiene el ZIP local íntegro y SHA-256 verificado; las herramientas GitHub actuales solo permiten publicar texto y blobs con contenido explícito, pero no transferir directamente el archivo binario local de 1,520,026 bytes. El intento de `git ls-remote` por contenedor falló por DNS. **No declarar ZIP publicado sin confirmarlo en Git.**
+**Estado posterior (2026-10-09): R-01 VERIFICADO; pasos de este archivo ya ejecutados y quedan solo como fallback histórico.** Actions run #38009729554 comprobó SHA-256 después de checkout (1.520.026 bytes, 20 entradas, 8 PDFs). No solicitar subir otra vez. **Contexto previo al cierre:** R-01 OPEN / BLOQUEO DE CAPACIDAD, NO fallo de diseño. El Worker tiene el ZIP local íntegro y SHA-256 verificado; las herramientas GitHub actuales solo permiten publicar texto y blobs con contenido explícito, pero no transferir directamente el archivo binario local de 1,520,026 bytes. El intento de `git ls-remote` por contenedor falló por DNS. **No declarar ZIP publicado sin confirmarlo en Git.**
 
-## Acción mínima del propietario (sin comandos)
+## Acción mínima del propietario — COMPLETADA (instrucciones históricas, NO repetir)
 
 1. Descarga el archivo **`dnd_custom_aid_V11_Carta_revision.zip`** desde el mensaje V11/kit de ChatGPT; **no** extraer ni modificar el ZIP.
 2. En GitHub, abre **la carpeta de esta rama**:
