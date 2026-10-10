@@ -132,6 +132,18 @@ def validate(root: Path, gate="record", prior=None):
         check(r.get("status") == "PASS" and r.get("latest_candidate_commit") == (c or {}).get("source_commit"), "Regression PASS missing or stale")
         observed = {x.get("family") for x in r.get("legacy_family_evidence", [])}
         check(FAMILIES.issubset(observed) and bool(r.get("v11_evidence")) and nonempty(r.get("independent_pdf_inspection")), "All-family real QA/PDF evidence missing")
+    if rel in {"READY_FOR_OWNER_QA", "READY_FOR_MERGE"} and isinstance(c, dict):
+        # Documentation-only commits may follow a build; changed compiled code/assets may NOT.
+        source_commit = c.get("source_commit")
+        if hash_ok(source_commit, SHA) and (root / ".git").exists():
+            diff = subprocess.run(
+                ["git", "diff", "--name-only", source_commit, "HEAD", "--",
+                 "shared/", "androidApp/", "desktopApp/", "assets/fonts/",
+                 "assets/character-sheets/", "build.gradle.kts", "settings.gradle.kts", "gradle/"],
+                cwd=root, capture_output=True, text=True)
+            check(diff.returncode == 0, "Candidate source commit not available for freshness comparison")
+            check(diff.returncode != 0 or not diff.stdout.strip(),
+                  "Compiled PDF/App sources changed AFTER candidate build: invalidate and regenerate real QA PDF")
     if gate == "merge" or rel == "READY_FOR_MERGE":
         check(rel == "READY_FOR_MERGE", "Merge requires explicit release state")
         check(all(o.get("status") == "OWNER_ACCEPTED" for o in records if o.get("blocking")), "Owner has not accepted all blocking QA issues")
