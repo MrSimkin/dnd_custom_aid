@@ -56,6 +56,11 @@ class QaRegistryGuardTest(unittest.TestCase):
         errors = validate(self.root, prior=self.original)
         self.assertTrue(any("Original testimony overwritten" in e for e in errors), errors)
 
+    def test_original_owner_quote_frozen_even_without_previous_git_commit(self):
+        self.data["observations"][0]["original_text"] = "abrir discusión nueva"
+        self.write()
+        self.check_fails("Owner's original verbatim testimony changed")
+
     def test_missing_mara_inventory_id_fails(self):
         self.data["legacy_acceptance_matrix"]["items"].pop(3)
         self.write()
