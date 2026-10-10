@@ -37,7 +37,7 @@ Sigue las fases **G0–G6** y criterios del PLAN adjunto. Como mínimo:
 
 ## Límites duros contra loops
 
-**Una rama / una PR / un paquete coherente.** Primera implementación + **máximo DOS ciclos correctivos por gate**; cada corrección requiere diagnóstico causal específico y prueba nueva que demuestre el problema. Si no pasa después de dos correcciones: STOP con evidencia mínima y plan de desbloqueo, sin probar estrategias alternativas indefinidas ni generar nuevas maquetas. No pedir reaprobación visual V11 por cambios rutinarios. No hacer refactors oportunistas ni reparar históricos fuera de los regresiones provocadas en el alcance. No fusionar la PR; no autorizarse despliegues.
+**Una rama / una PR / un paquete coherente.** Primera implementación + **máximo DOS ciclos correctivos normales por gate**; cada corrección requiere causa y prueba roja→verde. Tras el tercer fallo, aplica obligatoriamente `PROTOCOLO_ROMPER_CICLO_Y_REPLANIFICAR.md` (RCR-1): pausa, evidencia y, **solo con alternativa técnicamente distinta y checkpoint PASS**, retroceso seguro de máximo dos gates, una implementación alternativa y una corrección. Máximo una recuperación por gate/causa y dos globales; luego STOP sin más pruebas especulativas. Bloqueos de evidencia/capacidad = BLOCKED, no quemar intentos. Mantener contadores, invalidaciones y SHAs en Git, sin reset --hard ni force push. No pedir reaprobación visual V11. No refactors oportunistas ni arreglos históricos ajenos; no fusionar ni desplegar.
 
 ## Entrega final obligatoria
 
