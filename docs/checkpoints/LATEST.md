@@ -18,10 +18,10 @@
 4. `docs/checkpoints/2026-10-09_PC_SHEET_V11_APPROVED_IMPLEMENTATION_HANDOFF.md`;  
 5. `docs/pc-sheet-v11/CONTRATO_VISUAL_APROBADO.md` + `PREFLIGHT_TECNICO_Y_RIESGOS.md` + `ARTEFACTOS_Y_PROCEDENCIA.md`;  
 6. `docs/pc-sheet-v11/PROTOCOLO_RIESGOS_Y_RECUPERACION.md` — prevención, detector, recuperación, prueba y STOP de R-01..R-12 (**no es un PASS técnico**);
-8. `docs/pc-sheet-v11/PLAN_TECNICO_IMPLEMENTACION_V11.md` + `PROMPT_WORKER_IMPLEMENTAR_V11.md`;  
-9. `docs/checkpoints/2026-10-08_PC_SHEET_PDF_REDESIGN_DISCUSSION.md` — HISTÓRICO de cierre conceptual;
-10. `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md` — §§3.1–3.48 + grouped closeout §7;
-11. `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_VISUAL_REVIEW_BRIEF.md` — brief histórico de revisión previa, NO maqueta aprobada.
+9. `docs/pc-sheet-v11/PLAN_TECNICO_IMPLEMENTACION_V11.md` + `PROMPT_WORKER_IMPLEMENTAR_V11.md`;  
+10. `docs/checkpoints/2026-10-08_PC_SHEET_PDF_REDESIGN_DISCUSSION.md` — HISTÓRICO de cierre conceptual;
+11. `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md` — §§3.1–3.48 + grouped closeout §7;
+12. `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_VISUAL_REVIEW_BRIEF.md` — brief histórico de revisión previa, NO maqueta aprobada.
 
 For historical renderer/acceptance context only (not the active design route):
 
