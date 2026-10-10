@@ -37,6 +37,8 @@
 
 **Primer mapa semántico basado en código real:** [G0_MAPA_SEMANTICO_PRELIMINAR.md](G0_MAPA_SEMANTICO_PRELIMINAR.md). Confirma que P4 legacy se activa también por capacidad/ranuras/fuentes mágicas, mientras V11 exige conjuros reales; y que `ACTIVO` no se deriva de equipado/sintonizado. Aún no implica G0 PASS.
 
+**QA anti-pérdida:** `PROCEDIMIENTO_QA_SIN_PERDIDA.md` + `qa/REGISTRO_QA_V11.json`, validador `scripts/check_v11_qa_registry.py` y prueba de CI. Mantener íntegros los 32 IDs M50800 y las dos observaciones V11 sin confundir pruebas sintéticas con PDF de APK real. El registro es control documental, no verificación runtime.
+
 ## Puertas y presupuestos de intentos
 
 `G0=PARCIAL`; `G1=NO INICIADO`; `G2=NO INICIADO`; `G3=NO INICIADO`; `G4=NO INICIADO`; `G5=NO INICIADO`; `G6=NO INICIADO`.
