@@ -14,6 +14,11 @@ SHA = re.compile(r"^[0-9a-f]{40}$")
 STATES = {"OPEN", "TRIAGED", "IMPLEMENTED_UNVERIFIED", "CANDIDATE_VERIFIED", "OWNER_ACCEPTED", "BLOCKED"}
 MARA = {f"M50800-{i:02d}" for i in range(1, 33)}
 FAMILIES = {"CLASSIC_DND_STYLE", "CUSTOM_V1", "CUSTOM_V2_PER_ATTRIBUTE", "CUSTOM_V2_PER_ABILITY"}
+# Verbatim owner statements, independently frozen from the mutable QA registry.
+ORIGINAL_OWNER_V11 = {
+    "V11-QA-001": "casi casi, un poco mas arriba y a la ferecha y estamos perfectos",
+    "V11-QA-002": "si, aunque todavia hay espacios vacios, ver pagina 5, no hay que hacer otra prueba para este en particular, pero solo asegurarse que cuando se haga la pieza, no deje huecos",
+}
 
 def nonempty(x):
     return isinstance(x, str) and bool(x.strip())
@@ -65,6 +70,8 @@ def validate(root: Path, gate="record", prior=None):
     check(len(ids) == len(set(ids)), "Duplicate QA ID")
     check({"V11-QA-001", "V11-QA-002"}.issubset(ids), "Approved visual review corrections missing")
     indexed = {o.get("id"): o for o in records}
+    for id_, original in ORIGINAL_OWNER_V11.items():
+        check(indexed.get(id_, {}).get("original_text") == original, f"Owner's original verbatim testimony changed: {id_}")
     for r in rounds:
         reported = r.get("reported_ids") or []
         check(len(set(reported)) == len(reported), f"QA round {r.get('id')}: duplicate ID")
