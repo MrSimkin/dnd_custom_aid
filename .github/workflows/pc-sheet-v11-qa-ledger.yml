@@ -3,9 +3,18 @@ name: PC Sheet V11 owner QA traceability
 on:
   push:
     branches:
+      - main
       - docs/pc-sheet-v11-approved-implementation-handoff
     paths:
       - "docs/pc-sheet-v11/**"
+      - "shared/**"
+      - "androidApp/**"
+      - "desktopApp/**"
+      - "assets/fonts/**"
+      - "assets/character-sheets/**"
+      - "gradle/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
       - "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
       - "scripts/check_v11_qa_registry.py"
       - "scripts/test_check_v11_qa_registry.py"
@@ -14,6 +23,14 @@ on:
     branches: [main]
     paths:
       - "docs/pc-sheet-v11/**"
+      - "shared/**"
+      - "androidApp/**"
+      - "desktopApp/**"
+      - "assets/fonts/**"
+      - "assets/character-sheets/**"
+      - "gradle/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
       - "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
       - "scripts/check_v11_qa_registry.py"
       - "scripts/test_check_v11_qa_registry.py"
