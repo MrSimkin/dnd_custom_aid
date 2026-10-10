@@ -16,6 +16,10 @@ La revisión visual integral V11 **ESTÁ APROBADA**; evita rondas estéticas. Aj
 4. Crea una **única matriz de aceptación y trazabilidad**: cada requisito visual aprobado, cada riesgo técnico real, fuente de dato/estado, lugar del código, prueba concreta y evidencia necesaria. Registra dónde el brief viejo fue superado por la aprobación V11, sin revocar silenciosamente decisiones previas.
 5. STOP solo si una dependencia real falta, la topología cambió materialmente, hay ambigüedad semántica de producto que alteraría los datos exportados, o el código no es implementable de forma segura. No preguntes detalles estéticos cerrados ni trabajo administrativo al propietario.
 
+## QA con trazabilidad obligatoria (desde el primer ciclo)
+
+Aplicar `PROCEDIMIENTO_QA_SIN_PERDIDA.md` en cada vuelta: registrar literalmente cada nota del propietario con ID durable en `qa/REGISTRO_QA_V11.json`; diagnosticar y publicar una matriz completa de reparación ANTES de editar; realizar diff **productivo** y pruebas rojas→verdes; generar **nuevo** APK/PDF de la App y cotejar exactamente cada observación; conservar las notas antiguas y los resultados sin reescribirlos. **No declarar FIXED por plan, cambios de docs, tests o PDFs sintéticos**. Ejecutar `python3 scripts/check_v11_qa_registry.py` y su CI; `OWNER_ACCEPTED` requiere aprobación explícita del propietario para el binario exacto. La evidencia vieja caduca al cambiar materialmente el candidato. El presupuesto de correcciones y recuperación RCR-1 sigue aplicable.
+
 ## Reglas de implementación
 
 - Contrato inmutable de exportación desde el modelo real: atributos normales/custom y habilidades, ataques, municiones, inventario/monedas custom incl. valor 0, Equipo Especial y ACTIVO real, Rasgos, Trasfondo/Historia, conjuros por niveles/fuentes/preparación/gasto, notas y Libro opcional, retrato, Permanente vs Instantánea Actual.
