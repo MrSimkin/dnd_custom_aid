@@ -5,7 +5,7 @@
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-10-09_PC_SHEET_V11_APPROVED_IMPLEMENTATION_HANDOFF.md`  
-**Current active route:** **V11 OWNER VISUAL APPROVED / IMPLEMENTATION AUTHORIZED / G0 DOCUMENTARY PREFLIGHT PARTIAL — NO KOTLIN IMPLEMENTATION YET.** Work only under `docs/pc-sheet-v11/` contract + risk ledger, preserving D-0076 history. One bounded branch/PR, anti-loop limits, no merge. V11 Python prototype is **not** App renderer; golden ZIP is **not yet stored in Git**.
+**Current active route:** **V11 OWNER VISUAL APPROVED / IMPLEMENTATION AUTHORIZED / G0 DOCUMENTARY PREFLIGHT PARTIAL — NO KOTLIN IMPLEMENTATION YET.** Work only under `docs/pc-sheet-v11/` contract + risk ledger, preserving D-0076 history. One bounded branch/PR, anti-loop limits, no merge. V11 Python prototype is **not** App renderer; golden ZIP **IS STORED IN GIT AND SHA-256 VERIFIED** (Actions #38009729554). Other G0 work remains.
 **Completed audit branch:** `audit/mara-phase2-existing-repair`. `repair/pc-sheet-adaptive-continuations-cross-family` remains historical implementation evidence at `ce695c...`; it is repository/CI/Worker-preflight green but **not owner-runtime verified** and is not acceptance authority.  
 **Current implementation PR:** documentation-only V11 handoff branch `docs/pc-sheet-v11-approved-implementation-handoff` (PR URL recorded after creation). No V11 production commits/builds or owner APK candidate. Any future runtime candidate must pass all QA/unique-build gates.
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
@@ -20,7 +20,7 @@
 6. `docs/pc-sheet-v11/PROCEDIMIENTO_QA_SIN_PERDIDA.md` + `qa/REGISTRO_QA_V11.json` + `qa/PLANTILLA_CIERRE_POR_RONDA.md` — cada QA Q0–Q7 planificado, cambio real y comprobación; no cierre por tests solos;
 7. `docs/pc-sheet-v11/PROTOCOLO_RIESGOS_Y_RECUPERACION.md` y `PROTOCOLO_ROMPER_CICLO_Y_REPLANIFICAR.md` — riesgos y recuperación RCR-1;
 8. `docs/pc-sheet-v11/PREFLIGHT_TECNICO_Y_RIESGOS.md` + `G0_MAPA_SEMANTICO_PRELIMINAR.md` — G0 todavía parcial;
-9. `docs/pc-sheet-v11/ARTEFACTOS_Y_PROCEDENCIA.md` + `G0_UNICO_PASO_MANUAL_CUSTODIA_GOLDEN.md` — ZIP V11 no versionado en Git;
+9. `docs/pc-sheet-v11/ARTEFACTOS_Y_PROCEDENCIA.md` + `G0_UNICO_PASO_MANUAL_CUSTODIA_GOLDEN.md` — ZIP V11 **archivado/verificado**; instrucciones manuales son evidencia histórica, no tarea pendiente;
 10. `docs/pc-sheet-v11/PLAN_TECNICO_IMPLEMENTACION_V11.md` y `PROMPT_WORKER_IMPLEMENTAR_V11.md` — G0–G6;
 11. `docs/checkpoints/2026-10-08_PC_SHEET_PDF_REDESIGN_DISCUSSION.md` — cierre conceptual anterior, histórico;
 12. `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md` y `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_VISUAL_REVIEW_BRIEF.md` — decisiones históricas, superadas solo donde V11 lo indique.
