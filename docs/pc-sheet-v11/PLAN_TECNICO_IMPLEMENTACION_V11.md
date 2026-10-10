@@ -65,6 +65,8 @@ Implementar en la aplicación una **opción de exportación independiente, opt-i
 
 **Aceptación automatizada (bloqueante):** 0 IDs perdidos/duplicados; ninguna exportación fallida dentro del dominio válido; Carta en todas las hojas V11; última hoja verdaderamente final e intacta; no texto fuera de límites ni glifos invisibles ni marcas superpuestas; no valores o slots inventados; texto completo en Libro e Historia; todos los niveles de conjuros apropiados; todas las cuadrículas completas; referencias físicas válidas ida y vuelta; cero cambios de apariencia de las familias legadas fuera de tolerancias pactadas; paridad entre rutas Desktop/Android de información y paginado dentro de expectativas técnicas verificadas. Testear geometría **real** del PDF más allá de extraer texto (ej. rectángulos, bounding boxes, renderizadas comparadas, PDF fonts).
 
+**QA obligatorio después de cada devolución del propietario:** `PROCEDIMIENTO_QA_SIN_PERDIDA.md`, registro `qa/REGISTRO_QA_V11.json` y verificación automatizada `scripts/check_v11_qa_registry.py`. No avanzar a nuevo QA ni a G6 sin consolidar las observaciones originales, plan de reparación por lote, diff de código real y prueba de PDF del candidato exacto. La inspección manual del propietario se registra separadamente de la verificación técnica; no marcar `OWNER_ACCEPTED` por aprobación visual de prototipo.
+
 ## F. Protocolo anti-loop estricto
 
 1. **Una sola rama y una sola PR** para este objetivo; no crear ramas alternativas especulativas ni emitir una secuencia de prototipos V12/V13. V11 es golden visual, no plantilla de iteraciones estéticas.
