@@ -39,3 +39,18 @@ Abrir `docs/checkpoints/2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md
 4. Solo al completar G0 pasar a G1 y empezar cambios productivos; conservar PR sin fusionar y contador de intentos en cero.
 
 **Dictamen del presente trabajo:** avance documental/arquitectónico verificable; **ningún riesgo funcional certificado como resuelto**, no declaramos G0 PASS.
+
+## Evidencia histórica Mara recuperada posteriormente (read-only)
+
+Se descargó desde GitHub Actions el artefacto **ID 10942589698** (`mara-phase2-existing-repair-proof.zip`), SHA-256 `6592148eb9c5254c65b6ec0cb33ffe09bf6efb8f9b97af61f3fe09797c1d6bb7`. Contiene pruebas de Worker, no el conjunto que el propietario generó desde su APK instalado.
+
+| PDF extraído del artefacto | Páginas verificadas con `pdfinfo` | SHA-256 |
+|---|---:|---|
+| `mara-fantasy-stress-baseline.pdf` | 29 | `9da2d727bfd7d7a1959be7cb79d71a474eb8e0bb9bb3108c10582af02ee9977a` |
+| `mara-custom-v1-stress-baseline.pdf` | 18 | `057263a509413decd09cda08b3c118299cfc08276d265a3f0af506aac23a154f` |
+| `mara-custom-v2-attribute-stress-baseline.pdf` | 16 | `6d64f1860fcc29233f1eb8fb84ba51804a63fc4cef23863f773098aa12cbfe19` |
+| `mara-custom-v2-ability-stress-baseline.pdf` | 15 | `23756f9096b55e9d4de9fc0fded5f44926476590bdc38b2e04df1834175bfe5a` |
+
+El `mara-cross-family-failures.txt` del artefacto está vacío. Se renderizó/revisó la página 6 de Custom v1 de ese artefacto; el PDF incluye `Lectura de presagios` en extracción de texto. Esto demuestra que **el PDF de laboratorio existe y contiene el texto**; no demuestra que la exportación del APK del propietario funcionara. **Contradicción histórica de QA sigue abierta:** el propietario obtuvo Fantasy 45 páginas, Custom v1 error y Custom v2 28/27. No mezclar pruebas de distinto candidato ni dar PASS por artefactos de Worker.
+
+**Disponible para futuros rescates:** artefacto GitHub Actions #10942589698 mientras su retención lo permita y los hashes citados. No guardar archivos ZIP/PDF temporales sin verificar permisos/tamaño; no inferir custodia perpetua desde Actions. Falta recuperar el PDF de runtime exacto y el APK con identidad.
