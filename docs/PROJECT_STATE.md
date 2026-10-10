@@ -1,3 +1,5 @@
+**PDF ROUTE / MAIN 2026-10-09:** El propietario aprobó visual V11, ejecución y continuidad automática por «sigue». El punto canónico de main es `docs/checkpoints/2026-10-09_PC_SHEET_V11_IMPLEMENTATION_RESUME_ROUTE.md` y refiere a PR #173 en `docs/pc-sheet-v11-approved-implementation-handoff`. Main sigue SIN Kotlin V11; rama G0 PARCIAL y G1–G6 PENDIENTES. ZIP V11 SHA-256 verificado en Actions #38009729554. Esta actualización solo mueve la ruta operativa; NO hace merge #173 ni cierra riesgos runtime. Las entradas anteriores se conservan como historia.
+
 # Project State — global repository navigation
 
 **PDF route update 2026-10-08:** The owner has reopened the PC-sheet PDF contract/architecture. New canonical resume is `docs/checkpoints/2026-10-08_PC_SHEET_PDF_REDESIGN_DISCUSSION.md` and design-decision ledger `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md`. **Design/discussion only; no renderer, template, code or PDF work authorized.** Former Phase 3 repair is deferred; existing D-0074 and QA baselines remain historical/implemented truth, not new design acceptance.
