@@ -1,5 +1,7 @@
 # Branch status and repository-ordering map
 
+**PDF branch/route update 2026-10-09 (handoff branch, unmerged):** V11 visuals OWNER-APPROVED; implementation authorized; active proposed branch `docs/pc-sheet-v11-approved-implementation-handoff`. Work checkpoint `docs/checkpoints/2026-10-09_PC_SHEET_V11_APPROVED_IMPLEMENTATION_HANDOFF.md`; G0 partial, G1–G6 not started. No renderer edits/QA APK or merge. Supersedes older design-only route below **on this branch**, with its historical evidence retained. PR must be reviewed before merge.
+
 **PDF branch/route update 2026-10-08:** Owner-led redesign contract discussion is active (D-0076; see `docs/checkpoints/LATEST.md`). **No renderer implementation branch is authorized.** This documentation work preserves prior Mara Phase-2 and old repair branch evidence; the formerly planned Phase 3 implementation is deferred. No product code or templates changed by this route decision.
 
 **Updated:** 2026-09-30 (Chile local time)  

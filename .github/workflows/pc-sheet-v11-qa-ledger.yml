@@ -1,0 +1,57 @@
+name: PC Sheet V11 owner QA traceability
+
+on:
+  push:
+    branches:
+      - main
+      - docs/pc-sheet-v11-approved-implementation-handoff
+    paths:
+      - "docs/pc-sheet-v11/**"
+      - "shared/**"
+      - "androidApp/**"
+      - "desktopApp/**"
+      - "assets/fonts/**"
+      - "assets/character-sheets/**"
+      - "gradle/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      - "scripts/check_v11_qa_registry.py"
+      - "scripts/test_check_v11_qa_registry.py"
+      - ".github/workflows/pc-sheet-v11-qa-ledger.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "docs/pc-sheet-v11/**"
+      - "shared/**"
+      - "androidApp/**"
+      - "desktopApp/**"
+      - "assets/fonts/**"
+      - "assets/character-sheets/**"
+      - "gradle/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      - "scripts/check_v11_qa_registry.py"
+      - "scripts/test_check_v11_qa_registry.py"
+      - ".github/workflows/pc-sheet-v11-qa-ledger.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  owner-qa-evidence-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Syntax, registry and historical owner evidence
+        run: |
+          python3 -m py_compile scripts/check_v11_qa_registry.py scripts/test_check_v11_qa_registry.py
+          python3 scripts/check_v11_qa_registry.py --repo-root .
+      - name: Anti-regression checks for the checker
+        run: python3 -m unittest discover -s scripts -p 'test_check_v11_qa_registry.py' -v
+      - name: Prevent silent edits to owner testimony between branch commits
+        if: github.event_name == 'push'
+        run: python3 scripts/check_v11_qa_registry.py --repo-root . --compare-ref HEAD^

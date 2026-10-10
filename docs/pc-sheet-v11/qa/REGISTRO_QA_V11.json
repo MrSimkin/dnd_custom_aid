@@ -1,0 +1,296 @@
+{
+  "schema_version": 1,
+  "project": "MrSimkin/dnd_custom_aid",
+  "authority": "Owner-approved V11, D-0076 superseded only for explicit later corrections; AGENTS.md §6.3 and M50800 retained",
+  "visual_baseline": {
+    "artifact": "dnd_custom_aid_V11_Carta_revision.zip",
+    "sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+    "owner_visual_approved": true,
+    "app_implementation_approved": false
+  },
+  "active_candidate": null,
+  "release_gate": "NOT_BUILT",
+  "qa_rounds": [
+    {
+      "id": "V11-VISUAL-2026-10-09",
+      "kind": "visual_mockup",
+      "artifact_sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+      "owner_disposition": "VISUAL_APPROVED_WITH_TWO_PENDING_IMPLEMENTATION_ADJUSTMENTS",
+      "reported_ids": [
+        "V11-QA-001",
+        "V11-QA-002"
+      ],
+      "runtime_pdf": false
+    }
+  ],
+  "legacy_acceptance_matrix": {
+    "path": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md",
+    "items": [
+      {
+        "id": "M50800-01",
+        "area": "Candidate provenance",
+        "historical_status": "FIXED — PROVENANCE RESOLVED",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-02",
+        "area": "Custom v1 generation",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-03",
+        "area": "Template/source underlay",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-04",
+        "area": "Custom Statistics visual grammar",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-05",
+        "area": "Custom Statistics capacity",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-06",
+        "area": "Phantom custom attributes",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-07",
+        "area": "Éter presentation",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-08",
+        "area": "Traits/Rasgos source reuse",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-09",
+        "area": "Traits ordering",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-10",
+        "area": "Traits packing",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-11",
+        "area": "Trasfondo/Historia and similar modules",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-12",
+        "area": "Custom-v2 Combat/Actions",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-13",
+        "area": "Fantasy Combat/Actions",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-14",
+        "area": "Resources/Options packing",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-15",
+        "area": "Ordinary Equipment design",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-16",
+        "area": "Ordinary Equipment content",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-17",
+        "area": "Ordinary Equipment readability",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-18",
+        "area": "Equipo Especial design",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-19",
+        "area": "Equipo Especial custom locations",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-20",
+        "area": "Redundant Equipment scaffolds",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-21",
+        "area": "Notes design",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-22",
+        "area": "Notes record boundaries",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-23",
+        "area": "Notes continuation identity",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-24",
+        "area": "Notes packing",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-25",
+        "area": "Character-name ribbon",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-26",
+        "area": "Semantic ellipsis",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-27",
+        "area": "Adaptive continuation architecture",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-28",
+        "area": "Page count interpretation",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-29",
+        "area": "Data preservation",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-30",
+        "area": "Pre-fix comprehension gate",
+        "historical_status": "REQUIRED BEFORE CODE",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-31",
+        "area": "Candidate acceptance gate",
+        "historical_status": "REQUIRED BEFORE HANDOFF",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-32",
+        "area": "Cross-family generation",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      }
+    ],
+    "handling": "HISTORICAL_OPEN_NOT_AUTOMATICALLY_CLOSED; CHECK_NO_NEW_REGRESSION_ON_ALL_FOUR_LEGACY_FAMILIES",
+    "note": "M50800-01 resolved old APK provenance only, not V11 pass"
+  },
+  "observations": [
+    {
+      "id": "V11-QA-001",
+      "session_id": "V11-VISUAL-2026-10-09",
+      "source": "owner direct observation",
+      "source_locator": "review V11 Etapa 1 item 1",
+      "original_text": "casi casi, un poco mas arriba y a la ferecha y estamos perfectos",
+      "expected": "Mover la etiqueta Salvación ligeramente arriba y hacia la derecha con respecto al rectángulo de atributo, sin cambios de la estética aprobada.",
+      "target_scope": "V11/P1/A+B",
+      "page_hint": "P1",
+      "blocking": true,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-10-09",
+          "candidate": "V11 approved visual mockup"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-002",
+      "session_id": "V11-VISUAL-2026-10-09",
+      "source": "owner direct observation",
+      "source_locator": "review V11 Etapa 2 item 1",
+      "original_text": "si, aunque todavia hay espacios vacios, ver pagina 5, no hay que hacer otra prueba para este en particular, pero solo asegurarse que cuando se haga la pieza, no deje huecos",
+      "expected": "Compositor C2 debe rellenar espacio realmente disponible con cartela Notas y cuadrícula completa; no generar página adicional solo para llenar.",
+      "target_scope": "V11/C2/A+B",
+      "page_hint": "V11 extremo A página 5",
+      "blocking": true,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-10-09",
+          "candidate": "V11 approved visual mockup"
+        }
+      ]
+    }
+  ],
+  "rcr_budget": {
+    "global_structural_recoveries_used": 0,
+    "max_global": 2,
+    "per_gate_attempts": {},
+    "recoveries": []
+  },
+  "runtime_qa_records": [],
+  "regression_suite": {
+    "status": "NOT_RUN",
+    "latest_candidate_commit": null,
+    "legacy_family_evidence": [],
+    "v11_evidence": [],
+    "independent_pdf_inspection": null
+  },
+  "notes": [
+    "Owner visual approval is not APK acceptance",
+    "Do not fabricate OWNER_ACCEPTED until exact candidate tested and owner explicitly approves",
+    "Legacy M50800 statuses are historical; do not override"
+  ]
+}

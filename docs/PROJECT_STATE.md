@@ -1,5 +1,7 @@
 # Project State — global repository navigation
 
+**PDF route update 2026-10-09 (handoff branch, unmerged):** The owner APPROVED V11 visuals and AUTHORIZED implementation. Authoritative next route `docs/checkpoints/2026-10-09_PC_SHEET_V11_APPROVED_IMPLEMENTATION_HANDOFF.md`, `docs/pc-sheet-v11/`. Gate G0 partially checked; no Kotlin V11 integration, APK or runtime PASS. Golden ZIP binary now versioned and independently verified (GitHub Actions #38009729554; R-01 CLOSED). G0 still partial: original owner-runtime Mara artifact, complete semantic map/build preflight not yet closed. This paragraph overrides the 2026-10-08 design-only route below **on this branch only**; main remains unchanged pending review.
+
 **PDF route update 2026-10-08:** The owner has reopened the PC-sheet PDF contract/architecture. New canonical resume is `docs/checkpoints/2026-10-08_PC_SHEET_PDF_REDESIGN_DISCUSSION.md` and design-decision ledger `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md`. **Design/discussion only; no renderer, template, code or PDF work authorized.** Former Phase 3 repair is deferred; existing D-0074 and QA baselines remain historical/implemented truth, not new design acceptance.
 
 **Last reconstructed:** 2026-09-30 (Chile local time)  

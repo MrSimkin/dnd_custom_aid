@@ -1,0 +1,58 @@
+name: PC Sheet V11 golden archive integrity
+
+on:
+  push:
+    branches:
+      - docs/pc-sheet-v11-approved-implementation-handoff
+      - main
+    paths:
+      - "docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip"
+      - ".github/workflows/pc-sheet-v11-golden-integrity.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip"
+      - ".github/workflows/pc-sheet-v11-golden-integrity.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-golden-custody:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Independent byte-level archive verification after checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import pathlib
+          import zipfile
+
+          p=pathlib.Path("docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip")
+          expected_sha="35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a"
+          expected_size=1520026
+          data=p.read_bytes()
+          observed=hashlib.sha256(data).hexdigest()
+          print("GOLDEN_SHA256_FROM_GIT_CHECKOUT="+observed)
+          print("GOLDEN_BYTES_FROM_GIT_CHECKOUT="+str(len(data)))
+          assert observed == expected_sha, "V11 ZIP SHA-256 mismatch; abort G0"
+          assert len(data) == expected_size, "V11 ZIP length mismatch; abort G0"
+          with zipfile.ZipFile(p) as archive:
+              bad=archive.testzip()
+              names=archive.namelist()
+              pdf=[n for n in names if n.lower().endswith(".pdf")]
+              assert bad is None, f"Corrupted member: {bad}"
+              assert len(names)==20, f"Expected 20 archive entries, found {len(names)}"
+              assert len(pdf)==8, f"Expected 8 PDF examples, found {len(pdf)}"
+              assert "V11_Carta/v11_generador.py" in names, "Missing V11 prototype source"
+              assert "V11_Carta/MANIFIESTO_SHA256_V11.json" in names, "Missing manifest"
+              print("GOLDEN_ZIP_MEMBERS="+str(len(names)))
+              print("GOLDEN_PDF_COUNT="+str(len(pdf)))
+          print("GOLDEN_ARCHIVE_INTEGRITY=PASS")
+          PY
