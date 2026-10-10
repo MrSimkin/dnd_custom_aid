@@ -1,3 +1,5 @@
+**PDF ROUTE / MAIN 2026-10-09:** V11 aprobada y autorizada. En «sigue», resolver **main** `RESUME.md → docs/checkpoints/LATEST.md → docs/checkpoints/2026-10-09_PC_SHEET_V11_IMPLEMENTATION_RESUME_ROUTE.md`, luego trabajar únicamente en PR #173 / `docs/pc-sheet-v11-approved-implementation-handoff` (HEAD remoto actual). G0 parcial, NO Kotlin V11 aún, sin merge de producto. Solo este cambio documental de puntero se prepara para main.
+
 # Branch status and repository-ordering map
 
 **PDF branch/route update 2026-10-08:** Owner-led redesign contract discussion is active (D-0076; see `docs/checkpoints/LATEST.md`). **No renderer implementation branch is authorized.** This documentation work preserves prior Mara Phase-2 and old repair branch evidence; the formerly planned Phase 3 implementation is deferred. No product code or templates changed by this route decision.

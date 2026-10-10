@@ -1,23 +1,25 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-10-08 (Chile local time)  
+**Updated:** 2026-10-09 (Chile local time; canonical routing ONLY, no production merge)  
 **Normal integrated trunk:** `main`  
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
-**Canonical active checkpoint:** `docs/checkpoints/2026-10-08_PC_SHEET_PDF_REDESIGN_DISCUSSION.md`  
-**Current active route:** **OWNER-LED PDF REDESIGN / CONCEPTUAL CLOSEOUT APPROVED / VISUAL REVIEW PREPARATION — DOCUMENTATION ONLY.** D-0076 §§3.1–3.48 remain approved; §7 authorizes grouped closeout, delegation of non-material layout details and no additional annex except optional Spellbook. See the canonical checkpoint and `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_VISUAL_REVIEW_BRIEF.md`. **No implementation, PDF generation, template edits, renderer changes or automatic restart of the previously planned Phase 3; historical Phase 2 closure is evidence only.**
+**Canonical active checkpoint:** `docs/checkpoints/2026-10-09_PC_SHEET_V11_IMPLEMENTATION_RESUME_ROUTE.md`  
+**Current active route:** **HOJA DE PJ V11 VISUALMENTE APROBADA / IMPLEMENTACIÓN AUTORIZADA / G0 PARCIAL → G1 PENDIENTE.** Al recibir «sigue», leer el checkpoint canónico de esta ruta en main y continuar en la **única rama autorizada** `docs/pc-sheet-v11-approved-implementation-handoff` (PR #173; HEAD remoto vigente). La rama contiene el ZIP V11 verificado y controles QA/RCR-1, pero todavía NO Kotlin V11, NO APK V11, NO QA de producto. **Esta modificación de main solo actualiza continuidad; NO fusiona PR #173 ni restaura diseños antiguos.**
 **Completed audit branch:** `audit/mara-phase2-existing-repair`. `repair/pc-sheet-adaptive-continuations-cross-family` remains historical implementation evidence at `ce695c...`; it is repository/CI/Worker-preflight green but **not owner-runtime verified** and is not acceptance authority.  
-**Current implementation PR:** none. The former Phase-3 repair plan is deferred while the PDF design contract is being reopened. Any eventual new owner candidate requires independently approved design/implementation authorization and the applicable QA/unique-build gates.
+**Current implementation PR:** [#173](https://github.com/MrSimkin/dnd_custom_aid/pull/173) en `docs/pc-sheet-v11-approved-implementation-handoff` (DRAFT / UNMERGED). ÚNICA autoridad para trabajo V11; diseño aprobado; G0 por cerrar, G1–G6 no iniciados. No revivir la reparación Phase-3 anterior.
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
 
 ## Read first on resume
 
-1. `AGENTS.md`;
-2. `RESUME.md`;
-3. this file;
-4. `docs/checkpoints/2026-10-08_PC_SHEET_PDF_REDESIGN_DISCUSSION.md`;
-5. `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md` — §§3.1–3.48 + grouped closeout §7.
-6. `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_VISUAL_REVIEW_BRIEF.md` — consolidated summary for next visual review, not an approved mockup.
+1. `AGENTS.md` (reglas y significado de «sigue»);
+2. `RESUME.md` (entrada estable);
+3. este `docs/checkpoints/LATEST.md`;
+4. **`docs/checkpoints/2026-10-09_PC_SHEET_V11_IMPLEMENTATION_RESUME_ROUTE.md`** (autoridad canónica de main y ruta a PR #173);
+5. abrir PR #173, resolver **HEAD remoto** de `docs/pc-sheet-v11-approved-implementation-handoff`, leer allí `docs/pc-sheet-v11/COMANDO_SIGUE_Y_G1_HANDOFF.md` y solo los contratos de V11 referenciados;
+6. cumplir riesgos, observaciones originales, QA sin pérdida y recuperación RCR-1; realizar el siguiente trabajo técnico seguro, registrar commit y gate PASS/BLOCKED, sin merge automático.
+
+**Evidencia disponible (no reemplaza App):** ZIP golden SHA verificado (Actions #38009729554), CI general y QA ledger SUCCESS en `89af1b63411c`; QA original Mara descrito en checkpoints, PDF runtime propietario original aún no recuperado para inspección directa. `main` nunca incorpora Kotlin V11 por este traspaso de puntero.
 
 For historical renderer/acceptance context only (not the active design route):
 
@@ -32,7 +34,7 @@ For historical renderer/acceptance context only (not the active design route):
 12. `docs/PROJECT_STATE.md`;
 13. `docs/BRANCH_STATUS.md`.
 
-**Branch rule:** no PDF implementation branch is the active continuation. The current owner-led route is design-only under D-0076. The 2026-09-30 Phase-2 checkpoint, earlier source baselines and QA matrix are historical implementation/acceptance evidence; do not treat them as approval to execute Phase 3 or as a completed modular redesign.
+**Branch rule:** PR #173 / rama `docs/pc-sheet-v11-approved-implementation-handoff` es la **única continuación de implementación V11**; su HEAD debe verificarse. Esta PR separada de routing no fusiona producto. La antigua Phase-3 y baselines de Mara permanecen como evidencia histórica, no como autoridad de diseño actual.
 
 ## Active owner re-QA failure
 
