@@ -29,7 +29,7 @@ El propietario aprobó visualmente el paquete de maqueta V11, ambas variantes A/
 
 ## QA anti-pérdida autorizado y publicado
 
-Tras el reporte del propietario sobre QA cíclica sin corrección efectiva, se fijó el flujo `Q0–Q7` de `docs/pc-sheet-v11/PROCEDIMIENTO_QA_SIN_PERDIDA.md`. El ledger `docs/pc-sheet-v11/qa/REGISTRO_QA_V11.json` conserva literalidad de V11-QA-001/002 y referencias a los 32 M50800; `scripts/check_v11_qa_registry.py` rechaza omisiones, falsos cierres sin cambio productivo y pruebas de APK obsoletas; la workflow `.github/workflows/pc-sheet-v11-qa-ledger.yml` ejecuta los controles (su resultado CI debe consultarse; su existencia no es PASS). Cada QA futuro debe producir plan Q2, diff de código, artefacto nuevo y cotejo de todas las observaciones antes de solicitar una nueva revisión. G0 sigue PARCIAL, no existe implementación V11.
+Tras el reporte del propietario sobre QA cíclica sin corrección efectiva, se fijó el flujo `Q0–Q7` de `docs/pc-sheet-v11/PROCEDIMIENTO_QA_SIN_PERDIDA.md`. El ledger `docs/pc-sheet-v11/qa/REGISTRO_QA_V11.json` conserva literalidad de V11-QA-001/002 y referencias a los 32 M50800; `scripts/check_v11_qa_registry.py` rechaza omisiones, falsos cierres sin cambio productivo y pruebas de APK obsoletas; la workflow `.github/workflows/pc-sheet-v11-qa-ledger.yml` ejecuta los controles y `docs/pc-sheet-v11/qa/PLANTILLA_CIERRE_POR_RONDA.md` obliga a plan, cambio de código, antes/después, QA independiente y propietario (su resultado CI debe consultarse; su existencia no es PASS). Cada QA futuro debe producir plan Q2, diff de código, artefacto nuevo y cotejo de todas las observaciones antes de solicitar una nueva revisión. G0 sigue PARCIAL, no existe implementación V11.
 
 ## Gate presente
 
