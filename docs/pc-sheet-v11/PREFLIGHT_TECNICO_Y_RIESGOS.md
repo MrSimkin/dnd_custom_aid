@@ -39,6 +39,8 @@
 
 **QA anti-pérdida:** `PROCEDIMIENTO_QA_SIN_PERDIDA.md` + `qa/REGISTRO_QA_V11.json`, validador `scripts/check_v11_qa_registry.py` y prueba de CI. Mantener íntegros los 32 IDs M50800 y las dos observaciones V11 sin confundir pruebas sintéticas con PDF de APK real. El registro es control documental, no verificación runtime.
 
+**Ruta de retoma automática:** [COMANDO_SIGUE_Y_G1_HANDOFF.md](COMANDO_SIGUE_Y_G1_HANDOFF.md), para evitar que el siguiente chat repita diseño o elabore planes sin ejecutar. Estado sigue G0 PARCIAL hasta pruebas explicitadas.
+
 ## Puertas y presupuestos de intentos
 
 `G0=PARCIAL`; `G1=NO INICIADO`; `G2=NO INICIADO`; `G3=NO INICIADO`; `G4=NO INICIADO`; `G5=NO INICIADO`; `G6=NO INICIADO`.
