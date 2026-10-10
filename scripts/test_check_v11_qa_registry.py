@@ -41,7 +41,7 @@ class QaRegistryGuardTest(unittest.TestCase):
     def test_delete_owner_observation_fails(self):
         self.data["observations"].pop(0)
         self.write()
-        self.check_fails("observations were deleted")
+        self.check_fails("Approved visual review corrections missing")
 
     def test_synthetic_verified_status_fails(self):
         record = self.data["observations"][0]
