@@ -19,7 +19,7 @@ El propietario aprobó visualmente el paquete de maqueta V11, ambas variantes A/
 1. `AGENTS.md` → `RESUME.md` → `docs/checkpoints/LATEST.md` → este checkpoint.
 2. `docs/pc-sheet-v11/CONTRATO_VISUAL_APROBADO.md`: autoridad específica del diseño V11.
 3. `docs/pc-sheet-v11/PREFLIGHT_TECNICO_Y_RIESGOS.md`: mapa de código validado, R-01..R-10 y estado G0..G6.
-4. `docs/pc-sheet-v11/ARTEFACTOS_Y_PROCEDENCIA.md`: nombres y hash del golden; **el ZIP no está versionado** y debe recuperarse/committearse antes de declarar G0 PASS.
+4. `docs/pc-sheet-v11/ARTEFACTOS_Y_PROCEDENCIA.md`: golden ZIP **ya versionado y verificado en Git** mediante Actions #38009729554; preservar hash, PDF, procedencia.
 5. `docs/pc-sheet-v11/PROTOCOLO_RIESGOS_Y_RECUPERACION.md`: matriz ejecutable R-01..R-12 (detector, contención, prueba y STOP). El riesgo registrado NO pasa a resuelto por publicarse este protocolo.
 6. `docs/pc-sheet-v11/PROTOCOLO_ROMPER_CICLO_Y_REPLANIFICAR.md`: recuperación RCR-1 autorizada: rewind seguro hasta dos gates, una alternativa y dos pasadas de recuperación; conserva historia, máximo dos recuperaciones globales.
 7. `docs/pc-sheet-v11/G0_MAPA_SEMANTICO_PRELIMINAR.md`: primer análisis de campos reales, diferencia de Conjuros V11/legacy y ausencia de estado ACTIVO.
@@ -31,9 +31,13 @@ El propietario aprobó visualmente el paquete de maqueta V11, ambas variantes A/
 
 Tras el reporte del propietario sobre QA cíclica sin corrección efectiva, se fijó el flujo `Q0–Q7` de `docs/pc-sheet-v11/PROCEDIMIENTO_QA_SIN_PERDIDA.md`. El ledger `docs/pc-sheet-v11/qa/REGISTRO_QA_V11.json` conserva literalidad de V11-QA-001/002 y referencias a los 32 M50800; `scripts/check_v11_qa_registry.py` rechaza omisiones, falsos cierres sin cambio productivo y pruebas de APK obsoletas; la workflow `.github/workflows/pc-sheet-v11-qa-ledger.yml` ejecuta los controles y `docs/pc-sheet-v11/qa/PLANTILLA_CIERRE_POR_RONDA.md` obliga a plan, cambio de código, antes/después, QA independiente y propietario (su resultado CI debe consultarse; su existencia no es PASS). Cada QA futuro debe producir plan Q2, diff de código, artefacto nuevo y cotejo de todas las observaciones antes de solicitar una nueva revisión. G0 sigue PARCIAL, no existe implementación V11.
 
+## Hito de preservación cerrado — R-01
+
+**R-01 VERIFIED / GOLDEN DURABLE (2026-10-09):** ZIP original archivado en `docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip` sobre esta rama; SHA-256 `35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a`; 1.520.026 bytes; SHA de objeto Git `99ed18a2c59b71440cb8b96fafea5d8df1832bd6`. GitHub Actions `PC Sheet V11 golden archive integrity` run [38009729554](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38009729554), commit `b7ca78bac9d7d884f6ab37be809685cd59a0d5fc`: comprobación SHA-256 **sobre bytes recuperados mediante checkout**, ZIP testzip PASS, 20 entradas y 8 PDFs. Esto cierra SOLO preservación R-01; G0 sigue PARCIAL y renderer/QA APK no iniciado.
+
 ## Gate presente
 
-- **G0**: parcialmente revisado. Ya existe `G0_MAPA_SEMANTICO_PRELIMINAR.md` con evidencia de código y divergencia de Conjuros; RCR-1 fue autorizado y publicado, **sin gastar ninguna recuperación**. Fuente de verdad del contrato y paths de código registrados; faltan ZIP golden versionado/restituible, matriz campo-por-campo en datos reales, inspección artefactos QA originales exhaustiva y ambiente de compilación.
+- **G0**: parcialmente revisado. Ya existe `G0_MAPA_SEMANTICO_PRELIMINAR.md` con evidencia de código y divergencia de Conjuros; RCR-1 fue autorizado y publicado, **sin gastar ninguna recuperación**. Fuente de verdad del contrato y paths de código registrados; ZIP golden **VERIFICADO / R-01 RESUELTO**; faltan matriz campo-por-campo completa en datos reales, inspección exhaustiva de QA original de Mara y ambiente de compilación/ejecución.
 - **G1–G6**: sin ejecutar. **No avanzar a code renderer** fingiendo haber terminado G0.
 - Prohibido: nueva maqueta V12/V13, excepciones silenciosas para overflow, degradar las cuatro familias existentes, eliminar texto/IDs para ahorrar páginas, aprobar por 1104 checks sintéticos, saltar el cotejo del APK instalado.
 
@@ -41,4 +45,4 @@ Tras el reporte del propietario sobre QA cíclica sin corrección efectiva, se f
 
 Esta publicación en rama y PR conserva instrucciones en GitHub aunque se pierda el chat. Sin embargo, `main` **no redirigirá automáticamente** a este checkpoint hasta fusionar el PR; no declarar el traspaso canónico final cerrado sin esa integración documental. Mantener PR **sin merge** para revisión del propietario, conforme al plan.
 
-**Siguiente única acción de Worker:** cerrar **G0 con evidencia primaria y custodia del golden**, después proceder G1→G6 según contrato o emitir STOP. No pedir al propietario decisiones ya dadas.
+**Siguiente acción Worker:** R-01 archivado, NO volver a pedir ZIP. Completar **G0 con evidencia primaria original de Mara, mapa semántico y preflight de compilación**, luego G1→G6 o BLOCKED con evidencia. No reabrir estética ni pedir decisiones dadas. No pedir al propietario decisiones ya dadas.
