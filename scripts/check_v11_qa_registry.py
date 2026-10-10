@@ -107,6 +107,9 @@ def validate(root: Path, gate="record", prior=None):
             check(isinstance(c, dict), f"{item}: verified without active build")
             check(hash_ok(proof.get("pdf_sha256")) and hash_ok(proof.get("apk_sha256")), f"{item}: no PDF/APK SHA proof")
             check(all(nonempty(proof.get(k)) for k in ("candidate_commit", "independent_review_ref", "reviewed_page", "actual_result", "fixture_id")), f"{item}: incomplete independent runtime evidence")
+            check(proof.get("export_origin") in {"ANDROID_INSTALLED_APP", "DESKTOP_UI_EXPORT"}, f"{item}: PDF is not from real App runtime/UI export")
+            check(proof.get("defect_absent") is True, f"{item}: original defect not demonstrated absent")
+            check(all(nonempty(proof.get(k)) for k in ("before_observation", "after_observation", "comparison_ref")), f"{item}: missing before/after visible or semantic comparison")
             if isinstance(c, dict):
                 check(proof.get("candidate_commit") == c.get("source_commit") and proof.get("apk_sha256") == c.get("apk_sha256") and proof.get("version_code") == c.get("version_code"), f"{item}: stale proof from a DIFFERENT build")
         if state == "OWNER_ACCEPTED":
