@@ -1,6 +1,6 @@
 # ENCARGO AL WORKER — IMPLEMENTAR HOJA DE PJ V11 SIN BUCLES
 
-**Fuentes requeridas para la ejecución:** (1) ZIP V11 con SHA-256 documentado en `ARTEFACTOS_Y_PROCEDENCIA.md`; (2) `PLAN_TECNICO_IMPLEMENTACION_V11.md` en este mismo directorio. El ZIP debe recuperarse de una fuente verificada antes de G0; no inventar una copia. Tu autoridad operativa es el repositorio actual `MrSimkin/dnd_custom_aid` más el **diseño V11 aprobado expresamente por el propietario** y las dos correcciones pendientes. No presupongas que `main` conserva el HEAD aquí anotado. **No fusionar ni publicar en producción.**
+**Fuentes requeridas para la ejecución:** (1) ZIP V11 con SHA-256 documentado en `ARTEFACTOS_Y_PROCEDENCIA.md`; (2) `PLAN_TECNICO_IMPLEMENTACION_V11.md` en este mismo directorio. El ZIP **YA ESTÁ VERSIONADO Y VERIFICADO** dentro de `docs/pc-sheet-v11/` en la rama (Actions run #38009729554). Usar esa fuente, y comprobar su SHA antes de ejecutar; no volver a pedirlo al propietario. Tu autoridad operativa es el repositorio actual `MrSimkin/dnd_custom_aid` más el **diseño V11 aprobado expresamente por el propietario** y las dos correcciones pendientes. No presupongas que `main` conserva el HEAD aquí anotado. **No fusionar ni publicar en producción.**
 
 ## Mandato
 
