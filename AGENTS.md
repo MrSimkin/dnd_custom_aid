@@ -179,6 +179,8 @@ Every materially different owner-facing QA binary must also have a **unique cand
 
 If runtime output materially disagrees with repository proof (for example page counts, visible layout class or generation success), stop speculative fixing and establish exact binary/source provenance first.
 
+**V11 owner QA operational gate (current approved implementation route):** apply `docs/pc-sheet-v11/PROCEDIMIENTO_QA_SIN_PERDIDA.md` and preserve every owner observation in `docs/pc-sheet-v11/qa/REGISTRO_QA_V11.json` before repair. No owner feedback may be declared corrected solely by documentation, a passing test, or a changed fixture; the exact installed-app candidate and its output PDF must be traceable to a real production-code/resource commit. CI runs `scripts/check_v11_qa_registry.py` to reject lost owner testimony, stale candidate proofs and fabricated acceptance. This strengthens §6.3; it does not replace the original defect artifacts or waive any previous rule.
+
 ## 7. Secret handling
 
 Never request or commit passwords, OTPs, Cloudflare tokens, DB passwords, Neon connection strings, Descope/session/access/refresh JWTs, private keys, signing credentials, provider credential files or secret environment-variable values.
