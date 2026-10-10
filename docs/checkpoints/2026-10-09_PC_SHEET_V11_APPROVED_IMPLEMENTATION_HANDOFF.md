@@ -37,7 +37,7 @@ Tras el reporte del propietario sobre QA cíclica sin corrección efectiva, se f
 
 ## Continuidad entre chats — orden «sigue»
 
-**Desde main** se prepara una ruta documental independiente para apuntar a esta PR sin fusionar la implementación. Al recibir «sigue» con repositorio identificado: seguir `AGENTS → RESUME → LATEST → checkpoint canónico de main → esta rama PR #173 HEAD actual → docs/pc-sheet-v11/COMANDO_SIGUE_Y_G1_HANDOFF.md`. La guía nueva contiene el primer paso seguro de G0, G1 y las observaciones sin pérdida; cualquier implementación debe registrar commit, evidencia y nuevo estado. No revivir el diseño 2026-10-08 de main ni iniciar rama de producto paralela.
+**Desde main** ya existe la ruta documental de reanudación (PR #174, merge `0c009f10d5e66880d68fa3732491c6fc3e172f22`) que apunta a esta PR **sin fusionar implementación**. El checkpoint canónico main es `docs/checkpoints/2026-10-09_PC_SHEET_V11_IMPLEMENTATION_RESUME_ROUTE.md`. Al recibir «sigue» con repositorio identificado: seguir `AGENTS → RESUME → LATEST → checkpoint canónico de main → esta rama PR #173 HEAD actual → docs/pc-sheet-v11/COMANDO_SIGUE_Y_G1_HANDOFF.md`. La guía nueva contiene el primer paso seguro de G0, G1 y las observaciones sin pérdida; cualquier implementación debe registrar commit, evidencia y nuevo estado. No revivir el diseño 2026-10-08 de main ni iniciar rama de producto paralela.
 
 ## Gate presente
 
