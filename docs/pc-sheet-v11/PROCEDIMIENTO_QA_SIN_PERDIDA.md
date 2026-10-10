@@ -60,6 +60,8 @@ OPEN  →  TRIAGED  →  IMPLEMENTED_UNVERIFIED  →  CANDIDATE_VERIFIED  →  O
 - Si hay una regresión no resuelta: `BLOCKED`, volver a Q1–Q5 con RCR-1. No entregar el mismo APK como «nuevo».
 - Lo anterior **no obliga a resolver todos los defectos legados anteriores para cerrar V11**; sí exige comprobar que V11 no los empeora y registrar por separado el estado histórico abierto de M50800 sin afirmar su cierre.
 
+**Plantilla por cada QA:** copiar `qa/PLANTILLA_CIERRE_POR_RONDA.md` a `qa/rondas/<QA-ID>.md`. Worker la completa y enlaza en la PR; el propietario solo comunica hallazgos y revisa el candidato. La plantilla registra plan previo, commit productivo, antes/después, PDF real y decisión final.
+
 ## Aseguramiento automatizado
 
 `qa/REGISTRO_QA_V11.json` almacena IDs, citas originales, estado, plan y evidencia; **no es opcional**. `scripts/check_v11_qa_registry.py` valida coherencia, nombres, estados, presupuestos RCR-1, cobertura M50800 y **prohíbe estados verificados sin hashes/commit del candidato idénticos**. Ejecutar el validador en cada commit y en CI antes de cualquier anuncio de reparación/cierre. El validador solo comprueba la **calidad formal de la evidencia**, nunca sustituye la inspección humana de los PDFs ni demuestra que Kotlin genere un resultado correcto.
