@@ -142,6 +142,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         Loader.loadPDF(generated.bytes).use { pdf ->
             val printed = PDFTextStripper().getText(pdf)
             assertTrue(printed.contains("P4 - Conjuros"))
+            for (level in 0..9) {
+                assertTrue(printed.contains("NIVEL " + level),
+                    "P4 must reserve all non-epic level groups 0–9, including empty ones.")
+            }
+            assertTrue(printed.contains("Fire Bolt"),
+                "Genuine Ilyra spell missing in the real exported P4.")
             assertTrue(printed.contains("Libro de conjuros"))
             val notesOnly = PDFTextStripper().apply {
                 startPage = pdf.numberOfPages

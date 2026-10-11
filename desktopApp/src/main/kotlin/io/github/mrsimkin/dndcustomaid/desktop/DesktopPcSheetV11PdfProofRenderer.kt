@@ -91,7 +91,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // the 1224×1584 pixel original. Clip only the logo region.
                 stream.addRect(42f, 732f, 99f, 35f)
                 stream.clip()
-                stream.endPath()
+                // PDFBox exposes no endPath(); stroke closes the clipped path.
+                stream.stroke()
                 val scale = 0.28f
                 stream.drawImage(
                     ownerLogo,
@@ -361,11 +362,53 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 texts.narrative, 1, alwaysPage = true)
 
             if (data.hasQuickSpellList) {
-                val quick = data.spells.map {
-                    PcSheetV11FlowItem("quick-spell:" + it.spell.id,
-                        "Nv " + it.spell.level + " " + it.spell.name)
+                // Contract: a spell page, when present, reserves visible levels 0–9
+                // even if a given level has no real spells; 10–12 require real
+                // epic rules data and are not invented. Sources/preparation stay
+                // linked to the specific persisted casting-source association.
+                val quick = buildList {
+                    val levels = (0..9).toList() +
+                        data.spells.map { it.spell.level }.filter { it >= 10 }.distinct().sorted()
+                    levels.forEach { level ->
+                        add(PcSheetV11FlowItem("spell-level:" + level,
+                            if (level == 0) "TRUCOS / NIVEL 0" else "NIVEL " + level,
+                            keepTogetherIfFits = true))
+                        val spellsHere = data.spells.filter { it.spell.level == level }
+                        if (spellsHere.isEmpty()) {
+                            // Explicitly blank PAPER row with a preparation checkbox,
+                            // not a fabricated spell or slot.
+                            add(PcSheetV11FlowItem("spell-handwritten:" + level,
+                                "[ ] ______________________", keepTogetherIfFits = true))
+                        }
+                        spellsHere.forEach { entry ->
+                            val sourceInfo = entry.sources.joinToString(" / ") { association ->
+                                val sourceLabel = association.sourceName
+                                    ?.takeIf { it.isNotBlank() }
+                                    ?: association.sourceId.toString()
+                                "[" + (if (association.prepared) "X" else " ") +
+                                    "] " + sourceLabel
+                            }
+                            add(PcSheetV11FlowItem("quick-spell:" + entry.spell.id,
+                                entry.spell.name +
+                                    (if (sourceInfo.isBlank()) "" else " | " + sourceInfo),
+                                keepTogetherIfFits = true))
+                        }
+                    }
                 }
-                addSection("P4 - Conjuros", PcSheetV11FlowSection.QUICK_SPELLS, quick, 3)
+                // Share actual measured rows roughly across three columns rather
+                // than leaving two physical columns completely blank.
+                val initial = body.place(PcSheetV11FlowSection.QUICK_SPELLS,
+                    quick, pageArea, 3, 12f)
+                val balancedRows = maxOf(10,
+                    (initial.cells.size + 2) / 3 + 2)
+                val usedHeightPt = minOf(pageArea.heightPt,
+                    balancedRows * body.metrics.lineHeightPt)
+                val balancedArea = PcSheetV11RectPt(
+                    pageArea.leftPt, pageArea.topPt - usedHeightPt,
+                    pageArea.widthPt, usedHeightPt,
+                )
+                addSection("P4 - Conjuros", PcSheetV11FlowSection.QUICK_SPELLS,
+                    quick, 3, area = balancedArea)
             }
 
             // Only overflowed paired rows need their narrow P2 geometry.
