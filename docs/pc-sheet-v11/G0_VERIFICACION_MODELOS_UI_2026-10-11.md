@@ -38,3 +38,7 @@ Se reabrieron los tres **documentos fuente**: `2026-09-26_PC_SHEET_MARA_PREQA8_P
 **Golden R-01:** preservado, SHA-256 `35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a`; no volver a solicitarlo. `V11-QA-001/002` siguen OPEN. Registro RCR-1 intacto: 0/2 global, cero intentos normales/recuperación en todos los gates. **G0 bloqueado en evidencias específicas; G1–G6 NOT_STARTED.**
 
 Próxima acción exacta: recuperar y cotejar la evidencia PDF propietaria contra la matriz M50800 y, en un checkout Kotlin ejecutable, comprobar tests/compilación. Solo con G0 PASS verificado comenzar G1 opt-in A/B en shared + tests, sin alterar renderers legacy.
+
+## Excepción técnica aprobada después del contraste
+
+El propietario aclaró que los PDF históricos de Mara deben apoyar las **regresiones G4–G5**, pero **no bloquear el trabajo aislado del contrato de datos G1**. Esta es una excepción consciente al secuenciado estricto G0→G1 para el **subtrabajo shared Kotlin que no repara renderer**. G0 continúa PARCIAL; falta QA primaria; **no existe G0 ni G1 PASS**. Código aislado/test en commit `97b4e8f8ecec9465bea55fabc15fcffc5a658195`, sujeto a CI Kotlin. Para avanzar después de G1 a paginación, verificar pruebas y resolver cualquier contradicción material real; antes de entregar APK/candidato cotejar los PDF y matriz Mara contra salidas exactas, sin sustituirlos por los PDFs Worker.

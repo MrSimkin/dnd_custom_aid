@@ -2,7 +2,7 @@
 
 **Main routing integrado:** PR documental [#174](https://github.com/MrSimkin/dnd_custom_aid/pull/174) **MERGED** mediante commit de main `0c009f10d5e66880d68fa3732491c6fc3e172f22`. Main ahora apunta al checkpoint `docs/checkpoints/2026-10-09_PC_SHEET_V11_IMPLEMENTATION_RESUME_ROUTE.md` y desde allí a esta rama. Este merge fue solo documental; **PR #173 permanece abierta y sin fusionar**. Antes de la integración futura de #173, conciliar los cambios de ruta de `main` sin revivir el viejo design-only checkpoint.
 
-**Estado verificado:** 2026-10-09, PR #173 **DRAFT y sin fusionar**, `main` base `27bd199633f1068ca481c387973d38f35cbb0c48`. V11 **visualmente aprobada**, implementación Kotlin **NO INICIADA**. **G0 PARCIAL, G1–G6 NO INICIADOS**. No inferir nuevos estados del texto; comprobar GitHub y CI al ejecutar.
+**Actualización 2026-10-11:** PR #173 **DRAFT y sin fusionar**; main `0c009f10...`. V11 visualmente aprobada. **G0 PARCIAL**; por excepción aprobada por el propietario **G1 subtrabajo de contrato shared aislado iniciado** en commit `97b4e8f8ecec9465bea55fabc15fcffc5a658195`. G1 **no PASS** y G2–G6 sin iniciar. Verificar HEAD/CI remoto, no inferir PASS. Los PDFs históricos Mara NO bloquean este subtrabajo; sí su QA de aceptación posterior.
 
 ## 1. «Sigue» en cualquier sesión nueva
 
@@ -31,11 +31,11 @@ Al recibir «sigue», «continúa» o el prompt final, el Worker debe:
 
 Cuando **falte un recurso externo no accesible** (p.ej. PDF runtime del propietario no conservado), registrar `BLOCKED` respecto de ESA evidencia, **sin gastar intentos**. Hacer otras comprobaciones read-only accesibles. No cambiar renderer mientras las reglas de AGENTS §6.3 exijan esa evidencia. Si el material original está documentado pero solo faltan bytes físicos, resolver conscientemente si alcanza para empezar **solo código aislado de mapeo G1 sin modificar las familias heredadas**; registrar la excepción explícita y reservar la aceptación final a un runtime real. Nunca fingir que se recuperaron PDFs.
 
-## 3. Comienzo correcto de G1 (NO ejecutado aquí)
+## 3. G1: contrato semántico aislado iniciado; PASS pendiente
 
-Secuencia en **la misma PR #173**, después de G0 PASS:
-1. Test unitario rojo de cuatro familias inalteradas y opt-in V11 A/B (request + snapshot); trazar `PERMANENT`/`CURRENT_SNAPSHOT` y notices.
-2. Añadir contrato semántico tipado V11 en **shared Kotlin**, preserve IDs/relaciones/estados; **sin** tocar el renderer legacy ni usar la maqueta Python en runtime.
+La primera rebanada de mapeo se ejecutó **en la misma PR #173** por excepción explícita, sin declarar G0 PASS ni tocar renderers. Continúa esta secuencia antes de cerrar G1:
+1. **CÓDIGO INICIADO**: tests shared verifican cuatro familias intactas, opt-in V11 A/B (request + snapshot), `PERMANENT`/`CURRENT_SNAPSHOT` y notices. Consultar CI para confirmar ejecución; no declarar test PASS sin Actions.
+2. **CÓDIGO INICIADO**: contrato semántico tipado V11 en **shared Kotlin**, preserva IDs/relaciones/estados y agregado origen; **sin** tocar el renderer legacy ni usar Python en runtime.
 3. Testear: 6 atributos + custom, skills relacionadas, `spells.isNotEmpty()` vs capacidad mágica, prepared **por fuente**, `spellSlots.totalSlots` vs `spentSlots`, moneda 0, `ACTIVO` papel vacío sin inferir `equipped/attuned`, notas generales/tituladas, Libro opcional y retrato ausente/Crop/Fit.
 4. Ejecutar tests shared/CI y validador QA; registrar mapeo completo. Al **PASS G1** continuar G2: compositor determinista y fragmentación de textos extensos.
 

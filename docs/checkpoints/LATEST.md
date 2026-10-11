@@ -1,13 +1,13 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-10-09 (V11 development branch unmerged; main resume route merged separately by PR #174)  
+**Updated:** 2026-10-11 (PR #173 G1 semantic-only first code slice; main routing remains PR #174)  
 **Normal integrated trunk:** `main`  
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-10-09_PC_SHEET_V11_APPROVED_IMPLEMENTATION_HANDOFF.md`  
-**Current active route:** **V11 OWNER VISUAL APPROVED / IMPLEMENTATION AUTHORIZED / G0 DOCUMENTARY PREFLIGHT PARTIAL — NO KOTLIN IMPLEMENTATION YET.** Work only under `docs/pc-sheet-v11/` contract + risk ledger, preserving D-0076 history. One bounded branch/PR, anti-loop limits, no merge. V11 Python prototype is **not** App renderer; golden ZIP **IS STORED IN GIT AND SHA-256 VERIFIED** (Actions #38009729554). Other G0 work remains.
+**Current active route:** **V11 OWNER VISUAL APPROVED / IMPLEMENTATION AUTHORIZED / G0 PARCIAL; G1 SEMANTIC-ONLY CODING UNDER EXPLICIT EXCEPTION, NO G1 PASS.** Work only under `docs/pc-sheet-v11/` contract + risk ledger, preserving D-0076 history. One bounded branch/PR, anti-loop limits, no merge. V11 Python prototype is **not** App renderer; golden ZIP **IS STORED IN GIT AND SHA-256 VERIFIED** (Actions #38009729554). Other G0 work remains.
 **Completed audit branch:** `audit/mara-phase2-existing-repair`. `repair/pc-sheet-adaptive-continuations-cross-family` remains historical implementation evidence at `ce695c...`; it is repository/CI/Worker-preflight green but **not owner-runtime verified** and is not acceptance authority.  
-**Current implementation PR:** documentation-only V11 handoff branch `docs/pc-sheet-v11-approved-implementation-handoff` (PR URL recorded after creation). No V11 production commits/builds or owner APK candidate. Any future runtime candidate must pass all QA/unique-build gates.
+**Current implementation PR:** [#173](https://github.com/MrSimkin/dnd_custom_aid/pull/173), single unmerged branch `docs/pc-sheet-v11-approved-implementation-handoff`. G1 isolated shared Kotlin projection committed at `97b4e8f8ecec9465bea55fabc15fcffc5a658195`; **no V11 renderer/UI, APK or owner runtime candidate**. The four legacy renderers are unchanged. G1 tests/CI require outcome verification; preserve all QA/unique-build gates.
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
 
 ## Read first on resume
@@ -41,7 +41,7 @@ For historical renderer/acceptance context only (not the active design route):
 12. `docs/PROJECT_STATE.md`;
 13. `docs/BRANCH_STATUS.md`.
 
-**Branch rule:** this V11 handoff branch is the active continuation **only if/when this change becomes the current-main route**. Until merged, `main` still has the older design-only checkpoint. Existing Phase-2/Mara evidence remains historical, not a PASS for V11 nor authorization to revive the prior repair instead of the approved V11 redesign.
+**Branch rule:** `main` has already integrated the V11 resume route in PR #174 at `0c009f10d5e66880d68fa3732491c6fc3e172f22`; this unmerged PR #173 is the sole V11 implementation authority. Its future merge requires reconciliation with main. Existing Phase-2/Mara evidence remains historical, not a PASS for V11 nor authorization to revive the prior repair instead of the approved V11 redesign.
 
 ## Active owner re-QA failure
 
