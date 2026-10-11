@@ -109,6 +109,67 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
             }
 
+            /**
+             * P1 approved attributes: rectangular score, overlapping oval modifier,
+             * a visually anchored saving throw, in the page's physical coordinates.
+             * Additional custom attributes remain losslessly available in the
+             * measured text section until their C2 visual relationship is finalized.
+             */
+            fun drawP1Attributes(stream: PDPageContentStream) {
+                val standards = data.attributes.take(6)
+                require(standards.size == 6) {
+                    "A playable D&D sheet must supply the six standard abilities."
+                }
+                val left = 42f
+                val width = 528f / 6f
+                val kappa = 0.5522848f
+                standards.forEachIndexed { index, ability ->
+                    val x = left + index * width
+                    val centerX = x + width / 2f
+                    stream.saveGraphicsState()
+                    stream.setStrokingColor(Color(80, 122, 151))
+                    stream.setLineWidth(0.75f)
+                    stream.addRect(x + 2f, 593f, width - 4f, 95f)
+                    stream.stroke()
+                    stream.addRect(x + 19f, 628f, width - 38f, 34f)
+                    stream.stroke()
+                    // Oval centered over the bottom edge of the score rectangle.
+                    val rx = 20f
+                    val ry = 11f
+                    val cy = 627f
+                    stream.moveTo(centerX + rx, cy)
+                    stream.curveTo(centerX + rx, cy + ry * kappa,
+                        centerX + rx * kappa, cy + ry, centerX, cy + ry)
+                    stream.curveTo(centerX - rx * kappa, cy + ry,
+                        centerX - rx, cy + ry * kappa, centerX - rx, cy)
+                    stream.curveTo(centerX - rx, cy - ry * kappa,
+                        centerX - rx * kappa, cy - ry, centerX, cy - ry)
+                    stream.curveTo(centerX + rx * kappa, cy - ry,
+                        centerX + rx, cy - ry * kappa, centerX + rx, cy)
+                    stream.closePath()
+                    stream.stroke()
+                    stream.restoreGraphicsState()
+
+                    val title = ability.name
+                    require(body.width.measurePt(title) <= width - 6f) {
+                        "Ability title does not fit the approved P1 cell: " + title
+                    }
+                    val titleWidth = body.width.measurePt(title)
+                    draw(stream, title, centerX - titleWidth / 2f, 672f, false)
+                    val score = ability.score.toString()
+                    draw(stream, score, centerX - body.width.measurePt(score) / 2f, 642f, false)
+                    val mod = if (ability.modifier >= 0) "+" + ability.modifier
+                        else ability.modifier.toString()
+                    draw(stream, mod, centerX - body.width.measurePt(mod) / 2f, 623f, false)
+                    draw(stream, "SALV.", x + 7f, 602f, false)
+                    ability.savingThrowTotal?.let { save ->
+                        val saving = if (save >= 0) "+" + save else save.toString()
+                        draw(stream, saving,
+                            x + width - 8f - body.width.measurePt(saving), 602f, false)
+                    }
+                }
+            }
+
             fun addSection(
                 title: String,
                 section: PcSheetV11FlowSection,
@@ -126,6 +187,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     pdf.addPage(page)
                     PDPageContentStream(pdf, page).use { stream ->
                         drawFrameAndHeader(stream, title + " / " + (index + 1))
+                        if (title.startsWith("P1 - ") && index == 0) {
+                            drawP1Attributes(stream)
+                        }
                         flow.cells.filter { it.localPageIndex == index + 1 }.forEach { cell ->
                             if (cell.drawableText.isNotEmpty()) {
                                 draw(stream, cell.drawableText,
@@ -154,7 +218,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 add(PcSheetV11FlowItem("identity:combat",
                     "CA " + source.armorClass + " | PG " + source.currentHp + "/" + source.maxHp +
                         " | PG temp " + source.tempHp + " | Velocidad " + source.speed))
-                data.attributes.forEachIndexed { index, it ->
+                data.attributes.drop(6).forEachIndexed { index, it ->
                     add(PcSheetV11FlowItem("attribute:" + index,
                         it.name + " " + it.score + " / mod " + it.modifier +
                             " / salvación " + (it.savingThrowTotal?.toString() ?: "sin valor")))
@@ -175,7 +239,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
             }
             addSection("P1 - Personaje / combate / habilidades", PcSheetV11FlowSection.TRAITS,
-                identity, 2, alwaysPage = true)
+                identity, 2, alwaysPage = true,
+                area = PcSheetV11RectPt(42f, 78f, 528f, 425f))
 
             // P2 has four separate print modules. This drawing path uses the
             // same measured source-ID rows that G2 verified; it is not a plain-text mock.

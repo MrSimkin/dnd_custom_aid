@@ -78,6 +78,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.contains("Mara"), "This must render actual character data.")
             assertFalse(printed.contains("Personaje: Mara"),
                 "The character name belongs in the page header, not repeated in P1.")
+            val p1Text = PDFTextStripper().apply {
+                startPage = 1
+                endPage = 1
+            }.getText(pdf)
+            assertTrue(p1Text.contains("SALV."),
+                "P1 must print the six physical saving throw annotations.")
+            generated.semantic.attributes.take(6).forEach { ability ->
+                assertTrue(p1Text.contains(ability.name),
+                    "Missing visual P1 standard ability: " + ability.name)
+            }
             assertTrue(printed.contains("P2 - Equipo y tesoro"))
             assertTrue(printed.contains("EQUIPO"))
             assertTrue(printed.contains("TESORO"))
