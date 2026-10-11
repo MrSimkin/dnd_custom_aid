@@ -1,6 +1,9 @@
 package io.github.mrsimkin.dndcustomaid.desktop
 
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ExportRequest
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticData
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticMapper
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportPlanner
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
@@ -26,9 +29,36 @@ internal data class DesktopPcSheetGeneratedPdf(
  * This class deliberately owns no PDF layout. Both Save and Share receive the exact byte stream
  * produced by DesktopPcSheetWholeDraftRenderer from PcSheetPdfRenderPlan.
  */
+/**
+ * QA-only V11 PDF: real local bytes from the app's production PDF backend,
+ * but NOT a visually approved owner candidate. Never feed to the legacy renderer.
+ */
+internal data class DesktopPcSheetV11PdfProof(
+    val semantic: PcSheetV11SemanticData,
+    val bytes: ByteArray,
+)
+
 internal class DesktopPcSheetExportService(
     private val portraitBytesLoader: (String) -> ByteArray? = ::loadLocalPortraitBytes,
 ) {
+
+    /**
+     * Separate owner-authorized V11 route. Generates ACTUAL PDF bytes locally for QA;
+     * the approved visual layout is incomplete, so do not expose in normal export UI.
+     */
+    fun generateV11Proof(
+        request: PcSheetV11ExportRequest,
+        sources: PcSheetExportSources,
+    ): DesktopPcSheetV11PdfProof {
+        val semantic = PcSheetV11SemanticMapper.map(request, sources)
+        val bytes = ByteArrayOutputStream().use { buffer ->
+            DesktopPcSheetV11PdfProofRenderer().render(semantic, buffer)
+            buffer.toByteArray()
+        }
+        check(bytes.isNotEmpty())
+        return DesktopPcSheetV11PdfProof(semantic, bytes)
+    }
+
     fun generate(
         request: PcSheetPdfExportRequest,
         sources: PcSheetExportSources,

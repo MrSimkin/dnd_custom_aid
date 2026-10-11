@@ -23,6 +23,10 @@ internal class AndroidPcSheetV11FontMeasurer(
 ) {
     private val loaded = mutableMapOf<PcSheetV11Typeface, PDType0Font>()
 
+    /** Same loaded PDF font that measured the shared V11 layout. */
+    fun font(typeface: PcSheetV11Typeface): PDType0Font =
+        checkNotNull(loaded[typeface]) { "Resolve this V11 font before drawing it." }
+
     fun resolve(
         typeface: PcSheetV11Typeface,
         fontSizePt: Float,

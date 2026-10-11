@@ -5,6 +5,9 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomStatisticsPresentation
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ExportRequest
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticData
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticMapper
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportPlanner
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
@@ -36,10 +39,31 @@ internal data class AndroidPcSheetGeneratedPdf(
     val bytes: ByteArray,
 )
 
+/** Internal QA-only actual PDF bytes, not a production V11 visual export. */
+internal data class AndroidPcSheetV11PdfProof(
+    val semantic: PcSheetV11SemanticData,
+    val bytes: ByteArray,
+)
+
 internal class AndroidPcSheetExportService(
     context: Context,
 ) {
     private val appContext = context.applicationContext
+
+    /** Internal V11 PDF proof, separate from all four production renderer families. */
+    fun generateV11Proof(
+        request: PcSheetV11ExportRequest,
+        sources: PcSheetExportSources,
+    ): AndroidPcSheetV11PdfProof {
+        AndroidPcSheetAssetLoader.initialize(appContext)
+        val semantic = PcSheetV11SemanticMapper.map(request, sources)
+        val bytes = java.io.ByteArrayOutputStream().use { buffer ->
+            AndroidPcSheetV11PdfProofRenderer().render(semantic, buffer)
+            buffer.toByteArray()
+        }
+        check(bytes.isNotEmpty())
+        return AndroidPcSheetV11PdfProof(semantic, bytes)
+    }
 
     fun generate(
         request: PcSheetPdfExportRequest,
