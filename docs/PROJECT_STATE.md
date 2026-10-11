@@ -1,5 +1,8 @@
 # Project State — global repository navigation
 
+**2026-10-11 OWNER PRIORITY CORRECTION:** Real PDF export in App is the goal; no more standalone V11 sub-planners. New isolated Desktop/Android PDFBox proof renderers + app-service calls in `85acc20`; CI runtime test for actual PDF files (Mara/Aldren), extraction and upload as proof artifacts in `b115110`. CI Scaffold `38178067583` pending; traceability QA `38178067552` SUCCESS. Outputs internal and visually incomplete, not user Save/Share yet. See `docs/pc-sheet-v11/PRIORIDAD_EXPORTACION_PDF_REAL_2026-10-11.md`. PR #173 still DRAFT/unmerged, G1 semantic PASS, G2 IN_PROGRESS, G3 PDF proof pending, G0 historic QA PARTIAL, no legacy regression claims, RCR-1 0/2.
+
+
 **2026-10-11 V11 G2 active PR #173:** New Kotlin components `524020f` (paired ordinary equipment + treasure, exact amounts/zero) and `ed72c46` (full-width special equipment, unknown ACTIVO left blank), measured real Fira on authentic Mara (29 ordinary, 5 currencies, 5 special), stress fixtures 386. Prior typography `8af0da5` Scaffold `38175854581` PASS; latest QA registry `38176858259` PASS, Kotlin Scaffold `38176858258` pending. See `docs/pc-sheet-v11/G2_MODULOS_P2_EQUIPO_TESORO_ESPECIAL_2026-10-11.md`. G1 semantic PASS; G2 IN_PROGRESS (no PDF), G0 owner QA historical partial; 32 M50800 + V11-QA-001/002 OPEN, RCR-1 0/2. PR #173 still DRAFT/unmerged, legacy renderers untouched.
 
 

@@ -1,5 +1,8 @@
 # Branch status and repository-ordering map
 
+**2026-10-11 branch PR #173 — owner course correction:** Highest priority ACTUAL PDF OUTPUT from App, not more models/planners. App PDFBox renderer proof `85acc20`, real Mara/Aldren PDF CI artifacts `b115110`; Scaffold run `38178067583` awaiting result; QA traceability run `38178067552` SUCCESS. Internal NOT APPROVED, not yet normal Android/Desktop Save/Share UI. Strict next: verify real PDF artifact and fix, then finish golden-aligned renderer and UI; preserve 4 existing families, PR draft/unmerged. See `docs/pc-sheet-v11/PRIORIDAD_EXPORTACION_PDF_REAL_2026-10-11.md`.
+
+
 **2026-10-11 PR #173 current scope:** G2 Kotlin module commits `524020f`, `ed72c46` add two-column pairs for ordinary Equipo/Tesoro + full-width Especial with paper ACTIVO unknown, robust continuation and original-ID/amount preservation. Authentic Mara Desktop regression 29/5/5 with packaged Fira. Baseline `8af0da5` CI SUCCESS; new QA ledger `38176858259` SUCCESS, Scaffold `38176858258` still awaiting conclusion. G0 historical owner QA PARTIAL, G1 semantic PASS, G2 IN_PROGRESS/NO PASS, G3–G6 NOT STARTED. PR DRAFT/open/unmerged, no renderer changes or RCR-1 usage. Detail `docs/pc-sheet-v11/G2_MODULOS_P2_EQUIPO_TESORO_ESPECIAL_2026-10-11.md`.
 
 
