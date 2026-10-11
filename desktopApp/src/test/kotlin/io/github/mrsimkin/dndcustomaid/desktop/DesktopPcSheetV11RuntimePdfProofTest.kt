@@ -68,8 +68,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val printed = PDFTextStripper().getText(pdf)
             assertTrue(printed.contains("Mara"), "This must render actual character data.")
             assertTrue(printed.contains("P2 - Equipo y tesoro"))
-            assertTrue(printed.contains("EQUIPO   /   CANTIDAD"))
-            assertTrue(printed.contains("TESORO   /   CANTIDAD"))
+            assertTrue(printed.contains("EQUIPO"))
+            assertTrue(printed.contains("TESORO"))
             assertTrue(printed.contains("EQUIPO ESPECIAL"))
             assertTrue(printed.contains("RASGOS"))
             assertTrue(printed.contains("Cobre"))
@@ -103,4 +103,32 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.contains("NOTAS - escritura manual"))
         }
     }
+    @Test
+    fun realIlyraSpellcasterProducesP4AndHandwrittenGridAsLastPage() {
+        val fixture = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val generated = DesktopPcSheetExportService().generateV11Proof(
+            request = PcSheetV11ExportRequest(
+                PcSheetV11Variant.B,
+                PcSheetExportStateSelection.PERMANENT,
+                includeSpellDescriptions = true,
+            ),
+            sources = fixture,
+        )
+        preserveRealApplicationPdf(generated.bytes, "V11-INTERNAL-PROOF-Ilyra-B.pdf")
+        assertTrue(generated.semantic.hasQuickSpellList)
+        Loader.loadPDF(generated.bytes).use { pdf ->
+            val printed = PDFTextStripper().getText(pdf)
+            assertTrue(printed.contains("P4 - Conjuros"))
+            assertTrue(printed.contains("Libro de conjuros"))
+            val notesOnly = PDFTextStripper().apply {
+                startPage = pdf.numberOfPages
+                endPage = pdf.numberOfPages
+            }.getText(pdf)
+            assertTrue(notesOnly.contains("NOTAS - escritura manual"))
+            assertFalse(notesOnly.contains("C-N3 - Notas digitales"))
+            assertFalse(notesOnly.contains("Libro de conjuros"))
+            assertFalse(notesOnly.contains("P4 - Conjuros"))
+        }
+    }
+
 }

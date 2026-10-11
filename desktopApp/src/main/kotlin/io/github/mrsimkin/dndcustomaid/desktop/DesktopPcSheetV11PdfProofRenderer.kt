@@ -272,9 +272,29 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             PDPageContentStream(pdf, finalPage).use { stream ->
                 draw(stream, source.name, 42f, 757f, true)
                 draw(stream, "NOTAS - escritura manual", 42f, 726f, true)
-                // No digital data ever appears on the final handwritten-only page.
-                for (row in 0..27) {
-                    val y = 697f - row * 21f
+                // Final physical page: NO digital content. Two handwriting
+                // columns at the top, complete aligned square grid below.
+                // Technical proof geometry; final acceptance compares to golden.
+                for (column in 0..1) {
+                    val left = if (column == 0) 42f else 316f
+                    val right = if (column == 0) 296f else 570f
+                    for (row in 0 until 15) {
+                        val y = 694f - row * 16f
+                        stream.moveTo(left, y)
+                        stream.lineTo(right, y)
+                        stream.stroke()
+                    }
+                }
+                // 528pt = 33 exact 16pt cells; 352pt = 22 exact rows.
+                // No clipped or partial square at the outer edge.
+                for (column in 0..33) {
+                    val x = 42f + column * 16f
+                    stream.moveTo(x, 96f)
+                    stream.lineTo(x, 448f)
+                    stream.stroke()
+                }
+                for (row in 0..22) {
+                    val y = 96f + row * 16f
                     stream.moveTo(42f, y)
                     stream.lineTo(570f, y)
                     stream.stroke()
