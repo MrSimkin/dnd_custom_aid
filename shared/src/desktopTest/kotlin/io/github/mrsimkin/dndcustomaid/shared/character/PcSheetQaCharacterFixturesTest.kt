@@ -269,6 +269,61 @@ class PcSheetQaCharacterFixturesTest {
         }
     }
 
+    @Test
+    fun v11FlowSourceSectionsRespectMaraOriginalContent() {
+        val original = fixture(fixtureNames[2])
+        val mapped = PcSheetV11SemanticMapper.map(
+            PcSheetV11ExportRequest(
+                variant = PcSheetV11Variant.B,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+                includeSpellDescriptions = true,
+            ),
+            PcSheetExportSources(
+                PcSheetExportAggregate(original.character, original.closureState, original.successorState),
+            ),
+        )
+        val sections = PcSheetV11FlowSourceMapper.from(mapped)
+        assertEquals(original.character.spells.size, sections.spellbookDescriptions.size)
+        assertEquals(
+            mapped.digitalNotes.size,
+            sections.digitalNotes.size,
+            "Every non-blank general/titled note must reach an exclusive notes flow.",
+        )
+        assertEquals(
+            mapped.traits.count { it.description.isNotBlank() },
+            sections.traitDescriptions.size,
+        )
+        assertTrue(sections.narrative.all { it.sourceKey.startsWith("narrative:") })
+        assertFalse(sections.narrative.any { it.sourceKey.startsWith("trait:") })
+        assertTrue(sections.spellbookDescriptions.all { it.sourceKey.startsWith("spellbook:") })
+        sections.spellbookDescriptions.forEach { item ->
+            val spell = original.character.spells.single { "spellbook:${it.id}" == item.sourceKey }
+            assertEquals(spell.description, item.text)
+        }
+        sections.digitalNotes.forEach { item ->
+            assertTrue(item.sourceKey.startsWith("digital-note:"))
+            assertTrue(item.text.isNotEmpty())
+        }
+
+        val width = PcSheetV11TextWidth { it.length.toFloat() }
+        val column = PcSheetV11TextColumn(widthPt = 38f, heightPt = 80f, lineHeightPt = 10f)
+        val sectionKinds = listOf(
+            PcSheetV11FlowSection.NARRATIVE,
+            PcSheetV11FlowSection.DIGITAL_NOTES,
+            PcSheetV11FlowSection.TRAITS,
+            PcSheetV11FlowSection.SPECIAL_EQUIPMENT,
+            PcSheetV11FlowSection.SPELLBOOK,
+        )
+        sectionKinds.forEach { section ->
+            val items = sections.forSection(section)
+            val result = PcSheetV11TextFlow.paginate(
+                section, items, columnsPerPage = 2, column = column, textWidth = width,
+            )
+            result.verifyLosslessAgainst(items)
+            assertTrue(result.fragments.all { it.lineRanges.size <= column.lineCapacity })
+        }
+    }
+
     private fun assertCanApplyAsAuthoritativeHostedCurrentState(name: String) {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         try {
