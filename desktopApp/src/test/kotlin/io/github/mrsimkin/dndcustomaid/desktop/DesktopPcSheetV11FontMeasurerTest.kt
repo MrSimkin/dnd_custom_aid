@@ -96,6 +96,37 @@ class DesktopPcSheetV11FontMeasurerTest {
                     assertTrue(area.contains(cell.cellPt))
                 }
             }
+            val equipment = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableSources.equipment(data)
+            val treasure = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableSources.treasure(data)
+            assertEquals(29, equipment.rows.size)
+            assertEquals(5, treasure.rows.size)
+            assertEquals(data.ordinaryEquipment.map { it.sourceId }, equipment.rows.map { it.sourceId })
+            assertEquals(data.currencies.map { it.amount }, treasure.rows.map { it.amount })
+            listOf(equipment, treasure).forEach { table ->
+                val paired = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableComposer.place(
+                    data = table,
+                    areaPt = area,
+                    gutterPt = 12f,
+                    quantityWidthPt = 36f,
+                    labelQuantityGapPt = 6f,
+                    lineHeightPt = font.metrics.lineHeightPt,
+                    measuredWidth = font.width,
+                )
+                paired.verify()
+                assertEquals(table.rows.size, paired.quantities.size)
+                assertEquals(table.rows.map { it.label },
+                    table.rows.map { row ->
+                        paired.labels.filter { it.sourceKey == row.sourceKey }
+                            .joinToString("") { it.sourceText }
+                    })
+                paired.labels.forEach { cell ->
+                    assertTrue(font.width.measurePt(cell.printableText) <= cell.rectPt.widthPt + 0.01f)
+                }
+                paired.quantities.forEach { cell ->
+                    assertTrue(font.width.measurePt(cell.printableText) <= cell.rectPt.widthPt + 0.01f)
+                    assertTrue(area.contains(cell.rectPt))
+                }
+            }
         }
     }
 
