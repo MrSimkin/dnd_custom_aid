@@ -60,6 +60,12 @@ La primera rebanada de mapeo se ejecutó **en la misma PR #173** por excepción 
 - Estado: G1 PASS, G2 IN_PROGRESS; la fuente real está preparada pero **Scaffold run `38175718653` aún requiere resultado**, QA ledger `38175718666` SUCCESS. [Detalle `G2_METRICAS_TIPOGRAFICAS_REALES_2026-10-11.md`](G2_METRICAS_TIPOGRAFICAS_REALES_2026-10-11.md).
 - Siguiente trabajo técnico seguro: revisar CI exacto; corregir errores verificados, luego incorporar las mediciones a la composición física P1/P2/P3/P4/C2/C-N3/Libro/Notas sin sustituir el diseño V11 ni tocar el renderer antiguo. Pruebas con fuente real **no** equivalen a PDF V11 final inspeccionado.
 
+## G2 Equipo/Tesoro y Especial — avance 2026-10-11
+
+- Commits `524020f` + `ed72c46`: nuevo par de subcolumnas objeto/cantidad y Tesoro (moneda cero real, IDs, continuidad sin duplicar cantidad) + Equipo Especial a ancho completo con marca ACTIVO desconocida sin inferencias. Tests shared de 386 filas, originales largos y pruebas Desktop sobre **Mara** (29 normales, 5 monedas, 5 especiales) usando fuente Fira verdadera.
+- Detalle: [`G2_MODULOS_P2_EQUIPO_TESORO_ESPECIAL_2026-10-11.md`](G2_MODULOS_P2_EQUIPO_TESORO_ESPECIAL_2026-10-11.md). G2 **NO PASS**: `Scaffold checks` de HEAD `38176858258` requiere verificación final; QA registry `38176858259` SUCCESS.
+- Próximo trabajo: CI, fallo concreto si existe, luego compositor físico P2/C2 y V11 PDF autónomo. No fusionar PR #173; no declarar resueltas las observaciones legacy ni pedir original Mara para esta rama G2 aislada.
+
 ## 4. Prompt de retoma mínimo para usuario
 
 > Sigue el proyecto `MrSimkin/dnd_custom_aid` en GitHub. Recupera la ruta canónica desde `main` (`AGENTS.md` → `RESUME.md` → `docs/checkpoints/LATEST.md`) y continúa automáticamente la implementación de la Hoja de PJ V11 aprobada, usando el estado vigente de la PR #173 y sus procedimientos G0–G6, QA sin pérdida y recuperación RCR-1. Ejecuta el siguiente paso seguro, actualiza GitHub y entrega evidencia o BLOCKED preciso. No rediseñes, no repitas preguntas respondidas y no fusiones la PR de implementación sin mi aprobación.

@@ -1,5 +1,8 @@
 # Branch status and repository-ordering map
 
+**2026-10-11 PR #173 current scope:** G2 Kotlin module commits `524020f`, `ed72c46` add two-column pairs for ordinary Equipo/Tesoro + full-width Especial with paper ACTIVO unknown, robust continuation and original-ID/amount preservation. Authentic Mara Desktop regression 29/5/5 with packaged Fira. Baseline `8af0da5` CI SUCCESS; new QA ledger `38176858259` SUCCESS, Scaffold `38176858258` still awaiting conclusion. G0 historical owner QA PARTIAL, G1 semantic PASS, G2 IN_PROGRESS/NO PASS, G3–G6 NOT STARTED. PR DRAFT/open/unmerged, no renderer changes or RCR-1 usage. Detail `docs/pc-sheet-v11/G2_MODULOS_P2_EQUIPO_TESORO_ESPECIAL_2026-10-11.md`.
+
+
 **2026-10-11 V11 PR #173 newest:** code `4414b27` adds isolated Android/Desktop PDFBox native metrics with true asset Fira/Barlow and authentic Mara JVM measurements. `9b135397` previous Scaffold/QA SUCCESS; current code QA `38175718666` SUCCESS, Scaffold `38175718653` awaiting result. G1 PASS, G2 IN_PROGRESS, G0 QA historical PARTIAL, G3–G6 NOT STARTED; branch DRAFT/open/unmerged; no legacy renderer mutation or recovery budget spent. See `docs/pc-sheet-v11/G2_METRICAS_TIPOGRAFICAS_REALES_2026-10-11.md`.
 
 

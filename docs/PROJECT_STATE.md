@@ -1,5 +1,8 @@
 # Project State — global repository navigation
 
+**2026-10-11 V11 G2 active PR #173:** New Kotlin components `524020f` (paired ordinary equipment + treasure, exact amounts/zero) and `ed72c46` (full-width special equipment, unknown ACTIVO left blank), measured real Fira on authentic Mara (29 ordinary, 5 currencies, 5 special), stress fixtures 386. Prior typography `8af0da5` Scaffold `38175854581` PASS; latest QA registry `38176858259` PASS, Kotlin Scaffold `38176858258` pending. See `docs/pc-sheet-v11/G2_MODULOS_P2_EQUIPO_TESORO_ESPECIAL_2026-10-11.md`. G1 semantic PASS; G2 IN_PROGRESS (no PDF), G0 owner QA historical partial; 32 M50800 + V11-QA-001/002 OPEN, RCR-1 0/2. PR #173 still DRAFT/unmerged, legacy renderers untouched.
+
+
 **2026-10-11 V11 G2 latest:** commit `4414b27` implements real bundled Fira/Barlow PDFBox text/font measurement adapters for Desktop and Android (distinct from legacy), with Desktop tests against actual Mara backup. Previous `9b135397` CI Scaffold/QA both SUCCESS; new `4414b27` QA registry `38175718666` SUCCESS, Scaffold `38175718653` pending. See `docs/pc-sheet-v11/G2_METRICAS_TIPOGRAFICAS_REALES_2026-10-11.md`. G1 semantic PASS; G2 in progress/no PDF or G2 PASS. G0 original owner QA partial, M50800 + V11 QA OPEN, RCR-1 0/2, PR #173 DRAFT/open without merge.
 
 
