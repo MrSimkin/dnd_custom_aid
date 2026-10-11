@@ -127,6 +127,30 @@ class DesktopPcSheetV11FontMeasurerTest {
                     assertTrue(area.contains(cell.rectPt))
                 }
             }
+            // Special equipment is full-width and cannot be misrouted into paired rows.
+            val specials = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpecialEquipmentComposer.place(
+                equipment = data.specialEquipment,
+                areaPt = area,
+                activeMarkWidthPt = 13f,
+                activeMarkGapPt = 7f,
+                lineHeightPt = font.metrics.lineHeightPt,
+                measuredWidth = font.width,
+            )
+            specials.verify()
+            assertEquals(5, specials.activeMarks.size)
+            assertEquals(data.specialEquipment.map { it.sourceId }, specials.inputIds)
+            assertTrue(specials.activeMarks.all { it.active == null })
+            assertEquals(1, specials.body.columnsPt.size)
+            specials.sources.forEach { source ->
+                val content = specials.body.cells
+                    .filter { it.sourceKey == source.sourceKey }
+                    .joinToString("") { it.sourceText }
+                assertEquals(source.text, content)
+            }
+            specials.body.cells.forEach { cell ->
+                assertTrue(font.width.measurePt(cell.drawableText) <= cell.cellPt.widthPt + 0.01f)
+                assertTrue(area.contains(cell.cellPt))
+            }
         }
     }
 
