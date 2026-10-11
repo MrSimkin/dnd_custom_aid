@@ -396,7 +396,7 @@ object PcSheetPdfExportPlanner {
         return PcSheetCustomStatisticsProjection(attributes = attributes, skills = skills)
     }
 
-    private fun spellbookPlan(
+    internal fun spellbookPlan(
         aggregate: PcSheetExportAggregate,
     ): PcSheetSpellbookPlan {
         val sourcesById = aggregate.sheet.spellcastingSources.associateBy { it.id }
