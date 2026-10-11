@@ -1,5 +1,8 @@
 # Branch status and repository-ordering map
 
+**2026-10-11 current V11 PR #173:** most recent code commit `1109a18` provides PDF-point geometry and per-column row occupancy (fixing future overlapping blocks); QA ledger `38174780469` SUCCESS, Kotlin Scaffold `38174780447` awaiting result. Earlier text-flow/page-order CI `38173199042` SUCCESS. **G1 semantic PASS; G2 IN_PROGRESS without PDF/font metrics; G0 historical owner QA PARTIAL**. No merge of PR #173, no previous-family renderer edits or RCR-1 usage; see `docs/pc-sheet-v11/G2_GEOMETRIA_CARTA_LINEAS_2026-10-11.md`.
+
+
 **2026-10-11 current PR #173:** G1 semantic projection **PASS** (Scaffold `38170199248`, QA ledger `38170199195`, HEAD `4acc1a82`). G2 text-flow code + real Mara regression test started on commits `a5eb0e4`/`014f0e9`; **G2 IN_PROGRESS / verify CI**, not an approved runtime PDF. G0 historical owner QA remains partial. Branch remains sole active implementation authority, DRAFT/open/unmerged; no legacy renderer modifications; RCR-1 0/2. Reference `docs/pc-sheet-v11/G1_PASS_Y_G2_PRIMER_FLUJO_2026-10-11.md`.
 
 **PDF branch update 2026-10-11 (active PR #173):** branch `docs/pc-sheet-v11-approved-implementation-handoff` remains the **only V11 implementation branch**; first isolated G1 semantic Kotlin/test commit `97b4e8f8ecec9465bea55fabc15fcffc5a658195`, G0 still partial, no G1 PASS, no runtime export, legacy renderer unchanged. Owner permitted this slice without original Mara PDFs, not QA final acceptance. Main routing PR #174 was merged (`0c009f10d5e66880d68fa3732491c6fc3e172f22`); do not merge PR #173 automatically. QA originals remain OPEN; RCR-1 0/2.
