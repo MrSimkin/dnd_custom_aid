@@ -36,6 +36,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         )
     }
 
+    private fun preserveRealApplicationPdf(bytes: ByteArray, outputName: String) {
+        val root = File(
+            System.getProperty("pcSheetProofDir")
+                ?: File("build/pc-sheet-proofs").absolutePath,
+        )
+        root.mkdirs()
+        File(root, outputName).writeBytes(bytes)
+    }
+
     @Test
     fun realMaraApplicationServiceWritesMultiPageLetterPdfFromOwnRenderer() {
         val real = sources("03_mara_siete_umbrales_custom_extended.json")
@@ -46,6 +55,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             ),
             sources = real,
         )
+        preserveRealApplicationPdf(generated.bytes, "V11-INTERNAL-PROOF-Mara-B.pdf")
         assertTrue(generated.bytes.size > 1000)
         assertTrue(generated.bytes.copyOfRange(0, 5).decodeToString() == "%PDF-")
         assertEquals(real.permanent.sheet.id, generated.semantic.characterId)
@@ -76,6 +86,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             ),
             sources = fixture,
         )
+        preserveRealApplicationPdf(generated.bytes, "V11-INTERNAL-PROOF-Aldren-A.pdf")
         assertFalse(generated.semantic.hasQuickSpellList)
         Loader.loadPDF(generated.bytes).use { pdf ->
             assertTrue(pdf.numberOfPages >= 4)
