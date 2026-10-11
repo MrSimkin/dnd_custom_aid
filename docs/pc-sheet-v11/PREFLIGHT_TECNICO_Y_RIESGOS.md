@@ -58,3 +58,8 @@ Por gate: pasada inicial + **máximo dos reparaciones normales**. Persistiendo l
 ## Precisión del presente preflight
 
 La fase incluye ahora verificación independiente de ZIP en Actions run 38009729554; los demás puntos de preflight siguen pendientes. La revisión de código se basó en lectura GitHub y el ZIP de referencia. **No** se clonó/buildió el repo localmente (la conexión de red del contenedor a GitHub no resolvió DNS), ni se ejecutó Gradle, CI o prueba runtime. Todo G1–G6 permanece PENDIENTE. No usar este registro como acreditación de implementación.
+
+
+## Corrección de vigencia y subpaso seguro G0 — 2026-10-11
+
+R-09 (ruta): main `0c009f10d5e66880d68fa3732491c6fc3e172f22` ya contiene la ruta canónica V11 vía PR #174; no confundirla con promoción del producto (#173 sigue DRAFT/sin merge). Ver [`G0_VERIFICACION_MODELOS_UI_2026-10-11.md`](G0_VERIFICACION_MODELOS_UI_2026-10-11.md) para lectura real de closure/successor/UI y bloqueos G0-QA/G0-entorno. Los riesgos R-02, R-05, R-07 permanecen OPEN; G0 no cumple todas las condiciones de PASS.

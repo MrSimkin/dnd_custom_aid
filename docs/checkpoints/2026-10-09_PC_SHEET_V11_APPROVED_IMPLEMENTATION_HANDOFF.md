@@ -50,3 +50,10 @@ Tras el reporte del propietario sobre QA cíclica sin corrección efectiva, se f
 Esta publicación en rama y PR conserva instrucciones en GitHub aunque se pierda el chat. Sin embargo, `main` **no redirigirá automáticamente** a este checkpoint hasta fusionar el PR; no declarar el traspaso canónico final cerrado sin esa integración documental. Mantener PR **sin merge** para revisión del propietario, conforme al plan.
 
 **Siguiente acción Worker:** R-01 archivado, NO volver a pedir ZIP. Completar **G0 con evidencia primaria original de Mara, mapa semántico y preflight de compilación**, luego G1→G6 o BLOCKED con evidencia. No reabrir estética ni pedir decisiones dadas. No pedir al propietario decisiones ya dadas.
+
+
+## Verificación de continuación — 2026-10-11 (sin G0 PASS)
+
+Se verificó el HEAD remoto de `main` (`0c009f10d5e66880d68fa3732491c6fc3e172f22`), la autoridad de PR #173 y el código real de `CharacterSheet`, `CharacterClosureDomain`, `CharacterSuccessorDomain`, planner shared y selectores/servicios Android + Desktop. Hallazgos y pruebas a exigir: [`G0_VERIFICACION_MODELOS_UI_2026-10-11.md`](G0_VERIFICACION_MODELOS_UI_2026-10-11.md). Corrige el estado obsoleto de R-09: **`main` YA enruta V11** mediante PR documental #174, pero PR de implementación #173 sigue separada, DRAFT y sin merge.
+
+CI en HEAD de lectura de rama `62ac252297583b22db639952dd120354e4aeb150`: Scaffold run `38010867507` SUCCESS; ledger QA run `38010867541` SUCCESS. Estos checks no significan APK V11, PDFs de propietario o aprobación G0. Ausentes los bytes originales de Fantasy/Custom-v2 A/B y captura Custom-v1 del runtime 50800; solo quedan sus hashes/reportes en los checkpoints. Git local falló por DNS, por lo que Gradle/Android/Desktop no fue ejecutado en este entorno. **G0 NO PASS (dependencias de QA primaria y compilación bloqueadas); G1–G6 NO INICIADOS**. QA 32 M50800 y V11-QA-001/002 sin cierre, RCR-1 0/2 sin intentos. La PR #173 no se fusionó.

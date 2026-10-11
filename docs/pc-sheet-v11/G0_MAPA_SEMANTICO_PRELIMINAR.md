@@ -54,3 +54,8 @@ Se descargó desde GitHub Actions el artefacto **ID 10942589698** (`mara-phase2-
 El `mara-cross-family-failures.txt` del artefacto está vacío. Se renderizó/revisó la página 6 de Custom v1 de ese artefacto; el PDF incluye `Lectura de presagios` en extracción de texto. Esto demuestra que **el PDF de laboratorio existe y contiene el texto**; no demuestra que la exportación del APK del propietario funcionara. **Contradicción histórica de QA sigue abierta:** el propietario obtuvo Fantasy 45 páginas, Custom v1 error y Custom v2 28/27. No mezclar pruebas de distinto candidato ni dar PASS por artefactos de Worker.
 
 **Disponible para futuros rescates:** artefacto GitHub Actions #10942589698 mientras su retención lo permita y los hashes citados. No guardar archivos ZIP/PDF temporales sin verificar permisos/tamaño; no inferir custodia perpetua desde Actions. Falta recuperar el PDF de runtime exacto y el APK con identidad.
+
+
+## Contraste G0 posterior (2026-10-11)
+
+Revisión de `CharacterClosureState`, `CharacterSuccessorState`, selectores UI y servicios Android/Desktop, rutas concretas y casos obligatorios documentados en [`G0_VERIFICACION_MODELOS_UI_2026-10-11.md`](G0_VERIFICACION_MODELOS_UI_2026-10-11.md). G0 NO PASS hasta rescatar los PDF/captura propietarios exactos, cotejar M50800 y validar compilación reproducible. No hubo G1 ni cambios renderer.

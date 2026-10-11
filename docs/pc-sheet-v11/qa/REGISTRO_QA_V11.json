@@ -291,6 +291,7 @@
   "notes": [
     "Owner visual approval is not APK acceptance",
     "Do not fabricate OWNER_ACCEPTED until exact candidate tested and owner explicitly approves",
-    "Legacy M50800 statuses are historical; do not override"
+    "Legacy M50800 statuses are historical; do not override",
+    "2026-10-11 G0 remote-source review: CharacterSheet/closure/successor/planner and Android/Desktop UI/services inspected at PR #173 HEAD 62ac252; see G0_VERIFICACION_MODELOS_UI_2026-10-11.md. G0 NO PASS: owner 50800 PDF/screenshot bytes unavailable and no local Gradle; V11-QA-001/002 OPEN, 32 M50800 preserved; RCR-1 0/2. No product candidate or QA acceptance."
   ]
 }

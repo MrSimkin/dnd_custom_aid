@@ -1,0 +1,40 @@
+# G0 — contraste remoto de dominio, selección y rutas PDF (2026-10-11)
+
+**Autoridad:** `main` remoto `0c009f10d5e66880d68fa3732491c6fc3e172f22` → checkpoint canónico V11 → PR #173, rama `docs/pc-sheet-v11-approved-implementation-handoff`, HEAD de lectura `62ac252297583b22db639952dd120354e4aeb150`.
+
+**Resultado:** subpaso de **inventario de modelos + UI + servicios** ampliado con lectura de código fuente real; **G0 NO PASS**. Sin Kotlin productivo V11, APK V11, Gradle local o PDF de propietario inspeccionado en esta ronda. Se mantienen las cuatro familias existentes y las observaciones originales. Esta revisión no sustituye `AGENTS.md §6.3`.
+
+## Superficies inspeccionadas desde GitHub, rama activa
+
+| Ruta / líneas aproximadas | Contrato verificado | Riesgo/test pendiente |
+|---|---|---|
+| `shared/.../character/CharacterSheet.kt:376-487` | `id`, `campaignId`, nombre, seis scores, salvaciones, habilidades, ataques, inventario, monedas, rasgos, conjuros, fuentes, slots, trasfondo, notas, recursos; `finalProficiencyBonus` calculado con ajuste | Retener IDs y ceros; no calcular niveles/slots ficticios; relación atributo-habilidad y caracteres UTF-8 |
+| `CharacterClosureDomain.kt:150-208` | `customSkills`, `portraitRef`, `conditions`, `inventoryUsage`, `temporaryEffects.active`, modo tabla; `CharacterInventoryUsage.itemId` apunta a item | `temporaryEffects.active` **NO** es `ACTIVO` de equipo; ni `carryState` ni `equipped/attuned` autorizan marcar casilla de Equipo Especial |
+| `CharacterSuccessorDomain.kt:12-64,99-125,174-245` | `CharacterAbilityReference`: builtin o `customAttributeId`; `customSkillAbilities.customSkillId` re-vincula habilidad; `spellcastingProfiles.sourceId` y DC/ataque por fuente; `customAttributes`, `customMarkers`, `resourceConfigurations`, identidades persistidas | Resolver referencias por ID; `CharacterCustomSkill.abilityReference(successor)` y `CharacterSheet.customSkillTotal(...)` existen; no sustituir con unión por nombres; probar referencias faltantes |
+| `PcSheetPdfExportFoundation.kt:5-100,182-319` | `PcSheetVisualFamily` exactamente cuatro valores; request no lleva A/B; snapshot conserva `sheet+closure+successor`; CURRENT faltante cae a PERMANENT con notice; reparación de mojibake es solo proyección, no mutación | V11 requiere selección opt-in A/B sin cambiar enum/request legacy. Para V11 P4 requiere `sheet.spells.isNotEmpty()`, diferente del predicado legacy de capacidad mágica; P1 siempre imprime bloque de lanzamiento |
+| `PcSheetPdfExportFoundation.kt:240-291,397-434` | Retrato localizado se proyecta con `portraitRef,fitMode,locallyAvailable`; Libro opcional solo si `includeSpellDescriptions && spells.isNotEmpty()`; fuentes/preparación se resuelven por asociaciones/fuente | Verificar Crop/Fit/ausencia, Libro fragmentable, prepared por fuente, `totalSlots` frente a `spentSlots` y ceros |
+| `androidApp/.../CharacterPcSettingsClosureV4.kt:457-690` | Selector real de familia/estado/custom/presentación retrato/Libro, con Guardar y Compartir; enum por `rememberSaveable` y request vía `AndroidPcSheetExportOptions` | Incorporar V11 A/B solo a rama opt-in; conservar confirmación “Exportar sin guardar” y selecciones legacy; no colar variantes a los cuatro estilos |
+| `androidApp/.../pdf/AndroidPcSheetExportService.kt:17-135` | `AndroidPcSheetExportOptions.request()` → `PcSheetPdfExportPlanner.plan` → `AndroidPcSheetRendererBridge.render`; bytes idénticos alimentan staging Guardar/Compartir; loader admite `content:` y `file:` | Validar notices y bytes PDF reales, retrato local, staging/export Android; no reimplementar render legacy |
+| `desktopApp/.../DesktopPcManager.kt:92-119,340-395,638-755` | Panel export Desktop y `DesktopPcSheetExportOptions.request()`; `desktopPcSheetExportSources` solo entrega `permanent` (no `currentSnapshot`) | CURRENT en Desktop siempre fallback real, sin prometer snapshot inventado; insertar A/B opt-in en panel, compatibilidad Save/Share |
+| `desktopApp/.../DesktopPcSheetExportService.kt:29-166` | plan shared → `DesktopPcSheetWholeDraftRenderer.renderDraft` → `ByteArray`; guardar o compartir reutiliza esos bytes | Probar paridad de contenido/estructura con Android y coherencia de Save/Share; PDFBox Desktop distinto de Android |
+
+### Tests de G1 exigidos por estos hallazgos (NO ejecutados)
+
+1. Snapshot `PERMANENT/CURRENT_SNAPSHOT` con y sin fuente actual, IDs PC/campaña y notices; ninguna mutación a entidad guardada.
+2. Selección A/B V11 explícita sin alterar serialización/plan/selector de `CLASSIC_DND_STYLE`, `CUSTOM_V1`, `CUSTOM_V2_PER_ATTRIBUTE`, `CUSTOM_V2_PER_ABILITY`.
+3. Scores seis+personalizados, `customAttributeId` y `customSkillId` conservados; habilidad bajo atributo sin sufijo y separada con sufijo; referencia ausente sin inventar puntuación.
+4. Spell list solo si `spells` reales en V11; fuente mágica o `totalSlots>0` sin conjuros NO crea P4; fuentes/prepared por asociación, slot `totalSlots/spentSlots` separados, cero no eliminado.
+5. Inventario ordinario nombre/cantidad; tesoro `amount=0`; equipo especial ubicación/nombre/desc y `ACTIVO` en papel vacío sin estado específico real; no inferir desde `equipped/attuned/carryState/temporaryEffects.active`.
+6. Notas digitales vs cuadrícula manuscrita C2 y última página; Libro solo si opt-in + spells, texto íntegro; retrato Crop/Fit/ausente; PDF y Save/Share Android+Desktop.
+
+## QA primaria y bloqueo circunscrito
+
+Se reabrieron los tres **documentos fuente**: `2026-09-26_PC_SHEET_MARA_PREQA8_PDF_VISUAL_QA_DEFECTS.md`, `2026-09-28_PC_SHEET_MARA_OWNER_REQA_RUNTIME_FAIL.md` y `2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md`. El primero y la matriz mantienen 32 IDs M50800; M50800-01 solo resolvió procedencia del APK fallido, **no** los demás defectos. Proveniencia del APK propietario verificada documentalmente: SHA-256 `ff367e9b7b44d1844bd3358dbf6f5979087536a5ae404a3fe36623a3550a93c6`, artifact `10917523331`, source `15f86ec8285e69969054d40defaa2c16259b8dce`. Los tres PDFs del propietario documentados: Fantasy 45p SHA `a4a5864dcb4a1d39570609e671ea860d2de440077bc8d6b62e5be22668909bf7`; Custom v2 Atributo 28p SHA `74ccaf54f29ef03f1d95724cc63728c05cd5f09ef3c22aaacd739dceb9ae6b96`; Habilidad 27p SHA `bd0cc116031372526f0b160133598f8b69992d8936b1c3b383e35b300d2897a6`. Custom v1 aborta con `Lectura de presagios`; captura SHA `a39cd801b6b30c09462fe1f119e760f141215d47e92c7f5faa158fe0c5d3da34`.
+
+**Bloqueo G0-QA:** NO se accedió a los bytes de esos PDF/captura para inspección visual de páginas. El artefacto Worker `10942589698` (29/18/16/15p) es una ejecución **distinta**, no su sustituto. No cerrar M50800, no cambiar renderer para reparar esa causa y no llamar G0 PASS. Para desbloquear: obtener los tres PDFs y captura propietarios exactos y verificar hashes, inspeccionar las páginas que manifiestan cada observación; si material no recuperable, formalizar explícitamente cuál comprobación no puede cumplirse sin elevar pruebas Worker a “propietario”.
+
+**Bloqueo G0-entorno:** intento de Git directo desde este contenedor: `Could not resolve host: github.com`; el conector GitHub sí permite lectura/escritura de texto, pero no ejecuta Gradle ni produce PDF/App. Para desbloquear compilación: checkout confiable de la rama y ejecución de checks desde host/runner reproducible. CI del HEAD previo `62ac252...` verificado: Scaffold `38010867507` SUCCESS y owner QA traceability `38010867541` SUCCESS; **son controles previos, no compilación ni PDFs V11 nuevos**.
+
+**Golden R-01:** preservado, SHA-256 `35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a`; no volver a solicitarlo. `V11-QA-001/002` siguen OPEN. Registro RCR-1 intacto: 0/2 global, cero intentos normales/recuperación en todos los gates. **G0 bloqueado en evidencias específicas; G1–G6 NOT_STARTED.**
+
+Próxima acción exacta: recuperar y cotejar la evidencia PDF propietaria contra la matriz M50800 y, en un checkout Kotlin ejecutable, comprobar tests/compilación. Solo con G0 PASS verificado comenzar G1 opt-in A/B en shared + tests, sin alterar renderers legacy.
