@@ -1,5 +1,18 @@
 # Project State — global repository navigation
 
+### ACTUALIZACIÓN OPERATIVA 2026-10-11 — PDF REAL, NO SOLO COMPONENTES
+
+
+El usuario reiteró que el objetivo principal es que la aplicación genere los PDF aprobados, no extender indefinidamente modelos de V11. Android DEBUG y Desktop ya tienen rutas Guardar/Compartir PREQA comprobadas en Scaffold runs 38178454511, 38178555148 y 38178703810 (SUCCESS).
+
+Se publicó código **dentro de los renderizadores PDFBox reales**: commit d3ee992 dibuja módulos P2 de Equipo/Cantidad, Tesoro/Cantidad, Rasgos en dos columnas y Equipo Especial completo con continuaciones físicas C2 después de P3/P4. Commit 3144269 dibuja página física final con dos columnas de renglones y cuadrícula completa; añade prueba PDF real Ilyra además de Mara/Aldren. Commit d6c172d exige y publica artefacto CI pequeño v11-internal-real-app-pdf-proofs con tres PDFs reales.
+
+**GATE PENDIENTE:** Scaffold run 38180947733 aún no estaba concluido al registrar. Verificar resultado final y existencia del artefacto; corregir fallos Kotlin concretos antes de avanzar. La salida es una prueba PREQA rotulada NO APROBADA y NO replica aún todos los módulos, el logo, marcos, retrato ni golden visual. No promover a APK QA del propietario ni fusionar PR #173.
+
+Documento del estado: docs/pc-sheet-v11/G3_PDF_REAL_P2_Y_NOTAS_2026-10-11.md. Estado: G0 histórico parcial, G1 PASS semántico, G2 no cerrado, G3 PDF real inicial probado y mejoras en validación, G4-G6 pendientes, RCR-1 0/2.
+
+
+
 **2026-10-11 real App PDF milestone:** Desktop app `generateV11Proof` produced actual US Letter PDFs for Mara/Aldren; verified via PDFBox tests + Scaffold SUCCESS `38178067583`, artifact `pc-sheet-populated-template-proofs` id `11716577069`. Android DEBUG Save/Share QA UI `b622a48` and Desktop PREQA Save/Share QA UI `933ed4d` coded; final Scaffold `38178555148` pending, QA traceability `38178555151` SUCCESS. These are incomplete, explicitly watermarked INTERNAL proof sheets, not approved visual V11 or owner QA APK. Primary priority: validate UI CI then golden-aligned PDF + installed app exports. See `docs/pc-sheet-v11/PRIORIDAD_EXPORTACION_PDF_REAL_2026-10-11.md`. PR #173 unmerged; original families unchanged; G0 historical QA partial, G1 semantic PASS, G2 incomplete, G3 runtime proof PASS scoped; RCR-1 0/2.
 
 
