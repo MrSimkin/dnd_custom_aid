@@ -59,6 +59,8 @@ data class PcSheetV11FlowFragment(
     /** Index within this flow section only, not the physical PDF page number. */
     val localPageIndex: Int,
     val columnIndex: Int,
+    /** 0-based starting line cell within this physical column; prevents consecutive blocks overlapping. */
+    val startLineIndexInColumn: Int,
     /** Exact UTF-16 indices into the source item; bounds also cover explicit newlines. */
     val startOffset: Int,
     val endExclusive: Int,
@@ -98,6 +100,7 @@ data class PcSheetV11FlowResult(
             parts.forEachIndexed { index, part ->
                 require(part.continuedFromPrevious == (index > 0))
                 require(part.continuesOnNext == (index < parts.lastIndex))
+                require(part.startLineIndexInColumn >= 0) { "Negative column line offset" }
                 require(part.lineRanges.first().startOffset == part.startOffset)
                 require(part.lineRanges.last().endExclusive == part.endExclusive)
             }
@@ -156,6 +159,7 @@ object PcSheetV11TextFlow {
                     sourceKey = item.sourceKey,
                     localPageIndex = page,
                     columnIndex = col,
+                    startLineIndexInColumn = column.lineCapacity - remaining,
                     startOffset = start,
                     endExclusive = end,
                     text = item.text.substring(start, end),
