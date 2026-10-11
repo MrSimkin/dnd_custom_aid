@@ -41,6 +41,13 @@ La primera rebanada de mapeo se ejecutó **en la misma PR #173** por excepción 
 
 **No** crear otro prototipo V12, no reabrir estética, no dar `FIXED` sin diff de código productivo más nuevo PDF de candidato real. RCR-1 regula fallos repetidos.
 
+## Avance G1 — 2026-10-11
+
+- `97b4e8f` añadió contrato semántico opt-in A/B y tests unitarios shared; **Scaffold SUCCESS** en run `38168641345`.
+- `38fbb006` añadió extensión semántica y ledger UUID por tipo, con prueba de integración sobre respaldos reales **Aldren, Ilyra y Mara** en ambas variantes; **Scaffold run `38169942666` debe verificarse** antes de marcar G1 PASS; QA registry `38169942683` SUCCESS.
+- Matriz real por campo→destino→prueba: [`G1_CONTRATO_SEMANTICO_Y_FUENTES_2026-10-11.md`](G1_CONTRATO_SEMANTICO_Y_FUENTES_2026-10-11.md). Los tests no inspeccionan ni sustituyen PDFs históricos owner.
+- **G0 QA histórico PARCIAL / G1 IN_PROGRESS; G2–G6 sin comenzar.** Próximo paso: verificar y corregir fallos reproducibles del Kotlin CI del código G1; si PASS actualizar gate con SHA + suite exacta, avanzar únicamente al primer trabajo seguro G2 sin tocar renderer legacy.
+
 ## 4. Prompt de retoma mínimo para usuario
 
 > Sigue el proyecto `MrSimkin/dnd_custom_aid` en GitHub. Recupera la ruta canónica desde `main` (`AGENTS.md` → `RESUME.md` → `docs/checkpoints/LATEST.md`) y continúa automáticamente la implementación de la Hoja de PJ V11 aprobada, usando el estado vigente de la PR #173 y sus procedimientos G0–G6, QA sin pérdida y recuperación RCR-1. Ejecuta el siguiente paso seguro, actualiza GitHub y entrega evidencia o BLOCKED preciso. No rediseñes, no repitas preguntas respondidas y no fusiones la PR de implementación sin mi aprobación.

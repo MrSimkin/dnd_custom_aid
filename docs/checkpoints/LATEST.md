@@ -1,13 +1,13 @@
 # Latest project checkpoint — global resume map
 
-**Updated:** 2026-10-11 (PR #173 G1 semantic-only first code slice; main routing remains PR #174)  
+**Updated:** 2026-10-11 (PR #173 G1 semantics extended with real fixture input ledger; main routing remains PR #174)  
 **Normal integrated trunk:** `main`  
 **Last verified functional main before the unmerged adaptive branch:** `15f86ec8285e69969054d40defaa2c16259b8dce` (PR #107)  
 **Wave 7:** ACTIVE  
 **Canonical active checkpoint:** `docs/checkpoints/2026-10-09_PC_SHEET_V11_APPROVED_IMPLEMENTATION_HANDOFF.md`  
-**Current active route:** **V11 OWNER VISUAL APPROVED / IMPLEMENTATION AUTHORIZED / G0 PARCIAL; G1 SEMANTIC-ONLY CODING UNDER EXPLICIT EXCEPTION, NO G1 PASS.** Work only under `docs/pc-sheet-v11/` contract + risk ledger, preserving D-0076 history. One bounded branch/PR, anti-loop limits, no merge. V11 Python prototype is **not** App renderer; golden ZIP **IS STORED IN GIT AND SHA-256 VERIFIED** (Actions #38009729554). Other G0 work remains.
+**Current active route:** **V11 OWNER VISUAL APPROVED / IMPLEMENTATION AUTHORIZED / G0 QA PARCIAL; G1 CONTRACT + REAL FIXTURES UNDER EXPLICIT EXCEPTION, CI FOR LATEST CODE TO VERIFY BEFORE PASS.** Work only under `docs/pc-sheet-v11/` contract + risk ledger, preserving D-0076 history. One bounded branch/PR, anti-loop limits, no merge. V11 Python prototype is **not** App renderer; golden ZIP **IS STORED IN GIT AND SHA-256 VERIFIED** (Actions #38009729554). Other G0 work remains.
 **Completed audit branch:** `audit/mara-phase2-existing-repair`. `repair/pc-sheet-adaptive-continuations-cross-family` remains historical implementation evidence at `ce695c...`; it is repository/CI/Worker-preflight green but **not owner-runtime verified** and is not acceptance authority.  
-**Current implementation PR:** [#173](https://github.com/MrSimkin/dnd_custom_aid/pull/173), single unmerged branch `docs/pc-sheet-v11-approved-implementation-handoff`. G1 isolated shared Kotlin projection committed at `97b4e8f8ecec9465bea55fabc15fcffc5a658195`; **no V11 renderer/UI, APK or owner runtime candidate**. The four legacy renderers are unchanged. G1 tests/CI require outcome verification; preserve all QA/unique-build gates.
+**Current implementation PR:** [#173](https://github.com/MrSimkin/dnd_custom_aid/pull/173), single unmerged branch `docs/pc-sheet-v11-approved-implementation-handoff`. G1 isolated shared Kotlin projection + input ledger, with Aldren/Ilyra/Mara real-backup tests, implemented by `38fbb0066e9054982ce87fa9dcb799a7693abfee` (initial Kotlin code `97b4e8f` Scaffold SUCCESS); see `docs/pc-sheet-v11/G1_CONTRATO_SEMANTICO_Y_FUENTES_2026-10-11.md`; **no V11 renderer/UI, APK or owner runtime candidate**. The four legacy renderers are unchanged. G1 tests/CI require outcome verification; preserve all QA/unique-build gates.
 **Frozen previously owner-approved renderer baseline:** `f7e4417c05a2981415ef3648ead740e20469fe33`.
 
 ## Read first on resume
