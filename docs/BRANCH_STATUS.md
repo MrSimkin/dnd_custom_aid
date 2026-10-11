@@ -1,5 +1,7 @@
 # Branch status and repository-ordering map
 
+**PDF branch update 2026-10-11 (active PR #173):** branch `docs/pc-sheet-v11-approved-implementation-handoff` remains the **only V11 implementation branch**; first isolated G1 semantic Kotlin/test commit `97b4e8f8ecec9465bea55fabc15fcffc5a658195`, G0 still partial, no G1 PASS, no runtime export, legacy renderer unchanged. Owner permitted this slice without original Mara PDFs, not QA final acceptance. Main routing PR #174 was merged (`0c009f10d5e66880d68fa3732491c6fc3e172f22`); do not merge PR #173 automatically. QA originals remain OPEN; RCR-1 0/2.
+
 **PDF branch/route update 2026-10-09 (handoff branch, unmerged):** V11 visuals OWNER-APPROVED; implementation authorized; active proposed branch `docs/pc-sheet-v11-approved-implementation-handoff`. Work checkpoint `docs/checkpoints/2026-10-09_PC_SHEET_V11_APPROVED_IMPLEMENTATION_HANDOFF.md`; G0 partial, G1–G6 not started. No renderer edits/QA APK or merge. Supersedes older design-only route below **on this branch**, with its historical evidence retained. PR must be reviewed before merge.
 
 **PDF branch/route update 2026-10-08:** Owner-led redesign contract discussion is active (D-0076; see `docs/checkpoints/LATEST.md`). **No renderer implementation branch is authorized.** This documentation work preserves prior Mara Phase-2 and old repair branch evidence; the formerly planned Phase 3 implementation is deferred. No product code or templates changed by this route decision.
