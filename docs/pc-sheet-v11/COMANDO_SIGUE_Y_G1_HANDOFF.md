@@ -2,7 +2,7 @@
 
 **Main routing integrado:** PR documental [#174](https://github.com/MrSimkin/dnd_custom_aid/pull/174) **MERGED** mediante commit de main `0c009f10d5e66880d68fa3732491c6fc3e172f22`. Main ahora apunta al checkpoint `docs/checkpoints/2026-10-09_PC_SHEET_V11_IMPLEMENTATION_RESUME_ROUTE.md` y desde allí a esta rama. Este merge fue solo documental; **PR #173 permanece abierta y sin fusionar**. Antes de la integración futura de #173, conciliar los cambios de ruta de `main` sin revivir el viejo design-only checkpoint.
 
-**Actualización 2026-10-11:** PR #173 **DRAFT y sin fusionar**; main `0c009f10...`. V11 visualmente aprobada. **G0 PARCIAL**; por excepción aprobada por el propietario **G1 subtrabajo de contrato shared aislado iniciado** en commit `97b4e8f8ecec9465bea55fabc15fcffc5a658195`. G1 **no PASS** y G2–G6 sin iniciar. Verificar HEAD/CI remoto, no inferir PASS. Los PDFs históricos Mara NO bloquean este subtrabajo; sí su QA de aceptación posterior.
+**Actualización 2026-10-11 (vigente):** PR #173 **DRAFT y sin fusionar**; main `0c009f10...`. **G0 QA histórico PARCIAL; G1 contrato semántico PASS** (CI Scaffold `38170199248`, QA registry `38170199195`, HEAD `4acc1a82`), bajo excepción owner expresa que no exige PDF antiguo para código aislado. **G2 IN_PROGRESS** en commits `a5eb0e4` y `014f0e9`: paginador text-flow en Kotlin shared + mapeo por sección real de Mara; **G2 sin PASS**, no PDF ni render/UI V11. Verificar CI de los commits G2 antes de avanzar. G3–G6 no iniciados; regresión contra PDF original queda para G4–G5.
 
 ## 1. «Sigue» en cualquier sesión nueva
 
@@ -48,7 +48,7 @@ La primera rebanada de mapeo se ejecutó **en la misma PR #173** por excepción 
 - Matriz real por campo→destino→prueba: [`G1_CONTRATO_SEMANTICO_Y_FUENTES_2026-10-11.md`](G1_CONTRATO_SEMANTICO_Y_FUENTES_2026-10-11.md). Los tests no inspeccionan ni sustituyen PDFs históricos owner.
 - **G0 QA histórico PARCIAL / G1 IN_PROGRESS; G2–G6 sin comenzar.** Próximo paso: verificar y corregir fallos reproducibles del Kotlin CI del código G1; si PASS actualizar gate con SHA + suite exacta, avanzar únicamente al primer trabajo seguro G2 sin tocar renderer legacy.
 
-## 4. Prompt de retoma mínimo para usuario
+## G1 cerrado / G2 activo — último alcance\n\n- Documento detallado: [`G1_PASS_Y_G2_PRIMER_FLUJO_2026-10-11.md`](G1_PASS_Y_G2_PRIMER_FLUJO_2026-10-11.md). G1 es **PASS solo semántico** contra backups originales y CI del commit exacto; no aceptación del PDF.\n- G2: compositor de texto inicial y flujos de narrativas/notas/rasgos/equipo especial/Libro, no renderer PDF. Primero confirmar **Scaffold** para nuevo G2 y corregir errores; luego desarrollar geometría de módulos, tres/dos columnas, páginas físicas, encabezados y referencias; sin tocar las cuatro familias legacy.\n- **G0 QA histórica sigue PARCIAL**, el golden V11 está custodiado y las QA 50800 no se consideran FIXED.\n\n## 4. Prompt de retoma mínimo para usuario
 
 > Sigue el proyecto `MrSimkin/dnd_custom_aid` en GitHub. Recupera la ruta canónica desde `main` (`AGENTS.md` → `RESUME.md` → `docs/checkpoints/LATEST.md`) y continúa automáticamente la implementación de la Hoja de PJ V11 aprobada, usando el estado vigente de la PR #173 y sus procedimientos G0–G6, QA sin pérdida y recuperación RCR-1. Ejecuta el siguiente paso seguro, actualiza GitHub y entrega evidencia o BLOCKED preciso. No rediseñes, no repitas preguntas respondidas y no fusiones la PR de implementación sin mi aprobación.
 
