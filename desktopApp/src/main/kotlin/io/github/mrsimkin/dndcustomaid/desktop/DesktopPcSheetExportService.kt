@@ -120,6 +120,52 @@ internal class DesktopPcSheetExportService(
         return absolute.toFile()
     }
 
+    /** Atomically save ONLY the clearly stamped V11 internal PDF proof. */
+    fun saveV11Proof(
+        generated: DesktopPcSheetV11PdfProof,
+        requestedTarget: File,
+    ): File {
+        val target = ensurePdfExtension(requestedTarget)
+        val absolute = target.toPath().toAbsolutePath()
+        val parent = requireNotNull(absolute.parent)
+        Files.createDirectories(parent)
+        val temporary = Files.createTempFile(parent, ".dnd-v11-internal-", ".pdf.tmp")
+        try {
+            Files.write(temporary, generated.bytes)
+            try {
+                Files.move(temporary, absolute,
+                    StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+            } catch (_: AtomicMoveNotSupportedException) {
+                Files.move(temporary, absolute, StandardCopyOption.REPLACE_EXISTING)
+            }
+        } finally {
+            Files.deleteIfExists(temporary)
+        }
+        return absolute.toFile()
+    }
+
+    fun createShareV11Proof(
+        generated: DesktopPcSheetV11PdfProof,
+        characterName: String,
+        directory: File = defaultShareDirectory(),
+    ): File {
+        Files.createDirectories(directory.toPath())
+        val target = File(directory,
+            suggestedV11ProofFileName(characterName, generated.semantic.request.variant))
+        return saveV11Proof(generated, target).also { it.deleteOnExit() }
+    }
+
+    fun suggestedV11ProofFileName(
+        characterName: String,
+        variant: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant,
+    ): String {
+        val name = characterName.trim()
+            .replace(Regex("""[\\/:*?"<>|]+"""), "_")
+            .replace(Regex("""\s+"""), " ")
+            .ifBlank { "Personaje" }
+        return "$name - Hoja de PJ - PREQA V11 $variant.pdf"
+    }
+
     fun createShareFile(
         generated: DesktopPcSheetGeneratedPdf,
         characterName: String,

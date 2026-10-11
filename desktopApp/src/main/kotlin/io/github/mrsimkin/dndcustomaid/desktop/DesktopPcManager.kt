@@ -42,6 +42,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelect
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPortraitFitMode
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ExportRequest
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorState
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignMember
@@ -229,6 +231,7 @@ internal fun DesktopPcManagerScreen(
     var selectedOwnerId by remember { mutableStateOf<Uuid?>(null) }
     var selectedControllerId by remember { mutableStateOf<Uuid?>(null) }
     var exportOptions by remember(selectedId) { mutableStateOf(DesktopPcSheetExportOptions()) }
+    var v11ProofVariant by remember(selectedId) { mutableStateOf(PcSheetV11Variant.A) }
     var exportBusy by remember { mutableStateOf(false) }
     val exportService = remember { DesktopPcSheetExportService() }
     val coroutineScope = rememberCoroutineScope()
@@ -402,6 +405,73 @@ internal fun DesktopPcManagerScreen(
                     }
                 }
 
+                fun saveV11ProofPdf() {
+                    val target = choosePcSheetSaveTarget(
+                        exportService.suggestedV11ProofFileName(
+                            selectedDetails.character.name, v11ProofVariant,
+                        ),
+                    ) ?: return
+                    exportBusy = true
+                    statusMessage = "Generando PDF de PRUEBA INTERNA..."
+                    coroutineScope.launch {
+                        try {
+                            val proof = withContext(Dispatchers.IO) {
+                                exportService.generateV11Proof(
+                                    PcSheetV11ExportRequest(
+                                        variant = v11ProofVariant,
+                                        stateSelection = exportOptions.stateSelection,
+                                        portraitFitMode = exportOptions.portraitFitMode,
+                                        includeSpellDescriptions = exportOptions.includeSpellDescriptions,
+                                    ),
+                                    desktopPcSheetExportSources(selectedDetails),
+                                )
+                            }
+                            val file = withContext(Dispatchers.IO) {
+                                exportService.saveV11Proof(proof, target)
+                            }
+                            statusMessage = "PDF PREQA guardado: " + file.absolutePath +
+                                ". Es una prueba interna, NO el diseño visual aprobado."
+                            onQaEvent("PC Manager: PDF V11 interno guardado para " + selectedDetails.character.id)
+                        } catch (error: Throwable) {
+                            statusMessage = error.message ?: "No se pudo generar el PDF de prueba."
+                        } finally {
+                            exportBusy = false
+                        }
+                    }
+                }
+
+                fun shareV11ProofPdf() {
+                    exportBusy = true
+                    statusMessage = "Generando PDF PREQA para compartir..."
+                    coroutineScope.launch {
+                        try {
+                            val proof = withContext(Dispatchers.IO) {
+                                exportService.generateV11Proof(
+                                    PcSheetV11ExportRequest(
+                                        variant = v11ProofVariant,
+                                        stateSelection = exportOptions.stateSelection,
+                                        portraitFitMode = exportOptions.portraitFitMode,
+                                        includeSpellDescriptions = exportOptions.includeSpellDescriptions,
+                                    ),
+                                    desktopPcSheetExportSources(selectedDetails),
+                                )
+                            }
+                            val file = withContext(Dispatchers.IO) {
+                                exportService.createShareV11Proof(
+                                    proof, selectedDetails.character.name,
+                                )
+                            }
+                            exportService.copyFileToClipboard(file)
+                            statusMessage = "PDF de PRUEBA INTERNA copiado como archivo; todavía NO aprobado."
+                            onQaEvent("PC Manager: PDF V11 interno compartido para " + selectedDetails.character.id)
+                        } catch (error: Throwable) {
+                            statusMessage = error.message ?: "No se pudo compartir el PDF de prueba."
+                        } finally {
+                            exportBusy = false
+                        }
+                    }
+                }
+
                 LazyColumn(
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -562,6 +632,10 @@ internal fun DesktopPcManagerScreen(
                             onOptionsChange = { exportOptions = it },
                             onSave = ::savePcSheetPdf,
                             onShare = ::sharePcSheetPdf,
+                            v11ProofVariant = v11ProofVariant,
+                            onV11VariantChange = { v11ProofVariant = it },
+                            onSaveV11Proof = ::saveV11ProofPdf,
+                            onShareV11Proof = ::shareV11ProofPdf,
                         )
                     }
 
@@ -643,6 +717,10 @@ private fun PcSheetPdfExportPanel(
     onOptionsChange: (DesktopPcSheetExportOptions) -> Unit,
     onSave: () -> Unit,
     onShare: () -> Unit,
+    v11ProofVariant: PcSheetV11Variant,
+    onV11VariantChange: (PcSheetV11Variant) -> Unit,
+    onSaveV11Proof: () -> Unit,
+    onShareV11Proof: () -> Unit,
 ) {
     PcAuditSection("Exportar hoja de PJ (PDF)") {
         Text(
@@ -713,6 +791,27 @@ private fun PcSheetPdfExportPanel(
             }
             Button(enabled = !busy, onClick = onShare) {
                 Text(if (busy) "Generando…" else "Compartir PDF")
+            }
+        }
+        Text("PDF V11 — PRUEBA INTERNA (NO aprobado)", style = MaterialTheme.typography.subtitle2)
+        PcSheetExportChoiceRow(
+            label = "Variante de diagnóstico",
+            values = PcSheetV11Variant.entries,
+            selected = v11ProofVariant,
+            render = { it.name },
+            onSelect = onV11VariantChange,
+        )
+        Text(
+            "Estas opciones generan PDFs reales con el renderer nuevo, pero el diseño aún es incompleto. " +
+                "No reemplazan ninguna de las cuatro familias anteriores.",
+            style = MaterialTheme.typography.caption,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(enabled = !busy, onClick = onSaveV11Proof) {
+                Text("Guardar PDF PREQA")
+            }
+            Button(enabled = !busy, onClick = onShareV11Proof) {
+                Text("Compartir PDF PREQA")
             }
         }
         Text(
