@@ -1,5 +1,8 @@
 # Branch status and repository-ordering map
 
+**2026-10-11 PR #173 current continuation:** genuine app-generated V11 PDF proved on Desktop (Scaffold `38178067583` SUCCESS, PDF artifacts id `11716577069`). Android DEBUG actual Save/Share UI added `b622a48`, Desktop PREQA Save/Share UI `933ed4d`; final Kotlin Scaffold `38178555148` in progress and QA ledger `38178555151` SUCCESS. No final visual owner acceptance, no dedicated APK version or owner runtime test. New QA-only routes do not modify the four existing renderers. Continue straight to CI outcome and renderer golden integration; no more isolated models. See `docs/pc-sheet-v11/PRIORIDAD_EXPORTACION_PDF_REAL_2026-10-11.md`. PR remains DRAFT/unmerged; RCR-1 0/2.
+
+
 **2026-10-11 branch PR #173 — owner course correction:** Highest priority ACTUAL PDF OUTPUT from App, not more models/planners. App PDFBox renderer proof `85acc20`, real Mara/Aldren PDF CI artifacts `b115110`; Scaffold run `38178067583` awaiting result; QA traceability run `38178067552` SUCCESS. Internal NOT APPROVED, not yet normal Android/Desktop Save/Share UI. Strict next: verify real PDF artifact and fix, then finish golden-aligned renderer and UI; preserve 4 existing families, PR draft/unmerged. See `docs/pc-sheet-v11/PRIORIDAD_EXPORTACION_PDF_REAL_2026-10-11.md`.
 
 

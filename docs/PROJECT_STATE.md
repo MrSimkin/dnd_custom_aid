@@ -1,5 +1,8 @@
 # Project State — global repository navigation
 
+**2026-10-11 real App PDF milestone:** Desktop app `generateV11Proof` produced actual US Letter PDFs for Mara/Aldren; verified via PDFBox tests + Scaffold SUCCESS `38178067583`, artifact `pc-sheet-populated-template-proofs` id `11716577069`. Android DEBUG Save/Share QA UI `b622a48` and Desktop PREQA Save/Share QA UI `933ed4d` coded; final Scaffold `38178555148` pending, QA traceability `38178555151` SUCCESS. These are incomplete, explicitly watermarked INTERNAL proof sheets, not approved visual V11 or owner QA APK. Primary priority: validate UI CI then golden-aligned PDF + installed app exports. See `docs/pc-sheet-v11/PRIORIDAD_EXPORTACION_PDF_REAL_2026-10-11.md`. PR #173 unmerged; original families unchanged; G0 historical QA partial, G1 semantic PASS, G2 incomplete, G3 runtime proof PASS scoped; RCR-1 0/2.
+
+
 **2026-10-11 OWNER PRIORITY CORRECTION:** Real PDF export in App is the goal; no more standalone V11 sub-planners. New isolated Desktop/Android PDFBox proof renderers + app-service calls in `85acc20`; CI runtime test for actual PDF files (Mara/Aldren), extraction and upload as proof artifacts in `b115110`. CI Scaffold `38178067583` pending; traceability QA `38178067552` SUCCESS. Outputs internal and visually incomplete, not user Save/Share yet. See `docs/pc-sheet-v11/PRIORIDAD_EXPORTACION_PDF_REAL_2026-10-11.md`. PR #173 still DRAFT/unmerged, G1 semantic PASS, G2 IN_PROGRESS, G3 PDF proof pending, G0 historic QA PARTIAL, no legacy regression claims, RCR-1 0/2.
 
 
