@@ -2,6 +2,10 @@ package io.github.mrsimkin.dndcustomaid.android.pdf
 
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowItem
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowSection
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableComposer
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableSources
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTablePlaced
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpecialEquipmentComposer
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowSourceMapper
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11RectPt
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticData
@@ -103,18 +107,122 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             addSection("P1 - Personaje / combate / habilidades", PcSheetV11FlowSection.TRAITS,
                 identity, 2, alwaysPage = true)
 
-            val inventory = buildList {
-                data.ordinaryEquipment.forEach { it ->
-                    add(PcSheetV11FlowItem("ordinary:" + it.sourceId,
-                        "Equipo: " + it.name + " | cantidad " + it.quantity))
+            // P2 has four separate print modules. This drawing path uses the
+            // same measured source-ID rows that G2 verified; it is not a plain-text mock.
+            // Areas remain INTERNAL proof geometry, not golden-approved coordinates.
+            val equipmentArea = PcSheetV11RectPt(42f, 435f, 528f, 255f)
+            val treasureArea = PcSheetV11RectPt(42f, 342f, 528f, 80f)
+            val traitsArea = PcSheetV11RectPt(42f, 215f, 528f, 113f)
+            val specialArea = PcSheetV11RectPt(42f, 90f, 528f, 110f)
+            val inventoryPlaced = PcSheetV11PairedTableComposer.place(
+                PcSheetV11PairedTableSources.equipment(data),
+                equipmentArea, 12f, 36f, 6f, body.metrics.lineHeightPt, body.width,
+            )
+            val treasurePlaced = PcSheetV11PairedTableComposer.place(
+                PcSheetV11PairedTableSources.treasure(data),
+                treasureArea, 12f, 36f, 6f, body.metrics.lineHeightPt, body.width,
+            )
+            val traitLines = data.traits.map { trait ->
+                PcSheetV11FlowItem("p2-trait:" + trait.id,
+                    trait.name + " (" + trait.source + "): " + trait.description +
+                        (trait.notes?.let { " / " + it } ?: ""),
+                    keepTogetherIfFits = true)
+            }
+            val traitsPlaced = body.place(PcSheetV11FlowSection.TRAITS, traitLines,
+                traitsArea, 2, 12f)
+            val specialPlaced = PcSheetV11SpecialEquipmentComposer.place(
+                data.specialEquipment, specialArea, 14f, 7f,
+                body.metrics.lineHeightPt, body.width,
+            )
+
+            fun grid(stream: PDPageContentStream, rect: PcSheetV11RectPt, twoColumns: Boolean) {
+                stream.addRect(rect.leftPt, rect.bottomPt, rect.widthPt, rect.heightPt)
+                stream.stroke()
+                if (twoColumns) {
+                    val center = rect.leftPt + rect.widthPt / 2f
+                    stream.moveTo(center, rect.bottomPt)
+                    stream.lineTo(center, rect.topPt)
+                    stream.stroke()
                 }
-                data.currencies.forEach { it ->
-                    add(PcSheetV11FlowItem("currency:" + it.key, "Tesoro: " + it.name +
-                        " | cantidad " + it.amount))
+                val cells = (rect.heightPt / body.metrics.lineHeightPt).toInt()
+                for (line in 1 until cells) {
+                    val y = rect.topPt - line * body.metrics.lineHeightPt
+                    stream.moveTo(rect.leftPt, y)
+                    stream.lineTo(rect.rightPt, y)
+                    stream.stroke()
                 }
             }
-            addSection("P2 - Equipo y tesoro", PcSheetV11FlowSection.ORDINARY_EQUIPMENT,
-                inventory, 2, alwaysPage = true)
+
+            fun drawPaired(
+                stream: PDPageContentStream,
+                title: String,
+                area: PcSheetV11RectPt,
+                placed: PcSheetV11PairedTablePlaced,
+                localPage: Int,
+            ) {
+                draw(stream, title, area.leftPt, area.topPt + 6f, true)
+                grid(stream, area, true)
+                placed.pairs.forEach { pair ->
+                    val quantitySeparator = pair.rightPt - 42f
+                    stream.moveTo(quantitySeparator, pair.bottomPt)
+                    stream.lineTo(quantitySeparator, pair.topPt)
+                    stream.stroke()
+                }
+                placed.labels.filter { it.localPageIndex == localPage }.forEach { cell ->
+                    if (cell.printableText.isNotEmpty()) {
+                        draw(stream, cell.printableText, cell.rectPt.leftPt + 2f,
+                            body.metrics.baselineIn(cell.rectPt), false)
+                    }
+                }
+                placed.quantities.filter { it.localPageIndex == localPage }.forEach { cell ->
+                    draw(stream, cell.printableText, cell.rectPt.leftPt + 2f,
+                        body.metrics.baselineIn(cell.rectPt), false)
+                }
+            }
+
+            fun drawP2Modules(stream: PDPageContentStream, localPage: Int) {
+                drawPaired(stream, "EQUIPO   /   CANTIDAD", equipmentArea, inventoryPlaced, localPage)
+                drawPaired(stream, "TESORO   /   CANTIDAD", treasureArea, treasurePlaced, localPage)
+                draw(stream, "RASGOS", traitsArea.leftPt, traitsArea.topPt + 6f, true)
+                grid(stream, traitsArea, true)
+                traitsPlaced.cells.filter { it.localPageIndex == localPage }.forEach { cell ->
+                    if (cell.drawableText.isNotEmpty()) {
+                        draw(stream, cell.drawableText, cell.cellPt.leftPt + 2f,
+                            body.metrics.baselineIn(cell.cellPt), false)
+                    }
+                }
+                draw(stream, "EQUIPO ESPECIAL   /   ACTIVO", specialArea.leftPt,
+                    specialArea.topPt + 6f, true)
+                grid(stream, specialArea, false)
+                val markColumn = specialArea.rightPt - 14f
+                stream.moveTo(markColumn - 7f, specialArea.bottomPt)
+                stream.lineTo(markColumn - 7f, specialArea.topPt)
+                stream.stroke()
+                specialPlaced.body.cells.filter { it.localPageIndex == localPage }.forEach { cell ->
+                    if (cell.drawableText.isNotEmpty()) {
+                        draw(stream, cell.drawableText, cell.cellPt.leftPt + 2f,
+                            body.metrics.baselineIn(cell.cellPt), false)
+                    }
+                }
+                specialPlaced.activeMarks.filter { it.localPageIndex == localPage }.forEach { mark ->
+                    stream.addRect(mark.rectPt.leftPt + 2f, mark.rectPt.bottomPt + 1f, 9f, 9f)
+                    stream.stroke()
+                    if (mark.active == true) {
+                        draw(stream, "X", mark.rectPt.leftPt + 2f,
+                            body.metrics.baselineIn(mark.rectPt), false)
+                    }
+                }
+            }
+
+            PDPage(PDRectangle.LETTER).also { page ->
+                pdf.addPage(page)
+                PDPageContentStream(pdf, page).use { stream ->
+                    draw(stream, source.name, 42f, 757f, true)
+                    draw(stream, "P2 - Equipo y tesoro", 42f, 726f, true)
+                    draw(stream, "PRUEBA INTERNA V11 - NO APROBADA", 42f, 46f, false)
+                    drawP2Modules(stream, localPage = 1)
+                }
+            }
 
             addSection("P3 - Trasfondo / Perfil / Historia", PcSheetV11FlowSection.NARRATIVE,
                 texts.narrative, 1, alwaysPage = true)
@@ -127,19 +235,26 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 addSection("P4 - Conjuros", PcSheetV11FlowSection.QUICK_SPELLS, quick, 3)
             }
 
-            val extended = buildList {
-                data.traits.forEach { it ->
-                    add(PcSheetV11FlowItem("trait:" + it.id, "Rasgo " + it.name +
-                        " (" + it.source + "): " + it.description))
-                }
-                data.specialEquipment.forEach { it ->
-                    add(PcSheetV11FlowItem("special:" + it.sourceId,
-                        "Equipo especial " + it.name + " | Ubicación: " + (it.location ?: "") +
-                            " | ACTIVO: " + (it.active?.toString() ?: "sin verificar") +
-                            " | " + (it.description ?: "") + " | " + (it.notes ?: "")))
+            // Physical C2 comes AFTER P3 / conditional P4, never mixed into P3.
+            // G2 submodule continuations carry the original source offsets and IDs.
+            val continuationPages = maxOf(
+                inventoryPlaced.localPageCount,
+                treasurePlaced.localPageCount,
+                traitsPlaced.sourceFlow.localPageCount,
+                specialPlaced.localPageCount,
+                1,
+            )
+            for (localPage in 2..continuationPages) {
+                val page = PDPage(PDRectangle.LETTER)
+                pdf.addPage(page)
+                PDPageContentStream(pdf, page).use { stream ->
+                    draw(stream, source.name, 42f, 757f, true)
+                    draw(stream, "C2 - Equipo / rasgos / especial (" + (localPage - 1) + ")",
+                        42f, 726f, true)
+                    draw(stream, "PRUEBA INTERNA V11 - NO APROBADA", 42f, 46f, false)
+                    drawP2Modules(stream, localPage)
                 }
             }
-            addSection("C2 - Rasgos y equipo especial", PcSheetV11FlowSection.TRAITS, extended, 1)
 
             addSection("C-N3 - Notas digitales", PcSheetV11FlowSection.DIGITAL_NOTES,
                 texts.digitalNotes, 1)
