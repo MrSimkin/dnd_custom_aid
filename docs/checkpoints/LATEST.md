@@ -1,5 +1,7 @@
 # Latest project checkpoint — global resume map
 
+**2026-10-11 REAL-PDF C2 visual review:** Github artifact ID `11717732452` inspected (actual Mara-B **23 pages**, Ilyra-B 9, Aldren-A 6; fonts embedded). Mara's 15 mostly empty C2 pages proved a genuine layout problem. Commit `b2563a9` repairs continuation to use full C2 width/height with exact unprinted source suffixes and asserts fewer than 23 pages. QA ledger `38184753458` SUCCESS; Scaffold `38184753460` IN_PROGRESS; **do not mark repair PASS yet**. Follow `docs/pc-sheet-v11/G3_PDF_REAL_P2_Y_NOTAS_2026-10-11.md`. No owner-approved final layout or app-device QA yet.
+
 ### ACTUALIZACIÓN OPERATIVA 2026-10-11 — PDF REAL, NO SOLO COMPONENTES
 
 
