@@ -61,6 +61,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         assertEquals(real.permanent.sheet.id, generated.semantic.characterId)
         Loader.loadPDF(generated.bytes).use { pdf ->
             assertTrue(pdf.numberOfPages >= 7, "Mara must flow beyond mandatory P1/P2/P3/Notes pages.")
+            assertTrue(pdf.numberOfPages < 23,
+                "C2 must fill full continuation pages rather than repeating small P2 modules.")
             pdf.pages.forEach { page ->
                 assertEquals(PDRectangle.LETTER.width, page.mediaBox.width)
                 assertEquals(PDRectangle.LETTER.height, page.mediaBox.height)
@@ -71,6 +73,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.contains("EQUIPO"))
             assertTrue(printed.contains("TESORO"))
             assertTrue(printed.contains("EQUIPO ESPECIAL"))
+            assertTrue(printed.contains("C2 - Rasgos"))
+            assertTrue(printed.contains("C2 - Equipo especial"))
             assertTrue(printed.contains("RASGOS"))
             assertTrue(printed.contains("Cobre"))
             assertTrue(printed.contains("Oro"))

@@ -52,9 +52,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 entries: List<PcSheetV11FlowItem>,
                 columns: Int,
                 alwaysPage: Boolean = false,
+                area: PcSheetV11RectPt = pageArea,
+                specialMarks: Map<String, Boolean?> = emptyMap(),
             ) {
                 if (!alwaysPage && entries.isEmpty()) return
-                val flow = body.place(section, entries, pageArea, columns, if (columns == 1) 0f else 12f)
+                val flow = body.place(section, entries, area, columns, if (columns == 1) 0f else 12f)
                 val pageCount = maxOf(if (alwaysPage) 1 else 0, flow.sourceFlow.localPageCount)
                 repeat(pageCount) { index ->
                     val page = PDPage(PDRectangle.LETTER)
@@ -69,6 +71,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     cell.cellPt.leftPt,
                                     body.metrics.baselineIn(cell.cellPt),
                                     false)
+                            }
+                            if (cell.sourceKey in specialMarks && cell.sourceStartOffset == 0) {
+                                stream.addRect(557f, cell.cellPt.bottomPt + 1f, 9f, 9f)
+                                stream.stroke()
+                                if (specialMarks[cell.sourceKey] == true) {
+                                    draw(stream, "X", 557f,
+                                        body.metrics.baselineIn(cell.cellPt), false)
+                                }
                             }
                         }
                     }
@@ -235,26 +245,73 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 addSection("P4 - Conjuros", PcSheetV11FlowSection.QUICK_SPELLS, quick, 3)
             }
 
-            // Physical C2 comes AFTER P3 / conditional P4, never mixed into P3.
-            // G2 submodule continuations carry the original source offsets and IDs.
-            val continuationPages = maxOf(
+            // Only overflowed paired rows need their narrow P2 geometry.
+            // C2 narrative modules must NOT be limited to P2's small boxes:
+            // reflow their exact unprinted source suffixes across full-page columns.
+            val pairedPageCount = maxOf(
                 inventoryPlaced.localPageCount,
                 treasurePlaced.localPageCount,
-                traitsPlaced.sourceFlow.localPageCount,
-                specialPlaced.localPageCount,
-                1,
             )
-            for (localPage in 2..continuationPages) {
+            for (localPage in 2..pairedPageCount) {
                 val page = PDPage(PDRectangle.LETTER)
                 pdf.addPage(page)
                 PDPageContentStream(pdf, page).use { stream ->
                     draw(stream, source.name, 42f, 757f, true)
-                    draw(stream, "C2 - Equipo / rasgos / especial (" + (localPage - 1) + ")",
-                        42f, 726f, true)
+                    draw(stream, "C2 - Equipo y tesoro / " + (localPage - 1), 42f, 726f, true)
                     draw(stream, "PRUEBA INTERNA V11 - NO APROBADA", 42f, 46f, false)
-                    drawP2Modules(stream, localPage)
+                    if (inventoryPlaced.labels.any { it.localPageIndex == localPage }) {
+                        drawPaired(stream, "EQUIPO / CANTIDAD",
+                            equipmentArea, inventoryPlaced, localPage)
+                    }
+                    if (treasurePlaced.labels.any { it.localPageIndex == localPage }) {
+                        drawPaired(stream, "TESORO / CANTIDAD",
+                            treasureArea, treasurePlaced, localPage)
+                    }
                 }
             }
+
+            fun unprintedSuffix(
+                inputs: List<PcSheetV11FlowItem>,
+                printedOnP2: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PlacedFlow,
+            ): List<PcSheetV11FlowItem> = inputs.mapNotNull { item ->
+                val consumed = printedOnP2.cells.asSequence()
+                    .filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
+                    .maxOfOrNull { it.sourceEndExclusive } ?: 0
+                val originalPrefix = printedOnP2.cells
+                    .filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
+                    .joinToString("") { it.sourceText }
+                require(originalPrefix == item.text.substring(0, consumed)) {
+                    "P2 must preserve the exact prefix of " + item.sourceKey
+                }
+                if (consumed == item.text.length) null
+                else item.copy(text = item.text.substring(consumed))
+            }
+
+            val remainingTraits = unprintedSuffix(traitLines, traitsPlaced)
+            addSection(
+                "C2 - Rasgos / continuación", PcSheetV11FlowSection.TRAITS,
+                remainingTraits, columns = 2,
+            )
+
+            val allSpecialFields = specialPlaced.sources.map {
+                PcSheetV11FlowItem(it.sourceKey, it.text, keepTogetherIfFits = true)
+            }
+            val remainingSpecials = unprintedSuffix(allSpecialFields, specialPlaced.body)
+            val marksNeeded = data.specialEquipment.filter { item ->
+                specialPlaced.body.cells.none { cell ->
+                    cell.localPageIndex == 1 &&
+                        cell.sourceKey == "special:" + item.sourceId + ":name"
+                }
+            }.associate { item ->
+                ("special:" + item.sourceId + ":name") to item.active
+            }
+            addSection(
+                "C2 - Equipo especial / continuación",
+                PcSheetV11FlowSection.SPECIAL_EQUIPMENT,
+                remainingSpecials, columns = 1,
+                area = PcSheetV11RectPt(42f, 76f, 507f, 626f),
+                specialMarks = marksNeeded,
+            )
 
             addSection("C-N3 - Notas digitales", PcSheetV11FlowSection.DIGITAL_NOTES,
                 texts.digitalNotes, 1)
