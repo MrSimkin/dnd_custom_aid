@@ -10,10 +10,10 @@ enum class PcSheetV11SpecialField { NAME, LOCATION, DESCRIPTION, NOTES }
 
 data class PcSheetV11SpecialFieldSource(
     val sourceId: Uuid,
-    val field: PcSheetV11SpecialField,
+    val kind: PcSheetV11SpecialField,
     val text: String,
 ) {
-    val sourceKey: String get() = "special:" + sourceId + ":" + field.name.lowercase()
+    val sourceKey: String get() = "special:" + sourceId + ":" + kind.name.lowercase()
 }
 
 data class PcSheetV11SpecialActiveMark(
