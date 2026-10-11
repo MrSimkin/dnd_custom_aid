@@ -11,6 +11,7 @@ import java.io.File
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.common.PDRectangle
 import org.apache.pdfbox.text.PDFTextStripper
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -66,9 +67,17 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             pdf.pages.forEach { page ->
                 assertEquals(PDRectangle.LETTER.width, page.mediaBox.width)
                 assertEquals(PDRectangle.LETTER.height, page.mediaBox.height)
+                val logo = page.resources.xObjectNames
+                    .map { page.resources.getXObject(it) }
+                    .filterIsInstance<PDImageXObject>()
+                    .singleOrNull { it.width == 1224 && it.height == 1584 }
+                assertTrue(logo != null,
+                    "Each physical page must contain the genuine owner-sheet logo image.")
             }
             val printed = PDFTextStripper().getText(pdf)
             assertTrue(printed.contains("Mara"), "This must render actual character data.")
+            assertFalse(printed.contains("Personaje: Mara"),
+                "The character name belongs in the page header, not repeated in P1.")
             assertTrue(printed.contains("P2 - Equipo y tesoro"))
             assertTrue(printed.contains("EQUIPO"))
             assertTrue(printed.contains("TESORO"))

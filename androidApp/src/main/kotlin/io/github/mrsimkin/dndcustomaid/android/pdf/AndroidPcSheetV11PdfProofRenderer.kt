@@ -15,6 +15,8 @@ import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.pdmodel.PDPage
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
+import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject
+import com.tom_roush.harmony.awt.AWTColor as Color
 
 /**
  * FIRST actual app-code V11 PDF output path: a bounded INTERNAL proof renderer.
@@ -46,6 +48,67 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.endText()
             }
 
+            // Owner's original D&D sheet includes its genuine logotype in its top-left.
+            // Embed that real graphic from the already-versioned asset; clip to LOGO only,
+            // so no original-sheet boxes or lettering leak into this V11 page.
+            val originalSheetPixels = requireNotNull(AndroidPcSheetAssetLoader.open(
+                "character-sheets/templates/renders/original/page-1.png",
+            )?.use { it.readBytes() }) {
+                "The approved owner-logo source image is missing; never substitute text."
+            }
+            val ownerLogo = PDImageXObject.createFromByteArray(
+                pdf, originalSheetPixels, "owner-dnd-logo-original",
+            )
+            require(ownerLogo.width == 1224 && ownerLogo.height == 1584) {
+                "Unexpected original-logo raster dimensions; refuse an incorrect crop."
+            }
+
+            fun drawFrameAndHeader(
+                stream: PDPageContentStream,
+                title: String,
+                lastHandwrittenPage: Boolean = false,
+            ) {
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(80, 122, 151))
+                stream.setLineWidth(1.2f)
+                stream.addRect(24f, 24f, 564f, 744f)
+                stream.stroke()
+                stream.setLineWidth(0.65f)
+                stream.addRect(29f, 29f, 554f, 734f)
+                stream.stroke()
+                stream.setNonStrokingColor(Color(231, 241, 247))
+                stream.addRect(148f, 736f, 422f, 26f)
+                stream.fill()
+                stream.setStrokingColor(Color(130, 165, 186))
+                stream.setLineWidth(0.65f)
+                stream.moveTo(42f, 717f)
+                stream.lineTo(570f, 717f)
+                stream.stroke()
+                stream.restoreGraphicsState()
+
+                stream.saveGraphicsState()
+                // Native template coordinates: logo x≈50–400, y≈52–181 in
+                // the 1224×1584 pixel original. Clip only the logo region.
+                stream.addRect(42f, 732f, 99f, 35f)
+                stream.clip()
+                stream.endPath()
+                val scale = 0.28f
+                stream.drawImage(
+                    ownerLogo,
+                    42f - 49f * scale,
+                    767f + 52f * scale - ownerLogo.height * scale,
+                    ownerLogo.width * scale,
+                    ownerLogo.height * scale,
+                )
+                stream.restoreGraphicsState()
+
+                draw(stream, source.name, 154f, 747f, true)
+                draw(stream, title, 42f, 724f, true)
+                if (!lastHandwrittenPage) {
+                    draw(stream, "PRUEBA INTERNA V11 - NO APROBADA", 42f, 46f, false)
+                }
+            }
+
             fun addSection(
                 title: String,
                 section: PcSheetV11FlowSection,
@@ -62,9 +125,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     val page = PDPage(PDRectangle.LETTER)
                     pdf.addPage(page)
                     PDPageContentStream(pdf, page).use { stream ->
-                        draw(stream, source.name, 42f, 757f, true)
-                        draw(stream, title + " / " + (index + 1), 42f, 726f, true)
-                        draw(stream, "PRUEBA INTERNA V11 - NO APROBADA", 42f, 46f, false)
+                        drawFrameAndHeader(stream, title + " / " + (index + 1))
                         flow.cells.filter { it.localPageIndex == index + 1 }.forEach { cell ->
                             if (cell.drawableText.isNotEmpty()) {
                                 draw(stream, cell.drawableText,
@@ -86,7 +147,6 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
 
             val identity = buildList {
-                add(PcSheetV11FlowItem("identity:name", "Personaje: " + source.name))
                 add(PcSheetV11FlowItem("identity:variant", "Variante: " + data.request.variant))
                 add(PcSheetV11FlowItem("identity:state", "Estado seleccionado: " + data.selectedState))
                 add(PcSheetV11FlowItem("identity:classes",
@@ -227,9 +287,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             PDPage(PDRectangle.LETTER).also { page ->
                 pdf.addPage(page)
                 PDPageContentStream(pdf, page).use { stream ->
-                    draw(stream, source.name, 42f, 757f, true)
-                    draw(stream, "P2 - Equipo y tesoro", 42f, 726f, true)
-                    draw(stream, "PRUEBA INTERNA V11 - NO APROBADA", 42f, 46f, false)
+                    drawFrameAndHeader(stream, "P2 - Equipo y tesoro")
                     drawP2Modules(stream, localPage = 1)
                 }
             }
@@ -256,9 +314,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 val page = PDPage(PDRectangle.LETTER)
                 pdf.addPage(page)
                 PDPageContentStream(pdf, page).use { stream ->
-                    draw(stream, source.name, 42f, 757f, true)
-                    draw(stream, "C2 - Equipo y tesoro / " + (localPage - 1), 42f, 726f, true)
-                    draw(stream, "PRUEBA INTERNA V11 - NO APROBADA", 42f, 46f, false)
+                    drawFrameAndHeader(stream, "C2 - Equipo y tesoro / " + (localPage - 1))
                     if (inventoryPlaced.labels.any { it.localPageIndex == localPage }) {
                         drawPaired(stream, "EQUIPO / CANTIDAD",
                             equipmentArea, inventoryPlaced, localPage)
@@ -327,8 +383,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val finalPage = PDPage(PDRectangle.LETTER)
             pdf.addPage(finalPage)
             PDPageContentStream(pdf, finalPage).use { stream ->
-                draw(stream, source.name, 42f, 757f, true)
-                draw(stream, "NOTAS - escritura manual", 42f, 726f, true)
+                drawFrameAndHeader(stream, "NOTAS - escritura manual", lastHandwrittenPage = true)
                 // Final physical page: NO digital content. Two handwriting
                 // columns at the top, complete aligned square grid below.
                 // Technical proof geometry; final acceptance compares to golden.
