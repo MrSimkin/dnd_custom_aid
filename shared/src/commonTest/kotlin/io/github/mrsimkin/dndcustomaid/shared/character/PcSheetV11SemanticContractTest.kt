@@ -193,6 +193,95 @@ class PcSheetV11SemanticContractTest {
         assertTrue(result.notices.any { it.code == PcSheetExportNoticeCode.PORTRAIT_NOT_AVAILABLE_LOCALLY })
     }
 
+    @Test
+    fun v11PageSequenceKeepsCorePagesAndFinalHandwrittenPageEvenWithNoMagic() {
+        val noMagic = map(
+            sources = PcSheetExportSources(aggregate(baseSheet().copy(spellcasterEnabled = true))),
+        )
+        val seq = PcSheetV11PageSequenceBuilder.build(noMagic, PcSheetV11PageRequirements())
+        assertEquals(
+            listOf(
+                PcSheetV11PageRole.CHARACTER_P1,
+                PcSheetV11PageRole.INVENTORY_P2,
+                PcSheetV11PageRole.NARRATIVE_P3,
+                PcSheetV11PageRole.FINAL_HANDWRITTEN_NOTES,
+            ),
+            seq.pages.map { it.role },
+        )
+        assertEquals(listOf(1, 2, 3, 4), seq.pages.map { it.pageNumber })
+        assertNull(seq.page(PcSheetV11PageRole.QUICK_SPELLS_P4))
+        assertEquals(4, seq.page(PcSheetV11PageRole.FINAL_HANDWRITTEN_NOTES))
+        assertEquals(seq, PcSheetV11PageSequenceBuilder.build(
+            map(variant = PcSheetV11Variant.B), PcSheetV11PageRequirements(),
+        ))
+    }
+
+    @Test
+    fun v11PageSequencePlacesExtensionsThenExclusiveDigitalNotesBookAndLastManualNotes() {
+        val spell = CharacterSpell(
+            id = id("60000000-0000-0000-0000-000000000001"),
+            name = "Escudo", level = 1, castingTime = "reacción",
+            rangeText = "propio", verbal = true, somatic = true,
+            material = false, materialText = null, duration = "un turno",
+            concentration = false, ritual = false,
+            description = "Protección original.", notes = null, sortOrder = 0,
+        )
+        val sheet = baseSheet().copy(spells = listOf(spell), generalNotes = "Nota real")
+        val data = map(
+            request = PcSheetV11ExportRequest(
+                PcSheetV11Variant.B, PcSheetExportStateSelection.PERMANENT,
+                includeSpellDescriptions = true,
+            ),
+            sources = PcSheetExportSources(aggregate(sheet)),
+        )
+        val counts = PcSheetV11PageRequirements(
+            continuationPages = 2, digitalNotePages = 2, spellbookPages = 3,
+        )
+        val seq = PcSheetV11PageSequenceBuilder.build(data, counts)
+        assertEquals(
+            listOf(
+                PcSheetV11PageRole.CHARACTER_P1,
+                PcSheetV11PageRole.INVENTORY_P2,
+                PcSheetV11PageRole.NARRATIVE_P3,
+                PcSheetV11PageRole.QUICK_SPELLS_P4,
+                PcSheetV11PageRole.CONTINUATION_C2,
+                PcSheetV11PageRole.CONTINUATION_C2,
+                PcSheetV11PageRole.DIGITAL_NOTES_CN3,
+                PcSheetV11PageRole.DIGITAL_NOTES_CN3,
+                PcSheetV11PageRole.SPELLBOOK,
+                PcSheetV11PageRole.SPELLBOOK,
+                PcSheetV11PageRole.SPELLBOOK,
+                PcSheetV11PageRole.FINAL_HANDWRITTEN_NOTES,
+            ),
+            seq.pages.map { it.role },
+        )
+        assertEquals((1..12).toList(), seq.pages.map { it.pageNumber })
+        assertEquals(8, seq.page(PcSheetV11PageRole.DIGITAL_NOTES_CN3, 2))
+        assertEquals(11, seq.page(PcSheetV11PageRole.SPELLBOOK, 3))
+        assertEquals(12, seq.page(PcSheetV11PageRole.FINAL_HANDWRITTEN_NOTES))
+    }
+
+    @Test
+    fun v11PageSequenceRejectsInventedBookAndMissingDigitalNotesPages() {
+        val plain = map()
+        kotlin.test.assertFailsWith<IllegalArgumentException> {
+            PcSheetV11PageSequenceBuilder.build(
+                plain, PcSheetV11PageRequirements(spellbookPages = 1),
+            )
+        }
+        kotlin.test.assertFailsWith<IllegalArgumentException> {
+            PcSheetV11PageSequenceBuilder.build(
+                plain, PcSheetV11PageRequirements(digitalNotePages = 1),
+            )
+        }
+        val notes = map(sources = PcSheetExportSources(
+            aggregate(baseSheet().copy(generalNotes = "Debo figurar")),
+        ))
+        kotlin.test.assertFailsWith<IllegalArgumentException> {
+            PcSheetV11PageSequenceBuilder.build(notes, PcSheetV11PageRequirements())
+        }
+    }
+
     private fun map(
         variant: PcSheetV11Variant = PcSheetV11Variant.A,
         request: PcSheetV11ExportRequest =
