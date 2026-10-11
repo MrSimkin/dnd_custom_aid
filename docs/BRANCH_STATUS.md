@@ -1,5 +1,8 @@
 # Branch status and repository-ordering map
 
+**2026-10-11 V11 PR #173 newest:** code `4414b27` adds isolated Android/Desktop PDFBox native metrics with true asset Fira/Barlow and authentic Mara JVM measurements. `9b135397` previous Scaffold/QA SUCCESS; current code QA `38175718666` SUCCESS, Scaffold `38175718653` awaiting result. G1 PASS, G2 IN_PROGRESS, G0 QA historical PARTIAL, G3–G6 NOT STARTED; branch DRAFT/open/unmerged; no legacy renderer mutation or recovery budget spent. See `docs/pc-sheet-v11/G2_METRICAS_TIPOGRAFICAS_REALES_2026-10-11.md`.
+
+
 **2026-10-11 current V11 PR #173:** most recent code commit `1109a18` provides PDF-point geometry and per-column row occupancy (fixing future overlapping blocks); QA ledger `38174780469` SUCCESS, Kotlin Scaffold `38174780447` awaiting result. Earlier text-flow/page-order CI `38173199042` SUCCESS. **G1 semantic PASS; G2 IN_PROGRESS without PDF/font metrics; G0 historical owner QA PARTIAL**. No merge of PR #173, no previous-family renderer edits or RCR-1 usage; see `docs/pc-sheet-v11/G2_GEOMETRIA_CARTA_LINEAS_2026-10-11.md`.
 
 

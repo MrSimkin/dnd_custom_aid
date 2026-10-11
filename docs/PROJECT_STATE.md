@@ -1,5 +1,8 @@
 # Project State — global repository navigation
 
+**2026-10-11 V11 G2 latest:** commit `4414b27` implements real bundled Fira/Barlow PDFBox text/font measurement adapters for Desktop and Android (distinct from legacy), with Desktop tests against actual Mara backup. Previous `9b135397` CI Scaffold/QA both SUCCESS; new `4414b27` QA registry `38175718666` SUCCESS, Scaffold `38175718653` pending. See `docs/pc-sheet-v11/G2_METRICAS_TIPOGRAFICAS_REALES_2026-10-11.md`. G1 semantic PASS; G2 in progress/no PDF or G2 PASS. G0 original owner QA partial, M50800 + V11 QA OPEN, RCR-1 0/2, PR #173 DRAFT/open without merge.
+
+
 **2026-10-11 latest G2 V11 PR #173:** commit `1109a18` adds shared US Letter PDF-point column/row reservations, nonoverlapping measured text cells, and new geometry tests; prior text-flow/page-order CI `38173199042` PASS and QA ledger `38173199107` PASS. New code owner QA ledger `38174780469` PASS, new Kotlin Scaffold `38174780447` awaiting completion. Detailed map: `docs/pc-sheet-v11/G2_GEOMETRIA_CARTA_LINEAS_2026-10-11.md`. **G1 semantic PASS; G2 IN_PROGRESS/NO PASS, G0 historical QA PARTIAL**. No font measurement adapter or V11 PDF renderer; legacy unchanged, QA OPEN, RCR-1 0/2, PR open draft without merge.
 
 

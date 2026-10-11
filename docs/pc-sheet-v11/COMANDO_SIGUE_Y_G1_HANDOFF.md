@@ -54,6 +54,12 @@ La primera rebanada de mapeo se ejecutó **en la misma PR #173** por excepción 
 - Referencia: [`G2_GEOMETRIA_CARTA_LINEAS_2026-10-11.md`](G2_GEOMETRIA_CARTA_LINEAS_2026-10-11.md). QA ledger `38174780469` SUCCESS; **Scaffold `38174780447` pendiente de comprobar/terminar**. No afirmar geometría visual final, fuente real integrada, V11 PDF generado ni G2 PASS.
 - **Siguiente tarea:** confirmar estado de Scaffold y corregir cualquier fallo demostrado; luego conectar un medidor PDFBox/fonts real y los módulos de página, sin tocar renderers heredados. QA Mara histórica aún G0 parcial, RCR-1 0/2, PR #173 sin merge.
 
+## G2 tipografía real — avance 2026-10-11
+
+- Commit `4414b27`: adapters de medición con Fira Sans y Barlow Condensed de los assets originales para ambas plataformas. Métrica horizontal desde `getStringWidth` real PDFBox y vertical desde su descriptor, test JVM sobre Mara y campos largos. No se cambió ningún renderer legacy ni se generó PDF V11.
+- Estado: G1 PASS, G2 IN_PROGRESS; la fuente real está preparada pero **Scaffold run `38175718653` aún requiere resultado**, QA ledger `38175718666` SUCCESS. [Detalle `G2_METRICAS_TIPOGRAFICAS_REALES_2026-10-11.md`](G2_METRICAS_TIPOGRAFICAS_REALES_2026-10-11.md).
+- Siguiente trabajo técnico seguro: revisar CI exacto; corregir errores verificados, luego incorporar las mediciones a la composición física P1/P2/P3/P4/C2/C-N3/Libro/Notas sin sustituir el diseño V11 ni tocar el renderer antiguo. Pruebas con fuente real **no** equivalen a PDF V11 final inspeccionado.
+
 ## 4. Prompt de retoma mínimo para usuario
 
 > Sigue el proyecto `MrSimkin/dnd_custom_aid` en GitHub. Recupera la ruta canónica desde `main` (`AGENTS.md` → `RESUME.md` → `docs/checkpoints/LATEST.md`) y continúa automáticamente la implementación de la Hoja de PJ V11 aprobada, usando el estado vigente de la PR #173 y sus procedimientos G0–G6, QA sin pérdida y recuperación RCR-1. Ejecuta el siguiente paso seguro, actualiza GitHub y entrega evidencia o BLOCKED preciso. No rediseñes, no repitas preguntas respondidas y no fusiones la PR de implementación sin mi aprobación.
