@@ -73,6 +73,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatDamagePro
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportAggregate
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ExportRequest
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily
@@ -582,14 +583,33 @@ internal fun CharacterEditorScreenV4(
         coroutineScope.launch {
             val result = runCatching {
                 withContext(Dispatchers.IO) {
-                    val generated = pcSheetExportService.generate(options.request(), sources)
                     val purpose = if (action == PcSheetAndroidExportActionV4.SAVE) "save" else "share"
-                    val staged = pcSheetExportService.stage(
-                        generated = generated,
-                        characterName = aggregate.sheet.name,
-                        purpose = purpose,
-                    )
-                    generated to staged
+                    val proofVariant = options.v11ProofVariant
+                    if (proofVariant != null && BuildConfig.DEBUG) {
+                        val proof = pcSheetExportService.generateV11Proof(
+                            PcSheetV11ExportRequest(
+                                variant = proofVariant,
+                                stateSelection = options.stateSelection,
+                                portraitFitMode = options.portraitFitMode,
+                                includeSpellDescriptions = options.includeSpellDescriptions,
+                            ),
+                            sources,
+                        )
+                        val staged = pcSheetExportService.stageV11Proof(
+                            generated = proof,
+                            characterName = aggregate.sheet.name,
+                            purpose = purpose,
+                        )
+                        proof.semantic.notices to staged
+                    } else {
+                        val generated = pcSheetExportService.generate(options.request(), sources)
+                        val staged = pcSheetExportService.stage(
+                            generated = generated,
+                            characterName = aggregate.sheet.name,
+                            purpose = purpose,
+                        )
+                        generated.plan.notices to staged
+                    }
                 }
             }
             val pair = result.getOrElse { error ->
@@ -597,9 +617,8 @@ internal fun CharacterEditorScreenV4(
                 pcSheetExportBusy = false
                 return@launch
             }
-            val generated = pair.first
             val staged = pair.second
-            val notice = generated.plan.notices
+            val notice = pair.first
                 .joinToString(" ") { it.message }
                 .trim()
                 .takeIf { it.isNotEmpty() }
@@ -608,7 +627,11 @@ internal fun CharacterEditorScreenV4(
             } else {
                 null
             }
-            val combinedNotice = listOfNotNull(unsavedNotice, notice).joinToString(" ").takeIf { it.isNotBlank() }
+            val internalQaNotice = if (options.v11ProofVariant != null && BuildConfig.DEBUG) {
+                "PDF V11 de PRUEBA INTERNA, aún NO aprobado visualmente."
+            } else null
+            val combinedNotice = listOfNotNull(unsavedNotice, notice, internalQaNotice)
+                .joinToString(" ").takeIf { it.isNotBlank() }
 
             when (action) {
                 PcSheetAndroidExportActionV4.SAVE -> {
@@ -616,10 +639,15 @@ internal fun CharacterEditorScreenV4(
                     pendingPcSheetSaveNotice = combinedNotice
                     pcSheetExportBusy = false
                     pcSheetSaveLauncher.launch(
-                        pcSheetExportService.suggestedFileName(
-                            aggregate.sheet.name,
-                            options.visualFamily,
-                        ),
+                        if (options.v11ProofVariant != null && BuildConfig.DEBUG) {
+                            pcSheetExportService.suggestedV11ProofFileName(
+                                aggregate.sheet.name, options.v11ProofVariant,
+                            )
+                        } else {
+                            pcSheetExportService.suggestedFileName(
+                                aggregate.sheet.name, options.visualFamily,
+                            )
+                        },
                     )
                 }
 

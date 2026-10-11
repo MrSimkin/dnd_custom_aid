@@ -37,6 +37,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomStatisticsP
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPortraitFitMode
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleOverrideMode
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterStatus
@@ -472,6 +473,7 @@ private fun PcSettingsPdfExportClosureV4(
     }
     var portraitModeName by rememberSaveable { mutableStateOf(PcSheetPortraitFitMode.CROP_TO_FILL.name) }
     var includeSpellDescriptions by rememberSaveable { mutableStateOf(false) }
+    var v11ProofName by rememberSaveable { mutableStateOf("OFF") }
 
     val family = runCatching { PcSheetVisualFamily.valueOf(familyName) }
         .getOrDefault(PcSheetVisualFamily.CLASSIC_DND_STYLE)
@@ -487,6 +489,9 @@ private fun PcSettingsPdfExportClosureV4(
         customStatisticsPresentation = customMode,
         portraitFitMode = portraitMode,
         includeSpellDescriptions = includeSpellDescriptions,
+        v11ProofVariant = if (BuildConfig.DEBUG) runCatching {
+            PcSheetV11Variant.valueOf(v11ProofName)
+        }.getOrNull() else null,
     )
 
     LazyColumn(
@@ -543,6 +548,36 @@ private fun PcSettingsPdfExportClosureV4(
                     enabled = !busy,
                     onSelect = { familyName = it },
                 )
+            }
+        }
+
+        if (BuildConfig.DEBUG) {
+            item(key = "pdf-v11-internal-proof") {
+                PcSettingsSectionClosureV4("Prueba de exportación nueva (solo DEBUG)") {
+                    PdfChoiceRowClosureV4(
+                        title = "Salida PDF de diagnóstico",
+                        value = when (v11ProofName) {
+                            "A" -> "V11 prueba interna A"
+                            "B" -> "V11 prueba interna B"
+                            else -> "Cuatro familias anteriores"
+                        },
+                        options = listOf(
+                            "OFF" to "Familias anteriores",
+                            "A" to "V11 prueba interna A",
+                            "B" to "V11 prueba interna B",
+                        ),
+                        enabled = !busy,
+                        onSelect = { v11ProofName = it },
+                    )
+                    if (options.v11ProofVariant != null) {
+                        Text(
+                            "Se generará un PDF real desde la App y se podrá Guardar/Compartir, " +
+                                "pero es una prueba interna incompleta, NO la hoja visual aprobada.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
             }
         }
 

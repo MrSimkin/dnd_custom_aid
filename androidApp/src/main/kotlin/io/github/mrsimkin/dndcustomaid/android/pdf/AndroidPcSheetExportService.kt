@@ -14,6 +14,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPortraitFitMode
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant
 import java.io.File
 import java.net.URI
 
@@ -24,6 +25,8 @@ internal data class AndroidPcSheetExportOptions(
         PcSheetCustomStatisticsPresentation.EXTENDED_PAGE,
     val portraitFitMode: PcSheetPortraitFitMode = PcSheetPortraitFitMode.CROP_TO_FILL,
     val includeSpellDescriptions: Boolean = false,
+    /** QA-only opt-in; null preserves all four existing PDF exporters exactly. */
+    val v11ProofVariant: PcSheetV11Variant? = null,
 ) {
     fun request(): PcSheetPdfExportRequest = PcSheetPdfExportRequest(
         visualFamily = visualFamily,
@@ -109,6 +112,34 @@ internal class AndroidPcSheetExportService(
             "No se pudo preparar el PDF local para $purpose."
         }
         return target
+    }
+
+    /** Explicitly stamped, local debug-preview PDF staged via the SAME Save/Share path. */
+    fun stageV11Proof(
+        generated: AndroidPcSheetV11PdfProof,
+        characterName: String,
+        purpose: String,
+    ): File {
+        val directory = File(appContext.cacheDir, "pc-sheet-pdf/" + purpose)
+        directory.mkdirs()
+        directory.listFiles()?.forEach { stale -> stale.delete() }
+        val target = File(directory, suggestedV11ProofFileName(characterName, generated.semantic.request.variant))
+        val temporary = File(directory, target.name + ".tmp")
+        temporary.writeBytes(generated.bytes)
+        if (target.exists()) target.delete()
+        check(temporary.renameTo(target)) { "No se pudo preparar el PDF de diagnóstico." }
+        return target
+    }
+
+    fun suggestedV11ProofFileName(
+        characterName: String,
+        variant: PcSheetV11Variant,
+    ): String {
+        val safe = characterName.trim()
+            .replace(Regex("""[\\/:*?"<>|]+"""), "_")
+            .replace(Regex("""\s+"""), " ")
+            .ifBlank { "Personaje" }
+        return "$safe - Hoja de PJ - PREQA V11 $variant.pdf"
     }
 
     fun writeToDocument(staged: File, destination: Uri) {
