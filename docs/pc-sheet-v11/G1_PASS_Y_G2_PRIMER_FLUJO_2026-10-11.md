@@ -25,3 +25,9 @@ Este **PASS G1 semántico no cierra G0 QA histórico**: los archivos PDF exactos
 **G2 NO PASS** hasta verificar nuevo `Scaffold checks` sobre el HEAD que contiene ambos commits, integrar posicionamiento/medición con métricas reales, completar módulos P1/P2/P3/P4/C2/C-N3/Libro/última página, referencias físicas y pruebas de integridad física/fragmentos. Los ensayos actuales son solo primer lote G2 y no consumen intentos RCR-1 por sí mismos.
 
 **Próxima acción segura, sin intervención del propietario:** revisar resultados exactos de GitHub CI para G2; corregir únicamente fallos reproducibles. Luego integrar plan lógico de página, módulos de dos/tres columnas y las reglas fijas de continuación/última página. No cambiar los cuatro renderers legacy ni mezclar el nuevo flujo como un renderer Classic. Mantener la PR abierta.
+
+## G2 — secuencia lógica de páginas añadida después
+
+Commit funcional `ce3bf100104dda99e5ca29ce4493507ad1e80df6`: `PcSheetV11PageSequence.kt` agrega ordenamiento de páginas P1, P2, P3, P4 **solo si existen conjuros reales**, C2, notas digitales C-N3, Libro opcional y última página exclusiva de `FINAL_HANDWRITTEN_NOTES`. El constructor exige **cantidades de páginas obtenidas de composición medida**, nunca deduce que una nota larga ocupa arbitrariamente una sola página. Si hay notas digitales no se permite suprimir C-N3, ni añadir Libro sin conjuros/opt-in. Devuelve numeración contigua 1-based, indices locales y consultas por rol para futuras referencias físicas.
+
+Pruebas nuevas en `PcSheetV11SemanticContractTest.kt`: no lanzador con capacidad sin P4, secuencia ampliada con 2 C2 / 2 C-N3 / 3 Libro y última página única, validación de conteos contradictorios. **No se está generando PDF ni asignando posiciones finales.** Scaffold run de ese commit todavía debe verificarse. G2 sigue `IN_PROGRESS`, no PASS.
