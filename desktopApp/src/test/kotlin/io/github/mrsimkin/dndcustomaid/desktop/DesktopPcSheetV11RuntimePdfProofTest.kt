@@ -121,6 +121,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(pdf.numberOfPages >= 4)
             val printed = PDFTextStripper().getText(pdf)
             assertTrue(printed.contains("Aldren"))
+            val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
+            assertTrue(p1.contains("ATAQUE / RANGO"))
+            assertTrue(p1.contains("Espada larga"))
+            assertTrue(p1.contains("Ballesta ligera"))
+            assertTrue(p1.contains("LANZAMIENTO DE CONJUROS"),
+                "The P1 spellcasting area is mandatory even without real spells.")
+            assertTrue(p1.contains("ESPACIOS"))
+            assertTrue(p1.contains("GASTADOS"))
+            assertFalse(p1.contains("ESPACIOS REALES NIVEL 10"))
             assertFalse(printed.contains("P4 - Conjuros"))
             assertFalse(printed.contains("Libro de conjuros"))
             assertTrue(printed.contains("NOTAS - escritura manual"))
@@ -142,6 +151,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         Loader.loadPDF(generated.bytes).use { pdf ->
             val printed = PDFTextStripper().getText(pdf)
             assertTrue(printed.contains("P4 - Conjuros"))
+            val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
+            assertTrue(p1.contains("Daga"), "P1 real attack grid lost Ilyra's dagger.")
+            assertTrue(p1.contains("Fire Bolt"), "P1 real attack grid lost her ranged cantrip.")
+            assertTrue(p1.contains("LANZAMIENTO DE CONJUROS"))
+            assertTrue(p1.contains("GASTADOS"))
             for (level in 0..9) {
                 assertTrue(printed.contains("NIVEL " + level),
                     "P4 must reserve all non-epic level groups 0–9, including empty ones.")

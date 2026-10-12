@@ -171,6 +171,137 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
             }
 
+
+            // P1 mandatory mechanics: no invented values for absent spell slots.
+            // Real attacks receive three fields (attack/range, narrow bonus, damage).
+            // Rows whose actual measured text will not fit move intact into C2.
+            val attackRows = data.combatEntries.filter {
+                it.type == io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK
+            }
+            val attackLabelWidth = 239f
+            val attackBonusWidth = 49f
+            val attackDamageWidth = 528f - attackLabelWidth - attackBonusWidth
+            val p1Attacks = attackRows.takeWhile { entry ->
+                val nameAndRange = entry.name +
+                    (entry.rangeText?.takeIf { it.isNotBlank() }?.let { " / " + it } ?: "")
+                val bonus = entry.attackModifier?.let { if (it >= 0) "+" + it else it.toString() } ?: ""
+                val labelFits = body.width.measurePt(nameAndRange) <= attackLabelWidth - 10f
+                val bonusFits = body.width.measurePt(bonus) <= attackBonusWidth - 8f
+                val damageFits = body.width.measurePt(entry.damageEffect) <= attackDamageWidth - 10f
+                labelFits && bonusFits && damageFits &&
+                    attackRows.indexOf(entry) < 6
+            }
+            val p1AttackIds = p1Attacks.map { it.id }.toSet()
+
+            fun drawP1Attacks(stream: PDPageContentStream) {
+                val left = 42f
+                val top = 303f
+                val bottom = 210f
+                val b1 = left + attackLabelWidth
+                val b2 = b1 + attackBonusWidth
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(80, 122, 151))
+                stream.setLineWidth(0.7f)
+                stream.addRect(left, bottom, 528f, top - bottom)
+                stream.stroke()
+                for (x in listOf(b1, b2)) {
+                    stream.moveTo(x, bottom)
+                    stream.lineTo(x, top)
+                    stream.stroke()
+                }
+                for (row in 1..7) {
+                    val y = top - row * 12f
+                    stream.moveTo(left, y)
+                    stream.lineTo(left + 528f, y)
+                    stream.stroke()
+                }
+                stream.restoreGraphicsState()
+                draw(stream, "ATAQUE / RANGO", left + 4f, top - 10f, false)
+                draw(stream, "BONO", b1 + 3f, top - 10f, false)
+                draw(stream, "DAÑO / EFECTO", b2 + 3f, top - 10f, false)
+                p1Attacks.forEachIndexed { index, entry ->
+                    val y = top - 22f - index * 12f
+                    draw(stream, entry.name +
+                        (entry.rangeText?.takeIf { it.isNotBlank() }?.let { " / " + it } ?: ""),
+                        left + 4f, y, false)
+                    entry.attackModifier?.let { value ->
+                        draw(stream, if (value >= 0) "+" + value else value.toString(),
+                            b1 + 3f, y, false)
+                    }
+                    draw(stream, entry.damageEffect, b2 + 3f, y, false)
+                }
+                if (attackRows.isEmpty()) {
+                    draw(stream, "________________", left + 5f, top - 25f, false)
+                }
+            }
+
+            fun drawP1Spellcasting(stream: PDPageContentStream) {
+                draw(stream, "LANZAMIENTO DE CONJUROS", 42f, 198f, true)
+                val actual = data.spellSlots.associateBy { it.level }
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(80, 122, 151))
+                stream.setLineWidth(0.65f)
+                stream.addRect(42f, 78f, 528f, 108f)
+                stream.stroke()
+                stream.restoreGraphicsState()
+                draw(stream, "NIVEL", 47f, 175f, false)
+                draw(stream, "ESPACIOS", 104f, 175f, false)
+                draw(stream, "GASTADOS", 176f, 175f, false)
+                for (level in 1..9) {
+                    val y = 163f - (level - 1) * 9.4f
+                    draw(stream, level.toString(), 48f, y, false)
+                    val slots = actual[level]
+                    if (slots != null) {
+                        // Show stored total/spent even for zero; no assumed progression.
+                        draw(stream, slots.totalSlots.toString(), 110f, y, false)
+                        draw(stream, slots.spentSlots.toString(), 180f, y, false)
+                        if (slots.totalSlots in 1..20) {
+                            repeat(slots.totalSlots) { n ->
+                                val x = 230f + n * 13f + (n / 5) * 4f
+                                stream.addRect(x, y - 2f, 8f, 8f)
+                                stream.stroke()
+                                if (n < slots.spentSlots) draw(stream, "X", x + 1f, y, false)
+                            }
+                        }
+                    } else {
+                        draw(stream, "______", 107f, y, false)
+                        draw(stream, "______", 180f, y, false)
+                    }
+                }
+            }
+
+            val extraCombatData = buildList {
+                attackRows.forEach { attack ->
+                    if (attack.id !in p1AttackIds) {
+                        add(PcSheetV11FlowItem(
+                            "combat:deferred:" + attack.id,
+                            "ATAQUE " + attack.name +
+                                (attack.rangeText?.let { " | ALCANCE " + it } ?: "") +
+                                (attack.attackModifier?.let { " | BONO " + it } ?: "") +
+                                " | DAÑO " + attack.damageEffect +
+                                (attack.notes?.let { " | NOTAS " + it } ?: ""),
+                            keepTogetherIfFits = true,
+                        ))
+                    } else {
+                        attack.notes?.takeIf { it.isNotBlank() }?.let { notes ->
+                            add(PcSheetV11FlowItem(
+                                "combat:notes:" + attack.id,
+                                "NOTAS DEL ATAQUE " + attack.name + ": " + notes,
+                                keepTogetherIfFits = true,
+                            ))
+                        }
+                    }
+                }
+                // High-level slot rows only exist when explicitly persisted.
+                data.spellSlots.filter { it.level >= 10 }.forEach { slots ->
+                    add(PcSheetV11FlowItem(
+                        "spellcasting:epic:" + slots.level,
+                        "ESPACIOS REALES NIVEL " + slots.level +
+                            ": TOTAL " + slots.totalSlots + ", GASTADOS " + slots.spentSlots,
+                    ))
+                }
+            }
+
             fun addSection(
                 title: String,
                 section: PcSheetV11FlowSection,
@@ -190,6 +321,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         drawFrameAndHeader(stream, title + " / " + (index + 1))
                         if (title.startsWith("P1 - ") && index == 0) {
                             drawP1Attributes(stream)
+                            drawP1Attacks(stream)
+                            drawP1Spellcasting(stream)
                         }
                         flow.cells.filter { it.localPageIndex == index + 1 }.forEach { cell ->
                             if (cell.drawableText.isNotEmpty()) {
@@ -228,20 +361,21 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     add(PcSheetV11FlowItem("skill:" + index, "Habilidad " + it.name +
                         ": " + (it.total?.toString() ?: "sin resolver")))
                 }
-                data.combatEntries.forEach { it ->
-                    add(PcSheetV11FlowItem("attack:" + it.id,
-                        "Ataque " + it.name + " | " + it.type + " | " +
-                            (it.attackModifier?.toString() ?: "") + " | " + it.damageEffect))
-                }
-                data.spellSlots.forEach { it ->
-                    add(PcSheetV11FlowItem("slot:" + it.level,
-                        "Ranuras nivel " + it.level + " " + it.totalSlots + " total, " +
-                            it.spentSlots + " gastadas"))
-                }
+                data.combatEntries
+                    .filter { it.id !in p1AttackIds && it.type !=
+                        io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK }
+                    .forEach { entry ->
+                        add(PcSheetV11FlowItem("action:" + entry.id,
+                            entry.name + " | " + entry.type +
+                                (entry.rangeText?.let { " | ALCANCE " + it } ?: "") +
+                                (entry.attackModifier?.let { " | BONO " + it } ?: "") +
+                                " | " + entry.damageEffect +
+                                (entry.notes?.let { " | NOTAS " + it } ?: "")))
+                    }
             }
             addSection("P1 - Personaje / combate / habilidades", PcSheetV11FlowSection.TRAITS,
                 identity, 2, alwaysPage = true,
-                area = PcSheetV11RectPt(42f, 78f, 528f, 425f))
+                area = PcSheetV11RectPt(42f, 320f, 528f, 252f))
 
             // P2 has four separate print modules. This drawing path uses the
             // same measured source-ID rows that G2 verified; it is not a plain-text mock.
@@ -410,6 +544,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 addSection("P4 - Conjuros", PcSheetV11FlowSection.QUICK_SPELLS,
                     quick, 3, area = balancedArea)
             }
+
+            addSection("C2 - Ataques, notas y espacios reales",
+                PcSheetV11FlowSection.TRAITS, extraCombatData, columns = 2)
 
             // Only overflowed paired rows need their narrow P2 geometry.
             // C2 narrative modules must NOT be limited to P2's small boxes:
