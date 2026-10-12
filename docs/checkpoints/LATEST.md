@@ -1,5 +1,7 @@
 # Latest project checkpoint — global resume map
 
+**2026-10-11 G3 PDF real — Spellbook / physical references / mixed C2:** Code `20c90da` full spell cards, physical book index Scaffold `38195427106` SUCCESS; `f17bf53` bidirectional physical P2/C2 page footers, Scaffold `38195651500` pending; `adc2852` compact mixed C2 two-column skills/actions/resources, Scaffold `38195803923` pending; `0be20f4` C-N3 digital-only source QA regression, Scaffold `38195914022` pending. See `docs/pc-sheet-v11/G3_LIBRO_REFERENCIAS_MIXTO_NOTAS_2026-10-11.md`. CONTRACT A/B APPROVED, NO manual visual inspection before FORMAL QA. PR #173 DRAFT/unmerged, 4 legacy renderers untouched.
+
 
 **2026-10-11 G3 PDF REAL — RECURSOS/MUNICIÓN/C2 NOTAS:** Previous CIs `38187375736`, `38187634513`, `38187710395` ALL SUCCESS. New Kotlin PDF renderer commits `7261274` (source-backed resource balances and classified ammo, 0–20 marks five-grouped, >20 `____ / X`), `ce5de6d` (only usable free C2 space receives complete NOTES grids; no extra pages), `6d00319` (Mara 0/7 and no auto-ammo guessing tests). QA ledger latest SUCCESS, **Scaffold HEAD `38192399474` pending**, older `38192191694`, `38192330327` pending. Full evidence: `docs/pc-sheet-v11/G3_RECURSOS_MUNICIONES_NOTAS_C2_2026-10-11.md`. Owner's design APPROVED; NO MANUAL VISUAL REVIEW BEFORE QA. PR #173 draft/unmerged; four legacy PDF families untouched.
 
