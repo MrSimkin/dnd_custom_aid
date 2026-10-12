@@ -652,6 +652,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 area: PcSheetV11RectPt,
                 placed: PcSheetV11PairedTablePlaced,
                 localPage: Int,
+                suppressAmounts: Set<String> = emptySet(),
             ) {
                 draw(stream, title, area.leftPt, area.topPt + 6f, true)
                 grid(stream, area, true)
@@ -667,7 +668,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             body.metrics.baselineIn(cell.rectPt), false)
                     }
                 }
-                placed.quantities.filter { it.localPageIndex == localPage }.forEach { cell ->
+                placed.quantities.filter {
+                    it.localPageIndex == localPage && it.sourceKey !in suppressAmounts
+                }.forEach { cell ->
                     draw(stream, cell.printableText, cell.rectPt.leftPt + 2f,
                         body.metrics.baselineIn(cell.rectPt), false)
                 }
@@ -854,26 +857,49 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 PcSheetV11FlowSection.TRAITS,
                 mixedC2, columns = 2, ammunitionTracks = ammunitionTracks)
 
-            // Only overflowed paired rows need their narrow P2 geometry.
-            // C2 narrative modules must NOT be limited to P2's small boxes:
-            // reflow their exact unprinted source suffixes across full-page columns.
-            val pairedPageCount = maxOf(
-                inventoryPlaced.localPageCount,
-                treasurePlaced.localPageCount,
-            )
-            for (localPage in 2..pairedPageCount) {
-                val page = PDPage(PDRectangle.LETTER)
-                pdf.addPage(page)
-                physicalSectionKeys += "C2 - Equipo y tesoro"
-                PDPageContentStream(pdf, page).use { stream ->
-                    drawFrameAndHeader(stream, "C2 - Equipo y tesoro / " + (localPage - 1))
-                    if (inventoryPlaced.labels.any { it.localPageIndex == localPage }) {
-                        drawPaired(stream, "EQUIPO / CANTIDAD",
-                            equipmentArea, inventoryPlaced, localPage)
+            // Reflow the exact P2-unprinted equipment/treasure suffixes into
+            // FULL-HEIGHT C2 paired tables. Never redraw quantities already
+            // printed on P2; keep every original label code point and source ID.
+            fun remainingPairedRows(
+                placed: PcSheetV11PairedTablePlaced,
+            ): io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData {
+                val rows = placed.data.rows.mapNotNull { row ->
+                    val prefixParts = placed.labelFlow.fragments.filter {
+                        it.localPageIndex == 1 && it.sourceKey == row.sourceKey
+                    }.sortedWith(compareBy({ it.columnIndex }, { it.startOffset }))
+                    val printedPrefix = prefixParts.joinToString("") { it.text }
+                    require(row.label.startsWith(printedPrefix)) {
+                        "P2 equipment must preserve each source label prefix exactly."
                     }
-                    if (treasurePlaced.labels.any { it.localPageIndex == localPage }) {
-                        drawPaired(stream, "TESORO / CANTIDAD",
-                            treasureArea, treasurePlaced, localPage)
+                    if (printedPrefix.length == row.label.length) null
+                    else row.copy(label = row.label.substring(printedPrefix.length))
+                }
+                return placed.data.copy(rows = rows)
+            }
+
+            val fullC2PairedArea = PcSheetV11RectPt(42f, 76f, 528f, 626f)
+            for ((label, original) in listOf(
+                "EQUIPO" to inventoryPlaced,
+                "TESORO" to treasurePlaced,
+            )) {
+                val remaining = remainingPairedRows(original)
+                if (remaining.rows.isEmpty()) continue
+                val expanded = PcSheetV11PairedTableComposer.place(
+                    remaining, fullC2PairedArea, 12f, 36f, 6f,
+                    body.metrics.lineHeightPt, body.width,
+                )
+                val amountsAlreadyOnP2 = original.quantities.asSequence()
+                    .filter { it.localPageIndex == 1 }
+                    .map { it.sourceKey }.toSet()
+                for (localPage in 1..expanded.localPageCount) {
+                    val page = PDPage(PDRectangle.LETTER)
+                    pdf.addPage(page)
+                    physicalSectionKeys += "C2 - Equipo y tesoro"
+                    PDPageContentStream(pdf, page).use { stream ->
+                        drawFrameAndHeader(stream,
+                            "C2 - Equipo y tesoro / " + label + " / " + localPage)
+                        drawPaired(stream, label + " / CANTIDAD",
+                            fullC2PairedArea, expanded, localPage, amountsAlreadyOnP2)
                     }
                 }
             }

@@ -17,6 +17,7 @@ import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.common.PDRectangle
 import org.apache.pdfbox.text.PDFTextStripper
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
+import kotlin.uuid.Uuid
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -555,7 +556,64 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 endPage = pdf.numberOfPages
             }.getText(pdf)
             assertTrue(last.contains("NOTAS - escritura manual"),
-                "The final manuscript page must remain even without digital notes.")
+                "The final manuscript page must remain even without digital n
+    @Test
+    fun overflowingOrdinaryInventoryUsesFullHeightC2WithoutRepeatingAnyAmount() {
+        val existing = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val original = existing.permanent.sheet.inventoryItems.first { !it.special }
+        val added = (0 until 100).map { index ->
+            original.copy(
+                id = Uuid.parse("0c000000-0000-4000-8000-" +
+                    (index + 1).toString().padStart(12, '0')),
+                name = "MATERIAL INVENTARIADO " + (index + 1).toString().padStart(3, '0') +
+                    " con nombre descriptivo largo para verificar continuidad de la tabla",
+                quantity = 7000 + index,
+                sortOrder = 2000 + index,
+                special = false,
+                notes = null,
+            )
+        }
+        val fixture = existing.copy(
+            permanent = existing.permanent.copy(
+                sheet = existing.permanent.sheet.copy(
+                    inventoryItems = existing.permanent.sheet.inventoryItems + added,
+                ),
+            ),
+        )
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(
+                PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT,
+            ), fixture,
+        )
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val physicalTexts = (1..pdf.numberOfPages).map { physical ->
+                PDFTextStripper().apply {
+                    startPage = physical
+                    endPage = physical
+                }.getText(pdf)
+            }
+            val continuation = physicalTexts.filter {
+                it.contains("C2 - Equipo y tesoro / EQUIPO")
+            }
+            assertTrue(continuation.isNotEmpty(),
+                "Overlong equipment must create a physical full-height C2 paired table.")
+            assertTrue(continuation.any { it.contains("MATERIAL INVENTARIADO") })
+            val all = physicalTexts.joinToString("\n")
+            for (index in 0 until 100) {
+                val sourceName = "MATERIAL INVENTARIADO " +
+                    (index + 1).toString().padStart(3, '0')
+                assertTrue(all.contains(sourceName),
+                    "The original inventory item name must survive P2/C2: $sourceName")
+                val number = (7000 + index).toString()
+                assertEquals(1, Regex("(?<![0-9])" + number + "(?![0-9])")
+                    .findAll(all).count(),
+                    "One inventory amount must print exactly once, even when the " +
+                        "corresponding name begins on P2 and continues in C2.")
+            }
+            assertTrue(physicalTexts.last().contains("NOTAS - escritura manual"))
+        }
+    }
+otes.")
         }
     }
 
