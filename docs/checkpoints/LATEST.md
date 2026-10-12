@@ -1,6 +1,9 @@
 # Latest project checkpoint — global resume map
 
 
+**2026-10-11 G3 PDF REAL — RECURSOS/MUNICIÓN/C2 NOTAS:** Previous CIs `38187375736`, `38187634513`, `38187710395` ALL SUCCESS. New Kotlin PDF renderer commits `7261274` (source-backed resource balances and classified ammo, 0–20 marks five-grouped, >20 `____ / X`), `ce5de6d` (only usable free C2 space receives complete NOTES grids; no extra pages), `6d00319` (Mara 0/7 and no auto-ammo guessing tests). QA ledger latest SUCCESS, **Scaffold HEAD `38192399474` pending**, older `38192191694`, `38192330327` pending. Full evidence: `docs/pc-sheet-v11/G3_RECURSOS_MUNICIONES_NOTAS_C2_2026-10-11.md`. Owner's design APPROVED; NO MANUAL VISUAL REVIEW BEFORE QA. PR #173 draft/unmerged; four legacy PDF families untouched.
+
+
 **2026-10-11 P1 REAL PDF implementation (contract approved; NO manual visuals until QA):** Code `4f1be5c` prints real 3-column attack/bonus/damage grid, always-visible spellcasting 1–9 with only persisted slots/spent markings, preserving nonfit attacks/notes and real epic slots in C2. **Scaffold `38187118060` SUCCESS**. Code `8dbc1a7` embeds actual locally loaded portraits with CROP/FIT and vector silhouette fallback; tests PDF image embedding for both modes and missing reference; Scaffold `38187375736` pending. Code `69ac30e` makes A skills physically grouped beneath their built-in attribute where measured to fit, moves remaining skills losslessly to C2 with (XXX) suffix, and B retains independent skills with suffix; Scaffold `38187634513` pending. See `docs/pc-sheet-v11/G3_ATAQUES_SLOTS_RETRATO_P1_2026-10-11.md`. These are actual Android/Desktop PDF app renderers, not legacy families, no merge or owner visual QA yet.
 
 
