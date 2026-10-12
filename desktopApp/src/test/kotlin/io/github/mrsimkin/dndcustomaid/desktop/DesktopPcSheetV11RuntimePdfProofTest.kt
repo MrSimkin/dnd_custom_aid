@@ -457,4 +457,56 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+    @Test
+    fun digitalNotesHaveDedicatedPagesAndDisappearWhenSourceNotesAreAbsent() {
+        val actual = sources("03_mara_siete_umbrales_custom_extended.json")
+        val saved = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.B,
+                PcSheetExportStateSelection.PERMANENT,
+                includeSpellDescriptions = false),
+            actual,
+        )
+        Loader.loadPDF(saved.bytes).use { pdf ->
+            val pages = (1..pdf.numberOfPages).map { n ->
+                PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+            }
+            val notePageNumbers = pages.indices.filter {
+                pages[it].contains("C-N3 - Notas digitales")
+            }
+            assertTrue(notePageNumbers.isNotEmpty())
+            assertTrue(notePageNumbers.any { pages[it].contains("Nota 1") })
+            assertTrue(notePageNumbers.any { pages[it].contains("Nota 9") })
+            assertTrue(pages.filterIndexed { idx, _ -> idx !in notePageNumbers }
+                .none { it.contains("Nota 1 — Hipótesis") },
+                "Digital notes must not leak into mechanical C2 or the last manuscript page.")
+            assertTrue(pages.last().contains("NOTAS - escritura manual"))
+            assertFalse(pages.last().contains("C-N3"))
+        }
+        val withoutNotes = actual.copy(
+            permanent = actual.permanent.copy(
+                sheet = actual.permanent.sheet.copy(
+                    generalNotes = "",
+                    noteCards = emptyList(),
+                ),
+            ),
+        )
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.B,
+                PcSheetExportStateSelection.PERMANENT,
+                includeSpellDescriptions = false),
+            withoutNotes,
+        )
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val printed = PDFTextStripper().getText(pdf)
+            assertFalse(printed.contains("C-N3 - Notas digitales"),
+                "Do not create phantom digital-notes pages when the source is empty.")
+            val last = PDFTextStripper().apply {
+                startPage = pdf.numberOfPages
+                endPage = pdf.numberOfPages
+            }.getText(pdf)
+            assertTrue(last.contains("NOTAS - escritura manual"),
+                "The final manuscript page must remain even without digital notes.")
+        }
+    }
+
 }
