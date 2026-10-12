@@ -451,6 +451,41 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
             }
 
+            // C2 leftover paper is handwriting space, not a new digital-notes section.
+            // Occupied PDF line rectangles govern whether a complete square grid fits.
+            fun fillUnusedC2WithNotes(
+                stream: PDPageContentStream,
+                cells: List<io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PlacedLineCell>,
+            ) {
+                if (cells.isEmpty()) return
+                val lowestTextBottom = cells.minOf { it.cellPt.bottomPt }
+                val gridBottom = 78f
+                val maxGridTop = lowestTextBottom - 28f
+                val completeRows = ((maxGridTop - gridBottom) / 16f).toInt()
+                if (completeRows < 3) return
+                val gridTop = gridBottom + completeRows * 16f
+                require(gridTop + 18f < lowestTextBottom) {
+                    "C2 notes grid must never overlap character content."
+                }
+                draw(stream, "NOTAS", 42f, gridTop + 7f, true)
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(130, 165, 186))
+                stream.setLineWidth(0.5f)
+                repeat(34) { column ->
+                    val x = 42f + column * 16f
+                    stream.moveTo(x, gridBottom)
+                    stream.lineTo(x, gridTop)
+                    stream.stroke()
+                }
+                repeat(completeRows + 1) { row ->
+                    val y = gridBottom + row * 16f
+                    stream.moveTo(42f, y)
+                    stream.lineTo(570f, y)
+                    stream.stroke()
+                }
+                stream.restoreGraphicsState()
+            }
+
             fun addSection(
                 title: String,
                 section: PcSheetV11FlowSection,
@@ -476,7 +511,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             drawP1Portrait(stream)
                             drawP1GroupedSkills(stream)
                         }
-                        flow.cells.filter { it.localPageIndex == index + 1 }.forEach { cell ->
+                        val pageCells = flow.cells.filter {
+                            it.localPageIndex == index + 1
+                        }
+                        pageCells.forEach { cell ->
                             if (cell.drawableText.isNotEmpty()) {
                                 draw(stream, cell.drawableText,
                                     cell.cellPt.leftPt,
@@ -507,6 +545,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                         body.metrics.baselineIn(cell.cellPt), false)
                                 }
                             }
+                        }
+                        if (title.startsWith("C2 - ")) {
+                            fillUnusedC2WithNotes(stream, pageCells)
                         }
                     }
                 }

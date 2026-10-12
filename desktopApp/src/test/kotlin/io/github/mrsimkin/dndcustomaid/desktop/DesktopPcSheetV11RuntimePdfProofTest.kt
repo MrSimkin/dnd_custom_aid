@@ -153,6 +153,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.contains("MUNICIÓN Virotes"))
             assertTrue(printed.contains("CANTIDAD 20"))
             assertTrue(printed.contains("MARCAS:"))
+            val resourcePageText = (1..pdf.numberOfPages).map { physicalPage ->
+                PDFTextStripper().apply {
+                    startPage = physicalPage
+                    endPage = physicalPage
+                }.getText(pdf)
+            }.firstOrNull { it.contains("C2 - Recursos y municiones") }
+            assertTrue(resourcePageText != null,
+                "The actual export must contain a C2 resource page.")
+            assertTrue(resourcePageText.contains("NOTAS"),
+                "Unused C2 space must be available for manuscript notes without adding pages.")
             assertFalse(p1.contains("ESPACIOS REALES NIVEL 10"))
             assertFalse(printed.contains("P4 - Conjuros"))
             assertFalse(printed.contains("Libro de conjuros"))
