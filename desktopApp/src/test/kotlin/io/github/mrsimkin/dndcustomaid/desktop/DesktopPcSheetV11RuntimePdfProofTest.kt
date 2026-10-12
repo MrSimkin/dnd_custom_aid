@@ -96,6 +96,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.contains("C2 - Recursos y municiones"))
             assertTrue(printed.contains("Reserva 1:"))
             assertTrue(printed.contains("Reserva 10:"))
+            assertTrue(printed.contains("RESTANTE 0/7"),
+                "Source resource balance zero is a real value, not absence.")
             assertTrue(printed.contains("RECUPERA"),
                 "Mara's persisted resource recovery must survive PDF generation.")
             assertTrue(printed.contains("P2 - Equipo y tesoro"))
@@ -306,6 +308,34 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(text.contains("MARCAS: ____ / 41"),
                 "Large ammunition quantities must be tracked with ____ / X.")
             assertFalse(text.contains("MARCAS: ____ / 20"))
+        }
+    }
+
+    @Test
+    fun nonAmmunitionInventoryIsNeverPromotedToTrackedAmmunitionFromItsName() {
+        val fixture = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val untagged = fixture.copy(
+            permanent = fixture.permanent.copy(
+                closure = fixture.permanent.closure.copy(
+                    inventoryUsage = fixture.permanent.closure.inventoryUsage.map {
+                        it.copy(kind =
+                            io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind.NONE)
+                    },
+                ),
+            ),
+        )
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.A,
+                PcSheetExportStateSelection.PERMANENT),
+            untagged,
+        )
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val text = PDFTextStripper().getText(pdf)
+            assertTrue(text.contains("Virotes"),
+                "The original equipment still belongs in the ordinary inventory.")
+            assertFalse(text.contains("MUNICIÓN Virotes"),
+                "Only persisted AMMUNITION classification may create marks.")
+            assertTrue(text.contains("Second Wind"), "Resources must not be removed.")
         }
     }
 
