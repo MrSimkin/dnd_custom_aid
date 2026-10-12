@@ -901,13 +901,96 @@ internal class DesktopPcSheetV11PdfProofRenderer {
 
             addSection("C-N3 - Notas digitales", PcSheetV11FlowSection.DIGITAL_NOTES,
                 texts.digitalNotes, 1)
-            data.spellbookEntries?.let { spells ->
-                addSection("Libro de conjuros", PcSheetV11FlowSection.SPELLBOOK,
-                    spells.map {
-                        PcSheetV11FlowItem("book:" + it.spell.id,
-                            "Nivel " + it.spell.level + " " + it.spell.name + ": " +
-                                it.spell.description)
-                    }, 2)
+            data.spellbookEntries?.takeIf { it.isNotEmpty() }?.let { spells ->
+                // The only optional annex, with real two-column cards. All spell
+                // content remains source-backed; no fabricated school or rules.
+                val cards = spells.map { entry ->
+                    val spell = entry.spell
+                    val components = buildList {
+                        if (spell.verbal) add("V")
+                        if (spell.somatic) add("S")
+                        if (spell.material) add("M")
+                    }.joinToString("/")
+                    val sourceLines = entry.sources.map { association ->
+                        "FUENTE " + (association.sourceName?.takeIf { it.isNotBlank() }
+                            ?: association.sourceId.toString()) +
+                            " | " + (if (association.prepared) "PREPARADO" else "SIN PREPARAR") +
+                            (association.saveDc?.let { " | CD " + it } ?: "") +
+                            (association.spellAttackModifier?.let { " | ATAQUE " + it } ?: "")
+                    }
+                    val lines = buildList {
+                        add("NIVEL " + spell.level + " | " + spell.name)
+                        add("LANZAMIENTO " + spell.castingTime + " | ALCANCE " + spell.rangeText)
+                        add("COMPONENTES " + components +
+                            (spell.materialText?.takeIf { it.isNotBlank() }?.let {
+                                " | MATERIAL " + it
+                            } ?: ""))
+                        add("DURACIÓN " + spell.duration +
+                            (if (spell.concentration) " | CONCENTRACIÓN" else "") +
+                            (if (spell.ritual) " | RITUAL" else ""))
+                        addAll(sourceLines)
+                        add("DESCRIPCIÓN:")
+                        add(spell.description)
+                        spell.notes?.takeIf { it.isNotBlank() }?.let { add("NOTAS: " + it) }
+                    }
+                    PcSheetV11FlowItem(
+                        sourceKey = "book:" + spell.id,
+                        text = lines.joinToString("\n"),
+                        keepTogetherIfFits = true,
+                    )
+                }
+                val contentFlow = body.place(
+                    PcSheetV11FlowSection.SPELLBOOK, cards, pageArea, 2, 12f,
+                )
+                require(contentFlow.sourceFlow.localPageCount > 0)
+                val firstPagesByKey = contentFlow.cells.groupBy { it.sourceKey }
+                    .mapValues { (_, cells) -> cells.minOf { it.localPageIndex } }
+                require(firstPagesByKey.size == cards.size) {
+                    "Every real spell must have a distinct physical book entry."
+                }
+                val pagesBeforeIndex = pdf.numberOfPages
+                fun buildIndex(indexPageCount: Int): List<PcSheetV11FlowItem> =
+                    spells.map { entry ->
+                        val key = "book:" + entry.spell.id
+                        val relativePage = firstPagesByKey.getValue(key)
+                        PcSheetV11FlowItem(
+                            "index:" + entry.spell.id,
+                            "NIVEL " + entry.spell.level + " | " + entry.spell.name +
+                                " | PÁGINA " +
+                                (pagesBeforeIndex + indexPageCount + relativePage),
+                            keepTogetherIfFits = true,
+                        )
+                    }
+
+                // Page numbers are global PHYSICAL pages. If a long index spills
+                // onto multiple pages, converge on its measured page count, never
+                // guess the next physical page from a fixed section number.
+                var indexPageCount = 1
+                repeat(8) {
+                    val measured = body.place(
+                        PcSheetV11FlowSection.SPELLBOOK,
+                        buildIndex(indexPageCount),
+                        pageArea, 2, 12f,
+                    ).sourceFlow.localPageCount
+                    require(measured > 0)
+                    if (measured == indexPageCount) return@repeat
+                    indexPageCount = measured
+                }
+                val indexEntries = buildIndex(indexPageCount)
+                val finalIndexFlow = body.place(
+                    PcSheetV11FlowSection.SPELLBOOK, indexEntries, pageArea, 2, 12f,
+                )
+                require(finalIndexFlow.sourceFlow.localPageCount == indexPageCount) {
+                    "Physical spellbook index pagination did not converge."
+                }
+                require(indexEntries.size == spells.size)
+                addSection("Índice del Libro de Conjuros",
+                    PcSheetV11FlowSection.SPELLBOOK, indexEntries, 2)
+                require(pdf.numberOfPages == pagesBeforeIndex + indexPageCount)
+                addSection("Libro de conjuros",
+                    PcSheetV11FlowSection.SPELLBOOK, cards, 2)
+                require(pdf.numberOfPages ==
+                    pagesBeforeIndex + indexPageCount + contentFlow.sourceFlow.localPageCount)
             }
 
             val finalPage = PDPage(PDRectangle.LETTER)

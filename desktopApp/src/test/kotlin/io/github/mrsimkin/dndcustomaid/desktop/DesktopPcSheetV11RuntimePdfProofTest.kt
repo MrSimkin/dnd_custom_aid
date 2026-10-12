@@ -168,6 +168,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertFalse(p1.contains("ESPACIOS REALES NIVEL 10"))
             assertFalse(printed.contains("P4 - Conjuros"))
             assertFalse(printed.contains("Libro de conjuros"))
+            assertFalse(printed.contains("Índice del Libro de Conjuros"),
+                "Non-caster must not receive a fabricated spellbook index.")
             assertTrue(printed.contains("NOTAS - escritura manual"))
         }
     }
@@ -201,6 +203,29 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.contains("Fire Bolt"),
                 "Genuine Ilyra spell missing in the real exported P4.")
             assertTrue(printed.contains("Libro de conjuros"))
+            assertTrue(printed.contains("Índice del Libro de Conjuros"))
+            assertTrue(printed.contains("LANZAMIENTO"))
+            assertTrue(printed.contains("COMPONENTES"))
+            assertTrue(printed.contains("DURACIÓN"))
+            assertTrue(printed.contains("DESCRIPCIÓN:"))
+            // Index page references must point at the REAL physical PDF page,
+            // not local section offsets or guesses.
+            val bookIndexText = (1..pdf.numberOfPages).asSequence().map { number ->
+                PDFTextStripper().apply { startPage = number; endPage = number }
+                    .getText(pdf)
+            }.first { it.contains("Índice del Libro de Conjuros") }
+            val fireBoltLine = bookIndexText.lineSequence()
+                .first { it.contains("Fire Bolt") && it.contains("PÁGINA") }
+            val targetPhysicalPage = requireNotNull(
+                Regex("""PÁGINA\s+(\d+)""").find(fireBoltLine),
+            ).groupValues[1].toInt()
+            assertTrue(targetPhysicalPage in 1..pdf.numberOfPages)
+            val targetContent = PDFTextStripper().apply {
+                startPage = targetPhysicalPage
+                endPage = targetPhysicalPage
+            }.getText(pdf)
+            assertTrue(targetContent.contains("Fire Bolt"))
+            assertTrue(targetContent.contains("DESCRIPCIÓN:"))
             val notesOnly = PDFTextStripper().apply {
                 startPage = pdf.numberOfPages
                 endPage = pdf.numberOfPages
@@ -336,6 +361,71 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertFalse(text.contains("MUNICIÓN Virotes"),
                 "Only persisted AMMUNITION classification may create marks.")
             assertTrue(text.contains("Second Wind"), "Resources must not be removed.")
+        }
+    }
+
+    @Test
+    fun overlongRealSpellCardContinuesLosslesslyAfterPhysicalIndexPage() {
+        val source = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val real = source.permanent.sheet.spells
+        val longDescription = "COMIENZO-EXTENSO " +
+            ("El umbral contiene marcas originales y una duración verificable. ").repeat(240) +
+            " FIN-EXTENSO-VERIFICABLE"
+        val adjusted = source.copy(
+            permanent = source.permanent.copy(
+                sheet = source.permanent.sheet.copy(
+                    spells = real.mapIndexed { index, item ->
+                        if (index == 0) item.copy(description = longDescription) else item
+                    },
+                ),
+            ),
+        )
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(
+                PcSheetV11Variant.B,
+                PcSheetExportStateSelection.PERMANENT,
+                includeSpellDescriptions = true,
+            ),
+            adjusted,
+        )
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val sections = (1..pdf.numberOfPages).map { physical ->
+                PDFTextStripper().apply {
+                    startPage = physical
+                    endPage = physical
+                }.getText(pdf)
+            }
+            assertTrue(sections.any { it.contains("Índice del Libro de Conjuros") })
+            assertTrue(sections.count {
+                it.contains("Libro de conjuros /") &&
+                    !it.contains("Índice del Libro de Conjuros")
+            } >= 2, "A single taller-than-page card must span actual PDF book pages.")
+            assertTrue(sections.any { it.contains("COMIENZO-EXTENSO") })
+            assertTrue(sections.any { it.contains("FIN-EXTENSO-VERIFICABLE") },
+                "The final spell text cannot be omitted when the card overflows.")
+            assertTrue(sections.last().contains("NOTAS - escritura manual"),
+                "Handwritten notes must remain the physical last page.")
+        }
+    }
+
+    @Test
+    fun disabledOptionalSpellbookNeverEmitsBookOrPhysicalIndex() {
+        val source = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(
+                PcSheetV11Variant.B,
+                PcSheetExportStateSelection.PERMANENT,
+                includeSpellDescriptions = false,
+            ),
+            source,
+        )
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val text = PDFTextStripper().getText(pdf)
+            assertTrue(text.contains("P4 - Conjuros"),
+                "P4 remains conditional on real spells, not on the optional book.")
+            assertFalse(text.contains("Índice del Libro de Conjuros"))
+            assertFalse(text.contains("Libro de conjuros"))
+            assertTrue(text.contains("NOTAS - escritura manual"))
         }
     }
 
