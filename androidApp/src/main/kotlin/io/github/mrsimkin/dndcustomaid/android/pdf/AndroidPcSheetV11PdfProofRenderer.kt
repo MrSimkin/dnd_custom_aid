@@ -42,6 +42,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val source = data.source.sheet
             val texts = PcSheetV11FlowSourceMapper.from(data)
             val pageArea = PcSheetV11RectPt(42f, 76f, 528f, 626f)
+            // Physical page roles are registered exactly when a PDFBox page is
+            // created. Footers and C2 backlinks are resolved only when the final
+            // document length is known: no section-local page guesses.
+            val physicalSectionKeys = mutableListOf<String>()
 
             fun draw(stream: PDPageContentStream, text: String, x: Float, y: Float, label: Boolean) {
                 if (text.isEmpty()) return
@@ -502,6 +506,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 repeat(pageCount) { index ->
                     val page = PDPage(PDRectangle.LETTER)
                     pdf.addPage(page)
+                    physicalSectionKeys += title
                     PDPageContentStream(pdf, page).use { stream ->
                         drawFrameAndHeader(stream, title + " / " + (index + 1))
                         if (title.startsWith("P1 - ") && index == 0) {
@@ -704,6 +709,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
 
             PDPage(PDRectangle.LETTER).also { page ->
                 pdf.addPage(page)
+                physicalSectionKeys += "P2 - Equipo y tesoro"
                 PDPageContentStream(pdf, page).use { stream ->
                     drawFrameAndHeader(stream, "P2 - Equipo y tesoro")
                     drawP2Modules(stream, localPage = 1)
@@ -843,6 +849,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             for (localPage in 2..pairedPageCount) {
                 val page = PDPage(PDRectangle.LETTER)
                 pdf.addPage(page)
+                physicalSectionKeys += "C2 - Equipo y tesoro"
                 PDPageContentStream(pdf, page).use { stream ->
                     drawFrameAndHeader(stream, "C2 - Equipo y tesoro / " + (localPage - 1))
                     if (inventoryPlaced.labels.any { it.localPageIndex == localPage }) {
@@ -995,6 +1002,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
 
             val finalPage = PDPage(PDRectangle.LETTER)
             pdf.addPage(finalPage)
+            physicalSectionKeys += "NOTAS-FINAL"
             PDPageContentStream(pdf, finalPage).use { stream ->
                 drawFrameAndHeader(stream, "NOTAS - escritura manual", lastHandwrittenPage = true)
                 // Final physical page: NO digital content. Two handwriting
@@ -1026,6 +1034,52 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
             }
             require(pdf.numberOfPages >= 4) { "A V11 proof must include P1/P2/P3 and final Notes." }
+            require(physicalSectionKeys.size == pdf.numberOfPages) {
+                "Every real PDF page must have exactly one recorded V11 role."
+            }
+            require(physicalSectionKeys.last() == "NOTAS-FINAL")
+            val totalPages = pdf.numberOfPages
+            val physicalP2 = physicalSectionKeys.indexOfFirst {
+                it == "P2 - Equipo y tesoro"
+            } + 1
+            require(physicalP2 > 0)
+            val c2Pages = physicalSectionKeys.indices
+                .filter { physicalSectionKeys[it].startsWith("C2 - ") }
+                .map { it + 1 }
+            for (index in 0 until totalPages - 1) {
+                val key = physicalSectionKeys[index]
+                val physicalPage = index + 1
+                val sectionPages = physicalSectionKeys.indices
+                    .filter { physicalSectionKeys[it] == key }
+                    .map { it + 1 }
+                val position = sectionPages.indexOf(physicalPage)
+                require(position >= 0)
+                val prev = sectionPages.getOrNull(position - 1)
+                val next = sectionPages.getOrNull(position + 1)
+                val link = when {
+                    key.startsWith("P2") && c2Pages.isNotEmpty() ->
+                        "CONTINÚA EN C2 PÁG. " + c2Pages.first()
+                    key.startsWith("C2 - ") && prev == null ->
+                        "VIENE DE P2 PÁG. " + physicalP2 +
+                            (next?.let { " | SIG. " + it } ?: "")
+                    else -> listOfNotNull(
+                        prev?.let { "ANT. " + it },
+                        next?.let { "SIG. " + it },
+                    ).joinToString(" | ")
+                }
+                PDPageContentStream(
+                    pdf, pdf.getPage(index), PDPageContentStream.AppendMode.APPEND,
+                    true, true,
+                ).use { stream ->
+                    if (link.isNotEmpty()) {
+                        draw(stream, link, 42f, 35f, false)
+                    }
+                    val label = "HOJA " + physicalPage + " / " + totalPages
+                    val x = 570f - body.width.measurePt(label)
+                    require(x >= 292f)
+                    draw(stream, label, x, 35f, false)
+                }
+            }
             pdf.save(target)
         }
     }

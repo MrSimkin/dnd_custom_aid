@@ -101,6 +101,30 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.contains("RECUPERA"),
                 "Mara's persisted resource recovery must survive PDF generation.")
             assertTrue(printed.contains("P2 - Equipo y tesoro"))
+            val pagesByPhysicalNumber = (1..pdf.numberOfPages).map { number ->
+                PDFTextStripper().apply {
+                    startPage = number
+                    endPage = number
+                }.getText(pdf)
+            }
+            assertTrue(pagesByPhysicalNumber.first().contains(
+                "HOJA 1 / " + pdf.numberOfPages,
+            ), "The footer must resolve physical page count only after final pagination.")
+            val p2Physical = pagesByPhysicalNumber.indexOfFirst {
+                it.contains("P2 - Equipo y tesoro")
+            } + 1
+            val firstC2Physical = pagesByPhysicalNumber.indexOfFirst {
+                it.contains("C2 - ") && !it.contains("P2 - Equipo y tesoro")
+            } + 1
+            assertTrue(p2Physical > 0 && firstC2Physical > 0)
+            assertTrue(pagesByPhysicalNumber[p2Physical - 1].contains(
+                "CONTINÚA EN C2 PÁG. " + firstC2Physical,
+            ), "P2 must point to an existing final physical C2 page.")
+            assertTrue(pagesByPhysicalNumber[firstC2Physical - 1].contains(
+                "VIENE DE P2 PÁG. " + p2Physical,
+            ), "C2 must link back to the real physical P2 page.")
+            assertFalse(pagesByPhysicalNumber.last().contains("HOJA "),
+                "The mandatory final handwritten page has no digital footer.")
             assertTrue(printed.contains("EQUIPO"))
             assertTrue(printed.contains("TESORO"))
             assertTrue(printed.contains("EQUIPO ESPECIAL"))
