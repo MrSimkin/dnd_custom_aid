@@ -51,6 +51,34 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         File(root, outputName).writeBytes(bytes)
     }
 
+    private fun assertAllPhysicalBookReferences(
+        pdf: org.apache.pdfbox.pdmodel.PDDocument,
+        names: List<String>,
+    ) {
+        val pageTexts = (1..pdf.numberOfPages).map { page ->
+            PDFTextStripper().apply {
+                startPage = page
+                endPage = page
+            }.getText(pdf)
+        }
+        val rows = pageTexts.filter { it.contains("Índice del Libro de Conjuros") }
+            .flatMap { page ->
+                page.lineSequence().mapNotNull { line ->
+                    val match = Regex("""NIVEL\s+\d+\s*\|\s*(.+?)\s*\|\s*PÁGINA\s+(\d+)""")
+                        .find(line)
+                    match?.let { it.groupValues[1] to it.groupValues[2].toInt() }
+                }
+            }
+        assertEquals(names.size, rows.size,
+            "The physical book index must list every genuine spell exactly once.")
+        assertEquals(names.sorted(), rows.map { it.first }.sorted())
+        rows.forEach { (name, physicalPage) ->
+            assertTrue(physicalPage in 1..pdf.numberOfPages)
+            assertTrue(pageTexts[physicalPage - 1].contains(name),
+                "Index sends real spell $name to the wrong PDF page $physicalPage.")
+        }
+    }
+
     @Test
     fun realMaraApplicationServiceWritesMultiPageLetterPdfFromOwnRenderer() {
         val real = sources("03_mara_siete_umbrales_custom_extended.json")
@@ -138,6 +166,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.contains("Oro"))
             assertTrue(printed.contains("P3 - Trasfondo"))
             assertTrue(printed.contains("Libro de conjuros"))
+            assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })
             assertTrue(printed.contains("NOTAS - escritura manual"))
             assertTrue(printed.contains("PRUEBA INTERNA V11 - NO APROBADA"))
         }
@@ -232,6 +261,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 "Genuine Ilyra spell missing in the real exported P4.")
             assertTrue(printed.contains("Libro de conjuros"))
             assertTrue(printed.contains("Índice del Libro de Conjuros"))
+            assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })
             assertTrue(printed.contains("LANZAMIENTO"))
             assertTrue(printed.contains("COMPONENTES"))
             assertTrue(printed.contains("DURACIÓN"))
