@@ -141,19 +141,39 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(pagesByPhysicalNumber.first().contains(
                 "HOJA 1 / " + pdf.numberOfPages,
             ), "The footer must resolve physical page count only after final pagination.")
+            fun realHeading(page: String, heading: String) =
+                page.lineSequence().any { line -> line.trim().startsWith(heading) }
+            val p1Physical = pagesByPhysicalNumber.indexOfFirst {
+                realHeading(it, "P1 - Personaje")
+            } + 1
             val p2Physical = pagesByPhysicalNumber.indexOfFirst {
-                it.contains("P2 - Equipo y tesoro")
+                realHeading(it, "P2 - Equipo y tesoro")
             } + 1
-            val firstC2Physical = pagesByPhysicalNumber.indexOfFirst {
-                it.contains("C2 - ") && !it.contains("P2 - Equipo y tesoro")
+            val mixedC2Physical = pagesByPhysicalNumber.indexOfFirst {
+                realHeading(it, "C2 - Habilidades, acciones y recursos")
             } + 1
-            assertTrue(p2Physical > 0 && firstC2Physical > 0)
+            val p2C2Physical = pagesByPhysicalNumber.indexOfFirst {
+                realHeading(it, "C2 - Equipo y tesoro") ||
+                    realHeading(it, "C2 - Rasgos / continuación") ||
+                    realHeading(it, "C2 - Equipo especial / continuación")
+            } + 1
+            assertTrue(p1Physical > 0 && p2Physical > 0 &&
+                mixedC2Physical > 0 && p2C2Physical > 0)
+            assertTrue(pagesByPhysicalNumber[p1Physical - 1].contains(
+                "CONTINÚA EN C2 PÁG. " + mixedC2Physical,
+            ), "P1 must point to C2 with skills/actions/resources.")
+            assertTrue(pagesByPhysicalNumber[mixedC2Physical - 1].contains(
+                "VIENE DE P1 PÁG. " + p1Physical,
+            ), "Mixed C2 must link to the true physical P1, never P2.")
+            assertFalse(pagesByPhysicalNumber[mixedC2Physical - 1].contains(
+                "VIENE DE P2 PÁG."),
+                "A continuation of P1 must not claim P2 as its parent.")
             assertTrue(pagesByPhysicalNumber[p2Physical - 1].contains(
-                "CONTINÚA EN C2 PÁG. " + firstC2Physical,
-            ), "P2 must point to an existing final physical C2 page.")
-            assertTrue(pagesByPhysicalNumber[firstC2Physical - 1].contains(
+                "CONTINÚA EN C2 PÁG. " + p2C2Physical,
+            ), "P2 must point to its OWN first continuation, not mixed P1 C2.")
+            assertTrue(pagesByPhysicalNumber[p2C2Physical - 1].contains(
                 "VIENE DE P2 PÁG. " + p2Physical,
-            ), "C2 must link back to the real physical P2 page.")
+            ), "The P2-owned C2 must link to the actual physical P2.")
             assertFalse(pagesByPhysicalNumber.last().contains("HOJA "),
                 "The mandatory final handwritten page has no digital footer.")
             assertTrue(printed.contains("EQUIPO"))

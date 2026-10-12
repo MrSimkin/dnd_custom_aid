@@ -1054,13 +1054,24 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
             require(physicalSectionKeys.last() == "NOTAS-FINAL")
             val totalPages = pdf.numberOfPages
+            val physicalP1 = physicalSectionKeys.indexOfFirst {
+                it.startsWith("P1 - ")
+            } + 1
             val physicalP2 = physicalSectionKeys.indexOfFirst {
                 it == "P2 - Equipo y tesoro"
             } + 1
-            require(physicalP2 > 0)
-            val c2Pages = physicalSectionKeys.indices
-                .filter { physicalSectionKeys[it].startsWith("C2 - ") }
-                .map { it + 1 }
+            require(physicalP1 > 0 && physicalP2 > 0)
+            val mixedC2Key = "C2 - Habilidades, acciones y recursos"
+            val c2FromP1 = physicalSectionKeys.indexOfFirst { it == mixedC2Key }
+                .takeIf { it >= 0 }?.plus(1)
+            fun isFromP2(key: String): Boolean =
+                key == "C2 - Equipo y tesoro" ||
+                    key == "C2 - Rasgos / continuación" ||
+                    key == "C2 - Equipo especial / continuación"
+            val c2FromP2 = physicalSectionKeys.indexOfFirst { isFromP2(it) }
+                .takeIf { it >= 0 }?.plus(1)
+            // A C2 page never points at P2 merely because it happens to be a
+            // continuation: derive the correct base-page role from its module.
             for (index in 0 until totalPages - 1) {
                 val key = physicalSectionKeys[index]
                 val physicalPage = index + 1
@@ -1071,11 +1082,18 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 require(position >= 0)
                 val prev = sectionPages.getOrNull(position - 1)
                 val next = sectionPages.getOrNull(position + 1)
+                val parent = when {
+                    key == mixedC2Key -> "P1" to physicalP1
+                    isFromP2(key) -> "P2" to physicalP2
+                    else -> null
+                }
                 val link = when {
-                    key.startsWith("P2") && c2Pages.isNotEmpty() ->
-                        "CONTINÚA EN C2 PÁG. " + c2Pages.first()
-                    key.startsWith("C2 - ") && prev == null ->
-                        "VIENE DE P2 PÁG. " + physicalP2 +
+                    key.startsWith("P1 - ") && c2FromP1 != null ->
+                        "CONTINÚA EN C2 PÁG. " + c2FromP1
+                    key.startsWith("P2 - ") && c2FromP2 != null ->
+                        "CONTINÚA EN C2 PÁG. " + c2FromP2
+                    parent != null && prev == null ->
+                        "VIENE DE " + parent.first + " PÁG. " + parent.second +
                             (next?.let { " | SIG. " + it } ?: "")
                     else -> listOfNotNull(
                         prev?.let { "ANT. " + it },
