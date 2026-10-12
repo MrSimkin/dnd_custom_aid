@@ -617,4 +617,57 @@ otes.")
         }
     }
 
+    @Test
+    fun overflowingTreasureAlsoGetsFullHeightC2WithoutDuplicateAmountsOrLostZeros() {
+        val existing = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val template = existing.permanent.sheet.currencies.first()
+        val supplemental = (0 until 45).map { index ->
+            template.copy(
+                key = "qa-treasure-" + index,
+                name = "MONEDA QA " + (index + 1).toString().padStart(3, '0') +
+                    " de denominación especial para continuación completa",
+                amount = if (index == 0) 0 else 8200 + index,
+                sortOrder = 1500 + index,
+                isDefault = false,
+            )
+        }
+        val modified = existing.copy(
+            permanent = existing.permanent.copy(
+                sheet = existing.permanent.sheet.copy(
+                    currencies = existing.permanent.sheet.currencies + supplemental,
+                ),
+            ),
+        )
+        val output = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(
+                PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT,
+            ),
+            modified,
+        )
+        Loader.loadPDF(output.bytes).use { pdf ->
+            val pages = (1..pdf.numberOfPages).map { page ->
+                PDFTextStripper().apply {
+                    startPage = page
+                    endPage = page
+                }.getText(pdf)
+            }
+            assertTrue(pages.any {
+                it.contains("C2 - Equipo y tesoro / TESORO")
+            }, "Overflow currencies must move into true full-height C2 paired tables.")
+            val printed = pages.joinToString("\n")
+            supplemental.forEach { coin ->
+                assertTrue(printed.contains(coin.name.substring(0, 13)),
+                    "Treasure denomination disappeared: " + coin.key)
+                if (coin.amount > 0) {
+                    assertEquals(1, Regex("(?<![0-9])" + coin.amount + "(?![0-9])")
+                        .findAll(printed).count(),
+                        "A currency amount must never repeat across P2 and its C2 continuation.")
+                }
+            }
+            assertTrue(printed.contains("MONEDA QA 001"),
+                "Even a currency with a genuine zero must remain visible.")
+            assertTrue(pages.last().contains("NOTAS - escritura manual"))
+        }
+    }
+
 }
