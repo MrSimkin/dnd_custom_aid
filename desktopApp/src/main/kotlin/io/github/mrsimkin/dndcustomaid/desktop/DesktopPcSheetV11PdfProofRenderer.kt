@@ -769,12 +769,6 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     quick, 3, area = balancedArea)
             }
 
-            addSection("C2 - Habilidades y referencias de atributo",
-                PcSheetV11FlowSection.TRAITS, detachedSkills, columns = 2)
-
-            addSection("C2 - Ataques, notas y espacios reales",
-                PcSheetV11FlowSection.TRAITS, extraCombatData, columns = 2)
-
             // Resource balances and ammunition are drawn only from persisted source
             // records. AMMUNITION is the explicit inventory-usage classification;
             // item names never serve as a guess or as fabricated state.
@@ -836,8 +830,29 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     ))
                 }
             }
-            addSection("C2 - Recursos y municiones", PcSheetV11FlowSection.TRAITS,
-                resourceLines, columns = 2, ammunitionTracks = ammunitionTracks)
+            // Compact MIXED C2: categories share the same measured two-column
+            // page(s). Distinct headings are real rows, not dedicated blank pages.
+            // UUID-backed records keep stable independent source keys and order.
+            val mixedC2 = buildList {
+                if (detachedSkills.isNotEmpty()) {
+                    add(PcSheetV11FlowItem("c2-heading:skills",
+                        "HABILIDADES Y REFERENCIAS", keepTogetherIfFits = true))
+                    addAll(detachedSkills)
+                }
+                if (extraCombatData.isNotEmpty()) {
+                    add(PcSheetV11FlowItem("c2-heading:combat",
+                        "ATAQUES, NOTAS Y ESPACIOS REALES", keepTogetherIfFits = true))
+                    addAll(extraCombatData)
+                }
+                if (resourceLines.isNotEmpty()) {
+                    add(PcSheetV11FlowItem("c2-heading:resources",
+                        "RECURSOS Y MUNICIONES", keepTogetherIfFits = true))
+                    addAll(resourceLines)
+                }
+            }
+            addSection("C2 - Habilidades, acciones y recursos",
+                PcSheetV11FlowSection.TRAITS,
+                mixedC2, columns = 2, ammunitionTracks = ammunitionTracks)
 
             // Only overflowed paired rows need their narrow P2 geometry.
             // C2 narrative modules must NOT be limited to P2's small boxes:

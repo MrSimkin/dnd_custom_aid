@@ -93,9 +93,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(p1Text.contains(ability.name),
                     "Missing visual P1 standard ability: " + ability.name)
             }
-            assertTrue(printed.contains("C2 - Recursos y municiones"))
+            assertTrue(printed.contains("C2 - Habilidades, acciones y recursos"))
             assertTrue(printed.contains("Reserva 1:"))
             assertTrue(printed.contains("Reserva 10:"))
+            assertTrue(printed.contains("RECURSOS Y MUNICIONES"))
+            assertFalse(printed.contains("C2 - Recursos y municiones"),
+                "Mixed C2 must not spend a dedicated physical page per module.")
             assertTrue(printed.contains("RESTANTE 0/7"),
                 "Source resource balance zero is a real value, not absence.")
             assertTrue(printed.contains("RECUPERA"),
@@ -173,8 +176,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 "The P1 spellcasting area is mandatory even without real spells.")
             assertTrue(p1.contains("ESPACIOS"))
             assertTrue(p1.contains("GASTADOS"))
-            assertTrue(printed.contains("C2 - Recursos y municiones"))
+            assertTrue(printed.contains("C2 - Habilidades, acciones y recursos"))
             assertTrue(printed.contains("Second Wind"))
+            assertTrue(printed.contains("RECURSOS Y MUNICIONES"))
             assertTrue(printed.contains("Action Surge"))
             assertTrue(printed.contains("MUNICIÓN Virotes"))
             assertTrue(printed.contains("CANTIDAD 20"))
@@ -184,7 +188,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     startPage = physicalPage
                     endPage = physicalPage
                 }.getText(pdf)
-            }.firstOrNull { it.contains("C2 - Recursos y municiones") }
+            }.firstOrNull { it.contains("C2 - Habilidades, acciones y recursos") }
             assertTrue(resourcePageText != null,
                 "The actual export must contain a C2 resource page.")
             assertTrue(resourcePageText.contains("NOTAS"),
@@ -351,7 +355,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         )
         Loader.loadPDF(proof.bytes).use { pdf ->
             val text = PDFTextStripper().getText(pdf)
-            assertTrue(text.contains("C2 - Recursos y municiones"))
+            assertTrue(text.contains("C2 - Habilidades, acciones y recursos"))
             assertTrue(text.contains("MUNICIÓN Virotes"))
             assertTrue(text.contains("CANTIDAD 41"))
             assertTrue(text.contains("MARCAS: ____ / 41"),
