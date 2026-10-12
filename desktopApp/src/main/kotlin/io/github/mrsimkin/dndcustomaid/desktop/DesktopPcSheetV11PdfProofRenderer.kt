@@ -490,6 +490,34 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.restoreGraphicsState()
             }
 
+            // The approved P3 has ruled handwriting space beneath narrative,
+            // never across paragraphs and never on a mechanically extended C2.
+            // It reuses ACTUAL placed font baselines, not guessed character counts.
+            fun drawP3HandwritingBelowContent(
+                stream: PDPageContentStream,
+                cells: List<io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PlacedLineCell>,
+            ) {
+                val usedBottom = cells.minOfOrNull { it.cellPt.bottomPt } ?: 684f
+                val writingBottom = 84f
+                val availableTop = minOf(usedBottom - 20f, 668f)
+                val completeRows = ((availableTop - writingBottom) / 16f).toInt()
+                if (completeRows < 3) return
+                val writingTop = writingBottom + completeRows * 16f
+                require(writingTop + 18f <= usedBottom) {
+                    "P3 handwriting lines cannot overlap real printed narrative."
+                }
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(130, 165, 186))
+                stream.setLineWidth(0.5f)
+                for (row in 0..completeRows) {
+                    val y = writingBottom + row * 16f
+                    stream.moveTo(42f, y)
+                    stream.lineTo(570f, y)
+                    stream.stroke()
+                }
+                stream.restoreGraphicsState()
+            }
+
             fun addSection(
                 title: String,
                 section: PcSheetV11FlowSection,
@@ -553,6 +581,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         }
                         if (title.startsWith("C2 - ")) {
                             fillUnusedC2WithNotes(stream, pageCells)
+                        }
+                        if (title.startsWith("P3 - ")) {
+                            drawP3HandwritingBelowContent(stream, pageCells)
                         }
                     }
                 }
