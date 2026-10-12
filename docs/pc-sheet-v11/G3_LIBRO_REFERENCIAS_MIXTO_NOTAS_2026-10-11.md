@@ -12,3 +12,11 @@
 ## Siguiente paso obligatorio
 
 Consultar resultados CI exactos, corregir cualquier error de compilación/test demostrado, verificar artefactos generados por la App y continuar implementando módulos contractuales hasta QA formal. No reabrir diseño, no solicitar más revisiones visuales, no fusionar PR. G1 semántico PASS; G2 en desarrollo; G3 PDF runtime parcial; G4–G6 pendientes. Histórico Mara M50800 OPEN, RCR-1 0/2.
+## Verificación adicional de salidas reales + pruebas reforzadas
+
+- De GitHub Actions Scaffold `38195427106` (SUCCESS) se descargó el artefacto **`v11-internal-real-app-pdf-proofs` ID 11723685925**. Contiene PDFs creados por el servicio Desktop de la App: Aldren-A **9** páginas, Ilyra-B **14**, Mara-B **18**. Los tres tienen NOTAS manuscrita como última página; Aldren sin Libro; Ilyra Libro con índice en página física 10 y fichas en 11–13; Mara índice en 13 y fichas en 14–17.
+- Inspección AUTOMÁTICA de texto con PyMuPDF (NO revisión visual humana): **25/25** referencias del índice de Ilyra y **24/24** de Mara apuntan a una página física que contiene el conjuro exacto. Total **49/49 sin fallos**.
+- CI posterior confirmó **SUCCESS** en `38195651500` (P2/C2 referencias reales), `38195803923` (módulos C2 mixtos) y `38195914022` (C-N3 exclusivo).
+- Commit `9bb1397dd3f34eb722579669969f2a6bc2867a11`: transforma la comprobación 49/49 en tests Kotlin/PDFBox permanentes usando esos dos personajes, analizando filas del índice y comprobando cada página destino. Scaffold `38196267219` pendiente a la fecha de registro; owner QA ledger `38196267233` en progreso.
+
+**Mandato vigente:** no solicitar nuevas aprobaciones ni revisión visual manual antes del QA formal. PR #173 DRAFT, sin merge, cuatro renderers anteriores sin cambios.

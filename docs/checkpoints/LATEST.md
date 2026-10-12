@@ -1,5 +1,8 @@
 # Latest project checkpoint — global resume map
 
+
+**2026-10-11 G3 PDF RUNTIME VERIFIED:** Scaffold `38195427106` (real complete Spellbook + physical index), `38195651500` (physical bidirectional P2/C2 page numbers), `38195803923` (compact mixed C2), `38195914022` (digital C-N3 isolation) ALL SUCCESS. Actual artifact `v11-internal-real-app-pdf-proofs` ID `11723685925`: Aldren-A 9p, Ilyra-B 14p, Mara-B 18p; all final manuscript. Automatic PyMuPDF validation: **49/49** physical spell index references correct (Ilyra 25, Mara 24); regression `9bb1397` now covers all 49 with PDFBox, Scaffold `38196267219` PENDING. Detail `docs/pc-sheet-v11/G3_LIBRO_REFERENCIAS_MIXTO_NOTAS_2026-10-11.md`. Contract approved; no manual visual review until QA; PR #173 DRAFT/unmerged, legacy renderers untouched.
+
 **2026-10-11 G3 PDF real — Spellbook / physical references / mixed C2:** Code `20c90da` full spell cards, physical book index Scaffold `38195427106` SUCCESS; `f17bf53` bidirectional physical P2/C2 page footers, Scaffold `38195651500` pending; `adc2852` compact mixed C2 two-column skills/actions/resources, Scaffold `38195803923` pending; `0be20f4` C-N3 digital-only source QA regression, Scaffold `38195914022` pending. See `docs/pc-sheet-v11/G3_LIBRO_REFERENCIAS_MIXTO_NOTAS_2026-10-11.md`. CONTRACT A/B APPROVED, NO manual visual inspection before FORMAL QA. PR #173 DRAFT/unmerged, 4 legacy renderers untouched.
 
 
