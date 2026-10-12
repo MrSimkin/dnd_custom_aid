@@ -188,7 +188,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.contains("P3 - Trasfondo"))
             assertTrue(printed.contains("Libro de conjuros"))
             assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })
-            assertTrue(printed.contains("NOTAS - escritura manual"))
+            assertTrue(printed.lineSequence().any { it.trim() == "NOTAS" })
             assertTrue(printed.contains("PRUEBA INTERNA V11 - NO APROBADA"))
         }
     }
@@ -248,7 +248,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertFalse(printed.contains("Libro de conjuros"))
             assertFalse(printed.contains("Índice del Libro de Conjuros"),
                 "Non-caster must not receive a fabricated spellbook index.")
-            assertTrue(printed.contains("NOTAS - escritura manual"))
+            assertTrue(printed.lineSequence().any { it.trim() == "NOTAS" })
         }
     }
     @Test
@@ -309,7 +309,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 startPage = pdf.numberOfPages
                 endPage = pdf.numberOfPages
             }.getText(pdf)
-            assertTrue(notesOnly.contains("NOTAS - escritura manual"))
+            assertTrue(notesOnly.lineSequence().any { it.trim() == "NOTAS" })
             assertFalse(notesOnly.contains("C-N3 - Notas digitales"))
             assertFalse(notesOnly.contains("Libro de conjuros"))
             assertFalse(notesOnly.contains("P4 - Conjuros"))
@@ -482,7 +482,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(sections.any { it.contains("COMIENZO-EXTENSO") })
             assertTrue(sections.any { it.contains("FIN-EXTENSO-VERIFICABLE") },
                 "The final spell text cannot be omitted when the card overflows.")
-            assertTrue(sections.last().contains("NOTAS - escritura manual"),
+            assertTrue(sections.last().lineSequence().any { it.trim() == "NOTAS" },
                 "Handwritten notes must remain the physical last page.")
         }
     }
@@ -504,7 +504,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 "P4 remains conditional on real spells, not on the optional book.")
             assertFalse(text.contains("Índice del Libro de Conjuros"))
             assertFalse(text.contains("Libro de conjuros"))
-            assertTrue(text.contains("NOTAS - escritura manual"))
+            assertTrue(text.lineSequence().any { it.trim() == "NOTAS" })
         }
     }
 
@@ -530,7 +530,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(pages.filterIndexed { idx, _ -> idx !in notePageNumbers }
                 .none { it.contains("Nota 1 — Hipótesis") },
                 "Digital notes must not leak into mechanical C2 or the last manuscript page.")
-            assertTrue(pages.last().contains("NOTAS - escritura manual"))
+            assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
             assertFalse(pages.last().contains("C-N3"))
         }
         val withoutNotes = actual.copy(
@@ -555,8 +555,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 startPage = pdf.numberOfPages
                 endPage = pdf.numberOfPages
             }.getText(pdf)
-            assertTrue(last.contains("NOTAS - escritura manual"),
-                "The final manuscript page must remain even without digital n
+            assertTrue(last.lineSequence().any { it.trim() == "NOTAS" },
+                "The final manuscript page must remain even without digital notes.")
+        }
+    }
+
     @Test
     fun overflowingOrdinaryInventoryUsesFullHeightC2WithoutRepeatingAnyAmount() {
         val existing = sources("01_aldren_vale_srd5_1_champion_fighter.json")
@@ -610,13 +613,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "One inventory amount must print exactly once, even when the " +
                         "corresponding name begins on P2 and continues in C2.")
             }
-            assertTrue(physicalTexts.last().contains("NOTAS - escritura manual"))
+            assertTrue(physicalTexts.last().lineSequence().any { it.trim() == "NOTAS" })
         }
     }
-otes.")
-        }
-    }
-
     @Test
     fun overflowingTreasureAlsoGetsFullHeightC2WithoutDuplicateAmountsOrLostZeros() {
         val existing = sources("01_aldren_vale_srd5_1_champion_fighter.json")
@@ -666,7 +665,7 @@ otes.")
             }
             assertTrue(printed.contains("MONEDA QA 001"),
                 "Even a currency with a genuine zero must remain visible.")
-            assertTrue(pages.last().contains("NOTAS - escritura manual"))
+            assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
         }
     }
 

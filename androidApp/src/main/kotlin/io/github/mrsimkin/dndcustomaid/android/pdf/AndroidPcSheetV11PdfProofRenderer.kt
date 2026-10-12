@@ -1045,7 +1045,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             pdf.addPage(finalPage)
             physicalSectionKeys += "NOTAS-FINAL"
             PDPageContentStream(pdf, finalPage).use { stream ->
-                drawFrameAndHeader(stream, "NOTAS - escritura manual", lastHandwrittenPage = true)
+                drawFrameAndHeader(stream, "NOTAS", lastHandwrittenPage = true)
                 // Final physical page: NO digital content. Two handwriting
                 // columns at the top, complete aligned square grid below.
                 // Technical proof geometry; final acceptance compares to golden.
