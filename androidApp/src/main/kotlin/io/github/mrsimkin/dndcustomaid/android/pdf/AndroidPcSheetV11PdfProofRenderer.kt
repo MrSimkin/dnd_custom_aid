@@ -459,6 +459,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 alwaysPage: Boolean = false,
                 area: PcSheetV11RectPt = pageArea,
                 specialMarks: Map<String, Boolean?> = emptyMap(),
+                ammunitionTracks: Map<String, Int> = emptyMap(),
             ) {
                 if (!alwaysPage && entries.isEmpty()) return
                 val flow = body.place(section, entries, area, columns, if (columns == 1) 0f else 12f)
@@ -481,6 +482,22 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     cell.cellPt.leftPt,
                                     body.metrics.baselineIn(cell.cellPt),
                                     false)
+                            }
+                            if (cell.sourceKey in ammunitionTracks &&
+                                cell.sourceStartOffset == 0) {
+                                val count = ammunitionTracks.getValue(cell.sourceKey)
+                                require(count in 0..20)
+                                if (count <= 20) {
+                                    repeat(count) { mark ->
+                                        val px = cell.cellPt.leftPt + 54f + mark * 8f +
+                                            (mark / 5) * 4f
+                                        require(px + 6f <= cell.cellPt.rightPt) {
+                                            "Ammunition track overflows its physical PDF column."
+                                        }
+                                        stream.addRect(px, cell.cellPt.bottomPt + 2f, 6f, 6f)
+                                        stream.stroke()
+                                    }
+                                }
                             }
                             if (cell.sourceKey in specialMarks && cell.sourceStartOffset == 0) {
                                 stream.addRect(557f, cell.cellPt.bottomPt + 1f, 9f, 9f)
@@ -710,6 +727,70 @@ internal class AndroidPcSheetV11PdfProofRenderer {
 
             addSection("C2 - Ataques, notas y espacios reales",
                 PcSheetV11FlowSection.TRAITS, extraCombatData, columns = 2)
+
+            // Resource balances and ammunition are drawn only from persisted source
+            // records. AMMUNITION is the explicit inventory-usage classification;
+            // item names never serve as a guess or as fabricated state.
+            val allResources = data.source.sheet.resources.sortedWith(
+                compareBy<io.github.mrsimkin.dndcustomaid.shared.character.CharacterResource> {
+                    it.sortOrder
+                }.thenBy { it.id.toString() },
+            )
+            val ammunitionIds = data.source.closure.inventoryUsage
+                .filter {
+                    it.kind ==
+                        io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind.AMMUNITION
+                }.map { it.itemId }.toSet()
+            val ammunitionItems = data.source.sheet.inventoryItems
+                .filter { it.id in ammunitionIds }
+                .sortedWith(
+                    compareBy<io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem> {
+                        it.sortOrder
+                    }.thenBy { it.id.toString() },
+                )
+            val ammunitionTracks = ammunitionItems.filter { it.quantity in 0..20 }
+                .associate { item -> "ammo-track:" + item.id to item.quantity }
+            val resourceLines = buildList {
+                allResources.forEach { resource ->
+                    val maximum = resource.maxValue?.let { "/" + it } ?: ""
+                    val extras = buildList {
+                        resource.recovery?.takeIf { it.isNotBlank() }?.let {
+                            add("RECUPERA " + it)
+                        }
+                        resource.source?.takeIf { it.isNotBlank() }?.let {
+                            add("FUENTE " + it)
+                        }
+                        resource.notes?.takeIf { it.isNotBlank() }?.let {
+                            add("NOTAS " + it)
+                        }
+                    }
+                    add(PcSheetV11FlowItem(
+                        sourceKey = "resource:" + resource.id,
+                        text = "RECURSO " + resource.name + " | RESTANTE " +
+                            resource.currentValue + maximum +
+                            (if (extras.isEmpty()) "" else " | " + extras.joinToString(" | ")),
+                        keepTogetherIfFits = true,
+                    ))
+                }
+                ammunitionItems.forEach { item ->
+                    add(PcSheetV11FlowItem(
+                        sourceKey = "ammo:" + item.id,
+                        text = "MUNICIÓN " + item.name + " | CANTIDAD " + item.quantity +
+                            (item.notes?.takeIf { it.isNotBlank() }?.let {
+                                " | NOTAS " + it
+                            } ?: ""),
+                        keepTogetherIfFits = true,
+                    ))
+                    add(PcSheetV11FlowItem(
+                        sourceKey = "ammo-track:" + item.id,
+                        text = if (item.quantity in 0..20) "MARCAS:" else
+                            "MARCAS: ____ / " + item.quantity,
+                        keepTogetherIfFits = true,
+                    ))
+                }
+            }
+            addSection("C2 - Recursos y municiones", PcSheetV11FlowSection.TRAITS,
+                resourceLines, columns = 2, ammunitionTracks = ammunitionTracks)
 
             // Only overflowed paired rows need their narrow P2 geometry.
             // C2 narrative modules must NOT be limited to P2's small boxes:

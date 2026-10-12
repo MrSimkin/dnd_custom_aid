@@ -93,6 +93,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(p1Text.contains(ability.name),
                     "Missing visual P1 standard ability: " + ability.name)
             }
+            assertTrue(printed.contains("C2 - Recursos y municiones"))
+            assertTrue(printed.contains("Reserva 1:"))
+            assertTrue(printed.contains("Reserva 10:"))
+            assertTrue(printed.contains("RECUPERA"),
+                "Mara's persisted resource recovery must survive PDF generation.")
             assertTrue(printed.contains("P2 - Equipo y tesoro"))
             assertTrue(printed.contains("EQUIPO"))
             assertTrue(printed.contains("TESORO"))
@@ -142,6 +147,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 "The P1 spellcasting area is mandatory even without real spells.")
             assertTrue(p1.contains("ESPACIOS"))
             assertTrue(p1.contains("GASTADOS"))
+            assertTrue(printed.contains("C2 - Recursos y municiones"))
+            assertTrue(printed.contains("Second Wind"))
+            assertTrue(printed.contains("Action Surge"))
+            assertTrue(printed.contains("MUNICIÓN Virotes"))
+            assertTrue(printed.contains("CANTIDAD 20"))
+            assertTrue(printed.contains("MARCAS:"))
             assertFalse(p1.contains("ESPACIOS REALES NIVEL 10"))
             assertFalse(printed.contains("P4 - Conjuros"))
             assertFalse(printed.contains("Libro de conjuros"))
@@ -253,6 +264,38 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 startPage = 1
                 endPage = 1
             }.getText(pdf).contains("RETRATO"))
+        }
+    }
+
+    @Test
+    fun ammunitionAboveTwentyUsesExplicitFractionAndNeverInventsTwentyCheckboxes() {
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val ammoId = original.permanent.closure.inventoryUsage
+            .single { it.kind ==
+                io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind.AMMUNITION
+            }.itemId
+        val amended = original.copy(
+            permanent = original.permanent.copy(
+                sheet = original.permanent.sheet.copy(
+                    inventoryItems = original.permanent.sheet.inventoryItems.map {
+                        if (it.id == ammoId) it.copy(quantity = 41) else it
+                    },
+                ),
+            ),
+        )
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.A,
+                PcSheetExportStateSelection.PERMANENT),
+            amended,
+        )
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val text = PDFTextStripper().getText(pdf)
+            assertTrue(text.contains("C2 - Recursos y municiones"))
+            assertTrue(text.contains("MUNICIÓN Virotes"))
+            assertTrue(text.contains("CANTIDAD 41"))
+            assertTrue(text.contains("MARCAS: ____ / 41"),
+                "Large ammunition quantities must be tracked with ____ / X.")
+            assertFalse(text.contains("MARCAS: ____ / 20"))
         }
     }
 
