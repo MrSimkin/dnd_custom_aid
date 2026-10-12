@@ -28,7 +28,11 @@ import com.tom_roush.harmony.awt.AWTColor as Color
  * The four existing exported sheet families continue to use their original renderers.
  */
 internal class AndroidPcSheetV11PdfProofRenderer {
-    fun render(data: PcSheetV11SemanticData, target: OutputStream) {
+    fun render(
+        data: PcSheetV11SemanticData,
+        target: OutputStream,
+        portraitBytes: ByteArray? = null,
+    ) {
         PDDocument().use { pdf ->
             val measurer = AndroidPcSheetV11FontMeasurer(pdf)
             val body = measurer.resolve(PcSheetV11Typeface.BODY, 9f)
@@ -302,6 +306,73 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
             }
 
+
+            fun drawP1Portrait(stream: PDPageContentStream) {
+                val frameX = 429f
+                val frameY = 397f
+                val frameWidth = 141f
+                val frameHeight = 175f
+                val imageX = frameX + 7f
+                val imageY = frameY + 7f
+                val imageWidth = frameWidth - 14f
+                val imageHeight = frameHeight - 28f
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(80, 122, 151))
+                stream.setLineWidth(0.9f)
+                stream.addRect(frameX, frameY, frameWidth, frameHeight)
+                stream.stroke()
+                stream.restoreGraphicsState()
+                draw(stream, "RETRATO", frameX + 7f, frameY + frameHeight - 12f, false)
+
+                if (portraitBytes != null) {
+                    // Same data the existing App export services load locally.
+                    // FIT preserves the full image; CROP clips its centre without
+                    // stretching. This path is embedded in the actual PDF file.
+                    val picture = PDImageXObject.createFromByteArray(
+                        pdf, portraitBytes, "pc-v11-local-portrait",
+                    )
+                    require(picture.width > 0 && picture.height > 0)
+                    val xRatio = imageWidth / picture.width
+                    val yRatio = imageHeight / picture.height
+                    val scale = if (data.portrait.fitMode ==
+                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPortraitFitMode.CROP_TO_FILL
+                    ) maxOf(xRatio, yRatio) else minOf(xRatio, yRatio)
+                    val drawWidth = picture.width * scale
+                    val drawHeight = picture.height * scale
+                    val px = imageX + (imageWidth - drawWidth) / 2f
+                    val py = imageY + (imageHeight - drawHeight) / 2f
+                    stream.saveGraphicsState()
+                    stream.addRect(imageX, imageY, imageWidth, imageHeight)
+                    stream.clip()
+                    stream.stroke()
+                    stream.drawImage(picture, px, py, drawWidth, drawHeight)
+                    stream.restoreGraphicsState()
+                } else {
+                    // No usable local portrait: contract requires a reserved frame
+                    // with a neutral silhouette, not an invented character image.
+                    val cx = imageX + imageWidth / 2f
+                    val cy = imageY + imageHeight * 0.58f
+                    stream.saveGraphicsState()
+                    stream.setStrokingColor(Color(130, 165, 186))
+                    stream.setLineWidth(1f)
+                    val radius = 19f
+                    val k = radius * 0.5522848f
+                    stream.moveTo(cx + radius, cy)
+                    stream.curveTo(cx + radius, cy + k, cx + k, cy + radius, cx, cy + radius)
+                    stream.curveTo(cx - k, cy + radius, cx - radius, cy + k, cx - radius, cy)
+                    stream.curveTo(cx - radius, cy - k, cx - k, cy - radius, cx, cy - radius)
+                    stream.curveTo(cx + k, cy - radius, cx + radius, cy - k, cx + radius, cy)
+                    stream.closePath()
+                    stream.stroke()
+                    stream.moveTo(imageX + 12f, imageY + 16f)
+                    stream.curveTo(imageX + 17f, imageY + 68f,
+                        imageX + imageWidth - 17f, imageY + 68f,
+                        imageX + imageWidth - 12f, imageY + 16f)
+                    stream.stroke()
+                    stream.restoreGraphicsState()
+                }
+            }
+
             fun addSection(
                 title: String,
                 section: PcSheetV11FlowSection,
@@ -323,6 +394,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             drawP1Attributes(stream)
                             drawP1Attacks(stream)
                             drawP1Spellcasting(stream)
+                            drawP1Portrait(stream)
                         }
                         flow.cells.filter { it.localPageIndex == index + 1 }.forEach { cell ->
                             if (cell.drawableText.isNotEmpty()) {
@@ -375,7 +447,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
             addSection("P1 - Personaje / combate / habilidades", PcSheetV11FlowSection.TRAITS,
                 identity, 2, alwaysPage = true,
-                area = PcSheetV11RectPt(42f, 320f, 528f, 252f))
+                area = PcSheetV11RectPt(42f, 320f, 378f, 252f))
 
             // P2 has four separate print modules. This drawing path uses the
             // same measured source-ID rows that G2 verified; it is not a plain-text mock.

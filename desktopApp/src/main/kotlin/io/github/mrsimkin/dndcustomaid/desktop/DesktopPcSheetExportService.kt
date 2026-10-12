@@ -50,9 +50,20 @@ internal class DesktopPcSheetExportService(
         request: PcSheetV11ExportRequest,
         sources: PcSheetExportSources,
     ): DesktopPcSheetV11PdfProof {
-        val semantic = PcSheetV11SemanticMapper.map(request, sources)
+        val selected = if (request.stateSelection ==
+            io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelection.CURRENT_SNAPSHOT
+        ) sources.currentSnapshot ?: sources.permanent else sources.permanent
+        val portraitRef = selected.closure.portraitRef?.trim()?.takeIf { it.isNotBlank() }
+        val portraitBytes = portraitRef?.let { ref ->
+            runCatching { portraitBytesLoader(ref) }.getOrNull()
+        }
+        val effectiveSources = if (portraitRef != null && portraitBytes != null) {
+            sources.copy(locallyAvailablePortraitRefs =
+                sources.locallyAvailablePortraitRefs + portraitRef)
+        } else sources
+        val semantic = PcSheetV11SemanticMapper.map(request, effectiveSources)
         val bytes = ByteArrayOutputStream().use { buffer ->
-            DesktopPcSheetV11PdfProofRenderer().render(semantic, buffer)
+            DesktopPcSheetV11PdfProofRenderer().render(semantic, buffer, portraitBytes)
             buffer.toByteArray()
         }
         check(bytes.isNotEmpty())

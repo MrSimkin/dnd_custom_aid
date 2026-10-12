@@ -8,6 +8,11 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelect
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ExportRequest
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant
 import java.io.File
+import java.awt.Color
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPortraitFitMode
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.common.PDRectangle
 import org.apache.pdfbox.text.PDFTextStripper
@@ -171,6 +176,73 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertFalse(notesOnly.contains("C-N3 - Notas digitales"))
             assertFalse(notesOnly.contains("Libro de conjuros"))
             assertFalse(notesOnly.contains("P4 - Conjuros"))
+        }
+    }
+
+    @Test
+    fun portraitModesEmbedLocallyLoadedImageAndNoImageStillReservesSilhouette() {
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val withPortrait = original.copy(
+            permanent = original.permanent.copy(
+                closure = original.permanent.closure.copy(portraitRef = "qa:local-portrait"),
+            ),
+        )
+        val image = BufferedImage(72, 110, BufferedImage.TYPE_INT_RGB)
+        val graphics = image.createGraphics()
+        try {
+            graphics.color = Color(55, 95, 137)
+            graphics.fillRect(0, 0, image.width, image.height)
+            graphics.color = Color(250, 220, 182)
+            graphics.fillRect(0, 0, 17, image.height)
+        } finally { graphics.dispose() }
+        val png = ByteArrayOutputStream().use { buffer ->
+            check(ImageIO.write(image, "png", buffer))
+            buffer.toByteArray()
+        }
+        val service = DesktopPcSheetExportService(
+            portraitBytesLoader = { ref -> if (ref == "qa:local-portrait") png else null },
+        )
+        for (fit in listOf(PcSheetPortraitFitMode.CROP_TO_FILL,
+            PcSheetPortraitFitMode.FIT_ENTIRE_IMAGE)) {
+            val proof = service.generateV11Proof(
+                PcSheetV11ExportRequest(PcSheetV11Variant.A,
+                    PcSheetExportStateSelection.PERMANENT,
+                    portraitFitMode = fit),
+                withPortrait,
+            )
+            assertEquals(fit, proof.semantic.portrait.fitMode)
+            assertTrue(proof.semantic.portrait.locallyAvailable,
+                "The App's local bytes must inform the exported portrait plan.")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val images = pdf.getPage(0).resources.xObjectNames
+                    .map { pdf.getPage(0).resources.getXObject(it) }
+                    .filterIsInstance<PDImageXObject>()
+                assertTrue(images.any { it.width == 72 && it.height == 110 },
+                    "P1 must embed the real local portrait, not a placeholder.")
+                val first = PDFTextStripper().apply {
+                    startPage = 1
+                    endPage = 1
+                }.getText(pdf)
+                assertTrue(first.contains("RETRATO"))
+            }
+        }
+        val absent = DesktopPcSheetExportService(
+            portraitBytesLoader = { null },
+        ).generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.A,
+                PcSheetExportStateSelection.PERMANENT),
+            withPortrait,
+        )
+        assertFalse(absent.semantic.portrait.locallyAvailable)
+        Loader.loadPDF(absent.bytes).use { pdf ->
+            val images = pdf.getPage(0).resources.xObjectNames
+                .map { pdf.getPage(0).resources.getXObject(it) }
+                .filterIsInstance<PDImageXObject>()
+            assertFalse(images.any { it.width == 72 && it.height == 110 })
+            assertTrue(PDFTextStripper().apply {
+                startPage = 1
+                endPage = 1
+            }.getText(pdf).contains("RETRATO"))
         }
     }
 
