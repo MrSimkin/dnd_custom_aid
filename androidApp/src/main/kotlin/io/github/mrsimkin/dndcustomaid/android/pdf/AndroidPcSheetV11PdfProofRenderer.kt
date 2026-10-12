@@ -176,6 +176,84 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
 
 
+
+            // Variant A fixes built-in skills below their matching ability box.
+            // Any overlong or custom skill is preserved whole in C2, with the
+            // three-character ability suffix required outside its attribute.
+            val variantA = data.request.variant ==
+                io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A
+            val skillFont = measurer.resolve(PcSheetV11Typeface.BODY, 7f)
+            val groupedSkills = mutableMapOf<Int, MutableList<Pair<Int, io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Skill>>>()
+            val printedSkillIndices = mutableSetOf<Int>()
+            if (variantA) {
+                data.attributes.take(6).forEachIndexed { attrIndex, attr ->
+                    val fitsHere = mutableListOf<Pair<Int, io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Skill>>()
+                    data.skills.forEachIndexed { skillIndex, skill ->
+                        if (skill.ability == attr.reference && skillIndex !in printedSkillIndices &&
+                            fitsHere.size < 6 && skill.name.isNotBlank()
+                        ) {
+                            val total = skill.total?.let { if (it >= 0) "+" + it else it.toString() } ?: ""
+                            val remaining = 88f - 11f - skillFont.width.measurePt(total) - 7f
+                            if (skillFont.width.measurePt(skill.name) <= remaining) {
+                                fitsHere += skillIndex to skill
+                                printedSkillIndices += skillIndex
+                            }
+                        }
+                    }
+                    groupedSkills[attrIndex] = fitsHere
+                }
+            }
+
+            fun drawP1GroupedSkills(stream: PDPageContentStream) {
+                if (!variantA) return
+                stream.beginText()
+                stream.setFont(bodyPdfFont, 7f)
+                stream.newLineAtOffset(42f, 583f)
+                stream.showText("HABILIDADES BAJO ATRIBUTO  P=COMPETENCIA  E=PERICIA")
+                stream.endText()
+                groupedSkills.forEach { (attrIndex, rows) ->
+                    val left = 42f + attrIndex * 88f
+                    rows.forEachIndexed { rowIndex, indexed ->
+                        val skill = indexed.second
+                        val y = 571f - rowIndex * 10.5f
+                        fun put(text: String, x: Float) {
+                            if (text.isBlank()) return
+                            stream.beginText()
+                            stream.setFont(bodyPdfFont, 7f)
+                            stream.newLineAtOffset(x, y)
+                            stream.showText(text)
+                            stream.endText()
+                        }
+                        val indicator = when (skill.training) {
+                            io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.NONE -> ""
+                            io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> "P"
+                            io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.EXPERTISE -> "E"
+                        }
+                        put(indicator, left + 2f)
+                        put(skill.name, left + 11f)
+                        skill.total?.let { total ->
+                            val number = if (total >= 0) "+" + total else total.toString()
+                            put(number, left + 84f - skillFont.width.measurePt(number))
+                        }
+                    }
+                }
+            }
+
+            val detachedSkills = if (variantA) data.skills.withIndex()
+                .filter { it.index !in printedSkillIndices }
+                .map { (index, skill) ->
+                    val abbreviation = data.attributes.firstOrNull {
+                        it.reference == skill.ability
+                    }?.abbreviation?.uppercase()?.take(3)
+                    PcSheetV11FlowItem(
+                        "detached-skill:" + index,
+                        skill.name + (abbreviation?.let { " (" + it + ")" } ?: "") +
+                            " / " + (skill.total?.toString() ?: "sin resolver") +
+                            " / " + skill.training.name,
+                    )
+                }
+            else emptyList()
+
             // P1 mandatory mechanics: no invented values for absent spell slots.
             // Real attacks receive three fields (attack/range, narrow bonus, damage).
             // Rows whose actual measured text will not fit move intact into C2.
@@ -309,7 +387,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
 
             fun drawP1Portrait(stream: PDPageContentStream) {
                 val frameX = 429f
-                val frameY = 397f
+                val frameY = 320f
                 val frameWidth = 141f
                 val frameHeight = 175f
                 val imageX = frameX + 7f
@@ -395,6 +473,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             drawP1Attacks(stream)
                             drawP1Spellcasting(stream)
                             drawP1Portrait(stream)
+                            drawP1GroupedSkills(stream)
                         }
                         flow.cells.filter { it.localPageIndex == index + 1 }.forEach { cell ->
                             if (cell.drawableText.isNotEmpty()) {
@@ -429,9 +508,17 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         it.name + " " + it.score + " / mod " + it.modifier +
                             " / salvación " + (it.savingThrowTotal?.toString() ?: "sin valor")))
                 }
-                data.skills.forEachIndexed { index, it ->
-                    add(PcSheetV11FlowItem("skill:" + index, "Habilidad " + it.name +
-                        ": " + (it.total?.toString() ?: "sin resolver")))
+                if (!variantA) {
+                    data.skills.forEachIndexed { index, skill ->
+                        val abbreviation = data.attributes.firstOrNull {
+                            it.reference == skill.ability
+                        }?.abbreviation?.uppercase()?.take(3)
+                        add(PcSheetV11FlowItem("skill:" + index,
+                            "Habilidad " + skill.name +
+                                (abbreviation?.let { " (" + it + ")" } ?: "") +
+                                ": " + (skill.total?.toString() ?: "sin resolver") +
+                                " / " + skill.training.name))
+                    }
                 }
                 data.combatEntries
                     .filter { it.id !in p1AttackIds && it.type !=
@@ -447,7 +534,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
             addSection("P1 - Personaje / combate / habilidades", PcSheetV11FlowSection.TRAITS,
                 identity, 2, alwaysPage = true,
-                area = PcSheetV11RectPt(42f, 320f, 378f, 252f))
+                area = PcSheetV11RectPt(42f, 320f, 378f,
+                    if (variantA) 175f else 252f))
 
             // P2 has four separate print modules. This drawing path uses the
             // same measured source-ID rows that G2 verified; it is not a plain-text mock.
@@ -616,6 +704,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 addSection("P4 - Conjuros", PcSheetV11FlowSection.QUICK_SPELLS,
                     quick, 3, area = balancedArea)
             }
+
+            addSection("C2 - Habilidades y referencias de atributo",
+                PcSheetV11FlowSection.TRAITS, detachedSkills, columns = 2)
 
             addSection("C2 - Ataques, notas y espacios reales",
                 PcSheetV11FlowSection.TRAITS, extraCombatData, columns = 2)

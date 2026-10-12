@@ -128,6 +128,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.contains("Aldren"))
             val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
             assertTrue(p1.contains("ATAQUE / RANGO"))
+            assertTrue(p1.contains("HABILIDADES BAJO ATRIBUTO"),
+                "Variant A must place matching built-in skills physically under attributes.")
+            assertTrue(p1.contains("ATHLETICS"),
+                "Athletics should remain grouped beneath STR.")
+            assertTrue(p1.contains("ACROBATICS"),
+                "Acrobatics should remain grouped beneath DEX.")
+            assertFalse(p1.contains("Habilidad ATHLETICS"),
+                "Variant A must not duplicate grouped skills as free-floating prose.")
             assertTrue(p1.contains("Espada larga"))
             assertTrue(p1.contains("Ballesta ligera"))
             assertTrue(p1.contains("LANZAMIENTO DE CONJUROS"),
@@ -157,6 +165,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val printed = PDFTextStripper().getText(pdf)
             assertTrue(printed.contains("P4 - Conjuros"))
             val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
+            assertFalse(p1.contains("HABILIDADES BAJO ATRIBUTO"),
+                "Variant B must remain distinct from the attribute-grouped A layout.")
             assertTrue(p1.contains("Daga"), "P1 real attack grid lost Ilyra's dagger.")
             assertTrue(p1.contains("Fire Bolt"), "P1 real attack grid lost her ranged cantrip.")
             assertTrue(p1.contains("LANZAMIENTO DE CONJUROS"))
