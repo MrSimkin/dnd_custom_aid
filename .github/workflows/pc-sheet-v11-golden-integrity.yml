@@ -56,3 +56,35 @@ jobs:
               print("GOLDEN_PDF_COUNT="+str(len(pdf)))
           print("GOLDEN_ARCHIVE_INTEGRITY=PASS")
           PY
+      - name: Stage approved visual PDF/PNG references (no source fonts)
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import pathlib
+          import zipfile
+          archive = pathlib.Path("docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip")
+          target = pathlib.Path("build/approved-v11-reference")
+          target.mkdir(parents=True, exist_ok=True)
+          with zipfile.ZipFile(archive) as source:
+              references = [
+                  path for path in source.namelist()
+                  if path.startswith("V11_Carta/pdfs/") and path.endswith(".pdf")
+                  or path in (
+                      "V11_Carta/VISTA_GENERAL_V11.png",
+                      "V11_Carta/PREVISUAL_CONJUROS_3COLUMNAS.png",
+                  )
+              ]
+              assert len(references) == 10, "Only eight golden PDFs and two visual previews"
+              for path in references:
+                  (target / pathlib.Path(path).name).write_bytes(source.read(path))
+          assert len(list(target.glob("*.pdf"))) == 8
+          assert len(list(target.glob("*.png"))) == 2
+          print("APPROVED_V11_REFERENCE_ASSETS=10")
+          PY
+      - name: Preserve approved V11 references for offline G2/G3 geometric comparison
+        uses: actions/upload-artifact@v4
+        with:
+          name: v11-approved-visual-reference
+          path: build/approved-v11-reference/*
+          if-no-files-found: error
+          retention-days: 3
