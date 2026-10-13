@@ -533,11 +533,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 area: PcSheetV11RectPt = pageArea,
                 specialMarks: Map<String, Boolean?> = emptyMap(),
                 ammunitionTracks: Map<String, Int> = emptyMap(),
+                maxPhysicalPages: Int? = null,
             ) {
+                require(maxPhysicalPages == null || maxPhysicalPages > 0)
                 if (!alwaysPage && entries.isEmpty()) return
                 val flow = body.place(section, entries, area, columns, if (columns == 1) 0f else 12f)
                 val pageCount = maxOf(if (alwaysPage) 1 else 0, flow.sourceFlow.localPageCount)
-                repeat(pageCount) { index ->
+                repeat(minOf(pageCount, maxPhysicalPages ?: pageCount)) { index ->
                     val page = PDPage(PDRectangle.LETTER)
                     pdf.addPage(page)
                     physicalSectionKeys += title
@@ -632,10 +634,28 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 (entry.notes?.let { " | NOTAS " + it } ?: "")))
                     }
             }
-            addSection("P1 - Personaje / combate / habilidades", PcSheetV11FlowSection.TRAITS,
-                identity, 2, alwaysPage = true,
-                area = PcSheetV11RectPt(42f, 320f, 378f,
-                    if (variantA) 175f else 252f))
+            // P1 is one physical sheet, not a repeating P1 sub-document.
+            // Measure the complete source first and put EVERY unprinted source
+            // suffix into C2; the same real font metrics drive both placements.
+            val p1IdentityArea = PcSheetV11RectPt(
+                42f, 320f, 378f, if (variantA) 175f else 252f,
+            )
+            val p1Measured = body.place(
+                PcSheetV11FlowSection.TRAITS, identity, p1IdentityArea, 2, 12f,
+            )
+            val p1Unprinted = identity.mapNotNull { item ->
+                val printedEnd = p1Measured.cells.asSequence()
+                    .filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
+                    .maxOfOrNull { it.sourceEndExclusive } ?: 0
+                require(printedEnd in 0..item.text.length) {
+                    "P1 placement cannot consume a non-source character offset."
+                }
+                if (printedEnd == item.text.length) null
+                else item.copy(text = item.text.substring(printedEnd))
+            }
+            addSection("P1 - Personaje / combate / habilidades",
+                PcSheetV11FlowSection.TRAITS, identity, 2, alwaysPage = true,
+                area = p1IdentityArea, maxPhysicalPages = 1)
 
             // P2 has four separate print modules. This drawing path uses the
             // same measured source-ID rows that G2 verified; it is not a plain-text mock.
@@ -888,6 +908,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // page(s). Distinct headings are real rows, not dedicated blank pages.
             // UUID-backed records keep stable independent source keys and order.
             val mixedC2 = buildList {
+                if (p1Unprinted.isNotEmpty()) {
+                    add(PcSheetV11FlowItem("c2-heading:p1-overflow",
+                        "PERSONAJE, HABILIDADES Y ACCIONES / CONTINUACIÓN",
+                        keepTogetherIfFits = true))
+                    addAll(p1Unprinted)
+                }
                 if (detachedSkills.isNotEmpty()) {
                     add(PcSheetV11FlowItem("c2-heading:skills",
                         "HABILIDADES Y REFERENCIAS", keepTogetherIfFits = true))

@@ -160,6 +160,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             } + 1
             assertTrue(p1Physical > 0 && p2Physical > 0 &&
                 mixedC2Physical > 0 && p2C2Physical > 0)
+            assertEquals(1, pagesByPhysicalNumber.count {
+                realHeading(it, "P1 - Personaje")
+            }, "P1 is exactly one physical page; its overflow belongs in C2.")
+            val physicalMixedC2 = pagesByPhysicalNumber.filter {
+                realHeading(it, "C2 - Habilidades, acciones y recursos")
+            }.joinToString("\n")
+            assertTrue(physicalMixedC2.contains("Cartografía imposible"),
+                "Mara's overflowed custom skill must not be lost when P1 stays single.")
+            assertTrue(physicalMixedC2.contains("Técnica 2"),
+                "Mara's overflowed real combat action must remain in C2.")
             assertTrue(pagesByPhysicalNumber[p1Physical - 1].contains(
                 "CONTINÚA EN C2 PÁG. " + mixedC2Physical,
             ), "P1 must point to C2 with skills/actions/resources.")
