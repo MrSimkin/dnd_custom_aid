@@ -854,13 +854,18 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 PcSheetV11FlowSection.TRAITS, identity, 2, alwaysPage = true,
                 area = p1IdentityArea, maxPhysicalPages = 1)
 
-            // P2 has four separate print modules. This drawing path uses the
-            // same measured source-ID rows that G2 verified; it is not a plain-text mock.
-            // Areas remain INTERNAL proof geometry, not golden-approved coordinates.
-            val equipmentArea = PcSheetV11RectPt(42f, 435f, 528f, 255f)
-            val treasureArea = PcSheetV11RectPt(42f, 342f, 528f, 80f)
-            val traitsArea = PcSheetV11RectPt(42f, 215f, 528f, 113f)
-            val specialArea = PcSheetV11RectPt(42f, 90f, 528f, 110f)
+            // Approved golden P2 has the EQUIPO/TESORO stack on the LEFT,
+            // mechanical RASGOS on the RIGHT, and full-width EQUIPO ESPECIAL
+            // below them. The source-backed composers retain measured overflow
+            // and forward it to C2, never to narrative P3.
+            val equipmentArea = PcSheetV11RectPt(42f, 464f, 258f, 220f)
+            val treasureArea = PcSheetV11RectPt(42f, 330f, 258f, 118f)
+            val traitsArea = PcSheetV11RectPt(312f, 330f, 258f, 354f)
+            val specialArea = PcSheetV11RectPt(42f, 88f, 528f, 225f)
+            require(equipmentArea.rightPt + 12f == traitsArea.leftPt)
+            require(equipmentArea.bottomPt > treasureArea.topPt)
+            require(traitsArea.bottomPt > specialArea.topPt)
+            require(specialArea.widthPt == 528f)
             val inventoryPlaced = PcSheetV11PairedTableComposer.place(
                 PcSheetV11PairedTableSources.equipment(data),
                 equipmentArea, 12f, 36f, 6f, body.metrics.lineHeightPt, body.width,
@@ -883,6 +888,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             )
 
             fun grid(stream: PDPageContentStream, rect: PcSheetV11RectPt, twoColumns: Boolean) {
+                // Blue mist writing bands and fine rules match the approved V11
+                // paper grammar; black default strokes belong only to PREQA.
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(Color(238, 247, 251))
+                stream.addRect(rect.leftPt, rect.bottomPt, rect.widthPt, rect.heightPt)
+                stream.fill()
+                stream.setStrokingColor(Color(130, 165, 186))
+                stream.setLineWidth(0.45f)
                 stream.addRect(rect.leftPt, rect.bottomPt, rect.widthPt, rect.heightPt)
                 stream.stroke()
                 if (twoColumns) {
@@ -898,6 +911,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.lineTo(rect.rightPt, y)
                     stream.stroke()
                 }
+                stream.restoreGraphicsState()
             }
 
             fun drawPaired(
@@ -923,12 +937,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     area.leftPt, tableBottom, area.widthPt, area.topPt - tableBottom,
                 )
                 grid(stream, visibleTable, true)
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(130, 165, 186))
+                stream.setLineWidth(0.45f)
                 placed.pairs.forEach { pair ->
                     val quantitySeparator = pair.rightPt - 42f
                     stream.moveTo(quantitySeparator, visibleTable.bottomPt)
                     stream.lineTo(quantitySeparator, pair.topPt)
                     stream.stroke()
                 }
+                stream.restoreGraphicsState()
                 pageLabels.forEach { cell ->
                     if (cell.printableText.isNotEmpty()) {
                         draw(stream, cell.printableText, cell.rectPt.leftPt + 2f,
