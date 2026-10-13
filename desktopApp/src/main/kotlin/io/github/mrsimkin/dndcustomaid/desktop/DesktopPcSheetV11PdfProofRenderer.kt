@@ -5,7 +5,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowSection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableComposer
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableSources
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTablePlaced
-import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpecialEquipmentComposer
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TextFlow
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TextColumn
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowSourceMapper
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11RectPt
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticData
@@ -899,10 +900,56 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
             val traitsPlaced = body.place(PcSheetV11FlowSection.TRAITS, traitLines,
                 traitsArea, 2, 12f)
-            val specialPlaced = PcSheetV11SpecialEquipmentComposer.place(
-                data.specialEquipment, specialArea, 14f, 7f,
-                body.metrics.lineHeightPt, body.width,
-            )
+            // V11 golden P2: location / name / description / ACTIVO belong
+            // to ONE physical row per special item, not four paragraphs.
+            // A row is published on P2 ONLY when all of its REAL source text
+            // fits legibly in two measured lines per cell; the complete
+            // remaining source suffix goes to full-width C2 untruncated.
+            val specialColumns = listOf(105f, 136f, 241f, 46f)
+            require(specialColumns.sum() == specialArea.widthPt)
+            val specialHeaderHeight = 18f
+            val specialRowHeight = 25f
+            val specialCapacity = ((specialArea.heightPt - specialHeaderHeight) /
+                specialRowHeight).toInt()
+            fun specialCellLines(raw: String?, widthPt: Float): List<String>? {
+                if (raw.isNullOrBlank()) return emptyList()
+                val text = raw
+                val width = widthPt - 10f
+                // The verified text-flow uses the exact PDF's Fira font width.
+                val printable = PcSheetV11TextFlow.paginate(
+                    PcSheetV11FlowSection.SPECIAL_EQUIPMENT,
+                    listOf(PcSheetV11FlowItem("special-cell", text,
+                        keepTogetherIfFits = true)),
+                    1,
+                    PcSheetV11TextColumn(width, body.metrics.lineHeightPt * 2f,
+                        body.metrics.lineHeightPt),
+                    body.width,
+                )
+                if (printable.localPageCount != 1) return null
+                val ranges = printable.fragments.flatMap { it.lineRanges }
+                if (ranges.size > 2) return null
+                return ranges.map { text.substring(it.startOffset, it.endExclusive)
+                    .trimEnd('\r', '\n') }
+            }
+            val specialP2Rows = mutableListOf<Pair<
+                io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Equipment,
+                List<List<String>>>>()
+            for (item in data.specialEquipment) {
+                if (specialP2Rows.size >= specialCapacity) break
+                val details = listOfNotNull(
+                    item.description?.takeIf { it.isNotBlank() },
+                    item.notes?.takeIf { it.isNotBlank() }?.let { "NOTAS: " + it },
+                ).joinToString(" / ")
+                val fields = listOf(item.location, item.name, details)
+                val lines = fields.mapIndexed { index, field ->
+                    specialCellLines(field, specialColumns[index])
+                }
+                if (lines.any { it == null }) break
+                specialP2Rows += item to lines.map { requireNotNull(it) }
+            }
+            val specialDeferredToC2 = data.specialEquipment.drop(specialP2Rows.size)
+            require(specialP2Rows.size + specialDeferredToC2.size ==
+                data.specialEquipment.size)
 
             fun grid(stream: PDPageContentStream, rect: PcSheetV11RectPt, twoColumns: Boolean) {
                 // Blue mist writing bands and fine rules match the approved V11
@@ -990,25 +1037,68 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             body.metrics.baselineIn(cell.cellPt), false)
                     }
                 }
-                draw(stream, "EQUIPO ESPECIAL   /   ACTIVO", specialArea.leftPt,
+                draw(stream, "EQUIPO ESPECIAL", specialArea.leftPt,
                     specialArea.topPt + 6f, true)
-                grid(stream, specialArea, false)
-                val markColumn = specialArea.rightPt - 14f
-                stream.moveTo(markColumn - 7f, specialArea.bottomPt)
-                stream.lineTo(markColumn - 7f, specialArea.topPt)
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(130, 165, 186))
+                stream.setLineWidth(0.55f)
+                stream.setNonStrokingColor(Color(217, 236, 245))
+                stream.addRect(specialArea.leftPt,
+                    specialArea.topPt - specialHeaderHeight,
+                    specialArea.widthPt, specialHeaderHeight)
+                stream.fill()
+                stream.setNonStrokingColor(Color(238, 247, 251))
+                stream.addRect(specialArea.leftPt, specialArea.bottomPt,
+                    specialArea.widthPt,
+                    specialArea.heightPt - specialHeaderHeight)
+                stream.fill()
+                stream.addRect(specialArea.leftPt, specialArea.bottomPt,
+                    specialArea.widthPt, specialArea.heightPt)
                 stream.stroke()
-                specialPlaced.body.cells.filter { it.localPageIndex == localPage }.forEach { cell ->
-                    if (cell.drawableText.isNotEmpty()) {
-                        draw(stream, cell.drawableText, cell.cellPt.leftPt + 2f,
-                            body.metrics.baselineIn(cell.cellPt), false)
-                    }
-                }
-                specialPlaced.activeMarks.filter { it.localPageIndex == localPage }.forEach { mark ->
-                    stream.addRect(mark.rectPt.leftPt + 2f, mark.rectPt.bottomPt + 1f, 9f, 9f)
+                var boundary = specialArea.leftPt
+                specialColumns.dropLast(1).forEach { width ->
+                    boundary += width
+                    stream.moveTo(boundary, specialArea.bottomPt)
+                    stream.lineTo(boundary, specialArea.topPt)
                     stream.stroke()
-                    if (mark.active == true) {
-                        draw(stream, "X", mark.rectPt.leftPt + 2f,
-                            body.metrics.baselineIn(mark.rectPt), false)
+                }
+                for (index in 0..specialCapacity) {
+                    val lineY = specialArea.topPt - specialHeaderHeight -
+                        index * specialRowHeight
+                    stream.moveTo(specialArea.leftPt, lineY)
+                    stream.lineTo(specialArea.rightPt, lineY)
+                    stream.stroke()
+                }
+                stream.restoreGraphicsState()
+                val headings = listOf("UBICACIÓN", "NOMBRE", "DESCRIPCIÓN", "ACTIVO")
+                var headerX = specialArea.leftPt
+                headings.forEachIndexed { index, label ->
+                    draw(stream, label, headerX + 5f, specialArea.topPt - 13f, false)
+                    headerX += specialColumns[index]
+                }
+                val fieldX = listOf(
+                    specialArea.leftPt,
+                    specialArea.leftPt + specialColumns[0],
+                    specialArea.leftPt + specialColumns[0] + specialColumns[1],
+                )
+                val activeX = specialArea.rightPt - specialColumns.last() / 2f - 4.5f
+                specialP2Rows.forEachIndexed { rowIndex, (item, columns) ->
+                    val rowTop = specialArea.topPt - specialHeaderHeight -
+                        rowIndex * specialRowHeight
+                    columns.forEachIndexed { column, values ->
+                        values.forEachIndexed { line, value ->
+                            if (value.isNotEmpty()) {
+                                draw(stream, value, fieldX[column] + 5f,
+                                    rowTop - 10f - line * body.metrics.lineHeightPt,
+                                    false)
+                            }
+                        }
+                    }
+                    val activeY = rowTop - specialRowHeight / 2f - 4.5f
+                    stream.addRect(activeX, activeY, 9f, 9f)
+                    stream.stroke()
+                    if (item.active == true) {
+                        draw(stream, "X", activeX, activeY + 2f, false)
                     }
                 }
             }
@@ -1260,16 +1350,28 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 remainingTraits, columns = 2,
             )
 
-            val allSpecialFields = specialPlaced.sources.map {
-                PcSheetV11FlowItem(it.sourceKey, it.text, keepTogetherIfFits = true)
-            }
-            val remainingSpecials = unprintedSuffix(allSpecialFields, specialPlaced.body)
-            val marksNeeded = data.specialEquipment.filter { item ->
-                specialPlaced.body.cells.none { cell ->
-                    cell.localPageIndex == 1 &&
-                        cell.sourceKey == "special:" + item.sourceId + ":name"
+            // P2 has physically printed complete rows only. C2 receives
+            // precisely the deferred whole items, including all source fields
+            // and their real ACTIVO marks, never a torn paragraph/checkbox.
+            val remainingSpecials = specialDeferredToC2.flatMap { item ->
+                buildList {
+                    add(PcSheetV11FlowItem("special:" + item.sourceId + ":name",
+                        item.name, keepTogetherIfFits = true))
+                    item.location?.takeIf { it.isNotBlank() }?.let {
+                        add(PcSheetV11FlowItem("special:" + item.sourceId + ":location",
+                            it, keepTogetherIfFits = true))
+                    }
+                    item.description?.takeIf { it.isNotBlank() }?.let {
+                        add(PcSheetV11FlowItem("special:" + item.sourceId + ":description",
+                            it, keepTogetherIfFits = true))
+                    }
+                    item.notes?.takeIf { it.isNotBlank() }?.let {
+                        add(PcSheetV11FlowItem("special:" + item.sourceId + ":notes",
+                            it, keepTogetherIfFits = true))
+                    }
                 }
-            }.associate { item ->
+            }
+            val marksNeeded = specialDeferredToC2.associate { item ->
                 ("special:" + item.sourceId + ":name") to item.active
             }
             addSection(

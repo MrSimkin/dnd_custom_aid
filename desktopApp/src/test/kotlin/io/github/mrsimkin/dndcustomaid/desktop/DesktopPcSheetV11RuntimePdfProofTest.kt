@@ -190,6 +190,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.contains("EQUIPO"))
             assertTrue(printed.contains("TESORO"))
             assertTrue(printed.contains("EQUIPO ESPECIAL"))
+            val physicalP2 = pagesByPhysicalNumber[p2Physical - 1]
+            for (column in listOf("UBICACIÓN", "NOMBRE", "DESCRIPCIÓN", "ACTIVO")) {
+                assertTrue(physicalP2.contains(column),
+                    "Golden P2 special equipment must use real labelled columns: " +
+                        column)
+            }
             assertTrue(printed.contains("C2 - Rasgos"))
             assertTrue(printed.contains("C2 - Equipo especial"))
             assertTrue(printed.contains("RASGOS"))
@@ -272,6 +278,20 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val printed = PDFTextStripper().getText(pdf)
             assertTrue(printed.contains("Aldren"))
             val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
+            val p2 = PDFTextStripper().apply {
+                startPage = 2
+                endPage = 2
+            }.getText(pdf)
+            for (heading in listOf("UBICACIÓN", "NOMBRE", "DESCRIPCIÓN", "ACTIVO")) {
+                assertTrue(p2.contains(heading),
+                    "Golden special equipment must expose a physical column " + heading)
+            }
+            assertTrue(p2.contains("Cota de malla"),
+                "Short persisted special equipment names belong in P2 rows.")
+            assertTrue(p2.contains("Cuerpo"),
+                "The item's real physical location must appear in the same table.")
+            assertTrue(p2.contains("CA base 16."),
+                "The real description must remain visible, not vanish into layout.")
             assertTrue(p1.contains("ATAQUE / RANGO"))
             assertTrue(p1.contains("HABILIDADES BAJO ATRIBUTO"),
                 "Variant A must place matching built-in skills physically under attributes.")
