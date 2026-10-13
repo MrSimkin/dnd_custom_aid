@@ -866,12 +866,29 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             require(equipmentArea.bottomPt > treasureArea.topPt)
             require(traitsArea.bottomPt > specialArea.topPt)
             require(specialArea.widthPt == 528f)
+            val completeEquipment = PcSheetV11PairedTableSources.equipment(data)
+            val completeTreasure = PcSheetV11PairedTableSources.treasure(data)
+            // P2 has narrow golden-approved paired subcolumns. A name whose
+            // real glyphs cannot fit one P2 label row must move WHOLE to the
+            // wider C2 table, not split its identity at a page boundary.
+            // C2 prints its amount exactly once; P2 retains blank paper rows.
+            fun rowsForP2(
+                input: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData,
+                area: PcSheetV11RectPt,
+            ): io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData {
+                val labelWidth = (area.widthPt - 12f) / 2f - 36f - 6f
+                require(labelWidth > 0f)
+                return input.copy(rows = input.rows.filter { row ->
+                    !row.label.contains('\n') &&
+                        body.width.measurePt(row.label) <= labelWidth
+                })
+            }
             val inventoryPlaced = PcSheetV11PairedTableComposer.place(
-                PcSheetV11PairedTableSources.equipment(data),
+                rowsForP2(completeEquipment, equipmentArea),
                 equipmentArea, 12f, 36f, 6f, body.metrics.lineHeightPt, body.width,
             )
             val treasurePlaced = PcSheetV11PairedTableComposer.place(
-                PcSheetV11PairedTableSources.treasure(data),
+                rowsForP2(completeTreasure, treasureArea),
                 treasureArea, 12f, 36f, 6f, body.metrics.lineHeightPt, body.width,
             )
             val traitLines = data.traits.map { trait ->
@@ -1173,9 +1190,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // FULL-HEIGHT C2 paired tables. Never redraw quantities already
             // printed on P2; keep every original label code point and source ID.
             fun remainingPairedRows(
+                complete: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData,
                 placed: PcSheetV11PairedTablePlaced,
             ): io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData {
-                val rows = placed.data.rows.mapNotNull { row ->
+                val p2Eligible = placed.data.rows.map { it.sourceKey }.toSet()
+                val rows = complete.rows.mapNotNull { row ->
+                    if (row.sourceKey !in p2Eligible) return@mapNotNull row
                     val prefixParts = placed.labelFlow.fragments.filter {
                         it.localPageIndex == 1 && it.sourceKey == row.sourceKey
                     }.sortedWith(compareBy({ it.columnIndex }, { it.startOffset }))
@@ -1186,15 +1206,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     if (printedPrefix.length == row.label.length) null
                     else row.copy(label = row.label.substring(printedPrefix.length))
                 }
-                return placed.data.copy(rows = rows)
+                return complete.copy(rows = rows)
             }
 
             val fullC2PairedArea = PcSheetV11RectPt(42f, 76f, 528f, 626f)
-            for ((label, original) in listOf(
-                "EQUIPO" to inventoryPlaced,
-                "TESORO" to treasurePlaced,
+            for ((label, complete, original) in listOf(
+                Triple("EQUIPO", completeEquipment, inventoryPlaced),
+                Triple("TESORO", completeTreasure, treasurePlaced),
             )) {
-                val remaining = remainingPairedRows(original)
+                val remaining = remainingPairedRows(complete, original)
                 if (remaining.rows.isEmpty()) continue
                 val expanded = PcSheetV11PairedTableComposer.place(
                     remaining, fullC2PairedArea, 12f, 36f, 6f,

@@ -683,6 +683,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(continuation.isNotEmpty(),
                 "Overlong equipment must create a physical full-height C2 paired table.")
             assertTrue(continuation.any { it.contains("MATERIAL INVENTARIADO") })
+            assertTrue(continuation.joinToString("\n")
+                .contains("MATERIAL INVENTARIADO 001"),
+                "The complete long source name belongs together on the C2 page.")
+            val p2 = physicalTexts.first { it.contains("P2 - Equipo y tesoro") }
+            assertFalse(p2.contains("MATERIAL INVENTARIADO"),
+                "P2 may not print a partial long name and orphan its identity.")
             val all = physicalTexts.joinToString("\n")
             for (index in 0 until 100) {
                 val sourceName = "MATERIAL INVENTARIADO " +
