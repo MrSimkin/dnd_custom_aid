@@ -918,7 +918,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // even if a given level has no real spells; 10–12 require real
                 // epic rules data and are not invented. Sources/preparation stay
                 // linked to the specific persisted casting-source association.
-                val quick = buildList {
+                fun quickRows(manuscriptRowsPerLevel: Int): List<PcSheetV11FlowItem> = buildList {
+                    require(manuscriptRowsPerLevel >= 1)
                     val levels = (0..9).toList() +
                         data.spells.map { it.spell.level }.filter { it >= 10 }.distinct().sorted()
                     levels.forEach { level ->
@@ -939,27 +940,46 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     (if (sourceInfo.isBlank()) "" else " | " + sourceInfo),
                                 keepTogetherIfFits = true))
                         }
-                        // Every visible level reserves an empty manuscript row,
-                        // even when persisted spells occupy that level. This is
-                        // paper-only, not a synthetic spell, source or preparation.
-                        add(PcSheetV11FlowItem("spell-handwritten:" + level,
-                            "[ ] ______________________", keepTogetherIfFits = true))
+                        // Rows are PAPER-ONLY: no fabricated spell, source, preparation
+                        // or spell slot. Every level is writable, even when populated.
+                        repeat(if (level in 0..9) manuscriptRowsPerLevel else 1) { row ->
+                            add(PcSheetV11FlowItem(
+                                "spell-handwritten:" + level + ":" + row,
+                                "[ ] ______________________",
+                                keepTogetherIfFits = true,
+                            ))
+                        }
                     }
                 }
-                // Share actual measured rows roughly across three columns rather
-                // than leaving two physical columns completely blank.
-                val initial = body.place(PcSheetV11FlowSection.QUICK_SPELLS,
-                    quick, pageArea, 3, 12f)
-                val balancedRows = maxOf(10,
-                    (initial.cells.size + 2) / 3 + 2)
-                val usedHeightPt = minOf(pageArea.heightPt,
-                    balancedRows * body.metrics.lineHeightPt)
-                val balancedArea = PcSheetV11RectPt(
-                    pageArea.leftPt, pageArea.topPt - usedHeightPt,
-                    pageArea.widthPt, usedHeightPt,
+                // G2/G3: measure the TRUE three-column page before reserving
+                // manuscript lines. The original internal proof shortened the
+                // page area and stranded most of a Letter sheet as blank paper.
+                // Expand paper-only entries, not digital spell data, as far as
+                // one physical page permits. Never create a second filler page.
+                val minimalQuick = quickRows(1)
+                val minimalPlacement = body.place(
+                    PcSheetV11FlowSection.QUICK_SPELLS,
+                    minimalQuick, pageArea, 3, 12f,
                 )
+                val quick = if (minimalPlacement.sourceFlow.localPageCount == 1) {
+                    var lowest = 1
+                    var highest = 20
+                    while (lowest < highest) {
+                        val candidateRows = (lowest + highest + 1) / 2
+                        val candidate = body.place(
+                            PcSheetV11FlowSection.QUICK_SPELLS,
+                            quickRows(candidateRows), pageArea, 3, 12f,
+                        )
+                        if (candidate.sourceFlow.localPageCount == 1) {
+                            lowest = candidateRows
+                        } else {
+                            highest = candidateRows - 1
+                        }
+                    }
+                    quickRows(lowest)
+                } else minimalQuick
                 addSection("P4 - Conjuros", PcSheetV11FlowSection.QUICK_SPELLS,
-                    quick, 3, area = balancedArea)
+                    quick, 3, area = pageArea)
             }
 
             // Resource balances and ammunition are drawn only from persisted source

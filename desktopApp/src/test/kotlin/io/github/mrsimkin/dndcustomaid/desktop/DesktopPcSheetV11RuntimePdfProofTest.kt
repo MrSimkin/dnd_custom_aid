@@ -204,10 +204,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.getText(pdf)
             }.filter { it.contains("P4 - Conjuros") }
             assertTrue(p4Pages.isNotEmpty(), "Real caster must have a P4.")
-            assertEquals(10, p4Pages.joinToString("\n")
-                .lineSequence().count { it.contains("[ ] ______________________") },
-                "P4 needs one blank preparation row for every level 0–9, " +
-                    "including populated spell levels.")
+            assertTrue(p4Pages.joinToString("\n")
+                .lineSequence().count { it.contains("[ ] ______________________") } >= 20,
+                "P4 must reserve a handwritten checkbox on EVERY level 0–9 " +
+                    "and expand useful paper space beyond ten token rows.")
             assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })
             assertTrue(printed.lineSequence().any { it.trim() == "NOTAS" })
             assertTrue(printed.contains("PRUEBA INTERNA V11 - NO APROBADA"))
@@ -350,10 +350,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.getText(pdf)
             }.filter { it.contains("P4 - Conjuros") }
             assertTrue(p4Pages.isNotEmpty(), "Real caster must have a P4.")
-            assertEquals(10, p4Pages.joinToString("\n")
-                .lineSequence().count { it.contains("[ ] ______________________") },
-                "P4 needs one blank preparation row for every level 0–9, " +
-                    "including populated spell levels.")
+            assertTrue(p4Pages.joinToString("\n")
+                .lineSequence().count { it.contains("[ ] ______________________") } >= 20,
+                "P4 must reserve a handwritten checkbox on EVERY level 0–9 " +
+                    "and expand useful paper space beyond ten token rows.")
             assertTrue(printed.contains("Libro de conjuros"))
             assertTrue(printed.contains("Índice del Libro de Conjuros"))
             assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })
