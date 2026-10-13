@@ -243,6 +243,58 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
             }
 
+            // Variant B has a physically separate skills area, never a prose
+            // list inside the identity field. Source offsets stay attached to
+            // their original skills so any measured overflow survives in C2.
+            val bSkillEntries = if (!variantA) data.skills.withIndex()
+                .filter { it.value.builtInKey != null }
+                .map { (index, skill) ->
+                    val abbreviation = data.attributes.firstOrNull {
+                        it.reference == skill.ability
+                    }?.abbreviation?.uppercase()?.take(3)
+                    val training = when (skill.training) {
+                        io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.NONE -> ""
+                        io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> " P"
+                        io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.EXPERTISE -> " E"
+                    }
+                    PcSheetV11FlowItem(
+                        "skill:" + index,
+                        skill.name + (abbreviation?.let { " (" + it + ")" } ?: "") +
+                            (skill.total?.let { " " + (if (it >= 0) "+" else "") + it } ?: "") +
+                            training,
+                        keepTogetherIfFits = true,
+                    )
+                }
+            else emptyList()
+            val bSkillsArea = PcSheetV11RectPt(48f, 328f, 366f, 129f)
+            val bSkillsPlaced = if (!variantA) body.place(
+                PcSheetV11FlowSection.TRAITS, bSkillEntries, bSkillsArea, 2, 12f,
+            ) else null
+            fun drawP1BIndependentSkills(stream: PDPageContentStream) {
+                if (variantA) return
+                draw(stream, "HABILIDADES  P=COMPETENCIA  E=PERICIA", 48f, 476f, true)
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(80, 122, 151))
+                stream.setLineWidth(0.7f)
+                stream.addRect(42f, 320f, 378f, 147f)
+                stream.stroke()
+                stream.restoreGraphicsState()
+                bSkillsPlaced?.cells?.filter { it.localPageIndex == 1 }?.forEach { cell ->
+                    if (cell.drawableText.isNotEmpty()) {
+                        draw(stream, cell.drawableText, cell.cellPt.leftPt,
+                            body.metrics.baselineIn(cell.cellPt), false)
+                    }
+                }
+            }
+            val bSkillOverflow = bSkillEntries.mapNotNull { item ->
+                val consumed = bSkillsPlaced?.cells?.asSequence()
+                    ?.filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
+                    ?.maxOfOrNull { it.sourceEndExclusive } ?: 0
+                require(consumed in 0..item.text.length)
+                if (consumed == item.text.length) null
+                else item.copy(text = item.text.substring(consumed))
+            }
+
             val detachedSkills = if (variantA) data.skills.withIndex()
                 .filter { it.index !in printedSkillIndices }
                 .map { (index, skill) ->
@@ -616,6 +668,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             drawP1Portrait(stream)
                             drawP1IdentityFields(stream)
                             drawP1GroupedSkills(stream)
+                            drawP1BIndependentSkills(stream)
                         }
                         val pageCells = flow.cells.filter {
                             it.localPageIndex == index + 1
@@ -673,14 +726,16 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
                 if (!variantA) {
                     data.skills.forEachIndexed { index, skill ->
-                        val abbreviation = data.attributes.firstOrNull {
-                            it.reference == skill.ability
-                        }?.abbreviation?.uppercase()?.take(3)
-                        add(PcSheetV11FlowItem("skill:" + index,
-                            "Habilidad " + skill.name +
-                                (abbreviation?.let { " (" + it + ")" } ?: "") +
-                                ": " + (skill.total?.toString() ?: "sin resolver") +
-                                " / " + skill.training.name))
+                        if (skill.builtInKey == null) {
+                            val abbreviation = data.attributes.firstOrNull {
+                                it.reference == skill.ability
+                            }?.abbreviation?.uppercase()?.take(3)
+                            add(PcSheetV11FlowItem("skill:" + index,
+                                "Habilidad " + skill.name +
+                                    (abbreviation?.let { " (" + it + ")" } ?: "") +
+                                    ": " + (skill.total?.toString() ?: "sin resolver") +
+                                    " / " + skill.training.name))
+                        }
                     }
                 }
                 data.combatEntries
@@ -701,12 +756,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // Keep variable-height mechanics beneath the fixed approved identity
             // cartelas, never underneath their labels or beside the portrait.
             val p1IdentityArea = PcSheetV11RectPt(
-                42f, 320f, 378f, identityTop - 66f - 320f,
+                42f, if (variantA) 320f else 486f,
+                378f, if (variantA) identityTop - 66f - 320f else 20f,
             )
             val p1Measured = body.place(
                 PcSheetV11FlowSection.TRAITS, identity, p1IdentityArea, 2, 12f,
             )
-            val p1Unprinted = identityFieldOverflow + identity.mapNotNull { item ->
+            val p1Unprinted = identityFieldOverflow + bSkillOverflow +
+                identity.mapNotNull { item ->
                 val printedEnd = p1Measured.cells.asSequence()
                     .filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
                     .maxOfOrNull { it.sourceEndExclusive } ?: 0
