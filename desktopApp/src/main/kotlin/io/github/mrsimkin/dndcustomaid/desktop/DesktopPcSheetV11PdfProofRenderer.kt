@@ -455,6 +455,70 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
             }
 
+            // V11 P1 uses genuine physical identity fields. Alignment is not a
+            // persisted CharacterSheet property, so its box stays manuscript-only.
+            // The same measured body font decides which source suffix must flow to C2.
+            val identityTop = if (variantA) 495f else 572f
+            val classIdentity = PcSheetV11FlowItem(
+                "identity:classes",
+                source.classes.joinToString(", ") { it.name + " " + it.level },
+            )
+            val raceIdentity = PcSheetV11FlowItem("identity:race", source.background.race)
+            val identityFieldFrames = listOf(
+                Triple("CLASE / NIVEL", classIdentity,
+                    PcSheetV11RectPt(42f, identityTop - 28f, 378f, 28f)),
+                Triple("RAZA", raceIdentity,
+                    PcSheetV11RectPt(42f, identityTop - 58f, 183f, 28f)),
+            )
+            val identityFields = identityFieldFrames.map { (label, item, frame) ->
+                val writingArea = PcSheetV11RectPt(
+                    frame.leftPt + 6f, frame.bottomPt + 1f,
+                    frame.widthPt - 12f, body.metrics.lineHeightPt + 2f,
+                )
+                val placed = item.text.takeIf { it.isNotBlank() }?.let {
+                    body.place(PcSheetV11FlowSection.TRAITS, listOf(item),
+                        writingArea, 1, 0f)
+                }
+                Triple(label to item, frame, placed)
+            }
+            fun drawP1IdentityFields(stream: PDPageContentStream) {
+                val alignment = PcSheetV11RectPt(237f, identityTop - 58f, 183f, 28f)
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(80, 122, 151))
+                stream.setLineWidth(0.7f)
+                (identityFieldFrames.map { it.third } + alignment).forEach { frame ->
+                    stream.addRect(frame.leftPt, frame.bottomPt, frame.widthPt, frame.heightPt)
+                    stream.stroke()
+                }
+                stream.restoreGraphicsState()
+                identityFields.forEach { (descriptor, _, placed) ->
+                    val (label, _) = descriptor
+                    val frame = identityFieldFrames.first { it.first == label }.third
+                    draw(stream, label, frame.leftPt + 6f, frame.topPt - 11f, true)
+                    placed?.cells?.filter { it.localPageIndex == 1 }?.forEach { cell ->
+                        if (cell.drawableText.isNotEmpty()) {
+                            draw(stream, cell.drawableText, cell.cellPt.leftPt,
+                                body.metrics.baselineIn(cell.cellPt), false)
+                        }
+                    }
+                }
+                draw(stream, "ALINEAMIENTO", alignment.leftPt + 6f,
+                    alignment.topPt - 11f, true)
+                // No persisted alignment exists; a ruled entry is deliberately blank.
+                stream.moveTo(alignment.leftPt + 6f, alignment.bottomPt + 5f)
+                stream.lineTo(alignment.rightPt - 6f, alignment.bottomPt + 5f)
+                stream.stroke()
+            }
+            val identityFieldOverflow = identityFields.mapNotNull { (descriptor, _, placed) ->
+                val (_, item) = descriptor
+                val consumed = placed?.cells?.asSequence()
+                    ?.filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
+                    ?.maxOfOrNull { it.sourceEndExclusive } ?: 0
+                require(consumed in 0..item.text.length)
+                if (consumed == item.text.length) null
+                else item.copy(text = item.text.substring(consumed))
+            }
+
             // C2 leftover paper is handwriting space, not a new digital-notes section.
             // Occupied PDF line rectangles govern whether a complete square grid fits.
             fun drawUnusedC2NotesGrid(
@@ -550,6 +614,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             drawP1Attacks(stream)
                             drawP1Spellcasting(stream)
                             drawP1Portrait(stream)
+                            drawP1IdentityFields(stream)
                             drawP1GroupedSkills(stream)
                         }
                         val pageCells = flow.cells.filter {
@@ -598,10 +663,6 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
 
             val identity = buildList {
-                add(PcSheetV11FlowItem("identity:variant", "Variante: " + data.request.variant))
-                add(PcSheetV11FlowItem("identity:state", "Estado seleccionado: " + data.selectedState))
-                add(PcSheetV11FlowItem("identity:classes",
-                    "Clase/nivel: " + source.classes.joinToString(", ") { it.name + " " + it.level }))
                 add(PcSheetV11FlowItem("identity:combat",
                     "CA " + source.armorClass + " | PG " + source.currentHp + "/" + source.maxHp +
                         " | PG temp " + source.tempHp + " | Velocidad " + source.speed))
@@ -637,13 +698,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // P1 is one physical sheet, not a repeating P1 sub-document.
             // Measure the complete source first and put EVERY unprinted source
             // suffix into C2; the same real font metrics drive both placements.
+            // Keep variable-height mechanics beneath the fixed approved identity
+            // cartelas, never underneath their labels or beside the portrait.
             val p1IdentityArea = PcSheetV11RectPt(
-                42f, 320f, 378f, if (variantA) 175f else 252f,
+                42f, 320f, 378f, identityTop - 66f - 320f,
             )
             val p1Measured = body.place(
                 PcSheetV11FlowSection.TRAITS, identity, p1IdentityArea, 2, 12f,
             )
-            val p1Unprinted = identity.mapNotNull { item ->
+            val p1Unprinted = identityFieldOverflow + identity.mapNotNull { item ->
                 val printedEnd = p1Measured.cells.asSequence()
                     .filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
                     .maxOfOrNull { it.sourceEndExclusive } ?: 0

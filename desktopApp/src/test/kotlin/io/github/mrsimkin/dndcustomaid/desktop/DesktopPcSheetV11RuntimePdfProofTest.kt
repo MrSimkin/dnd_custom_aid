@@ -204,6 +204,42 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun physicalP1IdentityFieldsUsePersistedClassAndRaceWithBlankAlignment() {
+        val fixture = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val sheet = fixture.permanent.sheet
+        val updated = fixture.copy(permanent = fixture.permanent.copy(
+            sheet = sheet.copy(
+                background = sheet.background.copy(race = "Elfo de los bosques"),
+            ),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val output = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                updated,
+            )
+            Loader.loadPDF(output.bytes).use { pdf ->
+                val p1 = PDFTextStripper().apply {
+                    startPage = 1
+                    endPage = 1
+                }.getText(pdf)
+                assertTrue(p1.contains("CLASE / NIVEL"),
+                    "The P1 class belongs to an explicitly labelled physical field.")
+                assertTrue(p1.contains("RAZA"))
+                assertTrue(p1.contains("Elfo de los bosques"),
+                    "Persisted race must be on the P1 field, not only in narrative.")
+                assertTrue(p1.contains("ALINEAMIENTO"),
+                    "The physical sheet reserves alignment for manual writing.")
+                assertFalse(p1.contains("Estado seleccionado:"),
+                    "Internal export-state diagnostics must not occupy character fields.")
+                assertFalse(p1.contains("Variante:"),
+                    "A/B is a layout choice, not a character attribute.")
+                assertTrue(p1.contains(sheet.classes.first().name),
+                    "The genuine class must remain visible in its identity cartela.")
+            }
+        }
+    }
+
+    @Test
     fun realAldrenProducesPdfWithNoInventedQuickSpellPageOrSpellbook() {
         val fixture = sources("01_aldren_vale_srd5_1_champion_fighter.json")
         val generated = DesktopPcSheetExportService().generateV11Proof(
