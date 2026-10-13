@@ -10,6 +10,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowSourceMapp
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11RectPt
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticData
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Typeface
+import io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility
 import java.io.OutputStream
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
@@ -571,6 +572,57 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 else item.copy(text = item.text.substring(consumed))
             }
 
+            // Approved golden P4: source-backed magical aptitude, real save DC,
+            // real spell attack; blank manuscript fields when values are absent.
+            // This is a physical banner above the three-column level ledger,
+            // NOT additional fake spell slots or a generic body-text section.
+            fun drawP4MagicReference(stream: PDPageContentStream) {
+                val ability = when (source.spellcastingAbility) {
+                    SpellcastingAbility.STRENGTH -> "FUE"
+                    SpellcastingAbility.DEXTERITY -> "DES"
+                    SpellcastingAbility.CONSTITUTION -> "CON"
+                    SpellcastingAbility.INTELLIGENCE -> "INT"
+                    SpellcastingAbility.WISDOM -> "SAB"
+                    SpellcastingAbility.CHARISMA -> "CAR"
+                    SpellcastingAbility.OTHER, SpellcastingAbility.NONE -> null
+                }
+                val attack = source.spellAttackModifier?.let {
+                    if (it >= 0) "+" + it else it.toString()
+                }
+                val fields: List<Pair<String, String?>> = listOf(
+                    "APTITUD" to ability,
+                    "CD SALVACIÓN" to source.spellSaveDc?.toString(),
+                    "ATAQUE MÁGICO" to attack,
+                )
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(80, 122, 151))
+                stream.setLineWidth(0.7f)
+                stream.setNonStrokingColor(Color(231, 241, 247))
+                stream.addRect(42f, 667f, 528f, 27f)
+                stream.fill()
+                stream.addRect(42f, 667f, 528f, 27f)
+                stream.stroke()
+                stream.restoreGraphicsState()
+                draw(stream, "REFERENCIA MÁGICA", 49f, 676f, true)
+                fields.forEachIndexed { index, (label, value) ->
+                    val x = 42f + index * 180f
+                    stream.saveGraphicsState()
+                    stream.setStrokingColor(Color(80, 122, 151))
+                    stream.setLineWidth(0.7f)
+                    stream.addRect(x, 617f, 168f, 44f)
+                    stream.stroke()
+                    stream.restoreGraphicsState()
+                    draw(stream, label, x + 7f, 645f, false)
+                    if (value == null) {
+                        stream.moveTo(x + 7f, 629f)
+                        stream.lineTo(x + 160f, 629f)
+                        stream.stroke()
+                    } else {
+                        draw(stream, value, x + 8f, 625f, true)
+                    }
+                }
+            }
+
             // C2 leftover paper is handwriting space, not a new digital-notes section.
             // Occupied PDF line rectangles govern whether a complete square grid fits.
             fun drawUnusedC2NotesGrid(
@@ -661,6 +713,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     physicalSectionKeys += title
                     PDPageContentStream(pdf, page).use { stream ->
                         drawFrameAndHeader(stream, title + " / " + (index + 1))
+                        if (title.startsWith("P4 - ")) drawP4MagicReference(stream)
                         if (title.startsWith("P1 - ") && index == 0) {
                             drawP1Attributes(stream)
                             drawP1Attacks(stream)
@@ -672,6 +725,30 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         }
                         val pageCells = flow.cells.filter {
                             it.localPageIndex == index + 1
+                        }
+                        // Golden P4 uses quiet blue level bands and ruled writing
+                        // rows, not free-floating glyphs over a blank page.
+                        if (title.startsWith("P4 - ")) {
+                            stream.saveGraphicsState()
+                            stream.setStrokingColor(Color(176, 204, 220))
+                            stream.setLineWidth(0.35f)
+                            pageCells.forEach { cell ->
+                                if (cell.sourceKey.startsWith("spell-level:") ||
+                                    cell.sourceKey.startsWith("spell-handwritten:") ||
+                                    cell.sourceKey.startsWith("quick-spell:")) {
+                                    val fill = if (cell.sourceKey.startsWith("spell-level:"))
+                                        Color(217, 236, 245)
+                                    else Color(238, 247, 251)
+                                    stream.setNonStrokingColor(fill)
+                                    stream.addRect(cell.cellPt.leftPt, cell.cellPt.bottomPt,
+                                        cell.cellPt.widthPt, cell.cellPt.heightPt)
+                                    stream.fill()
+                                    stream.moveTo(cell.cellPt.leftPt, cell.cellPt.bottomPt)
+                                    stream.lineTo(cell.cellPt.rightPt, cell.cellPt.bottomPt)
+                                    stream.stroke()
+                                }
+                            }
+                            stream.restoreGraphicsState()
                         }
                         pageCells.forEach { cell ->
                             if (cell.drawableText.isNotEmpty()) {
@@ -956,10 +1033,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // page area and stranded most of a Letter sheet as blank paper.
                 // Expand paper-only entries, not digital spell data, as far as
                 // one physical page permits. Never create a second filler page.
+                val p4WritingArea = PcSheetV11RectPt(42f, 76f, 528f, 531f)
                 val minimalQuick = quickRows(1)
                 val minimalPlacement = body.place(
                     PcSheetV11FlowSection.QUICK_SPELLS,
-                    minimalQuick, pageArea, 3, 12f,
+                    minimalQuick, p4WritingArea, 3, 12f,
                 )
                 val quick = if (minimalPlacement.sourceFlow.localPageCount == 1) {
                     var lowest = 1
@@ -968,7 +1046,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         val candidateRows = (lowest + highest + 1) / 2
                         val candidate = body.place(
                             PcSheetV11FlowSection.QUICK_SPELLS,
-                            quickRows(candidateRows), pageArea, 3, 12f,
+                            quickRows(candidateRows), p4WritingArea, 3, 12f,
                         )
                         if (candidate.sourceFlow.localPageCount == 1) {
                             lowest = candidateRows
@@ -979,7 +1057,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     quickRows(lowest)
                 } else minimalQuick
                 addSection("P4 - Conjuros", PcSheetV11FlowSection.QUICK_SPELLS,
-                    quick, 3, area = pageArea)
+                    quick, 3, area = p4WritingArea)
             }
 
             // Resource balances and ammunition are drawn only from persisted source

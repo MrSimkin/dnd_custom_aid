@@ -204,6 +204,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.getText(pdf)
             }.filter { it.contains("P4 - Conjuros") }
             assertTrue(p4Pages.isNotEmpty(), "Real caster must have a P4.")
+            assertTrue(p4Pages.first().contains("REFERENCIA MÁGICA"))
+            assertTrue(p4Pages.first().contains("APTITUD"))
+            assertTrue(p4Pages.first().contains("CD SALVACIÓN"))
+            assertTrue(p4Pages.first().contains("ATAQUE MÁGICO"))
             assertTrue(p4Pages.joinToString("\n")
                 .lineSequence().count { it.contains("[ ] ______________________") } >= 20,
                 "P4 must reserve a handwritten checkbox on EVERY level 0–9 " +
@@ -350,6 +354,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.getText(pdf)
             }.filter { it.contains("P4 - Conjuros") }
             assertTrue(p4Pages.isNotEmpty(), "Real caster must have a P4.")
+            assertTrue(p4Pages.first().contains("REFERENCIA MÁGICA"))
+            assertTrue(p4Pages.first().contains("APTITUD"))
+            assertTrue(p4Pages.first().contains("CD SALVACIÓN"))
+            assertTrue(p4Pages.first().contains("ATAQUE MÁGICO"))
             assertTrue(p4Pages.joinToString("\n")
                 .lineSequence().count { it.contains("[ ] ______________________") } >= 20,
                 "P4 must reserve a handwritten checkbox on EVERY level 0–9 " +
