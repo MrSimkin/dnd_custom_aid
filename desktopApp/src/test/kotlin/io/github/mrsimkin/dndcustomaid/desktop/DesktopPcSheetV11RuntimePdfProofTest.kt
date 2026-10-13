@@ -197,6 +197,17 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.contains("Oro"))
             assertTrue(printed.contains("P3 - Trasfondo"))
             assertTrue(printed.contains("Libro de conjuros"))
+            val p4Pages = (1..pdf.numberOfPages).map { physicalPage ->
+                PDFTextStripper().apply {
+                    startPage = physicalPage
+                    endPage = physicalPage
+                }.getText(pdf)
+            }.filter { it.contains("P4 - Conjuros") }
+            assertTrue(p4Pages.isNotEmpty(), "Real caster must have a P4.")
+            assertEquals(10, p4Pages.joinToString("\n")
+                .lineSequence().count { it.contains("[ ] ______________________") },
+                "P4 needs one blank preparation row for every level 0–9, " +
+                    "including populated spell levels.")
             assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })
             assertTrue(printed.lineSequence().any { it.trim() == "NOTAS" })
             assertTrue(printed.contains("PRUEBA INTERNA V11 - NO APROBADA"))
@@ -326,6 +337,17 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             }
             assertTrue(printed.contains("Fire Bolt"),
                 "Genuine Ilyra spell missing in the real exported P4.")
+            val p4Pages = (1..pdf.numberOfPages).map { physicalPage ->
+                PDFTextStripper().apply {
+                    startPage = physicalPage
+                    endPage = physicalPage
+                }.getText(pdf)
+            }.filter { it.contains("P4 - Conjuros") }
+            assertTrue(p4Pages.isNotEmpty(), "Real caster must have a P4.")
+            assertEquals(10, p4Pages.joinToString("\n")
+                .lineSequence().count { it.contains("[ ] ______________________") },
+                "P4 needs one blank preparation row for every level 0–9, " +
+                    "including populated spell levels.")
             assertTrue(printed.contains("Libro de conjuros"))
             assertTrue(printed.contains("Índice del Libro de Conjuros"))
             assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })

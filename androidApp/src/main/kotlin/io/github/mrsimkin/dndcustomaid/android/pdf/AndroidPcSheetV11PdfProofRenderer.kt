@@ -869,12 +869,6 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             if (level == 0) "TRUCOS / NIVEL 0" else "NIVEL " + level,
                             keepTogetherIfFits = true))
                         val spellsHere = data.spells.filter { it.spell.level == level }
-                        if (spellsHere.isEmpty()) {
-                            // Explicitly blank PAPER row with a preparation checkbox,
-                            // not a fabricated spell or slot.
-                            add(PcSheetV11FlowItem("spell-handwritten:" + level,
-                                "[ ] ______________________", keepTogetherIfFits = true))
-                        }
                         spellsHere.forEach { entry ->
                             val sourceInfo = entry.sources.joinToString(" / ") { association ->
                                 val sourceLabel = association.sourceName
@@ -888,6 +882,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     (if (sourceInfo.isBlank()) "" else " | " + sourceInfo),
                                 keepTogetherIfFits = true))
                         }
+                        // Every visible level reserves an empty manuscript row,
+                        // even when persisted spells occupy that level. This is
+                        // paper-only, not a synthetic spell, source or preparation.
+                        add(PcSheetV11FlowItem("spell-handwritten:" + level,
+                            "[ ] ______________________", keepTogetherIfFits = true))
                     }
                 }
                 // Share actual measured rows roughly across three columns rather
