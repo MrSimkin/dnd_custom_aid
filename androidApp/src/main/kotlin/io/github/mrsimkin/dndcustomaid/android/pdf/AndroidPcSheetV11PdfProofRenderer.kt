@@ -457,12 +457,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
 
             // C2 leftover paper is handwriting space, not a new digital-notes section.
             // Occupied PDF line rectangles govern whether a complete square grid fits.
-            fun fillUnusedC2WithNotes(
+            fun drawUnusedC2NotesGrid(
                 stream: PDPageContentStream,
-                cells: List<io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PlacedLineCell>,
+                lowestTextBottom: Float,
             ) {
-                if (cells.isEmpty()) return
-                val lowestTextBottom = cells.minOf { it.cellPt.bottomPt }
                 val gridBottom = 78f
                 val maxGridTop = lowestTextBottom - 28f
                 val completeRows = ((maxGridTop - gridBottom) / 16f).toInt()
@@ -488,6 +486,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.stroke()
                 }
                 stream.restoreGraphicsState()
+            }
+
+            fun fillUnusedC2WithNotes(
+                stream: PDPageContentStream,
+                cells: List<io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PlacedLineCell>,
+            ) {
+                val lowestTextBottom = cells.minOfOrNull { it.cellPt.bottomPt } ?: return
+                drawUnusedC2NotesGrid(stream, lowestTextBottom)
             }
 
             // The approved P3 has ruled handwriting space beneath narrative,
@@ -684,16 +690,29 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 placed: PcSheetV11PairedTablePlaced,
                 localPage: Int,
                 suppressAmounts: Set<String> = emptySet(),
+                compactC2: Boolean = false,
             ) {
                 draw(stream, title, area.leftPt, area.topPt + 6f, true)
-                grid(stream, area, true)
+                val pageLabels = placed.labels.filter { it.localPageIndex == localPage }
+                val lowestPrintedBottom = pageLabels.minOfOrNull { it.rectPt.bottomPt }
+                // Unlike P2, C2's last table page must free genuine unused paper
+                // for handwritten NOTES, without drawing empty object/quantity rows
+                // underneath. These bounds come from measured source cells.
+                val notesUsable = compactC2 && lowestPrintedBottom != null &&
+                    ((lowestPrintedBottom - 28f - 78f) / 16f).toInt() >= 3
+                val tableBottom = if (notesUsable) requireNotNull(lowestPrintedBottom)
+                    else area.bottomPt
+                val visibleTable = PcSheetV11RectPt(
+                    area.leftPt, tableBottom, area.widthPt, area.topPt - tableBottom,
+                )
+                grid(stream, visibleTable, true)
                 placed.pairs.forEach { pair ->
                     val quantitySeparator = pair.rightPt - 42f
-                    stream.moveTo(quantitySeparator, pair.bottomPt)
+                    stream.moveTo(quantitySeparator, visibleTable.bottomPt)
                     stream.lineTo(quantitySeparator, pair.topPt)
                     stream.stroke()
                 }
-                placed.labels.filter { it.localPageIndex == localPage }.forEach { cell ->
+                pageLabels.forEach { cell ->
                     if (cell.printableText.isNotEmpty()) {
                         draw(stream, cell.printableText, cell.rectPt.leftPt + 2f,
                             body.metrics.baselineIn(cell.rectPt), false)
@@ -705,6 +724,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     draw(stream, cell.printableText, cell.rectPt.leftPt + 2f,
                         body.metrics.baselineIn(cell.rectPt), false)
                 }
+                if (notesUsable) drawUnusedC2NotesGrid(stream, tableBottom)
             }
 
             fun drawP2Modules(stream: PDPageContentStream, localPage: Int) {
@@ -930,7 +950,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         drawFrameAndHeader(stream,
                             "C2 - Equipo y tesoro / " + label + " / " + localPage)
                         drawPaired(stream, label + " / CANTIDAD",
-                            fullC2PairedArea, expanded, localPage, amountsAlreadyOnP2)
+                            fullC2PairedArea, expanded, localPage, amountsAlreadyOnP2,
+                            compactC2 = true)
                     }
                 }
             }

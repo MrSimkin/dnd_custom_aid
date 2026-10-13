@@ -617,6 +617,53 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
     @Test
+    fun sparseTreasureContinuationKeepsWritingGridBelowRealPairedRows() {
+        val fixture = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val template = fixture.permanent.sheet.currencies.first()
+        val extra = (0 until 25).map { index ->
+            template.copy(
+                key = "c2-notes-proof-" + index,
+                name = "DENOMINACIÓN C2 " + (index + 1).toString().padStart(3, '0'),
+                amount = 9300 + index,
+                sortOrder = 2200 + index,
+                isDefault = false,
+            )
+        }
+        val expanded = fixture.copy(
+            permanent = fixture.permanent.copy(
+                sheet = fixture.permanent.sheet.copy(
+                    currencies = fixture.permanent.sheet.currencies + extra,
+                ),
+            ),
+        )
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(
+                PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT,
+            ), expanded,
+        )
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val pages = (1..pdf.numberOfPages).map { page ->
+                PDFTextStripper().apply {
+                    startPage = page
+                    endPage = page
+                }.getText(pdf)
+            }
+            val treasureC2 = pages.filter {
+                it.contains("C2 - Equipo y tesoro / TESORO")
+            }
+            assertTrue(treasureC2.isNotEmpty(),
+                "Real treasure must overflow P2 into its own paired C2 continuation.")
+            assertTrue(treasureC2.last().contains("DENOMINACIÓN C2"))
+            assertTrue(treasureC2.last().lineSequence().any { it.trim() == "NOTAS" },
+                "Unused measured C2 space must contain a manuscript NOTES grid.")
+            assertFalse(treasureC2.last().contains("C-N3 - Notas digitales"),
+                "Manuscript filler must never be confused with digital C-N3 notes.")
+            assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" },
+                "A filled C2 must not replace the obligatory final handwritten page.")
+        }
+    }
+
+    @Test
     fun overflowingTreasureAlsoGetsFullHeightC2WithoutDuplicateAmountsOrLostZeros() {
         val existing = sources("01_aldren_vale_srd5_1_champion_fighter.json")
         val template = existing.permanent.sheet.currencies.first()
