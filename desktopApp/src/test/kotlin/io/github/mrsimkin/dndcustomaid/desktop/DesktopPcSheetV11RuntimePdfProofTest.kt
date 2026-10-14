@@ -280,7 +280,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         val cases = listOf(
             "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
             "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
-            "03_mara_de_los_siete_umbrales.json" to PcSheetV11Variant.B,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
         )
         for ((fixtureName, variant) in cases) {
             val bytes = DesktopPcSheetExportService().generateV11Proof(
