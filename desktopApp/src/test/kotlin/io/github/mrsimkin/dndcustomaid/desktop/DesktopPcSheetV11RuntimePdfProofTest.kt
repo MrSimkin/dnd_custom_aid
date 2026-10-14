@@ -118,8 +118,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 startPage = 1
                 endPage = 1
             }.getText(pdf)
-            assertTrue(p1Text.contains("SALV."),
-                "P1 must print the six physical saving throw annotations.")
+            val leftSavingRegion = PDFTextStripperByArea().apply {
+                addRegion("standard-abilities",
+                    Rectangle2D.Float(41f, 185f, 260f, 510f))
+                extractRegions(pdf.getPage(0))
+            }.getTextForRegion("standard-abilities")
+            assertEquals(6, Regex("SALVACIÓN").findAll(leftSavingRegion).count(),
+                "The six real P1 saving throws must remain physically anchored " +
+                    "to the left vertical attributes, not the spellcasting CD.")
             generated.semantic.attributes.take(6).forEach { ability ->
                 assertTrue(p1Text.contains(ability.name),
                     "Missing visual P1 standard ability: " + ability.name)
