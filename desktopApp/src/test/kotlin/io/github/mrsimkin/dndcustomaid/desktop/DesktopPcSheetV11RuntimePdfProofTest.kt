@@ -294,8 +294,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val regions = PDFTextStripperByArea()
                 regions.addRegion("portrait", Rectangle2D.Float(40f, 76f, 111f, 125f))
                 regions.addRegion("identity", Rectangle2D.Float(152f, 76f, 418f, 88f))
-                regions.addRegion("attributes", Rectangle2D.Float(40f, 185f, 530f, 112f))
-                regions.addRegion("combat", Rectangle2D.Float(425f, 358f, 150f, 122f))
+                regions.addRegion("attributes", Rectangle2D.Float(40f, 185f, 263f, 125f))
+                regions.addRegion("combat", Rectangle2D.Float(309f, 185f, 264f, 111f))
                 regions.extractRegions(page)
                 val portrait = regions.getTextForRegion("portrait")
                 val identity = regions.getTextForRegion("identity")
@@ -318,6 +318,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 assertFalse(combat.contains("ATAQUE / RANGO"),
                     "The combat card panel may not overlap the attack table below.")
+                val split = PDFTextStripperByArea()
+                split.addRegion("left",Rectangle2D.Float(40f,185f,261f,510f))
+                split.addRegion("attacks",Rectangle2D.Float(309f,294f,264f,107f))
+                split.addRegion("spells",Rectangle2D.Float(309f,499f,264f,142f))
+                split.extractRegions(page)
+                assertTrue(split.getTextForRegion("left").contains("STRENGTH"))
+                assertFalse(split.getTextForRegion("left").contains("ATAQUE / RANGO"))
+                assertTrue(split.getTextForRegion("attacks").contains("ATAQUE / RANGO"))
+                assertTrue(split.getTextForRegion("spells").contains("LANZAMIENTO DE CONJUROS"))
             }
         }
     }

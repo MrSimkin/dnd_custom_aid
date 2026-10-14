@@ -5,6 +5,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowSection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableComposer
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableSources
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTablePlaced
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11MeasuredFlowPlacer
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TextFlow
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TextColumn
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowSourceMapper
@@ -120,68 +121,65 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
             }
 
-            /**
-             * P1 approved attributes: rectangular score, overlapping oval modifier,
-             * a visually anchored saving throw, in the page's physical coordinates.
-             * Additional custom attributes remain losslessly available in the
-             * measured text section until their C2 visual relationship is finalized.
-             */
-            fun drawP1Attributes(stream: PDPageContentStream) {
-                val standards = data.attributes.take(6)
-                require(standards.size == 6) {
-                    "A playable D&D sheet must supply the six standard abilities."
-                }
-                val left = 42f
-                val width = 528f / 6f
-                val kappa = 0.5522848f
-                standards.forEachIndexed { index, ability ->
-                    val x = left + index * width
-                    val centerX = x + width / 2f
+            // V11 frozen two-side P1: left vertical abilities, not six
+            // horizontal cells over the combat side of the page.
+            fun p1AttributeHeight(ability: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Attribute): Float {
+                val a=data.request.variant ==
+                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A
+                return if(a) maxOf(38f,29f +
+                    minOf(6,data.skills.count{it.ability==ability.reference})*10.5f)
+                    else 38f
+            }
+            fun p1AttributeTop(i:Int):Float = 593f -
+                data.attributes.take(i).sumOf { p1AttributeHeight(it).toDouble() }.toFloat()
+            fun drawP1Attributes(stream:PDPageContentStream) {
+                val standards=data.attributes.take(6)
+                require(standards.size==6 && p1AttributeTop(6)>110f)
+                draw(stream,if(data.request.variant ==
+                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A)
+                    "ATRIBUTOS · A" else "ATRIBUTOS · B",43f,604f,true)
+                val k=0.5522848f
+                standards.forEachIndexed { i,ability ->
+                    val top=p1AttributeTop(i)
+                    val bottom=p1AttributeTop(i+1)
                     stream.saveGraphicsState()
-                    stream.setStrokingColor(Color(80, 122, 151))
-                    stream.setLineWidth(0.75f)
-                    stream.addRect(x + 2f, 501f, width - 4f, 95f)
+                    stream.setStrokingColor(Color(130,165,186))
+                    stream.setLineWidth(0.6f)
+                    stream.setNonStrokingColor(Color(238,247,251))
+                    stream.addRect(42f,bottom,258f,top-bottom)
+                    stream.fill()
+                    stream.addRect(42f,bottom,258f,top-bottom)
                     stream.stroke()
-                    stream.addRect(x + 19f, 536f, width - 38f, 34f)
+                    stream.addRect(46f,top-27f,47f,22f)
                     stream.stroke()
-                    // Oval centered over the bottom edge of the score rectangle.
-                    val rx = 20f
-                    val ry = 11f
-                    val cy = 535f
-                    stream.moveTo(centerX + rx, cy)
-                    stream.curveTo(centerX + rx, cy + ry * kappa,
-                        centerX + rx * kappa, cy + ry, centerX, cy + ry)
-                    stream.curveTo(centerX - rx * kappa, cy + ry,
-                        centerX - rx, cy + ry * kappa, centerX - rx, cy)
-                    stream.curveTo(centerX - rx, cy - ry * kappa,
-                        centerX - rx * kappa, cy - ry, centerX, cy - ry)
-                    stream.curveTo(centerX + rx * kappa, cy - ry,
-                        centerX + rx, cy - ry * kappa, centerX + rx, cy)
+                    val cx=116f
+                    val cy=top-16f
+                    val rx=23f
+                    val ry=11f
+                    stream.moveTo(cx+rx,cy)
+                    stream.curveTo(cx+rx,cy+ry*k,cx+rx*k,cy+ry,cx,cy+ry)
+                    stream.curveTo(cx-rx*k,cy+ry,cx-rx,cy+ry*k,cx-rx,cy)
+                    stream.curveTo(cx-rx,cy-ry*k,cx-rx*k,cy-ry,cx,cy-ry)
+                    stream.curveTo(cx+rx*k,cy-ry,cx+rx,cy-ry*k,cx+rx,cy)
                     stream.closePath()
                     stream.stroke()
                     stream.restoreGraphicsState()
-
-                    val title = ability.name
-                    require(body.width.measurePt(title) <= width - 6f) {
-                        "Ability title does not fit the approved P1 cell: " + title
-                    }
-                    val titleWidth = body.width.measurePt(title)
-                    draw(stream, title, centerX - titleWidth / 2f, 580f, false)
-                    val score = ability.score.toString()
-                    draw(stream, score, centerX - body.width.measurePt(score) / 2f, 550f, false)
-                    val mod = if (ability.modifier >= 0) "+" + ability.modifier
-                        else ability.modifier.toString()
-                    draw(stream, mod, centerX - body.width.measurePt(mod) / 2f, 531f, false)
-                    draw(stream, "SALV.", x + 7f, 510f, false)
-                    ability.savingThrowTotal?.let { save ->
-                        val saving = if (save >= 0) "+" + save else save.toString()
-                        draw(stream, saving,
-                            x + width - 8f - body.width.measurePt(saving), 510f, false)
+                    val score=ability.score.toString()
+                    val mod=if(ability.modifier>=0)"+"+ability.modifier else ability.modifier.toString()
+                    draw(stream,score,69.5f-body.width.measurePt(score)/2f,top-20f,false)
+                    draw(stream,mod,cx-body.width.measurePt(mod)/2f,top-20f,false)
+                    draw(stream,ability.name,145f,top-14f,false)
+                    stream.beginText()
+                    stream.setFont(bodyPdfFont,7f)
+                    stream.newLineAtOffset(215f,top-25f)
+                    stream.showText("SALVACIÓN")
+                    stream.endText()
+                    ability.savingThrowTotal?.let {
+                        val value=if(it>=0)"+"+it else it.toString()
+                        draw(stream,value,296f-body.width.measurePt(value),top-25f,false)
                     }
                 }
             }
-
-
 
             // Variant A fixes built-in skills below their matching ability box.
             // Any overlong or custom skill is preserved whole in C2, with the
@@ -199,7 +197,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             fitsHere.size < 6 && skill.name.isNotBlank()
                         ) {
                             val total = skill.total?.let { if (it >= 0) "+" + it else it.toString() } ?: ""
-                            val remaining = 88f - 11f - skillFont.width.measurePt(total) - 7f
+                            val remaining = 258f - 34f - skillFont.width.measurePt(total) - 9f
                             if (skillFont.width.measurePt(skill.name) <= remaining) {
                                 fitsHere += skillIndex to skill
                                 printedSkillIndices += skillIndex
@@ -210,39 +208,40 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
             }
 
-            fun drawP1GroupedSkills(stream: PDPageContentStream) {
-                if (!variantA) return
-                stream.beginText()
-                stream.setFont(bodyPdfFont, 7f)
-                stream.newLineAtOffset(42f, 491f)
-                stream.showText("HABILIDADES BAJO ATRIBUTO  P=COMPETENCIA  E=PERICIA")
-                stream.endText()
-                groupedSkills.forEach { (attrIndex, rows) ->
-                    val left = 42f + attrIndex * 88f
-                    rows.forEachIndexed { rowIndex, indexed ->
-                        val skill = indexed.second
-                        val y = 479f - rowIndex * 10.5f
-                        fun put(text: String, x: Float) {
-                            if (text.isBlank()) return
-                            stream.beginText()
-                            stream.setFont(bodyPdfFont, 7f)
-                            stream.newLineAtOffset(x, y)
-                            stream.showText(text)
-                            stream.endText()
+            fun drawP1GroupedSkills(stream:PDPageContentStream) {
+                if(!variantA)return
+                groupedSkills.forEach { (attrIndex,rows) ->
+                    val top=p1AttributeTop(attrIndex)
+                    rows.forEachIndexed { idx,(_,skill) ->
+                        val y=top-36f-idx*10.5f
+                        require(y>p1AttributeTop(attrIndex+1)+1f)
+                        stream.saveGraphicsState()
+                        stream.setStrokingColor(Color(130,165,186))
+                        stream.addRect(47f,y-2f,7f,7f)
+                        stream.stroke()
+                        stream.restoreGraphicsState()
+                        fun put(value:String,x:Float){
+                            if(value.isNotEmpty()){
+                                stream.beginText()
+                                stream.setFont(bodyPdfFont,7f)
+                                stream.newLineAtOffset(x,y)
+                                stream.showText(value)
+                                stream.endText()
+                            }
                         }
-                        val indicator = when (skill.training) {
+                        put(when(skill.training) {
                             io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.NONE -> ""
                             io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> "P"
                             io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.EXPERTISE -> "E"
-                        }
-                        put(indicator, left + 2f)
-                        put(skill.name, left + 11f)
-                        skill.total?.let { total ->
-                            val number = if (total >= 0) "+" + total else total.toString()
-                            put(number, left + 84f - skillFont.width.measurePt(number))
+                        },48f)
+                        put(skill.name,60f)
+                        skill.total?.let {
+                            val v=if(it>=0)"+"+it else it.toString()
+                            put(v,294f-skillFont.width.measurePt(v))
                         }
                     }
                 }
+                draw(stream,"HABILIDADES BAJO ATRIBUTO",44f,92f,false)
             }
 
             // Variant B has a physically separate skills area, never a prose
@@ -268,23 +267,31 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     )
                 }
             else emptyList()
-            val bSkillsArea = PcSheetV11RectPt(48f, 328f, 366f, 129f)
-            val bSkillsPlaced = if (!variantA) body.place(
-                PcSheetV11FlowSection.TRAITS, bSkillEntries, bSkillsArea, 2, 12f,
+            val bSkillsArea = PcSheetV11RectPt(49f,114f,244f,220f)
+            val bSkillsPlaced = if(!variantA) PcSheetV11MeasuredFlowPlacer.place(
+                PcSheetV11FlowSection.TRAITS,bSkillEntries,bSkillsArea,2,8f,
+                skillFont.metrics.lineHeightPt,skillFont.width,
             ) else null
             fun drawP1BIndependentSkills(stream: PDPageContentStream) {
                 if (variantA) return
-                draw(stream, "HABILIDADES  P=COMPETENCIA  E=PERICIA", 48f, 476f, true)
+                draw(stream,"HABILIDADES  P=COMPETENCIA  E=PERICIA",43f,354f,true)
                 stream.saveGraphicsState()
-                stream.setStrokingColor(Color(80, 122, 151))
-                stream.setLineWidth(0.7f)
-                stream.addRect(42f, 320f, 378f, 147f)
+                stream.setStrokingColor(Color(130,165,186))
+                stream.setLineWidth(0.6f)
+                stream.addRect(42f,105f,258f,239f)
+                stream.stroke()
+                stream.moveTo(171f,105f)
+                stream.lineTo(171f,335f)
                 stream.stroke()
                 stream.restoreGraphicsState()
-                bSkillsPlaced?.cells?.filter { it.localPageIndex == 1 }?.forEach { cell ->
-                    if (cell.drawableText.isNotEmpty()) {
-                        draw(stream, cell.drawableText, cell.cellPt.leftPt,
-                            body.metrics.baselineIn(cell.cellPt), false)
+                bSkillsPlaced?.cells?.filter{it.localPageIndex==1}?.forEach{cell->
+                    if(cell.drawableText.isNotEmpty()){
+                        stream.beginText()
+                        stream.setFont(bodyPdfFont,7f)
+                        stream.newLineAtOffset(cell.cellPt.leftPt,
+                            skillFont.metrics.baselineIn(cell.cellPt))
+                        stream.showText(cell.drawableText)
+                        stream.endText()
                     }
                 }
             }
@@ -318,31 +325,33 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val attackRows = data.combatEntries.filter {
                 it.type == io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK
             }
-            val attackLabelWidth = 239f
-            val attackBonusWidth = 49f
-            val attackDamageWidth = 528f - attackLabelWidth - attackBonusWidth
-            val p1Attacks = attackRows.takeWhile { entry ->
-                val nameAndRange = entry.name +
-                    (entry.rangeText?.takeIf { it.isNotBlank() }?.let { " / " + it } ?: "")
-                val bonus = entry.attackModifier?.let { if (it >= 0) "+" + it else it.toString() } ?: ""
-                val labelFits = body.width.measurePt(nameAndRange) <= attackLabelWidth - 10f
-                val bonusFits = body.width.measurePt(bonus) <= attackBonusWidth - 8f
-                val damageFits = body.width.measurePt(entry.damageEffect) <= attackDamageWidth - 10f
-                labelFits && bonusFits && damageFits &&
-                    attackRows.indexOf(entry) < 6
+            val attackLabelWidth = 121f
+            val attackBonusWidth = 36f
+            val attackDamageWidth = 258f - attackLabelWidth - attackBonusWidth
+            fun p1AttackLabel(entry:io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry):String {
+                val complete=entry.name+(entry.rangeText?.takeIf{it.isNotBlank()}
+                    ?.let{" / "+it}?:"")
+                return if(body.width.measurePt(complete)<=attackLabelWidth-10f)
+                    complete else entry.name
+            }
+            val p1Attacks=attackRows.take(6).filter{entry->
+                val bonus=entry.attackModifier?.let{if(it>=0)"+"+it else it.toString()}?:""
+                body.width.measurePt(p1AttackLabel(entry))<=attackLabelWidth-10f &&
+                body.width.measurePt(bonus)<=attackBonusWidth-8f &&
+                body.width.measurePt(entry.damageEffect)<=attackDamageWidth-10f
             }
             val p1AttackIds = p1Attacks.map { it.id }.toSet()
 
             fun drawP1Attacks(stream: PDPageContentStream) {
-                val left = 42f
-                val top = 303f
-                val bottom = 210f
+                val left = 312f
+                val top = 491f
+                val bottom = 392f
                 val b1 = left + attackLabelWidth
                 val b2 = b1 + attackBonusWidth
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.7f)
-                stream.addRect(left, bottom, 528f, top - bottom)
+                stream.addRect(left, bottom, 258f, top - bottom)
                 stream.stroke()
                 for (x in listOf(b1, b2)) {
                     stream.moveTo(x, bottom)
@@ -352,7 +361,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 for (row in 1..7) {
                     val y = top - row * 12f
                     stream.moveTo(left, y)
-                    stream.lineTo(left + 528f, y)
+                    stream.lineTo(left + 258f, y)
                     stream.stroke()
                 }
                 stream.restoreGraphicsState()
@@ -361,9 +370,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 draw(stream, "DAÑO / EFECTO", b2 + 3f, top - 10f, false)
                 p1Attacks.forEachIndexed { index, entry ->
                     val y = top - 22f - index * 12f
-                    draw(stream, entry.name +
-                        (entry.rangeText?.takeIf { it.isNotBlank() }?.let { " / " + it } ?: ""),
-                        left + 4f, y, false)
+                    draw(stream,p1AttackLabel(entry),left+4f,y,false)
                     entry.attackModifier?.let { value ->
                         draw(stream, if (value >= 0) "+" + value else value.toString(),
                             b1 + 3f, y, false)
@@ -375,37 +382,61 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
             }
 
-            fun drawP1Spellcasting(stream: PDPageContentStream) {
-                draw(stream, "LANZAMIENTO DE CONJUROS", 42f, 198f, true)
-                val actual = data.spellSlots.associateBy { it.level }
+            fun drawP1Spellcasting(stream:PDPageContentStream) {
+                draw(stream,"LANZAMIENTO DE CONJUROS",312f,291f,true)
+                val actual=data.spellSlots.associateBy{it.level}
                 stream.saveGraphicsState()
-                stream.setStrokingColor(Color(80, 122, 151))
-                stream.setLineWidth(0.65f)
-                stream.addRect(42f, 78f, 528f, 108f)
+                stream.setStrokingColor(Color(130,165,186))
+                stream.setLineWidth(0.55f)
+                stream.setNonStrokingColor(Color(238,247,251))
+                stream.addRect(312f,154f,258f,127f)
+                stream.fill()
+                stream.addRect(312f,154f,258f,127f)
                 stream.stroke()
                 stream.restoreGraphicsState()
-                draw(stream, "NIVEL", 47f, 175f, false)
-                draw(stream, "ESPACIOS", 104f, 175f, false)
-                draw(stream, "GASTADOS", 176f, 175f, false)
-                for (level in 1..9) {
-                    val y = 163f - (level - 1) * 9.4f
-                    draw(stream, level.toString(), 48f, y, false)
-                    val slots = actual[level]
-                    if (slots != null) {
-                        // Show stored total/spent even for zero; no assumed progression.
-                        draw(stream, slots.totalSlots.toString(), 110f, y, false)
-                        draw(stream, slots.spentSlots.toString(), 180f, y, false)
-                        if (slots.totalSlots in 1..20) {
-                            repeat(slots.totalSlots) { n ->
-                                val x = 230f + n * 13f + (n / 5) * 4f
-                                stream.addRect(x, y - 2f, 8f, 8f)
+                val magical=when(source.spellcastingAbility){
+                    SpellcastingAbility.STRENGTH->"FUE"
+                    SpellcastingAbility.DEXTERITY->"DES"
+                    SpellcastingAbility.CONSTITUTION->"CON"
+                    SpellcastingAbility.INTELLIGENCE->"INT"
+                    SpellcastingAbility.WISDOM->"SAB"
+                    SpellcastingAbility.CHARISMA->"CAR"
+                    SpellcastingAbility.OTHER,SpellcastingAbility.NONE->""
+                }
+                listOf("APTITUD" to magical,
+                    "CD SALVACIÓN" to(source.spellSaveDc?.toString()?:""),
+                    "ATAQUE MÁGICO" to (source.spellAttackModifier?.let{
+                        if(it>=0)"+"+it else it.toString()
+                    }?:"")).forEachIndexed{idx,(label,value)->
+                        val x=314f+idx*85f
+                        stream.beginText()
+                        stream.setFont(bodyPdfFont,7f)
+                        stream.newLineAtOffset(x,270f)
+                        stream.showText(label)
+                        stream.endText()
+                        if(value.isNotEmpty())draw(stream,value,x,255f,false)
+                    }
+                draw(stream,"ESPACIOS",315f,243f,false)
+                draw(stream,"GASTADOS",407f,243f,false)
+                (1..9).forEach{level->
+                    val x=315f+((level-1)%3)*85f
+                    val y=222f-((level-1)/3)*23f
+                    draw(stream,"N"+level,x,y,false)
+                    actual[level]?.let{v->
+                        draw(stream,v.totalSlots.toString(),x+19f,y,false)
+                        draw(stream,v.spentSlots.toString(),x+45f,y,false)
+                        if(v.totalSlots in 1..3){
+                            repeat(v.totalSlots){n->
+                                val px=x+19f+n*12f
+                                stream.addRect(px,y-12f,7f,7f)
                                 stream.stroke()
-                                if (n < slots.spentSlots) draw(stream, "X", x + 1f, y, false)
+                                if(n<v.spentSlots)draw(stream,"X",px+1f,y-10f,false)
                             }
                         }
-                    } else {
-                        draw(stream, "______", 107f, y, false)
-                        draw(stream, "______", 180f, y, false)
+                    }?:run{
+                        stream.moveTo(x+19f,y-7f)
+                        stream.lineTo(x+75f,y-7f)
+                        stream.stroke()
                     }
                 }
             }
@@ -423,6 +454,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             keepTogetherIfFits = true,
                         ))
                     } else {
+                        if(attack.rangeText?.isNotBlank()==true &&
+                            p1AttackLabel(attack)==attack.name) {
+                            add(PcSheetV11FlowItem("combat:range:"+attack.id,
+                                "ALCANCE "+attack.name+": "+attack.rangeText,
+                                keepTogetherIfFits=true))
+                        }
                         attack.notes?.takeIf { it.isNotBlank() }?.let { notes ->
                             add(PcSheetV11FlowItem(
                                 "combat:notes:" + attack.id,
@@ -595,18 +632,18 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     "PV TEMP" to source.tempHp.toString(),
                     "DADOS" to dice,
                 )
-                val left = 429f
-                val bottom = 320f
-                val colWidth = 70.5f
+                val left = 312f
+                val bottom = 503f
+                val colWidth = 129f
                 val height = 22f
-                draw(stream, "COMBATE Y SUPERVIVENCIA", left, 416f, false)
+                draw(stream, "COMBATE Y SUPERVIVENCIA", left, 604f, false)
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.55f)
                 stream.setNonStrokingColor(Color(238, 247, 251))
-                stream.addRect(left, bottom, 141f, height * 4f)
+                stream.addRect(left, bottom, 258f, height * 4f)
                 stream.fill()
-                stream.addRect(left, bottom, 141f, height * 4f)
+                stream.addRect(left, bottom, 258f, height * 4f)
                 stream.stroke()
                 stream.moveTo(left + colWidth, bottom)
                 stream.lineTo(left + colWidth, bottom + height * 4f)
@@ -890,25 +927,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // suffix into C2; the same real font metrics drive both placements.
             // Keep variable-height mechanics beneath the fixed approved identity
             // cartelas, never underneath their labels or beside the portrait.
-            val p1IdentityArea = PcSheetV11RectPt(42f, 320f, 378f, 89f)
-            val p1Measured = if (variantA) body.place(
-                PcSheetV11FlowSection.TRAITS, identity, p1IdentityArea, 2, 12f,
-            ) else null
-            val p1Unprinted = identityFieldOverflow + bSkillOverflow +
-                identity.mapNotNull { item ->
-                val printedEnd = p1Measured?.cells?.asSequence()
-                    ?.filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
-                    ?.maxOfOrNull { it.sourceEndExclusive } ?: 0
-                require(printedEnd in 0..item.text.length) {
-                    "P1 placement cannot consume a non-source character offset."
-                }
-                if (printedEnd == item.text.length) null
-                else item.copy(text = item.text.substring(printedEnd))
-            }
+            val p1Unprinted=identityFieldOverflow+bSkillOverflow+identity
             addSection("P1 - Personaje / combate / habilidades",
-                PcSheetV11FlowSection.TRAITS, if (variantA) identity else emptyList(),
-                2, alwaysPage = true,
-                area = p1IdentityArea, maxPhysicalPages = 1)
+                PcSheetV11FlowSection.TRAITS,emptyList(),2,alwaysPage=true,
+                area=PcSheetV11RectPt(42f,90f,258f,500f),maxPhysicalPages=1)
 
             // Approved golden P2 has the EQUIPO/TESORO stack on the LEFT,
             // mechanical RASGOS on the RIGHT, and full-width EQUIPO ESPECIAL
