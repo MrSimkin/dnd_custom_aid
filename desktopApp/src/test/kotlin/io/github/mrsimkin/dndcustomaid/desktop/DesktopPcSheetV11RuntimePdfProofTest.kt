@@ -16,6 +16,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPortraitFitMode
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.pdmodel.common.PDRectangle
 import org.apache.pdfbox.text.PDFTextStripper
+import org.apache.pdfbox.text.PDFTextStripperByArea
+import java.awt.geom.Rectangle2D
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
 import kotlin.uuid.Uuid
 import kotlin.test.Test
@@ -267,6 +269,55 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "A/B is a layout choice, not a character attribute.")
                 assertTrue(p1.contains(sheet.classes.first().name),
                     "The genuine class must remain visible in its identity cartela.")
+            }
+        }
+    }
+
+    @Test
+    fun physicalP1UpperIdentityAndCombatAreSeparatePrintRegionsForBothVariants() {
+        // Assert physical PDF coordinates, not just the presence of words
+        // somewhere in a document whose pages may otherwise look different.
+        val cases = listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
+            "03_mara_de_los_siete_umbrales.json" to PcSheetV11Variant.B,
+        )
+        for ((fixtureName, variant) in cases) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources(fixtureName),
+            ).bytes
+            Loader.loadPDF(bytes).use { pdf ->
+                val page = pdf.getPage(0)
+                assertEquals(PDRectangle.LETTER.width, page.mediaBox.width)
+                assertEquals(PDRectangle.LETTER.height, page.mediaBox.height)
+                val regions = PDFTextStripperByArea()
+                regions.addRegion("portrait", Rectangle2D.Float(40f, 76f, 111f, 125f))
+                regions.addRegion("identity", Rectangle2D.Float(152f, 76f, 418f, 88f))
+                regions.addRegion("attributes", Rectangle2D.Float(40f, 185f, 530f, 112f))
+                regions.addRegion("combat", Rectangle2D.Float(425f, 358f, 150f, 122f))
+                regions.extractRegions(page)
+                val portrait = regions.getTextForRegion("portrait")
+                val identity = regions.getTextForRegion("identity")
+                val attributes = regions.getTextForRegion("attributes")
+                val combat = regions.getTextForRegion("combat")
+                assertTrue(portrait.contains("RETRATO"),
+                    "Golden P1 top-left portrait moved out of its physical band: " + fixtureName)
+                for (field in listOf("CLASE / NIVEL", "JUGADOR", "RAZA", "ALINEAMIENTO")) {
+                    assertTrue(identity.contains(field),
+                        "Golden P1 upper identity field absent at actual PDF coordinates: " + field)
+                }
+                assertFalse(identity.contains("STRENGTH"),
+                    "Attribute blocks must be physically BELOW the top identity band.")
+                assertTrue(attributes.contains("STRENGTH") && attributes.contains("DEXTERITY"),
+                    "First standard attribute labels must occupy the measured upper P1 ability band.")
+                for (field in listOf("COMBATE Y SUPERVIVENCIA", "CA", "INICIATIVA",
+                    "VELOCIDAD", "COMPETENCIA", "PV ACTUALES", "PV MÁXIMOS", "PV TEMP", "DADOS")) {
+                    assertTrue(combat.contains(field),
+                        "Persisted combat field outside dedicated physical panel: " + field)
+                }
+                assertFalse(combat.contains("ATAQUE / RANGO"),
+                    "The combat card panel may not overlap the attack table below.")
             }
         }
     }
