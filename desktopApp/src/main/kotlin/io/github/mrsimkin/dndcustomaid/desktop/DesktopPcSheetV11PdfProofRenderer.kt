@@ -140,14 +140,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.saveGraphicsState()
                     stream.setStrokingColor(Color(80, 122, 151))
                     stream.setLineWidth(0.75f)
-                    stream.addRect(x + 2f, 593f, width - 4f, 95f)
+                    stream.addRect(x + 2f, 501f, width - 4f, 95f)
                     stream.stroke()
-                    stream.addRect(x + 19f, 628f, width - 38f, 34f)
+                    stream.addRect(x + 19f, 536f, width - 38f, 34f)
                     stream.stroke()
                     // Oval centered over the bottom edge of the score rectangle.
                     val rx = 20f
                     val ry = 11f
-                    val cy = 627f
+                    val cy = 535f
                     stream.moveTo(centerX + rx, cy)
                     stream.curveTo(centerX + rx, cy + ry * kappa,
                         centerX + rx * kappa, cy + ry, centerX, cy + ry)
@@ -166,17 +166,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         "Ability title does not fit the approved P1 cell: " + title
                     }
                     val titleWidth = body.width.measurePt(title)
-                    draw(stream, title, centerX - titleWidth / 2f, 672f, false)
+                    draw(stream, title, centerX - titleWidth / 2f, 580f, false)
                     val score = ability.score.toString()
-                    draw(stream, score, centerX - body.width.measurePt(score) / 2f, 642f, false)
+                    draw(stream, score, centerX - body.width.measurePt(score) / 2f, 550f, false)
                     val mod = if (ability.modifier >= 0) "+" + ability.modifier
                         else ability.modifier.toString()
-                    draw(stream, mod, centerX - body.width.measurePt(mod) / 2f, 623f, false)
-                    draw(stream, "SALV.", x + 7f, 602f, false)
+                    draw(stream, mod, centerX - body.width.measurePt(mod) / 2f, 531f, false)
+                    draw(stream, "SALV.", x + 7f, 510f, false)
                     ability.savingThrowTotal?.let { save ->
                         val saving = if (save >= 0) "+" + save else save.toString()
                         draw(stream, saving,
-                            x + width - 8f - body.width.measurePt(saving), 602f, false)
+                            x + width - 8f - body.width.measurePt(saving), 510f, false)
                     }
                 }
             }
@@ -214,14 +214,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 if (!variantA) return
                 stream.beginText()
                 stream.setFont(bodyPdfFont, 7f)
-                stream.newLineAtOffset(42f, 583f)
+                stream.newLineAtOffset(42f, 491f)
                 stream.showText("HABILIDADES BAJO ATRIBUTO  P=COMPETENCIA  E=PERICIA")
                 stream.endText()
                 groupedSkills.forEach { (attrIndex, rows) ->
                     val left = 42f + attrIndex * 88f
                     rows.forEachIndexed { rowIndex, indexed ->
                         val skill = indexed.second
-                        val y = 571f - rowIndex * 10.5f
+                        val y = 479f - rowIndex * 10.5f
                         fun put(text: String, x: Float) {
                             if (text.isBlank()) return
                             stream.beginText()
@@ -444,10 +444,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
 
 
             fun drawP1Portrait(stream: PDPageContentStream) {
-                val frameX = 429f
-                val frameY = 320f
-                val frameWidth = 141f
-                val frameHeight = 175f
+                val frameX = 42f
+                val frameY = 605f
+                val frameWidth = 104f
+                val frameHeight = 100f
                 val imageX = frameX + 7f
                 val imageY = frameY + 7f
                 val imageWidth = frameWidth - 14f
@@ -512,7 +512,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // V11 P1 uses genuine physical identity fields. Alignment is not a
             // persisted CharacterSheet property, so its box stays manuscript-only.
             // The same measured body font decides which source suffix must flow to C2.
-            val identityTop = if (variantA) 495f else 572f
+            val identityTop = 705f
             val classIdentity = PcSheetV11FlowItem(
                 "identity:classes",
                 source.classes.joinToString(", ") { it.name + " " + it.level },
@@ -520,9 +520,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val raceIdentity = PcSheetV11FlowItem("identity:race", source.background.race)
             val identityFieldFrames = listOf(
                 Triple("CLASE / NIVEL", classIdentity,
-                    PcSheetV11RectPt(42f, identityTop - 28f, 378f, 28f)),
+                    PcSheetV11RectPt(158f, identityTop - 28f, 412f, 28f)),
                 Triple("RAZA", raceIdentity,
-                    PcSheetV11RectPt(42f, identityTop - 58f, 183f, 28f)),
+                    PcSheetV11RectPt(295f, identityTop - 58f, 126f, 28f)),
             )
             val identityFields = identityFieldFrames.map { (label, item, frame) ->
                 val writingArea = PcSheetV11RectPt(
@@ -536,11 +536,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 Triple(label to item, frame, placed)
             }
             fun drawP1IdentityFields(stream: PDPageContentStream) {
-                val alignment = PcSheetV11RectPt(237f, identityTop - 58f, 183f, 28f)
+                val alignment = PcSheetV11RectPt(432f, identityTop - 58f, 138f, 28f)
+                val player = PcSheetV11RectPt(158f, identityTop - 58f, 126f, 28f)
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.7f)
-                (identityFieldFrames.map { it.third } + alignment).forEach { frame ->
+                (identityFieldFrames.map { it.third } + listOf(player, alignment)).forEach { frame ->
                     stream.addRect(frame.leftPt, frame.bottomPt, frame.widthPt, frame.heightPt)
                     stream.stroke()
                 }
@@ -556,6 +557,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         }
                     }
                 }
+                draw(stream, "JUGADOR", player.leftPt + 6f, player.topPt - 11f, true)
+                stream.moveTo(player.leftPt + 6f, player.bottomPt + 5f)
+                stream.lineTo(player.rightPt - 6f, player.bottomPt + 5f)
+                stream.stroke()
                 draw(stream, "ALINEAMIENTO", alignment.leftPt + 6f,
                     alignment.topPt - 11f, true)
                 // No persisted alignment exists; a ruled entry is deliberately blank.
@@ -571,6 +576,60 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 require(consumed in 0..item.text.length)
                 if (consumed == item.text.length) null
                 else item.copy(text = item.text.substring(consumed))
+            }
+
+            // A separate physical combat dashboard replaces the old prose
+            // identity row; values are taken ONLY from the saved character.
+            fun drawP1CombatReference(stream: PDPageContentStream) {
+                fun plus(v: Int) = if (v >= 0) "+" + v else v.toString()
+                val dice = source.classes.joinToString(" / ") {
+                    it.hitDiceRemaining.toString() + "d" + it.hitDieSides
+                }
+                val values = listOf(
+                    "CA" to source.armorClass.toString(),
+                    "INICIATIVA" to plus(source.initiativeModifier),
+                    "VELOCIDAD" to source.speed.toString(),
+                    "COMPETENCIA" to plus(source.finalProficiencyBonus),
+                    "PV ACTUALES" to source.currentHp.toString(),
+                    "PV MÁXIMOS" to source.maxHp.toString(),
+                    "PV TEMP" to source.tempHp.toString(),
+                    "DADOS" to dice,
+                )
+                val left = 429f
+                val bottom = 320f
+                val colWidth = 70.5f
+                val height = 22f
+                draw(stream, "COMBATE Y SUPERVIVENCIA", left, 416f, false)
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(80, 122, 151))
+                stream.setLineWidth(0.55f)
+                stream.setNonStrokingColor(Color(238, 247, 251))
+                stream.addRect(left, bottom, 141f, height * 4f)
+                stream.fill()
+                stream.addRect(left, bottom, 141f, height * 4f)
+                stream.stroke()
+                stream.moveTo(left + colWidth, bottom)
+                stream.lineTo(left + colWidth, bottom + height * 4f)
+                stream.stroke()
+                for (line in 1..3) {
+                    val y = bottom + line * height
+                    stream.moveTo(left, y)
+                    stream.lineTo(left + colWidth * 2f, y)
+                    stream.stroke()
+                }
+                stream.restoreGraphicsState()
+                values.forEachIndexed { index, (label, value) ->
+                    val x = left + (index % 2) * colWidth + 4f
+                    val top = bottom + (4 - index / 2) * height
+                    require(body.width.measurePt(label) <= colWidth - 8f) {
+                        "P1 combat label too wide: " + label
+                    }
+                    require(body.width.measurePt(value) <= colWidth - 8f) {
+                        "P1 source combat value cannot fit: " + label
+                    }
+                    draw(stream, label, x, top - 9f, false)
+                    if (value.isNotEmpty()) draw(stream, value, x, top - 19f, false)
+                }
             }
 
             // Approved golden P4: source-backed magical aptitude, real save DC,
@@ -721,6 +780,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             drawP1Spellcasting(stream)
                             drawP1Portrait(stream)
                             drawP1IdentityFields(stream)
+                            drawP1CombatReference(stream)
                             drawP1GroupedSkills(stream)
                             drawP1BIndependentSkills(stream)
                         }
@@ -794,9 +854,6 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
 
             val identity = buildList {
-                add(PcSheetV11FlowItem("identity:combat",
-                    "CA " + source.armorClass + " | PG " + source.currentHp + "/" + source.maxHp +
-                        " | PG temp " + source.tempHp + " | Velocidad " + source.speed))
                 data.attributes.drop(6).forEachIndexed { index, it ->
                     add(PcSheetV11FlowItem("attribute:" + index,
                         it.name + " " + it.score + " / mod " + it.modifier +
@@ -833,18 +890,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // suffix into C2; the same real font metrics drive both placements.
             // Keep variable-height mechanics beneath the fixed approved identity
             // cartelas, never underneath their labels or beside the portrait.
-            val p1IdentityArea = PcSheetV11RectPt(
-                42f, if (variantA) 320f else 486f,
-                378f, if (variantA) identityTop - 66f - 320f else 20f,
-            )
-            val p1Measured = body.place(
+            val p1IdentityArea = PcSheetV11RectPt(42f, 320f, 378f, 89f)
+            val p1Measured = if (variantA) body.place(
                 PcSheetV11FlowSection.TRAITS, identity, p1IdentityArea, 2, 12f,
-            )
+            ) else null
             val p1Unprinted = identityFieldOverflow + bSkillOverflow +
                 identity.mapNotNull { item ->
-                val printedEnd = p1Measured.cells.asSequence()
-                    .filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
-                    .maxOfOrNull { it.sourceEndExclusive } ?: 0
+                val printedEnd = p1Measured?.cells?.asSequence()
+                    ?.filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
+                    ?.maxOfOrNull { it.sourceEndExclusive } ?: 0
                 require(printedEnd in 0..item.text.length) {
                     "P1 placement cannot consume a non-source character offset."
                 }
@@ -852,7 +906,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 else item.copy(text = item.text.substring(printedEnd))
             }
             addSection("P1 - Personaje / combate / habilidades",
-                PcSheetV11FlowSection.TRAITS, identity, 2, alwaysPage = true,
+                PcSheetV11FlowSection.TRAITS, if (variantA) identity else emptyList(),
+                2, alwaysPage = true,
                 area = p1IdentityArea, maxPhysicalPages = 1)
 
             // Approved golden P2 has the EQUIPO/TESORO stack on the LEFT,

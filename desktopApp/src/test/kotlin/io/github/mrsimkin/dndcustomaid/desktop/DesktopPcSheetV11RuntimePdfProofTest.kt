@@ -304,6 +304,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(p2.contains("CA base 16."),
                 "The real description must remain visible, not vanish into layout.")
             assertTrue(p1.contains("ATAQUE / RANGO"))
+            assertTrue(p1.contains("COMBATE Y SUPERVIVENCIA"))
+            assertTrue(p1.contains("PV TEMP"))
+            assertTrue(p1.contains("INICIATIVA"))
+            assertTrue(p1.contains("COMPETENCIA"))
+            assertTrue(p1.contains("JUGADOR"))
             assertTrue(p1.contains("HABILIDADES BAJO ATRIBUTO"),
                 "Variant A must place matching built-in skills physically under attributes.")
             assertTrue(p1.contains("ATHLETICS"),
@@ -371,6 +376,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(p1.contains("Daga"), "P1 real attack grid lost Ilyra's dagger.")
             assertTrue(p1.contains("Fire Bolt"), "P1 real attack grid lost her ranged cantrip.")
             assertTrue(p1.contains("LANZAMIENTO DE CONJUROS"))
+            assertTrue(p1.contains("COMBATE Y SUPERVIVENCIA"))
+            assertTrue(p1.contains("INICIATIVA"))
+            assertTrue(p1.contains("PV MÁXIMOS"))
+            assertTrue(p1.contains("JUGADOR"))
             assertTrue(p1.contains("GASTADOS"))
             for (level in 0..9) {
                 assertTrue(printed.contains("NIVEL " + level),
