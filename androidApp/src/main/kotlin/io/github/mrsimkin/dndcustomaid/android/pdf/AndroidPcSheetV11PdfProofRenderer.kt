@@ -130,14 +130,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     minOf(6,data.skills.count{it.ability==ability.reference})*10.5f)
                     else 38f
             }
-            fun p1AttributeTop(i:Int):Float = 593f -
+            fun p1AttributeTop(i:Int):Float = 577f -
                 data.attributes.take(i).sumOf { p1AttributeHeight(it).toDouble() }.toFloat()
             fun drawP1Attributes(stream:PDPageContentStream) {
                 val standards=data.attributes.take(6)
                 require(standards.size==6 && p1AttributeTop(6)>110f)
                 draw(stream,if(data.request.variant ==
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A)
-                    "ATRIBUTOS · A" else "ATRIBUTOS · B",43f,604f,true)
+                    "ATRIBUTOS · A" else "ATRIBUTOS · B",43f,588f,true)
                 val k=0.5522848f
                 standards.forEachIndexed { i,ability ->
                     val top=p1AttributeTop(i)
@@ -267,21 +267,21 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     )
                 }
             else emptyList()
-            val bSkillsArea = PcSheetV11RectPt(49f,114f,244f,220f)
+            val bSkillsArea = PcSheetV11RectPt(49f,220f,244f,95f)
             val bSkillsPlaced = if(!variantA) PcSheetV11MeasuredFlowPlacer.place(
                 PcSheetV11FlowSection.TRAITS,bSkillEntries,bSkillsArea,2,8f,
                 skillFont.metrics.lineHeightPt,skillFont.width,
             ) else null
             fun drawP1BIndependentSkills(stream: PDPageContentStream) {
                 if (variantA) return
-                draw(stream,"HABILIDADES  P=COMPETENCIA  E=PERICIA",43f,354f,true)
+                draw(stream,"HABILIDADES  P=COMPETENCIA  E=PERICIA",43f,338f,true)
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130,165,186))
                 stream.setLineWidth(0.6f)
-                stream.addRect(42f,105f,258f,239f)
+                stream.addRect(42f,105f,258f,223f)
                 stream.stroke()
                 stream.moveTo(171f,105f)
-                stream.lineTo(171f,335f)
+                stream.lineTo(171f,319f)
                 stream.stroke()
                 stream.restoreGraphicsState()
                 bSkillsPlaced?.cells?.filter{it.localPageIndex==1}?.forEach{cell->

@@ -333,6 +333,17 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertFalse(split.getTextForRegion("left").contains("ATAQUE / RANGO"))
                 assertTrue(split.getTextForRegion("attacks").contains("ATAQUE / RANGO"))
                 assertTrue(split.getTextForRegion("spells").contains("LANZAMIENTO DE CONJUROS"))
+                if(variant==PcSheetV11Variant.B){
+                    val skillsByColumn=PDFTextStripperByArea().apply{
+                        addRegion("first",Rectangle2D.Float(47f,471f,121f,118f))
+                        addRegion("second",Rectangle2D.Float(173f,471f,123f,118f))
+                        extractRegions(page)
+                    }
+                    assertTrue(skillsByColumn.getTextForRegion("first").contains("ACROBATICS"),
+                        "B skills first subcolumn must contain real Acrobatics.")
+                    assertTrue(skillsByColumn.getTextForRegion("second").contains("SURVIVAL"),
+                        "B skills second subcolumn must contain real Survival.")
+                }
             }
         }
     }
