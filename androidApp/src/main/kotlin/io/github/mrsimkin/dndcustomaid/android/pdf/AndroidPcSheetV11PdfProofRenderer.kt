@@ -1350,37 +1350,165 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 remainingTraits, columns = 2,
             )
 
-            // P2 has physically printed complete rows only. C2 receives
-            // precisely the deferred whole items, including all source fields
-            // and their real ACTIVO marks, never a torn paragraph/checkbox.
-            val remainingSpecials = specialDeferredToC2.flatMap { item ->
-                buildList {
-                    add(PcSheetV11FlowItem("special:" + item.sourceId + ":name",
-                        item.name, keepTogetherIfFits = true))
-                    item.location?.takeIf { it.isNotBlank() }?.let {
-                        add(PcSheetV11FlowItem("special:" + item.sourceId + ":location",
-                            it, keepTogetherIfFits = true))
-                    }
-                    item.description?.takeIf { it.isNotBlank() }?.let {
-                        add(PcSheetV11FlowItem("special:" + item.sourceId + ":description",
-                            it, keepTogetherIfFits = true))
-                    }
-                    item.notes?.takeIf { it.isNotBlank() }?.let {
-                        add(PcSheetV11FlowItem("special:" + item.sourceId + ":notes",
-                            it, keepTogetherIfFits = true))
-                    }
+            // The golden C2 extends the SAME full-width four-field grammar as
+            // P2. True source-backed rows may span physical pages or become
+            // taller for long descriptions, never compress or truncate text.
+            // The shared text flow independently verifies all source offsets.
+            fun specialC2Lines(raw: String?, widthPt: Float): List<String> {
+                if (raw.isNullOrBlank()) return emptyList()
+                val measured = PcSheetV11TextFlow.paginate(
+                    PcSheetV11FlowSection.SPECIAL_EQUIPMENT,
+                    listOf(PcSheetV11FlowItem("c2-source", raw,
+                        keepTogetherIfFits = true)),
+                    1, PcSheetV11TextColumn(widthPt - 10f, 626f,
+                        body.metrics.lineHeightPt),
+                    body.width,
+                )
+                return measured.fragments.flatMap { it.lineRanges }.map { range ->
+                    raw.substring(range.startOffset, range.endExclusive)
+                        .trimEnd('\r', '\n')
                 }
             }
-            val marksNeeded = specialDeferredToC2.associate { item ->
-                ("special:" + item.sourceId + ":name") to item.active
+            val specialC2Rows = specialDeferredToC2.map { item ->
+                val description = listOfNotNull(
+                    item.description?.takeIf { it.isNotBlank() },
+                    item.notes?.takeIf { it.isNotBlank() }?.let { "NOTAS: " + it },
+                ).joinToString(" / ")
+                item to listOf(item.location, item.name, description).mapIndexed {
+                    column, value -> specialC2Lines(value, specialColumns[column])
+                }
             }
-            addSection(
-                "C2 - Equipo especial / continuación",
-                PcSheetV11FlowSection.SPECIAL_EQUIPMENT,
-                remainingSpecials, columns = 1,
-                area = PcSheetV11RectPt(42f, 76f, 507f, 626f),
-                specialMarks = marksNeeded,
+            data class SpecialC2Fragment(
+                val rowIndex: Int,
+                val startLine: Int,
+                val endLine: Int,
+                val heightPt: Float,
             )
+            val c2SpecialArea = PcSheetV11RectPt(42f, 76f, 528f, 626f)
+            val c2SpecialPages = mutableListOf<List<SpecialC2Fragment>>()
+            var currentC2 = mutableListOf<SpecialC2Fragment>()
+            var availableC2 = c2SpecialArea.heightPt - specialHeaderHeight
+            fun flushC2Special() {
+                if (currentC2.isNotEmpty()) c2SpecialPages += currentC2.toList()
+                currentC2 = mutableListOf()
+                availableC2 = c2SpecialArea.heightPt - specialHeaderHeight
+            }
+            specialC2Rows.forEachIndexed { rowIndex, (_, fields) ->
+                val totalLines = maxOf(1, fields.maxOf { it.size })
+                var consumed = 0
+                while (consumed < totalLines) {
+                    var lines = minOf(totalLines - consumed,
+                        ((availableC2 - 8f) / body.metrics.lineHeightPt).toInt())
+                    var height = maxOf(specialRowHeight,
+                        lines * body.metrics.lineHeightPt + 6f)
+                    while (lines > 1 && height > availableC2) {
+                        lines--
+                        height = maxOf(specialRowHeight,
+                            lines * body.metrics.lineHeightPt + 6f)
+                    }
+                    if (lines <= 0 || height > availableC2) {
+                        require(currentC2.isNotEmpty()) {
+                            "A single real special-equipment line cannot fit C2."
+                        }
+                        flushC2Special()
+                        continue
+                    }
+                    currentC2 += SpecialC2Fragment(
+                        rowIndex, consumed, consumed + lines, height,
+                    )
+                    availableC2 -= height
+                    consumed += lines
+                }
+            }
+            flushC2Special()
+            require(c2SpecialPages.flatten().groupBy { it.rowIndex }.size ==
+                specialC2Rows.size) {
+                "Every deferred special item must occupy at least one physical C2 row."
+            }
+            c2SpecialPages.forEachIndexed { pageIndex, fragments ->
+                val page = PDPage(PDRectangle.LETTER)
+                pdf.addPage(page)
+                physicalSectionKeys += "C2 - Equipo especial / continuación"
+                PDPageContentStream(pdf, page).use { stream ->
+                    drawFrameAndHeader(stream,
+                        "C2 - Equipo especial / continuación / " + (pageIndex + 1))
+                    draw(stream, "EQUIPO ESPECIAL", 42f,
+                        c2SpecialArea.topPt + 6f, true)
+                    val printedHeight = specialHeaderHeight +
+                        fragments.sumOf { it.heightPt.toDouble() }.toFloat()
+                    val tableBottom = c2SpecialArea.topPt - printedHeight
+                    require(tableBottom >= c2SpecialArea.bottomPt - 0.1f)
+                    stream.saveGraphicsState()
+                    stream.setStrokingColor(Color(130, 165, 186))
+                    stream.setLineWidth(0.55f)
+                    stream.setNonStrokingColor(Color(217, 236, 245))
+                    stream.addRect(42f, c2SpecialArea.topPt -
+                        specialHeaderHeight, 528f, specialHeaderHeight)
+                    stream.fill()
+                    stream.setNonStrokingColor(Color(238, 247, 251))
+                    stream.addRect(42f, tableBottom, 528f,
+                        printedHeight - specialHeaderHeight)
+                    stream.fill()
+                    stream.addRect(42f, tableBottom, 528f, printedHeight)
+                    stream.stroke()
+                    var separator = 42f
+                    specialColumns.dropLast(1).forEach { width ->
+                        separator += width
+                        stream.moveTo(separator, tableBottom)
+                        stream.lineTo(separator, c2SpecialArea.topPt)
+                        stream.stroke()
+                    }
+                    stream.moveTo(42f, c2SpecialArea.topPt - specialHeaderHeight)
+                    stream.lineTo(570f, c2SpecialArea.topPt - specialHeaderHeight)
+                    stream.stroke()
+                    stream.restoreGraphicsState()
+                    var headerX = 42f
+                    listOf("UBICACIÓN", "NOMBRE", "DESCRIPCIÓN", "ACTIVO")
+                        .forEachIndexed { index, label ->
+                            draw(stream, label, headerX + 5f,
+                                c2SpecialArea.topPt - 13f, false)
+                            headerX += specialColumns[index]
+                        }
+                    val positions = listOf(42f, 42f + specialColumns[0],
+                        42f + specialColumns[0] + specialColumns[1])
+                    var rowTop = c2SpecialArea.topPt - specialHeaderHeight
+                    fragments.forEach { part ->
+                        val (item, fields) = specialC2Rows[part.rowIndex]
+                        fields.forEachIndexed { column, allLines ->
+                            val shown = allLines.drop(part.startLine)
+                                .take(part.endLine - part.startLine)
+                            shown.forEachIndexed { index, line ->
+                                if (line.isNotEmpty()) {
+                                    draw(stream, line, positions[column] + 5f,
+                                        rowTop - 10f -
+                                            index * body.metrics.lineHeightPt,
+                                        false)
+                                }
+                            }
+                        }
+                        if (part.startLine == 0) {
+                            val markerX = c2SpecialArea.rightPt -
+                                specialColumns.last() / 2f - 4.5f
+                            val markerY = rowTop - 16f
+                            stream.addRect(markerX, markerY, 9f, 9f)
+                            stream.stroke()
+                            if (item.active == true) {
+                                draw(stream, "X", markerX, markerY + 2f, false)
+                            }
+                        }
+                        rowTop -= part.heightPt
+                        stream.saveGraphicsState()
+                        stream.setStrokingColor(Color(130, 165, 186))
+                        stream.setLineWidth(0.45f)
+                        stream.moveTo(42f, rowTop)
+                        stream.lineTo(570f, rowTop)
+                        stream.stroke()
+                        stream.restoreGraphicsState()
+                    }
+                    require(kotlin.math.abs(rowTop - tableBottom) <= 0.5f)
+                    drawUnusedC2NotesGrid(stream, tableBottom)
+                }
+            }
 
             addSection("C-N3 - Notas digitales", PcSheetV11FlowSection.DIGITAL_NOTES,
                 texts.digitalNotes, 1)

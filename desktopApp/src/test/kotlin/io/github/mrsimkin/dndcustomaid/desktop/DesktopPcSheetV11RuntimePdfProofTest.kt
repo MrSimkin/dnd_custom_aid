@@ -198,6 +198,17 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             }
             assertTrue(printed.contains("C2 - Rasgos"))
             assertTrue(printed.contains("C2 - Equipo especial"))
+            val specialContinuation = pagesByPhysicalNumber.filter {
+                realHeading(it, "C2 - Equipo especial / continuación")
+            }
+            assertTrue(specialContinuation.isNotEmpty())
+            assertTrue(specialContinuation.all { it.contains("UBICACIÓN") &&
+                it.contains("NOMBRE") && it.contains("DESCRIPCIÓN") &&
+                it.contains("ACTIVO") },
+                "Every physical special C2 must preserve the approved four columns.")
+            assertTrue(specialContinuation.joinToString("\n")
+                .contains("Astrolabio de cobre"),
+                "Mara's deferred original special equipment must be present.")
             assertTrue(printed.contains("RASGOS"))
             assertTrue(printed.contains("Cobre"))
             assertTrue(printed.contains("Oro"))
@@ -383,6 +394,17 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 "P4 must reserve a handwritten checkbox on EVERY level 0–9 " +
                     "and expand useful paper space beyond ten token rows.")
             assertTrue(printed.contains("Libro de conjuros"))
+            val c2SpecialText = (1..pdf.numberOfPages).map { physical ->
+                PDFTextStripper().apply {
+                    startPage = physical
+                    endPage = physical
+                }.getText(pdf)
+            }.filter { it.contains("C2 - Equipo especial / continuación") }
+            assertTrue(c2SpecialText.isNotEmpty())
+            assertTrue(c2SpecialText.all { it.contains("UBICACIÓN") &&
+                it.contains("DESCRIPCIÓN") && it.contains("ACTIVO") })
+            assertTrue(c2SpecialText.joinToString("\n").contains("Spellbook"),
+                "Ilyra's long persisted special object must survive C2 table layout.")
             assertTrue(printed.contains("Índice del Libro de Conjuros"))
             assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })
             assertTrue(printed.contains("LANZAMIENTO"))
