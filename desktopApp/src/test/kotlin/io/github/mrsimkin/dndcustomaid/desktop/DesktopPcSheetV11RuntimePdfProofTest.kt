@@ -691,14 +691,59 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         "Persisted dependent custom skill must survive C2: " + skill)
                     assertEquals(1, Regex(Regex.escape(key)).findAll(full).count(),
                         "Linked skill must not repeat as a detached second copy: " + skill)
-                    assertTrue(pages.any { text -> text.contains("C2 - ") &&
-                        text.contains(attribute) && text.contains(key) },
-                        "Attribute and linked skill must share a physical C2 page: " + skill)
+                    if (variant == PcSheetV11Variant.B) {
+                        assertTrue(pages[0].contains(attribute),
+                            "Golden B requires fitting custom attribute on physical P1: " +
+                                attribute)
+                        assertTrue(pages.any { text -> text.contains("C2 - ") &&
+                            text.contains(key + " (" + attribute + ")") },
+                            "The C2 skill must preserve its P1 custom ability ID relation.")
+                        assertFalse(pages.drop(1).joinToString("\n").contains(
+                            attribute + " " + real.permanent.sheet.abilityScores.size
+                        ), "Custom P1 attribute must not be duplicated as a C2 score row.")
+                    } else {
+                        assertTrue(pages.any { text -> text.contains("C2 - ") &&
+                            text.contains(attribute) && text.contains(key) },
+                            "A's grouped custom attribute/skill must survive C2.")
+                    }
                 }
             }
         }
     }
 
+
+    @Test
+    fun realMaraBPhysicallyPrintsThreeFittingCustomAttributesAndDefersTheFourth() {
+        val real = sources("03_mara_siete_umbrales_custom_extended.json")
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.B,
+                PcSheetExportStateSelection.PERMANENT), real,
+        )
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
+            for (name in listOf("Fortuna", "Cordura", "Éter")) {
+                assertTrue(p1.contains(name), "Golden B P1 custom attribute absent: " + name)
+            }
+            assertFalse(p1.contains("Renombre"),
+                "A fourth custom attribute must not intrude on B's skills panel.")
+            val c2 = (2..pdf.numberOfPages).map { physical ->
+                PDFTextStripper().apply {
+                    startPage = physical
+                    endPage = physical
+                }.getText(pdf)
+            }.filter { it.contains("C2 - Habilidades, acciones y recursos") }
+                .joinToString("\n")
+            assertTrue(c2.contains("Renombre"), "Unfitted fourth ability must survive C2.")
+            for (name in listOf("Fortuna", "Cordura", "Éter")) {
+                assertFalse(Regex(Regex.escape(name) + """\s+\d+\s+/\s+mod""")
+                    .containsMatchIn(c2),
+                    "Already-printed custom attribute cannot repeat as a C2 score row.")
+            }
+            assertTrue(c2.contains("Contratos arcanos (Fortuna)"))
+            assertTrue(c2.contains("Sincronía (Cordura)"))
+            assertTrue(c2.contains("Manipulación de éter (Éter)"))
+        }
+    }
 
     @Test
     fun actualP3UsesPairedRuledNarrativeFieldsAndTwoStoryColumns() {

@@ -122,14 +122,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
             }
 
-            // V11 frozen two-side P1: left vertical abilities, not six
-            // horizontal cells over the combat side of the page.
+            // For B only, the golden's 6+2/6+3 uses compact 25pt
+            // real-attribute rows above a separate skill panel. A has its own
+            // measured skill-under-ability heights and is never force-shrunk.
+            val compactBAttributes = data.request.variant ==
+                io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.B &&
+                data.attributes.size > 6
+            val p1PrintedAttributeCount =
+                if (compactBAttributes) minOf(9, data.attributes.size) else 6
             fun p1AttributeHeight(ability: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Attribute): Float {
                 val a=data.request.variant ==
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A
                 return if(a) maxOf(38f,29f +
                     minOf(6,data.skills.count{it.ability==ability.reference})*10.5f)
-                    else 38f
+                    else if(compactBAttributes) 25f else 38f
             }
             fun p1AttributeTop(i:Int):Float = 577f -
                 data.attributes.take(i).sumOf { p1AttributeHeight(it).toDouble() }.toFloat()
@@ -178,8 +184,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 else -> skill.name
             }
             fun drawP1Attributes(stream:PDPageContentStream) {
-                val standards=data.attributes.take(6)
-                require(standards.size==6 && p1AttributeTop(6)>110f)
+                val standards=data.attributes.take(p1PrintedAttributeCount)
+                require(standards.size>=6 && p1AttributeTop(p1PrintedAttributeCount)>328f)
                 draw(stream,if(data.request.variant ==
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A)
                     "ATRIBUTOS · A" else "ATRIBUTOS · B",43f,588f,true)
@@ -195,12 +201,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.fill()
                     stream.addRect(42f,bottom,258f,top-bottom)
                     stream.stroke()
-                    stream.addRect(46f,top-27f,47f,22f)
+                    stream.addRect(46f,top-(if(compactBAttributes) 22f else 27f),
+                        47f,if(compactBAttributes) 18f else 22f)
                     stream.stroke()
                     val cx=116f
-                    val cy=top-16f
+                    val cy=top-(if(compactBAttributes) 13f else 16f)
                     val rx=23f
-                    val ry=11f
+                    val ry=if(compactBAttributes) 9f else 11f
                     stream.moveTo(cx+rx,cy)
                     stream.curveTo(cx+rx,cy+ry*k,cx+rx*k,cy+ry,cx,cy+ry)
                     stream.curveTo(cx-rx*k,cy+ry,cx-rx,cy+ry*k,cx-rx,cy)
@@ -211,17 +218,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.restoreGraphicsState()
                     val score=ability.score.toString()
                     val mod=if(ability.modifier>=0)"+"+ability.modifier else ability.modifier.toString()
-                    draw(stream,score,69.5f-body.width.measurePt(score)/2f,top-20f,false)
-                    draw(stream,mod,cx-body.width.measurePt(mod)/2f,top-20f,false)
-                    draw(stream,approvedAbilityName(ability.name),145f,top-14f,false)
+                    val valueY=top-(if(compactBAttributes) 17f else 20f)
+                    draw(stream,score,69.5f-body.width.measurePt(score)/2f,valueY,false)
+                    draw(stream,mod,cx-body.width.measurePt(mod)/2f,valueY,false)
+                    draw(stream,approvedAbilityName(ability.name),145f,
+                        top-(if(compactBAttributes) 11f else 14f),false)
                     stream.beginText()
                     stream.setFont(bodyPdfFont,7f)
-                    stream.newLineAtOffset(215f,top-25f)
+                    val saveY=top-(if(compactBAttributes) 23f else 25f)
+                    stream.newLineAtOffset(215f,saveY)
                     stream.showText("SALVACIÓN")
                     stream.endText()
                     ability.savingThrowTotal?.let {
                         val value=if(it>=0)"+"+it else it.toString()
-                        draw(stream,value,296f-body.width.measurePt(value),top-25f,false)
+                        draw(stream,value,296f-body.width.measurePt(value),saveY,false)
                     }
                 }
             }
@@ -1247,22 +1257,28 @@ internal class AndroidPcSheetV11PdfProofRenderer {
 
             val identity = buildList {
                 data.attributes.drop(6).forEachIndexed { index, attribute ->
-                    add(PcSheetV11FlowItem(
-                        "attribute:" + index,
-                        attribute.name + " " + attribute.score +
-                            " / mod " + attribute.modifier +
-                            " / salvación " +
-                            (attribute.savingThrowTotal?.toString() ?: "sin valor"),
-                        keepTogetherIfFits = true,
-                    ))
+                    val alreadyPrintedOnP1 = index + 6 < p1PrintedAttributeCount
+                    if (!alreadyPrintedOnP1) {
+                        add(PcSheetV11FlowItem(
+                            "attribute:" + index,
+                            attribute.name + " " + attribute.score +
+                                " / mod " + attribute.modifier +
+                                " / salvación " +
+                                (attribute.savingThrowTotal?.toString() ?: "sin valor"),
+                            keepTogetherIfFits = true,
+                        ))
+                    }
                     data.skills.withIndex()
                         .filter { (_, skill) -> skill.customSkillId != null &&
                             skill.ability == attribute.reference }
                         .forEach { (_, skill) ->
                             add(PcSheetV11FlowItem(
                                 "attribute-skill:" + skill.customSkillId,
-                                "Habilidad " + skill.name + ": " +
-                                    (skill.total?.toString() ?: "sin resolver") +
+                                "Habilidad " + skill.name +
+                                    // The source ability is still explicit if
+                                    // the full attribute was already placed P1.
+                                    (if (alreadyPrintedOnP1) " (" + attribute.name + ")" else "") +
+                                    ": " + (skill.total?.toString() ?: "sin resolver") +
                                     " / " + skill.training.name,
                                 keepTogetherIfFits = true,
                             ))
