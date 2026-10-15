@@ -351,9 +351,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     )
                 }
             else emptyList()
-            val bSkillsArea = PcSheetV11RectPt(49f,220f,244f,95f)
+            // Reserve 11pt for each approved B paper skill checkbox. Both
+            // physical columns are genuinely measured: x60..167 and x186..293
+            // (19pt between them houses the separator and second checkbox).
+            // This never adds a fake skill or clips an overlong source label.
+            val bSkillsArea = PcSheetV11RectPt(60f,220f,233f,95f)
             val bSkillsPlaced = if(!variantA) PcSheetV11MeasuredFlowPlacer.place(
-                PcSheetV11FlowSection.TRAITS,bSkillEntries,bSkillsArea,2,8f,
+                PcSheetV11FlowSection.TRAITS,bSkillEntries,bSkillsArea,2,19f,
                 skillFont.metrics.lineHeightPt,skillFont.width,
             ) else null
             fun drawP1BIndependentSkills(stream: PDPageContentStream) {
@@ -370,10 +374,22 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.restoreGraphicsState()
                 bSkillsPlaced?.cells?.filter{it.localPageIndex==1}?.forEach{cell->
                     if(cell.drawableText.isNotEmpty()){
+                        val baseline = skillFont.metrics.baselineIn(cell.cellPt)
+                        if (cell.sourceStartOffset == 0) {
+                            // One genuine blank 7×7pt square per SOURCE skill,
+                            // never one per wrapped fragment. P/E text is only
+                            // a source-backed training label, not a checked state.
+                            stream.saveGraphicsState()
+                            stream.setStrokingColor(Color(130,165,186))
+                            stream.setLineWidth(0.6f)
+                            stream.addRect(cell.cellPt.leftPt - 11f,
+                                baseline - 2f, 7f, 7f)
+                            stream.stroke()
+                            stream.restoreGraphicsState()
+                        }
                         stream.beginText()
                         stream.setFont(bodyPdfFont,7f)
-                        stream.newLineAtOffset(cell.cellPt.leftPt,
-                            skillFont.metrics.baselineIn(cell.cellPt))
+                        stream.newLineAtOffset(cell.cellPt.leftPt, baseline)
                         stream.showText(cell.drawableText)
                         stream.endText()
                     }

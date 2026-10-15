@@ -99,6 +99,53 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun variantBIndependentSkillsHaveRealBlankVectorPaperMarksInBothFixtures() {
+        // Physical PDF proof from the actual Desktop App, not a synthetic
+        // model. The golden B uses a separate TWO-column skills list, with one
+        // writable square for every printed, source-backed built-in skill.
+        for (fixture in listOf(
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json",
+            "03_mara_siete_umbrales_custom_extended.json",
+        )) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(PcSheetV11Variant.B,
+                    PcSheetExportStateSelection.PERMANENT), sources(fixture),
+            )
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                val p1 = pdf.getPage(0)
+                val commands = p1.contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                val firstColumnMarks = Regex(
+                    """(?m)(?:^|\\s)49(?:\\.0+)?\\s+[-0-9.]+\\s+7\\s+7\\s+re(?:\\s|$)"""
+                ).findAll(commands).count()
+                val secondColumnMarks = Regex(
+                    """(?m)(?:^|\\s)175(?:\\.0+)?\\s+[-0-9.]+\\s+7\\s+7\\s+re(?:\\s|$)"""
+                ).findAll(commands).count()
+                val standardNames = generated.semantic.skills.filter {
+                    it.builtInKey != null
+                }
+                assertEquals(18, standardNames.size,
+                    "Both SRD and custom fixture must preserve the 18 actual standard skills.")
+                assertEquals(standardNames.size,
+                    firstColumnMarks + secondColumnMarks,
+                    "Each real B skill printed on P1 must have exactly one vector mark.")
+                assertTrue(firstColumnMarks > 0 && secondColumnMarks > 0,
+                    "B paper marks must occupy BOTH physical skill subcolumns.")
+                val pageText = PDFTextStripper().apply {
+                    startPage = 1
+                    endPage = 1
+                }.getText(pdf)
+                assertTrue(pageText.contains("HABILIDADES"))
+                assertTrue(pageText.contains("Acrobacias"))
+                assertTrue(pageText.contains("Supervivencia"))
+                assertFalse(pageText.contains("STRENGTH"),
+                    "Paper-only B marks must not revert approved Spanish P1 labels.")
+            }
+        }
+    }
+
+    @Test
     fun realMaraApplicationServiceWritesMultiPageLetterPdfFromOwnRenderer() {
         val real = sources("03_mara_siete_umbrales_custom_extended.json")
         val generated = DesktopPcSheetExportService().generateV11Proof(
