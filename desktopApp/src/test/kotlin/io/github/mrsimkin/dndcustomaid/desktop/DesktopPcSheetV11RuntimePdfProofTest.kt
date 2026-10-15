@@ -1062,7 +1062,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 p4Text.contains("Elven Lineage"),
                 "Long genuine multi-word origins must remain in the measured flow.")
             for (name in listOf("Fire Bolt", "Light", "Mage Hand", "Fireball")) {
-                assertEquals(1, Regex(Regex.escape(name) + """(?=\\s|$)""")
+                assertEquals(1, Regex(Regex.escape(name) + """(?=\s|$)""")
                     .findAll(p4Text).count(),
                     "No source spell may disappear or duplicate when origins move.")
             }
