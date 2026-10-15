@@ -234,9 +234,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(p4Pages.first().contains("CD SALVACIÓN"))
             assertTrue(p4Pages.first().contains("ATAQUE MÁGICO"))
             assertTrue(p4Pages.joinToString("\n")
-                .lineSequence().count { it.contains("[ ] ______________________") } >= 20,
-                "P4 must reserve a handwritten checkbox on EVERY level 0–9 " +
-                    "and expand useful paper space beyond ten token rows.")
+                .lineSequence().count { it.contains("______________________") } >= 20,
+                "P4 must retain at least twenty physical handwriting lines.")
+            val vectorSquares = (0 until pdf.numberOfPages).sumOf { physical ->
+                val contents = pdf.getPage(physical).contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                Regex("""(?m)(?:^|\s)7 7 re(?:\s|$)""").findAll(contents).count()
+            }
+            assertTrue(vectorSquares >= 20,
+                "P4 paper-only checkbox marks must be real 7pt PDF rectangles.")
             assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })
             assertTrue(printed.lineSequence().any { it.trim() == "NOTAS" })
             assertTrue(printed.contains("PRUEBA INTERNA V11 - NO APROBADA"))
@@ -493,9 +500,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(p4Pages.first().contains("CD SALVACIÓN"))
             assertTrue(p4Pages.first().contains("ATAQUE MÁGICO"))
             assertTrue(p4Pages.joinToString("\n")
-                .lineSequence().count { it.contains("[ ] ______________________") } >= 20,
-                "P4 must reserve a handwritten checkbox on EVERY level 0–9 " +
-                    "and expand useful paper space beyond ten token rows.")
+                .lineSequence().count { it.contains("______________________") } >= 20,
+                "P4 must retain at least twenty physical handwriting lines.")
+            val vectorSquares = (0 until pdf.numberOfPages).sumOf { physical ->
+                val contents = pdf.getPage(physical).contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                Regex("""(?m)(?:^|\s)7 7 re(?:\s|$)""").findAll(contents).count()
+            }
+            assertTrue(vectorSquares >= 20,
+                "P4 paper-only checkbox marks must be real 7pt PDF rectangles.")
             assertTrue(printed.contains("Libro de conjuros"))
             val c2SpecialText = (1..pdf.numberOfPages).map { physical ->
                 PDFTextStripper().apply {
