@@ -1143,6 +1143,24 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     draw(stream, paperLine, cell.cellPt.leftPt + 16f,
                                         baseline, false)
                                 }
+                            } else if (title.startsWith("P4 - ") &&
+                                cell.sourceKey.startsWith("quick-spell:") &&
+                                cell.sourceStartOffset == 0) {
+                                // Every real spell row reserves its own 7pt PAPER
+                                // preparation box. Text still contains the exact
+                                // persisted per-source prepared status; a paper
+                                // square NEVER asserts a digital prepared value.
+                                val baseline = body.metrics.baselineIn(cell.cellPt)
+                                stream.saveGraphicsState()
+                                stream.setStrokingColor(Color(130, 165, 186))
+                                stream.setLineWidth(0.65f)
+                                stream.addRect(cell.cellPt.leftPt + 2f, baseline - 1f, 7f, 7f)
+                                stream.stroke()
+                                stream.restoreGraphicsState()
+                                if (cell.drawableText.isNotEmpty()) {
+                                    draw(stream, cell.drawableText, cell.cellPt.leftPt,
+                                        baseline, false)
+                                }
                             } else if (cell.drawableText.isNotEmpty()) {
                                 draw(stream, cell.drawableText,
                                     cell.cellPt.leftPt,
@@ -1534,7 +1552,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     "] " + sourceLabel
                             }
                             add(PcSheetV11FlowItem("quick-spell:" + entry.spell.id,
-                                entry.spell.name +
+                                // Three measured spaces reserve the vector checkbox
+                                // inside the first source line; no name is truncated.
+                                "   " + entry.spell.name +
                                     (if (sourceInfo.isBlank()) "" else " | " + sourceInfo),
                                 keepTogetherIfFits = true))
                         }

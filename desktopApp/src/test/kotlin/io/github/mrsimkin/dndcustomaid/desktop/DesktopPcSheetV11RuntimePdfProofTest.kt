@@ -781,6 +781,42 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun genuineSpellRowsAndBlankPaperRowsHaveOnePhysicalSquareEach() {
+        for ((fixture, variant) in listOf(
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
+        )) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources(fixture),
+            )
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                var marks = 0
+                var paperRows = 0
+                for (index in 0 until pdf.numberOfPages) {
+                    val p4Text = PDFTextStripper().apply {
+                        startPage = index + 1
+                        endPage = index + 1
+                    }.getText(pdf)
+                    if (!p4Text.contains("P4 - Conjuros")) continue
+                    paperRows += p4Text.lineSequence().count {
+                        it.contains("______________________")
+                    }
+                    val stream = pdf.getPage(index).contents.use {
+                        it.readBytes().toString(Charsets.ISO_8859_1)
+                    }
+                    marks += Regex("""(?m)(?:^|\s)7 7 re(?:\s|$)""")
+                        .findAll(stream).count()
+                }
+                assertTrue(paperRows >= 10, "One paper entry per level 0-9 is mandatory.")
+                assertEquals(paperRows + generated.semantic.spells.size, marks,
+                    "Every persisted real spell and paper-only row needs exactly one " +
+                        "physical 7pt square; never fabricate extra spell entries.")
+            }
+        }
+    }
+
+    @Test
     fun paperOnlySpellRowsUseVectorMarksInsteadOfLiteralBrackets() {
         val real = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
         val bytes = DesktopPcSheetExportService().generateV11Proof(
