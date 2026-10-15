@@ -730,6 +730,28 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun paperOnlySpellRowsUseVectorMarksInsteadOfLiteralBrackets() {
+        val real = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val bytes = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.B,
+                PcSheetExportStateSelection.PERMANENT),
+            real,
+        ).bytes
+        Loader.loadPDF(bytes).use { pdf ->
+            val p4 = PDFTextStripper().apply {
+                startPage = 4
+                endPage = 4
+            }.getText(pdf)
+            assertTrue(p4.contains("TRUCOS / NIVEL 0"))
+            assertTrue(p4.contains("NIVEL 9"))
+            assertFalse(Regex("""\[ \]\s*_{3,}""").containsMatchIn(p4),
+                "Empty paper spell rows must use a vector square, not [ ] glyphs.")
+            assertTrue(p4.contains("[X] Mago"),
+                "Source-backed real spell preparation state must be preserved.")
+        }
+    }
+
+    @Test
     fun ammunitionAboveTwentyUsesExplicitFractionAndNeverInventsTwentyCheckboxes() {
         val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
         val ammoId = original.permanent.closure.inventoryUsage

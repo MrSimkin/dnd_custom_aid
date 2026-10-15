@@ -1089,7 +1089,26 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             stream.restoreGraphicsState()
                         }
                         pageCells.forEach { cell ->
-                            if (cell.drawableText.isNotEmpty()) {
+                            // Golden P4 paper-only rows use REAL square marks.
+                            // Persisted spell preparation still uses source-specific
+                            // text state; blank handwriting has no magical state.
+                            if (title.startsWith("P4 - ") &&
+                                cell.sourceKey.startsWith("spell-handwritten:") &&
+                                cell.sourceStartOffset == 0 &&
+                                cell.drawableText.startsWith("[ ] ")) {
+                                val baseline = body.metrics.baselineIn(cell.cellPt)
+                                stream.saveGraphicsState()
+                                stream.setStrokingColor(Color(130, 165, 186))
+                                stream.setLineWidth(0.65f)
+                                stream.addRect(cell.cellPt.leftPt + 2f, baseline - 1f, 7f, 7f)
+                                stream.stroke()
+                                stream.restoreGraphicsState()
+                                val paperLine = cell.drawableText.removePrefix("[ ] ")
+                                if (paperLine.isNotEmpty()) {
+                                    draw(stream, paperLine, cell.cellPt.leftPt + 16f,
+                                        baseline, false)
+                                }
+                            } else if (cell.drawableText.isNotEmpty()) {
                                 draw(stream, cell.drawableText,
                                     cell.cellPt.leftPt,
                                     body.metrics.baselineIn(cell.cellPt),
