@@ -87,4 +87,4 @@ jobs:
           name: v11-approved-visual-reference
           path: build/approved-v11-reference/*
           if-no-files-found: error
-          retention-days: 3
+          retention-days: 7
