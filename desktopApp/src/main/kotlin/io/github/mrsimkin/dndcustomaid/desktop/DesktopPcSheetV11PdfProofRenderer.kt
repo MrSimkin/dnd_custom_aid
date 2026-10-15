@@ -480,6 +480,94 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
 
 
+
+            // P1 has an independent, measured right-side mechanical summary.
+            // Full trait descriptions remain source-backed on P2/C2.
+            val p1Font = measurer.resolve(PcSheetV11Typeface.BODY, 7f)
+            fun p1DrawSmall(stream: PDPageContentStream, content: String, x: Float, y: Float) {
+                if (content.isEmpty()) return
+                stream.beginText()
+                stream.setFont(bodyPdfFont, 7f)
+                stream.newLineAtOffset(x, y)
+                stream.showText(content)
+                stream.endText()
+            }
+            val p1TraitNames = data.traits.asSequence().map { it.name }
+                .filter { it.isNotBlank() && p1Font.width.measurePt(it) <= 121f }
+                .take(12).toList()
+            fun drawP1Traits(stream: PDPageContentStream) {
+                val left = 312f
+                val width = 258f
+                val top = 382f
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(130, 165, 186))
+                stream.setLineWidth(0.5f)
+                stream.addRect(left, 301f, width, top - 301f)
+                stream.stroke()
+                stream.moveTo(441f, 301f)
+                stream.lineTo(441f, top - 15f)
+                stream.stroke()
+                repeat(6) { row ->
+                    val y = top - 21f - row * 10f
+                    for (col in 0..1) {
+                        val x = left + col * 129f
+                        stream.moveTo(x + 3f, y - 3f)
+                        stream.lineTo(x + 126f, y - 3f)
+                        stream.stroke()
+                    }
+                }
+                stream.restoreGraphicsState()
+                p1DrawSmall(stream, "RASGOS MECÁNICOS", left + 4f, top - 11f)
+                p1TraitNames.forEachIndexed { index, name ->
+                    p1DrawSmall(stream, name, left + 4f + (index / 6) * 129f,
+                        top - 21f - (index % 6) * 10f)
+                }
+            }
+
+            // Explicit AMMUNITION usage is required; names do not imply ammo.
+            // Draw up to two P1 rows with groups of five paper-only marks.
+            // Overflow and full source details stay in C2; never count marks twice.
+            val p1AmmunitionIds = data.source.closure.inventoryUsage
+                .filter { it.kind ==
+                    io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind.AMMUNITION }
+                .map { it.itemId }.toSet()
+            val p1AmmoItems = data.source.sheet.inventoryItems
+                .filter { it.id in p1AmmunitionIds && it.quantity >= 0 &&
+                    p1Font.width.measurePt(it.name) <= 68f }
+                .sortedWith(compareBy<
+                    io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem> {
+                    it.sortOrder
+                }.thenBy { it.id.toString() }).take(2)
+            val p1AmmoIds = p1AmmoItems.map { it.id }.toSet()
+            fun drawP1Ammunition(stream: PDPageContentStream) {
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(130, 165, 186))
+                stream.setLineWidth(0.55f)
+                stream.addRect(312f, 102f, 258f, 46f)
+                stream.stroke()
+                for (y in listOf(131f, 115f)) {
+                    stream.moveTo(312f, y)
+                    stream.lineTo(570f, y)
+                    stream.stroke()
+                }
+                stream.restoreGraphicsState()
+                p1DrawSmall(stream, "MUNICIONES / MARCAS:", 316f, 137f)
+                p1AmmoItems.forEachIndexed { row, item ->
+                    val baseline = 122f - row * 16f
+                    p1DrawSmall(stream, item.name, 316f, baseline)
+                    when {
+                        item.quantity == 0 -> p1DrawSmall(stream, "0", 392f, baseline)
+                        item.quantity <= 20 -> repeat(item.quantity) { index ->
+                            val x = 392f + index * 8f + (index / 5) * 4f
+                            require(x + 6f <= 570f)
+                            stream.addRect(x, baseline - 3f, 6f, 6f)
+                            stream.stroke()
+                        }
+                        else -> p1DrawSmall(stream, "____ / " + item.quantity, 392f, baseline)
+                    }
+                }
+            }
+
             fun drawP1Portrait(stream: PDPageContentStream) {
                 val frameX = 42f
                 val frameY = 605f
@@ -815,6 +903,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             drawP1Attributes(stream)
                             drawP1Attacks(stream)
                             drawP1Spellcasting(stream)
+                            drawP1Traits(stream)
+                            drawP1Ammunition(stream)
                             drawP1Portrait(stream)
                             drawP1IdentityFields(stream)
                             drawP1CombatReference(stream)
@@ -1282,7 +1372,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         it.sortOrder
                     }.thenBy { it.id.toString() },
                 )
-            val ammunitionTracks = ammunitionItems.filter { it.quantity in 0..20 }
+            val ammunitionTracks = ammunitionItems.filter {
+                it.quantity in 0..20 && it.id !in p1AmmoIds
+            }
                 .associate { item -> "ammo-track:" + item.id to item.quantity }
             val resourceLines = buildList {
                 allResources.forEach { resource ->
@@ -1315,12 +1407,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             } ?: ""),
                         keepTogetherIfFits = true,
                     ))
-                    add(PcSheetV11FlowItem(
-                        sourceKey = "ammo-track:" + item.id,
-                        text = if (item.quantity in 0..20) "MARCAS:" else
-                            "MARCAS: ____ / " + item.quantity,
-                        keepTogetherIfFits = true,
-                    ))
+                    if (item.id !in p1AmmoIds) {
+                        add(PcSheetV11FlowItem(
+                            sourceKey = "ammo-track:" + item.id,
+                            text = if (item.quantity in 0..20) "MARCAS:" else
+                                "MARCAS: ____ / " + item.quantity,
+                            keepTogetherIfFits = true,
+                        ))
+                    }
                 }
             }
             // Compact MIXED C2: categories share the same measured two-column

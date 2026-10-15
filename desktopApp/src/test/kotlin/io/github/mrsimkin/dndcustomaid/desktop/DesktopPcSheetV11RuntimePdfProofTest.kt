@@ -333,6 +333,19 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertFalse(split.getTextForRegion("left").contains("ATAQUE / RANGO"))
                 assertTrue(split.getTextForRegion("attacks").contains("ATAQUE / RANGO"))
                 assertTrue(split.getTextForRegion("spells").contains("LANZAMIENTO DE CONJUROS"))
+                val p1MechanicalRegions = PDFTextStripperByArea().apply {
+                    addRegion("traits", Rectangle2D.Float(309f, 408f, 264f, 87f))
+                    addRegion("ammo", Rectangle2D.Float(309f, 641f, 264f, 53f))
+                    extractRegions(page)
+                }
+                assertTrue(p1MechanicalRegions.getTextForRegion("traits")
+                    .contains("RASGOS MECÁNICOS"), "P1 real two-column trait panel absent.")
+                assertTrue(p1MechanicalRegions.getTextForRegion("ammo")
+                    .contains("MUNICIONES / MARCAS"), "P1 ammunition paper band absent.")
+                assertFalse(p1MechanicalRegions.getTextForRegion("traits")
+                    .contains("ATAQUE / RANGO"), "P1 traits overlap attacks.")
+                assertFalse(p1MechanicalRegions.getTextForRegion("ammo")
+                    .contains("ESPACIOS"), "P1 ammunition overlaps spell slots.")
                 if(variant==PcSheetV11Variant.B){
                     val skillsByColumn=PDFTextStripperByArea().apply{
                         addRegion("first",Rectangle2D.Float(47f,471f,121f,118f))
@@ -398,6 +411,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(p1.contains("Ballesta ligera"))
             assertTrue(p1.contains("LANZAMIENTO DE CONJUROS"),
                 "The P1 spellcasting area is mandatory even without real spells.")
+            assertTrue(p1.contains("MUNICIONES / MARCAS:"))
+            assertTrue(p1.contains("Virotes"),
+                "Persisted classified ammunition must be present physically on Aldren P1.")
+            assertTrue(p1.contains("RASGOS MECÁNICOS"))
             assertTrue(p1.contains("ESPACIOS"))
             assertTrue(p1.contains("GASTADOS"))
             assertTrue(printed.contains("C2 - Habilidades, acciones y recursos"))
