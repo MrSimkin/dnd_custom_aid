@@ -676,6 +676,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
                 real,
             ).bytes
+            // Retain the full real-Mara A App-generated PDF for P1/C2
+            // independent font, box, position and duplication inspection.
+            if (variant == PcSheetV11Variant.A) {
+                preserveRealApplicationPdf(pdfBytes, "V11-INTERNAL-PROOF-Mara-A.pdf")
+            }
             Loader.loadPDF(pdfBytes).use { pdf ->
                 val pages = (1..pdf.numberOfPages).map { physical ->
                     PDFTextStripper().apply {
