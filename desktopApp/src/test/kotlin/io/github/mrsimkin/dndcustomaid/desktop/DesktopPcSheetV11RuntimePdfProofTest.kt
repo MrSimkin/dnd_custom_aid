@@ -693,10 +693,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     val key = "Habilidad " + skill
                     assertTrue(full.contains(attribute),
                         "Custom attribute must survive in C2: " + attribute)
-                    assertTrue(full.contains(key),
-                        "Persisted dependent custom skill must survive C2: " + skill)
-                    assertEquals(1, Regex(Regex.escape(key)).findAll(full).count(),
-                        "Linked skill must not repeat as a detached second copy: " + skill)
+                    // Variant A prints a fitting skill directly under its
+                    // attribute, without the C2-only "Habilidad" prefix.
+                    // Test the source name exactly once across BOTH routes.
+                    assertTrue(full.contains(skill),
+                        "Persisted dependent custom skill must survive P1 or C2: " + skill)
+                    assertEquals(1, Regex(Regex.escape(skill)).findAll(full).count(),
+                        "Linked skill must appear exactly once in the real PDF: " + skill)
                     if (variant == PcSheetV11Variant.B) {
                         assertTrue(pages[0].contains(attribute),
                             "Golden B requires fitting custom attribute on physical P1: " +
