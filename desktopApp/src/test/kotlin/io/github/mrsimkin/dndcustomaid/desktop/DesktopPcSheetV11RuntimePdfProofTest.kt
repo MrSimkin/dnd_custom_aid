@@ -1033,6 +1033,42 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun realIlyraP4AlignsOnlyFittingSpellOriginsWithoutLosingLongSources() {
+        val generated = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.B,
+                PcSheetExportStateSelection.PERMANENT),
+            sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json"),
+        )
+        Loader.loadPDF(generated.bytes).use { pdf ->
+            val p4 = pdf.getPage(3)
+            val region = PDFTextStripperByArea().apply {
+                // Left P4 168pt column: real source origin is visibly
+                // right-aligned; spell name remains in a separate left lane.
+                addRegion("spell-names", Rectangle2D.Float(43f, 180f, 100f, 140f))
+                addRegion("real-right-origins",
+                    Rectangle2D.Float(153f, 180f, 60f, 140f))
+                extractRegions(p4)
+            }
+            assertTrue(region.getTextForRegion("spell-names").contains("Fire Bolt"),
+                "Persisted real spell name must remain on the left.")
+            assertTrue(region.getTextForRegion("real-right-origins").contains("[X] Mago"),
+                "A short real casting source must be printed in the golden right lane.")
+            val p4Text = PDFTextStripper().apply {
+                startPage = 4; endPage = 4
+            }.getText(pdf)
+            assertTrue(p4Text.contains("Magic Initiate") &&
+                p4Text.contains("Elven Lineage"),
+                "Long genuine multi-word origins must remain in the measured flow.")
+            for (name in listOf("Fire Bolt", "Light", "Mage Hand", "Fireball")) {
+                assertEquals(1, Regex(Regex.escape(name) + """(?=\\s|$)""")
+                    .findAll(p4Text).count(),
+                    "No source spell may disappear or duplicate when origins move.")
+            }
+        }
+    }
+
     @Test
     fun genuineSpellRowsAndBlankPaperRowsHaveOnePhysicalSquareEach() {
         for ((fixture, variant) in listOf(

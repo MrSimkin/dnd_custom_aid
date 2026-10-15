@@ -1185,6 +1185,29 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 columns.forEach { p3RuledCells(stream, it, body.metrics.lineHeightPt) }
             }
 
+            // The approved P4 golden places a short, genuine spell origin at
+            // the far right of its own row. Long associations MUST continue
+            // through the existing measured text flow, never be abbreviated.
+            val p4SourceFont = measurer.resolve(PcSheetV11Typeface.BODY, 7f)
+            val p4SourceLabels = data.spells.associate { entry ->
+                "quick-spell:" + entry.spell.id to entry.sources.joinToString(" / ") {
+                    val sourceLabel = it.sourceName?.takeIf { name -> name.isNotBlank() }
+                        ?: it.sourceId.toString()
+                    "[" + (if (it.prepared) "X" else " ") + "] " + sourceLabel
+                }
+            }
+            val p4RightSources = data.spells.mapNotNull { entry ->
+                val key = "quick-spell:" + entry.spell.id
+                val sourceInfo = p4SourceLabels.getValue(key)
+                val fullName = "     " + entry.spell.name
+                // 168pt true 3-column text band with a 12pt glyph gutter;
+                // no fake slots and no shrinking long spell/source records.
+                if (sourceInfo.isNotBlank() &&
+                    body.width.measurePt(fullName) +
+                    p4SourceFont.width.measurePt(sourceInfo) + 12f <= 168f
+                ) key to sourceInfo else null
+            }.toMap()
+
             fun addSection(
                 title: String,
                 section: PcSheetV11FlowSection,
@@ -1286,6 +1309,19 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 if (cell.drawableText.isNotEmpty()) {
                                     draw(stream, cell.drawableText, cell.cellPt.leftPt,
                                         baseline, false)
+                                }
+                                p4RightSources[cell.sourceKey]?.let { realSource ->
+                                    val width = p4SourceFont.width.measurePt(realSource)
+                                    val x = cell.cellPt.rightPt - width - 2f
+                                    require(x >= cell.cellPt.leftPt +
+                                        body.width.measurePt(cell.drawableText) + 10f) {
+                                        "Source-backed P4 right label overlaps the spell name."
+                                    }
+                                    stream.beginText()
+                                    stream.setFont(bodyPdfFont, 7f)
+                                    stream.newLineAtOffset(x, baseline)
+                                    stream.showText(realSource)
+                                    stream.endText()
                                 }
                             } else if (cell.drawableText.isNotEmpty()) {
                                 draw(stream, cell.drawableText,
@@ -1677,20 +1713,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             keepTogetherIfFits = true))
                         val spellsHere = data.spells.filter { it.spell.level == level }
                         spellsHere.forEach { entry ->
-                            val sourceInfo = entry.sources.joinToString(" / ") { association ->
-                                val sourceLabel = association.sourceName
-                                    ?.takeIf { it.isNotBlank() }
-                                    ?: association.sourceId.toString()
-                                "[" + (if (association.prepared) "X" else " ") +
-                                    "] " + sourceLabel
-                            }
-                            add(PcSheetV11FlowItem("quick-spell:" + entry.spell.id,
+                            val key = "quick-spell:" + entry.spell.id
+                            val sourceInfo = p4SourceLabels.getValue(key)
+                            add(PcSheetV11FlowItem(key,
                                 // Five measured spaces separate the actual first
                                 // spell glyph from the 7pt vector box (verified original
                                 // 3-space result overlapped its border by ~1.8pt).
                                 // No source name or status is abbreviated or trimmed.
                                 "     " + entry.spell.name +
-                                    (if (sourceInfo.isBlank()) "" else " | " + sourceInfo),
+                                    (if (sourceInfo.isBlank() || key in p4RightSources) ""
+                                    else " | " + sourceInfo),
                                 keepTogetherIfFits = true))
                         }
                         // Rows are PAPER-ONLY: no fabricated spell, source, preparation
