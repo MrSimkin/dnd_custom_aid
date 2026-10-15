@@ -339,7 +339,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     extractRegions(page)
                 }
                 assertTrue(p1MechanicalRegions.getTextForRegion("traits")
-                    .contains("RASGOS MECÁNICOS"), "P1 real two-column trait panel absent.")
+                    .contains("RASGOS Y ATRIBUTOS"), "P1 real two-column trait panel absent.")
                 assertTrue(p1MechanicalRegions.getTextForRegion("ammo")
                     .contains("MUNICIONES / MARCAS"), "P1 ammunition paper band absent.")
                 assertFalse(p1MechanicalRegions.getTextForRegion("traits")
@@ -414,7 +414,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(p1.contains("MUNICIONES / MARCAS:"))
             assertTrue(p1.contains("Virotes"),
                 "Persisted classified ammunition must be present physically on Aldren P1.")
-            assertTrue(p1.contains("RASGOS MECÁNICOS"))
+            assertTrue(p1.contains("RASGOS Y ATRIBUTOS"))
             assertTrue(p1.contains("ESPACIOS"))
             assertTrue(p1.contains("GASTADOS"))
             assertTrue(printed.contains("C2 - Habilidades, acciones y recursos"))
@@ -638,6 +638,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(text.contains("CANTIDAD 41"))
             assertTrue(text.contains("MARCAS: ____ / 41"),
                 "Large ammunition quantities must be tracked with ____ / X.")
+            val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
+            assertTrue(p1.contains("MARCAS: ____ / 41"),
+                "The genuine over-20 fraction must be in P1 rather than only in C2.")
+            assertEquals(1, Regex("MARCAS: ____ / 41").findAll(text).count(),
+                "One source item must not create duplicate physical mark tracks.")
             assertFalse(text.contains("MARCAS: ____ / 20"))
         }
     }

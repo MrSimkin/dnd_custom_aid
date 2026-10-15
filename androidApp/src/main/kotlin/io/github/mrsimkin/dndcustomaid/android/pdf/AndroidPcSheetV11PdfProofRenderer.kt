@@ -517,7 +517,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     }
                 }
                 stream.restoreGraphicsState()
-                p1DrawSmall(stream, "RASGOS MECÁNICOS", left + 4f, top - 11f)
+                p1DrawSmall(stream, "RASGOS Y ATRIBUTOS", left + 4f, top - 11f)
                 p1TraitNames.forEachIndexed { index, name ->
                     p1DrawSmall(stream, name, left + 4f + (index / 6) * 129f,
                         top - 21f - (index % 6) * 10f)
@@ -563,7 +563,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             stream.addRect(x, baseline - 3f, 6f, 6f)
                             stream.stroke()
                         }
-                        else -> p1DrawSmall(stream, "____ / " + item.quantity, 392f, baseline)
+                        else -> p1DrawSmall(stream, "MARCAS: ____ / " + item.quantity, 392f, baseline)
                     }
                 }
             }
