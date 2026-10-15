@@ -126,6 +126,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         assertEquals(1, line.findAll(commands).count(),
                             "Real B skills paper row y=$y x=$left..$right " +
                                 "must be whole, unique and inside its own column.")
+                        val bandWidth = right - left
+                        val filledBand = Regex(
+                            """(?m)(?:^|\s)""" + left + """\s+""" + (y-1) +
+                                """\s+""" + bandWidth +
+                                """\s+14\s+re(?:\s|$)"""
+                        )
+                        assertEquals(1, filledBand.findAll(commands).count(),
+                            "Each writable B row must retain its complete " +
+                                "inside-border pale-blue band without clipping.")
                     }
                 }
                 val blankText = PDFTextStripperByArea().apply {
