@@ -1280,6 +1280,30 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             }
                             stream.restoreGraphicsState()
                         }
+                        // Mixed C2 must preserve the approved blue interior
+                        // cartela language for each genuine source-group heading.
+                        // Paint ONLY within its already-measured cell: this
+                        // cannot consume paper, move source text, or affect the
+                        // two-column paginator and manuscript NOTAS geometry.
+                        if (title == "C2 - Habilidades, acciones y recursos") {
+                            val groupHeadings = pageCells.filter {
+                                it.sourceKey.startsWith("c2-heading:")
+                            }
+                            stream.saveGraphicsState()
+                            stream.setNonStrokingColor(Color(217, 236, 245))
+                            stream.setStrokingColor(Color(80, 122, 151))
+                            stream.setLineWidth(0.55f)
+                            groupHeadings.forEach { heading ->
+                                val cell = heading.cellPt
+                                stream.addRect(cell.leftPt, cell.bottomPt,
+                                    cell.widthPt, cell.heightPt)
+                                stream.fill()
+                                stream.addRect(cell.leftPt, cell.bottomPt,
+                                    cell.widthPt, cell.heightPt)
+                                stream.stroke()
+                            }
+                            stream.restoreGraphicsState()
+                        }
                         pageCells.forEach { cell ->
                             // Golden P4 paper-only rows use REAL square marks.
                             // Persisted spell preparation still uses source-specific
