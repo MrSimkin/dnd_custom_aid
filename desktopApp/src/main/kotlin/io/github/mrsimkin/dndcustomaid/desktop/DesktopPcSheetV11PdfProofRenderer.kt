@@ -50,6 +50,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // created. Footers and C2 backlinks are resolved only when the final
             // document length is known: no section-local page guesses.
             val physicalSectionKeys = mutableListOf<String>()
+            // A mixed C2 can now carry real P2 trait fragments alongside P1
+            // sources. Track actual physical pages; never infer a P2 backlink
+            // from a generic C2 heading or a section-local ordinal.
+            val mixedC2TraitPages = mutableSetOf<Int>()
 
             fun draw(stream: PDPageContentStream, text: String, x: Float, y: Float, label: Boolean) {
                 if (text.isEmpty()) return
@@ -1248,6 +1252,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         val pageCells = flow.cells.filter {
                             it.localPageIndex == index + 1
                         }
+                        if (title == "C2 - Habilidades, acciones y recursos" &&
+                            pageCells.any { it.sourceKey.startsWith("p2-trait:") }) {
+                            mixedC2TraitPages += pdf.numberOfPages
+                        }
                         // Golden P4 uses quiet blue level bands and ruled writing
                         // rows, not free-floating glyphs over a blank page.
                         if (title.startsWith("P4 - ")) {
@@ -1835,6 +1843,24 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     }
                 }
             }
+            fun unprintedSuffix(
+                inputs: List<PcSheetV11FlowItem>,
+                printedOnP2: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PlacedFlow,
+            ): List<PcSheetV11FlowItem> = inputs.mapNotNull { item ->
+                val consumed = printedOnP2.cells.asSequence()
+                    .filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
+                    .maxOfOrNull { it.sourceEndExclusive } ?: 0
+                val originalPrefix = printedOnP2.cells
+                    .filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
+                    .joinToString("") { it.sourceText }
+                require(originalPrefix == item.text.substring(0, consumed)) {
+                    "P2 must preserve the exact prefix of " + item.sourceKey
+                }
+                if (consumed == item.text.length) null
+                else item.copy(text = item.text.substring(consumed))
+            }
+
+            val remainingTraits = unprintedSuffix(traitLines, traitsPlaced)
             // Compact MIXED C2: categories share the same measured two-column
             // page(s). Distinct headings are real rows, not dedicated blank pages.
             // UUID-backed records keep stable independent source keys and order.
@@ -1859,6 +1885,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     add(PcSheetV11FlowItem("c2-heading:resources",
                         "RECURSOS Y MUNICIONES", keepTogetherIfFits = true))
                     addAll(resourceLines)
+                }
+                if (remainingTraits.isNotEmpty()) {
+                    // Source-accurate P2 continuation follows the P1 streams
+                    // inside the same TWO-column measured C2. Extra pages are
+                    // generated only if actual text requires them.
+                    add(PcSheetV11FlowItem("c2-heading:traits",
+                        "RASGOS / CONTINUACIÓN P2", keepTogetherIfFits = true))
+                    addAll(remainingTraits)
                 }
             }
             addSection("C2 - Habilidades, acciones y recursos",
@@ -1915,29 +1949,6 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     }
                 }
             }
-
-            fun unprintedSuffix(
-                inputs: List<PcSheetV11FlowItem>,
-                printedOnP2: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PlacedFlow,
-            ): List<PcSheetV11FlowItem> = inputs.mapNotNull { item ->
-                val consumed = printedOnP2.cells.asSequence()
-                    .filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
-                    .maxOfOrNull { it.sourceEndExclusive } ?: 0
-                val originalPrefix = printedOnP2.cells
-                    .filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
-                    .joinToString("") { it.sourceText }
-                require(originalPrefix == item.text.substring(0, consumed)) {
-                    "P2 must preserve the exact prefix of " + item.sourceKey
-                }
-                if (consumed == item.text.length) null
-                else item.copy(text = item.text.substring(consumed))
-            }
-
-            val remainingTraits = unprintedSuffix(traitLines, traitsPlaced)
-            addSection(
-                "C2 - Rasgos / continuación", PcSheetV11FlowSection.TRAITS,
-                remainingTraits, columns = 2,
-            )
 
             // The golden C2 extends the SAME full-width four-field grammar as
             // P2. True source-backed rows may span physical pages or become
@@ -2246,8 +2257,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 key == "C2 - Equipo y tesoro" ||
                     key == "C2 - Rasgos / continuación" ||
                     key == "C2 - Equipo especial / continuación"
-            val c2FromP2 = physicalSectionKeys.indexOfFirst { isFromP2(it) }
+            val dedicatedC2FromP2 = physicalSectionKeys.indexOfFirst { isFromP2(it) }
                 .takeIf { it >= 0 }?.plus(1)
+            val c2FromP2 = listOfNotNull(
+                dedicatedC2FromP2, mixedC2TraitPages.minOrNull(),
+            ).minOrNull()
             // A C2 page never points at P2 merely because it happens to be a
             // continuation: derive the correct base-page role from its module.
             for (index in 0 until totalPages - 1) {
@@ -2272,7 +2286,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         "CONTINÚA EN C2 PÁG. " + c2FromP2
                     parent != null && prev == null ->
                         "VIENE DE " + parent.first + " PÁG. " + parent.second +
+                            (if (key == mixedC2Key &&
+                                physicalPage in mixedC2TraitPages)
+                                " / P2 PÁG. " + physicalP2 else "") +
                             (next?.let { " | SIG. " + it } ?: "")
+                    key == mixedC2Key &&
+                        mixedC2TraitPages.minOrNull() == physicalPage ->
+                        "VIENE DE P2 PÁG. " + physicalP2 + " | " +
+                            listOfNotNull(
+                                prev?.let { "ANT. " + it },
+                                next?.let { "SIG. " + it },
+                            ).joinToString(" | ")
                     else -> listOfNotNull(
                         prev?.let { "ANT. " + it },
                         next?.let { "SIG. " + it },

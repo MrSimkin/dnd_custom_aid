@@ -321,9 +321,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(pagesByPhysicalNumber[mixedC2Physical - 1].contains(
                 "VIENE DE P1 PÁG. " + p1Physical,
             ), "Mixed C2 must link to the true physical P1, never P2.")
-            assertFalse(pagesByPhysicalNumber[mixedC2Physical - 1].contains(
-                "VIENE DE P2 PÁG."),
-                "A continuation of P1 must not claim P2 as its parent.")
+            if (pagesByPhysicalNumber[mixedC2Physical - 1]
+                    .contains("RASGOS / CONTINUACIÓN P2")) {
+                assertTrue(pagesByPhysicalNumber[mixedC2Physical - 1]
+                    .contains("P2 PÁG. " + p2Physical),
+                    "A mixed page with genuine P2 traits needs both source backlinks.")
+            } else {
+                assertFalse(pagesByPhysicalNumber[mixedC2Physical - 1]
+                    .contains("VIENE DE P2 PÁG."),
+                    "A P1-only mixed page must never invent a P2 provenance.")
+            }
             assertTrue(pagesByPhysicalNumber[p2Physical - 1].contains(
                 "CONTINÚA EN C2 PÁG. " + p2C2Physical,
             ), "P2 must point to its OWN first continuation, not mixed P1 C2.")
@@ -341,7 +348,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "Golden P2 special equipment must use real labelled columns: " +
                         column)
             }
-            assertTrue(printed.contains("C2 - Rasgos"))
+            assertTrue(printed.contains("RASGOS / CONTINUACIÓN P2"),
+                "Deferred P2 traits must remain in the shared C2 manuscript flow.")
             assertTrue(printed.contains("C2 - Equipo especial"))
             val specialContinuation = pagesByPhysicalNumber.filter {
                 realHeading(it, "C2 - Equipo especial / continuación")
@@ -921,6 +929,36 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(c2.contains("Contratos arcanos (Fortuna)"))
             assertTrue(c2.contains("Sincronía (Cordura)"))
             assertTrue(c2.contains("Manipulación de éter (Éter)"))
+        }
+    }
+
+    @Test
+    fun actualIlyraTraitsShareMeasuredC2WithResourcesInsteadOfWastePage() {
+        val generated = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.B,
+                PcSheetExportStateSelection.PERMANENT),
+            sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json"),
+        )
+        Loader.loadPDF(generated.bytes).use { pdf ->
+            val pages = (1..pdf.numberOfPages).map { n ->
+                PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+            }
+            val mixed = pages.first { it.contains("C2 - Habilidades, acciones y recursos") }
+            assertTrue(mixed.contains("RASGOS / CONTINUACIÓN P2"),
+                "A short genuine P2 trait remainder must fit the existing mixed C2.")
+            for (trait in listOf("Potent Cantrip", "Ability Score Improvement", "Memorize Spell")) {
+                assertEquals(1, Regex(Regex.escape(trait)).findAll(pages.joinToString("\n")).count(),
+                    "Persisted trait is missing or duplicated across P2 and mixed C2: " + trait)
+            }
+            assertTrue(mixed.contains("RECURSOS Y MUNICIONES"),
+                "Combining modules must not delete existing P1 resources.")
+            assertFalse(pages.any { it.contains("C2 - Rasgos / continuación") },
+                "A small P2 trait remainder may not occupy a redundant full C2 sheet.")
+            assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. "),
+                "The real P2 must point to its first physical continuation.")
+            assertTrue(mixed.contains("P2 PÁG. 2"),
+                "A source-mixed C2 must carry a verifiable physical P2 backlink.")
+            assertTrue(pages.last().trim().endsWith("NOTAS"))
         }
     }
 
