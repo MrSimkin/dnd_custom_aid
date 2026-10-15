@@ -699,16 +699,68 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         assertTrue(pages.any { text -> text.contains("C2 - ") &&
                             text.contains(key + " (" + attribute + ")") },
                             "The C2 skill must preserve its P1 custom ability ID relation.")
+                    } else if (pages[0].contains(attribute)) {
+                        assertTrue(pages[0].contains(skill),
+                            "Fitting A custom abilities must keep their associated skill below.")
+                        assertFalse(pages.drop(1).joinToString("\n").contains(key),
+                            "An A skill already printed in P1 must not repeat in C2.")
                     } else {
                         assertTrue(pages.any { text -> text.contains("C2 - ") &&
                             text.contains(attribute) && text.contains(key) },
-                            "A's grouped custom attribute/skill must survive C2.")
+                            "Unfitted A source attribute and skill must survive together C2.")
                     }
                 }
             }
         }
     }
 
+
+    @Test
+    fun measuredVariantAPlacesOnlyCompleteCustomAttributeAndSkillGroupsOnP1() {
+        val original = sources("03_mara_siete_umbrales_custom_extended.json")
+        // Preserve the real Mara base character, two genuine custom attributes,
+        // and their two actual successor-linked custom skills. This 6+2 case
+        // isolates geometric capacity without inventing fictitious attr states.
+        val attrs = original.permanent.successor.customAttributes.take(2)
+        val skills = original.permanent.closure.customSkills.filter {
+            it.name == "Contratos arcanos" || it.name == "Sincronía"
+        }
+        val ids = skills.map { it.id }.toSet()
+        val reduced = original.copy(
+            permanent = original.permanent.copy(
+                closure = original.permanent.closure.copy(customSkills = skills),
+                successor = original.permanent.successor.copy(
+                    customAttributes = attrs,
+                    customSkillAbilities = original.permanent.successor.customSkillAbilities
+                        .filter { it.customSkillId in ids },
+                ),
+            ),
+        )
+        val bytes = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.A,
+                PcSheetExportStateSelection.PERMANENT), reduced,
+        ).bytes
+        Loader.loadPDF(bytes).use { pdf ->
+            val first = PDFTextStripper().apply {
+                startPage = 1
+                endPage = 1
+            }.getText(pdf)
+            assertTrue(first.contains("Fortuna") && first.contains("Cordura"),
+                "A's genuine 6+2 attribute rows must fit only with measured group heights.")
+            assertTrue(first.contains("Contratos arcanos") && first.contains("Sincronía"),
+                "A custom-linked skills must stay physically beneath their P1 attributes.")
+            val c2 = (2..pdf.numberOfPages).map { physical ->
+                PDFTextStripper().apply {
+                    startPage = physical
+                    endPage = physical
+                }.getText(pdf)
+            }.filter { it.contains("C2 - Habilidades, acciones y recursos") }
+                .joinToString("\n")
+            assertFalse(c2.contains("Habilidad Contratos arcanos") ||
+                c2.contains("Habilidad Sincronía"),
+                "No source custom skill already printed on P1 may be duplicated in C2.")
+        }
+    }
 
     @Test
     fun realMaraBPhysicallyPrintsThreeFittingCustomAttributesAndDefersTheFourth() {

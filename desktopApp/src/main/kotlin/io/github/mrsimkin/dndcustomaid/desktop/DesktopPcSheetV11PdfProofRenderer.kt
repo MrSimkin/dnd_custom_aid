@@ -128,14 +128,32 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val compactBAttributes = data.request.variant ==
                 io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.B &&
                 data.attributes.size > 6
-            val p1PrintedAttributeCount =
-                if (compactBAttributes) minOf(9, data.attributes.size) else 6
             fun p1AttributeHeight(ability: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Attribute): Float {
                 val a=data.request.variant ==
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A
                 return if(a) maxOf(38f,29f +
                     minOf(6,data.skills.count{it.ability==ability.reference})*10.5f)
                     else if(compactBAttributes) 25f else 38f
+            }
+            // Variant A NEVER uses B's fixed 25pt compression: a skill group
+            // is only printed if the entire genuine attribute-height fits.
+            // The first unfit attribute and all following ones remain in C2.
+            val p1PrintedAttributeCount = when {
+                compactBAttributes -> minOf(9, data.attributes.size)
+                data.request.variant ==
+                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A -> {
+                    var count = 6
+                    var remainingBottom = 577f - data.attributes.take(6)
+                        .sumOf { p1AttributeHeight(it).toDouble() }.toFloat()
+                    while (count < minOf(9, data.attributes.size)) {
+                        val extraHeight = p1AttributeHeight(data.attributes[count])
+                        if (remainingBottom - extraHeight <= 110f) break
+                        remainingBottom -= extraHeight
+                        count++
+                    }
+                    count
+                }
+                else -> 6
             }
             fun p1AttributeTop(i:Int):Float = 577f -
                 data.attributes.take(i).sumOf { p1AttributeHeight(it).toDouble() }.toFloat()
@@ -246,7 +264,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val groupedSkills = mutableMapOf<Int, MutableList<Pair<Int, io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Skill>>>()
             val printedSkillIndices = mutableSetOf<Int>()
             if (variantA) {
-                data.attributes.take(6).forEachIndexed { attrIndex, attr ->
+                data.attributes.take(p1PrintedAttributeCount).forEachIndexed { attrIndex, attr ->
                     val fitsHere = mutableListOf<Pair<Int, io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Skill>>()
                     data.skills.forEachIndexed { skillIndex, skill ->
                         if (skill.ability == attr.reference && skillIndex !in printedSkillIndices &&
@@ -1270,8 +1288,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         ))
                     }
                     data.skills.withIndex()
-                        .filter { (_, skill) -> skill.customSkillId != null &&
-                            skill.ability == attribute.reference }
+                        .filter { (skillIndex, skill) -> skill.customSkillId != null &&
+                            skill.ability == attribute.reference &&
+                            skillIndex !in printedSkillIndices }
                         .forEach { (_, skill) ->
                             add(PcSheetV11FlowItem(
                                 "attribute-skill:" + skill.customSkillId,
