@@ -185,7 +185,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
             fun drawP1Attributes(stream:PDPageContentStream) {
                 val standards=data.attributes.take(p1PrintedAttributeCount)
-                require(standards.size>=6 && p1AttributeTop(p1PrintedAttributeCount)>328f)
+                require(standards.size>=6 && p1AttributeTop(p1PrintedAttributeCount) >
+                    (if (compactBAttributes) 328f else 110f))
                 draw(stream,if(data.request.variant ==
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A)
                     "ATRIBUTOS · A" else "ATRIBUTOS · B",43f,588f,true)
