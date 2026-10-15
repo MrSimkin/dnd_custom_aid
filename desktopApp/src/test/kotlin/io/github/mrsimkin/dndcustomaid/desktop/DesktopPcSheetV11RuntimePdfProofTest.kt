@@ -610,6 +610,46 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun physicalC2KeepsPersistedCustomAttributeSkillsTogetherWithoutDuplicateDetachedCopies() {
+        // Mara has 4 persisted extra abilities and 3 explicitly linked skills.
+        // This is a real app-PDF regression, independent of the string-only mapper.
+        val real = sources("03_mara_siete_umbrales_custom_extended.json")
+        val linked = listOf(
+            "Fortuna" to "Contratos arcanos",
+            "Cordura" to "Sincronía",
+            "Éter" to "Manipulación de éter",
+        )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val pdfBytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                real,
+            ).bytes
+            Loader.loadPDF(pdfBytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { physical ->
+                    PDFTextStripper().apply {
+                        startPage = physical
+                        endPage = physical
+                    }.getText(pdf)
+                }
+                val full = pages.joinToString("\n")
+                for ((attribute, skill) in linked) {
+                    val key = "Habilidad " + skill
+                    assertTrue(full.contains(attribute),
+                        "Custom attribute must survive in C2: " + attribute)
+                    assertTrue(full.contains(key),
+                        "Persisted dependent custom skill must survive C2: " + skill)
+                    assertEquals(1, Regex(Regex.escape(key)).findAll(full).count(),
+                        "Linked skill must not repeat as a detached second copy: " + skill)
+                    assertTrue(pages.any { text -> text.contains("C2 - ") &&
+                        text.contains(attribute) && text.contains(key) },
+                        "Attribute and linked skill must share a physical C2 page: " + skill)
+                }
+            }
+        }
+    }
+
     @Test
     fun ammunitionAboveTwentyUsesExplicitFractionAndNeverInventsTwentyCheckboxes() {
         val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")

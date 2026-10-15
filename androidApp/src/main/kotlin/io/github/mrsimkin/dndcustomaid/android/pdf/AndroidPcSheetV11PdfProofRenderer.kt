@@ -304,8 +304,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 else item.copy(text = item.text.substring(consumed))
             }
 
+            // Custom-attribute skills belong directly to their persisted
+            // attribute in mixed C2, in either A or B. Other detached skills
+            // retain their conventional three-letter reference.
+            val customAttributeReferences = data.attributes.drop(6)
+                .map { it.reference }.toSet()
             val detachedSkills = if (variantA) data.skills.withIndex()
-                .filter { it.index !in printedSkillIndices }
+                .filter { it.index !in printedSkillIndices &&
+                    it.value.ability !in customAttributeReferences }
                 .map { (index, skill) ->
                     val abbreviation = data.attributes.firstOrNull {
                         it.reference == skill.ability
@@ -981,14 +987,32 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
 
             val identity = buildList {
-                data.attributes.drop(6).forEachIndexed { index, it ->
-                    add(PcSheetV11FlowItem("attribute:" + index,
-                        it.name + " " + it.score + " / mod " + it.modifier +
-                            " / salvación " + (it.savingThrowTotal?.toString() ?: "sin valor")))
+                data.attributes.drop(6).forEachIndexed { index, attribute ->
+                    add(PcSheetV11FlowItem(
+                        "attribute:" + index,
+                        attribute.name + " " + attribute.score +
+                            " / mod " + attribute.modifier +
+                            " / salvación " +
+                            (attribute.savingThrowTotal?.toString() ?: "sin valor"),
+                        keepTogetherIfFits = true,
+                    ))
+                    data.skills.withIndex()
+                        .filter { (_, skill) -> skill.customSkillId != null &&
+                            skill.ability == attribute.reference }
+                        .forEach { (_, skill) ->
+                            add(PcSheetV11FlowItem(
+                                "attribute-skill:" + skill.customSkillId,
+                                "Habilidad " + skill.name + ": " +
+                                    (skill.total?.toString() ?: "sin resolver") +
+                                    " / " + skill.training.name,
+                                keepTogetherIfFits = true,
+                            ))
+                        }
                 }
                 if (!variantA) {
                     data.skills.forEachIndexed { index, skill ->
-                        if (skill.builtInKey == null) {
+                        if (skill.builtInKey == null &&
+                            skill.ability !in customAttributeReferences) {
                             val abbreviation = data.attributes.firstOrNull {
                                 it.reference == skill.ability
                             }?.abbreviation?.uppercase()?.take(3)
