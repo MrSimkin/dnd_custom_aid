@@ -650,6 +650,85 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun actualP3UsesPairedRuledNarrativeFieldsAndTwoStoryColumns() {
+        for ((fixture, variant) in listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
+        )) {
+            val real = sources(fixture)
+            val pdfBytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                real,
+            ).bytes
+            Loader.loadPDF(pdfBytes).use { pdf ->
+                val p3 = pdf.getPage(2)
+                val regions = PDFTextStripperByArea().apply {
+                    addRegion("profile-left", Rectangle2D.Float(40f, 108f, 265f, 210f))
+                    addRegion("profile-right", Rectangle2D.Float(309f, 108f, 265f, 210f))
+                    addRegion("story", Rectangle2D.Float(40f, 308f, 534f, 400f))
+                    extractRegions(p3)
+                }
+                val left = regions.getTextForRegion("profile-left")
+                val right = regions.getTextForRegion("profile-right")
+                val story = regions.getTextForRegion("story")
+                for (label in listOf("TRASFONDO", "RASGOS DE PERSONALIDAD", "VÍNCULOS")) {
+                    assertTrue(left.contains(label), "Golden P3 left field missing: " + label)
+                }
+                for (label in listOf("RELIGIÓN / FE", "IDEALES", "DEFECTOS")) {
+                    assertTrue(right.contains(label), "Golden P3 right field missing: " + label)
+                }
+                assertTrue(story.contains("HISTORIA Y CRÓNICA"),
+                    "Narrative story needs its own two-column physical region.")
+                assertFalse(story.contains("RASGOS MECÁNICOS"),
+                    "Mechanical traits belong to P1/P2/C2, never P3.")
+                val text = PDFTextStripper().apply {
+                    startPage = 3
+                    endPage = 3
+                }.getText(pdf)
+                assertTrue(text.contains(real.permanent.sheet.background.name),
+                    "Persisted source background name must survive in P3.")
+            }
+        }
+    }
+
+    @Test
+    fun longRealHistoryContinuesInNarrativePagesWithoutBreakingFinalHandwriting() {
+        val source = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val story = "INICIO-HISTORIA-P3 " +
+            ("Crónica persistida sin pérdidas ni párrafos de relleno. ").repeat(120) +
+            " FIN-HISTORIA-P3"
+        val patched = source.copy(
+            permanent = source.permanent.copy(
+                sheet = source.permanent.sheet.copy(
+                    background = source.permanent.sheet.background.copy(story = story),
+                ),
+            ),
+        )
+        val pdfBytes = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.A,
+                PcSheetExportStateSelection.PERMANENT),
+            patched,
+        ).bytes
+        Loader.loadPDF(pdfBytes).use { pdf ->
+            val pages = (1..pdf.numberOfPages).map { physical ->
+                PDFTextStripper().apply {
+                    startPage = physical
+                    endPage = physical
+                }.getText(pdf)
+            }
+            assertTrue(pages[2].contains("INICIO-HISTORIA-P3"))
+            assertTrue(pages.any { it.contains("P3 - Narrativa / continuación") },
+                "Overflowed real history must continue on narrative-only pages.")
+            assertTrue(pages.any { it.contains("FIN-HISTORIA-P3") },
+                "The tail of the real history must survive the measured pagination.")
+            assertTrue(pages.last().trim().endsWith("NOTAS"),
+                "The last physical page must remain paper-only, never narrative.")
+        }
+    }
+
     @Test
     fun ammunitionAboveTwentyUsesExplicitFractionAndNeverInventsTwentyCheckboxes() {
         val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")

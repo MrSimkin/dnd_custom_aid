@@ -883,6 +883,146 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.restoreGraphicsState()
             }
 
+
+            // P3 is the approved physical paired narrative sheet, not generic
+            // unlabelled full-width paragraphs. Source strings retain their IDs
+            // and unprinted suffixes for measured two-column P3 continuations.
+            val p3Narrative = texts.narrative.associateBy { it.sourceKey }
+            val p3FieldSpecs = listOf(
+                "TRASFONDO" to listOf("background-name", "background-summary"),
+                "RELIGIÓN / FE" to listOf("background-faith"),
+                "RASGOS DE PERSONALIDAD" to listOf("personality"),
+                "IDEALES" to listOf("ideals"),
+                "VÍNCULOS" to listOf("bonds"),
+                "DEFECTOS" to listOf("flaws"),
+            )
+            val p3FieldLayouts = p3FieldSpecs.mapIndexed { index, (heading, keys) ->
+                val x = if (index % 2 == 0) 42f else 312f
+                val top = 672f - (index / 2) * 63f
+                val bounds = PcSheetV11RectPt(x, top - 63f, 258f, 63f)
+                val bodyArea = PcSheetV11RectPt(x + 5f, top - 57f, 248f, 42f)
+                val entries = keys.mapNotNull { p3Narrative["narrative:" + it] }
+                val measured = body.place(
+                    PcSheetV11FlowSection.NARRATIVE, entries, bodyArea, 1, 0f,
+                )
+                Triple(heading, bounds, measured)
+            }
+            val p3StoryItems = listOfNotNull(p3Narrative["narrative:story"])
+            val p3StoryArea = PcSheetV11RectPt(47f, 88f, 518f, 361f)
+            val p3Story = body.place(
+                PcSheetV11FlowSection.NARRATIVE, p3StoryItems, p3StoryArea, 2, 12f,
+            )
+            fun remainingNarrative(
+                original: List<PcSheetV11FlowItem>,
+                placed: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PlacedFlow,
+            ): List<PcSheetV11FlowItem> = original.mapNotNull { item ->
+                val consumed = placed.cells.asSequence()
+                    .filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
+                    .maxOfOrNull { it.sourceEndExclusive } ?: 0
+                require(consumed in 0..item.text.length)
+                if (consumed == item.text.length) null
+                else item.copy(text = item.text.substring(consumed))
+            }
+            val p3Overflow = buildList {
+                p3FieldLayouts.forEachIndexed { index, (heading, _, flow) ->
+                    val keys = p3FieldSpecs[index].second
+                    val originals = keys.mapNotNull { p3Narrative["narrative:" + it] }
+                    val remaining = remainingNarrative(originals, flow)
+                    if (remaining.isNotEmpty()) {
+                        add(PcSheetV11FlowItem(
+                            "p3-field-heading:" + index, heading + " / CONTINUACIÓN",
+                            keepTogetherIfFits = true,
+                        ))
+                        addAll(remaining)
+                    }
+                }
+                val remainingStory = remainingNarrative(p3StoryItems, p3Story)
+                if (remainingStory.isNotEmpty()) {
+                    add(PcSheetV11FlowItem(
+                        "p3-story-heading", "HISTORIA Y CRÓNICA / CONTINUACIÓN",
+                        keepTogetherIfFits = true,
+                    ))
+                    addAll(remainingStory)
+                }
+            }
+            fun drawP3Band(
+                stream: PDPageContentStream, label: String, y: Float,
+            ) {
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(80, 122, 151))
+                stream.setLineWidth(0.65f)
+                stream.setNonStrokingColor(Color(217, 236, 245))
+                stream.addRect(42f, y, 528f, 20f)
+                stream.fill()
+                stream.addRect(42f, y, 528f, 20f)
+                stream.stroke()
+                stream.restoreGraphicsState()
+                draw(stream, label, 49f, y + 6f, true)
+            }
+            fun p3RuledCells(
+                stream: PDPageContentStream,
+                rect: PcSheetV11RectPt,
+                lineHeight: Float,
+            ) {
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(Color(238, 247, 251))
+                stream.addRect(rect.leftPt, rect.bottomPt,
+                    rect.widthPt, rect.heightPt)
+                stream.fill()
+                stream.setStrokingColor(Color(174, 203, 220))
+                stream.setLineWidth(0.35f)
+                val rows = (rect.heightPt / lineHeight).toInt()
+                for (row in 1..rows) {
+                    val y = rect.topPt - row * lineHeight
+                    if (y >= rect.bottomPt) {
+                        stream.moveTo(rect.leftPt, y)
+                        stream.lineTo(rect.rightPt, y)
+                        stream.stroke()
+                    }
+                }
+                stream.restoreGraphicsState()
+            }
+            fun drawP3FirstPage(stream: PDPageContentStream) {
+                drawP3Band(stream, "TRASFONDO Y PERFIL NARRATIVO", 682f)
+                p3FieldLayouts.forEachIndexed { index, (heading, rect, placed) ->
+                    stream.saveGraphicsState()
+                    stream.setStrokingColor(Color(130, 165, 186))
+                    stream.setLineWidth(0.55f)
+                    stream.addRect(rect.leftPt, rect.bottomPt,
+                        rect.widthPt, rect.heightPt)
+                    stream.stroke()
+                    stream.restoreGraphicsState()
+                    p3RuledCells(stream,
+                        PcSheetV11RectPt(rect.leftPt + 1f, rect.bottomPt + 1f,
+                            rect.widthPt - 2f, rect.heightPt - 18f),
+                        body.metrics.lineHeightPt)
+                    draw(stream, heading, rect.leftPt + 5f, rect.topPt - 11f, false)
+                    placed.cells.filter { it.localPageIndex == 1 }.forEach { cell ->
+                        if (cell.drawableText.isNotEmpty()) {
+                            draw(stream, cell.drawableText, cell.cellPt.leftPt,
+                                body.metrics.baselineIn(cell.cellPt), false)
+                        }
+                    }
+                    require(p3FieldSpecs[index].first == heading)
+                }
+                drawP3Band(stream, "HISTORIA Y CRÓNICA", 461f)
+                val columns = PcSheetV11ColumnGrid.split(p3StoryArea, 2, 12f)
+                columns.forEach { p3RuledCells(stream, it, body.metrics.lineHeightPt) }
+                p3Story.cells.filter { it.localPageIndex == 1 }.forEach { cell ->
+                    if (cell.drawableText.isNotEmpty()) {
+                        draw(stream, cell.drawableText, cell.cellPt.leftPt,
+                            body.metrics.baselineIn(cell.cellPt), false)
+                    }
+                }
+            }
+            fun drawP3ContinuationPaper(stream: PDPageContentStream) {
+                drawP3Band(stream, "TRASFONDO, PERFIL E HISTORIA / CONTINUACIÓN", 680f)
+                val columns = PcSheetV11ColumnGrid.split(
+                    PcSheetV11RectPt(42f, 76f, 528f, 597f), 2, 12f,
+                )
+                columns.forEach { p3RuledCells(stream, it, body.metrics.lineHeightPt) }
+            }
+
             fun addSection(
                 title: String,
                 section: PcSheetV11FlowSection,
@@ -905,6 +1045,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     PDPageContentStream(pdf, page).use { stream ->
                         drawFrameAndHeader(stream, title + " / " + (index + 1))
                         if (title.startsWith("P4 - ")) drawP4MagicReference(stream)
+                        if (title.startsWith("P3 - Narrativa / continuación")) {
+                            drawP3ContinuationPaper(stream)
+                        }
                         if (title.startsWith("P1 - ") && index == 0) {
                             drawP1Attributes(stream)
                             drawP1Attacks(stream)
@@ -979,9 +1122,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         if (title.startsWith("C2 - ")) {
                             fillUnusedC2WithNotes(stream, pageCells)
                         }
-                        if (title.startsWith("P3 - ")) {
-                            drawP3HandwritingBelowContent(stream, pageCells)
-                        }
+                        // P3 now draws its own two-column ruled writing grammar,
+                        // before the source text, including continuation pages.
                     }
                 }
             }
@@ -1303,8 +1445,16 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
             }
 
-            addSection("P3 - Trasfondo / Perfil / Historia", PcSheetV11FlowSection.NARRATIVE,
-                texts.narrative, 1, alwaysPage = true)
+            PDPage(PDRectangle.LETTER).also { page ->
+                pdf.addPage(page)
+                physicalSectionKeys += "P3 - Trasfondo / Perfil / Historia"
+                PDPageContentStream(pdf, page).use { stream ->
+                    drawFrameAndHeader(stream, "P3 - Trasfondo / Perfil / Historia")
+                    drawP3FirstPage(stream)
+                }
+            }
+            addSection("P3 - Narrativa / continuación", PcSheetV11FlowSection.NARRATIVE,
+                p3Overflow, 2, area = PcSheetV11RectPt(42f, 76f, 528f, 597f))
 
             if (data.hasQuickSpellList) {
                 // Contract: a spell page, when present, reserves visible levels 0–9
