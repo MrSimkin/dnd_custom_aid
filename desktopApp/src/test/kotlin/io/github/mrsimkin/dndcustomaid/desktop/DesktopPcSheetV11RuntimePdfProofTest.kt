@@ -299,8 +299,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 realHeading(it, "C2 - Habilidades, acciones y recursos")
             } + 1
             val p2C2Physical = pagesByPhysicalNumber.indexOfFirst {
-                realHeading(it, "C2 - Equipo y tesoro") ||
-                    realHeading(it, "C2 - Rasgos / continuación") ||
+                (realHeading(it, "C2 - Habilidades, acciones y recursos") &&
+                    it.contains("RASGOS / CONTINUACIÓN P2")) ||
+                    realHeading(it, "C2 - Equipo y tesoro") ||
                     realHeading(it, "C2 - Equipo especial / continuación")
             } + 1
             assertTrue(p1Physical > 0 && p2Physical > 0 &&
@@ -335,8 +336,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 "CONTINÚA EN C2 PÁG. " + p2C2Physical,
             ), "P2 must point to its OWN first continuation, not mixed P1 C2.")
             assertTrue(pagesByPhysicalNumber[p2C2Physical - 1].contains(
-                "VIENE DE P2 PÁG. " + p2Physical,
-            ), "The P2-owned C2 must link to the actual physical P2.")
+                "P2 PÁG. " + p2Physical,
+            ), "The first P2-owned C2 (dedicated OR mixed) must link to physical P2.")
             assertFalse(pagesByPhysicalNumber.last().contains("HOJA "),
                 "The mandatory final handwritten page has no digital footer.")
             assertTrue(printed.contains("EQUIPO"))
