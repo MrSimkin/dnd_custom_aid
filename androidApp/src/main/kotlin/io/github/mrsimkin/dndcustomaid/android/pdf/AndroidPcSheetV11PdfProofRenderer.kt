@@ -372,6 +372,33 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.lineTo(171f,319f)
                 stream.stroke()
                 stream.restoreGraphicsState()
+                // The approved B skills cartela remains useful on paper
+                // BELOW all real skill records. Its layout placer is confined
+                // to y=220..315; this lower region y=125..218 cannot erase,
+                // crowd or duplicate any source skill even with long entries.
+                // Two separate ruled columns mirror the frozen golden; no
+                // unchecked state or digital NOTAS record is invented.
+                val blankPaperTop = bSkillsArea.bottomPt - 15f
+                val blankPaperFloor = 105f + 20f
+                val blankPaperStep = 16f
+                var ruleY = blankPaperTop
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(130,165,186))
+                stream.setLineWidth(0.45f)
+                stream.setNonStrokingColor(Color(238,247,251))
+                while (ruleY >= blankPaperFloor) {
+                    for ((xStart,xEnd) in listOf(47f to 167f,176f to 295f)) {
+                        // Alternate pale-blue usable handwriting bands, never
+                        // outside the skills frame or across its divider.
+                        stream.addRect(xStart,ruleY-1f,xEnd-xStart,14f)
+                        stream.fill()
+                        stream.moveTo(xStart,ruleY)
+                        stream.lineTo(xEnd,ruleY)
+                        stream.stroke()
+                    }
+                    ruleY -= blankPaperStep
+                }
+                stream.restoreGraphicsState()
                 bSkillsPlaced?.cells?.filter{it.localPageIndex==1}?.forEach{cell->
                     if(cell.drawableText.isNotEmpty()){
                         val baseline = skillFont.metrics.baselineIn(cell.cellPt)

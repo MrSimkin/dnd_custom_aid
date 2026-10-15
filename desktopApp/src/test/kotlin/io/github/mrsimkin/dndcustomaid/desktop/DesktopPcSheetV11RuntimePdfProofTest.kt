@@ -99,6 +99,55 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun variantBBottomPaperSpaceHasCompleteRuledRowsWithoutOverprintingSkills() {
+        // Gold B's B-skill panel contains manuscript bands BELOW real
+        // source-backed rows. Verify genuine vector operators in the PDF
+        // produced by the application, not geometry of a mock document.
+        for (fixture in listOf(
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json",
+            "03_mara_siete_umbrales_custom_extended.json",
+        )) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(PcSheetV11Variant.B,
+                    PcSheetExportStateSelection.PERMANENT), sources(fixture),
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val first = pdf.getPage(0)
+                val commands = first.contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                for (y in listOf(205, 189, 173, 157, 141, 125)) {
+                    for ((left,right) in listOf(47 to 167,176 to 295)) {
+                        val line = Regex(
+                            """(?m)(?:^|\s)""" + left + """\s+""" + y +
+                                """\s+m\s+""" + right + """\s+""" + y +
+                                """\s+l(?:\s|$)"""
+                        )
+                        assertEquals(1, line.findAll(commands).count(),
+                            "Real B skills paper row y=$y x=$left..$right " +
+                                "must be whole, unique and inside its own column.")
+                    }
+                }
+                val blankText = PDFTextStripperByArea().apply {
+                    // PDFBox uses top-origin region coordinates. The
+                    // manuscript rows run PDF y=125..218.
+                    addRegion("unused-B-paper",
+                        Rectangle2D.Float(43f, 574f, 255f, 92f))
+                    extractRegions(first)
+                }.getTextForRegion("unused-B-paper")
+                assertTrue(blankText.isBlank(),
+                    "Source text cannot overlap the manuscript-only B panel.")
+                val pageText = PDFTextStripper().apply {
+                    startPage = 1; endPage = 1
+                }.getText(pdf)
+                assertTrue(pageText.contains("Acrobacias") &&
+                    pageText.contains("Supervivencia"),
+                    "B manuscript rules cannot remove real built-in skills.")
+            }
+        }
+    }
+
+    @Test
     fun variantBIndependentSkillsHaveRealBlankVectorPaperMarksInBothFixtures() {
         // Physical PDF proof from the actual Desktop App, not a synthetic
         // model. The golden B uses a separate TWO-column skills list, with one
