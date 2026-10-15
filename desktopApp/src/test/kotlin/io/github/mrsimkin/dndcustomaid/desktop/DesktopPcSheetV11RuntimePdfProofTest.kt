@@ -54,6 +54,22 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         File(root, outputName).writeBytes(bytes)
     }
 
+    private fun assertPhysicalP1SavingBoxes(
+        pdf: org.apache.pdfbox.pdmodel.PDDocument,
+        expectedRows: Int,
+    ) {
+        val operators = pdf.getPage(0).contents.use {
+            it.readBytes().toString(Charsets.ISO_8859_1)
+        }
+        // Must be genuine 7pt VECTOR squares in the P1 left saving band,
+        // not plain "[ ]" glyphs or unrelated equipment/P4 marks.
+        val boxes = Regex("""(?m)(?:^|\s)270\s+[0-9.]+\s+7\s+7\s+re(?:\s|$)""")
+            .findAll(operators).count()
+        assertEquals(expectedRows, boxes,
+            "Each actually printed P1 standard/custom saving row must get " +
+                "exactly one blank vector paper checkbox.")
+    }
+
     private fun assertAllPhysicalBookReferences(
         pdf: org.apache.pdfbox.pdmodel.PDDocument,
         names: List<String>,
@@ -127,6 +143,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 Regex("SALVACIÓN").findAll(leftSavingRegion).count(),
                 "Every P1 standard and fitting custom ability saving throw " +
                     "must occupy the LEFT vertical attribute band, not magic DC.")
+            assertPhysicalP1SavingBoxes(pdf, minOf(9, generated.semantic.attributes.size))
             // Semantic enum IDs remain unmodified in source, while their
             // physically exported V11 P1 labels must follow the frozen Spanish
             // design. Both obligations are asserted, not substituted.
@@ -755,6 +772,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             }.getText(pdf)
             assertTrue(first.contains("Fortuna") && first.contains("Cordura"),
                 "A's genuine 6+2 attribute rows must fit only with measured group heights.")
+            assertPhysicalP1SavingBoxes(pdf, 8)
             assertTrue(first.contains("Contratos arcanos") && first.contains("Sincronía"),
                 "A custom-linked skills must stay physically beneath their P1 attributes.")
             val c2 = (2..pdf.numberOfPages).map { physical ->

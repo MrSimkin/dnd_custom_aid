@@ -248,6 +248,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.newLineAtOffset(215f,saveY)
                     stream.showText("SALVACIÓN")
                     stream.endText()
+                    // Approved V11 paper saving-throw mark. Always blank:
+                    // proficiency/state cannot be inferred from the save total.
+                    // Genuine vector 7×7pt square stays between the label
+                    // (ending before x250) and its actual value (starts x287+).
+                    stream.saveGraphicsState()
+                    stream.setStrokingColor(Color(80, 122, 151))
+                    stream.setLineWidth(0.6f)
+                    stream.addRect(270f, saveY - 1f, 7f, 7f)
+                    stream.stroke()
+                    stream.restoreGraphicsState()
                     ability.savingThrowTotal?.let {
                         val value=if(it>=0)"+"+it else it.toString()
                         draw(stream,value,296f-body.width.measurePt(value),saveY,false)
