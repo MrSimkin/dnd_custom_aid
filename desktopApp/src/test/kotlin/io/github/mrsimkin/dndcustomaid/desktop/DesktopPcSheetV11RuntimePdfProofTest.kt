@@ -117,10 +117,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
                 val firstColumnMarks = Regex(
-                    """(?m)(?:^|\\s)49(?:\\.0+)?\\s+[-0-9.]+\\s+7\\s+7\\s+re(?:\\s|$)"""
+                    """(?m)(?:^|\s)49(?:\.0+)?\s+[-0-9.]+\s+7\s+7\s+re(?:\s|$)"""
                 ).findAll(commands).count()
                 val secondColumnMarks = Regex(
-                    """(?m)(?:^|\\s)175(?:\\.0+)?\\s+[-0-9.]+\\s+7\\s+7\\s+re(?:\\s|$)"""
+                    """(?m)(?:^|\s)175(?:\.0+)?\s+[-0-9.]+\s+7\s+7\s+re(?:\s|$)"""
                 ).findAll(commands).count()
                 val standardNames = generated.semantic.skills.filter {
                     it.builtInKey != null
