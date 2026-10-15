@@ -1287,11 +1287,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 stream.addRect(cell.cellPt.leftPt + 2f, baseline - 1f, 7f, 7f)
                                 stream.stroke()
                                 stream.restoreGraphicsState()
-                                val paperLine = cell.drawableText.removePrefix("[ ] ")
-                                if (paperLine.isNotEmpty()) {
-                                    draw(stream, paperLine, cell.cellPt.leftPt + 16f,
-                                        baseline, false)
-                                }
+                                // Approved V11 P4 uses *blank ruled paper*, not
+                                // dark printed underscore glyphs. The measured
+                                // source placeholder remains in the flow model
+                                // to reserve one genuine row per level. Its
+                                // physical vector rule was already drawn above,
+                                // and the preparation square was drawn here.
+                                // Never replace the paper line with digital text.
                             } else if (title.startsWith("P4 - ") &&
                                 cell.sourceKey.startsWith("quick-spell:") &&
                                 cell.sourceStartOffset == 0) {
