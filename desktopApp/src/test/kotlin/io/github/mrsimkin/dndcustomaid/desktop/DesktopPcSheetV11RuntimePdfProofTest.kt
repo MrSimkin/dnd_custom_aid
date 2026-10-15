@@ -947,9 +947,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val mixed = pages.first { it.contains("C2 - Habilidades, acciones y recursos") }
             assertTrue(mixed.contains("RASGOS / CONTINUACIÓN P2"),
                 "A short genuine P2 trait remainder must fit the existing mixed C2.")
-            for (trait in listOf("Potent Cantrip", "Ability Score Improvement", "Memorize Spell")) {
+            // The character also names Potent Cantrip in its attack notes
+            // and P1 summary; count FULL source trait headings instead of
+            // falsely equating every legitimate cross-reference to a duplicate.
+            for (trait in listOf(
+                "Potent Cantrip (Evoker",
+                "Ability Score Improvement (Mago",
+                "Memorize Spell (Mago",
+            )) {
                 assertEquals(1, Regex(Regex.escape(trait)).findAll(pages.joinToString("\n")).count(),
-                    "Persisted trait is missing or duplicated across P2 and mixed C2: " + trait)
+                    "Persisted trait source record is missing or duplicated: " + trait)
             }
             assertTrue(mixed.contains("RECURSOS Y MUNICIONES"),
                 "Combining modules must not delete existing P1 resources.")
