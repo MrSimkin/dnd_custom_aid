@@ -370,9 +370,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(p4Pages.first().contains("APTITUD"))
             assertTrue(p4Pages.first().contains("CD SALVACIÓN"))
             assertTrue(p4Pages.first().contains("ATAQUE MÁGICO"))
-            assertTrue(p4Pages.joinToString("\n")
-                .lineSequence().count { it.contains("______________________") } >= 20,
-                "P4 must retain at least twenty physical handwriting lines.")
+            assertFalse(p4Pages.joinToString("\n").contains("___"),
+                "Blank P4 paper rows must be real vector lines, never dark underscore text.")
             val vectorSquares = (0 until pdf.numberOfPages).sumOf { physical ->
                 val pageText = PDFTextStripper().apply {
                     startPage = physical + 1
@@ -652,9 +651,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(p4Pages.first().contains("APTITUD"))
             assertTrue(p4Pages.first().contains("CD SALVACIÓN"))
             assertTrue(p4Pages.first().contains("ATAQUE MÁGICO"))
-            assertTrue(p4Pages.joinToString("\n")
-                .lineSequence().count { it.contains("______________________") } >= 20,
-                "P4 must retain at least twenty physical handwriting lines.")
+            assertFalse(p4Pages.joinToString("\n").contains("___"),
+                "Blank P4 paper rows must be real vector lines, never dark underscore text.")
             val vectorSquares = (0 until pdf.numberOfPages).sumOf { physical ->
                 val pageText = PDFTextStripper().apply {
                     startPage = physical + 1
@@ -1071,9 +1069,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
     @Test
     fun genuineSpellRowsAndBlankPaperRowsHaveOnePhysicalSquareEach() {
-        for ((fixture, variant) in listOf(
-            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
-            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
+        for ((fixture, variant, expectedBlankRows) in listOf(
+            Triple("02_ilyra_quill_srd5_2_1_evoker_wizard.json",
+                PcSheetV11Variant.B, 80),
+            Triple("03_mara_siete_umbrales_custom_extended.json",
+                PcSheetV11Variant.B, 60),
         )) {
             val generated = DesktopPcSheetExportService().generateV11Proof(
                 PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
@@ -1098,9 +1098,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         .findAll(stream).count()
                 }
                 assertTrue(paperRows >= 1, "Actual spell P4 page must be present.")
-                assertTrue(marks >= generated.semantic.spells.size + 10,
-                    "Each real spell and at least one blank writing row per level 0-9 " +
-                        "must retain its own physical 7pt paper square.")
+                assertEquals(expectedBlankRows + generated.semantic.spells.size, marks,
+                    "Every source-backed real spell and every fixture-backed manuscript " +
+                        "P4 row must retain exactly one physical 7pt vector square.")
             }
         }
     }
