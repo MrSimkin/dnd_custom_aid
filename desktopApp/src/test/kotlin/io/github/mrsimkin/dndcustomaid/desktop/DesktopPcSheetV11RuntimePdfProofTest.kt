@@ -126,10 +126,24 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertEquals(6, Regex("SALVACIÓN").findAll(leftSavingRegion).count(),
                 "The six real P1 saving throws must remain physically anchored " +
                     "to the left vertical attributes, not the spellcasting CD.")
-            generated.semantic.attributes.take(6).forEach { ability ->
-                assertTrue(p1Text.contains(ability.name),
-                    "Missing visual P1 standard ability: " + ability.name)
-            }
+            // Semantic enum IDs remain unmodified in source, while their
+            // physically exported V11 P1 labels must follow the frozen Spanish
+            // design. Both obligations are asserted, not substituted.
+            val standardVisuals = listOf(
+                "STRENGTH" to "FUERZA",
+                "DEXTERITY" to "DESTREZA",
+                "CONSTITUTION" to "CONSTITUCIÓN",
+                "INTELLIGENCE" to "INTELIGENCIA",
+                "WISDOM" to "SABIDURÍA",
+                "CHARISMA" to "CARISMA",
+            )
+            generated.semantic.attributes.take(6)
+                .zip(standardVisuals).forEach { (ability, expected) ->
+                    assertEquals(expected.first, ability.name,
+                        "V11 must not rewrite the persisted built-in ability source ID.")
+                    assertTrue(p1Text.contains(expected.second),
+                        "Missing owner-approved P1 standard ability: " + expected.second)
+                }
             assertTrue(printed.contains("C2 - Habilidades, acciones y recursos"))
             assertTrue(printed.contains("Reserva 1:"))
             assertTrue(printed.contains("Reserva 10:"))
