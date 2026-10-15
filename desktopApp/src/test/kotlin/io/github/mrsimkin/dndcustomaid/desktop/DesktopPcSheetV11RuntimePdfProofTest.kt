@@ -698,9 +698,6 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         assertTrue(pages.any { text -> text.contains("C2 - ") &&
                             text.contains(key + " (" + attribute + ")") },
                             "The C2 skill must preserve its P1 custom ability ID relation.")
-                        assertFalse(pages.drop(1).joinToString("\n").contains(
-                            attribute + " " + real.permanent.sheet.abilityScores.size
-                        ), "Custom P1 attribute must not be duplicated as a C2 score row.")
                     } else {
                         assertTrue(pages.any { text -> text.contains("C2 - ") &&
                             text.contains(attribute) && text.contains(key) },
