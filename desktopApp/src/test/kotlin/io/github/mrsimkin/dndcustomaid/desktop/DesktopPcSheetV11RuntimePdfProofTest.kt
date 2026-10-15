@@ -237,6 +237,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 .lineSequence().count { it.contains("______________________") } >= 20,
                 "P4 must retain at least twenty physical handwriting lines.")
             val vectorSquares = (0 until pdf.numberOfPages).sumOf { physical ->
+                val pageText = PDFTextStripper().apply {
+                    startPage = physical + 1
+                    endPage = physical + 1
+                }.getText(pdf)
+                if (!pageText.contains("P4 - Conjuros")) return@sumOf 0
                 val contents = pdf.getPage(physical).contents.use {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
@@ -503,6 +508,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 .lineSequence().count { it.contains("______________________") } >= 20,
                 "P4 must retain at least twenty physical handwriting lines.")
             val vectorSquares = (0 until pdf.numberOfPages).sumOf { physical ->
+                val pageText = PDFTextStripper().apply {
+                    startPage = physical + 1
+                    endPage = physical + 1
+                }.getText(pdf)
+                if (!pageText.contains("P4 - Conjuros")) return@sumOf 0
                 val contents = pdf.getPage(physical).contents.use {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
