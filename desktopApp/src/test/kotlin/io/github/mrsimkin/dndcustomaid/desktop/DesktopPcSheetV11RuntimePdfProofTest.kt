@@ -325,10 +325,21 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertTrue(identity.contains(field),
                         "Golden P1 upper identity field absent at actual PDF coordinates: " + field)
                 }
-                assertFalse(identity.contains("STRENGTH"),
+                assertFalse(identity.contains("FUERZA"),
                     "Attribute blocks must be physically BELOW the top identity band.")
-                assertTrue(attributes.contains("STRENGTH") && attributes.contains("DEXTERITY"),
+                assertTrue(attributes.contains("FUERZA") && attributes.contains("DESTREZA"),
                     "First standard attribute labels must occupy the measured upper P1 ability band.")
+                val p1Labels = PDFTextStripper().apply {
+                    startPage = 1
+                    endPage = 1
+                }.getText(pdf)
+                for (approved in listOf(
+                    "FUERZA", "DESTREZA", "CONSTITUCIÓN", "INTELIGENCIA",
+                    "SABIDURÍA", "CARISMA",
+                )) {
+                    assertTrue(p1Labels.contains(approved),
+                        "Persisted standard attribute must carry its golden P1 label: " + approved)
+                }
                 for (field in listOf("COMBATE Y SUPERVIVENCIA", "CA", "INICIATIVA",
                     "VELOCIDAD", "COMPETENCIA", "PV ACTUALES", "PV MÁXIMOS", "PV TEMP", "DADOS")) {
                     assertTrue(combat.contains(field),
@@ -341,7 +352,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 split.addRegion("attacks",Rectangle2D.Float(309f,294f,264f,107f))
                 split.addRegion("spells",Rectangle2D.Float(309f,499f,264f,142f))
                 split.extractRegions(page)
-                assertTrue(split.getTextForRegion("left").contains("STRENGTH"))
+                assertTrue(split.getTextForRegion("left").contains("FUERZA"))
                 assertFalse(split.getTextForRegion("left").contains("ATAQUE / RANGO"))
                 assertTrue(split.getTextForRegion("attacks").contains("ATAQUE / RANGO"))
                 assertTrue(split.getTextForRegion("spells").contains("LANZAMIENTO DE CONJUROS"))
@@ -364,9 +375,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         addRegion("second",Rectangle2D.Float(173f,471f,123f,118f))
                         extractRegions(page)
                     }
-                    assertTrue(skillsByColumn.getTextForRegion("first").contains("ACROBATICS"),
+                    assertTrue(skillsByColumn.getTextForRegion("first").contains("Acrobacias"),
                         "B skills first subcolumn must contain real Acrobatics.")
-                    assertTrue(skillsByColumn.getTextForRegion("second").contains("SURVIVAL"),
+                    assertTrue(skillsByColumn.getTextForRegion("second").contains("Supervivencia"),
                         "B skills second subcolumn must contain real Survival.")
                 }
             }
@@ -413,11 +424,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(p1.contains("JUGADOR"))
             assertTrue(p1.contains("HABILIDADES BAJO ATRIBUTO"),
                 "Variant A must place matching built-in skills physically under attributes.")
-            assertTrue(p1.contains("ATHLETICS"),
+            assertTrue(p1.contains("Atletismo"),
                 "Athletics should remain grouped beneath STR.")
-            assertTrue(p1.contains("ACROBATICS"),
+            assertTrue(p1.contains("Acrobacias"),
                 "Acrobatics should remain grouped beneath DEX.")
-            assertFalse(p1.contains("Habilidad ATHLETICS"),
+            assertFalse(p1.contains("Habilidad Atletismo"),
                 "Variant A must not duplicate grouped skills as free-floating prose.")
             assertTrue(p1.contains("Espada larga"))
             assertTrue(p1.contains("Ballesta ligera"))
@@ -475,9 +486,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 "Variant B must remain distinct from the attribute-grouped A layout.")
             assertTrue(p1.contains("HABILIDADES  P=COMPETENCIA  E=PERICIA"),
                 "B skills must occupy a named physical module, not identity prose.")
-            assertTrue(p1.contains("ACROBATICS (DEX)"),
+            assertTrue(p1.contains("Acrobacias (DES)"),
                 "Persisted B skills must appear with their actual ability abbreviation.")
-            assertFalse(p1.contains("Habilidad ACROBATICS"),
+            assertFalse(p1.contains("Habilidad Acrobacias"),
                 "B built-in skills must no longer print as diagnostic identity prose.")
             assertTrue(p1.contains("Daga"), "P1 real attack grid lost Ilyra's dagger.")
             assertTrue(p1.contains("Fire Bolt"), "P1 real attack grid lost her ranged cantrip.")

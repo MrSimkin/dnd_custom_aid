@@ -133,6 +133,50 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
             fun p1AttributeTop(i:Int):Float = 577f -
                 data.attributes.take(i).sumOf { p1AttributeHeight(it).toDouble() }.toFloat()
+
+            // Standard enum IDs stay English in the model; only owner-approved
+            // V11 P1 PAPER labels are translated. Custom names remain literal.
+            fun approvedAbilityName(name: String): String = when (name) {
+                "STRENGTH" -> "FUERZA"
+                "DEXTERITY" -> "DESTREZA"
+                "CONSTITUTION" -> "CONSTITUCIÓN"
+                "INTELLIGENCE" -> "INTELIGENCIA"
+                "WISDOM" -> "SABIDURÍA"
+                "CHARISMA" -> "CARISMA"
+                else -> name
+            }
+            fun approvedAbilityAbbreviation(raw: String): String = when (raw.uppercase()) {
+                "STR" -> "FUE"
+                "DEX" -> "DES"
+                "CON" -> "CON"
+                "INT" -> "INT"
+                "WIS" -> "SAB"
+                "CHA" -> "CAR"
+                else -> raw.uppercase().take(3)
+            }
+            fun approvedSkillName(skill:
+                io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Skill
+            ): String = when (skill.builtInKey?.name) {
+                "ACROBATICS" -> "Acrobacias"
+                "ANIMAL_HANDLING" -> "Trato con Animales"
+                "ARCANA" -> "Conoc. Arcano"
+                "ATHLETICS" -> "Atletismo"
+                "DECEPTION" -> "Engaño"
+                "HISTORY" -> "Historia"
+                "INSIGHT" -> "Perspicacia"
+                "INTIMIDATION" -> "Intimidación"
+                "INVESTIGATION" -> "Investigación"
+                "MEDICINE" -> "Medicina"
+                "NATURE" -> "Naturaleza"
+                "PERCEPTION" -> "Percepción"
+                "PERFORMANCE" -> "Interpretación"
+                "PERSUASION" -> "Persuasión"
+                "RELIGION" -> "Religión"
+                "SLEIGHT_OF_HAND" -> "Juego de Manos"
+                "STEALTH" -> "Sigilo"
+                "SURVIVAL" -> "Supervivencia"
+                else -> skill.name
+            }
             fun drawP1Attributes(stream:PDPageContentStream) {
                 val standards=data.attributes.take(6)
                 require(standards.size==6 && p1AttributeTop(6)>110f)
@@ -169,7 +213,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     val mod=if(ability.modifier>=0)"+"+ability.modifier else ability.modifier.toString()
                     draw(stream,score,69.5f-body.width.measurePt(score)/2f,top-20f,false)
                     draw(stream,mod,cx-body.width.measurePt(mod)/2f,top-20f,false)
-                    draw(stream,ability.name,145f,top-14f,false)
+                    draw(stream,approvedAbilityName(ability.name),145f,top-14f,false)
                     stream.beginText()
                     stream.setFont(bodyPdfFont,7f)
                     stream.newLineAtOffset(215f,top-25f)
@@ -199,7 +243,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         ) {
                             val total = skill.total?.let { if (it >= 0) "+" + it else it.toString() } ?: ""
                             val remaining = 258f - 34f - skillFont.width.measurePt(total) - 9f
-                            if (skillFont.width.measurePt(skill.name) <= remaining) {
+                            if (skillFont.width.measurePt(approvedSkillName(skill)) <= remaining) {
                                 fitsHere += skillIndex to skill
                                 printedSkillIndices += skillIndex
                             }
@@ -235,7 +279,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> "P"
                             io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.EXPERTISE -> "E"
                         },48f)
-                        put(skill.name,60f)
+                        put(approvedSkillName(skill),60f)
                         skill.total?.let {
                             val v=if(it>=0)"+"+it else it.toString()
                             put(v,294f-skillFont.width.measurePt(v))
@@ -253,7 +297,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 .map { (index, skill) ->
                     val abbreviation = data.attributes.firstOrNull {
                         it.reference == skill.ability
-                    }?.abbreviation?.uppercase()?.take(3)
+                    }?.abbreviation?.let { approvedAbilityAbbreviation(it) }
                     val training = when (skill.training) {
                         io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.NONE -> ""
                         io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> " P"
@@ -261,7 +305,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     }
                     PcSheetV11FlowItem(
                         "skill:" + index,
-                        skill.name + (abbreviation?.let { " (" + it + ")" } ?: "") +
+                        approvedSkillName(skill) + (abbreviation?.let { " (" + it + ")" } ?: "") +
                             (skill.total?.let { " " + (if (it >= 0) "+" else "") + it } ?: "") +
                             training,
                         keepTogetherIfFits = true,
@@ -316,10 +360,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 .map { (index, skill) ->
                     val abbreviation = data.attributes.firstOrNull {
                         it.reference == skill.ability
-                    }?.abbreviation?.uppercase()?.take(3)
+                    }?.abbreviation?.let { approvedAbilityAbbreviation(it) }
                     PcSheetV11FlowItem(
                         "detached-skill:" + index,
-                        skill.name + (abbreviation?.let { " (" + it + ")" } ?: "") +
+                        approvedSkillName(skill) + (abbreviation?.let { " (" + it + ")" } ?: "") +
                             " / " + (skill.total?.toString() ?: "sin resolver") +
                             " / " + skill.training.name,
                     )
@@ -1230,7 +1274,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             skill.ability !in customAttributeReferences) {
                             val abbreviation = data.attributes.firstOrNull {
                                 it.reference == skill.ability
-                            }?.abbreviation?.uppercase()?.take(3)
+                            }?.abbreviation?.let { approvedAbilityAbbreviation(it) }
                             add(PcSheetV11FlowItem("skill:" + index,
                                 "Habilidad " + skill.name +
                                     (abbreviation?.let { " (" + it + ")" } ?: "") +
