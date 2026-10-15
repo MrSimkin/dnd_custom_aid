@@ -99,6 +99,55 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun mixedC2UsesPhysicalBlueGroupCartelasWithoutChangingSourceOrPagination() {
+        // This is the genuine Desktop App exporter, not a synthetic layout.
+        // Mixed C2 already has measured two-column source cells; the approved
+        // blue interior bands must occupy THOSE cells, without new pages.
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.B,
+                PcSheetExportStateSelection.PERMANENT),
+            sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json"),
+        )
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val mixedPage = (1..pdf.numberOfPages).firstOrNull { physical ->
+                PDFTextStripper().apply {
+                    startPage = physical
+                    endPage = physical
+                }.getText(pdf).contains("C2 - Habilidades, acciones y recursos")
+            } ?: error("Source-backed mixed C2 disappeared")
+            val page = pdf.getPage(mixedPage - 1)
+            val text = PDFTextStripper().apply {
+                startPage = mixedPage
+                endPage = mixedPage
+            }.getText(pdf)
+            listOf(
+                "ATAQUES, NOTAS Y ESPACIOS REALES",
+                "RECURSOS Y MUNICIONES",
+                "RASGOS / CONTINUACIÓN P2",
+                "Potent Cantrip",
+                "Arcane Recovery",
+            ).forEach { label ->
+                assertTrue(text.contains(label),
+                    "C2 visual cartelas must not remove persisted text: " + label)
+            }
+            val commands = page.contents.use {
+                it.readBytes().toString(Charsets.ISO_8859_1)
+            }
+            // Only a complete 258pt cartela in either measured C2 column
+            // qualifies. The frame, manuscript grid, or a text glyph cannot
+            // substitute for a physically FILLED interior heading band.
+            val filledGroupBands = Regex(
+                """(?m)(?:^|\\s)(?:42|312)\\s+[0-9.]+\\s+258(?:\\.0+)?\\s+[0-9.]+\\s+re\\s+f(?:\\s|$)"""
+            ).findAll(commands).count()
+            assertTrue(filledGroupBands >= 3,
+                "Every Ilyra source heading needs an actual filled " +
+                    "two-column C2 cartela: found " + filledGroupBands)
+            assertTrue(text.contains("VIENE DE P1 PÁG. 1 / P2 PÁG. 2"),
+                "C2 cartelas cannot disturb final physical source backlinks.")
+        }
+    }
+
+    @Test
     fun variantBBottomPaperSpaceHasCompleteRuledRowsWithoutOverprintingSkills() {
         // Gold B's B-skill panel contains manuscript bands BELOW real
         // source-backed rows. Verify genuine vector operators in the PDF
