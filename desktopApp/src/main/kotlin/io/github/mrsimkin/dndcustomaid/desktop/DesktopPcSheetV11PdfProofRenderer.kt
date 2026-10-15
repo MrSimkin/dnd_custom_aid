@@ -1552,9 +1552,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     "] " + sourceLabel
                             }
                             add(PcSheetV11FlowItem("quick-spell:" + entry.spell.id,
-                                // Three measured spaces reserve the vector checkbox
-                                // inside the first source line; no name is truncated.
-                                "   " + entry.spell.name +
+                                // Five measured spaces separate the actual first
+                                // spell glyph from the 7pt vector box (verified original
+                                // 3-space result overlapped its border by ~1.8pt).
+                                // No source name or status is abbreviated or trimmed.
+                                "     " + entry.spell.name +
                                     (if (sourceInfo.isBlank()) "" else " | " + sourceInfo),
                                 keepTogetherIfFits = true))
                         }
