@@ -137,7 +137,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             // qualifies. The frame, manuscript grid, or a text glyph cannot
             // substitute for a physically FILLED interior heading band.
             val filledGroupBands = Regex(
-                """(?m)(?:^|\\s)(?:42|312)\\s+[0-9.]+\\s+258(?:\\.0+)?\\s+[0-9.]+\\s+re\\s+f(?:\\s|$)"""
+                """(?m)(?:^|\s)(?:42|312)\s+[0-9.]+\s+258(?:\.0+)?\s+[0-9.]+\s+re\s+f(?:\s|$)"""
             ).findAll(commands).count()
             assertTrue(filledGroupBands >= 3,
                 "Every Ilyra source heading needs an actual filled " +
