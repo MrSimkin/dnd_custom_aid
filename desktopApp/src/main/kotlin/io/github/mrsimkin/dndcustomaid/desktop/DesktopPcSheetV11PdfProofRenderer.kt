@@ -9,6 +9,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11MeasuredFlowPl
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TextFlow
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TextColumn
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowSourceMapper
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ColumnGrid
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11RectPt
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticData
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Typeface
