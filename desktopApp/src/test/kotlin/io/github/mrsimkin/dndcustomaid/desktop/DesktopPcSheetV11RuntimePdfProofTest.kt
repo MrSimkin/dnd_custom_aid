@@ -754,6 +754,33 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun mixedC2FillsUsableRightColumnEvenWhenLeftSourceColumnIsLong() {
+        // In Mara the left-hand custom/action stream almost fills its column;
+        // the right resource column still has a valid manuscript NOTAS area.
+        val real = sources("03_mara_siete_umbrales_custom_extended.json")
+        val bytes = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.B,
+                PcSheetExportStateSelection.PERMANENT), real,
+        ).bytes
+        Loader.loadPDF(bytes).use { pdf ->
+            val mixed = (0 until pdf.numberOfPages).firstOrNull { index ->
+                PDFTextStripper().apply {
+                    startPage = index + 1
+                    endPage = index + 1
+                }.getText(pdf).contains("C2 - Habilidades, acciones y recursos")
+            } ?: error("Mara's mixed C2 source page vanished.")
+            val rightLowerPaper = PDFTextStripperByArea().apply {
+                addRegion("right-notes", Rectangle2D.Float(310f, 570f, 263f, 150f))
+                extractRegions(pdf.getPage(mixed))
+            }.getTextForRegion("right-notes")
+            assertTrue(rightLowerPaper.contains("NOTAS"),
+                "A full LEFT source column must not suppress unused RIGHT C2 paper.")
+            assertTrue(PDFTextStripper().getText(pdf).contains("Contratos arcanos"),
+                "Mixed C2 manuscript fill may not erase real custom skill sources.")
+        }
+    }
+
+    @Test
     fun paperOnlySpellRowsUseVectorMarksInsteadOfLiteralBrackets() {
         val real = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
         val bytes = DesktopPcSheetExportService().generateV11Proof(

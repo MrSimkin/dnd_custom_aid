@@ -852,8 +852,43 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream: PDPageContentStream,
                 cells: List<io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PlacedLineCell>,
             ) {
-                val lowestTextBottom = cells.minOfOrNull { it.cellPt.bottomPt } ?: return
-                drawUnusedC2NotesGrid(stream, lowestTextBottom)
+                // C2 is two independent vertical paper columns. A nearly
+                // occupied LEFT column cannot veto useful blank RIGHT paper.
+                val columns = PcSheetV11ColumnGrid.split(pageArea, 2, 12f)
+                columns.forEachIndexed { index, column ->
+                    val lowestTextBottom = cells.filter { it.columnIndex == index + 1 }
+                        .minOfOrNull { it.cellPt.bottomPt } ?: column.topPt
+                    val gridBottom = 78f
+                    val gridSize = 16f
+                    val maxGridTop = lowestTextBottom - 28f
+                    val completeRows = ((maxGridTop - gridBottom) / gridSize).toInt()
+                    if (completeRows < 3) return@forEachIndexed
+                    val gridTop = gridBottom + completeRows * gridSize
+                    require(gridTop + 18f < lowestTextBottom) {
+                        "Independent C2 manuscript notes may not overlap actual source cells."
+                    }
+                    val completeColumns = (column.widthPt / gridSize).toInt()
+                    require(completeColumns >= 2)
+                    val gridWidth = completeColumns * gridSize
+                    val gridLeft = column.leftPt + (column.widthPt - gridWidth) / 2f
+                    draw(stream, "NOTAS", gridLeft + 2f, gridTop + 7f, true)
+                    stream.saveGraphicsState()
+                    stream.setStrokingColor(Color(130, 165, 186))
+                    stream.setLineWidth(0.5f)
+                    for (x in 0..completeColumns) {
+                        val px = gridLeft + x * gridSize
+                        stream.moveTo(px, gridBottom)
+                        stream.lineTo(px, gridTop)
+                        stream.stroke()
+                    }
+                    for (y in 0..completeRows) {
+                        val py = gridBottom + y * gridSize
+                        stream.moveTo(gridLeft, py)
+                        stream.lineTo(gridLeft + gridWidth, py)
+                        stream.stroke()
+                    }
+                    stream.restoreGraphicsState()
+                }
             }
 
             // The approved P3 has ruled handwriting space beneath narrative,
