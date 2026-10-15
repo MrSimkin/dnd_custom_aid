@@ -123,9 +123,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     Rectangle2D.Float(41f, 185f, 260f, 510f))
                 extractRegions(pdf.getPage(0))
             }.getTextForRegion("standard-abilities")
-            assertEquals(6, Regex("SALVACIÓN").findAll(leftSavingRegion).count(),
-                "The six real P1 saving throws must remain physically anchored " +
-                    "to the left vertical attributes, not the spellcasting CD.")
+            assertEquals(minOf(9, generated.semantic.attributes.size),
+                Regex("SALVACIÓN").findAll(leftSavingRegion).count(),
+                "Every P1 standard and fitting custom ability saving throw " +
+                    "must occupy the LEFT vertical attribute band, not magic DC.")
             // Semantic enum IDs remain unmodified in source, while their
             // physically exported V11 P1 labels must follow the frozen Spanish
             // design. Both obligations are asserted, not substituted.
@@ -837,7 +838,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.getText(pdf).contains("C2 - Habilidades, acciones y recursos")
             } ?: error("Mara's mixed C2 source page vanished.")
             val rightLowerPaper = PDFTextStripperByArea().apply {
-                addRegion("right-notes", Rectangle2D.Float(310f, 570f, 263f, 150f))
+                // A newly EMPTY right C2 column may place its manuscript
+                // NOTAS heading near the top, not in the old bottom-only band.
+                addRegion("right-notes", Rectangle2D.Float(310f, 84f, 263f, 635f))
                 extractRegions(pdf.getPage(mixed))
             }.getTextForRegion("right-notes")
             assertTrue(rightLowerPaper.contains("NOTAS"),
