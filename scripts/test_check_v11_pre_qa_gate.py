@@ -62,6 +62,16 @@ class V11PreQaGateGuardTest(unittest.TestCase):
         self.assertTrue(any("historic/golden/precedence crosscheck incomplete" in e
                             for e in validate(self.root)))
 
+    def test_d0076_section_is_not_erasable(self):
+        self.matrix["source_reconciliation"]["legacy_decisions"].pop()
+        self.write()
+        self.assertTrue(any("48 legacy decision sections" in e for e in validate(self.root)))
+
+    def test_one_golden_pdf_is_not_erasable(self):
+        self.matrix["source_reconciliation"]["golden_pdf_cases"].pop()
+        self.write()
+        self.assertTrue(any("eight golden PDF cases" in e for e in validate(self.root)))
+
     def test_legacy_expected_ids_are_immutable(self):
         for required in ("RSG01", "RSG02", "RSG03", "P301", "P302", "C207",
                          "FIN01", "QA05", "QA07", "QA08"):
