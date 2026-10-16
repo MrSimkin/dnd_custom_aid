@@ -521,7 +521,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.setNonStrokingColor(Color(244, 250, 253))
                 for (rowIndex in 0..6 step 2) {
                     val rowTop = headerBottom - rowIndex * 12f
-                    stream.addRect(left + 0.8f, rowTop - 12f, 256.4f, 12f)
+                    stream.addRect(left + 1f, rowTop - 12f, 256f, 12f)
                     stream.fill()
                 }
                 stream.restoreGraphicsState()
