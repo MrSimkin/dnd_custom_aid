@@ -72,6 +72,29 @@ class V11PreQaGateGuardTest(unittest.TestCase):
         self.write()
         self.assertTrue(any("eight golden PDF cases" in e for e in validate(self.root)))
 
+    def test_each_rule_has_local_development_stage(self):
+        self.matrix["rules"][0]["stage_checks"] = []
+        self.write()
+        self.assertTrue(any("no development-stage checks" in e for e in validate(self.root)))
+
+    def test_missing_relevant_renderer_stage_fails(self):
+        row = next(r for r in self.matrix["rules"] if r["id"] == "RSG02")
+        row["stage_checks"] = [x for x in row["stage_checks"] if x["stage"] != "G3"]
+        self.write()
+        self.assertTrue(any("missing real-renderer G3 check" in e for e in validate(self.root)))
+
+    def test_fake_stage_pass_without_test_evidence_fails(self):
+        row = next(r for r in self.matrix["rules"] if r["id"] == "RSG02")
+        row["stage_checks"][0]["status"] = "PASS"
+        self.write()
+        self.assertTrue(any("PASS without phase evidence" in e for e in validate(self.root)))
+
+    def test_stage_test_target_must_exist(self):
+        row = next(r for r in self.matrix["rules"] if r["id"] == "RSG02")
+        row["stage_checks"][0]["test_target"] = "does/not/exist.py"
+        self.write()
+        self.assertTrue(any("missing test target file" in e for e in validate(self.root)))
+
     def test_legacy_expected_ids_are_immutable(self):
         for required in ("RSG01", "RSG02", "RSG03", "P301", "P302", "C207",
                          "FIN01", "QA05", "QA07", "QA08"):
