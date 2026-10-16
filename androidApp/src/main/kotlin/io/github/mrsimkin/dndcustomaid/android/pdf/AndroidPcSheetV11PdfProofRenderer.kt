@@ -513,6 +513,18 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
+                // V11 approved blue-mist table grammar: alternate four VERY light
+                // attack-body rows. Keep existing coordinates, table borders,
+                // source-backed labels/bonuses/damage and all page breaks intact.
+                // Tint only inside the original 7 x 12pt table body, not header.
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(Color(244, 250, 253))
+                for (rowIndex in 0..6 step 2) {
+                    val rowTop = headerBottom - rowIndex * 12f
+                    stream.addRect(left + 0.8f, rowTop - 12f, 256.4f, 12f)
+                    stream.fill()
+                }
+                stream.restoreGraphicsState()
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.7f)
