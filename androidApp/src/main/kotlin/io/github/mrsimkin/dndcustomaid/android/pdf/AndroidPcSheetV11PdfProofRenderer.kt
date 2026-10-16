@@ -1147,10 +1147,18 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.65f)
                 stream.setNonStrokingColor(Color(217, 236, 245))
-                stream.addRect(42f, y, 528f, 20f)
-                stream.fill()
-                stream.addRect(42f, y, 528f, 20f)
-                stream.stroke()
+                // Frozen P3 golden: clipped blue narrative cartela
+                // within the SAME 528×20pt physical reservation.
+                stream.moveTo(48f, y)
+                stream.lineTo(564f, y)
+                stream.lineTo(570f, y + 6f)
+                stream.lineTo(570f, y + 14f)
+                stream.lineTo(564f, y + 20f)
+                stream.lineTo(48f, y + 20f)
+                stream.lineTo(42f, y + 14f)
+                stream.lineTo(42f, y + 6f)
+                stream.closePath()
+                stream.fillAndStroke()
                 stream.restoreGraphicsState()
                 draw(stream, label, 49f, y + 6f, true)
             }
@@ -1191,7 +1199,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         PcSheetV11RectPt(rect.leftPt + 1f, rect.bottomPt + 1f,
                             rect.widthPt - 2f, rect.heightPt - 18f),
                         body.metrics.lineHeightPt)
-                    draw(stream, heading, rect.leftPt + 5f, rect.topPt - 11f, false)
+                    // Section labels are genuine Barlow Condensed, not
+                    // Fira Sans values. Enforce width with the embedded
+                    // PDF font before changing their physical typography.
+                    val labelPt = 9f
+                    val labelWidth = headerPdfFont.getStringWidth(heading) *
+                        labelPt / 1000f
+                    require(labelWidth <= rect.widthPt - 10f) {
+                        "P3 narrative cartela label cannot fit without clipping."
+                    }
+                    stream.beginText()
+                    stream.setFont(headerPdfFont, labelPt)
+                    stream.newLineAtOffset(rect.leftPt + 5f, rect.topPt - 11f)
+                    stream.showText(heading)
+                    stream.endText()
                     placed.cells.filter { it.localPageIndex == 1 }.forEach { cell ->
                         if (cell.drawableText.isNotEmpty()) {
                             draw(stream, cell.drawableText, cell.cellPt.leftPt,
