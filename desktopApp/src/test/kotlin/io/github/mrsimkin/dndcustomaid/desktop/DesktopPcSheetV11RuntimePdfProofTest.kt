@@ -136,12 +136,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             // Only a complete 258pt cartela in either measured C2 column
             // qualifies. The frame, manuscript grid, or a text glyph cannot
             // substitute for a physically FILLED interior heading band.
-            val filledGroupBands = Regex(
-                """(?m)(?:^|\s)(?:42|312)\s+[0-9.]+\s+258(?:\.0+)?\s+[0-9.]+\s+re\s+f(?:\s|$)"""
+            val clippedGroupBands = Regex(
+                """(?m)(?:^|\s)(?:45|315)\s+[0-9.]+\s+m\s+(?:297|567)\s+[0-9.]+\s+l\s+(?:300|570)\s+[0-9.]+\s+l"""
             ).findAll(commands).count()
-            assertTrue(filledGroupBands >= 3,
-                "Every Ilyra source heading needs an actual filled " +
-                    "two-column C2 cartela: found " + filledGroupBands)
+            assertTrue(clippedGroupBands >= 3,
+                "All genuine Ilyra mixed C2 source groups require " +
+                    "separate clipped physical blue cartelas: found " + clippedGroupBands)
+            assertTrue(Regex("""(?m)/F1\s+9\s+Tf""").containsMatchIn(commands),
+                "C2 source cartela labels must use embedded 9pt Barlow Condensed " +
+                    "rather than the Fira Sans value font.")
             assertTrue(Regex("""(?m)(?:^|\s)B(?:\s|$)""")
                 .containsMatchIn(commands),
                 "Source-backed mixed C2 requires a distinct clipped blue " +
