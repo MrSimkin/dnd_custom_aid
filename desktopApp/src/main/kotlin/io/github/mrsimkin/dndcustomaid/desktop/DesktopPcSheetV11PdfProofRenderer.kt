@@ -552,27 +552,28 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // 8-segment clipped cartela (302x23pt in the golden).
                 // Genuine App P1 has only a 20pt free strip between the
                 // traits bottom (top-origin y491) and spell panel (y511).
-                // Keep a 1pt/2pt clearance with a 258x17pt blue cartela at
-                // PDF x312..570, y283..300; do not move any source data,
+                // Keep 1pt clearance on each side with a 258x18pt blue cartela at
+                // PDF x312..570, y282..300; do not move any source data,
                 // spell counters, panels, or page breaks.
                 stream.saveGraphicsState()
                 stream.setNonStrokingColor(Color(231,242,247))
                 stream.setStrokingColor(Color(38,75,104))
                 stream.setLineWidth(0.55f)
-                stream.moveTo(316f,283f)
-                stream.lineTo(566f,283f)
-                stream.lineTo(570f,287f)
+                stream.moveTo(316f,282f)
+                stream.lineTo(566f,282f)
+                stream.lineTo(570f,286f)
                 stream.lineTo(570f,296f)
                 stream.lineTo(566f,300f)
                 stream.lineTo(316f,300f)
                 stream.lineTo(312f,296f)
-                stream.lineTo(312f,287f)
+                stream.lineTo(312f,286f)
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
-                // Reposition ONLY this printed title by 3pt downward,
-                // fitting its measured 14.4pt ink within the 17pt band.
-                draw(stream,"LANZAMIENTO DE CONJUROS",312f,288f,true)
+                // Real rendered P1 review found the first letter touching the
+                // left/top stroke. Inset the title 9pt and lower its ink
+                // 2pt within the 18pt strip, no change to spell data.
+                draw(stream,"LANZAMIENTO DE CONJUROS",321f,286f,true)
                 val actual=data.spellSlots.associateBy{it.level}
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130,165,186))

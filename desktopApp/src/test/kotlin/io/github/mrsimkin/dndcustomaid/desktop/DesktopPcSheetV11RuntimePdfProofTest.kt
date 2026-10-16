@@ -133,7 +133,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         // Frozen approved P1 gold: x270.425..572.315,
         // top-origin y549.354..572.315, 8-segment clipped blue banner.
         // Genuine App traits end top-origin y491 and spells begin y511.
-        // The 258x17pt band is strictly inside that EXISTING free strip;
+        // The 258x18pt band fits inside that EXISTING free strip;
         // panel/source slots must retain all data and original geometry.
         for ((fixture, variant) in listOf(
             "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
@@ -151,7 +151,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
                 val clipped = Regex(
-                    """(?s)(?:^|\s)316\s+283\s+m\s+566\s+283\s+l\s+570\s+287\s+l""" +
+                    """(?s)(?:^|\s)316\s+282\s+m\s+566\s+282\s+l\s+570\s+286\s+l""" +
                         """.*?\s+h\s+B(?:\s|$)"""
                 )
                 assertEquals(1, clipped.findAll(ops).count(),
@@ -161,6 +161,32 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(Regex(
                     """(?:^|\s)312\s+154\s+258\s+127\s+re(?:\s|$)"""
                 ).containsMatchIn(ops), "Casting source panel must not move.")
+                // Verify actual embedded-font glyph origin. The first
+                // review exposed an L touching the clipped top-left border.
+                val titleOrigins = mutableListOf<Pair<Float, Float>>()
+                val inspector = object : PDFTextStripper() {
+                    override fun writeString(
+                        text: String,
+                        textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                    ) {
+                        val at = text.indexOf("LANZAMIENTO")
+                        if (at >= 0 && textPositions.size > at) {
+                            val p = textPositions[at]
+                            titleOrigins += p.xDirAdj to p.yDirAdj
+                        }
+                        super.writeString(text, textPositions)
+                    }
+                }
+                inspector.startPage = 1
+                inspector.endPage = 1
+                inspector.getText(pdf)
+                assertEquals(1, titleOrigins.size,
+                    "Exactly one P1 casting heading required.")
+                val title = titleOrigins.single()
+                assertTrue(kotlin.math.abs(title.first - 321f) < 0.3f &&
+                    kotlin.math.abs(title.second - 506f) < 0.3f,
+                    "Title must clear the clipped left/top frame with " +
+                        "9pt left inset and 2pt upper ink clearance.")
                 val text = PDFTextStripper().apply {
                     startPage = 1
                     endPage = 1
