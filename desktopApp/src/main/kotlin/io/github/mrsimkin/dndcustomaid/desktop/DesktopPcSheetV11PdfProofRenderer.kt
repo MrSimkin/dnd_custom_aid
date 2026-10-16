@@ -693,7 +693,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 var current = ""
                 for (word in label.split(' ').filter { it.isNotEmpty() }) {
                     if (p1Font.width.measurePt(word) > 121f) return emptyList()
-                    val candidate = if (current.isEmpty()) word else "$" + "{current} $" + "word"
+                    val candidate = if (current.isEmpty()) word else "${current} $word"
                     if (p1Font.width.measurePt(candidate) <= 121f) {
                         current = candidate
                     } else {
