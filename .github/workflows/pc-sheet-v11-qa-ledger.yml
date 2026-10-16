@@ -18,6 +18,8 @@ on:
       - "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
       - "scripts/check_v11_qa_registry.py"
       - "scripts/test_check_v11_qa_registry.py"
+      - "scripts/check_v11_pre_qa_gate.py"
+      - "scripts/test_check_v11_pre_qa_gate.py"
       - ".github/workflows/pc-sheet-v11-qa-ledger.yml"
   pull_request:
     branches: [main]
@@ -34,6 +36,8 @@ on:
       - "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
       - "scripts/check_v11_qa_registry.py"
       - "scripts/test_check_v11_qa_registry.py"
+      - "scripts/check_v11_pre_qa_gate.py"
+      - "scripts/test_check_v11_pre_qa_gate.py"
       - ".github/workflows/pc-sheet-v11-qa-ledger.yml"
 
 permissions:
@@ -50,6 +54,11 @@ jobs:
         run: |
           python3 -m py_compile scripts/check_v11_qa_registry.py scripts/test_check_v11_qa_registry.py
           python3 scripts/check_v11_qa_registry.py --repo-root .
+      - name: V11 G4 contract inventory (NOT a compliance PASS)
+        run: |
+          python3 -m py_compile scripts/check_v11_pre_qa_gate.py scripts/test_check_v11_pre_qa_gate.py
+          python3 scripts/check_v11_pre_qa_gate.py --repo-root . --mode inventory
+          python3 -m unittest discover -s scripts -p 'test_check_v11_pre_qa_gate.py' -v
       - name: Anti-regression checks for the checker
         run: python3 -m unittest discover -s scripts -p 'test_check_v11_qa_registry.py' -v
       - name: Prevent silent edits to owner testimony between branch commits
