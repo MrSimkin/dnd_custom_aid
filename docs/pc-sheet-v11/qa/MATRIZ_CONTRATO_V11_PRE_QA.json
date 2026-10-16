@@ -1519,6 +1519,34 @@
       ]
     },
     {
+      "id": "P120",
+      "area": "P1",
+      "obligation": "ATAQUES: cuatro bandas alternadas suaves en las filas útiles de la tabla, bajo la cartela y sin desplazar textos, columnas ni salto de página",
+      "authority": "CONTRATO_VISUAL_APROBADO.md + golden V11 + D-0076 encabezado/gramática azul niebla",
+      "method": "Extracción independiente de cuatro rectángulos de relleno y texto/posiciones fuente idénticos antes/después; inspección física con variantes A/B",
+      "scenarios": "Aldren A, Ilyra B, Mara A/B, poco/vacío/largo, Android/Desktop",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "Composición conservada: filas, reservas, tres columnas y continuaciones sin movimiento por decoración",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "Operadores de cuatro bandas sobre PDF real y paridad de renderizadores; sin alterar información fuente",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "test_name": "g3RealP1AttacksHaveSubtleAlternatingBandsWithoutLosingPrintedAttackFields",
+          "source_parity_test": "scripts/test_v11_attacks_render_contract.py",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
       "id": "RSG01",
       "area": "Rasgos",
       "obligation": "Cada entrada contiene SOLO nombre, categoría/tipo y fuente/origen reales según ejemplo Pericia - Rasgo de Clase: Pícaro",
