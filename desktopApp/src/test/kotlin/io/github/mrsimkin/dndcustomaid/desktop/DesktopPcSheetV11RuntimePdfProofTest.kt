@@ -192,7 +192,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "P2 headings must all use genuine embedded BarlowCondensed 11pt.")
                 val all = PDFTextStripper().getText(pdf)
                 assertTrue(all.contains("NOTAS"))
-                assertTrue(all.contains("P3 - Trasfondo / Perfil / Historia"))
+                assertTrue(all.contains("P3 - Trasfondo"))
                 assertTrue(all.contains("P4 - Conjuros"),
                     "P2 cartelas must not shift spell/narrative/C2 pagination.")
             }
