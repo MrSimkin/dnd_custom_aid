@@ -856,6 +856,25 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
                 stream.restoreGraphicsState()
                 p1DrawSmall(stream, "MUNICIONES / MARCAS:", 316f, 137f)
+                // D-0076 §3.39: no recorded/displayable ammunition still
+                // reserves ONE logical paper entry with a blank name and
+                // exactly 20 unmarked squares, grouped 5+5 in two subrows.
+                // Do not invent a type, a quantity or a second ammunition ID.
+                if (p1AmmoItems.isEmpty()) {
+                    p1DrawSmall(stream, "____________", 316f, 122f)
+                    stream.saveGraphicsState()
+                    stream.setStrokingColor(Color(130, 165, 186))
+                    stream.setLineWidth(0.55f)
+                    repeat(20) { index ->
+                        val column = index % 10
+                        val x = 392f + column * 8f + (column / 5) * 4f
+                        val y = if (index < 10) 119f else 103f
+                        require(x + 6f <= 570f)
+                        stream.addRect(x, y, 6f, 6f)
+                        stream.stroke()
+                    }
+                    stream.restoreGraphicsState()
+                }
                 p1AmmoItems.forEachIndexed { row, item ->
                     val baseline = 122f - row * 16f
                     p1DrawSmall(stream, item.name, 316f, baseline)

@@ -2334,4 +2334,40 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+    @Test
+    fun g3RealP1WithoutAmmunitionHasOnePaperEntryWithTwentyEmptyBoxes() {
+        // Owner D-0076 §3.39: one logical manual row, no invented ammo
+        // names or quantity. Ilyra has no persisted AMMUNITION usage.
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(
+                PcSheetV11Variant.B,
+                PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json"),
+        )
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val ops = pdf.getPage(0).contents.use {
+                it.readBytes().toString(Charsets.ISO_8859_1)
+            }
+            // Two subrows of ten 6pt squares: each subrow groups 5 + 5,
+            // fully inside the original reserved P1 ammunition rectangle.
+            val marks = Regex(
+                """(?:^|\s)(?:392|400|408|416|424|436|444|452|460|468)\s+""" +
+                    """(?:119|103)\s+6\s+6\s+re(?:\s|$)"""
+            )
+            assertEquals(20, marks.findAll(ops).count(),
+                "Empty ammo must show 20 independent paper-only marks.")
+            assertTrue(Regex(
+                """(?:^|\s)312\s+102\s+258\s+46\s+re(?:\s|$)"""
+            ).containsMatchIn(ops), "Original P1 ammo panel must not move.")
+            val page1 = PDFTextStripper().apply {
+                startPage = 1
+                endPage = 1
+            }.getText(pdf)
+            assertTrue(page1.contains("MUNICIONES / MARCAS:"))
+            assertFalse(page1.contains("MARCAS: ____ / 20"),
+                "Paper-only marks do not imply 20 units of ammo.")
+        }
+    }
+
 }
