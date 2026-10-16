@@ -99,6 +99,77 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun physicalP4GoldenPaperHasClippedReferenceCardsAndNineWritableSlotMeters() {
+        // Inspect the actual Desktop App service output, not a Python mock.
+        // A printed slot meter is blank handwriting, not an invented spell
+        // capacity or a persisted spell state. All actual spells remain.
+        for (fixture in listOf(
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json",
+            "03_mara_siete_umbrales_custom_extended.json",
+        )) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(PcSheetV11Variant.B,
+                    PcSheetExportStateSelection.PERMANENT),
+                sources(fixture),
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val p4 = (1..pdf.numberOfPages).firstOrNull { number ->
+                    PDFTextStripper().apply {
+                        startPage = number
+                        endPage = number
+                    }.getText(pdf).contains("P4 - Conjuros")
+                } ?: error("Real spellcaster lost physical P4")
+                val text = PDFTextStripper().apply {
+                    startPage = p4
+                    endPage = p4
+                }.getText(pdf)
+                assertTrue(text.contains("REFERENCIA MÁGICA"))
+                assertTrue(text.contains("APTITUD"))
+                assertTrue(text.contains("CD SALVACIÓN"))
+                assertTrue(text.contains("ATAQUE MÁGICO"))
+                for (level in 1..9) {
+                    assertTrue(text.contains("NIVEL $level"),
+                        "The approved P4 still reserves every normal level 1..9.")
+                }
+                assertFalse(text.contains("NIVEL 10"),
+                    "Do not fabricate epic spell levels.")
+                val operators = pdf.getPage(p4 - 1).contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                assertTrue(Regex("""(?m)(?:^|\s)48\s+667\s+m\s+564\s+667\s+l\s+570\s+673\s+l""")
+                    .containsMatchIn(operators),
+                    "P4 magical-reference cartela must be physically clipped.")
+                for (startX in listOf(48, 228, 408)) {
+                    val endX = startX + 156
+                    val clippedCard = Regex(
+                        """(?m)(?:^|\s)""" + startX +
+                            """\s+617\s+m\s+""" + endX +
+                            """\s+617\s+l\s+""" + (endX + 6) +
+                            """\s+623\s+l"""
+                    )
+                    assertTrue(clippedCard.containsMatchIn(operators),
+                        "Each real P4 magic-source card needs 6pt clipped corners.")
+                }
+                val paperSlots = Regex(
+                    """(?m)(?:^|\s)(?:177|188|199|357|368|379|537|548|559)""" +
+                        """\s+[\d.]+\s+7\s+7\s+re(?:\s|$)"""
+                ).findAll(operators).count()
+                assertEquals(27, paperSlots,
+                    "Exactly three BLANK genuine vector slot boxes for each " +
+                        "of nine spell levels. No 0-level or fabricated 10+.") 
+                assertTrue(Regex("""(?m)/F1\s+7\s+Tf""")
+                    .findAll(operators).count() >= 9,
+                    "P4 must use genuine embedded Barlow 7pt on blank meters.")
+                assertTrue(Regex("""(?m)/F1\s+9\s+Tf""")
+                    .findAll(operators).count() >= 3,
+                    "P4 three source card labels use embedded Barlow typography.")
+                assertTrue(PDFTextStripper().getText(pdf).contains("NOTAS"),
+                    "Golden P4 improvements must not erase trailing handwritten notes.")
+            }
+        }
+    }
+
+    @Test
     fun actualIlyraP3UsesTwoClippedBlueNarrativeBandsAndBarlowFieldLabels() {
         // Approved P3 narrative appearance must come from the real App PDF.
         // No narrative text, source IDs, lines or page geometry may change.

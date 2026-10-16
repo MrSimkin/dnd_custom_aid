@@ -920,10 +920,23 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.7f)
                 stream.setNonStrokingColor(Color(231, 241, 247))
-                stream.addRect(42f, 667f, 528f, 27f)
-                stream.fill()
-                stream.addRect(42f, 667f, 528f, 27f)
-                stream.stroke()
+                // Frozen V11 P4: a genuinely clipped, stroked blue cartela,
+                // confined to the original 528x27pt source-free header strip.
+                val x0 = 42f
+                val x1 = 570f
+                val y0 = 667f
+                val y1 = 694f
+                val corner = 6f
+                stream.moveTo(x0 + corner, y0)
+                stream.lineTo(x1 - corner, y0)
+                stream.lineTo(x1, y0 + corner)
+                stream.lineTo(x1, y1 - corner)
+                stream.lineTo(x1 - corner, y1)
+                stream.lineTo(x0 + corner, y1)
+                stream.lineTo(x0, y1 - corner)
+                stream.lineTo(x0, y0 + corner)
+                stream.closePath()
+                stream.fillAndStroke()
                 stream.restoreGraphicsState()
                 draw(stream, "REFERENCIA MÁGICA", 49f, 676f, true)
                 fields.forEachIndexed { index, (label, value) ->
@@ -931,10 +944,33 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.saveGraphicsState()
                     stream.setStrokingColor(Color(80, 122, 151))
                     stream.setLineWidth(0.7f)
-                    stream.addRect(x, 617f, 168f, 44f)
+                    // Golden uses clipped corners on each source-backed card,
+                    // with identical 168x44pt measured source rectangles.
+                    val cardCut = 6f
+                    val cardRight = x + 168f
+                    val cardBottom = 617f
+                    val cardTop = 661f
+                    stream.moveTo(x + cardCut, cardBottom)
+                    stream.lineTo(cardRight - cardCut, cardBottom)
+                    stream.lineTo(cardRight, cardBottom + cardCut)
+                    stream.lineTo(cardRight, cardTop - cardCut)
+                    stream.lineTo(cardRight - cardCut, cardTop)
+                    stream.lineTo(x + cardCut, cardTop)
+                    stream.lineTo(x, cardTop - cardCut)
+                    stream.lineTo(x, cardBottom + cardCut)
+                    stream.closePath()
                     stream.stroke()
                     stream.restoreGraphicsState()
-                    draw(stream, label, x + 7f, 645f, false)
+                    val fieldLabelPt = 9f
+                    require(headerPdfFont.getStringWidth(label) *
+                        fieldLabelPt / 1000f <= 154f) {
+                        "P4 spellcasting card label overflows frozen width: " + label
+                    }
+                    stream.beginText()
+                    stream.setFont(headerPdfFont, fieldLabelPt)
+                    stream.newLineAtOffset(x + 7f, 645f)
+                    stream.showText(label)
+                    stream.endText()
                     if (value == null) {
                         stream.moveTo(x + 7f, 629f)
                         stream.lineTo(x + 160f, 629f)
@@ -1360,6 +1396,47 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             stream.restoreGraphicsState()
                         }
                         pageCells.forEach { cell ->
+                            // The approved P4 has a blank handwritten ESP. ___
+                            // meter and THREE small blank squares per magic
+                            // level 1..9 in that level's existing blue header.
+                            // These are PAPER ONLY: never synthesize a numeric
+                            // slot capacity, spent slot, prepared spell or
+                            // fake epic (10..12) progression.
+                            if (title.startsWith("P4 - ") &&
+                                cell.sourceKey.startsWith("spell-level:") &&
+                                cell.sourceStartOffset == 0) {
+                                val level = cell.sourceKey.removePrefix("spell-level:")
+                                    .toIntOrNull()
+                                if (level != null && level in 1..9) {
+                                    val baseline = body.metrics.baselineIn(cell.cellPt)
+                                    val label = "ESP. ___"
+                                    val labelPt = 7f
+                                    val labelX = cell.cellPt.rightPt - 83f
+                                    val firstSquareX = cell.cellPt.rightPt - 33f
+                                    require(headerPdfFont.getStringWidth(label) *
+                                        labelPt / 1000f <= firstSquareX - labelX - 5f) {
+                                        "P4 blank slot label cannot fit reserved level band."
+                                    }
+                                    require(firstSquareX + 2 * 11f + 7f <=
+                                        cell.cellPt.rightPt - 2f) {
+                                        "P4 handwritten level slots exceed measured column."
+                                    }
+                                    stream.beginText()
+                                    stream.setFont(headerPdfFont, labelPt)
+                                    stream.newLineAtOffset(labelX, baseline)
+                                    stream.showText(label)
+                                    stream.endText()
+                                    stream.saveGraphicsState()
+                                    stream.setStrokingColor(Color(130, 165, 186))
+                                    stream.setLineWidth(0.6f)
+                                    repeat(3) { slot ->
+                                        stream.addRect(firstSquareX + slot * 11f,
+                                            baseline - 1f, 7f, 7f)
+                                        stream.stroke()
+                                    }
+                                    stream.restoreGraphicsState()
+                                }
+                            }
                             // Golden P4 paper-only rows use REAL square marks.
                             // Persisted spell preparation still uses source-specific
                             // text state; blank handwriting has no magical state.
