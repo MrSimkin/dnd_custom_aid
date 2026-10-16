@@ -53,6 +53,14 @@ OPEN  →  TRIAGED  →  IMPLEMENTED_UNVERIFIED  →  CANDIDATE_VERIFIED  →  O
 5. **Oráculo independiente:** al menos uno de inspección PDF (extracción + geometría/raster) diferente del compositor. Un test que reutiliza los mismos cálculos que el renderer **no es oráculo independiente**.
 6. **Control de regresión en QA siguiente:** la matriz siempre incluye IDs **OPEN**, `IMPLEMENTED_UNVERIFIED` y `CANDIDATE_VERIFIED` del ciclo anterior hasta aceptación, además de los nuevos. No sacrificar comportamientos ya aceptados para resolver otros.
 
+## Compuerta reforzada **ANTES del QA del propietario** (autorización 2026-10-16)
+
+**La QA del propietario NO es la fase para descubrir infracciones documentables del contrato V11.** Antes de preparar o enviar el siguiente APK G5, completar la **auditoría exhaustiva G4** de `qa/G4_COMPUERTA_CUMPLIMIENTO_PRE_QA.md` sobre `qa/MATRIZ_CONTRATO_V11_PRE_QA.json`. La matriz abarca inicialmente 104 reglas con trazabilidad `ID → obligación aprobada → fuente → método → fixtures → PDF/candidato → PASS/FAIL/BLOCKED`, y requiere contrastar las 48 secciones originales D-0076, el golden completo y toda aclaración posterior. Si se descubre una regla sin ID, crearla ANTES de pasar G4.
+
+**Enlace obligatorio al QA ledger existente:** `scripts/check_v11_qa_registry.py` invoca `scripts/check_v11_pre_qa_gate.py` en modo estricto ante `READY_FOR_OWNER_QA`, `READY_FOR_MERGE`, `--gate owner_qa` o `--gate merge`. Cualquier ID no PASS, informe sin oráculo independiente, fuente no conciliada, APK/PDF de candidato incorrecto o falta de material de inspección BLOQUEA el envío. El CI de inventario comprueba solo consistencia documental, NUNCA autoriza entrega.
+
+**Hallazgo conocido RSG01–03 (FAIL, no QA owner):** rasgos de P1/P2/C2 deben ser `Nombre - Tipo: Fuente` con los campos genuinos, sin `description` ni `notes`, según D-0076 §3.9 y ejemplo actual `Pericia - Rasgo de Clase: Pícaro`. El renderer P2 actual imprime descripción/notas; exige cambio productivo y prueba negativa de esos textos en PDF real antes de poder promoverse. No marcar FIXED ni OWNER_ACCEPTED desde documentación. La historia de QA V11-QA-001/002 y M50800 permanece intacta.
+
 ## Regla de promoción
 
 - **Entrada a QA propietario:** ninguna observación bloqueante de V11 puede estar `OPEN`, `TRIAGED` o `IMPLEMENTED_UNVERIFIED`; deben existir evidencia `CANDIDATE_VERIFIED` del candidato exacto, tests de no regresión y un manifiesto de binario.
