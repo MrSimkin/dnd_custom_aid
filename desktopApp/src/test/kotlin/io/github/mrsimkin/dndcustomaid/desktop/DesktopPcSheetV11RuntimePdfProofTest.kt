@@ -2407,6 +2407,95 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
 
+
+    @Test
+    fun g3RealP2EmptyEquipmentAndTreasureUseGoldenWritingRhythmWithoutSyntheticRows() {
+        // Physical pre-fix PDFs: P2 both modules used 12.42pt line spacing.
+        // Golden near-empty P2 has a wider ruled rhythm for actual pencil use.
+        // This fixture represents true ABSENCE, not persisted zero currency.
+        val source = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val missingBoth = source.copy(permanent = source.permanent.copy(
+            sheet = source.permanent.sheet.copy(
+                inventoryItems = emptyList(),
+                currencies = emptyList(),
+            ),
+            closure = source.permanent.closure.copy(inventoryUsage = emptyList()),
+        ))
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.A,
+                PcSheetExportStateSelection.PERMANENT),
+            missingBoth,
+        )
+        preserveRealApplicationPdf(proof.bytes,
+            "V11-INTERNAL-PROOF-P2-empty-equipment-treasure-A.pdf")
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val p2 = PDFTextStripper().apply { startPage = 2; endPage = 2 }
+                .getText(pdf)
+            assertTrue(p2.contains("EQUIPO") && p2.contains("TESORO") &&
+                p2.contains("RASGOS Y ATRIBUTOS") &&
+                p2.contains("EQUIPO ESPECIAL"))
+            assertFalse(p2.contains("Cobre"),
+                "An absent currency must not be invented as a zero balance.")
+            assertFalse(p2.contains("Ballesta"),
+                "Absent equipment must not be invented in paper writing rows.")
+            val ops = pdf.getPage(1).contents.use {
+                it.readBytes().toString(Charsets.ISO_8859_1)
+            }
+            // Look ONLY at the PDFBox full-width ruled lines of each left P2
+            // table. Underlying digital labels are unaffected by this test.
+            val rules = Regex(
+                """(?:^|\\s)42\\s+([0-9]+(?:\\.[0-9]+)?)\\s+m\\s+300\\s+\\1\\s+l"""
+            ).findAll(ops).map { it.groupValues[1].toFloat() }.toList()
+            val equipment = rules.filter { it > 464f && it < 684f }.sortedDescending()
+            val treasure = rules.filter { it > 330f && it < 448f }.sortedDescending()
+            assertEquals(12, equipment.size,
+                "Empty Equipo must reserve twelve generously spaced interior rules.")
+            assertEquals(5, treasure.size,
+                "Empty Tesoro must reserve five pencil-sized interior rules.")
+            equipment.zipWithNext { before, after ->
+                assertTrue(kotlin.math.abs(before - after - 16.5f) < 0.02f,
+                    "Equipo handwritten rhythm must be 16.5pt.")
+            }
+            treasure.zipWithNext { before, after ->
+                assertTrue(kotlin.math.abs(before - after - 19.5f) < 0.02f,
+                    "Tesoro handwritten rhythm must be 19.5pt.")
+            }
+            assertTrue(pdf.numberOfPages >= 4)
+            val last = PDFTextStripper().apply {
+                startPage = pdf.numberOfPages
+                endPage = pdf.numberOfPages
+            }.getText(pdf)
+            assertTrue(last.contains("NOTAS"),
+                "The physical final manuscript sheet must remain present.")
+        }
+    }
+
+    @Test
+    fun g3RealP2RecordedZeroCurrencyIsNotTreatedAsAbsentPaperEntry() {
+        // Persisted zero IS a real value; no default currency may be generated.
+        val source = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val onlyZeroCopper = source.copy(permanent = source.permanent.copy(
+            sheet = source.permanent.sheet.copy(
+                currencies = source.permanent.sheet.currencies.filter { it.key == "cp" }
+                    .map { it.copy(amount = 0) },
+            ),
+        ))
+        val bytes = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.B,
+                PcSheetExportStateSelection.PERMANENT),
+            onlyZeroCopper,
+        ).bytes
+        Loader.loadPDF(bytes).use { pdf ->
+            val p2 = PDFTextStripper().apply { startPage = 2; endPage = 2 }
+                .getText(pdf)
+            assertTrue(p2.contains("Cobre"))
+            assertFalse(p2.contains("Electrum"))
+            assertFalse(p2.contains("Platino"))
+            assertTrue(Regex("""(?s)Cobre\\s+0""").containsMatchIn(p2),
+                "Persisted currency amount 0 must print explicitly.")
+        }
+    }
+
     @Test
     fun g3RealP2NoSpecialEquipmentHasRecognizedLocationsFreeRowsAndBlankActivoBoxes() {
         // P210: no persisted special items, as distinct from deferred C2 items.

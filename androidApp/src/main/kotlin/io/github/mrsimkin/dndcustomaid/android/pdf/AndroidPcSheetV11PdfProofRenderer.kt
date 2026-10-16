@@ -1935,7 +1935,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             require(specialP2Rows.size + specialDeferredToC2.size ==
                 data.specialEquipment.size)
 
-            fun grid(stream: PDPageContentStream, rect: PcSheetV11RectPt, twoColumns: Boolean) {
+            fun grid(
+                stream: PDPageContentStream,
+                rect: PcSheetV11RectPt,
+                twoColumns: Boolean,
+                manuscriptRowHeightPt: Float = body.metrics.lineHeightPt,
+            ) {
+                require(manuscriptRowHeightPt.isFinite() && manuscriptRowHeightPt >=
+                    body.metrics.lineHeightPt) { "Writing rows cannot be compressed." }
                 // Blue mist writing bands and fine rules match the approved V11
                 // paper grammar; black default strokes belong only to PREQA.
                 stream.saveGraphicsState()
@@ -1952,9 +1959,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.lineTo(center, rect.topPt)
                     stream.stroke()
                 }
-                val cells = (rect.heightPt / body.metrics.lineHeightPt).toInt()
+                val cells = (rect.heightPt / manuscriptRowHeightPt).toInt()
                 for (line in 1 until cells) {
-                    val y = rect.topPt - line * body.metrics.lineHeightPt
+                    val y = rect.topPt - line * manuscriptRowHeightPt
                     stream.moveTo(rect.leftPt, y)
                     stream.lineTo(rect.rightPt, y)
                     stream.stroke()
@@ -2026,7 +2033,18 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 val visibleTable = PcSheetV11RectPt(
                     area.leftPt, tableBottom, area.widthPt, area.topPt - tableBottom,
                 )
-                grid(stream, visibleTable, true)
+                // P203/P206: a source-free P2 table is handwriting paper, not
+                // a compressed digital-data table. The golden has broader
+                // writing lines (Equipo ~16.5pt, Tesoro ~19.5pt). Retain
+                // the original real-font line rhythm whenever any data is printed,
+                // and never alter C2 pagination or original source identities.
+                val manuscriptRowHeight = if (!compactC2 && pageLabels.isEmpty()) {
+                    when (placed.data.kind) {
+                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableKind.EQUIPMENT -> 16.5f
+                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableKind.TREASURE -> 19.5f
+                    }
+                } else body.metrics.lineHeightPt
+                grid(stream, visibleTable, true, manuscriptRowHeight)
                 if (compactC2) {
                     // Approved C2 paper grammar: a real pale-blue cartela
                     // with clipped corners, within the EXISTING 14.5pt
