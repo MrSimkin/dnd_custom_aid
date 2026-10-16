@@ -2168,7 +2168,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "The real category must be visible, not only the trait name.")
                 assertTrue(whole.contains("PícaroQA"),
                     "The real original trait source must be visible.")
-                val narrative = pages.first { it.contains("P3 - Narrativa") }
+                val narrative = pages.first { it.contains("P3 - Trasfondo") }
                 assertFalse(narrative.contains("RSGQ"),
                     "V11 P3 is narrative-only; no mechanical trait overflow.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" },
