@@ -94,6 +94,9 @@ class V11PreQaGateGuardTest(unittest.TestCase):
     def test_fake_stage_pass_without_test_evidence_fails(self):
         row = next(r for r in self.matrix["rules"] if r["id"] == "RSG02")
         row["stage_checks"][0]["status"] = "PASS"
+        # The real RSG02 G1 stage now legitimately has proof. Delete it
+        # here to simulate a fabricated PASS, not a verified one.
+        row["stage_checks"][0]["evidence"] = None
         self.write()
         self.assertTrue(any("PASS without phase evidence" in e for e in validate(self.root)))
 
