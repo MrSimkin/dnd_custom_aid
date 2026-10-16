@@ -66,7 +66,7 @@
 
 ## Compuerta de cumplimiento **ANTES del QA del propietario**
 
-El inventario verificable de reglas vive en `qa/MATRIZ_CONTRATO_V11_PRE_QA.json`, con política en `qa/G4_COMPuERTA_CUMPLIMIENTO_PRE_QA.md`. La matriz se deriva de **este contrato V11**, decisiones históricas aún compatibles de D-0076, mapeos semánticos y aclaraciones posteriores; toda regla obligatoria tiene ID, fuentes, criterio, prueba, escenarios y evidencia de PDF real. `scripts/check_v11_pre_qa_gate.py` verifica integridad del inventario y bloquea el estado `READY_FOR_OWNER_QA` si falta una sola regla en PASS demostrado por el **mismo candidato**, con revisión independiente y QA de familias legadas. **Regla registrada ≠ regla corregida ≠ regla verificada.**
+El inventario verificable de reglas vive en `qa/MATRIZ_CONTRATO_V11_PRE_QA.json`, con política en `qa/G4_COMPUERTA_CUMPLIMIENTO_PRE_QA.md`. La matriz se deriva de **este contrato V11**, decisiones históricas aún compatibles de D-0076, mapeos semánticos y aclaraciones posteriores; toda regla obligatoria tiene ID, fuentes, criterio, prueba, escenarios y evidencia de PDF real. `scripts/check_v11_pre_qa_gate.py` verifica integridad del inventario y bloquea el estado `READY_FOR_OWNER_QA` si falta una sola regla en PASS demostrado por el **mismo candidato**, con revisión independiente y QA de familias legadas. **Regla registrada ≠ regla corregida ≠ regla verificada.**
 
 ## Criterios para no repetir la revisión visual
 
