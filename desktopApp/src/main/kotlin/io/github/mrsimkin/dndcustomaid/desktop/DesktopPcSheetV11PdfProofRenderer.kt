@@ -867,7 +867,34 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val bottom = 503f
                 val colWidth = 129f
                 val height = 22f
-                draw(stream, "COMBATE Y SUPERVIVENCIA", left, 604f, false)
+                // Frozen V11 golden P1: clipped pale-blue combat banner,
+                // not a floating Fira body label. The genuine App already
+                // reserves y=594..616 for this header, above the table y<=591.
+                // Preserve all source-backed combat fields and existing rows.
+                val combatTitle = "COMBATE Y SUPERVIVENCIA"
+                require(headerPdfFont.getStringWidth(combatTitle) * 11f / 1000f <= 240f) {
+                    "P1 combat heading exceeds its source-free cartela."
+                }
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(Color(217, 236, 245))
+                stream.setStrokingColor(Color(80, 122, 151))
+                stream.setLineWidth(0.6f)
+                stream.moveTo(317f, 594f)
+                stream.lineTo(565f, 594f)
+                stream.lineTo(570f, 599f)
+                stream.lineTo(570f, 611f)
+                stream.lineTo(565f, 616f)
+                stream.lineTo(317f, 616f)
+                stream.lineTo(312f, 611f)
+                stream.lineTo(312f, 599f)
+                stream.closePath()
+                stream.fillAndStroke()
+                stream.restoreGraphicsState()
+                stream.beginText()
+                stream.setFont(headerPdfFont, 11f)
+                stream.newLineAtOffset(321f, 600f)
+                stream.showText(combatTitle)
+                stream.endText()
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.55f)

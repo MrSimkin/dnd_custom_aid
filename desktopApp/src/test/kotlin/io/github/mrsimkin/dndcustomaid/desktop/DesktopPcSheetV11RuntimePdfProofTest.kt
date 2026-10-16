@@ -99,6 +99,54 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun actualP1CombatHasFrozenClippedBlueTitleWithoutReflowingSourceCards() {
+        // Frozen golden B P1: pale-blue 8-segment stroked+filled combat banner
+        // x270.425..572.315/y180.850..203.811 (top-origin). Our source-backed
+        // real-App right column is narrower x312..570; source panel begins at
+        // y201 top-origin, so use the EXISTING clear 22pt strip at y176..198.
+        // Assert actual emitted operators from the Kotlin Desktop App service.
+        for ((fixture, variant) in listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.A,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
+        )) {
+            val result = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                ), sources(fixture),
+            )
+            Loader.loadPDF(result.bytes).use { pdf ->
+                val operators = pdf.getPage(0).contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                val clippedBand = Regex(
+                    """(?s)(?:^|\s)317\s+594\s+m\s+565\s+594\s+l\s+570\s+599\s+l""" +
+                        """.*?\s+h\s+B(?:\s|$)"""
+                )
+                assertTrue(clippedBand.containsMatchIn(operators),
+                    "Real V11 P1 requires distinct clipped filled+stroked " +
+                        "combat title within the original clear band ($fixture $variant).")
+                assertTrue(Regex("""(?m)/F1\s+11\s+Tf""")
+                    .containsMatchIn(operators),
+                    "Combat heading must use embedded Barlow Condensed 11pt.")
+                val text = PDFTextStripper().apply {
+                    startPage = 1
+                    endPage = 1
+                }.getText(pdf)
+                assertTrue(text.contains("COMBATE Y SUPERVIVENCIA"))
+                for (sourceLabel in listOf("CA", "INICIATIVA", "VELOCIDAD",
+                    "COMPETENCIA", "PV ACTUALES", "PV MÁXIMOS", "PV TEMP", "DADOS")) {
+                    assertTrue(text.contains(sourceLabel),
+                        "Source combat field lost after title repair: $sourceLabel")
+                }
+                assertTrue(text.contains("ATAQUE / RANGO"),
+                    "Original P1 attack module must retain its source records.")
+            }
+        }
+    }
+
+    @Test
     fun realP1SavingLabelUsesMeasuredGoldenMicroOffsetWithoutMovingBoxes() {
         // Independently measure the generated PDF text, not source constants.
         // Frozen B reference: label right x=202.68, checkbox left x=220.54,
