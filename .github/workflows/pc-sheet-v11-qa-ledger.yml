@@ -22,6 +22,7 @@ on:
       - "scripts/test_check_v11_pre_qa_gate.py"
       - "scripts/test_v11_rasgos_render_contract.py"
       - "scripts/test_v11_attacks_render_contract.py"
+      - "scripts/test_v11_p1_skills_cartela_contract.py"
       - ".github/workflows/pc-sheet-v11-qa-ledger.yml"
   pull_request:
     branches: [main]
@@ -42,6 +43,7 @@ on:
       - "scripts/test_check_v11_pre_qa_gate.py"
       - "scripts/test_v11_rasgos_render_contract.py"
       - "scripts/test_v11_attacks_render_contract.py"
+      - "scripts/test_v11_p1_skills_cartela_contract.py"
       - ".github/workflows/pc-sheet-v11-qa-ledger.yml"
 
 permissions:
@@ -67,6 +69,8 @@ jobs:
         run: python3 -m unittest discover -s scripts -p 'test_v11_rasgos_render_contract.py' -v
       - name: V11 P1 attacks G3 parity and real-PDF test inventory
         run: python3 -m unittest discover -s scripts -p 'test_v11_attacks_render_contract.py' -v
+      - name: V11 P1 variant B Skills header native parity guard
+        run: python3 -m unittest discover -s scripts -p 'test_v11_p1_skills_cartela_contract.py' -v
       - name: Anti-regression checks for the checker
         run: python3 -m unittest discover -s scripts -p 'test_check_v11_qa_registry.py' -v
       - name: Prevent silent edits to owner testimony between branch commits
