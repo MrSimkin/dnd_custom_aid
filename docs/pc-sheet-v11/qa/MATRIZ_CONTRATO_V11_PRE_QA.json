@@ -1525,22 +1525,38 @@
       "authority": "Propietario 2026-10-16 + CONTRATO_VISUAL_APROBADO.md",
       "method": "Extracción de texto y campos fuente",
       "scenarios": "Mara + centinela",
-      "status": "FAIL",
-      "evidence": "Actual Desktop V11 renderer: drawP1Traits solo name; traitLines en P2 concatena description y notes; revisar también Android. Sin PDF de candidato verificado.",
+      "status": "NOT_VERIFIED",
+      "evidence": "INCUMPLIMIENTO ANTIGUO REPARADO a código en G1/G2/G3 y probado en Desktop App PDFs genuinos: Scaffold #38965638462 SUCCESS, artifact 12074454208, Mara 26/26 ID únicos, descripción/notes ausentes. G4 independiente full contract, Android INSTALADO y candidato exacto aún NO VERIFICADOS: no PASS global.",
       "stage_checks": [
         {
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11TraitSummaryTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "PcSheetV11TraitSummaryTest / source-backed typed projection",
+            "test_result": "PASS (Kotlin Scaffold incl native Desktop PDFBox integration)",
+            "source_commit": "15b2b685bcdd2c84d9158b828c5396231a2e2b0f",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38965638462",
+            "artifact_ref": "GitHub Actions 12074454208 (v11-internal-real-app-pdf-proofs)",
+            "pdf_sha256_Mara_B": "1e48129f7489bc6b3ddb340fdecdd386d5372ba654de027e449ddfd1248fea05",
+            "independent_observation": "PyMuPDF original Mara A/B 26/26 distinct trait identities once; no original Rasgos description/note sentinels; this is only Desktop native, not installed Android"
+          }
         },
         {
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "DesktopPcSheetV11RuntimePdfProofTest.g2G3ApprovedRasgosAreIdentityOnlyOnceAcrossP1P2AndC2 (A/B 48 rasgos source IDs)",
+            "test_result": "PASS (Kotlin Scaffold incl native Desktop PDFBox integration)",
+            "source_commit": "15b2b685bcdd2c84d9158b828c5396231a2e2b0f",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38965638462",
+            "artifact_ref": "GitHub Actions 12074454208 (v11-internal-real-app-pdf-proofs)",
+            "pdf_sha256_Mara_B": "1e48129f7489bc6b3ddb340fdecdd386d5372ba654de027e449ddfd1248fea05",
+            "independent_observation": "PyMuPDF original Mara A/B 26/26 distinct trait identities once; no original Rasgos description/note sentinels; this is only Desktop native, not installed Android"
+          }
         },
         {
           "stage": "G3",
@@ -1558,22 +1574,38 @@
       "authority": "Propietario 2026-10-16 + CONTRATO_VISUAL_APROBADO.md",
       "method": "Centinela descriptivo ausente de PDF",
       "scenarios": "Rasgos largos",
-      "status": "FAIL",
-      "evidence": "Actual Desktop V11 renderer: drawP1Traits solo name; traitLines en P2 concatena description y notes; revisar también Android. Sin PDF de candidato verificado.",
+      "status": "NOT_VERIFIED",
+      "evidence": "INCUMPLIMIENTO ANTIGUO REPARADO a código en G1/G2/G3 y probado en Desktop App PDFs genuinos: Scaffold #38965638462 SUCCESS, artifact 12074454208, Mara 26/26 ID únicos, descripción/notes ausentes. G4 independiente full contract, Android INSTALADO y candidato exacto aún NO VERIFICADOS: no PASS global.",
       "stage_checks": [
         {
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11TraitSummaryTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "PcSheetV11TraitSummaryTest / source-backed typed projection",
+            "test_result": "PASS (Kotlin Scaffold incl native Desktop PDFBox integration)",
+            "source_commit": "15b2b685bcdd2c84d9158b828c5396231a2e2b0f",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38965638462",
+            "artifact_ref": "GitHub Actions 12074454208 (v11-internal-real-app-pdf-proofs)",
+            "pdf_sha256_Mara_B": "1e48129f7489bc6b3ddb340fdecdd386d5372ba654de027e449ddfd1248fea05",
+            "independent_observation": "PyMuPDF original Mara A/B 26/26 distinct trait identities once; no original Rasgos description/note sentinels; this is only Desktop native, not installed Android"
+          }
         },
         {
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "DesktopPcSheetV11RuntimePdfProofTest.g2G3ApprovedRasgosAreIdentityOnlyOnceAcrossP1P2AndC2 (A/B 48 rasgos source IDs)",
+            "test_result": "PASS (Kotlin Scaffold incl native Desktop PDFBox integration)",
+            "source_commit": "15b2b685bcdd2c84d9158b828c5396231a2e2b0f",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38965638462",
+            "artifact_ref": "GitHub Actions 12074454208 (v11-internal-real-app-pdf-proofs)",
+            "pdf_sha256_Mara_B": "1e48129f7489bc6b3ddb340fdecdd386d5372ba654de027e449ddfd1248fea05",
+            "independent_observation": "PyMuPDF original Mara A/B 26/26 distinct trait identities once; no original Rasgos description/note sentinels; this is only Desktop native, not installed Android"
+          }
         },
         {
           "stage": "G3",
@@ -1591,22 +1623,38 @@
       "authority": "Propietario 2026-10-16 + CONTRATO_VISUAL_APROBADO.md",
       "method": "Centinela notes ausente",
       "scenarios": "Rasgos con notas",
-      "status": "FAIL",
-      "evidence": "Actual Desktop V11 renderer: drawP1Traits solo name; traitLines en P2 concatena description y notes; revisar también Android. Sin PDF de candidato verificado.",
+      "status": "NOT_VERIFIED",
+      "evidence": "INCUMPLIMIENTO ANTIGUO REPARADO a código en G1/G2/G3 y probado en Desktop App PDFs genuinos: Scaffold #38965638462 SUCCESS, artifact 12074454208, Mara 26/26 ID únicos, descripción/notes ausentes. G4 independiente full contract, Android INSTALADO y candidato exacto aún NO VERIFICADOS: no PASS global.",
       "stage_checks": [
         {
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11TraitSummaryTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "PcSheetV11TraitSummaryTest / source-backed typed projection",
+            "test_result": "PASS (Kotlin Scaffold incl native Desktop PDFBox integration)",
+            "source_commit": "15b2b685bcdd2c84d9158b828c5396231a2e2b0f",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38965638462",
+            "artifact_ref": "GitHub Actions 12074454208 (v11-internal-real-app-pdf-proofs)",
+            "pdf_sha256_Mara_B": "1e48129f7489bc6b3ddb340fdecdd386d5372ba654de027e449ddfd1248fea05",
+            "independent_observation": "PyMuPDF original Mara A/B 26/26 distinct trait identities once; no original Rasgos description/note sentinels; this is only Desktop native, not installed Android"
+          }
         },
         {
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "DesktopPcSheetV11RuntimePdfProofTest.g2G3ApprovedRasgosAreIdentityOnlyOnceAcrossP1P2AndC2 (A/B 48 rasgos source IDs)",
+            "test_result": "PASS (Kotlin Scaffold incl native Desktop PDFBox integration)",
+            "source_commit": "15b2b685bcdd2c84d9158b828c5396231a2e2b0f",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38965638462",
+            "artifact_ref": "GitHub Actions 12074454208 (v11-internal-real-app-pdf-proofs)",
+            "pdf_sha256_Mara_B": "1e48129f7489bc6b3ddb340fdecdd386d5372ba654de027e449ddfd1248fea05",
+            "independent_observation": "PyMuPDF original Mara A/B 26/26 distinct trait identities once; no original Rasgos description/note sentinels; this is only Desktop native, not installed Android"
+          }
         },
         {
           "stage": "G3",
