@@ -2297,4 +2297,41 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+    @Test
+    fun g3RealP1BothVariantsHaveGoldenAttributesClippedCartelaWithoutLosingScores() {
+        // Golden V11 C2c: title belongs to the reserved strip between
+        // portrait and first genuine attribute row. Inspects actual PDFBox
+        // bytes created through the Desktop App's export service.
+        for ((fixture, variant) in listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.A,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
+        )) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources(fixture),
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val ops = pdf.getPage(0).contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                val titlePolygon = Regex(
+                    """(?s)(?:^|\s)46\s+579\s+m\s+296\s+579\s+l\s+""" +
+                        """300\s+583\s+l.*?42\s+583\s+l\s+h\s+B(?:\s|$)"""
+                )
+                assertEquals(1, titlePolygon.findAll(ops).count(),
+                    "Genuine P1 missing 8-sided ATRIBUTOS cartela ($fixture $variant).")
+                val p1 = PDFTextStripper().apply {
+                    startPage = 1
+                    endPage = 1
+                }.getText(pdf)
+                assertTrue(p1.contains("ATRIBUTOS"), "Approved header text missing.")
+                assertTrue(p1.contains("FUERZA"), "Real first ability lost.")
+                assertTrue(p1.contains("DESTREZA"), "Real second ability lost.")
+                assertTrue(p1.contains("SALVACIÓN"), "Real saves must remain.")
+            }
+        }
+    }
+
 }
