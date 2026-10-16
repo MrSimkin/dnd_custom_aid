@@ -19,6 +19,14 @@ class V11PreQaGateGuardTest(unittest.TestCase):
         self.qa = json.loads((ROOT / QA_REGISTRY).read_text(encoding="utf-8"))
         (self.root / MATRIX).parent.mkdir(parents=True)
         (self.root / QA_REGISTRY).parent.mkdir(parents=True, exist_ok=True)
+        # This is an isolated temp-root: simulate only the referenced test paths
+        # instead of claiming the temp directory contains a checkout.
+        targets = {c["test_target"] for r in self.matrix["rules"]
+                   for c in r.get("stage_checks", [])}
+        for target in targets:
+            destination = self.root / target
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text("fixture test target", encoding="utf-8")
         self.write()
 
     def tearDown(self):
