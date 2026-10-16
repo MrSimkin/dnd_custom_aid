@@ -1,5 +1,10 @@
 # Project State — global repository navigation
 
+### ACTUALIZACIÓN OPERATIVA 2026-10-16 — V11 G3 P2 P207/P210 (SOLO RAMA PR #173)
+
+La PR #173 permaneció DRAFT sin merge. P210 (ubicaciones libres/reconocidas y 8 casillas manuscritas ACTIVO de Equipo Especial) y P207 (cartela RASGOS Y ATRIBUTOS) se implementaron en los dos PDFBox nativos con pruebas Kotlin reales y scripts de paridad. Último commit funcional `b8dee5121235ee9cb0c3459483c4ebf9488d1206`; Scaffold #38976601596 y #38977308376 SUCCESS, QA #38976601631 y #38977308364 SUCCESS. Los cinco PDF Desktop reales del último artefacto 12079707053 fueron contrastados físicamente con PyMuPDF: P210 no desplaza texto ni páginas, P207 solo añade 2 palabras P2 sin mover nada más. Ver `docs/pc-sheet-v11/G3_P2_EQUIPO_ESPECIAL_RASGOS_2026-10-16.md`. G4 sigue BLOCKED, reglas globales NOT_VERIFIED, G5/G6 y QA propietario NO habilitados. Ninguna familia legacy, main, golden o evidencia del propietario cambió; RCR-1 0/2. Continuar siguiente requisito real medido.
+
+
 ### ACTUALIZACIÓN OPERATIVA 2026-10-11 — PDF REAL, NO SOLO COMPONENTES
 
 
