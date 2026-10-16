@@ -18,6 +18,7 @@ QA_REGISTRY = "docs/pc-sheet-v11/qa/REGISTRO_QA_V11.json"
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 COMMIT = re.compile(r"^[0-9a-f]{40}$")
 ALLOWED = {"NOT_VERIFIED", "FAIL", "BLOCKED", "PASS"}
+STAGES = {"G1", "G2", "G3", "G4"}
 EXPECTED_IDS = (
     {f"GLB{i:02d}" for i in range(1, 13)}
     | {f"IN{i:02d}" for i in range(1, 9)}
@@ -145,6 +146,38 @@ def validate(root: Path, require_pass: bool = False) -> list[str]:
         rid = record.get("id")
         for field in ("id", "area", "obligation", "authority", "method", "scenarios"):
             check(present(record.get(field)), f"V11 G4 {rid}: missing {field}")
+        # Local phase controls: a rule must be checked when its source,
+        # composer or renderer is developed, not merely at the very end.
+        stage_checks = record.get("stage_checks") or []
+        stage_names = [x.get("stage") for x in stage_checks if isinstance(x, dict)]
+        check(bool(stage_checks) and len(stage_names) == len(stage_checks),
+              f"V11 G4 {rid}: no development-stage checks")
+        check(len(stage_names) == len(set(stage_names))
+              and set(stage_names).issubset(STAGES),
+              f"V11 G4 {rid}: duplicate or unknown stage")
+        if not str(rid).startswith("QA") and rid != "GLB12":
+            check("G3" in stage_names, f"V11 G4 {rid}: missing real-renderer G3 check")
+        for gate_check in stage_checks:
+            if not isinstance(gate_check, dict):
+                continue
+            phase = gate_check.get("stage")
+            check(present(gate_check.get("scope")) and present(gate_check.get("test_target")),
+                  f"V11 G4 {rid}/{phase}: missing actual phase verification route")
+            if present(gate_check.get("test_target")):
+                check((root / gate_check["test_target"]).is_file(),
+                      f"V11 G4 {rid}/{phase}: missing test target file")
+            stage_status = gate_check.get("status")
+            check(stage_status in ALLOWED, f"V11 G4 {rid}/{phase}: invalid phase status")
+            if stage_status == "PASS":
+                proof = gate_check.get("evidence")
+                check(isinstance(proof, dict),
+                      f"V11 G4 {rid}/{phase}: PASS without phase evidence")
+                if isinstance(proof, dict):
+                    check(all(present(proof.get(k)) for k in
+                              ("test_name", "test_result", "source_commit", "test_run_ref")),
+                          f"V11 G4 {rid}/{phase}: missing named test/run proof")
+                    check(matches(proof.get("source_commit"), COMMIT),
+                          f"V11 G4 {rid}/{phase}: invalid phase commit SHA")
         status = record.get("status")
         check(status in ALLOWED, f"V11 G4 {rid}: illegal status {status}")
         if status == "PASS":
@@ -175,6 +208,9 @@ def validate(root: Path, require_pass: bool = False) -> list[str]:
     if require_pass or declared_pass or ready:
         check(isinstance(candidate, dict), "V11 G4 release without QA candidate")
         check(isinstance(matrix_candidate, dict), "V11 G4 release without matrix candidate")
+        check(all(all(g.get("status") == "PASS" for g in r.get("stage_checks", []))
+                  for r in records if isinstance(r, dict)),
+              "V11 G4 release blocked: G1/G2/G3 local rule checks still pending")
         check(all(r.get("status") == "PASS" for r in records if isinstance(r, dict)),
               "V11 G4 release blocked: NOT VERIFIED / FAIL / BLOCKED rules remain")
         check(all(item.get("status") == "PASS" for item in legacy if isinstance(item, dict))
@@ -197,15 +233,29 @@ def validate(root: Path, require_pass: bool = False) -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parent.parent)
-    parser.add_argument("--mode", choices=("inventory", "release"), default="inventory")
+    parser.add_argument("--mode", choices=("inventory", "release", "stage"), default="inventory")
+    parser.add_argument("--stage", choices=("G1", "G2", "G3", "G4"))
     args = parser.parse_args()
     errors = validate(args.repo_root, require_pass=args.mode == "release")
+    if args.mode == "stage":
+        if not args.stage:
+            errors.append("V11 phase check requires --stage G1/G2/G3/G4")
+        elif not errors:
+            matrix = json.loads((args.repo_root / MATRIX).read_text(encoding="utf-8"))
+            for rule in matrix["rules"]:
+                for check_item in rule["stage_checks"]:
+                    if check_item["stage"] == args.stage and check_item["status"] != "PASS":
+                        errors.append(
+                            f"{args.stage} NOT VERIFIED: {rule['id']} ({check_item['status']})"
+                        )
     if errors:
         for error in errors:
             print("FAIL:", error, file=sys.stderr)
         return 1
     print("PASS: V11 G4 inventory structure" if args.mode == "inventory"
-          else "PASS: V11 G4 pre-owner-QA compliance gate")
+          else ("PASS: V11 development-stage " + str(args.stage)
+                if args.mode == "stage" else
+                "PASS: V11 G4 pre-owner-QA compliance gate"))
     if args.mode == "inventory":
         print("CAUTION: inventory check DOES NOT mean rule compliance or owner QA readiness")
     return 0
