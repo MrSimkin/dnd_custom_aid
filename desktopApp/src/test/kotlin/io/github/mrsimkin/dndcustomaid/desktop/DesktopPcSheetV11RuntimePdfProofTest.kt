@@ -1424,11 +1424,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val page = pdf.getPage(pageNumber - 1)
             val regions = PDFTextStripperByArea().apply {
                 // Top-origin page coords, below the real App header and above
-                // the Notes manuscript grid. Never count page metadata.
+                // the Notes manuscript grid. Include each source glyph's first
+                // pixels: the PDFBox labels start at x=44 and x=314.
+                // Never count page metadata.
                 addRegion("equipment-left",
-                    Rectangle2D.Float(45f, 95f, 217f, 380f))
+                    Rectangle2D.Float(40f, 95f, 222f, 380f))
                 addRegion("equipment-right",
-                    Rectangle2D.Float(315f, 95f, 217f, 380f))
+                    Rectangle2D.Float(310f, 95f, 222f, 380f))
                 extractRegions(page)
             }
             val left = regions.getTextForRegion("equipment-left")
