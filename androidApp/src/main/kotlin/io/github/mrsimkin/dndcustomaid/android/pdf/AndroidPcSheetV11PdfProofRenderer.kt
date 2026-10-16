@@ -742,6 +742,24 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     }
                 }
                 stream.restoreGraphicsState()
+                // Owner V11 C2c: Rasgos heading has a clipped pale-blue band,
+                // not floating text. Exactly the existing 14pt P1 title strip:
+                // PDF x312..570/y368..382; row-1 begins at y361 untouched.
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(Color(231,242,247))
+                stream.setStrokingColor(Color(38,75,104))
+                stream.setLineWidth(0.55f)
+                stream.moveTo(315f,368f)
+                stream.lineTo(567f,368f)
+                stream.lineTo(570f,371f)
+                stream.lineTo(570f,379f)
+                stream.lineTo(567f,382f)
+                stream.lineTo(315f,382f)
+                stream.lineTo(312f,379f)
+                stream.lineTo(312f,371f)
+                stream.closePath()
+                stream.fillAndStroke()
+                stream.restoreGraphicsState()
                 p1DrawSmall(stream, "RASGOS Y ATRIBUTOS", left + 4f, top - 11f)
                 p1TraitEntries.forEach { (_, lines, firstSlot) ->
                     lines.forEachIndexed { offset, line ->
