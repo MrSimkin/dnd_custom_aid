@@ -209,9 +209,28 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val standards=data.attributes.take(p1PrintedAttributeCount)
                 require(standards.size>=6 && p1AttributeTop(p1PrintedAttributeCount) >
                     (if (compactBAttributes) 328f else 110f))
+                // Approved V11 P1 C2c: shared A/B Attributes blue header.
+                // It fits the genuine 23pt strip BELOW portrait (PDF y605)
+                // and ABOVE first source-backed ability row (PDF y577).
+                // Decoration cannot move any ability, save or skill row.
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(Color(231, 242, 247))
+                stream.setStrokingColor(Color(38, 75, 104))
+                stream.setLineWidth(0.55f)
+                stream.moveTo(46f, 579f)
+                stream.lineTo(296f, 579f)
+                stream.lineTo(300f, 583f)
+                stream.lineTo(300f, 598f)
+                stream.lineTo(296f, 602f)
+                stream.lineTo(46f, 602f)
+                stream.lineTo(42f, 598f)
+                stream.lineTo(42f, 583f)
+                stream.closePath()
+                stream.fillAndStroke()
+                stream.restoreGraphicsState()
                 draw(stream,if(data.request.variant ==
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A)
-                    "ATRIBUTOS · A" else "ATRIBUTOS · B",43f,588f,true)
+                    "ATRIBUTOS · A" else "ATRIBUTOS · B",51f,586f,true)
                 val k=0.5522848f
                 standards.forEachIndexed { i,ability ->
                     val top=p1AttributeTop(i)
