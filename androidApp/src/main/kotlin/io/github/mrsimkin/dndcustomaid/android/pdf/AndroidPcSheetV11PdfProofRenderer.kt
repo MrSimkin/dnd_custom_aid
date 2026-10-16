@@ -1596,7 +1596,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 suppressAmounts: Set<String> = emptySet(),
                 compactC2: Boolean = false,
             ) {
-                draw(stream, title, area.leftPt, area.topPt + 6f, true)
+                if (!compactC2) draw(stream, title, area.leftPt, area.topPt + 6f, true)
                 val pageLabels = placed.labels.filter { it.localPageIndex == localPage }
                 val lowestPrintedBottom = pageLabels.minOfOrNull { it.rectPt.bottomPt }
                 // Unlike P2, C2's last table page must free genuine unused paper
@@ -1610,6 +1610,42 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     area.leftPt, tableBottom, area.widthPt, area.topPt - tableBottom,
                 )
                 grid(stream, visibleTable, true)
+                if (compactC2) {
+                    // Approved C2 paper grammar: a real pale-blue cartela
+                    // with clipped corners, within the EXISTING 14.5pt
+                    // strip between the table and fixed header rule.
+                    // The title previously overlapped that rule by 3pt.
+                    // Font glyph extents at 11pt stay inside this measured
+                    // strip, while all source table cells remain unchanged.
+                    val left = area.leftPt
+                    val right = area.rightPt
+                    val bottom = area.topPt
+                    val top = bottom + 14.5f
+                    val corner = 5f
+                    require(top < 717f) {
+                        "C2 cartela cannot cross the fixed physical header rule."
+                    }
+                    stream.saveGraphicsState()
+                    stream.setNonStrokingColor(Color(217, 236, 245))
+                    stream.setStrokingColor(Color(80, 122, 151))
+                    stream.setLineWidth(0.6f)
+                    stream.moveTo(left + corner, bottom)
+                    stream.lineTo(right - corner, bottom)
+                    stream.lineTo(right, bottom + corner)
+                    stream.lineTo(right, top - corner)
+                    stream.lineTo(right - corner, top)
+                    stream.lineTo(left + corner, top)
+                    stream.lineTo(left, top - corner)
+                    stream.lineTo(left, bottom + corner)
+                    stream.closePath()
+                    stream.fillAndStroke()
+                    stream.restoreGraphicsState()
+                    stream.beginText()
+                    stream.setFont(headerPdfFont, 11f)
+                    stream.newLineAtOffset(left + 9f, bottom + 3f)
+                    stream.showText(title)
+                    stream.endText()
+                }
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130, 165, 186))
                 stream.setLineWidth(0.45f)
