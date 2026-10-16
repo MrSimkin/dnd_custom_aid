@@ -18,13 +18,13 @@
 
 - Cabecera compacta, retrato con alternativas Crop/Fit y silueta si no existe, identidad, clase/nivel, raza/alineamiento.
 - Seis atributos estándares + personalizables; nota rectangular y modificador ovalado solapado, tamaño V11 aprobado. Salvaciones visualmente ancladas. En variante A habilidades bajo su atributo **sin** sufijo; habilidad separada de su atributo lleva **(XXX)** abreviatura de tres mayúsculas.
-- Ataques en tres columnas; bonificador deliberadamente angosto; rasgos mecánicos resumidos, sin repetir descripciones.
+- Ataques en tres columnas; bonificador deliberadamente angosto; **Rasgos y Atributos es SOLO una lista identificativa de rasgos mecánicos: nombre + tipo/categoría + fuente/origen real, nunca descripción ni notas explicativas**. Conservar el orden manual del origen y no truncar nombres largos.
 - Lanzamiento de Conjuros P1 siempre presente aun en no lanzadores: 1–9 y 10–12 **solo** si reglas épicas reales. No inventar casillas numéricas. Municiones hasta 20 marcas agrupadas de cinco; para cantidad mayor formato `____ / X`. Sin datos, reserva útil.
 
 ## P2 — Inventario y rasgos
 
 - Equipo ordinario con dos subcolumnas internas objeto/cantidad; Tesoro justo debajo en parejas denominación/cantidad, valores cero reales no se borran.
-- Rasgos mecánicos en **dos columnas**, aprovechan verticalmente P2; siguen a C2 si no caben. **Nunca continúan a P3**.
+- Rasgos mecánicos en **dos columnas**, aprovechan verticalmente P2; siguen a C2 si no caben. **Nunca continúan a P3**. Es continuación de las entradas identificativas pendientes de P1: **nombre + categoría + fuente real**, sin descripción, notas ni fichas explicativas; no reimprimir las ya mostradas.
 - Equipo Especial ancho físico completo: ubicación/nombre/descripción/ACTIVO; estados **reales**, sin inferencias automáticas. Misma gramática con y sin datos, filas utilizables.
 
 ## P3 — Solo Trasfondo/Perfil/Historia
@@ -43,7 +43,7 @@
 - Dos columnas preferidas, mixto cuando se requiera; **nunca una columna vertical gigante por defecto**.
 - Atributos personalizados y sus habilidades conservan relación visual; sufijo (XXX) solo cuando no existe atributo junto a la habilidad.
 - Equipo ordinario conserva subcolumnas interiores; Equipo Especial ancho completo incluso en C2.
-- Agrupar módulos diferentes de manera compacta según contenido real; referencias bidireccionales a **páginas físicas finales**.
+- Agrupar módulos diferentes de manera compacta según contenido real; referencias bidireccionales a **páginas físicas finales**. Las continuaciones de Rasgos se mantienen **solo identificativas**, sin descripción/efectos/notas explicativas, incluso en C2.
 - Todo hueco físicamente apto sin módulo útil se rellena con una **pequeña cuadrícula completa titulada NOTAS** (anotaciones manuscritas incidentales). No generar una página C2 adicional únicamente para rellenar ni insertar renglones sin sentido.
 - Estas cuadrículas de relleno **no son datos digitales Notas C-N3**: los datos digitales van en páginas exclusivas.
 
@@ -52,6 +52,21 @@
 - Páginas C-N3 exclusivas solo si existen Notas digitales generales o tituladas; nunca mezclarlas con C2.
 - Libro de Conjuros es **único anexo opcional**, en dos columnas, fichas de altura variable nombre/nivel/escuela/descripción íntegra. Ficha completa pasa a siguiente columna cuando allí cabe; ficha mayor que una columna se parte legiblemente con continuidad (el Python V11 *NO resuelve* este caso).
 - **Última página física obligatoria y enteramente manuscrita**: un solo título NOTAS, renglones en dos columnas arriba y cuadrícula entera abajo, sin última fila recortada; nunca usada para contenido digital.
+
+
+## Aclaración del propietario — presentación de Rasgos (2026-10-16)
+
+**Fuente:** indicación expresa posterior del propietario: «los rasgos no van enteros, todo el texto sino solo nombre y origen», ejemplo `Pericia - Rasgo de Clase: Picaro`. Este requisito **ya existía expresamente** en `docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md` §3.9 (sin descripciones ni siquiera en extensiones); la indicación actual precisa cómo identificar nombre, categoría y fuente. La ficha digital puede y debe **conservar** descripción y notas, pero la **hoja PDF V11 no las imprime dentro de Rasgos**. No confundir con Equipo Especial, cuyo campo «Descripción» SÍ se imprime, ni con «Rasgos de personalidad», narrativos de P3.
+
+- Ejemplo del propietario: `Pericia - Rasgo de Clase: Pícaro` = **Nombre** (`Pericia`) + **tipo/categoría** (`Rasgo de Clase`) + **fuente** (`Pícaro`), cuando los tres campos están disponibles en la App. Se extraen de los campos de verdad: no deducir «Pícaro» de nombre/clase actual ni inventar fuentes/categorías; si algún componente no consta, omitir SOLO ese componente, sin fabricar `null`, puntuación huérfana ni perder el nombre. No fijar ese ejemplo como único tipo admitido: hay rasgos de raza, trasfondo, dote, don, homebrew y «Otro».
+- Usar esta forma identificativa **en P1, P2 y C2** sin excepciones de extensión. Todo ID de rasgo real debe aparecer **una sola vez** como entrada en el recorrido P1→P2→C2, salvo referencias de navegación deliberadas; respetar orden del usuario, cubrir nombres largos con envoltura/continuación legible.
+- **Prohibido** volcar `description` o `notes` de un rasgo en P1/P2/C2; prohibido escamotear IDs para simular ahorro de espacio. El compositor debe usar el resumen correcto desde el origen, no limitarse a recortar un párrafo luego de dibujarlo.
+- El módulo «Rasgos y Atributos» de P1/P2/C2 y los «Rasgos de personalidad» narrativos de P3 tienen semántica distinta. V11 **prevalece** frente a los pasajes antiguos de D-0076 que ubicaban Rasgos mecánicos en P3: **P3 exclusivamente narrativa**.
+- **Diferencia ya detectada (pendiente, no FIXED):** a HEAD `dab9556f`, el renderer V11 Desktop construía `trait.name + " (" + trait.source + "): " + trait.description + notes` en P2/C2 y P1 solo imprimía `trait.name`; por tanto **incumple** origen/tipo y prohibición de descripción. Verificación requerida sobre Android y Desktop con fixture real y descripción centinela que NO debe aparecer en PDF. No declarar cumplimiento por esta corrección documental.
+
+## Compuerta de cumplimiento **ANTES del QA del propietario**
+
+El inventario verificable de reglas vive en `qa/MATRIZ_CONTRATO_V11_PRE_QA.json`, con política en `qa/G4_COMPuERTA_CUMPLIMIENTO_PRE_QA.md`. La matriz se deriva de **este contrato V11**, decisiones históricas aún compatibles de D-0076, mapeos semánticos y aclaraciones posteriores; toda regla obligatoria tiene ID, fuentes, criterio, prueba, escenarios y evidencia de PDF real. `scripts/check_v11_pre_qa_gate.py` verifica integridad del inventario y bloquea el estado `READY_FOR_OWNER_QA` si falta una sola regla en PASS demostrado por el **mismo candidato**, con revisión independiente y QA de familias legadas. **Regla registrada ≠ regla corregida ≠ regla verificada.**
 
 ## Criterios para no repetir la revisión visual
 
