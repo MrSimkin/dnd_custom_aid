@@ -2240,7 +2240,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // Four light body bands inside the original P1 attacks panel,
                 // not a giant color rectangle covering the source-backed text.
                 val bands = Regex(
-                    """(?:^|\s)312\.8\s+(?:467|443|419|395)\s+256\.4\s+12\s+re(?:\s|$)"""
+                    """(?:^|\s)313\s+(?:467|443|419|395)\s+256\s+12\s+re(?:\s|$)"""
                 )
                 assertEquals(4, bands.findAll(content).count(),
                     "P1 attack band geometry missing on REAL App PDF: $name $variant")
