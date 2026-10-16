@@ -1443,6 +1443,18 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(persistedNameParts.any { right.contains(it) },
                 "The unused right C2 paired column must receive authentic Mara " +
                     "inventory without inventing content or adding a page.")
+            // Verify genuine stroked AND filled clipped cartela path, not
+            // just a background image or the literal EQUIPO heading text.
+            // Its whole 702..716.5pt band stays below the header rule y=717.
+            val commands = page.contents.use {
+                it.readBytes().toString(Charsets.ISO_8859_1)
+            }
+            val clippedCartela = Regex(
+                """(?s)(?:^|\s)47\s+702\s+m\s+565\s+702\s+l\s+570\s+707\s+l.*?\s+B(?:\s|$)"""
+            )
+            assertTrue(clippedCartela.containsMatchIn(commands),
+                "A real beveled blue C2 EQUIPO cartela must be filled and stroked " +
+                    "without crossing the fixed page header.")
             val printed = PDFTextStripper().apply {
                 startPage = pageNumber
                 endPage = pageNumber
