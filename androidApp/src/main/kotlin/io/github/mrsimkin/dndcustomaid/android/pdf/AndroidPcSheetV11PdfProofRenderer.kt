@@ -671,8 +671,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
 
 
 
-            // P1 has an independent, measured right-side mechanical summary.
-            // Full trait descriptions remain source-backed on P2/C2.
+            // P1 is the FIRST physical occurrence of each Rasgo:
+            // print ONLY name/category/source, never its description/notes.
+            // P2/C2 continue the remaining original IDs without repeats.
             val p1Font = measurer.resolve(PcSheetV11Typeface.BODY, 7f)
             fun p1DrawSmall(stream: PDPageContentStream, content: String, x: Float, y: Float) {
                 if (content.isEmpty()) return
@@ -682,9 +683,43 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.showText(content)
                 stream.endText()
             }
-            val p1TraitNames = data.traits.asSequence().map { it.name }
-                .filter { it.isNotBlank() && p1Font.width.measurePt(it) <= 121f }
-                .take(12).toList()
+            // Fit complete identities in 12 genuine 10pt paper rows
+            // (six per column). A long entry can use multiple rows; if it
+            // cannot fit, start the P2 continuation with that SAME source ID.
+            // Always select a source-order PREFIX to avoid reordering Rasgos.
+            fun p1TraitWrap(label: String): List<String> {
+                if (label.isBlank()) return emptyList()
+                val lines = mutableListOf<String>()
+                var current = ""
+                for (word in label.split(' ').filter { it.isNotEmpty() }) {
+                    if (p1Font.width.measurePt(word) > 121f) return emptyList()
+                    val candidate = if (current.isEmpty()) word else "$" + "{current} $" + "word"
+                    if (p1Font.width.measurePt(candidate) <= 121f) {
+                        current = candidate
+                    } else {
+                        if (current.isNotEmpty()) lines += current
+                        current = word
+                    }
+                }
+                if (current.isNotEmpty()) lines += current
+                return lines
+            }
+            val p1TraitEntries = buildList<Triple<
+                io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait,
+                List<String>, Int>>() {
+                var slot = 0
+                for (trait in data.traits) {
+                    val lines = p1TraitWrap(
+                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TraitSummary.text(trait)
+                    )
+                    if (lines.isEmpty() || lines.size > 6) break
+                    if (slot < 6 && slot + lines.size > 6) slot = 6
+                    if (slot + lines.size > 12) break
+                    add(Triple(trait, lines, slot))
+                    slot += lines.size
+                }
+            }
+            val p1PrintedTraitIds = p1TraitEntries.map { it.first.id }.toSet()
             fun drawP1Traits(stream: PDPageContentStream) {
                 val left = 312f
                 val width = 258f
@@ -708,9 +743,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
                 stream.restoreGraphicsState()
                 p1DrawSmall(stream, "RASGOS Y ATRIBUTOS", left + 4f, top - 11f)
-                p1TraitNames.forEachIndexed { index, name ->
-                    p1DrawSmall(stream, name, left + 4f + (index / 6) * 129f,
-                        top - 21f - (index % 6) * 10f)
+                p1TraitEntries.forEach { (_, lines, firstSlot) ->
+                    lines.forEachIndexed { offset, line ->
+                        val slot = firstSlot + offset
+                        p1DrawSmall(stream, line, left + 4f + (slot / 6) * 129f,
+                            top - 21f - (slot % 6) * 10f)
+                    }
                 }
             }
 
@@ -1744,12 +1782,17 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 rowsForP2(completeTreasure, treasureArea),
                 treasureArea, 12f, 36f, 6f, body.metrics.lineHeightPt, body.width,
             )
-            val traitLines = data.traits.map { trait ->
-                PcSheetV11FlowItem("p2-trait:" + trait.id,
-                    trait.name + " (" + trait.source + "): " + trait.description +
-                        (trait.notes?.let { " / " + it } ?: ""),
-                    keepTogetherIfFits = true)
-            }
+            // P2 contains ONLY source IDs not already printed on P1.
+            // G2 flow and mixed C2 extend these summary records losslessly;
+            // description/notes still exist in the App source, but NEVER print
+            // in Rasgos y Atributos on the V11 paper sheet.
+            val traitLines = data.traits
+                .filterNot { it.id in p1PrintedTraitIds }
+                .map { trait ->
+                    PcSheetV11FlowItem("p2-trait:" + trait.id,
+                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TraitSummary.text(trait),
+                        keepTogetherIfFits = true)
+                }
             val traitsPlaced = body.place(PcSheetV11FlowSection.TRAITS, traitLines,
                 traitsArea, 2, 12f)
             // V11 golden P2: location / name / description / ACTIVO belong
