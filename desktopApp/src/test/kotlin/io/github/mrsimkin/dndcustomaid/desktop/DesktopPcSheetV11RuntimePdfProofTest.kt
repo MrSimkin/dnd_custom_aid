@@ -561,12 +561,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 startPage = mixedPage
                 endPage = mixedPage
             }.getText(pdf)
+            // New owner Rasgos rule: compact identity-only records no longer
+            // NEED to spill Ilyra's long original descriptions into mixed C2.
+            // Preserve genuine P1 resources/attacks, but never demand a
+            // redundant C2 merely to preserve a historical test expectation.
             listOf(
                 "ATAQUES, NOTAS Y ESPACIOS REALES",
                 "RECURSOS Y MUNICIONES",
-                "RASGOS / CONTINUACIÓN P2",
-                "Potent Cantrip",
-                "Arcane Recovery",
             ).forEach { label ->
                 assertTrue(text.contains(label),
                     "C2 visual cartelas must not remove persisted text: " + label)
@@ -580,8 +581,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val clippedGroupBands = Regex(
                 """(?m)(?:^|\s)(?:45|315)\s+[0-9.]+\s+m\s+(?:297|567)\s+[0-9.]+\s+l\s+(?:300|570)\s+[0-9.]+\s+l"""
             ).findAll(commands).count()
-            assertTrue(clippedGroupBands >= 3,
-                "All genuine Ilyra mixed C2 source groups require " +
+            assertTrue(clippedGroupBands >= 2,
+                "All ACTUAL Ilyra mixed C2 source groups require " +
                     "separate clipped physical blue cartelas: found " + clippedGroupBands)
             assertTrue(Regex("""(?m)/F1\s+9\s+Tf""").containsMatchIn(commands),
                 "C2 source cartela labels must use embedded 9pt Barlow Condensed " +
@@ -590,8 +591,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 .containsMatchIn(commands),
                 "Source-backed mixed C2 requires a distinct clipped blue " +
                     "NOTAS heading above a complete physical manuscript grid.")
-            assertTrue(text.contains("VIENE DE P1 PÁG. 1 / P2 PÁG. 2"),
-                "C2 cartelas cannot disturb final physical source backlinks.")
+            assertTrue(text.contains("VIENE DE P1 PÁG. 1"),
+                "C2 cartelas cannot disturb genuine physical P1 backlinks.")
+            if (text.contains("RASGOS / CONTINUACIÓN P2")) {
+                assertTrue(text.contains("P2 PÁG. 2"),
+                    "Only a C2 that actually contains deferred P2 Rasgos may cite P2.")
+            }
         }
     }
 
@@ -846,8 +851,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "Golden P2 special equipment must use real labelled columns: " +
                         column)
             }
-            assertTrue(printed.contains("RASGOS / CONTINUACIÓN P2"),
-                "Deferred P2 traits must remain in the shared C2 manuscript flow.")
+            // With the corrected identity-only Rasgos contract, a P2 list
+            // may fully fit and does NOT require a redundant trait C2.
+            // If there is actual remaining trait content, its C2 label and
+            // source backlink are checked above.
+            assertTrue(real.permanent.sheet.traits.isNotEmpty())
+            assertTrue(printed.contains("RASGOS"),
+                "The owner-approved identification area must still exist.")
             assertTrue(printed.contains("C2 - Equipo especial"))
             val specialContinuation = pagesByPhysicalNumber.filter {
                 realHeading(it, "C2 - Equipo especial / continuación")
@@ -1432,37 +1442,39 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
     @Test
     fun actualIlyraTraitsShareMeasuredC2WithResourcesInsteadOfWastePage() {
+        val source = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
         val generated = DesktopPcSheetExportService().generateV11Proof(
             PcSheetV11ExportRequest(PcSheetV11Variant.B,
-                PcSheetExportStateSelection.PERMANENT),
-            sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json"),
+                PcSheetExportStateSelection.PERMANENT), source,
         )
         Loader.loadPDF(generated.bytes).use { pdf ->
             val pages = (1..pdf.numberOfPages).map { n ->
                 PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
             }
             val mixed = pages.first { it.contains("C2 - Habilidades, acciones y recursos") }
-            assertTrue(mixed.contains("RASGOS / CONTINUACIÓN P2"),
-                "A short genuine P2 trait remainder must fit the existing mixed C2.")
-            // The character also names Potent Cantrip in its attack notes
-            // and P1 summary; count FULL source trait headings instead of
-            // falsely equating every legitimate cross-reference to a duplicate.
-            for (trait in listOf(
-                "Potent Cantrip (Evoker",
-                "Ability Score Improvement (Mago",
-                "Memorize Spell (Mago",
-            )) {
-                assertEquals(1, Regex(Regex.escape(trait)).findAll(pages.joinToString("\n")).count(),
-                    "Persisted trait source record is missing or duplicated: " + trait)
-            }
             assertTrue(mixed.contains("RECURSOS Y MUNICIONES"),
-                "Combining modules must not delete existing P1 resources.")
+                "Combining real modules must not delete existing P1 resources.")
+            // The owner prohibited full Rasgo descriptions on paper.
+            // This reduces their heights; a short summary belongs in P1/P2
+            // and MUST NOT create a redundant C2 merely to satisfy an old
+            // description-overflow test. Check actual source traits survive.
+            val p1AndP2AndC2 = pages.filter {
+                it.contains("P1 - Personaje") || it.contains("P2 - Equipo y tesoro") ||
+                    it.contains("C2 - Habilidades, acciones y recursos")
+            }.joinToString("\n")
+            for (trait in source.permanent.sheet.traits) {
+                assertTrue(p1AndP2AndC2.contains(trait.name),
+                    "Real Rasgo identity disappeared from the paper: " + trait.name)
+            }
             assertFalse(pages.any { it.contains("C2 - Rasgos / continuación") },
-                "A small P2 trait remainder may not occupy a redundant full C2 sheet.")
-            assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. "),
-                "The real P2 must point to its first physical continuation.")
-            assertTrue(mixed.contains("P2 PÁG. 2"),
-                "A source-mixed C2 must carry a verifiable physical P2 backlink.")
+                "No dedicated C2 page may be fabricated just to print descriptions.")
+            if (mixed.contains("RASGOS / CONTINUACIÓN P2")) {
+                assertTrue(mixed.contains("P2 PÁG. 2"),
+                    "True mixed P2 Rasgo continuation needs genuine backlink.")
+            } else {
+                assertFalse(mixed.contains("VIENE DE P2 PÁG."),
+                    "A P1-only mixed C2 must not fabricate P2 provenance.")
+            }
             assertTrue(pages.last().trim().endsWith("NOTAS"))
         }
     }
