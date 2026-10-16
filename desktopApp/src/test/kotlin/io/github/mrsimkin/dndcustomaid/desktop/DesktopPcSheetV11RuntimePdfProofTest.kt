@@ -54,6 +54,36 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         File(root, outputName).writeBytes(bytes)
     }
 
+    @Test
+    fun approvedGoldenPdfArchiveIsAvailableForPhysicalP1Review() {
+        // Reuse the already approved ZIP from Git; never regenerate a mockup.
+        // The CI proof artifact deliberately includes the immutable reference
+        // for a real PDF-page comparison with the App's native V11 exports.
+        val root = File(System.getProperty("user.dir")).absoluteFile
+        val archive = generateSequence(root) { it.parentFile }
+            .map { File(it, "docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip") }
+            .firstOrNull { it.isFile }
+            ?: error("Frozen approved V11 golden archive is missing from the checkout")
+        val bytes = archive.readBytes()
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+            .digest(bytes).joinToString("") { "%02x".format(it.toInt() and 0xff) }
+        assertEquals(
+            "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+            digest, "Never inspect or publish an altered golden ZIP.",
+        )
+        val pdfCount = java.util.zip.ZipFile(archive).use { zip ->
+            zip.entries().asSequence().count { !it.isDirectory &&
+                it.name.lowercase().endsWith(".pdf") }
+        }
+        assertEquals(8, pdfCount, "Approved physical V11 reference must contain eight PDFs.")
+        val proofDir = File(
+            System.getProperty("pcSheetProofDir")
+                ?: File("build/pc-sheet-proofs").absolutePath,
+        )
+        proofDir.mkdirs()
+        File(proofDir, "V11-GOLDEN-approved-reference.zip").writeBytes(bytes)
+    }
+
     private fun assertPhysicalP1SavingBoxes(
         pdf: org.apache.pdfbox.pdmodel.PDDocument,
         expectedRows: Int,
