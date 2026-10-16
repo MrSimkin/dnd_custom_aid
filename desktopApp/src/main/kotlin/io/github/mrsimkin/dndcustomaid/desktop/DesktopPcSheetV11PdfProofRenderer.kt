@@ -2149,7 +2149,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     specialArea.leftPt + specialColumns[0] + specialColumns[1],
                 )
                 val activeX = specialArea.rightPt - specialColumns.last() / 2f - 4.5f
-                specialP2Rows.forEachIndexed { rowIndex, (item, columns) ->
+                specialP2Rows.forEachIndexed { rowIndex, (_, columns) ->
                     val rowTop = specialArea.topPt - specialHeaderHeight -
                         rowIndex * specialRowHeight
                     columns.forEachIndexed { column, values ->
@@ -2161,10 +2161,27 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             }
                         }
                     }
+                }
+                // D-0076 §3.42 / P210: only for zero recorded special items,
+                // preprint locations used by real QA character fixtures.
+                // Leave free rows for arbitrary locations; do not create objects.
+                val manualSpecialLocations = if (data.specialEquipment.isEmpty()) {
+                    listOf("Cuello", "Cuerpo", "Mano izquierda", "Mano derecha")
+                } else emptyList()
+                require(manualSpecialLocations.size < specialCapacity)
+                repeat(specialCapacity) { rowIndex ->
+                    val rowTop = specialArea.topPt - specialHeaderHeight -
+                        rowIndex * specialRowHeight
+                    if (data.specialEquipment.isEmpty()) {
+                        manualSpecialLocations.getOrNull(rowIndex)?.let { location ->
+                            draw(stream, location, fieldX[0] + 5f, rowTop - 10f, false)
+                        }
+                    }
+                    // Each writable row requires a genuine unmarked ACTIVO square.
                     val activeY = rowTop - specialRowHeight / 2f - 4.5f
                     stream.addRect(activeX, activeY, 9f, 9f)
                     stream.stroke()
-                    if (item.active == true) {
+                    if (specialP2Rows.getOrNull(rowIndex)?.first?.active == true) {
                         draw(stream, "X", activeX, activeY + 2f, false)
                     }
                 }

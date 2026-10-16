@@ -2370,4 +2370,49 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun g3RealP2NoSpecialEquipmentHasRecognizedLocationsFreeRowsAndBlankActivoBoxes() {
+        // P210: no persisted special items, as distinct from deferred C2 items.
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val empty = original.copy(permanent = original.permanent.copy(
+            sheet = original.permanent.sheet.copy(
+                inventoryItems = original.permanent.sheet.inventoryItems.filterNot { it.special },
+            ),
+        ))
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.A,
+                PcSheetExportStateSelection.PERMANENT),
+            empty,
+        )
+        preserveRealApplicationPdf(proof.bytes, "V11-INTERNAL-PROOF-Aldren-no-special-A.pdf")
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val p2 = PDFTextStripper().apply { startPage = 2; endPage = 2 }
+                .getText(pdf)
+            for (location in listOf("Cuello", "Cuerpo", "Mano izquierda", "Mano derecha")) {
+                assertTrue(p2.contains(location),
+                    "Missing source-recognized paper location: " + location)
+            }
+            assertFalse(p2.contains("Cota de malla"),
+                "Do not invent previously removed special objects.")
+            val ops = pdf.getPage(1).contents.use {
+                it.readBytes().toString(Charsets.ISO_8859_1)
+            }
+            val paperMarks = Regex(
+                """(?:^|\s)542\.5\s+(?:278|253|228|203|178|153|128|103)(?:\.0+)?""" +
+                    """\s+9(?:\.0+)?\s+9(?:\.0+)?\s+re(?:\s|$)"""
+            )
+            assertEquals(8, paperMarks.findAll(ops).count(),
+                "Eight genuine 9pt ACTIVO squares must be printed in P2.")
+            assertTrue(p2.contains("UBICACIÓN") && p2.contains("NOMBRE") &&
+                p2.contains("DESCRIPCIÓN") && p2.contains("ACTIVO"))
+            assertTrue(pdf.numberOfPages >= 4)
+            val lastText = PDFTextStripper().apply {
+                startPage = pdf.numberOfPages; endPage = pdf.numberOfPages
+            }.getText(pdf)
+            assertTrue(lastText.contains("NOTAS"),
+                "P210 must not remove the final manuscript-only sheet.")
+        }
+    }
+
 }
