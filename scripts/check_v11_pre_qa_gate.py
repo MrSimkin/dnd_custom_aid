@@ -22,7 +22,7 @@ STAGES = {"G1", "G2", "G3", "G4"}
 EXPECTED_IDS = (
     {f"GLB{i:02d}" for i in range(1, 13)}
     | {f"IN{i:02d}" for i in range(1, 9)}
-    | {f"P1{i:02d}" for i in range(1, 20)}
+    | {f"P1{i:02d}" for i in range(1, 21)}
     | {f"RSG{i:02d}" for i in range(1, 7)}
     | {f"P2{i:02d}" for i in range(1, 13)}
     | {f"P3{i:02d}" for i in range(1, 7)}
