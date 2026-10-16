@@ -251,8 +251,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     // Golden B: label-to-box gap 17.85pt; previous real App gap 20.18pt.
                     // Move the label only 2.3pt right and 2.1pt upward relative
                     // to its attribute name; leave the 7pt box, value and row intact.
-                    val saveY=top-(if(compactBAttributes) 20.9f else 22.9f)
-                    stream.newLineAtOffset(217.3f,saveY)
+                    val saveY=top-(if(compactBAttributes) 23f else 25f)
+                    // Position only the label; saveY remains the untouched
+                    // checkbox/value baseline from the verified App PDF.
+                    val savingLabelY=saveY+2.1f
+                    stream.newLineAtOffset(217.3f,savingLabelY)
                     stream.showText("SALVACIÓN")
                     stream.endText()
                     // Approved V11 paper saving-throw mark. Always blank:
