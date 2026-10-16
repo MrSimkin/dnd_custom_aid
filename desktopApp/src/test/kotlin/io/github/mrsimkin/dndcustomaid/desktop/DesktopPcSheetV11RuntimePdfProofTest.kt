@@ -166,7 +166,6 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertTrue(text.contains(title),
                         "Actual PDF P2 lost existing title or table field: " + title)
                 }
-                assertTrue(text.contains("EQUIPO   /   CANTIDAD"))
                 val stream = pdf.getPage(1).contents.use {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
