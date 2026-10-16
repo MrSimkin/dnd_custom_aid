@@ -2086,4 +2086,84 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun g2G3ApprovedRasgosAreIdentityOnlyOnceAcrossP1P2AndC2() {
+        // Gate IDs RSG01..RSG06, P201/P207, P302, C201:
+        // print name + real type + source, never description/notes.
+        // The App's full CharacterTrait remains unchanged/persisted.
+        val origin = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val original = origin.permanent.sheet.traits.first()
+        val rawTraits = (0 until 48).map { index ->
+            original.copy(
+                id = Uuid.random(),
+                name = "RSGQ" + index.toString().padStart(3, '0'),
+                type = io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType.CLASS,
+                source = "PícaroQA",
+                description = "DESC_RSG_NEVER_PRINT_" + index,
+                notes = "NOTES_RSG_NEVER_PRINT_" + index,
+                sortOrder = index,
+            )
+        }
+        val edited = origin.copy(
+            permanent = origin.permanent.copy(
+                sheet = origin.permanent.sheet.copy(traits = rawTraits),
+            ),
+        )
+        assertEquals(rawTraits.size, edited.permanent.sheet.traits.size)
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val request = PcSheetV11ExportRequest(
+                variant, PcSheetExportStateSelection.PERMANENT,
+            )
+            val semantic = io.github.mrsimkin.dndcustomaid.shared.character
+                .PcSheetV11SemanticMapper.map(request, edited)
+            val shortForms = io.github.mrsimkin.dndcustomaid.shared.character
+                .PcSheetV11FlowSourceMapper.from(semantic).traitDescriptions
+            assertEquals(48, shortForms.size)
+            shortForms.forEachIndexed { index, row ->
+                assertEquals("RSGQ" + index.toString().padStart(3, '0') +
+                    " - Rasgo de Clase: PícaroQA", row.text)
+                assertFalse(row.text.contains("DESC_RSG_NEVER_PRINT"))
+                assertFalse(row.text.contains("NOTES_RSG_NEVER_PRINT"))
+            }
+            val result = DesktopPcSheetExportService().generateV11Proof(
+                request, edited,
+            )
+            Loader.loadPDF(result.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { page ->
+                    PDFTextStripper().apply {
+                        startPage = page
+                        endPage = page
+                    }.getText(pdf)
+                }
+                val whole = pages.joinToString("\n")
+                assertTrue(pages.first().contains("RASGOS Y ATRIBUTOS"),
+                    "P1 must retain the paper trait summary area.")
+                assertTrue(pages.any { it.contains("P2 - Equipo y tesoro") },
+                    "P2 remains the continuation/trait area.")
+                assertTrue(pages.any { it.contains("C2") && it.contains("RASGOS") },
+                    "48 real trait identities must overflow to C2, not disappear.")
+                rawTraits.forEachIndexed { index, trait ->
+                    val key = "RSGQ" + index.toString().padStart(3, '0')
+                    assertEquals(1, Regex(Regex.escape(key)).findAll(whole).count(),
+                        "Trait ID " + trait.id + " was duplicated or lost ($variant).")
+                }
+                assertFalse(whole.contains("DESC_RSG_NEVER_PRINT"),
+                    "Rasgo descriptions are NEVER permitted on V11 paper.")
+                assertFalse(whole.contains("NOTES_RSG_NEVER_PRINT"),
+                    "Rasgo notes are NEVER permitted on V11 paper.")
+                assertTrue(whole.contains("Rasgo de Clase"),
+                    "The real category must be visible, not only the trait name.")
+                assertTrue(whole.contains("PícaroQA"),
+                    "The real original trait source must be visible.")
+                val narrative = pages.first { it.contains("P3 - Narrativa") }
+                assertFalse(narrative.contains("RSGQ"),
+                    "V11 P3 is narrative-only; no mechanical trait overflow.")
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" },
+                    "Overflow must preserve the final manuscript page.")
+                assertEquals(48, edited.permanent.sheet.traits.size,
+                    "PDF projection must not mutate stored Rasgo cards.")
+            }
+        }
+    }
 }
