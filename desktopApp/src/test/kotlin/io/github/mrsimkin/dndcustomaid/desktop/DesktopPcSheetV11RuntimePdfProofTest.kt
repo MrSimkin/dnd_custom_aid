@@ -2444,7 +2444,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             // Look ONLY at the PDFBox full-width ruled lines of each left P2
             // table. Underlying digital labels are unaffected by this test.
             val rules = Regex(
-                """(?:^|\\s)42\\s+([0-9]+(?:\\.[0-9]+)?)\\s+m\\s+300\\s+\\1\\s+l"""
+                """(?:^|\s)42\s+([0-9]+(?:\.[0-9]+)?)\s+m\s+300\s+\1\s+l"""
             ).findAll(ops).map { it.groupValues[1].toFloat() }.toList()
             val equipment = rules.filter { it > 464f && it < 684f }.sortedDescending()
             val treasure = rules.filter { it > 330f && it < 448f }.sortedDescending()
@@ -2491,8 +2491,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(p2.contains("Cobre"))
             assertFalse(p2.contains("Electrum"))
             assertFalse(p2.contains("Platino"))
-            assertTrue(Regex("""(?s)Cobre\\s+0""").containsMatchIn(p2),
-                "Persisted currency amount 0 must print explicitly.")
+            val rowRegion = PDFTextStripperByArea().apply {
+                addRegion("recorded-zero", Rectangle2D.Float(42f, 340f, 130f, 24f))
+                extractRegions(pdf.getPage(1))
+            }.getTextForRegion("recorded-zero")
+            assertTrue(rowRegion.contains("Cobre") && rowRegion.contains("0"),
+                "Persisted currency amount 0 must print in its authentic P2 row.")
         }
     }
 
