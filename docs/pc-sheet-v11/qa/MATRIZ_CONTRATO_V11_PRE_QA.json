@@ -461,7 +461,11 @@
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "NOT_VERIFIED",
-          "evidence": null
+          "evidence": null,
+          "named_tests": [
+            "g3RealP1VariantBSkillsHeaderHasApprovedBlueClippedCartelaWithoutMovingSkillRows",
+            "g3RealP1BothVariantsHaveGoldenAttributesClippedCartelaWithoutLosingScores"
+          ]
         }
       ]
     },
@@ -1153,7 +1157,9 @@
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "NOT_VERIFIED",
-          "evidence": null
+          "evidence": null,
+          "test_name": "g3RealP1VariantBSkillsHeaderHasApprovedBlueClippedCartelaWithoutMovingSkillRows",
+          "source_parity_test": "scripts/test_v11_p1_skills_cartela_contract.py"
         }
       ]
     },
@@ -1467,7 +1473,7 @@
       "method": "PDF visual",
       "scenarios": "Sin munición",
       "status": "NOT_VERIFIED",
-      "evidence": null,
+      "evidence": "Slice LOCAL verificado PDF genuino Desktop: Scaffold #38973067753 SUCCESS, App PDF artefacto 12078165513 SHAZIP sha256:2ab8a57b088cda8529a8e84f6c5118ada41249393c94ebb5d03c1491344fe91e. Ilyra B/Mara A/Mara B P1 exactamente 20 marcas no impresas previamente, nombre en blanco y ninguna cantidad inventada; Aldren A con municiones se mantuvo byte-for-byte. No Android instalado ni prueba global; STATUS NOT_VERIFIED.",
       "stage_checks": [
         {
           "stage": "G1",
@@ -1488,7 +1494,9 @@
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "NOT_VERIFIED",
-          "evidence": null
+          "evidence": null,
+          "test_name": "g3RealP1WithoutAmmunitionHasOnePaperEntryWithTwentyEmptyBoxes",
+          "source_parity_test": "scripts/test_v11_ammunition_manual_contract.py"
         }
       ]
     },
