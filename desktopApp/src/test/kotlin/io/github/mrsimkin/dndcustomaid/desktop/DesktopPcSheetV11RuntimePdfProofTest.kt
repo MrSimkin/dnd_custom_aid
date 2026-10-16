@@ -136,8 +136,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 stripper.startPage = 1
                 stripper.endPage = 1
                 stripper.getText(pdf)
-                val expectedRows = if (fixture.startsWith("02_")) 6 else
-                    minOf(9, if (variant == PcSheetV11Variant.B) 9 else 9)
+                val expectedRows = when {
+                    fixture.startsWith("02_") -> 6
+                    variant == PcSheetV11Variant.A -> 7 // Mara: grouped A skills reserve row height.
+                    else -> 9 // Mara B: all three custom attributes fit P1.
+                }
                 assertEquals(expectedRows, savingLabels.count {
                     kotlin.math.abs(it.first - 217.3f) < 0.3f
                 }, "Every printed P1 saving label must be physically at " +
