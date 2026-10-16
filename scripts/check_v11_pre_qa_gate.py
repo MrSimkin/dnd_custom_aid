@@ -33,6 +33,17 @@ EXPECTED_IDS = (
     | {f"QA{i:02d}" for i in range(1, 9)}
 )
 # New mandatory rules may be added, never silently substituted for baseline IDs.
+DECISION_SECTIONS = {f"3.{i}" for i in range(1, 49)}
+GOLDEN_CASES = {
+    "v11_comparador_C2_extremo.pdf",
+    "v11_extremo_variante_A.pdf",
+    "v11_extremo_variante_B.pdf",
+    "v11_ordinario_6mas2_variante_A.pdf",
+    "v11_ordinario_6mas2_variante_B.pdf",
+    "v11_ordinario_6mas3_variante_A.pdf",
+    "v11_ordinario_6mas3_variante_B.pdf",
+    "v11_personaje_casi_vacio.pdf",
+}
 REQUIRED_EVIDENCE_FIELDS = (
     "candidate_commit", "apk_sha256", "pdf_sha256", "artifact_ref",
     "fixture_id", "page_or_scope", "independent_review_ref",
@@ -93,6 +104,41 @@ def validate(root: Path, require_pass: bool = False) -> list[str]:
                                    "PENDING_PRIORITY_REVIEW", "COMPLETE"},
               f"V11 G4 source audit state invalid/missing: {key}")
 
+    # Never allow a blanket "48 sections reviewed" checkbox to substitute
+    # for 48 individual precedent decisions + all eight frozen visual cases.
+    legacy = sources.get("legacy_decisions") or []
+    golden = sources.get("golden_pdf_cases") or []
+    legacy_ids = [e.get("section") for e in legacy if isinstance(e, dict)]
+    golden_ids = [e.get("file") for e in golden if isinstance(e, dict)]
+    check(len(legacy_ids) == len(legacy) and len(legacy_ids) == len(set(legacy_ids))
+          and set(legacy_ids) == DECISION_SECTIONS,
+          "V11 G4 48 legacy decision sections omitted/duplicated")
+    check(len(golden_ids) == len(golden) and len(golden_ids) == len(set(golden_ids))
+          and set(golden_ids) == GOLDEN_CASES,
+          "V11 G4 eight golden PDF cases omitted/duplicated")
+    for item in legacy:
+        if not isinstance(item, dict):
+            continue
+        key = item.get("section")
+        check(item.get("status") in {"NOT_VERIFIED", "PASS", "BLOCKED"},
+              f"V11 G4 legacy {key}: invalid status")
+        if item.get("status") == "PASS":
+            check(item.get("disposition") in {"RETAIN", "SUPERSEDED_BY_V11"},
+                  f"V11 G4 legacy {key}: no explicit retained/superseded decision")
+            check(present(item.get("evidence")) and present(item.get("verifier")),
+                  f"V11 G4 legacy {key}: PASS without independent trace")
+    for item in golden:
+        if not isinstance(item, dict):
+            continue
+        key = item.get("file")
+        check(item.get("status") in {"NOT_VERIFIED", "PASS", "BLOCKED"},
+              f"V11 G4 golden {key}: invalid status")
+        if item.get("status") == "PASS":
+            check(matches(item.get("candidate_pdf_sha256"), SHA256)
+                  and present(item.get("comparison_ref"))
+                  and present(item.get("verifier")),
+                  f"V11 G4 golden {key}: PASS without genuine comparison")
+
     for record in records:
         if not isinstance(record, dict):
             continue
@@ -131,6 +177,12 @@ def validate(root: Path, require_pass: bool = False) -> list[str]:
         check(isinstance(matrix_candidate, dict), "V11 G4 release without matrix candidate")
         check(all(r.get("status") == "PASS" for r in records if isinstance(r, dict)),
               "V11 G4 release blocked: NOT VERIFIED / FAIL / BLOCKED rules remain")
+        check(all(item.get("status") == "PASS" for item in legacy if isinstance(item, dict))
+              and len(legacy) == len(DECISION_SECTIONS),
+              "V11 G4 release blocked: unreviewed D0076 sections remain")
+        check(all(item.get("status") == "PASS" for item in golden if isinstance(item, dict))
+              and len(golden) == len(GOLDEN_CASES),
+              "V11 G4 release blocked: unreviewed golden PDFs remain")
         check(all(sources.get(k) == "COMPLETE" for k in
                   ("legacy_48_sections", "golden_eight_pdfs", "conflicts")),
               "V11 G4 release blocked: historic/golden/precedence crosscheck incomplete")
