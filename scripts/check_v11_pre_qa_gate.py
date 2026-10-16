@@ -224,6 +224,17 @@ def validate(root: Path, require_pass: bool = False) -> list[str]:
               "V11 G4 release blocked: historic/golden/precedence crosscheck incomplete")
         check(declared_pass, "V11 G4 release blocked: gate is not PASS")
         if isinstance(candidate, dict):
+            for row in records:
+                if not isinstance(row, dict):
+                    continue
+                for stage_check in row.get("stage_checks", []):
+                    if stage_check.get("status") == "PASS":
+                        phase_proof = stage_check.get("evidence") or {}
+                        check(phase_proof.get("source_commit") ==
+                              candidate.get("source_commit"),
+                              f"V11 G4 {row.get('id')}/{stage_check.get('stage')}: "
+                              "stale local test from another compiled candidate")
+        if isinstance(candidate, dict):
             check(matches(candidate.get("source_commit"), COMMIT)
                   and matches(candidate.get("apk_sha256"), SHA256),
                   "V11 G4 release candidate lacks verifiable identity")
