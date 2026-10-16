@@ -421,7 +421,23 @@
       "method": "PDFBox inspección de todas las páginas",
       "scenarios": "A/B Mara Aldren Ilyra",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "GLB02",
@@ -431,7 +447,23 @@
       "method": "Golden contra PDF rasterizado + vectores",
       "scenarios": "A/B",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "GLB03",
@@ -441,7 +473,23 @@
       "method": "Página por página + assets",
       "scenarios": "A/B largas",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "GLB04",
@@ -451,7 +499,16 @@
       "method": "Tablas de fuentes embebidas y PDF visual",
       "scenarios": "A/B Android Desktop",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "GLB05",
@@ -461,7 +518,16 @@
       "method": "Extracción y renderizado de glifos",
       "scenarios": "Tildes glifos",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "GLB06",
@@ -471,7 +537,23 @@
       "method": "Bounds PDF y raster por página",
       "scenarios": "Longitud extrema",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "GLB07",
@@ -481,7 +563,23 @@
       "method": "Trazos vs bounding boxes PDF",
       "scenarios": "Vacío y poblado",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "GLB08",
@@ -491,7 +589,23 @@
       "method": "Medición física del PDF",
       "scenarios": "A/B",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "GLB09",
@@ -501,7 +615,23 @@
       "method": "Stress y auditoría física",
       "scenarios": "Mara extremo",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "GLB10",
@@ -511,7 +641,23 @@
       "method": "Comparación con snapshot source-backed",
       "scenarios": "Casi vacío",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "GLB11",
@@ -521,7 +667,30 @@
       "method": "Generación determinista repetida",
       "scenarios": "Todos",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "GLB12",
@@ -531,7 +700,16 @@
       "method": "Comparación cuatro familias y git diff",
       "scenarios": "Mara cuatro legacy",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G4",
+          "scope": "auditoría independiente G4",
+          "test_target": "docs/pc-sheet-v11/qa/G4_COMPUERTA_CUMPLIMIENTO_PRE_QA.md",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "IN01",
@@ -541,7 +719,23 @@
       "method": "UI real Guardar/Compartir",
       "scenarios": "Android Desktop",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "IN02",
@@ -551,7 +745,23 @@
       "method": "Snapshot y PDF por selector",
       "scenarios": "Actual ausente",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "IN03",
@@ -561,7 +771,23 @@
       "method": "Persistencia antes/después",
       "scenarios": "Actual sin guardar",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "IN04",
@@ -571,7 +797,30 @@
       "method": "PDF XObject y raster",
       "scenarios": "Fit Crop",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "IN05",
@@ -581,7 +830,30 @@
       "method": "PDF visual",
       "scenarios": "Sin retrato",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "IN06",
@@ -591,7 +863,23 @@
       "method": "Smoke Save Share",
       "scenarios": "Sin conexión",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "IN07",
@@ -601,7 +889,30 @@
       "method": "UI y secuencia PDF",
       "scenarios": "On/Off",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "IN08",
@@ -611,7 +922,30 @@
       "method": "UI + stress",
       "scenarios": "6+3 extremo",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P101",
@@ -621,7 +955,23 @@
       "method": "Contenidos y PDF visual",
       "scenarios": "A/B",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P102",
@@ -631,7 +981,30 @@
       "method": "Fuente -> PDF",
       "scenarios": "A/B",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P103",
@@ -641,7 +1014,30 @@
       "method": "Manifest e inspección",
       "scenarios": "6+2 6+3 6+4",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P104",
@@ -651,7 +1047,23 @@
       "method": "Geometría PDF",
       "scenarios": "A/B",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P105",
@@ -661,7 +1073,23 @@
       "method": "Comparación golden + región visual",
       "scenarios": "A/B",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P106",
@@ -671,7 +1099,30 @@
       "method": "Relación ID y texto por página",
       "scenarios": "A custom",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P107",
@@ -681,7 +1132,30 @@
       "method": "Relación ID y PDF",
       "scenarios": "B custom",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P108",
@@ -691,7 +1165,30 @@
       "method": "Manifest + valores",
       "scenarios": "A/B custom",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P109",
@@ -701,7 +1198,23 @@
       "method": "PDF medido",
       "scenarios": "6+2 6+3 A/B",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P110",
@@ -711,7 +1224,30 @@
       "method": "Fuente -> PDF",
       "scenarios": "A/B",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P111",
@@ -721,7 +1257,23 @@
       "method": "Geometría y fuente",
       "scenarios": "A/B con ataques",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P112",
@@ -731,7 +1283,23 @@
       "method": "Comparar PDFs vacío/poblado",
       "scenarios": "Ataques 0/12 Rasgos 0/20",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P113",
@@ -741,7 +1309,30 @@
       "method": "Presencia de módulo",
       "scenarios": "Sin conjuros",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P114",
@@ -751,7 +1342,23 @@
       "method": "PDF y modelo",
       "scenarios": "Mago/no mago",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P115",
@@ -761,7 +1368,30 @@
       "method": "Verificar presencia y ausencia",
       "scenarios": "Sin épicos",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P116",
@@ -771,7 +1401,30 @@
       "method": "Fuente -> PDF",
       "scenarios": "Cero/nulo",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P117",
@@ -781,7 +1434,30 @@
       "method": "Inspección marcas por fixture",
       "scenarios": "0 1 5 20 21 35",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P118",
@@ -791,7 +1467,30 @@
       "method": "PDF visual",
       "scenarios": "Sin munición",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P119",
@@ -801,7 +1500,23 @@
       "method": "PDF vs origen",
       "scenarios": "Ataques largos",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "RSG01",
@@ -811,7 +1526,30 @@
       "method": "Extracción de texto y campos fuente",
       "scenarios": "Mara + centinela",
       "status": "FAIL",
-      "evidence": "Actual Desktop V11 renderer: drawP1Traits solo name; traitLines en P2 concatena description y notes; revisar también Android. Sin PDF de candidato verificado."
+      "evidence": "Actual Desktop V11 renderer: drawP1Traits solo name; traitLines en P2 concatena description y notes; revisar también Android. Sin PDF de candidato verificado.",
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "RSG02",
@@ -821,7 +1559,30 @@
       "method": "Centinela descriptivo ausente de PDF",
       "scenarios": "Rasgos largos",
       "status": "FAIL",
-      "evidence": "Actual Desktop V11 renderer: drawP1Traits solo name; traitLines en P2 concatena description y notes; revisar también Android. Sin PDF de candidato verificado."
+      "evidence": "Actual Desktop V11 renderer: drawP1Traits solo name; traitLines en P2 concatena description y notes; revisar también Android. Sin PDF de candidato verificado.",
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "RSG03",
@@ -831,7 +1592,30 @@
       "method": "Centinela notes ausente",
       "scenarios": "Rasgos con notas",
       "status": "FAIL",
-      "evidence": "Actual Desktop V11 renderer: drawP1Traits solo name; traitLines en P2 concatena description y notes; revisar también Android. Sin PDF de candidato verificado."
+      "evidence": "Actual Desktop V11 renderer: drawP1Traits solo name; traitLines en P2 concatena description y notes; revisar también Android. Sin PDF de candidato verificado.",
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "RSG04",
@@ -841,7 +1625,30 @@
       "method": "Manifest físico por ID y continuidad",
       "scenarios": "Mara rasgos 30+",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "RSG05",
@@ -851,7 +1658,30 @@
       "method": "Comparación orden y wrap",
       "scenarios": "Multiclase homebrew custom",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "RSG06",
@@ -861,7 +1691,30 @@
       "method": "Inspección P2/P3 y source",
       "scenarios": "P3 narrativa",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P201",
@@ -871,7 +1724,23 @@
       "method": "Golden vs PDF",
       "scenarios": "Poblado y vacío",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P202",
@@ -881,7 +1750,30 @@
       "method": "Campos PDF vs origen",
       "scenarios": "Mara inventario",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P203",
@@ -891,7 +1783,23 @@
       "method": "Inspección visual",
       "scenarios": "Vacío",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P204",
@@ -901,7 +1809,30 @@
       "method": "Fuente -> PDF",
       "scenarios": "Cero nulo custom",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P205",
@@ -911,7 +1842,23 @@
       "method": "Geometría PDF",
       "scenarios": "Múltiples monedas",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P206",
@@ -921,7 +1868,23 @@
       "method": "PDF visual",
       "scenarios": "Vacío",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P207",
@@ -931,7 +1894,23 @@
       "method": "Ledger ID y fuente->PDF",
       "scenarios": "Mara rasgos",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P208",
@@ -941,7 +1920,23 @@
       "method": "Geometría y fuente",
       "scenarios": "Mara equipo",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P209",
@@ -951,7 +1946,30 @@
       "method": "Modelo vs PDF",
       "scenarios": "Sin estado real",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P210",
@@ -961,7 +1979,30 @@
       "method": "Geometría y procedencia de etiquetas",
       "scenarios": "Sin equipo especial",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P211",
@@ -971,7 +2012,23 @@
       "method": "PDF visual",
       "scenarios": "Todo vacío",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P212",
@@ -981,7 +2038,30 @@
       "method": "PDF completo",
       "scenarios": "A/B",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P301",
@@ -991,7 +2071,23 @@
       "method": "PDF + caso vacío",
       "scenarios": "Sin narrativa",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P302",
@@ -1001,7 +2097,30 @@
       "method": "Texto PDF y sections",
       "scenarios": "Mara",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P303",
@@ -1011,7 +2130,30 @@
       "method": "Fuente -> PDF",
       "scenarios": "Campos poblados",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P304",
@@ -1021,7 +2163,23 @@
       "method": "Fuente vs texto PDF",
       "scenarios": "Historia extrema",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P305",
@@ -1031,7 +2189,23 @@
       "method": "Inspección geométrica",
       "scenarios": "Corto vacío largo",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P306",
@@ -1041,7 +2215,30 @@
       "method": "PDF imágenes",
       "scenarios": "Dos retratos",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P401",
@@ -1051,7 +2248,30 @@
       "method": "Conteo PDF y fuente",
       "scenarios": "0 vs 1 spells",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P402",
@@ -1061,7 +2281,23 @@
       "method": "Golden y geometría",
       "scenarios": "Pocos muchos",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P403",
@@ -1071,7 +2307,30 @@
       "method": "Texto PDF y cajas",
       "scenarios": "Mago parcial",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P404",
@@ -1081,7 +2340,30 @@
       "method": "Ledger e impresión",
       "scenarios": "Nivel excede columna",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P405",
@@ -1091,7 +2373,23 @@
       "method": "Operadores geométricos PDF",
       "scenarios": "Niveles vacíos",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P406",
@@ -1101,7 +2399,30 @@
       "method": "Fuente vs PDF",
       "scenarios": "Doble fuente distinta",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P407",
@@ -1111,7 +2432,23 @@
       "method": "Medición espacio libre",
       "scenarios": "Nivel masivo",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P408",
@@ -1121,7 +2458,30 @@
       "method": "Fuente -> texto y geometría",
       "scenarios": "No lanzador",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P409",
@@ -1131,7 +2491,23 @@
       "method": "Inspección de 27 marcas",
       "scenarios": "P4 A/B",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "P410",
@@ -1141,7 +2517,23 @@
       "method": "Inspección visual",
       "scenarios": "P4 A/B",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "C201",
@@ -1151,7 +2543,23 @@
       "method": "Ledger y distribución",
       "scenarios": "Mara",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "C202",
@@ -1161,7 +2569,23 @@
       "method": "Geometría PDF",
       "scenarios": "Asimétrico",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "C203",
@@ -1171,7 +2595,23 @@
       "method": "Composición y origen",
       "scenarios": "Mara",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "C204",
@@ -1181,7 +2621,23 @@
       "method": "Relaciones source ID PDF",
       "scenarios": "A/B 6+4",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "C205",
@@ -1191,7 +2647,23 @@
       "method": "Geometría",
       "scenarios": "Overflow especial",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "C206",
@@ -1201,7 +2673,23 @@
       "method": "Cotejo referencias PDF",
       "scenarios": "C2 múltiples",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "C207",
@@ -1211,7 +2699,23 @@
       "method": "Detección huecos y geometría",
       "scenarios": "C2 dispersas",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "C208",
@@ -1221,7 +2725,23 @@
       "method": "Cotejo páginas + geometría",
       "scenarios": "C2 poco lleno",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "C209",
@@ -1231,7 +2751,23 @@
       "method": "Comparación secuencia + fuente de precedencia",
       "scenarios": "Overflow de P1/P2",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "CN301",
@@ -1241,7 +2777,30 @@
       "method": "Fuente -> páginas",
       "scenarios": "Sin notas",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "CN302",
@@ -1251,7 +2810,30 @@
       "method": "Texto PDF completo",
       "scenarios": "Notas largas",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "CN303",
@@ -1261,7 +2843,30 @@
       "method": "Inspección de secciones",
       "scenarios": "Mara notas",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "CN304",
@@ -1271,7 +2876,23 @@
       "method": "Fuente vs PDF",
       "scenarios": "Notas extremas",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "BK01",
@@ -1281,7 +2902,30 @@
       "method": "UI + secciones PDF",
       "scenarios": "On Off",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "BK02",
@@ -1291,7 +2935,23 @@
       "method": "Secuencia física",
       "scenarios": "Libro + C-N3",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "BK03",
@@ -1301,7 +2961,30 @@
       "method": "PDF vs fuente",
       "scenarios": "Ilyra",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "BK04",
@@ -1311,7 +2994,23 @@
       "method": "Posiciones PDF",
       "scenarios": "Ficha mediana",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "BK05",
@@ -1321,7 +3020,23 @@
       "method": "PDF y texto",
       "scenarios": "Ficha enorme",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "BK06",
@@ -1331,7 +3046,23 @@
       "method": "PDF vs diseño",
       "scenarios": "Libro A/B",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "FIN01",
@@ -1341,7 +3072,30 @@
       "method": "Inspección última página",
       "scenarios": "Con/Sin Libro",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G1",
+          "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "FIN02",
@@ -1351,7 +3105,23 @@
       "method": "Inspección visual",
       "scenarios": "A/B",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "FIN03",
@@ -1361,7 +3131,23 @@
       "method": "Análisis de vectores y raster",
       "scenarios": "A/B",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "FIN04",
@@ -1371,7 +3157,23 @@
       "method": "PDF estructura",
       "scenarios": "Historia/Libro extremo",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G2",
+          "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
+          "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        },
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "QA01",
@@ -1381,7 +3183,16 @@
       "method": "Manifest independiente PDF vs origen",
       "scenarios": "Mara y extremo",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G4",
+          "scope": "auditoría independiente G4",
+          "test_target": "docs/pc-sheet-v11/qa/G4_COMPUERTA_CUMPLIMIENTO_PRE_QA.md",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "QA02",
@@ -1391,7 +3202,16 @@
       "method": "PyMuPDF u otro inspector ajeno al renderer",
       "scenarios": "Cuatro fixtures",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G4",
+          "scope": "auditoría independiente G4",
+          "test_target": "docs/pc-sheet-v11/qa/G4_COMPUERTA_CUMPLIMIENTO_PRE_QA.md",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "QA03",
@@ -1401,7 +3221,16 @@
       "method": "APK+Desktop fixture misma entrada",
       "scenarios": "Android Desktop",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G4",
+          "scope": "auditoría independiente G4",
+          "test_target": "docs/pc-sheet-v11/qa/G4_COMPUERTA_CUMPLIMIENTO_PRE_QA.md",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "QA04",
@@ -1411,7 +3240,16 @@
       "method": "Pares golden↔runtime raster/estructura",
       "scenarios": "6+2 6+3",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G4",
+          "scope": "auditoría independiente G4",
+          "test_target": "docs/pc-sheet-v11/qa/G4_COMPUERTA_CUMPLIMIENTO_PRE_QA.md",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "QA05",
@@ -1421,7 +3259,16 @@
       "method": "Mara cuatro legacy",
       "scenarios": "Legados",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G4",
+          "scope": "auditoría independiente G4",
+          "test_target": "docs/pc-sheet-v11/qa/G4_COMPUERTA_CUMPLIMIENTO_PRE_QA.md",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "QA06",
@@ -1431,7 +3278,16 @@
       "method": "Manifiesto exacto",
       "scenarios": "G5 candidato",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G4",
+          "scope": "auditoría independiente G4",
+          "test_target": "docs/pc-sheet-v11/qa/G4_COMPUERTA_CUMPLIMIENTO_PRE_QA.md",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "QA07",
@@ -1441,7 +3297,16 @@
       "method": "Acta fuente por fuente",
       "scenarios": "Auditoría documental",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G4",
+          "scope": "auditoría independiente G4",
+          "test_target": "docs/pc-sheet-v11/qa/G4_COMPUERTA_CUMPLIMIENTO_PRE_QA.md",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     },
     {
       "id": "QA08",
@@ -1451,7 +3316,16 @@
       "method": "Matriz y checker release fail-closed",
       "scenarios": "G4->G5",
       "status": "NOT_VERIFIED",
-      "evidence": null
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G4",
+          "scope": "auditoría independiente G4",
+          "test_target": "docs/pc-sheet-v11/qa/G4_COMPUERTA_CUMPLIMIENTO_PRE_QA.md",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
     }
   ]
 }
