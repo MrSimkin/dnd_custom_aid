@@ -20,6 +20,19 @@ Cambios productivos: `9bb09a9919865d6b140503d40308df13adf6cce7` (Desktop) y `862
 
 Prueba Desktop que exporta PDF **real de la App**: `g3RealP1VariantBSkillsHeaderHasApprovedBlueClippedCartelaWithoutMovingSkillRows` en `DesktopPcSheetV11RuntimePdfProofTest.kt` (`291da14e2b9f9e569d0ecd56f3f427a1672c6552`), sobre Ilyra B y Mara B. Comprueba operador físico de ocho vértices, cuadro original, leyenda y una habilidad fuente. Guardia adicional de paridad Android/Desktop `scripts/test_v11_p1_skills_cartela_contract.py`, activada en QA ledger por `6da0dcd3d801b91e3ff0c6888255b660acc457e7`.
 
+## Verificación concluyente del slice G3 (solo Desktop PDF real)
+
+**Scaffold #38971731677 = SUCCESS** (Kotlin + pruebas Desktop PDFBox + Android DEBUG + backend + hosted DB), commit de código+tests `6da0dcd3d801b91e3ff0c6888255b660acc457e7`. ZIP real de salida Desktop `v11-internal-real-app-pdf-proofs` artefacto GitHub **12076807568**, ZIP digest `sha256:3b1e1e910b56a747ae5be2d88dd8e83d299ac145649a5dcdb22a879a0f8b4e5e`, CRC PASS.
+
+Inspección independiente con PyMuPDF contra el ZIP anterior genuino `12076089298`:
+- Aldren A: **7→7 páginas**, cero cambios de operadores/texto/vectores.
+- Mara A: **9→9 páginas**, cero cambios de operadores/texto/vectores.
+- Ilyra B: **13→13 páginas**, y Mara B: **14→14 páginas**; **solo P1 cambia**. Cada P1 B contiene exactamente **un** nuevo vector C2c `Rect(42,444,300,462)` top-origin, fill RGB `231/242/247` y borde `38/75/104`. Las ÚNICAS tres palabras ajustadas son `HABILIDADES`, `P=COMPETENCIA`, `E=PERICIA`, desplazadas +8pt x/+3pt top-origin; su texto sigue idéntico. Todas las demás palabras, su orden/coordenadas, todas las páginas posteriores y la última NOTAS manuscrita permanecen idénticas.
+- PDF SHA256 de los cuatro archivos: Aldren A `0a094745046516c8635da4172949b50110363081b6469fed6dfbcdeef26e321a`, Ilyra B `46cccbd5aaed4e5ad320b488f8f5e1d456101ae0ceb8b0583304e778f2e3ab9f`, Mara A `04c8c5a3ee62426fac6a4c679b167fa2ede3ae0c465f57decdd7b64a2daf4fab`, Mara B `067ab2968f74759c6625db2d843ebeba078bc1fa8994e6925d783bf8dc400499`.
+- Se rasterizó/inspeccionó recorte real P1 B: título centrado verticalmente en banda, sin tocar trazos ni invadir habilidades.
+
+**PASS acotado exclusivamente a la nueva cartela de HABILIDADES B en PDF real Desktop; sin validar Android instalado, contrato visual global G2/G3, G4 ni aceptación owner.** Se conservan todos los controles originales. Continuar al siguiente módulo por evidencia del golden sin re-hacer este slice.
+
 ## Verificación antes del próximo trabajo
 
 - QA ledger para HEAD `6da0dcd3`: verificar run `38971731506`. Este control garantiza sintaxis/identidad de pruebas, no adecuación de PDF.
