@@ -2255,4 +2255,46 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+    @Test
+    fun g3RealP1VariantBSkillsHeaderHasApprovedBlueClippedCartelaWithoutMovingSkillRows() {
+        // Golden V11 variant B: heading band belongs to the free strip
+        // between last Attribute and fixed Skills rectangle. This test
+        // parses genuine App-generated PDF operators, not source text only.
+        for (fixture in listOf(
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json",
+            "03_mara_siete_umbrales_custom_extended.json",
+        )) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    PcSheetV11Variant.B,
+                    PcSheetExportStateSelection.PERMANENT,
+                ),
+                sources(fixture),
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val ops = pdf.getPage(0).contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                val clippedHeader = Regex(
+                    """(?s)(?:^|\s)46\s+330\s+m\s+296\s+330\s+l\s+""" +
+                        """300\s+334\s+l.*?42\s+334\s+l\s+h\s+B(?:\s|$)"""
+                )
+                assertEquals(1, clippedHeader.findAll(ops).count(),
+                    "Golden C2c HABILIDADES header missing ($fixture).")
+                assertTrue(Regex(
+                    """(?:^|\s)42\s+105\s+258\s+223\s+re(?:\s|$)"""
+                ).containsMatchIn(ops),
+                    "Original B skills frame must not move.")
+                val page1 = PDFTextStripper().apply {
+                    startPage = 1
+                    endPage = 1
+                }.getText(pdf)
+                assertTrue(page1.contains("HABILIDADES"))
+                assertTrue(page1.contains("P=COMPETENCIA"))
+                assertTrue(page1.contains("E=PERICIA"))
+                assertTrue(page1.contains("Acrobacias"))
+            }
+        }
+    }
+
 }
