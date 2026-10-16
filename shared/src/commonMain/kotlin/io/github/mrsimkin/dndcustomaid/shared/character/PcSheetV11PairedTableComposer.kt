@@ -109,6 +109,7 @@ object PcSheetV11PairedTableComposer {
         labelQuantityGapPt: Float,
         lineHeightPt: Float,
         measuredWidth: PcSheetV11TextWidth,
+        balanceSinglePageC2: Boolean = false,
     ): PcSheetV11PairedTablePlaced {
         val pairs = PcSheetV11ColumnGrid.split(areaPt, 2, gutterPt)
         require(quantityWidthPt.isFinite() && quantityWidthPt > 0f)
@@ -128,9 +129,38 @@ object PcSheetV11PairedTableComposer {
         val originalTextItems = data.rows.map {
             PcSheetV11FlowItem(it.sourceKey, it.label, keepTogetherIfFits = true)
         }
-        val flow = PcSheetV11TextFlow.paginate(
+        val naturalFlow = PcSheetV11TextFlow.paginate(
             PcSheetV11FlowSection.ORDINARY_EQUIPMENT, originalTextItems, 2, geometry, measuredWidth,
         )
+        // The approved C2 equipment/treasure table uses BOTH label/quantity
+        // pairs. On a true one-page remainder, packing all source rows in the
+        // first tall pair wastes the second pair and manuscript space below.
+        // Find the smallest measured line capacity that keeps that SAME page.
+        // This option is strictly opt-in: frozen P2 placement is unchanged.
+        // No reordering, shortening, duplicated amounts or extra pages.
+        val flow = if (balanceSinglePageC2 && naturalFlow.localPageCount == 1) {
+            val totalLines = naturalFlow.fragments.sumOf { it.lineRanges.size }
+            val target = (totalLines + 1) / 2
+            (target until geometry.lineCapacity).firstNotNullOfOrNull { capacity ->
+                val trialGeometry = PcSheetV11TextColumn(
+                    labelWidthPt,
+                    capacity * lineHeightPt + lineHeightPt * 0.001f,
+                    lineHeightPt,
+                )
+                val trial = PcSheetV11TextFlow.paginate(
+                    PcSheetV11FlowSection.ORDINARY_EQUIPMENT,
+                    originalTextItems, 2, trialGeometry, measuredWidth,
+                )
+                trial.takeIf { candidate ->
+                    candidate.localPageCount == 1 &&
+                        candidate.fragments.any { it.columnIndex == 2 }
+                }?.let { trialGeometry to it }
+            }?.second ?: naturalFlow
+        } else naturalFlow
+        val placementCapacity = if (flow === naturalFlow)
+            geometry.lineCapacity else flow.fragments.maxOfOrNull { fragment ->
+                fragment.startLineIndexInColumn + fragment.lineRanges.size
+            }?.coerceAtLeast(1) ?: geometry.lineCapacity
         val originals = data.rows.associateBy { it.sourceKey }
         val firstCell = mutableMapOf<String, PcSheetV11PairedTableCell>()
         val labels = buildList {
@@ -139,7 +169,7 @@ object PcSheetV11PairedTableComposer {
                 val source = originals.getValue(fragment.sourceKey)
                 fragment.lineRanges.forEachIndexed { index, range ->
                     val rowNumber = fragment.startLineIndexInColumn + index
-                    require(rowNumber in 0 until geometry.lineCapacity)
+                    require(rowNumber in 0 until placementCapacity)
                     val raw = source.label.substring(range.startOffset, range.endExclusive)
                     val cell = PcSheetV11PairedTableCell(
                         sourceKey = source.sourceKey,
