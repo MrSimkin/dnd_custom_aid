@@ -178,16 +178,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 )
                 for ((x, y, xr) in bands) {
                     val clipped = Regex(
-                        """(?s)(?:^|\\s)""" + x + """\\s+""" + y +
-                            """\\s+m\\s+""" + xr + """\\s+""" + y +
-                            """\\s+l\\s+""" + (xr + 5) +
-                            """\\s+""" + (y + 5) + """\\s+l.*?\\s+B(?:\\s|$)"""
+                        """(?s)(?:^|\s)""" + x + """\s+""" + y +
+                            """\s+m\s+""" + xr + """\s+""" + y +
+                            """\s+l\s+""" + (xr + 5) +
+                            """\s+""" + (y + 5) + """\s+l.*?\s+B(?:\s|$)"""
                     )
                     assertTrue(clipped.containsMatchIn(stream),
                         "Real P2 must contain a clipped filled/stroked blue " +
                             "cartela outside measured source cells: " + x + "," + y)
                 }
-                assertTrue(Regex("""(?m)/F1\\s+11\\s+Tf""")
+                assertTrue(Regex("""(?m)/F1\s+11\s+Tf""")
                     .findAll(stream).count() >= 4,
                     "P2 headings must all use genuine embedded BarlowCondensed 11pt.")
                 val all = PDFTextStripper().getText(pdf)
