@@ -760,7 +760,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
-                p1DrawSmall(stream, "RASGOS Y ATRIBUTOS", left + 4f, top - 11f)
+                // Golden heading font role: authentic embedded Barlow Condensed,
+                // distinct from 7pt Fira source-value rows below.
+                stream.beginText()
+                stream.setFont(headerPdfFont,9f)
+                stream.newLineAtOffset(left + 6f,top - 11f)
+                stream.showText("RASGOS Y ATRIBUTOS")
+                stream.endText()
                 p1TraitEntries.forEach { (_, lines, firstSlot) ->
                     lines.forEachIndexed { offset, line ->
                         val slot = firstSlot + offset
