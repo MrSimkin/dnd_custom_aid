@@ -372,7 +372,22 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             ) else null
             fun drawP1BIndependentSkills(stream: PDPageContentStream) {
                 if (variantA) return
-                draw(stream,"HABILIDADES  P=COMPETENCIA  E=PERICIA",43f,338f,true)
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(Color(231, 242, 247))
+                stream.setStrokingColor(Color(38, 75, 104))
+                stream.setLineWidth(0.55f)
+                stream.moveTo(46f, 330f)
+                stream.lineTo(296f, 330f)
+                stream.lineTo(300f, 334f)
+                stream.lineTo(300f, 344f)
+                stream.lineTo(296f, 348f)
+                stream.lineTo(46f, 348f)
+                stream.lineTo(42f, 344f)
+                stream.lineTo(42f, 334f)
+                stream.closePath()
+                stream.fillAndStroke()
+                stream.restoreGraphicsState()
+                draw(stream,"HABILIDADES  P=COMPETENCIA  E=PERICIA",51f,335f,true)
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130,165,186))
                 stream.setLineWidth(0.6f)
