@@ -8,6 +8,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from check_v11_pre_qa_gate import validate as validate_v11_pre_qa
+
 REL = "docs/pc-sheet-v11/qa/REGISTRO_QA_V11.json"
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 SHA = re.compile(r"^[0-9a-f]{40}$")
@@ -132,6 +134,12 @@ def validate(root: Path, gate="record", prior=None):
         check(r.get("status") == "PASS" and r.get("latest_candidate_commit") == (c or {}).get("source_commit"), "Regression PASS missing or stale")
         observed = {x.get("family") for x in r.get("legacy_family_evidence", [])}
         check(FAMILIES.issubset(observed) and bool(r.get("v11_evidence")) and nonempty(r.get("independent_pdf_inspection")), "All-family real QA/PDF evidence missing")
+    # CONTRACT G4: before owner QA, ALL approved V11 rules must have exact-build
+    # independent real-App-PDF evidence. Inventory check alone is never a PASS.
+    if gate in {"owner_qa", "merge"} or rel in {"READY_FOR_OWNER_QA", "READY_FOR_MERGE"}:
+        for finding in validate_v11_pre_qa(root, require_pass=True):
+            check(False, "V11 G4 pre-QA prerequisite: " + finding)
+
     if rel in {"READY_FOR_OWNER_QA", "READY_FOR_MERGE"} and isinstance(c, dict):
         # Documentation-only commits may follow a build; changed compiled code/assets may NOT.
         source_commit = c.get("source_commit")
