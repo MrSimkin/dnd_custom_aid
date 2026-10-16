@@ -567,7 +567,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
                 assertTrue(Regex(
-                    """(?s)(?:^|\\s)317\\s+684\\s+m\\s+565\\s+684\\s+l.*?\\s+B(?:\\s|$)"""
+                    """(?s)(?:^|\s)317\s+684\s+m\s+565\s+684\s+l.*?\s+B(?:\s|$)"""
                 ).containsMatchIn(ops),
                     "Retain the existing blue Rasgos C2c polygon, not a floating title.")
                 assertTrue(pdf.numberOfPages >= 4)
