@@ -46,10 +46,22 @@ class RasgosStageTripwire(unittest.TestCase):
                 self.assertIn("val p1PrintedTraitIds", p1)
                 self.assertNotIn("trait.description", p1)
 
+    def test_g3_p1_blue_trait_header_does_not_shift_text_or_data(self):
+        for renderer in RENDERERS:
+            with self.subTest(renderer=renderer):
+                text = renderer.read_text(encoding="utf-8")
+                region = between(text, "fun drawP1Traits(", "// Explicit AMMUNITION usage")
+                self.assertIn("stream.moveTo(315f,368f)", region)
+                self.assertIn("stream.lineTo(312f,371f)", region)
+                self.assertIn("stream.fillAndStroke()", region)
+                self.assertIn('p1DrawSmall(stream, "RASGOS Y ATRIBUTOS", left + 4f, top - 11f)', region)
+                self.assertIn("top - 21f - (slot % 6) * 10f", region)
+
     def test_g3_android_desktop_trait_logic_is_identical(self):
         desktop, android = [r.read_text(encoding="utf-8") for r in RENDERERS]
         for start, end in [
             ("fun p1TraitWrap(", "fun drawP1Traits("),
+            ("fun drawP1Traits(", "// Explicit AMMUNITION usage"),
             ("val traitLines = data.traits", "val traitsPlaced ="),
         ]:
             self.assertEqual(between(desktop, start, end), between(android, start, end),
