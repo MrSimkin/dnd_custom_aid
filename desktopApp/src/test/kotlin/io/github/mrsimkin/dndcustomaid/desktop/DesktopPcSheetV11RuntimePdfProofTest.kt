@@ -129,6 +129,55 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun realP1SpellcastingUsesMeasuredClippedBlueHeaderWithoutMovingSourcePanel() {
+        // Frozen approved P1 gold: x270.425..572.315,
+        // top-origin y549.354..572.315, 8-segment clipped blue banner.
+        // Genuine App traits end top-origin y491 and spells begin y511.
+        // The 258x17pt band is strictly inside that EXISTING free strip;
+        // panel/source slots must retain all data and original geometry.
+        for ((fixture, variant) in listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.A,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
+        )) {
+            val result = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources(fixture),
+            )
+            Loader.loadPDF(result.bytes).use { pdf ->
+                val p1 = pdf.getPage(0)
+                val ops = p1.contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                val clipped = Regex(
+                    """(?s)(?:^|\s)316\s+283\s+m\s+566\s+283\s+l\s+570\s+287\s+l""" +
+                        """.*?\s+h\s+B(?:\s|$)"""
+                )
+                assertEquals(1, clipped.findAll(ops).count(),
+                    "Expected one genuine clipped P1 casting cartela ($fixture $variant).")
+                // PDFBox operators prove the original genuine spell-data
+                // panel starts at x312/y154 and is still 258x127pt.
+                assertTrue(Regex(
+                    """(?:^|\s)312\s+154\s+258\s+127\s+re(?:\s|$)"""
+                ).containsMatchIn(ops), "Casting source panel must not move.")
+                val text = PDFTextStripper().apply {
+                    startPage = 1
+                    endPage = 1
+                }.getText(pdf)
+                for (label in listOf(
+                    "LANZAMIENTO DE CONJUROS", "APTITUD", "CD SALVACIÓN",
+                    "ATAQUE MÁGICO", "ESPACIOS", "GASTADOS", "RASGOS Y ATRIBUTOS",
+                    "N1", "N9",
+                )) {
+                    assertTrue(text.contains(label),
+                        "Original physical casting/traits source lost: $label")
+                }
+            }
+        }
+    }
+
+    @Test
     fun realP1AttacksUsesClippedBlueHeaderWithinTheOriginalGrid() {
         // Golden x270..572 top-origin y331..344 has a blue table header;
         // actual App attack table is x312..570 top-origin y301..400.
