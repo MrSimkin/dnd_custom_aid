@@ -33,8 +33,10 @@ class SkillsHeadingParity(unittest.TestCase):
                 "stream.addRect(42f,105f,258f,223f)",
             ):
                 self.assertIn(operator, body, f"{path.name}: missing {operator}")
-            declarations.append(tuple(body[body.index("stream.moveTo(46f, 330f)"):
-                                           body.index('draw(stream,"HABILIDADES')].splitlines()))
+            declarations.append(tuple(line.strip() for line in body[
+                body.index("stream.moveTo(46f, 330f)"):
+                body.index('draw(stream,"HABILIDADES')
+            ].splitlines() if line.strip().startswith(("stream.",))))
         self.assertEqual(declarations[0], declarations[1], "Android/Desktop Skills B title has diverged")
 
     def test_native_pdf_output_guard_exists(self):
