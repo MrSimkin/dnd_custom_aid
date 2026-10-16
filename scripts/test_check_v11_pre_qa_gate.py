@@ -18,7 +18,7 @@ class V11PreQaGateGuardTest(unittest.TestCase):
         self.matrix = json.loads((ROOT / MATRIX).read_text(encoding="utf-8"))
         self.qa = json.loads((ROOT / QA_REGISTRY).read_text(encoding="utf-8"))
         (self.root / MATRIX).parent.mkdir(parents=True)
-        (self.root / QA_REGISTRY).parent.mkdir(parents=True)
+        (self.root / QA_REGISTRY).parent.mkdir(parents=True, exist_ok=True)
         self.write()
 
     def tearDown(self):
