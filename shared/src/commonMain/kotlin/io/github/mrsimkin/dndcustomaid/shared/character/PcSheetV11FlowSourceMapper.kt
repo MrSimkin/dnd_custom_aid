@@ -62,10 +62,13 @@ object PcSheetV11FlowSourceMapper {
                     keepTogetherIfFits = true,
                 )
             },
-            traitDescriptions = data.traits.filter { it.description.isNotBlank() }.map { trait ->
+            // G1/G2 contract: never export full Rasgos descriptions on paper.
+            // Historical property name retained for compatibility with existing
+            // plan consumers; its payload is now the owner-approved short identity.
+            traitDescriptions = data.traits.map { trait ->
                 PcSheetV11FlowItem(
                     sourceKey = "trait:${trait.id}",
-                    text = trait.description,
+                    text = PcSheetV11TraitSummary.text(trait),
                     keepTogetherIfFits = true,
                 )
             },
