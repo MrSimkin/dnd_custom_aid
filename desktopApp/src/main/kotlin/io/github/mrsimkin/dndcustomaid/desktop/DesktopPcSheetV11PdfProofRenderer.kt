@@ -1668,6 +1668,48 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.restoreGraphicsState()
             }
 
+            // P2 paper grammar in the approved golden: all four source-backed
+            // module titles are clipped blue cartelas, not floating headings.
+            // The fixed 14.5pt heading strip is already outside every measured
+            // equipment/treasure/traits/special table, so no row, ID or page
+            // allocation moves to accommodate decoration.
+            fun drawP2Cartela(
+                stream: PDPageContentStream,
+                title: String,
+                area: PcSheetV11RectPt,
+            ) {
+                val left = area.leftPt
+                val right = area.rightPt
+                val bottom = area.topPt
+                val top = bottom + 14.5f
+                val corner = 5f
+                require(top < 717f) { "P2 cartela cannot hit the physical page header" }
+                require(headerPdfFont.getStringWidth(title) * 11f / 1000f <=
+                    area.widthPt - 18f) {
+                    "P2 title cannot fit inside its approved source-free cartela: " + title
+                }
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(Color(217, 236, 245))
+                stream.setStrokingColor(Color(80, 122, 151))
+                stream.setLineWidth(0.6f)
+                stream.moveTo(left + corner, bottom)
+                stream.lineTo(right - corner, bottom)
+                stream.lineTo(right, bottom + corner)
+                stream.lineTo(right, top - corner)
+                stream.lineTo(right - corner, top)
+                stream.lineTo(left + corner, top)
+                stream.lineTo(left, top - corner)
+                stream.lineTo(left, bottom + corner)
+                stream.closePath()
+                stream.fillAndStroke()
+                stream.restoreGraphicsState()
+                stream.beginText()
+                stream.setFont(headerPdfFont, 11f)
+                stream.newLineAtOffset(left + 9f, bottom + 3f)
+                stream.showText(title)
+                stream.endText()
+            }
+
             fun drawPaired(
                 stream: PDPageContentStream,
                 title: String,
@@ -1677,7 +1719,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 suppressAmounts: Set<String> = emptySet(),
                 compactC2: Boolean = false,
             ) {
-                if (!compactC2) draw(stream, title, area.leftPt, area.topPt + 6f, true)
+                if (!compactC2) drawP2Cartela(stream, title, area)
                 val pageLabels = placed.labels.filter { it.localPageIndex == localPage }
                 val lowestPrintedBottom = pageLabels.minOfOrNull { it.rectPt.bottomPt }
                 // Unlike P2, C2's last table page must free genuine unused paper
@@ -1755,7 +1797,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             fun drawP2Modules(stream: PDPageContentStream, localPage: Int) {
                 drawPaired(stream, "EQUIPO   /   CANTIDAD", equipmentArea, inventoryPlaced, localPage)
                 drawPaired(stream, "TESORO   /   CANTIDAD", treasureArea, treasurePlaced, localPage)
-                draw(stream, "RASGOS", traitsArea.leftPt, traitsArea.topPt + 6f, true)
+                drawP2Cartela(stream, "RASGOS", traitsArea)
                 grid(stream, traitsArea, true)
                 traitsPlaced.cells.filter { it.localPageIndex == localPage }.forEach { cell ->
                     if (cell.drawableText.isNotEmpty()) {
@@ -1763,8 +1805,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             body.metrics.baselineIn(cell.cellPt), false)
                     }
                 }
-                draw(stream, "EQUIPO ESPECIAL", specialArea.leftPt,
-                    specialArea.topPt + 6f, true)
+                drawP2Cartela(stream, "EQUIPO ESPECIAL", specialArea)
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130, 165, 186))
                 stream.setLineWidth(0.55f)
