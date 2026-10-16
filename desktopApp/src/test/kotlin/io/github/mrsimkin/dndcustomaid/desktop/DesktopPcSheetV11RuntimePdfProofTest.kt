@@ -99,6 +99,63 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun realP1AttacksUsesClippedBlueHeaderWithinTheOriginalGrid() {
+        // Golden x270..572 top-origin y331..344 has a blue table header;
+        // actual App attack table is x312..570 top-origin y301..400.
+        // A distinct 23pt ATAQUES title cannot fit in the 12pt inter-module
+        // gap without reflow. This test closes ONLY the existing header's
+        // clipped blue treatment, protecting ALL attack label/data text.
+        for ((fixture, variant) in listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.A,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
+        )) {
+            val real = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                ), sources(fixture),
+            )
+            Loader.loadPDF(real.bytes).use { pdf ->
+                val p1 = pdf.getPage(0)
+                val ops = p1.contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                // PDFBox emits 8 exact polygon segments and B fill/stroke.
+                // Distinguish P1 attacks from all C2/P2/P3/P4 bands.
+                val header = Regex(
+                    """(?s)(?:^|\s)315\s+479\s+m\s+567\s+479\s+l\s+570\s+482\s+l""" +
+                        """.*?\s+h\s+B(?:\s|$)"""
+                )
+                assertEquals(1, header.findAll(ops).count(),
+                    "Exactly one physical clipped ATTACK TABLE header must " +
+                        "appear inside x312..570 and y301..313 ($fixture $variant).")
+                // The narrow hit-bonus column remains 36pt and the original
+                // attack rows continue under the untouched baseline.
+                for (columnX in listOf(433, 469)) {
+                    assertTrue(Regex(
+                        """(?m)(?:^|\s)""" + columnX +
+                            """\s+392\s+m\s+""" + columnX +
+                            """\s+491\s+l"""
+                    ).containsMatchIn(ops),
+                        "Attacks columns must remain at exact original x=$columnX.")
+                }
+                val text = PDFTextStripper().apply {
+                    startPage = 1
+                    endPage = 1
+                }.getText(pdf)
+                for (label in listOf(
+                    "ATAQUE / RANGO", "BONO", "DAÑO / EFECTO",
+                    "COMBATE Y SUPERVIVENCIA",
+                )) {
+                    assertTrue(text.contains(label),
+                        "Real attack header or combat source lost: $label.")
+                }
+            }
+        }
+    }
+
+    @Test
     fun actualP1CombatHasFrozenClippedBlueTitleWithoutReflowingSourceCards() {
         // Frozen golden B P1: pale-blue 8-segment stroked+filled combat banner
         // x270.425..572.315/y180.850..203.811 (top-origin). Our source-backed

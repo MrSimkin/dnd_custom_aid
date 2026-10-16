@@ -491,6 +491,28 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val bottom = 392f
                 val b1 = left + attackLabelWidth
                 val b2 = b1 + attackBonusWidth
+                // Frozen V11 attacks use a clipped blue heading. This narrow
+                // source-neutral adaptation fills ONLY the existing 12pt
+                // three-column header row (x312..570, top-origin y301..313).
+                // There is no 23pt clearance for a separate title cartela;
+                // never move real attacks or the P1 traits to fake one.
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(Color(217, 236, 245))
+                stream.setStrokingColor(Color(80, 122, 151))
+                stream.setLineWidth(0.55f)
+                val headerBottom = top - 12f
+                val cut = 3f
+                stream.moveTo(left + cut, headerBottom)
+                stream.lineTo(left + 258f - cut, headerBottom)
+                stream.lineTo(left + 258f, headerBottom + cut)
+                stream.lineTo(left + 258f, top - cut)
+                stream.lineTo(left + 258f - cut, top)
+                stream.lineTo(left + cut, top)
+                stream.lineTo(left, top - cut)
+                stream.lineTo(left, headerBottom + cut)
+                stream.closePath()
+                stream.fillAndStroke()
+                stream.restoreGraphicsState()
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.7f)
