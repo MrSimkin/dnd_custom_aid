@@ -1,0 +1,1061 @@
+{
+  "schema_version": 1,
+  "updated": "2026-10-16",
+  "purpose": "Pre-owner-QA V11 enforceable requirement crosswalk; NOT a QA or PASS declaration",
+  "gate": "BLOCKED",
+  "active_candidate": null,
+  "source_reconciliation": {
+    "legacy_48_sections": "PENDING_INDEPENDENT_CROSSCHECK",
+    "golden_eight_pdfs": "PENDING_PHYSICAL_MATCH",
+    "conflicts": "PENDING_PRIORITY_REVIEW"
+  },
+  "valid_statuses": [
+    "NOT_VERIFIED",
+    "FAIL",
+    "BLOCKED",
+    "PASS"
+  ],
+  "status_policy": "Only PASS with same candidate and independent genuine PDF proof. No N/A or waive by omission.",
+  "rules": [
+    {
+      "id": "GLB01",
+      "area": "Global",
+      "obligation": "Carta 612x792 pt en toda página V11",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "PDFBox inspección de todas las páginas",
+      "scenarios": "A/B Mara Aldren Ilyra",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "GLB02",
+      "area": "Global",
+      "obligation": "C2 exterior doble, C2c interiores cortados y blanco/azul niebla aprobados",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Golden contra PDF rasterizado + vectores",
+      "scenarios": "A/B",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "GLB03",
+      "area": "Global",
+      "obligation": "Logo D&D original + nombre PJ en misma línea en TODA página; sin duplicación P1",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Página por página + assets",
+      "scenarios": "A/B largas",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "GLB04",
+      "area": "Global",
+      "obligation": "Barlow Condensed real en rótulos; Fira Sans valores medida y licencias; fuentes incrustadas",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Tablas de fuentes embebidas y PDF visual",
+      "scenarios": "A/B Android Desktop",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "GLB05",
+      "area": "Global",
+      "obligation": "Symbols v8 para símbolos prioritarios, FA secundario; Unicode/acento/ñ correctos",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Extracción y renderizado de glifos",
+      "scenarios": "Tildes glifos",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "GLB06",
+      "area": "Global",
+      "obligation": "Márgenes físicos imprimibles, cero recortes ni solapamientos",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Bounds PDF y raster por página",
+      "scenarios": "Longitud extrema",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "GLB07",
+      "area": "Global",
+      "obligation": "Texto digital respeta renglones y campos vacíos escribibles",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Trazos vs bounding boxes PDF",
+      "scenarios": "Vacío y poblado",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "GLB08",
+      "area": "Global",
+      "obligation": "Renglones nominales 7 mm para listas/tablas; habilidades admiten 5 mm según regla",
+      "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md",
+      "method": "Medición física del PDF",
+      "scenarios": "A/B",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "GLB09",
+      "area": "Global",
+      "obligation": "Orden prioridad: integridad, legibilidad/manuscrito, localización, páginas",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Stress y auditoría física",
+      "scenarios": "Mara extremo",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "GLB10",
+      "area": "Global",
+      "obligation": "Sin valores, competencias, reglas épicas ni marcadores inventados",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Comparación con snapshot source-backed",
+      "scenarios": "Casi vacío",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "GLB11",
+      "area": "Global",
+      "obligation": "Mismo input/opciones => mismos saltos, IDs y páginas",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Generación determinista repetida",
+      "scenarios": "Todos",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "GLB12",
+      "area": "Global",
+      "obligation": "No alterar cuatro exportadores legacy ni golden aprobado",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Comparación cuatro familias y git diff",
+      "scenarios": "Mara cuatro legacy",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "IN01",
+      "area": "Entrada",
+      "obligation": "V11 es opción opt-in independiente, A y B ambas accesibles",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "UI real Guardar/Compartir",
+      "scenarios": "Android Desktop",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "IN02",
+      "area": "Entrada",
+      "obligation": "Estado Permanente versus Actual correctamente elegido y aviso fallback sin datos falsos",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Snapshot y PDF por selector",
+      "scenarios": "Actual ausente",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "IN03",
+      "area": "Entrada",
+      "obligation": "No se guardan cambios en el personaje por exportar",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Persistencia antes/después",
+      "scenarios": "Actual sin guardar",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "IN04",
+      "area": "Entrada",
+      "obligation": "Retrato Fit preserva imagen completa y Crop rellena recuadro sin distorsión",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "PDF XObject y raster",
+      "scenarios": "Fit Crop",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "IN05",
+      "area": "Entrada",
+      "obligation": "Retrato ausente produce silueta neutra y espacio utilizable",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "PDF visual",
+      "scenarios": "Sin retrato",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "IN06",
+      "area": "Entrada",
+      "obligation": "Exportar local sin exigir nube y desde acciones reales Android/Desktop",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Smoke Save Share",
+      "scenarios": "Sin conexión",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "IN07",
+      "area": "Entrada",
+      "obligation": "Libro de Conjuros es único anexo opcional",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "UI y secuencia PDF",
+      "scenarios": "On/Off",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "IN08",
+      "area": "Entrada",
+      "obligation": "No se crean dos opciones distintas de PDF según overflow; paginación automática",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "UI + stress",
+      "scenarios": "6+3 extremo",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P101",
+      "area": "P1",
+      "obligation": "P1 existe y contiene identidad/retrato, atributos, combate, ataques, rasgos, magia y municiones",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Contenidos y PDF visual",
+      "scenarios": "A/B",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P102",
+      "area": "P1",
+      "obligation": "Cabecera compacta e identidad clase/nivel raza/alineamiento campos reales",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Fuente -> PDF",
+      "scenarios": "A/B",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P103",
+      "area": "P1",
+      "obligation": "Seis atributos estándar en orden más personalizables sin perder IDs",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Manifest e inspección",
+      "scenarios": "6+2 6+3 6+4",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P104",
+      "area": "P1",
+      "obligation": "Atributo: puntuación rectángulo y modificador ovalado superpuesto",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Geometría PDF",
+      "scenarios": "A/B",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P105",
+      "area": "P1",
+      "obligation": "SALVACIÓN ligeramente arriba y derecha aprobado",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Comparación golden + región visual",
+      "scenarios": "A/B",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P106",
+      "area": "P1",
+      "obligation": "Variante A: habilidades debajo de su atributo sin (XXX) cuando contiguas",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Relación ID y texto por página",
+      "scenarios": "A custom",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P107",
+      "area": "P1",
+      "obligation": "Variante B: panel HABILIDADES independiente con (XXX) de 3 letras",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Relación ID y PDF",
+      "scenarios": "B custom",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P108",
+      "area": "P1",
+      "obligation": "Habilidades custom mantienen relación por ID y competencia/pericia real",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Manifest + valores",
+      "scenarios": "A/B custom",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P109",
+      "area": "P1",
+      "obligation": "Capacidad aspiracional 6+2 y 6+3 con overflow real a C2 no compresión ilegible",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "PDF medido",
+      "scenarios": "6+2 6+3 A/B",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P110",
+      "area": "P1",
+      "obligation": "Combate y supervivencia preservan estadísticas reales",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Fuente -> PDF",
+      "scenarios": "A/B",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P111",
+      "area": "P1",
+      "obligation": "Ataques tabla de tres columnas arma/ataque/conjuro, bono estrecho, daño/tipo",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Geometría y fuente",
+      "scenarios": "A/B con ataques",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P112",
+      "area": "P1",
+      "obligation": "Ataques y Rasgos reparten altura dinámicamente con reserva manual, sin expulsar ambos P1",
+      "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md",
+      "method": "Comparar PDFs vacío/poblado",
+      "scenarios": "Ataques 0/12 Rasgos 0/20",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P113",
+      "area": "P1",
+      "obligation": "Lanzamiento de Conjuros siempre visible aun no lanzador",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Presencia de módulo",
+      "scenarios": "Sin conjuros",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P114",
+      "area": "P1",
+      "obligation": "Lanzamiento estadísticas mágicas en una sola fila de tres campos reales",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "PDF y modelo",
+      "scenarios": "Mago/no mago",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P115",
+      "area": "P1",
+      "obligation": "Lanzamiento slots nivel 1..9 en cuadrícula 3x3, 10..12 solo reglas épicas reales",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Verificar presencia y ausencia",
+      "scenarios": "Sin épicos",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P116",
+      "area": "P1",
+      "obligation": "Slots disponibles y gastados distintos; ausencia no es cero inventado",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Fuente -> PDF",
+      "scenarios": "Cero/nulo",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P117",
+      "area": "P1",
+      "obligation": "Municiones hasta 20 casillas en grupos cinco; >20 contador ____ / X",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Inspección marcas por fixture",
+      "scenarios": "0 1 5 20 21 35",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P118",
+      "area": "P1",
+      "obligation": "Sin municiones: una entrada lógica manuscrita con marcas útiles, sin inventar X",
+      "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md",
+      "method": "PDF visual",
+      "scenarios": "Sin munición",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P119",
+      "area": "P1",
+      "obligation": "Ataques/resumen no se convierten en descripciones largas ni inventario",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "PDF vs origen",
+      "scenarios": "Ataques largos",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "RSG01",
+      "area": "Rasgos",
+      "obligation": "Cada entrada contiene SOLO nombre, categoría/tipo y fuente/origen reales según ejemplo Pericia - Rasgo de Clase: Pícaro",
+      "authority": "Propietario 2026-10-16 + CONTRATO_VISUAL_APROBADO.md",
+      "method": "Extracción de texto y campos fuente",
+      "scenarios": "Mara + centinela",
+      "status": "FAIL",
+      "evidence": "Actual Desktop V11 renderer: drawP1Traits solo name; traitLines en P2 concatena description y notes; revisar también Android. Sin PDF de candidato verificado."
+    },
+    {
+      "id": "RSG02",
+      "area": "Rasgos",
+      "obligation": "No imprimir description de Rasgos en P1/P2/C2",
+      "authority": "Propietario 2026-10-16 + CONTRATO_VISUAL_APROBADO.md",
+      "method": "Centinela descriptivo ausente de PDF",
+      "scenarios": "Rasgos largos",
+      "status": "FAIL",
+      "evidence": "Actual Desktop V11 renderer: drawP1Traits solo name; traitLines en P2 concatena description y notes; revisar también Android. Sin PDF de candidato verificado."
+    },
+    {
+      "id": "RSG03",
+      "area": "Rasgos",
+      "obligation": "No imprimir notes/efectos desarrollados de Rasgos en P1/P2/C2",
+      "authority": "Propietario 2026-10-16 + CONTRATO_VISUAL_APROBADO.md",
+      "method": "Centinela notes ausente",
+      "scenarios": "Rasgos con notas",
+      "status": "FAIL",
+      "evidence": "Actual Desktop V11 renderer: drawP1Traits solo name; traitLines en P2 concatena description y notes; revisar también Android. Sin PDF de candidato verificado."
+    },
+    {
+      "id": "RSG04",
+      "area": "Rasgos",
+      "obligation": "Mismo ID Rasgo aparece una vez en recorrido P1 P2 C2, sin duplicados u omisiones",
+      "authority": "Propietario 2026-10-16 + CONTRATO_VISUAL_APROBADO.md",
+      "method": "Manifest físico por ID y continuidad",
+      "scenarios": "Mara rasgos 30+",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "RSG05",
+      "area": "Rasgos",
+      "obligation": "Conservar orden manual, nombres largos y todas las categorías/fuentes legítimas sin inventar",
+      "authority": "Propietario 2026-10-16 + CONTRATO_VISUAL_APROBADO.md",
+      "method": "Comparación orden y wrap",
+      "scenarios": "Multiclase homebrew custom",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "RSG06",
+      "area": "Rasgos",
+      "obligation": "No confundir rasgos mecánicos con rasgos personalidad narrativos ni descripción Equipo Especial",
+      "authority": "Propietario 2026-10-16 + CONTRATO_VISUAL_APROBADO.md",
+      "method": "Inspección P2/P3 y source",
+      "scenarios": "P3 narrativa",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P201",
+      "area": "P2",
+      "obligation": "EQUIPO superior izquierda, TESORO inmediatamente debajo, RASGOS derecha, ESPECIAL ancho inferior",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Golden vs PDF",
+      "scenarios": "Poblado y vacío",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P202",
+      "area": "P2",
+      "obligation": "Equipo ordinario muestra solo nombre + cantidad en subcolumnas, sin peso/consumible/descripción inventados",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Campos PDF vs origen",
+      "scenarios": "Mara inventario",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P203",
+      "area": "P2",
+      "obligation": "Equipo sin registros mantiene reserva AMPLIA manuscrita",
+      "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md",
+      "method": "Inspección visual",
+      "scenarios": "Vacío",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P204",
+      "area": "P2",
+      "obligation": "Tesoro acepta todas monedas custom y existentes, valor cero conservado",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Fuente -> PDF",
+      "scenarios": "Cero nulo custom",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P205",
+      "area": "P2",
+      "obligation": "Tesoro denominación/cantidad en parejas internas, salta a FILA nueva dentro de izquierda",
+      "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md",
+      "method": "Geometría PDF",
+      "scenarios": "Múltiples monedas",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P206",
+      "area": "P2",
+      "obligation": "Sin monedas, Tesoro conserva celdas manuscritas adaptables",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "PDF visual",
+      "scenarios": "Vacío",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P207",
+      "area": "P2",
+      "obligation": "Rasgos derecha SOLO continuación, dos columnas internas, sin descripciones ni duplicación",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Ledger ID y fuente->PDF",
+      "scenarios": "Mara rasgos",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P208",
+      "area": "P2",
+      "obligation": "Equipo Especial ancho completo, ubicación/nombre/descripción y casilla ACTIVO",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Geometría y fuente",
+      "scenarios": "Mara equipo",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P209",
+      "area": "P2",
+      "obligation": "ACTIVO se marca únicamente con estado real, no por equipped/attuned",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Modelo vs PDF",
+      "scenarios": "Sin estado real",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P210",
+      "area": "P2",
+      "obligation": "Equipo Especial vacío reserva filas con ubicación habitual verificada y otras libres",
+      "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md",
+      "method": "Geometría y procedencia de etiquetas",
+      "scenarios": "Sin equipo especial",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P211",
+      "area": "P2",
+      "obligation": "Sin registros en Equipo/Tesoro/Rasgos/Especial se conservan cuatro reservas independientes",
+      "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md",
+      "method": "PDF visual",
+      "scenarios": "Todo vacío",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P212",
+      "area": "P2",
+      "obligation": "No crear recuadro genérico OTROS ni usar descripción de Rasgos",
+      "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md",
+      "method": "PDF completo",
+      "scenarios": "A/B",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P301",
+      "area": "P3",
+      "obligation": "P3 SIEMPRE existe incluso sin narrativas digitales",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "PDF + caso vacío",
+      "scenarios": "Sin narrativa",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P302",
+      "area": "P3",
+      "obligation": "Solo Trasfondo Perfil Historia/narrativa; NINGÚN Rasgo mecánico P3",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Texto PDF y sections",
+      "scenarios": "Mara",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P303",
+      "area": "P3",
+      "obligation": "Trasfondo incluye nombre, Religión/Fe, resumen; Perfil personalidad, ideales, vínculos, defectos reales",
+      "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md",
+      "method": "Fuente -> PDF",
+      "scenarios": "Campos poblados",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P304",
+      "area": "P3",
+      "obligation": "Historia íntegra, párrafos consecutivos y continuaciones sin cortar",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Fuente vs texto PDF",
+      "scenarios": "Historia extrema",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P305",
+      "area": "P3",
+      "obligation": "Narrativa usa renglones alineados bajo impreso y reserva manual",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Inspección geométrica",
+      "scenarios": "Corto vacío largo",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P306",
+      "area": "P3",
+      "obligation": "No imprimir imágenes de Trasfondo; dos opciones de imagen son retrato P1",
+      "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md",
+      "method": "PDF imágenes",
+      "scenarios": "Dos retratos",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P401",
+      "area": "P4",
+      "obligation": "P4 solo si hay conjuros reales, de cualquier fuente; sin conjuros OMITIR",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Conteo PDF y fuente",
+      "scenarios": "0 vs 1 spells",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P402",
+      "area": "P4",
+      "obligation": "Lista rápida 3 columnas reales y distribución dinámica sin grandes huecos",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Golden y geometría",
+      "scenarios": "Pocos muchos",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P403",
+      "area": "P4",
+      "obligation": "Conjuros agrupados por trucos 0 y niveles 1..9 incluso niveles vacíos",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Texto PDF y cajas",
+      "scenarios": "Mago parcial",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P404",
+      "area": "P4",
+      "obligation": "Conservar nombres largos y todos los IDs con continuación por nivel",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Ledger e impresión",
+      "scenarios": "Nivel excede columna",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P405",
+      "area": "P4",
+      "obligation": "Casilla de preparación en cada fila manuscrita vacía",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Operadores geométricos PDF",
+      "scenarios": "Niveles vacíos",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P406",
+      "area": "P4",
+      "obligation": "Preparación por fuente no equivale a gasto ni se aplana entre fuentes",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Fuente vs PDF",
+      "scenarios": "Doble fuente distinta",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P407",
+      "area": "P4",
+      "obligation": "Niveles proporcionales a superficie utilizable",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Medición espacio libre",
+      "scenarios": "Nivel masivo",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P408",
+      "area": "P4",
+      "obligation": "No inventar CL/PREP, slots o progresión de conjuros",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Fuente -> texto y geometría",
+      "scenarios": "No lanzador",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P409",
+      "area": "P4",
+      "obligation": "ESP. nivel 1..9 con 9 líneas y tres casillas manuscritas por nivel cuando aplicable",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Inspección de 27 marcas",
+      "scenarios": "P4 A/B",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "P410",
+      "area": "P4",
+      "obligation": "Referencia mágica superior y encabezados de nivel en una línea",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Inspección visual",
+      "scenarios": "P4 A/B",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "C201",
+      "area": "C2",
+      "obligation": "Extensiones solo con contenido que realmente no cabe, jamás página de relleno",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Ledger y distribución",
+      "scenarios": "Mara",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "C202",
+      "area": "C2",
+      "obligation": "Composición dos columnas o mixta compacta, sin una vertical gigante por defecto",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Geometría PDF",
+      "scenarios": "Asimétrico",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "C203",
+      "area": "C2",
+      "obligation": "Módulos heterogéneos comparten C2 sin mezclar notas digitales",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Composición y origen",
+      "scenarios": "Mara",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "C204",
+      "area": "C2",
+      "obligation": "Atributos custom se mantienen visualmente junto a habilidades enlazadas, sufijos XXX contextuales",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Relaciones source ID PDF",
+      "scenarios": "A/B 6+4",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "C205",
+      "area": "C2",
+      "obligation": "Equipo conserva parejas; Equipo Especial ancho completo en C2",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Geometría",
+      "scenarios": "Overflow especial",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "C206",
+      "area": "C2",
+      "obligation": "Referencias ida/vuelta por módulo con números físicos finales correctos",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Cotejo referencias PDF",
+      "scenarios": "C2 múltiples",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "C207",
+      "area": "C2",
+      "obligation": "Huecos utilizables llevan NOTAS con encabezado pequeño y cuadrícula COMPLETA",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Detección huecos y geometría",
+      "scenarios": "C2 dispersas",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "C208",
+      "area": "C2",
+      "obligation": "NO crear C2 solo para NOTAS ni celdas recortadas",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Cotejo páginas + geometría",
+      "scenarios": "C2 poco lleno",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "C209",
+      "area": "C2",
+      "obligation": "Ubicación de extensiones respeta prioridad V11 aprobada y resuelve cualquier diferencia con D0076 antes de PASS",
+      "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md",
+      "method": "Comparación secuencia + fuente de precedencia",
+      "scenarios": "Overflow de P1/P2",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "CN301",
+      "area": "C-N3",
+      "obligation": "Sin notas digitales no crear C-N3",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Fuente -> páginas",
+      "scenarios": "Sin notas",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "CN302",
+      "area": "C-N3",
+      "obligation": "Notas generales y tituladas se mantienen íntegras y en páginas exclusivas",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Texto PDF completo",
+      "scenarios": "Notas largas",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "CN303",
+      "area": "C-N3",
+      "obligation": "Nunca combinar notas digitales con C2, Libro o última hoja",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Inspección de secciones",
+      "scenarios": "Mara notas",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "CN304",
+      "area": "C-N3",
+      "obligation": "Continuaciones de notas extensas sin pérdida y con reserva manual secundaria si cabe",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Fuente vs PDF",
+      "scenarios": "Notas extremas",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "BK01",
+      "area": "Libro",
+      "obligation": "Solo se añade si usuario activa Libro y hay datos reales",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "UI + secciones PDF",
+      "scenarios": "On Off",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "BK02",
+      "area": "Libro",
+      "obligation": "Libro después de contenido digital y C-N3 y antes última NOTAS",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Secuencia física",
+      "scenarios": "Libro + C-N3",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "BK03",
+      "area": "Libro",
+      "obligation": "Dos columnas reales, fichas nombre nivel escuela descripción íntegra",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "PDF vs fuente",
+      "scenarios": "Ilyra",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "BK04",
+      "area": "Libro",
+      "obligation": "Ficha íntegra pasa a siguiente columna si allí cabe",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Posiciones PDF",
+      "scenarios": "Ficha mediana",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "BK05",
+      "area": "Libro",
+      "obligation": "Ficha de más de una columna se fragmenta con continuación identificada",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "PDF y texto",
+      "scenarios": "Ficha enorme",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "BK06",
+      "area": "Libro",
+      "obligation": "No añadir campos impresos extra como tiempo/alcance/componentes/duración de ejemplo sin contrato",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "PDF vs diseño",
+      "scenarios": "Libro A/B",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "FIN01",
+      "area": "Final",
+      "obligation": "Última página física SIEMPRE NOTAS manuscritas y ningún dato digital",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Inspección última página",
+      "scenarios": "Con/Sin Libro",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "FIN02",
+      "area": "Final",
+      "obligation": "Un único título NOTAS y cabecera logo/nombre",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Inspección visual",
+      "scenarios": "A/B",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "FIN03",
+      "area": "Final",
+      "obligation": "Dos columnas de líneas superiores y cuadrícula inferior totalmente completa",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Análisis de vectores y raster",
+      "scenarios": "A/B",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "FIN04",
+      "area": "Final",
+      "obligation": "Ni continuaciones ni anexos después de NOTAS final",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "PDF estructura",
+      "scenarios": "Historia/Libro extremo",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "QA01",
+      "area": "PreQA",
+      "obligation": "IDs fuente íntegros; ningún registro perdido o duplicado no intencional",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Manifest independiente PDF vs origen",
+      "scenarios": "Mara y extremo",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "QA02",
+      "area": "PreQA",
+      "obligation": "Fuentes embebidas, bounding boxes/glifos/overlap verificados por oráculo independiente",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "PyMuPDF u otro inspector ajeno al renderer",
+      "scenarios": "Cuatro fixtures",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "QA03",
+      "area": "PreQA",
+      "obligation": "Generación exitosa Desktop y Android desde UI real Guardar/Compartir",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "APK+Desktop fixture misma entrada",
+      "scenarios": "Android Desktop",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "QA04",
+      "area": "PreQA",
+      "obligation": "Comparación A/B visual y semántica con ocho PDF golden sin reabrir estética",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Pares golden↔runtime raster/estructura",
+      "scenarios": "6+2 6+3",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "QA05",
+      "area": "PreQA",
+      "obligation": "Cuatro familias anteriores conservan comportamiento sin regresión",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Mara cuatro legacy",
+      "scenarios": "Legados",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "QA06",
+      "area": "PreQA",
+      "obligation": "Candidato nuevo identificado por commit APK SHA versionCode artifact y PDFs SHA",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Manifiesto exacto",
+      "scenarios": "G5 candidato",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "QA07",
+      "area": "PreQA",
+      "obligation": "Las 48 secciones de D0076 se concilian con V11 sin resucitar cláusulas reemplazadas",
+      "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md",
+      "method": "Acta fuente por fuente",
+      "scenarios": "Auditoría documental",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    },
+    {
+      "id": "QA08",
+      "area": "PreQA",
+      "obligation": "Todos requisitos obligatorios tienen PASS probado sobre mismo candidato y revisión independiente",
+      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "method": "Matriz y checker release fail-closed",
+      "scenarios": "G4->G5",
+      "status": "NOT_VERIFIED",
+      "evidence": null
+    }
+  ]
+}
