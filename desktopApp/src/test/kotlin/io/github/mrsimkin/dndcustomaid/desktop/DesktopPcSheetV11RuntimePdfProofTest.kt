@@ -1375,9 +1375,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         .findAll(stream).count()
                 }
                 assertTrue(paperRows >= 1, "Actual spell P4 page must be present.")
-                assertEquals(expectedBlankRows + generated.semantic.spells.size, marks,
-                    "Every source-backed real spell and every fixture-backed manuscript " +
-                        "P4 row must retain exactly one physical 7pt vector square.")
+                // Preparation marks remain one per real spell/manuscript
+                // row. The approved handwritten spend tracker contributes
+                // exactly three DISTINCT blank squares for levels 1..9.
+                val preparationAndPaper = expectedBlankRows +
+                    generated.semantic.spells.size
+                val blankLevelMeters = 9 * 3
+                assertEquals(preparationAndPaper + blankLevelMeters, marks,
+                    "One 7pt preparation square per source/blank row AND " +
+                        "exactly 27 distinct unfilled level-meter squares.")
             }
         }
     }

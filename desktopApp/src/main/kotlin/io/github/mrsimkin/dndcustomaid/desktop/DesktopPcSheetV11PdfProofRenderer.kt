@@ -1396,7 +1396,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             stream.restoreGraphicsState()
                         }
                         pageCells.forEach { cell ->
-                            // The approved P4 has a blank handwritten ESP. ___
+                            // The approved P4 has a blank handwritten ESP. line
                             // meter and THREE small blank squares per magic
                             // level 1..9 in that level's existing blue header.
                             // These are PAPER ONLY: never synthesize a numeric
@@ -1409,7 +1409,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     .toIntOrNull()
                                 if (level != null && level in 1..9) {
                                     val baseline = body.metrics.baselineIn(cell.cellPt)
-                                    val label = "ESP. ___"
+                                    val label = "ESP."
                                     val labelPt = 7f
                                     val labelX = cell.cellPt.rightPt - 83f
                                     val firstSquareX = cell.cellPt.rightPt - 33f
@@ -1429,6 +1429,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     stream.saveGraphicsState()
                                     stream.setStrokingColor(Color(130, 165, 186))
                                     stream.setLineWidth(0.6f)
+                                    // Paper-only meter: a GENUINE blue ruled line,
+                                    // NEVER literal underscores printed as fake ink.
+                                    stream.moveTo(labelX + 24f, baseline - 1f)
+                                    stream.lineTo(firstSquareX - 7f, baseline - 1f)
+                                    stream.stroke()
                                     repeat(3) { slot ->
                                         stream.addRect(firstSquareX + slot * 11f,
                                             baseline - 1f, 7f, 7f)
