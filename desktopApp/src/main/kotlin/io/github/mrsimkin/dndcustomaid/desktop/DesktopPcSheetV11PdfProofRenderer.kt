@@ -1956,6 +1956,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val expanded = PcSheetV11PairedTableComposer.place(
                     remaining, fullC2PairedArea, 12f, 36f, 6f,
                     body.metrics.lineHeightPt, body.width,
+                    balanceSinglePageC2 = true,
                 )
                 val amountsAlreadyOnP2 = original.quantities.asSequence()
                     .filter { it.localPageIndex == 1 }
