@@ -1324,12 +1324,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             stream.setLineWidth(0.55f)
                             groupHeadings.forEach { heading ->
                                 val cell = heading.cellPt
-                                stream.addRect(cell.leftPt, cell.bottomPt,
-                                    cell.widthPt, cell.heightPt)
-                                stream.fill()
-                                stream.addRect(cell.leftPt, cell.bottomPt,
-                                    cell.widthPt, cell.heightPt)
-                                stream.stroke()
+                                val cut = minOf(3f, cell.heightPt / 4f)
+                                stream.moveTo(cell.leftPt + cut, cell.bottomPt)
+                                stream.lineTo(cell.rightPt - cut, cell.bottomPt)
+                                stream.lineTo(cell.rightPt, cell.bottomPt + cut)
+                                stream.lineTo(cell.rightPt, cell.topPt - cut)
+                                stream.lineTo(cell.rightPt - cut, cell.topPt)
+                                stream.lineTo(cell.leftPt + cut, cell.topPt)
+                                stream.lineTo(cell.leftPt, cell.topPt - cut)
+                                stream.lineTo(cell.leftPt, cell.bottomPt + cut)
+                                stream.closePath()
+                                stream.fillAndStroke()
                             }
                             stream.restoreGraphicsState()
                         }
@@ -1386,6 +1391,32 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     stream.showText(realSource)
                                     stream.endText()
                                 }
+                            } else if (
+                                title == "C2 - Habilidades, acciones y recursos" &&
+                                cell.sourceKey.startsWith("c2-heading:") &&
+                                cell.drawableText.isNotEmpty()
+                            ) {
+                                // Group cartelas use the G2-approved Barlow
+                                // label font, NOT the Fira body-value font.
+                                // Their literal bytes and reserved cell remain
+                                // unchanged. Strict actual embedded-font width
+                                // verification prevents clipping or overflow.
+                                val fontSize = 9f
+                                val inset = 5f
+                                val inkWidth = headerPdfFont.getStringWidth(
+                                    cell.drawableText,
+                                ) * fontSize / 1000f
+                                require(inkWidth <= cell.cellPt.widthPt - inset - 1f) {
+                                    "C2 source heading cannot fit its real Barlow cartela."
+                                }
+                                stream.beginText()
+                                stream.setFont(headerPdfFont, fontSize)
+                                stream.newLineAtOffset(
+                                    cell.cellPt.leftPt + inset,
+                                    body.metrics.baselineIn(cell.cellPt),
+                                )
+                                stream.showText(cell.drawableText)
+                                stream.endText()
                             } else if (cell.drawableText.isNotEmpty()) {
                                 draw(stream, cell.drawableText,
                                     cell.cellPt.leftPt,
