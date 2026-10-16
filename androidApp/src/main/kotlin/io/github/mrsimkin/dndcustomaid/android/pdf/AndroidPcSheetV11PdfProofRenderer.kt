@@ -2091,7 +2091,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             fun drawP2Modules(stream: PDPageContentStream, localPage: Int) {
                 drawPaired(stream, "EQUIPO   /   CANTIDAD", equipmentArea, inventoryPlaced, localPage)
                 drawPaired(stream, "TESORO   /   CANTIDAD", treasureArea, treasurePlaced, localPage)
-                drawP2Cartela(stream, "RASGOS", traitsArea)
+                drawP2Cartela(stream, "RASGOS Y ATRIBUTOS", traitsArea)
                 grid(stream, traitsArea, true)
                 traitsPlaced.cells.filter { it.localPageIndex == localPage }.forEach { cell ->
                     if (cell.drawableText.isNotEmpty()) {

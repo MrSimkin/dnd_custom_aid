@@ -540,6 +540,42 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3RealP2RasgosHeadingMatchesApprovedGoldenWithoutChangingActualTraits() {
+        // G3 P207: measured approved P2 reads RASGOS Y ATRIBUTOS.
+        // Its existing C2c cartela is source-free and must not move content.
+        for ((fixture, variant) in listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.A,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
+        )) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant,
+                    PcSheetExportStateSelection.PERMANENT),
+                sources(fixture),
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val p2 = PDFTextStripper().apply {
+                    startPage = 2
+                    endPage = 2
+                }.getText(pdf)
+                assertTrue(p2.contains("RASGOS Y ATRIBUTOS"),
+                    "Approved P2 source cartela is missing its complete heading.")
+                assertTrue(p2.contains("EQUIPO ESPECIAL"))
+                assertTrue(p2.contains("TESORO"))
+                val ops = pdf.getPage(1).contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                assertTrue(Regex(
+                    """(?s)(?:^|\\s)317\\s+684\\s+m\\s+565\\s+684\\s+l.*?\\s+B(?:\\s|$)"""
+                ).containsMatchIn(ops),
+                    "Retain the existing blue Rasgos C2c polygon, not a floating title.")
+                assertTrue(pdf.numberOfPages >= 4)
+            }
+        }
+    }
+
+    @Test
     fun mixedC2UsesPhysicalBlueGroupCartelasWithoutChangingSourceOrPagination() {
         // This is the genuine Desktop App exporter, not a synthetic layout.
         // Mixed C2 already has measured two-column source cells; the approved

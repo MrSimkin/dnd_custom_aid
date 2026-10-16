@@ -1992,7 +1992,9 @@
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "NOT_VERIFIED",
-          "evidence": null
+          "evidence": null,
+          "test_name": "g3RealP2RasgosHeadingMatchesApprovedGoldenWithoutChangingActualTraits",
+          "source_parity_test": "scripts/test_v11_p2_rasgos_heading_contract.py"
         }
       ]
     },
