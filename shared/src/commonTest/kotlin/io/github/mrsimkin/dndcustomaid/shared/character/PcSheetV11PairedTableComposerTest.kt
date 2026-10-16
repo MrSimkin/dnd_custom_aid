@@ -39,6 +39,43 @@ class PcSheetV11PairedTableComposerTest {
     }
 
     @Test
+    fun c2SinglePageBalancesBothSourcePairsWithoutChangingFrozenP2OrAmounts() {
+        val rows = (1..30).map { index ->
+            PcSheetV11PairedTableRow(
+                "equipment:balance-" + index,
+                "Objeto real de prueba " + index,
+                index - 1,
+                null,
+            )
+        }
+        val table = PcSheetV11PairedTableData(PcSheetV11PairedTableKind.EQUIPMENT, rows)
+        val originalP2 = place(table)
+        val c2 = PcSheetV11PairedTableComposer.place(
+            table, area, 12f, 36f, 6f, 12f, width,
+            balanceSinglePageC2 = true,
+        )
+        assertEquals(1, originalP2.localPageCount)
+        assertEquals(setOf(1), originalP2.labels.map { it.pairIndex }.toSet(),
+            "Default P2 placement must remain fully backward-compatible.")
+        assertEquals(1, c2.localPageCount, "Balancing cannot add a PDF page.")
+        assertEquals(setOf(1, 2), c2.labels.map { it.pairIndex }.toSet(),
+            "Source-backed C2 one-page equipment should use both paired columns.")
+        assertEquals(rows.map { it.sourceKey }, c2.quantities.map { it.sourceKey })
+        assertEquals(rows.map { it.amount.toString() },
+            c2.quantities.map { it.printableText },
+            "Persisted zero and all other quantities must appear once.")
+        assertEquals(rows.map { it.label }, c2.labelFlow.fragments
+            .groupBy { it.sourceKey }.values.map { parts ->
+                parts.joinToString("") { it.text }
+            }, "No source label may be shortened or rewritten.")
+        assertTrue(c2.labels.maxOf { it.rowIndex } <
+            originalP2.labels.maxOf { it.rowIndex },
+            "Balanced C2 must recover manuscript space in the lower table area.")
+        originalP2.verify()
+        c2.verify()
+    }
+
+    @Test
     fun hugeEquipmentNamesSplitWithoutReplicatingAmountsAcrossColumnsOrPages() {
         val id = Uuid.parse("60000000-0000-0000-0000-000000000001")
         val name = ("Bolsa de dimensiones sin pérdidas — ").repeat(35)
