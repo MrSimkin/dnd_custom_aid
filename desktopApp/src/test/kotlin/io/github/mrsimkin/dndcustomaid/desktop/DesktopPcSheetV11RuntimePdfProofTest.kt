@@ -2408,6 +2408,45 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
 
+
+    @Test
+    fun g3RealP2PairedTableHeadersIdentifyObjectAndDenominationWithoutMovingSourceCells() {
+        // Golden V11 P2 reserves right-aligned legend in each clipped
+        // blue header: Equipo's OBJETO/CANTIDAD, Tesoro's denomination/amount.
+        // The previous genuine native PDF omitted OBJETO and DENOMINACIÓN.
+        for ((fixture, variant) in listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.A,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
+        )) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant,
+                    PcSheetExportStateSelection.PERMANENT),
+                sources(fixture),
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val p2 = PDFTextStripper().apply { startPage = 2; endPage = 2 }
+                    .getText(pdf)
+                assertTrue(p2.contains("OBJETO / CANTIDAD"),
+                    "The real P2 object/quantity subcolumns must be identified.")
+                assertTrue(p2.contains("DENOMINACIÓN / CANTIDAD"),
+                    "The real P2 denomination/quantity subcolumns must be identified.")
+                assertTrue(p2.contains("RASGOS Y ATRIBUTOS"))
+                assertTrue(p2.contains("EQUIPO ESPECIAL"))
+                val headerAreas = PDFTextStripperByArea().apply {
+                    addRegion("equipment", Rectangle2D.Float(42f, 92f, 258f, 18f))
+                    addRegion("treasure", Rectangle2D.Float(42f, 326f, 258f, 18f))
+                    extractRegions(pdf.getPage(1))
+                }
+                assertTrue(headerAreas.getTextForRegion("equipment")
+                    .contains("OBJETO / CANTIDAD"))
+                assertTrue(headerAreas.getTextForRegion("treasure")
+                    .contains("DENOMINACIÓN / CANTIDAD"))
+            }
+        }
+    }
+
     @Test
     fun g3RealP2EmptyEquipmentAndTreasureUseGoldenWritingRhythmWithoutSyntheticRows() {
         // Physical pre-fix PDFs: P2 both modules used 12.42pt line spacing.

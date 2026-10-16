@@ -1978,6 +1978,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream: PDPageContentStream,
                 title: String,
                 area: PcSheetV11RectPt,
+                columnLegend: String? = null,
             ) {
                 val left = area.leftPt
                 val right = area.rightPt
@@ -2009,6 +2010,25 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.newLineAtOffset(left + 9f, bottom + 3f)
                 stream.showText(title)
                 stream.endText()
+                // Golden P2 requires an explicit meaning for BOTH small
+                // internal columns: OBJETO/CANTIDAD or DENOMINACIÓN/CANTIDAD.
+                // Occupy the existing blue source-free cartela, never the table.
+                columnLegend?.let { legend ->
+                    val legendSize = 7f
+                    val width = headerPdfFont.getStringWidth(legend) *
+                        legendSize / 1000f
+                    val titleWidth = headerPdfFont.getStringWidth(title) *
+                        11f / 1000f
+                    val x = right - 9f - width
+                    require(x > left + 9f + titleWidth + 8f) {
+                        "P2 paired-table legend overlaps its approved heading."
+                    }
+                    stream.beginText()
+                    stream.setFont(headerPdfFont, legendSize)
+                    stream.newLineAtOffset(x, bottom + 4f)
+                    stream.showText(legend)
+                    stream.endText()
+                }
             }
 
             fun drawPaired(
@@ -2020,7 +2040,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 suppressAmounts: Set<String> = emptySet(),
                 compactC2: Boolean = false,
             ) {
-                if (!compactC2) drawP2Cartela(stream, title, area)
+                if (!compactC2) {
+                    val ordinary = placed.data.kind ==
+                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableKind.EQUIPMENT
+                    drawP2Cartela(
+                        stream, if (ordinary) "EQUIPO" else "TESORO", area,
+                        if (ordinary) "OBJETO / CANTIDAD" else "DENOMINACIÓN / CANTIDAD",
+                    )
+                }
                 val pageLabels = placed.labels.filter { it.localPageIndex == localPage }
                 val lowestPrintedBottom = pageLabels.minOfOrNull { it.rectPt.bottomPt }
                 // Unlike P2, C2's last table page must free genuine unused paper

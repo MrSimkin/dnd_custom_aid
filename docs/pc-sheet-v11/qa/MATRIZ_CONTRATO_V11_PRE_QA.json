@@ -1855,7 +1855,9 @@
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "NOT_VERIFIED",
-          "evidence": null
+          "evidence": null,
+          "test_name": "g3RealP2PairedTableHeadersIdentifyObjectAndDenominationWithoutMovingSourceCells",
+          "source_parity_test": "scripts/test_v11_p2_paired_column_legend_contract.py"
         }
       ]
     },
@@ -1943,7 +1945,9 @@
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "NOT_VERIFIED",
-          "evidence": null
+          "evidence": null,
+          "test_name": "g3RealP2PairedTableHeadersIdentifyObjectAndDenominationWithoutMovingSourceCells",
+          "source_parity_test": "scripts/test_v11_p2_paired_column_legend_contract.py"
         }
       ]
     },
