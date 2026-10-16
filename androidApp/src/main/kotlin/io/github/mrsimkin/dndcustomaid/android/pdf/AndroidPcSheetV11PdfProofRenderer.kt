@@ -248,8 +248,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         top-(if(compactBAttributes) 11f else 14f),false)
                     stream.beginText()
                     stream.setFont(bodyPdfFont,7f)
-                    val saveY=top-(if(compactBAttributes) 23f else 25f)
-                    stream.newLineAtOffset(215f,saveY)
+                    // Golden B: label-to-box gap 17.85pt; previous real App gap 20.18pt.
+                    // Move the label only 2.3pt right and 2.1pt upward relative
+                    // to its attribute name; leave the 7pt box, value and row intact.
+                    val saveY=top-(if(compactBAttributes) 20.9f else 22.9f)
+                    stream.newLineAtOffset(217.3f,saveY)
                     stream.showText("SALVACIÓN")
                     stream.endText()
                     // Approved V11 paper saving-throw mark. Always blank:

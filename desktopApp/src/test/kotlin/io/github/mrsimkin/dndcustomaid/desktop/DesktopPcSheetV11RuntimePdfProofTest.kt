@@ -99,6 +99,59 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun realP1SavingLabelUsesMeasuredGoldenMicroOffsetWithoutMovingBoxes() {
+        // Independently measure the generated PDF text, not source constants.
+        // Frozen B reference: label right x=202.68, checkbox left x=220.54,
+        // gap 17.85pt. Before fix: real App x=249.83 versus box x=270,
+        // gap 20.17pt; label was also 2.1pt lower relative to FUERZA.
+        val cases = listOf(
+            Triple("02_ilyra_quill_srd5_2_1_evoker_wizard.json",
+                PcSheetV11Variant.B, 237.9f),
+            Triple("03_mara_siete_umbrales_custom_extended.json",
+                PcSheetV11Variant.B, 235.9f),
+            Triple("03_mara_siete_umbrales_custom_extended.json",
+                PcSheetV11Variant.A, 237.9f),
+        )
+        for ((fixture, variant, expectedBaselineY) in cases) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                ), sources(fixture),
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val savingLabels = mutableListOf<Pair<Float, Float>>()
+                val stripper = object : PDFTextStripper() {
+                    override fun writeString(
+                        text: String,
+                        textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                    ) {
+                        val at = text.indexOf("SALVACIÓN")
+                        if (at >= 0 && textPositions.size > at) {
+                            val position = textPositions[at]
+                            savingLabels += position.xDirAdj to position.yDirAdj
+                        }
+                        super.writeString(text, textPositions)
+                    }
+                }
+                stripper.startPage = 1
+                stripper.endPage = 1
+                stripper.getText(pdf)
+                val expectedRows = if (fixture.startsWith("02_")) 6 else
+                    minOf(9, if (variant == PcSheetV11Variant.B) 9 else 9)
+                assertEquals(expectedRows, savingLabels.count {
+                    kotlin.math.abs(it.first - 217.3f) < 0.3f
+                }, "Every printed P1 saving label must be physically at " +
+                    "the approved checkbox-relative x position ($fixture, $variant).")
+                val first = savingLabels.first { kotlin.math.abs(it.first - 217.3f) < 0.3f }
+                assertTrue(kotlin.math.abs(first.second - expectedBaselineY) < 0.35f,
+                    "Saving label baseline must move 2.1pt upward " +
+                    "relative to the original attribute row ($fixture, $variant).")
+                assertPhysicalP1SavingBoxes(pdf, expectedRows)
+            }
+        }
+    }
+
+    @Test
     fun physicalP4GoldenPaperHasClippedReferenceCardsAndNineWritableSlotMeters() {
         // Inspect the actual Desktop App service output, not a Python mock.
         // A printed slot meter is blank handwriting, not an invented spell
