@@ -2219,4 +2219,40 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             }
         }
     }
+    @Test
+    fun g3RealP1AttacksHaveSubtleAlternatingBandsWithoutLosingPrintedAttackFields() {
+        // G3 local check P111 / global G4 stays BLOCKED. Test real PDFBox
+        // produced by the App service, not a renderer-source text assertion.
+        for ((name, variant) in listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.A,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
+        )) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources(name),
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val content = pdf.getPage(0).contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                // Four light body bands inside the original P1 attacks panel,
+                // not a giant color rectangle covering the source-backed text.
+                val bands = Regex(
+                    """(?:^|\\s)312\\.8\\s+(?:467|443|419|395)\\s+256\\.4\\s+12\\s+re(?:\\s|$)"""
+                )
+                assertEquals(4, bands.findAll(content).count(),
+                    "P1 attack band geometry missing on REAL App PDF: $name $variant")
+                val p1 = PDFTextStripper().apply {
+                    startPage = 1
+                    endPage = 1
+                }.getText(pdf)
+                assertTrue(p1.contains("ATAQUE / RANGO"))
+                assertTrue(p1.contains("BONO"))
+                assertTrue(p1.contains("DAÑO / EFECTO"))
+            }
+        }
+    }
+
 }
