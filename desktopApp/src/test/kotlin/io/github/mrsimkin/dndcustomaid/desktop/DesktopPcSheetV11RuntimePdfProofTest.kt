@@ -99,6 +99,48 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun actualIlyraP3UsesTwoClippedBlueNarrativeBandsAndBarlowFieldLabels() {
+        // Approved P3 narrative appearance must come from the real App PDF.
+        // No narrative text, source IDs, lines or page geometry may change.
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.B,
+                PcSheetExportStateSelection.PERMANENT),
+            sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json"),
+        )
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val page = pdf.getPage(2)
+            val printed = PDFTextStripper().apply {
+                startPage = 3; endPage = 3
+            }.getText(pdf)
+            assertTrue(printed.contains("TRASFONDO Y PERFIL NARRATIVO"))
+            assertTrue(printed.contains("HISTORIA Y CRÓNICA"))
+            listOf("TRASFONDO", "RELIGIÓN / FE", "RASGOS DE PERSONALIDAD",
+                "IDEALES", "VÍNCULOS", "DEFECTOS").forEach { label ->
+                assertTrue(printed.contains(label),
+                    "Persisted P3 narrative cartela missing: " + label)
+            }
+            assertTrue(printed.contains("Ilyra dejó un archivo académico"),
+                "Source-backed story must remain full and legible.")
+            val operators = page.contents.use {
+                it.readBytes().toString(Charsets.ISO_8859_1)
+            }
+            for (y in listOf(682, 461)) {
+                val clipped = Regex(
+                    """(?s)(?:^|\s)48\s+""" + y +
+                        """\s+m\s+564\s+""" + y +
+                        """\s+l\s+570\s+""" + (y + 6) +
+                        """\s+l.*?\s+B(?:\s|$)"""
+                )
+                assertTrue(clipped.containsMatchIn(operators),
+                    "Each original-height P3 narrative heading requires " +
+                        "a clipped, filled-and-stroked blue physical cartela at y=" + y)
+            }
+            assertTrue(Regex("""(?m)/F1\s+9\s+Tf""").containsMatchIn(operators),
+                "Actual P3 field labels must use embedded Barlow Condensed 9pt.")
+        }
+    }
+
+    @Test
     fun mixedC2UsesPhysicalBlueGroupCartelasWithoutChangingSourceOrPagination() {
         // This is the genuine Desktop App exporter, not a synthetic layout.
         // Mixed C2 already has measured two-column source cells; the approved
