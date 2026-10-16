@@ -2208,6 +2208,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     """(?:^|\s)312\s+301\s+258\s+81\s+re(?:\s|$)"""
                 ).containsMatchIn(ops),
                     "Original source-backed two-column Rasgos panel must not move.")
+                assertTrue(Regex("""(?m)/F1\s+9\s+Tf""").containsMatchIn(ops),
+                    "Rasgos title must use genuine embedded 9pt Barlow heading font.")
                 val page1 = PDFTextStripper().apply {
                     startPage = 1
                     endPage = 1
