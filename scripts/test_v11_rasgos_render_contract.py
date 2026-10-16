@@ -54,7 +54,9 @@ class RasgosStageTripwire(unittest.TestCase):
                 self.assertIn("stream.moveTo(315f,368f)", region)
                 self.assertIn("stream.lineTo(312f,371f)", region)
                 self.assertIn("stream.fillAndStroke()", region)
-                self.assertIn('p1DrawSmall(stream, "RASGOS Y ATRIBUTOS", left + 4f, top - 11f)', region)
+                self.assertIn("stream.setFont(headerPdfFont,9f)", region)
+                self.assertIn("stream.newLineAtOffset(left + 6f,top - 11f)", region)
+                self.assertIn('stream.showText("RASGOS Y ATRIBUTOS")', region)
                 self.assertIn("top - 21f - (slot % 6) * 10f", region)
 
     def test_g3_android_desktop_trait_logic_is_identical(self):
