@@ -2178,4 +2178,43 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             }
         }
     }
+
+    @Test
+    fun g3RealP1RasgosUsesClippedBlueCartelaInsideOriginalHeaderStrip() {
+        // P1 title is cosmetic only; no moved or truncated source identity.
+        // Owner C2c / G2 RSG01-RSG05 / P112. Verified on REAL App PDFBox.
+        for ((name, variant) in listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.A,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
+        )) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources(name),
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val ops = pdf.getPage(0).contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                val polygon = Regex(
+                    """(?s)(?:^|\s)315\s+368\s+m\s+567\s+368\s+l\s+""" +
+                        """570\s+371\s+l.*?312\s+371\s+l\s+h\s+B(?:\s|$)"""
+                )
+                assertEquals(1, polygon.findAll(ops).count(),
+                    "Approved P1 Rasgos title requires ONE genuine " +
+                        "eight-segment clipped blue band ($name $variant).")
+                assertTrue(Regex(
+                    """(?:^|\s)312\s+301\s+258\s+81\s+re(?:\s|$)"""
+                ).containsMatchIn(ops),
+                    "Original source-backed two-column Rasgos panel must not move.")
+                val page1 = PDFTextStripper().apply {
+                    startPage = 1
+                    endPage = 1
+                }.getText(pdf)
+                assertTrue(page1.contains("RASGOS Y ATRIBUTOS"),
+                    "Printed header text must remain readable.")
+            }
+        }
+    }
 }
