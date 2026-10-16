@@ -142,6 +142,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(filledGroupBands >= 3,
                 "Every Ilyra source heading needs an actual filled " +
                     "two-column C2 cartela: found " + filledGroupBands)
+            assertTrue(Regex("""(?m)(?:^|\s)B(?:\s|$)""")
+                .containsMatchIn(commands),
+                "Source-backed mixed C2 requires a distinct clipped blue " +
+                    "NOTAS heading above a complete physical manuscript grid.")
             assertTrue(text.contains("VIENE DE P1 PÁG. 1 / P2 PÁG. 2"),
                 "C2 cartelas cannot disturb final physical source backlinks.")
         }
@@ -1455,6 +1459,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(clippedCartela.containsMatchIn(commands),
                 "A real beveled blue C2 EQUIPO cartela must be filled and stroked " +
                     "without crossing the fixed page header.")
+            val filledOutlines = Regex("""(?m)(?:^|\s)B(?:\s|$)""")
+                .findAll(commands).count()
+            assertTrue(filledOutlines >= 2,
+                "Real C2 EQUIPO and manuscript NOTAS must each draw " +
+                    "their own filled-and-stroked clipped blue cartela.")
             val printed = PDFTextStripper().apply {
                 startPage = pageNumber
                 endPage = pageNumber
