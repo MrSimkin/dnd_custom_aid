@@ -103,6 +103,30 @@ class V11PreQaGateGuardTest(unittest.TestCase):
         self.write()
         self.assertTrue(any("missing test target file" in e for e in validate(self.root)))
 
+    def test_g4_rejects_stale_g1_g2_g3_proof_from_another_candidate(self):
+        old_commit = "a" * 40
+        current_commit = "b" * 40
+        apk_hash = "c" * 64
+        self.qa["active_candidate"] = {
+            "source_commit": current_commit, "apk_sha256": apk_hash,
+        }
+        self.qa["release_gate"] = "READY_FOR_OWNER_QA"
+        self.matrix["active_candidate"] = {
+            "source_commit": current_commit, "apk_sha256": apk_hash,
+        }
+        target = next(r for r in self.matrix["rules"] if r["id"] == "RSG01")
+        stage = target["stage_checks"][0]
+        stage["status"] = "PASS"
+        stage["evidence"] = {
+            "test_name": "PcSheetV11TraitSummaryTest",
+            "test_result": "PASS",
+            "source_commit": old_commit,
+            "test_run_ref": "historical-build",
+        }
+        self.write()
+        self.assertTrue(any("stale local test from another compiled candidate" in e
+                            for e in validate(self.root)))
+
     def test_legacy_expected_ids_are_immutable(self):
         for required in ("RSG01", "RSG02", "RSG03", "P301", "P302", "C207",
                          "FIN01", "QA05", "QA07", "QA08"):
