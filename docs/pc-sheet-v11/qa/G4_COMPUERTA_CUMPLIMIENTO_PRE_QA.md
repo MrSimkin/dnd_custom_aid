@@ -23,6 +23,17 @@ Cada regla tiene:
 
 **No existe N/A automático ni aprobación parcial:** en reglas condicionales se prueban ambos escenarios (p. ej., con y sin conjuros), en vez de omitirla cuando el fixture actual no la ejerce. Un PASS que utilice un PDF o APK viejo **caduca** si cambia materialmente el renderer/datos/built assets; revisar y regenerar pruebas. No poner `genuine_runtime=true` o `independent_inspection=true` sin evidencia comprobable. Una estructura JSON válida nunca reemplaza la inspección física.
 
+## Verificación durante G1, G2 y G3 (sin esperar a G4)
+
+A solicitud del propietario, las obligaciones **no se almacenan únicamente para el control final**. Cada regla en `MATRIZ_CONTRATO_V11_PRE_QA.json` contiene una lista `stage_checks` de los gates del plan donde hay que ejercerla. Cada check registra **etapa, objetivo, test real, estado y evidencia**. Se evita inventar estados PASS: por defecto `NOT_VERIFIED`; el checker exige una ruta de prueba existente y rechaza una marca PASS si no hay nombre de prueba, resultado, run y commit.
+
+- **G1 / Datos:** comprobar fuente real, nombre/tipo/origen, ausencia de campos inventados, IDs y orden. Para Rasgos, `PcSheetV11TraitSummaryTest.kt` prueba la gramática de `Pericia - Rasgo de Clase: Pícaro`, otras categorías, ausencia de fuente e invariancia ante cambio de descripción/notas.
+- **G2 / Composición:** comprobar que la identidad concisa fluye sin fragmentos omitidos, sin descripción, que P1 consume los primeros IDs medidos, P2 solo los siguientes y C2 solo excedentes. La prueba nativa Desktop de 48 entradas A/B revisa el resultado de composición real; el shared `PcSheetV11FlowSourceMapper` aplica el mismo formato en todos los consumidores.
+- **G3 / PDF efectivo:** la misma prueba abre PDFBox real desde el servicio Desktop, busca cada identidad una sola vez y rechaza las descripciones y notas centinela; el script `scripts/test_v11_rasgos_render_contract.py` compara estructura y formato de Android y Desktop e impide desvíos de renderer. **Esta prueba NO sustituye la auditoría Android instalado ni el oráculo externo G4.**
+- **G4 / Auditoría independiente:** contrastar todos los `stage_checks` previos con la salida del candidato exacto, además de los originales D-0076, golden, legado y reglas específicas de G4. Una compilación verde de G1–G3 **no equivale a conformidad G4**.
+
+Los comandos de verificación de etapa son `python3 scripts/check_v11_pre_qa_gate.py --mode stage --stage G1`, `--stage G2`, `--stage G3`; **fallan deliberadamente** mientras haya reglas de esa etapa aún no verificadas. Durante desarrollo el CI ejecuta `--mode inventory` para impedir borrar pruebas/IDs, más los tests propios del código tocado y la suite de regresión. El comando `--mode release` requiere que **todos** los stage_checks también sean PASS del candidato vigente. Los tests pendientes siguen visibles: no ocultarlos ni convertir la matriz en mera lista de deseos.
+
 ## Defecto bloqueante de Rasgos, ya identificado
 
 Fuentes: D-0076 §3.9 **prohíbe** toda descripción de Rasgos en P1/P2/C2; D-0059 define la ficha digital `Nombre`, `Fuente`, `Tipo`, `Descripción`, `Notas`; aclaración actual del propietario propone `Pericia - Rasgo de Clase: Pícaro` para identificar nombre + categoría + fuente reales.
