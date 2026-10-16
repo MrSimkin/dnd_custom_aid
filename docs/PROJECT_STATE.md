@@ -1,5 +1,10 @@
 # Project State — global repository navigation
 
+### ACTUALIZACIÓN 2026-10-16 — V11 P2 RESERVAS + CABECERAS VERIFICADAS LOCAL DESKTOP
+
+En única PR #173 OPEN/DRAFT/unmerged se implementaron P203/P206: las filas manuscritas P2 vacías en ambos PDFBox pasan de 12.42pt a 16.5pt (Equipo)/19.5pt (Tesoro) sin cambiar tablas con registros ni C2; P202/P205 añade los metadatos completos aprobados «OBJETO / CANTIDAD» y «DENOMINACIÓN / CANTIDAD» dentro de las cartelas P2 existentes. Último commit funcional `fa2f333d8c1dd986a55512f6bfe1e0326cd17a4b`. Scaffold #38982363198 y #38983178486 SUCCESS; QA #38982363225 y #38983178488 SUCCESS. Se extrajeron seis PDFs Desktop reales por build (artefactos 12082390303 y 12082570208), CRC PASS y PyMuPDF confirma que solo cambian geometrías manuscritas P2 en casos sin filas o palabras de encabezados; texto fuente/paginación/dibujos posteriores intactos. Checkpoint `docs/pc-sheet-v11/G3_P2_PAPER_AND_PAIRED_HEADERS_2026-10-16.md`. G4 continúa BLOCKED con reglas globales NOT_VERIFIED, no owner QA, RCR-1 0/2; no cambios main/legacy/golden.
+
+
 ### ACTUALIZACIÓN OPERATIVA 2026-10-16 — V11 G3 P2 P207/P210 (SOLO RAMA PR #173)
 
 La PR #173 permaneció DRAFT sin merge. P210 (ubicaciones libres/reconocidas y 8 casillas manuscritas ACTIVO de Equipo Especial) y P207 (cartela RASGOS Y ATRIBUTOS) se implementaron en los dos PDFBox nativos con pruebas Kotlin reales y scripts de paridad. Último commit funcional `b8dee5121235ee9cb0c3459483c4ebf9488d1206`; Scaffold #38976601596 y #38977308376 SUCCESS, QA #38976601631 y #38977308364 SUCCESS. Los cinco PDF Desktop reales del último artefacto 12079707053 fueron contrastados físicamente con PyMuPDF: P210 no desplaza texto ni páginas, P207 solo añade 2 palabras P2 sin mover nada más. Ver `docs/pc-sheet-v11/G3_P2_EQUIPO_ESPECIAL_RASGOS_2026-10-16.md`. G4 sigue BLOCKED, reglas globales NOT_VERIFIED, G5/G6 y QA propietario NO habilitados. Ninguna familia legacy, main, golden o evidencia del propietario cambió; RCR-1 0/2. Continuar siguiente requisito real medido.
