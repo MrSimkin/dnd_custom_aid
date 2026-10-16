@@ -945,6 +945,35 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
             }
 
+            // The frozen C2 golden frames each writable NOTES block with a
+            // pale-blue clipped cartela, not a floating black heading.
+            // Use only the 18pt strip that is already reserved above the
+            // complete measured grid; never consume a source-text cell.
+            fun drawC2ManuscriptCartela(
+                stream: PDPageContentStream, x: Float, width: Float, gridTop: Float,
+            ) {
+                require(width >= 32f)
+                val bottom = gridTop + 1f
+                val top = gridTop + 17f
+                val cut = 4f
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(Color(217, 236, 245))
+                stream.setStrokingColor(Color(80, 122, 151))
+                stream.setLineWidth(0.55f)
+                stream.moveTo(x + cut, bottom)
+                stream.lineTo(x + width - cut, bottom)
+                stream.lineTo(x + width, bottom + cut)
+                stream.lineTo(x + width, top - cut)
+                stream.lineTo(x + width - cut, top)
+                stream.lineTo(x + cut, top)
+                stream.lineTo(x, top - cut)
+                stream.lineTo(x, bottom + cut)
+                stream.closePath()
+                stream.fillAndStroke()
+                stream.restoreGraphicsState()
+                draw(stream, "NOTAS", x + 8f, gridTop + 7f, true)
+            }
+
             // C2 leftover paper is handwriting space, not a new digital-notes section.
             // Occupied PDF line rectangles govern whether a complete square grid fits.
             fun drawUnusedC2NotesGrid(
@@ -959,7 +988,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 require(gridTop + 18f < lowestTextBottom) {
                     "C2 notes grid must never overlap character content."
                 }
-                draw(stream, "NOTAS", 42f, gridTop + 7f, true)
+                drawC2ManuscriptCartela(stream, 42f, 528f, gridTop)
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130, 165, 186))
                 stream.setLineWidth(0.5f)
@@ -1001,7 +1030,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     require(completeColumns >= 2)
                     val gridWidth = completeColumns * gridSize
                     val gridLeft = column.leftPt + (column.widthPt - gridWidth) / 2f
-                    draw(stream, "NOTAS", gridLeft + 2f, gridTop + 7f, true)
+                    drawC2ManuscriptCartela(stream, gridLeft, gridWidth, gridTop)
                     stream.saveGraphicsState()
                     stream.setStrokingColor(Color(130, 165, 186))
                     stream.setLineWidth(0.5f)
