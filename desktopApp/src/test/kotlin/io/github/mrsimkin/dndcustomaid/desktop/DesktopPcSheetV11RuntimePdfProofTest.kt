@@ -141,6 +141,65 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun genuineP2KeepsAllFourClippedBlueCartelasOutsideSourceTables() {
+        // Concrete golden-vs-real-PDF regression: all P2 titles occupy the
+        // previously reserved 14.5pt strips. Inspect emitted PDFBox vectors,
+        // not a layout mockup or literal square bracket typography.
+        for ((fixture, expectedPages) in listOf(
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to 13,
+            "03_mara_siete_umbrales_custom_extended.json" to 17,
+        )) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(PcSheetV11Variant.B,
+                    PcSheetExportStateSelection.PERMANENT),
+                sources(fixture),
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                assertEquals(expectedPages, pdf.numberOfPages,
+                    "P2 decoration must not consume a new physical page.")
+                val text = PDFTextStripper().apply {
+                    startPage = 2
+                    endPage = 2
+                }.getText(pdf)
+                for (title in listOf("EQUIPO", "TESORO", "RASGOS", "EQUIPO ESPECIAL",
+                    "UBICACIÓN", "NOMBRE", "DESCRIPCIÓN", "ACTIVO")) {
+                    assertTrue(text.contains(title),
+                        "Actual PDF P2 lost existing title or table field: " + title)
+                }
+                assertTrue(text.contains("EQUIPO   /   CANTIDAD"))
+                val stream = pdf.getPage(1).contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                val bands = listOf(
+                    Triple(47, 684, 295),  // equipment, left upper
+                    Triple(317, 684, 565), // traits, right upper
+                    Triple(47, 448, 295),  // treasure, left middle
+                    Triple(47, 313, 565),  // special equipment, full width
+                )
+                for ((x, y, xr) in bands) {
+                    val clipped = Regex(
+                        """(?s)(?:^|\\s)""" + x + """\\s+""" + y +
+                            """\\s+m\\s+""" + xr + """\\s+""" + y +
+                            """\\s+l\\s+""" + (xr + 5) +
+                            """\\s+""" + (y + 5) + """\\s+l.*?\\s+B(?:\\s|$)"""
+                    )
+                    assertTrue(clipped.containsMatchIn(stream),
+                        "Real P2 must contain a clipped filled/stroked blue " +
+                            "cartela outside measured source cells: " + x + "," + y)
+                }
+                assertTrue(Regex("""(?m)/F1\\s+11\\s+Tf""")
+                    .findAll(stream).count() >= 4,
+                    "P2 headings must all use genuine embedded BarlowCondensed 11pt.")
+                val all = PDFTextStripper().getText(pdf)
+                assertTrue(all.contains("NOTAS"))
+                assertTrue(all.contains("P3 - Trasfondo / Perfil / Historia"))
+                assertTrue(all.contains("P4 - Conjuros"),
+                    "P2 cartelas must not shift spell/narrative/C2 pagination.")
+            }
+        }
+    }
+
+    @Test
     fun mixedC2UsesPhysicalBlueGroupCartelasWithoutChangingSourceOrPagination() {
         // This is the genuine Desktop App exporter, not a synthetic layout.
         // Mixed C2 already has measured two-column source cells; the approved
