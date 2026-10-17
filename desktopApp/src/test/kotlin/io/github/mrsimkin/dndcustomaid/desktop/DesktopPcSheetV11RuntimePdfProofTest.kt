@@ -1801,6 +1801,81 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3SameNameDistinctSpellSourcesKeepSourceIdentityAndPreparationOnP4AB() {
+        // Real Ilyra backup, with only one genuine spell's associations and
+        // two source names changed to form this discriminating technical case.
+        val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val sheet = original.permanent.sheet
+        val selected = sheet.spells.first { it.sourceAssociations.isNotEmpty() }
+        val existingAssociation = selected.sourceAssociations.first()
+        val realSource = sheet.spellcastingSources.first {
+            it.id == existingAssociation.sourceId
+        }
+        val secondId = Uuid.parse("abcdef12-0000-4000-8000-000000000173")
+        val fixtureName = "QA FUENTE HOMÓNIMA"
+        val second = realSource.copy(
+            id = secondId, name = fixtureName, sortOrder = realSource.sortOrder + 1,
+        )
+        val altered = original.copy(
+            permanent = original.permanent.copy(
+                sheet = sheet.copy(
+                    spellcastingSources = sheet.spellcastingSources.map {
+                        if (it.id == realSource.id) it.copy(name = fixtureName) else it
+                    } + second,
+                    spells = sheet.spells.map { spell ->
+                        if (spell.id == selected.id) spell.copy(
+                            name = "QA CONJURO DE DOS ORÍGENES",
+                            sourceAssociations = listOf(
+                                existingAssociation.copy(prepared = true),
+                                io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSourceAssociation(
+                                    sourceId = secondId, prepared = false,
+                                ),
+                            ),
+                        ) else spell
+                    },
+                ),
+            ),
+        )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                altered,
+            )
+            preserveRealApplicationPdf(
+                proof.bytes, "V11-INTERNAL-PROOF-P4-same-name-distinct-sources-" + variant + ".pdf",
+            )
+            val target = proof.semantic.spells.first {
+                it.spell.id == selected.id
+            }
+            assertEquals(2, target.sources.size)
+            assertEquals(listOf(true, false), target.sources.map { it.prepared })
+            val tags = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSourceLabels
+                .forSpells(proof.semantic.spells)
+            val label1 = tags.getValue(realSource.id)
+            val label2 = tags.getValue(secondId)
+            assertTrue(label1.startsWith(fixtureName + " (#"))
+            assertTrue(label2.startsWith(fixtureName + " (#"))
+            assertTrue(label1 != label2)
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val p4Text = (1..pdf.numberOfPages).map { index ->
+                    PDFTextStripper().apply {
+                        startPage = index; endPage = index
+                    }.getText(pdf)
+                }.filter { it.contains("P4 - Conjuros") }
+                    .joinToString(" ").replace(Regex("\\s+"), " ")
+                assertTrue(p4Text.contains("QA CONJURO DE DOS ORÍGENES"))
+                assertTrue(p4Text.contains("[X] " + label1),
+                    "True prepared status must remain tied to the first source UUID.")
+                assertTrue(p4Text.contains("[ ] " + label2),
+                    "Unprepared status must remain tied to the second source UUID.")
+                assertTrue(PDFTextStripper().getText(pdf).contains("NOTAS"))
+                assertEquals(PDRectangle.LETTER.width, pdf.getPage(0).mediaBox.width)
+                assertEquals(PDRectangle.LETTER.height, pdf.getPage(0).mediaBox.height)
+            }
+        }
+    }
+
+    @Test
     fun realIlyraP4AlignsOnlyFittingSpellOriginsWithoutLosingLongSources() {
         val generated = DesktopPcSheetExportService().generateV11Proof(
             PcSheetV11ExportRequest(PcSheetV11Variant.B,

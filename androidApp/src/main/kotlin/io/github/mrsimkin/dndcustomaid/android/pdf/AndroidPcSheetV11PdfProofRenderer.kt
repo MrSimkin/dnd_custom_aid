@@ -1561,12 +1561,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // the far right of its own row. Long associations MUST continue
             // through the existing measured text flow, never be abbreviated.
             val p4SourceFont = measurer.resolve(PcSheetV11Typeface.BODY, 7f)
+            val sourceNames =
+                io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSourceLabels
+                    .forSpells(data.spells)
             val p4SourceLabels = data.spells.associate { entry ->
-                "quick-spell:" + entry.spell.id to entry.sources.joinToString(" / ") {
-                    val sourceLabel = it.sourceName?.takeIf { name -> name.isNotBlank() }
-                        ?: it.sourceId.toString()
-                    "[" + (if (it.prepared) "X" else " ") + "] " + sourceLabel
-                }
+                "quick-spell:" + entry.spell.id to
+                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSourceLabels
+                        .perSpell(entry, sourceNames)
             }
             val p4RightSources = data.spells.mapNotNull { entry ->
                 val key = "quick-spell:" + entry.spell.id
