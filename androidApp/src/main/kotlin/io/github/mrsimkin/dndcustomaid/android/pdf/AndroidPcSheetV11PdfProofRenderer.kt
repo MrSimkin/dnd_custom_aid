@@ -624,6 +624,16 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
             }
 
+            // P1 spell-slot cells have fixed physical widths. Preserve every
+            // source value without shrinking or overprinting adjacent levels:
+            // route outlier counters to the existing measured P1-owned C2.
+            val overflowP1SpellSlots = data.spellSlots.filter { slots ->
+                slots.level in 1..9 &&
+                    (body.width.measurePt(slots.totalSlots.toString()) > 22f ||
+                        body.width.measurePt(slots.spentSlots.toString()) > 29f)
+            }
+            val overflowP1SpellLevels = overflowP1SpellSlots.map { it.level }.toSet()
+
             fun drawP1Spellcasting(stream:PDPageContentStream) {
                 // Approved frozen B P1: LANZAMIENTO uses a filled/stroked
                 // 8-segment clipped cartela (302x23pt in the golden).
@@ -690,6 +700,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     val y=222f-((level-1)/3)*23f
                     draw(stream,"N"+level,x,y,false)
                     actual[level]?.let{v->
+                        if (level in overflowP1SpellLevels) {
+                            draw(stream,"VER C2",x+19f,y,false)
+                        } else {
                         draw(stream,v.totalSlots.toString(),x+19f,y,false)
                         draw(stream,v.spentSlots.toString(),x+45f,y,false)
                         if(v.totalSlots in 1..3){
@@ -699,6 +712,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 stream.stroke()
                                 if(n<v.spentSlots)draw(stream,"X",px+1f,y-10f,false)
                             }
+                        }
                         }
                     }?:run{
                         stream.moveTo(x+19f,y-7f)
@@ -759,6 +773,17 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             ))
                         }
                     }
+                }
+                // Values too wide for the frozen 3x3 P1 cells remain complete
+                // on C2 and are never mistaken for absent paper slots.
+                overflowP1SpellSlots.forEach { slots ->
+                    add(PcSheetV11FlowItem(
+                        "spellcasting:slots:" + slots.level,
+                        "ESPACIOS REALES NIVEL " + slots.level +
+                            ": TOTAL " + slots.totalSlots +
+                            ", GASTADOS " + slots.spentSlots,
+                        keepTogetherIfFits = true,
+                    ))
                 }
                 // High-level slot rows only exist when explicitly persisted.
                 data.spellSlots.filter { it.level >= 10 }.forEach { slots ->
