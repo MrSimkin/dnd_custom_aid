@@ -1852,6 +1852,144 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3Bk04MediumRealSpellCardMovesWholeToNextPhysicalBookColumn() {
+        // D-0076 §3.48: if a complete medium card cannot fit below the
+        // previous card but DOES fit an empty column, move it intact. Actual
+        // embedded PDFBox Fira 9pt metrics choose the test line count.
+        val backup = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val request = PcSheetV11ExportRequest(
+                variant, PcSheetExportStateSelection.PERMANENT,
+                includeSpellDescriptions = true,
+            )
+            val originalSemantic = io.github.mrsimkin.dndcustomaid.shared.character
+                .PcSheetV11SemanticMapper.map(request, backup)
+            val firstTwo = originalSemantic.spells.take(2)
+            assertEquals(2, firstTwo.size)
+            val firstId = firstTwo[0].spell.id
+            val secondId = firstTwo[1].spell.id
+            val contentHeight = 626f
+            val font = org.apache.pdfbox.pdmodel.PDDocument().use { temporary ->
+                val resolved = DesktopPcSheetV11FontMeasurer(temporary).resolve(
+                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Typeface.BODY,
+                    9f,
+                )
+                (contentHeight / resolved.metrics.lineHeightPt).toInt()
+            }
+            assertTrue(font > 22, "A real Letter book column must have usable rows.")
+            val firstDescription = (1..(font - 12)).joinToString("\n") { n ->
+                "BK04_PREVIA_" + n.toString().padStart(3, '0')
+            }
+            val secondDescription = (1..8).joinToString("\n") { n ->
+                "BK04_SEGUNDA_" + n.toString().padStart(3, '0')
+            }
+            val editedSpells = backup.permanent.sheet.spells
+                .filter { it.id == firstId || it.id == secondId }
+                .map { spell ->
+                    when (spell.id) {
+                        firstId -> spell.copy(description = firstDescription)
+                        secondId -> spell.copy(description = secondDescription)
+                        else -> spell
+                    }
+                }
+            assertEquals(2, editedSpells.size)
+            val edited = backup.copy(permanent = backup.permanent.copy(
+                sheet = backup.permanent.sheet.copy(spells = editedSpells),
+            ))
+            val semantic = io.github.mrsimkin.dndcustomaid.shared.character
+                .PcSheetV11SemanticMapper.map(request, edited)
+            assertEquals(listOf(firstId, secondId),
+                semantic.spells.map { it.spell.id })
+            // Assert actual embedded-font pagination, not synthetic characters.
+            org.apache.pdfbox.pdmodel.PDDocument().use { temporary ->
+                val body = DesktopPcSheetV11FontMeasurer(temporary).resolve(
+                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Typeface.BODY,
+                    9f,
+                )
+                val cards = semantic.spells.map { entry ->
+                    val spell = entry.spell
+                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowItem(
+                        "book:" + spell.id,
+                        spell.name + "\nNIVEL " + spell.level +
+                            "\nDESCRIPCIÓN:\n" + spell.description,
+                        keepTogetherIfFits = true,
+                    )
+                }
+                val measured = io.github.mrsimkin.dndcustomaid.shared.character
+                    .PcSheetV11MeasuredFlowPlacer.place(
+                        io.github.mrsimkin.dndcustomaid.shared.character
+                            .PcSheetV11FlowSection.SPELLBOOK,
+                        cards,
+                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11RectPt(
+                            42f, 76f, 528f, contentHeight,
+                        ),
+                        2, 12f, body.metrics.lineHeightPt, body.width,
+                    )
+                val before = measured.sourceFlow.fragments.filter {
+                    it.sourceKey == "book:" + firstId
+                }
+                val second = measured.sourceFlow.fragments.filter {
+                    it.sourceKey == "book:" + secondId
+                }
+                assertEquals(1, before.size)
+                assertEquals(1, before.single().columnIndex)
+                assertEquals(1, second.size, "BK04 medium card must remain whole.")
+                assertEquals(2, second.single().columnIndex)
+                assertEquals(1, second.single().localPageIndex)
+                assertEquals(0, second.single().startLineIndexInColumn)
+                assertFalse(second.single().continuedFromPrevious)
+                assertFalse(second.single().continuesOnNext)
+                assertTrue(before.single().lineRanges.size < measured.lineCapacity)
+                measured.sourceFlow.verifyLosslessAgainst(cards)
+                measured.verifyGeometry()
+            }
+            val proof = DesktopPcSheetExportService().generateV11Proof(request, edited)
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-BK04-whole-next-column-" + variant.name + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                assertAllPhysicalBookReferences(pdf, semantic.spells.map { it.spell.name })
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply {
+                        startPage = n
+                        endPage = n
+                    }.getText(pdf)
+                }
+                val actualBookPage = pages.indexOfFirst {
+                    it.contains("Libro de conjuros /") &&
+                        !it.contains("Índice del Libro de Conjuros")
+                }
+                assertTrue(actualBookPage >= 0)
+                assertEquals(1, pages.count {
+                    it.contains("Libro de conjuros /") &&
+                        !it.contains("Índice del Libro de Conjuros")
+                }, "Two medium source-backed cards should fit on one 2-column page.")
+                val byArea = PDFTextStripperByArea()
+                byArea.addRegion("left", Rectangle2D.Float(42f, 88f, 258f, 630f))
+                byArea.addRegion("right", Rectangle2D.Float(312f, 88f, 258f, 630f))
+                byArea.extractRegions(pdf.getPage(actualBookPage))
+                val left = byArea.getTextForRegion("left")
+                val right = byArea.getTextForRegion("right")
+                assertTrue(left.contains(firstTwo[0].spell.name))
+                assertFalse(left.contains(firstTwo[1].spell.name),
+                    "BK04 forbids placing ANY of the second card in old column.")
+                assertTrue(right.contains(firstTwo[1].spell.name))
+                assertTrue(right.contains("BK04_SEGUNDA_001"))
+                assertTrue(right.contains("BK04_SEGUNDA_008"))
+                assertFalse(right.contains("CONTINUACIÓN:"),
+                    "A moved whole card must NOT be falsely marked as a split continuation.")
+                assertFalse(left.contains("BK04_SEGUNDA_"))
+                for (index in 1..8) {
+                    val marker = "BK04_SEGUNDA_" + index.toString().padStart(3, '0')
+                    assertEquals(1, Regex(Regex.escape(marker))
+                        .findAll(pages[actualBookPage]).count(),
+                        "Source row lost or duplicated in physical A/B export.")
+                }
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+            }
+        }
+    }
+
+    @Test
     fun g3Bk06EssentialSpellbookCardsNeverPrintUnapprovedTechnicalMetadata() {
         // D-0076 §3.47 chose essential cards (name, level, real school if
         // available, full description), expressly rejecting technical fields.

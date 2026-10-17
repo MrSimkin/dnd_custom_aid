@@ -3113,14 +3113,21 @@
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
           "status": "NOT_VERIFIED",
-          "evidence": null
+          "evidence": null,
+          "named_tests": [
+            "bk04MeasuredBookKeepsMediumCardWholeAtStartOfNextColumn"
+          ]
         },
         {
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "NOT_VERIFIED",
-          "evidence": null
+          "evidence": null,
+          "named_tests": [
+            "g3Bk04MediumRealSpellCardMovesWholeToNextPhysicalBookColumn"
+          ],
+          "source_parity_test": "scripts/test_v11_spellbook_whole_card_contract.py"
         }
       ]
     },

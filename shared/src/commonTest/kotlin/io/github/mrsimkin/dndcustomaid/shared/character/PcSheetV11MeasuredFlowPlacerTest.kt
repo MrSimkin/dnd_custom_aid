@@ -80,6 +80,55 @@ class PcSheetV11MeasuredFlowPlacerTest {
     }
 
     @Test
+    fun bk04MeasuredBookKeepsMediumCardWholeAtStartOfNextColumn() {
+        // A real geometric two-column layout (source-driven, no fake physical
+        // page numbers). An 8-line column has 2 rows left after the first
+        // card; the following 4-line card must move WHOLE to the next column.
+        val first = PcSheetV11FlowItem(
+            "book:first", "PREVIA 1\nPREVIA 2\nPREVIA 3\nPREVIA 4\nPREVIA 5\nPREVIA 6",
+            keepTogetherIfFits = true,
+        )
+        val medium = PcSheetV11FlowItem(
+            "book:medium", "CONJURO REAL\nNIVEL 1\nDESCRIPCIÓN:\nCIERRE REAL",
+            keepTogetherIfFits = true,
+        )
+        val huge = PcSheetV11FlowItem(
+            "book:huge", ("CONTENIDO COMPLETO\n").repeat(11),
+            keepTogetherIfFits = true,
+        )
+        val items = listOf(first, medium, huge)
+        val placed = PcSheetV11MeasuredFlowPlacer.place(
+            PcSheetV11FlowSection.SPELLBOOK, items,
+            PcSheetV11RectPt(42f, 76f, 528f, 80f),
+            2, 12f, 10f, measuredFont,
+        )
+        assertEquals(8, placed.lineCapacity)
+        val firstSpan = placed.sourceFlow.fragments.filter { it.sourceKey == first.sourceKey }
+        val mediumSpan = placed.sourceFlow.fragments.filter { it.sourceKey == medium.sourceKey }
+        assertEquals(1, firstSpan.size)
+        assertEquals(1, mediumSpan.size,
+            "A card shorter than one whole column must not be fragmented.")
+        assertEquals(1, mediumSpan.single().localPageIndex)
+        assertEquals(2, mediumSpan.single().columnIndex)
+        assertEquals(0, mediumSpan.single().startLineIndexInColumn)
+        assertEquals(medium.text, mediumSpan.single().text)
+        assertFalse(mediumSpan.single().continuedFromPrevious)
+        assertFalse(mediumSpan.single().continuesOnNext)
+        assertEquals(1, firstSpan.single().columnIndex)
+        assertEquals(6, firstSpan.single().lineRanges.size)
+        assertEquals(0, placed.cells.first {
+            it.sourceKey == medium.sourceKey
+        }.rowIndex)
+        val hugeSpans = placed.sourceFlow.fragments.filter { it.sourceKey == huge.sourceKey }
+        assertTrue(hugeSpans.size > 1,
+            "A card LONGER than an entire column is allowed to split.")
+        assertTrue(hugeSpans.last().continuedFromPrevious)
+        assertEquals(huge.text, hugeSpans.joinToString("") { it.text })
+        placed.sourceFlow.verifyLosslessAgainst(items)
+        placed.verifyGeometry()
+    }
+
+    @Test
     fun spellThreeColumnsAreMeasuredNotAssumedAndDoNotOverlap() {
         val original = "a".repeat(600)
         val input = listOf(PcSheetV11FlowItem("spell:long", original))
