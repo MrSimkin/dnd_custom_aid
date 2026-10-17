@@ -1,5 +1,10 @@
 # Branch status and repository-ordering map
 
+### ACTUALIZACIÓN 2026-10-16 — C206 EQUIPO Y TESORO C2 INDEPENDIENTES
+
+La única PR #173 se mantiene DRAFT/unmerged. C206 corregido en ambos PDFBox V11: las claves de navegación C2 se separan por Equipo/Tesoro, sin cambiar títulos visibles, datos ni layout. Último SHA productivo `54320d2e13a80dbb92d9e6b59d83f67a1bd3b3f9`, test fix `a446371b4fda4a40ff64da5fa8293a4eaa374f52`; Scaffold #38987925558 y QA #38987925396 SUCCESS. Diez PDFs de la aplicación, artefacto 12083518190, ZIP SHA `edf5fac8417bb2e92e028b0290f6f2fc7587843220392c389ea0907de62a4a36`; independiente PyMuPDF confirma 8 baselines idénticos y A/B con dos C2 Equipo y dos C2 Tesoro enlazados por origen real sin cruce y 137 registros únicos. Matriz 105 reglas, C206 G3 PASS local con evidencia; C206 G2 y G4 pendientes, global NOT_VERIFIED, G4 BLOCKED. Checkpoint `docs/pc-sheet-v11/G3_C2_EQUIPO_TESORO_NAVEGACION_INDEPENDIENTE_2026-10-16.md`. Ningún merge/QA propietario, main/legacy/golden intactos.
+
+
 ### AVANCE V11 C206 (2026-10-16) — navegabilidad P1/P2/C2 por origen real
 
 Se corrigió una referencia falsa de P1 en C2 mixta cuando los únicos registros prolongados son Rasgos de P2, en los DOS renderizadores PDFBox V11. Commit fuente `d25c2824a90d4d19fa9ac3794f2621ea6b4ab4b3`, Scaffold #38985980989 SUCCESS, QA ledger #38985980924 SUCCESS. Se inspeccionaron ocho PDFs reales [artefacto #12083292410](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38985980989/artifacts/12083292410): los seis casos anteriores tienen páginas/texto/posiciones/vectores idénticos; nuevos casos A/B con 118 Rasgos muestran P2→C2 físico correcto sin P1 ficticio y 118 identidades, última NOTAS intacta. Regla C206 G3 **PASS con evidencia**; G2 y G4 aún pendientes, C206 global NOT_VERIFIED, matriz 105 reglas y G4 BLOCKED. [Checkpoint](../pc-sheet-v11/G3_C2_REFERENCIAS_ORIGEN_FISICO_2026-10-16.md). Una PR #173 DRAFT/unmerged, main/legacy/golden intactos. Avanzar por plan original G0–G6, ampliar reglas sin sustituir evidencia ni demorar desarrollos concretos.
