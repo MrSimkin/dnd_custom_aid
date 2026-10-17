@@ -2504,16 +2504,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 extraEquipment.forEach { item ->
                     assertEquals(1, Regex(Regex.escape(item.name.substring(0, 16)))
                         .findAll(whole).count(), "Missing/repeated equipment " + item.id)
-                    assertEquals(1, Regex("""(?<!\\d)""" + item.quantity +
-                        """(?!\\d)""").findAll(whole).count(),
+                    assertEquals(1, Regex("""(?<!\d)""" + item.quantity +
+                        """(?!\d)""").findAll(whole).count(),
                         "Equipment amount must not duplicate: " + item.id)
                 }
                 extraCoins.forEach { coin ->
                     assertEquals(1, Regex(Regex.escape(coin.name.substring(0, 16)))
                         .findAll(whole).count(), "Missing/repeated coin " + coin.key)
                     if (coin.amount != 0) {
-                        assertEquals(1, Regex("""(?<!\\d)""" + coin.amount +
-                            """(?!\\d)""").findAll(whole).count(),
+                        assertEquals(1, Regex("""(?<!\d)""" + coin.amount +
+                            """(?!\d)""").findAll(whole).count(),
                             "Currency amount must not duplicate: " + coin.key)
                     }
                 }
