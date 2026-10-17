@@ -2409,6 +2409,107 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
 
+
+    @Test
+    fun g3OnlyP2TraitsInMixedC2NeverInventAP1Backlink() {
+        // This case is outside the ordinary Aldren/Ilyra/Mara page distribution:
+        // P1 sources fit on P1, while hundreds of real source-backed trait IDs
+        // exhaust P1 and P2, forcing a P2-only mixed C2.
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val trait = original.permanent.sheet.traits.first()
+        val syntheticTraits = (1..118).map { number ->
+            trait.copy(
+                id = Uuid.parse("ca270000-0000-4000-8000-" +
+                    number.toString().padStart(12, '0')),
+                name = "Rasgo de navegacion " + number.toString().padStart(3, '0'),
+                source = "Fuente comprobable",
+                description = "Texto digital fuera de Rasgos",
+                notes = "Nota digital que no aparece en Rasgos",
+                sortOrder = number,
+            )
+        }
+        val base = original.permanent.sheet
+        val adjusted = original.copy(permanent = original.permanent.copy(
+            sheet = base.copy(
+                traits = syntheticTraits,
+                combatEntries = emptyList(),
+                resources = emptyList(),
+                inventoryItems = emptyList(),
+                currencies = emptyList(),
+            ),
+            closure = original.permanent.closure.copy(inventoryUsage = emptyList()),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant,
+                    PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = false),
+                adjusted,
+            )
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-P2-only-traits-C2-" + variant.name + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { number ->
+                    PDFTextStripper().apply {
+                        startPage = number
+                        endPage = number
+                    }.getText(pdf)
+                }
+                val mixedPage = pages.indexOfFirst {
+                    it.contains("C2 - Habilidades, acciones y recursos")
+                } + 1
+                assertTrue(mixedPage > 3, "P2-only trait overflow must reach C2.")
+                assertFalse(pages[0].contains("CONTINÚA EN C2"),
+                    "P1 must not advertise a C2 page containing ONLY P2 traits.")
+                assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " + mixedPage),
+                    "P2 must link to the real first physical traits continuation.")
+                assertTrue(pages[mixedPage - 1].contains("VIENE DE P2 PÁG. 2"),
+                    "P2-only mixed C2 must identify its actual base page.")
+                assertFalse(pages[mixedPage - 1].contains("VIENE DE P1"),
+                    "P2-only mixed C2 must never falsely claim a P1 source.")
+                assertTrue(pages.joinToString("\n").contains("Rasgo de navegacion 118"),
+                    "The final original trait identity must survive P1/P2/C2.")
+                val last = pages.last()
+                assertTrue(last.lineSequence().any { it.trim() == "NOTAS" })
+            }
+        }
+    }
+
+    @Test
+    fun g3MixedC2ActualAldrenIlyraMaraNavigationKeepsTrueP1AndP2Origins() {
+        for ((fixture, variant) in listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.A,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
+        )) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant,
+                    PcSheetExportStateSelection.PERMANENT),
+                sources(fixture),
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { physical ->
+                    PDFTextStripper().apply {
+                        startPage = physical
+                        endPage = physical
+                    }.getText(pdf)
+                }
+                val mixedPhysical = pages.indexOfFirst {
+                    it.contains("C2 - Habilidades, acciones y recursos")
+                } + 1
+                assertTrue(mixedPhysical > 0)
+                assertTrue(pages[0].contains("CONTINÚA EN C2 PÁG. " + mixedPhysical))
+                assertTrue(pages[mixedPhysical - 1].contains("VIENE DE P1 PÁG. 1"))
+                if (fixture.contains("mara")) {
+                    assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " + mixedPhysical))
+                    assertTrue(pages[mixedPhysical - 1].contains("P2 PÁG. 2"))
+                }
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+            }
+        }
+    }
+
     @Test
     fun g3RealP2PairedTableHeadersIdentifyObjectAndDenominationWithoutMovingSourceCells() {
         // Golden V11 P2 reserves right-aligned legend in each clipped

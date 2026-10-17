@@ -54,6 +54,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // sources. Track actual physical pages; never infer a P2 backlink
             // from a generic C2 heading or a section-local ordinal.
             val mixedC2TraitPages = mutableSetOf<Int>()
+            // P1 must link to mixed C2 ONLY when that physical section
+            // actually contains P1-owned source lines, not P2-only traits.
+            val mixedC2P1Pages = mutableSetOf<Int>()
 
             fun draw(stream: PDPageContentStream, text: String, x: Float, y: Float, label: Boolean) {
                 if (text.isEmpty()) return
@@ -1545,9 +1548,17 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         val pageCells = flow.cells.filter {
                             it.localPageIndex == index + 1
                         }
-                        if (title == "C2 - Habilidades, acciones y recursos" &&
-                            pageCells.any { it.sourceKey.startsWith("p2-trait:") }) {
-                            mixedC2TraitPages += pdf.numberOfPages
+                        if (title == "C2 - Habilidades, acciones y recursos") {
+                            val fromP2 = pageCells.any {
+                                it.sourceKey.startsWith("p2-trait:") ||
+                                    it.sourceKey == "c2-heading:traits"
+                            }
+                            val fromP1 = pageCells.any {
+                                !it.sourceKey.startsWith("p2-trait:") &&
+                                    it.sourceKey != "c2-heading:traits"
+                            }
+                            if (fromP2) mixedC2TraitPages += pdf.numberOfPages
+                            if (fromP1) mixedC2P1Pages += pdf.numberOfPages
                         }
                         // Golden P4 uses quiet blue level bands and ruled writing
                         // rows, not free-floating glyphs over a blank page.
@@ -2790,8 +2801,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             } + 1
             require(physicalP1 > 0 && physicalP2 > 0)
             val mixedC2Key = "C2 - Habilidades, acciones y recursos"
-            val c2FromP1 = physicalSectionKeys.indexOfFirst { it == mixedC2Key }
-                .takeIf { it >= 0 }?.plus(1)
+            val c2FromP1 = mixedC2P1Pages.minOrNull()
             fun isFromP2(key: String): Boolean =
                 key == "C2 - Equipo y tesoro" ||
                     key == "C2 - Rasgos / continuación" ||
@@ -2813,29 +2823,33 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 require(position >= 0)
                 val prev = sectionPages.getOrNull(position - 1)
                 val next = sectionPages.getOrNull(position + 1)
-                val parent = when {
-                    key == mixedC2Key -> "P1" to physicalP1
-                    isFromP2(key) -> "P2" to physicalP2
-                    else -> null
-                }
                 val link = when {
                     key.startsWith("P1 - ") && c2FromP1 != null ->
                         "CONTINÚA EN C2 PÁG. " + c2FromP1
                     key.startsWith("P2 - ") && c2FromP2 != null ->
                         "CONTINÚA EN C2 PÁG. " + c2FromP2
-                    parent != null && prev == null ->
-                        "VIENE DE " + parent.first + " PÁG. " + parent.second +
-                            (if (key == mixedC2Key &&
-                                physicalPage in mixedC2TraitPages)
-                                " / P2 PÁG. " + physicalP2 else "") +
+                    key == mixedC2Key -> {
+                        // A single mixed C2 physical page may contain P1
+                        // continuations, P2 trait continuations, both or neither.
+                        // Link each base page to its FIRST genuine continuation,
+                        // and announce provenance only when it begins there.
+                        val origins = listOfNotNull(
+                            if (physicalPage == c2FromP1)
+                                "P1 PÁG. " + physicalP1 else null,
+                            if (physicalPage == mixedC2TraitPages.minOrNull())
+                                "P2 PÁG. " + physicalP2 else null,
+                        )
+                        listOfNotNull(
+                            origins.takeIf { it.isNotEmpty() }?.let {
+                                "VIENE DE " + it.joinToString(" / ")
+                            },
+                            prev?.let { "ANT. " + it },
+                            next?.let { "SIG. " + it },
+                        ).joinToString(" | ")
+                    }
+                    isFromP2(key) && prev == null ->
+                        "VIENE DE P2 PÁG. " + physicalP2 +
                             (next?.let { " | SIG. " + it } ?: "")
-                    key == mixedC2Key &&
-                        mixedC2TraitPages.minOrNull() == physicalPage ->
-                        "VIENE DE P2 PÁG. " + physicalP2 + " | " +
-                            listOfNotNull(
-                                prev?.let { "ANT. " + it },
-                                next?.let { "SIG. " + it },
-                            ).joinToString(" | ")
                     else -> listOfNotNull(
                         prev?.let { "ANT. " + it },
                         next?.let { "SIG. " + it },
