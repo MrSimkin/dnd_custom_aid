@@ -138,11 +138,32 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val compactBAttributes = data.request.variant ==
                 io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.B &&
                 data.attributes.size > 6
+            // Source-backed A skills cannot force the SIX mandatory
+            // attribute rows beneath P1's approved printable floor. Preserve
+            // the original geometry while all rows fit; when they do not,
+            // the shared cap defers only excess source skills to mixed C2.
+            val aSkillRowCaps = if (data.request.variant ==
+                io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A
+            ) {
+                io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11AttributeSkillBudget
+                    .plan(
+                        data.attributes.take(6).map { attribute ->
+                            data.skills.count { it.ability == attribute.reference }
+                        },
+                        areaTopPt = 577f,
+                        safeBottomPt = 110f,
+                    ).mapIndexed { index, cap ->
+                        data.attributes[index].reference to cap
+                    }.toMap()
+            } else emptyMap()
             fun p1AttributeHeight(ability: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Attribute): Float {
                 val a=data.request.variant ==
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A
-                return if(a) maxOf(38f,29f +
-                    minOf(6,data.skills.count{it.ability==ability.reference})*10.5f)
+                return if(a) io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11AttributeSkillBudget
+                    .heightPt(
+                        aSkillRowCaps[ability.reference] ?: minOf(6,
+                            data.skills.count { it.ability == ability.reference }),
+                    )
                     else if(compactBAttributes) 25f else 38f
             }
             // Variant A NEVER uses B's fixed 25pt compression: a skill group
@@ -313,7 +334,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     val fitsHere = mutableListOf<Pair<Int, io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Skill>>()
                     data.skills.forEachIndexed { skillIndex, skill ->
                         if (skill.ability == attr.reference && skillIndex !in printedSkillIndices &&
-                            fitsHere.size < 6 && skill.name.isNotBlank()
+                            fitsHere.size < (aSkillRowCaps[attr.reference] ?: 6) &&
+                            skill.name.isNotBlank()
                         ) {
                             val total = skill.total?.let { if (it >= 0) "+" + it else it.toString() } ?: ""
                             val remaining = 258f - 34f - skillFont.width.measurePt(total) - 9f

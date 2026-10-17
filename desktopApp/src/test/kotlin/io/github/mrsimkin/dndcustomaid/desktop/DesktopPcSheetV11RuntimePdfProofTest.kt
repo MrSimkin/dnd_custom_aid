@@ -2152,6 +2152,78 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
 
+
+    @Test
+    fun g3RealSixMandatoryAttributesSurviveDenseCustomSkillsWithLosslessC2Continuation() {
+        val base = sources("03_mara_siete_umbrales_custom_extended.json")
+        val sample = requireNotNull(base.permanent.closure.customSkills.firstOrNull())
+        val abilities = listOf(
+            io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility.STRENGTH,
+            io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility.DEXTERITY,
+            io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility.CONSTITUTION,
+            io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility.INTELLIGENCE,
+            io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility.WISDOM,
+            io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility.CHARISMA,
+        )
+        // Technical stress fixture only: genuine backup plus source-backed
+        // custom skills with real UUIDs. They are not the owner's game data.
+        val extra = abilities.flatMapIndexed { attrIndex, ability ->
+            (1..9).map { within ->
+                val serial = attrIndex * 9 + within
+                sample.copy(
+                    id = Uuid.parse("90000000-0000-4000-8000-" +
+                        serial.toString().padStart(12, '0')),
+                    ability = ability,
+                    name = "QASKILL" + serial.toString().padStart(3, '0'),
+                    sortOrder = 1000 + serial,
+                )
+            }
+        }
+        val stressed = base.copy(permanent = base.permanent.copy(
+            closure = base.permanent.closure.copy(
+                customSkills = base.permanent.closure.customSkills + extra,
+            ),
+        ))
+        assertEquals(extra.size, stressed.permanent.closure.customSkills.size -
+            base.permanent.closure.customSkills.size)
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                stressed,
+            ).bytes
+            preserveRealApplicationPdf(bytes,
+                "V11-INTERNAL-PROOF-dense-six-attributes-" + variant.name + ".pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val textByPage = (1..pdf.numberOfPages).map { number ->
+                    PDFTextStripper().apply {
+                        startPage = number
+                        endPage = number
+                    }.getText(pdf)
+                }
+                val all = textByPage.joinToString("\n")
+                for (attributeName in listOf(
+                    "FUERZA", "DESTREZA", "CONSTITUCIÓN",
+                    "INTELIGENCIA", "SABIDURÍA", "CARISMA",
+                )) {
+                    assertTrue(textByPage.first().contains(attributeName),
+                        "Every mandatory base attribute stays on P1: " + attributeName)
+                }
+                extra.forEach { skill ->
+                    assertEquals(1, Regex(Regex.escape(skill.name)).findAll(all).count(),
+                        "Printed source skill must appear exactly once: " + skill.name)
+                }
+                assertTrue(textByPage.any { it.contains("C2 - Habilidades, acciones y recursos") },
+                    "Crowded real skills must continue into measured two-column C2.")
+                assertTrue(textByPage.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertFalse(textByPage.last().contains("QASKILL"))
+                assertTrue((1..pdf.numberOfPages).all { index ->
+                    val media = pdf.getPage(index - 1).mediaBox
+                    media.width == 612f && media.height == 792f
+                })
+            }
+        }
+    }
+
     @Test
     fun g3RealTabbedNarrativeAndDigitalNotesRenderOnBothVariantsWithoutSourceMutation() {
         val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
