@@ -2245,7 +2245,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         assertEquals(sourceName, altered.permanent.sheet.spellcastingSources.first().name)
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
             val result = DesktopPcSheetExportService().generateV11Proof(
-                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                PcSheetV11ExportRequest(
+                    variant,
+                    PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = true,
+                ),
                 altered,
             )
             preserveRealApplicationPdf(
