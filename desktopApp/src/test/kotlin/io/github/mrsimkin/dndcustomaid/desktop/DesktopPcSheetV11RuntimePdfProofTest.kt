@@ -1517,6 +1517,58 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3LongRealCharacterNameKeepsMeasuredOneLineHeaderAndFullC2SourceForAB() {
+        // Authentic Aldren fields; mutate only the name with unique ordered
+        // technical tokens. No invented name is attributed to the owner.
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val tokens = (1..64).map { "NOMBREQA" + it.toString().padStart(2, '0') }
+        val fullName = "Aldren " + tokens.joinToString(" ") + " FINNOMBREQA"
+        val source = original.copy(
+            permanent = original.permanent.copy(
+                sheet = original.permanent.sheet.copy(name = fullName),
+            ),
+        )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                source,
+            )
+            preserveRealApplicationPdf(
+                proof.bytes, "V11-INTERNAL-PROOF-P1-long-character-name-" + variant + ".pdf",
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { number ->
+                    PDFTextStripper().apply {
+                        startPage = number
+                        endPage = number
+                    }.getText(pdf)
+                }
+                val c2Pages = pages.filter {
+                    it.contains("C2 - Habilidades, acciones y recursos")
+                }
+                assertTrue(c2Pages.isNotEmpty())
+                val c2Text = c2Pages.joinToString("\n")
+                assertTrue(c2Text.contains("NOMBRE COMPLETO DEL PERSONAJE:"),
+                    "The full saved source name must have a real C2 home.")
+                tokens.forEach { token ->
+                    assertEquals(1, Regex(Regex.escape(token)).findAll(c2Text).count(),
+                        "Each source name token must be preserved exactly once: " + token)
+                }
+                assertTrue(c2Text.contains("FINNOMBREQA"))
+                pages.forEachIndexed { index, text ->
+                    assertTrue(text.contains("VER C2"),
+                        "Every physical page needs the same navigable one-line name: " +
+                            (index + 1))
+                }
+                assertTrue(pages.first().contains("CONTINÚA EN C2 PÁG."),
+                    "P1 must link to the genuine page containing the full name.")
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertFalse(pages.last().contains("NOMBRE COMPLETO DEL PERSONAJE:"))
+            }
+        }
+    }
+
+    @Test
     fun g3OversizedPersistedSpellSlotCountersUseP1C2WithoutClippingOrInventingValues() {
         // A genuine Aldren backup supplies every unchanged field; only the
         // explicit persisted slot counters are stressed at the Int boundary.
