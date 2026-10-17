@@ -344,7 +344,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 stream.beginText()
                                 stream.setFont(bodyPdfFont,7f)
                                 stream.newLineAtOffset(x,y)
-                                stream.showText(value)
+                                stream.showText(pcSheetV11PrintableText(value))
                                 stream.endText()
                             }
                         }
@@ -467,7 +467,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         stream.beginText()
                         stream.setFont(bodyPdfFont,7f)
                         stream.newLineAtOffset(cell.cellPt.leftPt, baseline)
-                        stream.showText(cell.drawableText)
+                        stream.showText(pcSheetV11PrintableText(cell.drawableText))
                         stream.endText()
                     }
                 }
@@ -756,7 +756,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.beginText()
                 stream.setFont(bodyPdfFont, 7f)
                 stream.newLineAtOffset(x, y)
-                stream.showText(content)
+                stream.showText(pcSheetV11PrintableText(content))
                 stream.endText()
             }
             // Fit complete identities in 12 genuine 10pt paper rows
@@ -1768,7 +1768,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     stream.beginText()
                                     stream.setFont(bodyPdfFont, 7f)
                                     stream.newLineAtOffset(x, baseline)
-                                    stream.showText(realSource)
+                                    stream.showText(pcSheetV11PrintableText(realSource))
                                     stream.endText()
                                 }
                             } else if (
@@ -1795,7 +1795,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     cell.cellPt.leftPt + inset,
                                     body.metrics.baselineIn(cell.cellPt),
                                 )
-                                stream.showText(cell.drawableText)
+                                stream.showText(pcSheetV11PrintableText(cell.drawableText))
                                 stream.endText()
                             } else if (cell.drawableText.isNotEmpty()) {
                                 draw(stream, cell.drawableText,

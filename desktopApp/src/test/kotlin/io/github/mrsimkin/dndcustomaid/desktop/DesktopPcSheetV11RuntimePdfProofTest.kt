@@ -2200,6 +2200,82 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun g3RealTabbedTraitsCustomSkillsAndSpellSourcesRenderWithoutMutatingSavedText() {
+        // These were previously missed by the four direct PDFBox showText calls
+        // (P1 Rasgos, A grouped skill, B independent skill, and P4 source strip).
+        // Use a genuine Mara snapshot; modify ONLY the string source fields.
+        val original = sources("03_mara_siete_umbrales_custom_extended.json")
+        val sheet = original.permanent.sheet
+        val closure = original.permanent.closure
+        val traitName = "TRAITTAB\tALFA"
+        val traitOrigin = "ORIGENTAB\tBETA"
+        val skillName = "SKILLTAB\tALFA"
+        val sourceName = "SRC7\tONE"
+        val altered = original.copy(
+            permanent = original.permanent.copy(
+                sheet = sheet.copy(
+                    traits = sheet.traits.mapIndexed { index, trait ->
+                        if (index == 0) trait.copy(name = traitName, source = traitOrigin)
+                        else trait
+                    },
+                    spellcastingSources = sheet.spellcastingSources.mapIndexed { index, entry ->
+                        if (index == 0) entry.copy(name = sourceName) else entry
+                    },
+                    spells = sheet.spells.mapIndexed { index, spell ->
+                        if (index == 0) spell.copy(name = "QA7") else spell
+                    },
+                ),
+                closure = closure.copy(
+                    customSkills = closure.customSkills.mapIndexed { index, skill ->
+                        if (index == 0) skill.copy(name = skillName) else skill
+                    },
+                ),
+            ),
+        )
+        assertEquals(traitName, altered.permanent.sheet.traits.first().name)
+        assertEquals(traitOrigin, altered.permanent.sheet.traits.first().source)
+        assertEquals(skillName, altered.permanent.closure.customSkills.first().name)
+        assertEquals(sourceName, altered.permanent.sheet.spellcastingSources.first().name)
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val result = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                altered,
+            )
+            preserveRealApplicationPdf(
+                result.bytes,
+                "V11-INTERNAL-PROOF-source-tabs-mechanical-" + variant.name + ".pdf",
+            )
+            Loader.loadPDF(result.bytes).use { pdf ->
+                val pageTexts = (1..pdf.numberOfPages).map { physical ->
+                    PDFTextStripper().apply {
+                        startPage = physical
+                        endPage = physical
+                    }.getText(pdf)
+                }
+                val entire = pageTexts.joinToString("\n")
+                assertTrue(entire.contains("TRAITTAB"),
+                    "A source-backed mechanical trait may not disappear.")
+                assertTrue(entire.contains("ORIGENTAB"),
+                    "The actual trait origin may not be discarded.")
+                assertTrue(entire.contains("SKILLTAB"),
+                    "A custom skill's persisted name must survive V11 flow.")
+                assertTrue(pageTexts.any {
+                    it.contains("P4 - Conjuros") && it.contains("SRC7")
+                }, "The genuine spell origin must survive its compact P4 row.")
+                assertTrue(pageTexts.first().contains("TRAITTAB"),
+                    "P1 summary must show the first small mechanical trait.")
+                assertTrue(pageTexts.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertFalse(pageTexts.last().contains("TRAITTAB") ||
+                    pageTexts.last().contains("SRC7"))
+            }
+        }
+        // PDF rendering has no ownership of the model and cannot rewrite input.
+        assertEquals(skillName, altered.permanent.closure.customSkills.first().name)
+        assertEquals(sourceName, altered.permanent.sheet.spellcastingSources.first().name)
+    }
+
     @Test
     fun digitalNotesHaveDedicatedPagesAndDisappearWhenSourceNotesAreAbsent() {
         val actual = sources("03_mara_siete_umbrales_custom_extended.json")
