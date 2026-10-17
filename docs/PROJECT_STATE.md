@@ -1,5 +1,10 @@
 # Project State — global repository navigation
 
+### AVANCE V11 C206 (2026-10-16) — navegabilidad P1/P2/C2 por origen real
+
+Se corrigió una referencia falsa de P1 en C2 mixta cuando los únicos registros prolongados son Rasgos de P2, en los DOS renderizadores PDFBox V11. Commit fuente `d25c2824a90d4d19fa9ac3794f2621ea6b4ab4b3`, Scaffold #38985980989 SUCCESS, QA ledger #38985980924 SUCCESS. Se inspeccionaron ocho PDFs reales [artefacto #12083292410](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38985980989/artifacts/12083292410): los seis casos anteriores tienen páginas/texto/posiciones/vectores idénticos; nuevos casos A/B con 118 Rasgos muestran P2→C2 físico correcto sin P1 ficticio y 118 identidades, última NOTAS intacta. Regla C206 G3 **PASS con evidencia**; G2 y G4 aún pendientes, C206 global NOT_VERIFIED, matriz 105 reglas y G4 BLOCKED. [Checkpoint](../pc-sheet-v11/G3_C2_REFERENCIAS_ORIGEN_FISICO_2026-10-16.md). Una PR #173 DRAFT/unmerged, main/legacy/golden intactos. Avanzar por plan original G0–G6, ampliar reglas sin sustituir evidencia ni demorar desarrollos concretos.
+
+
 ### ACTUALIZACIÓN 2026-10-16 — V11 P2 RESERVAS + CABECERAS VERIFICADAS LOCAL DESKTOP
 
 En única PR #173 OPEN/DRAFT/unmerged se implementaron P203/P206: las filas manuscritas P2 vacías en ambos PDFBox pasan de 12.42pt a 16.5pt (Equipo)/19.5pt (Tesoro) sin cambiar tablas con registros ni C2; P202/P205 añade los metadatos completos aprobados «OBJETO / CANTIDAD» y «DENOMINACIÓN / CANTIDAD» dentro de las cartelas P2 existentes. Último commit funcional `fa2f333d8c1dd986a55512f6bfe1e0326cd17a4b`. Scaffold #38982363198 y #38983178486 SUCCESS; QA #38982363225 y #38983178488 SUCCESS. Se extrajeron seis PDFs Desktop reales por build (artefactos 12082390303 y 12082570208), CRC PASS y PyMuPDF confirma que solo cambian geometrías manuscritas P2 en casos sin filas o palabras de encabezados; texto fuente/paginación/dibujos posteriores intactos. Checkpoint `docs/pc-sheet-v11/G3_P2_PAPER_AND_PAIRED_HEADERS_2026-10-16.md`. G4 continúa BLOCKED con reglas globales NOT_VERIFIED, no owner QA, RCR-1 0/2; no cambios main/legacy/golden.
