@@ -1597,18 +1597,18 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 val realName = namesByKey.getValue(fragment.sourceKey)
                                 val titleText = "CONTINUACIÓN: " + realName
                                 val fontSize = 7f
-                                val width = bodyPdfFont.getStringWidth(titleText) *
+                                val width = bodyPdfFont.getStringWidth(pcSheetV11PrintableText(titleText)) *
                                     fontSize / 1000f
                                 val printed = if (width <= col.widthPt - 6f) titleText
                                     else "CONTINUACIÓN (VER ÍNDICE)"
-                                require(bodyPdfFont.getStringWidth(printed) *
+                                require(bodyPdfFont.getStringWidth(pcSheetV11PrintableText(printed)) *
                                     fontSize / 1000f <= col.widthPt - 6f)
                                 stream.saveGraphicsState()
                                 stream.setNonStrokingColor(Color(80, 122, 151))
                                 stream.beginText()
                                 stream.setFont(bodyPdfFont, fontSize)
                                 stream.newLineAtOffset(col.leftPt + 2f, col.topPt + 5f)
-                                stream.showText(printed)
+                                stream.showText(pcSheetV11PrintableText(printed))
                                 stream.endText()
                                 stream.restoreGraphicsState()
                             }

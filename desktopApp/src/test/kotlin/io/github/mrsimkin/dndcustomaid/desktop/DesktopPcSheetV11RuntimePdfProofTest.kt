@@ -2224,7 +2224,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         if (index == 0) entry.copy(name = sourceName) else entry
                     },
                     spells = sheet.spells.mapIndexed { index, spell ->
-                        if (index == 0) spell.copy(name = "QA7") else spell
+                        if (index == 0) spell.copy(
+                            name = "QA7\tZ",
+                            description = "BOOK_TAB_START " +
+                                ("Descripción de conjuro original y continuación. ").repeat(195) +
+                                " BOOK_TAB_FINISH",
+                        ) else spell
                     },
                 ),
                 closure = closure.copy(
@@ -2266,6 +2271,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }, "The genuine spell origin must survive its compact P4 row.")
                 assertTrue(pageTexts.first().contains("TRAITTAB"),
                     "P1 summary must show the first small mechanical trait.")
+                val bookPages = pageTexts.filter { it.contains("Libro de conjuros /") &&
+                    !it.contains("Índice del Libro de Conjuros") }
+                assertTrue(bookPages.any { it.contains("BOOK_TAB_START") })
+                assertTrue(bookPages.any { it.contains("BOOK_TAB_FINISH") })
+                assertTrue(bookPages.any { it.contains("CONTINUACIÓN: QA7") },
+                    "A continued source-backed spell name containing a tab needs a safe PDF heading.")
                 assertTrue(pageTexts.last().lineSequence().any { it.trim() == "NOTAS" })
                 assertFalse(pageTexts.last().contains("TRAITTAB") ||
                     pageTexts.last().contains("SRC7"))
