@@ -51,6 +51,50 @@ object PcSheetV11PairedTableSources {
         )
 }
 
+/**
+ * Paper geometry for source-backed EQUIPO/TESORO amounts.
+ * The original P2 has a frozen 36pt amount slot; do not shrink the font.
+ * Too-wide amounts move with their entire source row to C2, where the
+ * pair's amount column expands ONLY when genuinely needed.
+ */
+object PcSheetV11PairedAmountRouting {
+    const val BASE_AMOUNT_WIDTH_PT = 36f
+    const val AMOUNT_GAP_PT = 6f
+    const val TEXT_INSET_PT = 2f
+
+    fun p2Eligible(
+        source: PcSheetV11PairedTableData,
+        areaPt: PcSheetV11RectPt,
+        gutterPt: Float,
+        width: PcSheetV11TextWidth,
+    ): PcSheetV11PairedTableData {
+        val pairWidth = (areaPt.widthPt - gutterPt) / 2f
+        val nameWidth = pairWidth - BASE_AMOUNT_WIDTH_PT - AMOUNT_GAP_PT
+        require(nameWidth > TEXT_INSET_PT)
+        return source.copy(rows = source.rows.filter { row ->
+            val labelWidth = width.measurePt(pcSheetV11PrintableText(row.label))
+            val amountWidth = width.measurePt(row.amount.toString())
+            require(labelWidth.isFinite() && amountWidth.isFinite() &&
+                labelWidth >= 0f && amountWidth >= 0f)
+            !row.label.contains('\n') && !row.label.contains('\r') &&
+                labelWidth <= nameWidth - TEXT_INSET_PT &&
+                amountWidth <= BASE_AMOUNT_WIDTH_PT - TEXT_INSET_PT
+        })
+    }
+
+    fun c2AmountWidth(
+        source: PcSheetV11PairedTableData,
+        width: PcSheetV11TextWidth,
+    ): Float {
+        val widest = source.rows.maxOfOrNull { row ->
+            width.measurePt(row.amount.toString()).also {
+                require(it.isFinite() && it >= 0f)
+            }
+        } ?: 0f
+        return maxOf(BASE_AMOUNT_WIDTH_PT, widest + 2f * TEXT_INSET_PT)
+    }
+}
+
 /** Geometric cells are NOT drawings; source labels can continue, amounts may not duplicate. */
 data class PcSheetV11PairedTableCell(
     val sourceKey: String,

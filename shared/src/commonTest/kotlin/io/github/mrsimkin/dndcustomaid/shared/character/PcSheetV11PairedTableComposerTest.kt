@@ -128,6 +128,51 @@ class PcSheetV11PairedTableComposerTest {
         assertEquals("0", placed.quantities.single().printableText)
     }
 
+
+    @Test
+    fun widePersistedEquipmentAndTreasureAmountsMoveWholeToMeasuredC2() {
+        for (kind in PcSheetV11PairedTableKind.entries) {
+            val table = PcSheetV11PairedTableData(kind, listOf(
+                PcSheetV11PairedTableRow("normal:" + kind, "Objeto habitual", 25, null),
+                PcSheetV11PairedTableRow("extreme:" + kind, "Cantidad auténtica", Int.MAX_VALUE, null),
+            ))
+            val p2 = PcSheetV11PairedAmountRouting.p2Eligible(table, area, 12f, width)
+            assertEquals(listOf("normal:" + kind), p2.rows.map { it.sourceKey })
+            val remaining = table.copy(rows = table.rows.filter { row ->
+                row.sourceKey !in p2.rows.map { it.sourceKey }.toSet()
+            })
+            val widened = PcSheetV11PairedAmountRouting.c2AmountWidth(remaining, width)
+            assertTrue(widened >= 54f)
+            val placed = PcSheetV11PairedTableComposer.place(
+                remaining, area, 12f, widened,
+                PcSheetV11PairedAmountRouting.AMOUNT_GAP_PT, 12f, width,
+            )
+            assertEquals("2147483647", placed.quantities.single().printableText)
+            assertEquals("Cantidad auténtica", placed.labels.joinToString("") { it.sourceText })
+            val quantity = placed.quantities.single()
+            val pair = placed.pairs[quantity.pairIndex - 1]
+            assertTrue(quantity.rectPt.leftPt >= pair.leftPt)
+            assertTrue(quantity.rectPt.leftPt +
+                PcSheetV11PairedAmountRouting.TEXT_INSET_PT +
+                width.measurePt(quantity.printableText) <= pair.rightPt)
+            placed.verify()
+        }
+    }
+
+    @Test
+    fun ordinaryP2AmountWidthsKeepTheApprovedOriginalColumns() {
+        val data = PcSheetV11PairedTableData(PcSheetV11PairedTableKind.TREASURE, listOf(
+            PcSheetV11PairedTableRow("coin:gold", "Oro", 0, null),
+            PcSheetV11PairedTableRow("coin:silver", "Plata", 120, null),
+        ))
+        val eligible = PcSheetV11PairedAmountRouting.p2Eligible(data, area, 12f, width)
+        assertEquals(data.rows, eligible.rows)
+        assertEquals(36f, PcSheetV11PairedAmountRouting.c2AmountWidth(eligible, width))
+        val placed = place(eligible)
+        assertEquals(listOf("0", "120"), placed.quantities.map { it.printableText })
+        placed.verify()
+    }
+
     @Test
     fun absentRecordsRemainAbsentAndInvalidMeasuresFailExplicitly() {
         val none = place(PcSheetV11PairedTableData(PcSheetV11PairedTableKind.TREASURE, emptyList()))

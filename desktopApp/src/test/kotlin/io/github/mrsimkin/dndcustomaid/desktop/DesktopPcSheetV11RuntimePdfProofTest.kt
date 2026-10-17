@@ -3070,6 +3070,68 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun g3RealExtremeEquipmentAndTreasureAmountsMoveWholeToC2ForBothVariants() {
+        // Preserve a genuine Mara backup; append only two discriminating stress rows.
+        val original = sources("03_mara_siete_umbrales_custom_extended.json")
+        val baseline = original.permanent.sheet
+        val template = baseline.inventoryItems.first { !it.special }
+        val extraItem = template.copy(
+            id = Uuid.parse("40000000-0000-4000-8000-000000000043"),
+            name = "EQUIPO_QA_CANTIDAD_COMPLETA",
+            quantity = Int.MAX_VALUE,
+            sortOrder = (baseline.inventoryItems.maxOfOrNull { it.sortOrder } ?: 0) + 1,
+            special = false,
+            weightLb = null,
+        )
+        val extraCoin = io.github.mrsimkin.dndcustomaid.shared.character.CharacterCurrency(
+            key = "qa-wide-amount",
+            name = "TESORO_QA_CANTIDAD_COMPLETA",
+            amount = 1987654321,
+            sortOrder = (baseline.currencies.maxOfOrNull { it.sortOrder } ?: 0) + 1,
+            isDefault = false,
+        )
+        val stressed = original.copy(permanent = original.permanent.copy(
+            sheet = baseline.copy(
+                inventoryItems = baseline.inventoryItems + extraItem,
+                currencies = baseline.currencies + extraCoin,
+            ),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val pdfBytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                stressed,
+            ).bytes
+            preserveRealApplicationPdf(
+                pdfBytes, "V11-INTERNAL-PROOF-P2-C2-large-amounts-" + variant + ".pdf",
+            )
+            Loader.loadPDF(pdfBytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { page ->
+                    PDFTextStripper().apply {
+                        startPage = page
+                        endPage = page
+                    }.getText(pdf)
+                }
+                val entire = pages.joinToString("\n")
+                val equipment = "2147483647"
+                val treasure = "1987654321"
+                assertFalse(pages[1].contains(equipment) || pages[1].contains(treasure),
+                    "P2 cannot print source numbers outside its fixed 36pt amount cells.")
+                assertEquals(1, Regex(Regex.escape(equipment)).findAll(entire).count())
+                assertEquals(1, Regex(Regex.escape(treasure)).findAll(entire).count())
+                val equipmentC2 = pages.filter { it.contains("C2 - Equipo y tesoro / EQUIPO") }
+                val treasureC2 = pages.filter { it.contains("C2 - Equipo y tesoro / TESORO") }
+                assertTrue(equipmentC2.any { it.contains("EQUIPO_QA_CANTIDAD_COMPLETA") &&
+                    it.contains(equipment) }, "An intact equipment amount needs its own C2 pair.")
+                assertTrue(treasureC2.any { it.contains("TESORO_QA_CANTIDAD_COMPLETA") &&
+                    it.contains(treasure) }, "An intact treasure amount needs its own C2 pair.")
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertFalse(pages.last().contains(equipment) || pages.last().contains(treasure))
+            }
+        }
+    }
+
     @Test
     fun g3RealP2RecordedZeroCurrencyIsNotTreatedAsAbsentPaperEntry() {
         // Persisted zero IS a real value; no default currency may be generated.

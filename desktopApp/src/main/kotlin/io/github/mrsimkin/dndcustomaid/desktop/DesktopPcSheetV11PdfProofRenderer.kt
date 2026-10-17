@@ -3,6 +3,7 @@ package io.github.mrsimkin.dndcustomaid.desktop
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowItem
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowSection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableComposer
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedAmountRouting
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableSources
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTablePlaced
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11MeasuredFlowPlacer
@@ -1930,14 +1931,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             fun rowsForP2(
                 input: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData,
                 area: PcSheetV11RectPt,
-            ): io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData {
-                val labelWidth = (area.widthPt - 12f) / 2f - 36f - 6f
-                require(labelWidth > 0f)
-                return input.copy(rows = input.rows.filter { row ->
-                    !row.label.contains('\n') &&
-                        body.width.measurePt(row.label) <= labelWidth
-                })
-            }
+            ): io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData =
+                PcSheetV11PairedAmountRouting.p2Eligible(input, area, 12f, body.width)
             val inventoryPlaced = PcSheetV11PairedTableComposer.place(
                 rowsForP2(completeEquipment, equipmentArea),
                 equipmentArea, 12f, 36f, 6f, body.metrics.lineHeightPt, body.width,
@@ -2187,7 +2182,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.setStrokingColor(Color(130, 165, 186))
                 stream.setLineWidth(0.45f)
                 placed.pairs.forEach { pair ->
-                    val quantitySeparator = pair.rightPt - 42f
+                    // The quantity separator belongs to its ACTUAL measured column.
+                    // Preserve the original -42pt separator for normal 36pt rows.
+                    val amountWidth = placed.quantities.firstOrNull()?.rectPt?.widthPt
+                        ?: PcSheetV11PairedAmountRouting.BASE_AMOUNT_WIDTH_PT
+                    val quantitySeparator = pair.rightPt -
+                        amountWidth - PcSheetV11PairedAmountRouting.AMOUNT_GAP_PT
                     stream.moveTo(quantitySeparator, visibleTable.bottomPt)
                     stream.lineTo(quantitySeparator, pair.topPt)
                     stream.stroke()
@@ -2543,7 +2543,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val remaining = remainingPairedRows(complete, original)
                 if (remaining.rows.isEmpty()) continue
                 val expanded = PcSheetV11PairedTableComposer.place(
-                    remaining, fullC2PairedArea, 12f, 36f, 6f,
+                    remaining, fullC2PairedArea, 12f,
+                    PcSheetV11PairedAmountRouting.c2AmountWidth(remaining, body.width),
+                    PcSheetV11PairedAmountRouting.AMOUNT_GAP_PT,
                     body.metrics.lineHeightPt, body.width,
                     balanceSinglePageC2 = true,
                 )
