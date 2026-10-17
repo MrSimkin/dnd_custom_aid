@@ -47,6 +47,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val bodyPdfFont = measurer.font(PcSheetV11Typeface.BODY)
             val headerPdfFont = measurer.font(PcSheetV11Typeface.LABEL)
             val source = data.source.sheet
+            val headerNameRoute =
+                io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11HeaderNameRouter.route(
+                    sourceName = source.name,
+                    availableWidthPt = 406f, // Header text x154..560, inside its 422pt band.
+                    width = measurer.resolve(PcSheetV11Typeface.LABEL, 12f).width,
+                )
             val texts = PcSheetV11FlowSourceMapper.from(data)
             val pageArea = PcSheetV11RectPt(42f, 76f, 528f, 626f)
             // Physical page roles are registered exactly when a PDFBox page is
@@ -125,7 +131,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 )
                 stream.restoreGraphicsState()
 
-                draw(stream, source.name, 154f, 747f, true)
+                draw(stream, headerNameRoute.paperName, 154f, 747f, true)
                 draw(stream, title, 42f, 724f, true)
                 if (!lastHandwrittenPage) {
                     draw(stream, "PRUEBA INTERNA V11 - NO APROBADA", 42f, 46f, false)
@@ -1955,7 +1961,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // suffix into C2; the same real font metrics drive both placements.
             // Keep variable-height mechanics beneath the fixed approved identity
             // cartelas, never underneath their labels or beside the portrait.
-            val p1Unprinted=identityFieldOverflow+bSkillOverflow+identity
+            val p1Unprinted=listOfNotNull(headerNameRoute.continuation)+
+                identityFieldOverflow+bSkillOverflow+identity
             addSection("P1 - Personaje / combate / habilidades",
                 PcSheetV11FlowSection.TRAITS,emptyList(),2,alwaysPage=true,
                 area=PcSheetV11RectPt(42f,90f,258f,500f),maxPhysicalPages=1)
