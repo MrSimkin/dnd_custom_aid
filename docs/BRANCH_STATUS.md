@@ -1,3 +1,7 @@
+# Actualización 2026-10-17 — V11 tabulaciones en PDFBox
+
+**2026-10-17 — V11 G2/G3, tabulaciones en fuentes reales:** PR #173 DRAFT/unmerged. Commit productivo [11a2723](https://github.com/MrSimkin/dnd_custom_aid/commit/11a2723fcb9502849786349515cd872dfe80f283) repara render PDFBox Android/Desktop y medición compartida para `\\t` preservando offsets/fuente; nuevos tests G2/G3, último test ahora conserva PDFs nativos tabulados A/B. [Scaffold #39057693058](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39057693058) y [QA #39057693073](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39057693073) SUCCESS en código base; nuevo commit con PDFs tabulados requiere CI/inspección independiente. [Checkpoint](pc-sheet-v11/G1_G2_G3_TABULACIONES_FUENTE_PDF_2026-10-17.md). 105 reglas, 12 PASS etapas previos; sin nuevos PASS falsos, G4 BLOCKED, sin G5/G6, sin cambios legacy/golden/main.
+
 # Branch status and repository-ordering map
 
 ### ACTUALIZACIÓN 2026-10-17 — BK04 + BK05 G2/G3: LIBRO CON PAGINACIÓN ÍNTEGRA

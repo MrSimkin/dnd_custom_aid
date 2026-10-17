@@ -2114,6 +2114,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             }.text, "Tab-expanded paper output must retain persisted narrative provenance.")
             assertEquals(notes, semantic.digitalNotes.first { it.sourceId == null }.content)
             val proof = DesktopPcSheetExportService().generateV11Proof(request, patched)
+            // Preserve the G3 App-generated tabbed fixture for independent
+            // physical PDF inspection in the CI proof artifact.
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-source-tabs-" + variant.name + ".pdf")
             Loader.loadPDF(proof.bytes).use { pdf ->
                 val pages = (1..pdf.numberOfPages).map { physical ->
                     PDFTextStripper().apply {
