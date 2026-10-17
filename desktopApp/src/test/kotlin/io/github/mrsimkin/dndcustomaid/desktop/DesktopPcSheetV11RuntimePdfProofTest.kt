@@ -1805,14 +1805,17 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 ),
             ),
         )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
         val proof = DesktopPcSheetExportService().generateV11Proof(
             PcSheetV11ExportRequest(
-                PcSheetV11Variant.B,
+                variant,
                 PcSheetExportStateSelection.PERMANENT,
                 includeSpellDescriptions = true,
             ),
             adjusted,
         )
+        preserveRealApplicationPdf(proof.bytes,
+            "V11-INTERNAL-PROOF-BK05-long-card-" + variant.name + ".pdf")
         Loader.loadPDF(proof.bytes).use { pdf ->
             val sections = (1..pdf.numberOfPages).map { physical ->
                 PDFTextStripper().apply {
@@ -1843,6 +1846,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 "The real source spell name must still appear at its first occurrence.")
             assertTrue(sections.last().lineSequence().any { it.trim() == "NOTAS" },
                 "Handwritten notes must remain the physical last page.")
+        }
         }
     }
 
