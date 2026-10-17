@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-10-16",
+  "updated": "2026-10-17",
   "purpose": "Pre-owner-QA V11 enforceable requirement crosswalk; NOT a QA or PASS declaration",
   "gate": "BLOCKED",
   "active_candidate": null,
@@ -3112,8 +3112,14 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null,
+          "status": "PASS",
+          "evidence": {
+            "test_name": "bk04MeasuredBookKeepsMediumCardWholeAtStartOfNextColumn",
+            "test_result": "PASS — shared G2 two-column geometry (8 physical rows per column): first original item uses 6 rows; complete 4-row essential card shifts to column 2 row 0, never fragments; >column source still fragments losslessly, all source offsets and bounding geometry verified. This uses a disclosed fixture-only synthetic font; genuine PDFBox font is validated separately in G3.",
+            "source_commit": "d26ced4dc0443127fb3607c8d8e14aa63dbef71f",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38997328224",
+            "limitations": "G2 geometric unit-stage only, not visual golden or installed Android."
+          },
           "named_tests": [
             "bk04MeasuredBookKeepsMediumCardWholeAtStartOfNextColumn"
           ]
@@ -3122,8 +3128,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null,
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3Bk04MediumRealSpellCardMovesWholeToNextPhysicalBookColumn; test_v11_spellbook_whole_card_contract.py",
+            "test_result": "PASS — original Ilyra backup, two real spells, calibrated by exact embedded PDF font, A/B native App PDFs: first card Fire Bolt left, second Light completely in right column, eight original source markers once, no erroneous CONTINUACIÓN, accurate two-item physical index, final NOTES; all earlier 14 PDFs unchanged word-bboxes/vector/page-count. Full Kotlin test & Android DEBUG compile SUCCESS.",
+            "source_commit": "d26ced4dc0443127fb3607c8d8e14aa63dbef71f",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38997328224",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38997328224/artifacts/12087359034",
+            "pdf_zip_sha256": "3d7819085f8ec46de23ccd7d3f1dc0cf88c1382f5a3358719c76143a1abb2f5f",
+            "independent_inspection": "PyMuPDF inspected all 16 genuine native service PDFs; BK04-A/B 11 physical Letter pages, Book page 10, first source BK04_PREVIA_001 x42, second source BK04_SEGUNDA_001 x312, BK04_SEGUNDA_008 x312, every second source row exactly once. 14 previous PDFs unchanged in text+positions/vector geometry/page counts. Identical checks also on later artifact #12087649359.",
+            "limitations": "G3 local Desktop native PDFs and Android/Desktop source guard only; no installed Android route, comprehensive eight-golden G4, owner QA, nor global certification."
+          },
           "named_tests": [
             "g3Bk04MediumRealSpellCardMovesWholeToNextPhysicalBookColumn"
           ],
@@ -3145,8 +3160,19 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "bk05MeasuredBookSplitsOnlyOversizedCardAcrossColumnsAndPagesLosslessly",
+            "test_result": "PASS — shared G2 two-column book flow: source-accurate 18-line oversized essential card splits across (page1,col1),(page1,col2),(page2,col1) in six-line measured columns with exact continuous original offsets, continuation flags and no geometry overlap, and following real item begins at page2,col2. No pagination changes or renderer code changes.",
+            "source_commit": "8c82b5004238095b7683dde16119871c2798c3e9",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38997803250",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38997803250/artifacts/12087649359",
+            "independent_inspection": "Latest ZIP includes 16 authentic App PDFs; 16/16 retain prior exact PDF page text word boxes, vector drawings and page counts. App output unaffected because commit adds only G2 test. Earlier BK05 G3 A/B oversized source-backed native PDFs remain linked in independent G3 evidence.",
+            "limitations": "Fixture-font measured G2, not visual or installed Android G4. BK05 global remains NOT_VERIFIED."
+          },
+          "named_tests": [
+            "bk05MeasuredBookSplitsOnlyOversizedCardAcrossColumnsAndPagesLosslessly"
+          ]
         },
         {
           "stage": "G3",
