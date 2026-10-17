@@ -1515,6 +1515,68 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun g3ExtremeRealMulticlassHitDiceContinueInC2WithoutP1CrashOrDataLoss() {
+        // Build a discriminating stress case from a genuine Aldren backup;
+        // mutate only real class rows, preserving stable unique source IDs.
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val first = original.permanent.sheet.classes.first()
+        val classes = (1..16).map { n ->
+            first.copy(
+                id = if (n == 1) first.id else
+                    Uuid.parse("00000000-0000-4000-8000-" + n.toString().padStart(12, '0')),
+                name = "Clase " + n,
+                level = 1,
+                hitDieSides = 100 + n,
+                hitDiceRemaining = n,
+                sortOrder = n,
+            )
+        }
+        val source = original.copy(
+            permanent = original.permanent.copy(
+                sheet = original.permanent.sheet.copy(classes = classes),
+            ),
+        )
+        val expectedDice = classes.joinToString(" / ") {
+            it.hitDiceRemaining.toString() + "d" + it.hitDieSides
+        }
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source,
+            )
+            preserveRealApplicationPdf(
+                proof.bytes, "V11-INTERNAL-PROOF-P1-multiclass-dice-" + variant + ".pdf",
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { number ->
+                    PDFTextStripper().apply {
+                        startPage = number
+                        endPage = number
+                    }.getText(pdf)
+                }
+                assertTrue(pages.first().contains("DADOS"))
+                assertTrue(pages.first().contains("VER C2"),
+                    "Fixed P1 combat cell must use a physical C2 navigation marker.")
+                assertFalse(pages.first().contains(expectedDice),
+                    "Do not overflow a fixed P1 paper cell.")
+                val c2Pages = pages.filter {
+                    it.contains("C2 - Habilidades, acciones y recursos")
+                }
+                assertTrue(c2Pages.isNotEmpty(), "Real source must continue in C2.")
+                val c2Text = c2Pages.joinToString("\n")
+                assertTrue(c2Text.contains("DADOS: 1d101"))
+                classes.forEach { row ->
+                    val label = row.hitDiceRemaining.toString() + "d" + row.hitDieSides
+                    assertEquals(1, Regex(Regex.escape(label)).findAll(c2Text).count(),
+                        "Every persisted class hit die must appear once in C2: " + label)
+                }
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertFalse(pages.last().contains("DADOS:"))
+            }
+        }
+    }
+
     @Test
     fun actualP3UsesPairedRuledNarrativeFieldsAndTwoStoryColumns() {
         for ((fixture, variant) in listOf(

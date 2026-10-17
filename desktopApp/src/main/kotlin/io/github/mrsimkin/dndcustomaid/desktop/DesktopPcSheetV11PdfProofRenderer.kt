@@ -10,6 +10,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TextFlow
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TextColumn
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowSourceMapper
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ColumnGrid
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11CompactFieldRouter
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11RectPt
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticData
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Typeface
@@ -687,7 +688,31 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
             }
 
+            // Eight real combat cells are frozen at 121pt of usable value width.
+            // Extreme multiclass hit dice (or other source numbers) move WHOLE to
+            // the existing measured, bidirectionally referenced P1-owned C2.
+            fun signedCombat(v: Int) = if (v >= 0) "+" + v else v.toString()
+            val p1HitDice = source.classes.joinToString(" / ") {
+                it.hitDiceRemaining.toString() + "d" + it.hitDieSides
+            }
+            val p1CombatSourceFields = listOf(
+                "CA" to source.armorClass.toString(),
+                "INICIATIVA" to signedCombat(source.initiativeModifier),
+                "VELOCIDAD" to source.speed.toString(),
+                "COMPETENCIA" to signedCombat(source.finalProficiencyBonus),
+                "PV ACTUALES" to source.currentHp.toString(),
+                "PV MÁXIMOS" to source.maxHp.toString(),
+                "PV TEMP" to source.tempHp.toString(),
+                "DADOS" to p1HitDice,
+            )
+            val p1CombatRoutes = p1CombatSourceFields.map { (label, value) ->
+                PcSheetV11CompactFieldRouter.route(
+                    "p1-combat:" + label, label, value,
+                    129f - 8f, body.width,
+                )
+            }
             val extraCombatData = buildList {
+                addAll(p1CombatRoutes.mapNotNull { it.continuation })
                 attackRows.forEach { attack ->
                     if (attack.id !in p1AttackIds) {
                         add(PcSheetV11FlowItem(
@@ -1033,20 +1058,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // A separate physical combat dashboard replaces the old prose
             // identity row; values are taken ONLY from the saved character.
             fun drawP1CombatReference(stream: PDPageContentStream) {
-                fun plus(v: Int) = if (v >= 0) "+" + v else v.toString()
-                val dice = source.classes.joinToString(" / ") {
-                    it.hitDiceRemaining.toString() + "d" + it.hitDieSides
+                val values = p1CombatSourceFields.mapIndexed { index, field ->
+                    field.first to p1CombatRoutes[index].paperValue
                 }
-                val values = listOf(
-                    "CA" to source.armorClass.toString(),
-                    "INICIATIVA" to plus(source.initiativeModifier),
-                    "VELOCIDAD" to source.speed.toString(),
-                    "COMPETENCIA" to plus(source.finalProficiencyBonus),
-                    "PV ACTUALES" to source.currentHp.toString(),
-                    "PV MÁXIMOS" to source.maxHp.toString(),
-                    "PV TEMP" to source.tempHp.toString(),
-                    "DADOS" to dice,
-                )
                 val left = 312f
                 val bottom = 503f
                 val colWidth = 129f
