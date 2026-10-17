@@ -2153,6 +2153,81 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
 
+
+    @Test
+    fun g3SourceOrderP1AttackSelectionUsesAllSixFittingRowsWithoutLosingDeferredAttacks() {
+        val source = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val template = source.permanent.sheet.combatEntries.first {
+            it.type == io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK
+        }
+        // Four oversized originals appear BEFORE six ordinary-sized entries.
+        // The old take(6).filter(fits) printed just two rows on P1, leaving
+        // four printable rows blank and needlessly deferring rows 7..10.
+        val attacks = (1..10).map { number ->
+            template.copy(
+                id = Uuid.parse("a7000000-0000-4000-8000-" +
+                    number.toString().padStart(12, '0')),
+                name = if (number <= 4) {
+                    "QALONG" + number +
+                        " ATAQUE DE FASE SUPEREXTENDIDA IMPOSIBLE EN UNA CELDA"
+                } else "QASHORT" + number,
+                attackModifier = 5,
+                rangeText = null,
+                damageEffect = "1d6+2",
+                notes = null,
+                sortOrder = number,
+                pinned = false,
+            )
+        }
+        val stressed = source.copy(permanent = source.permanent.copy(
+            sheet = source.permanent.sheet.copy(combatEntries = attacks),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = false,
+                ), stressed,
+            ).bytes
+            preserveRealApplicationPdf(bytes,
+                "V11-INTERNAL-PROOF-P1-attack-fit-order-" + variant.name + ".pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { number ->
+                    PDFTextStripper().apply {
+                        startPage = number
+                        endPage = number
+                    }.getText(pdf)
+                }
+                val p1 = pages.first()
+                val all = pages.joinToString("\n")
+                val c2 = pages.filter {
+                    it.contains("C2 - Habilidades, acciones y recursos")
+                }.joinToString("\n")
+                (1..4).forEach { number ->
+                    val key = "QALONG" + number
+                    assertFalse(p1.contains(key),
+                        "Overlong source attacks cannot overflow P1 cells.")
+                    assertTrue(c2.contains(key),
+                        "Every deferred source attack must remain intact in C2.")
+                    assertEquals(1, Regex(Regex.escape(key)).findAll(all).count())
+                }
+                (5..10).forEach { number ->
+                    val key = "QASHORT" + number
+                    assertTrue(p1.contains(key),
+                        "Six later real attacks which fit must fill six P1 rows: " + key)
+                    assertFalse(c2.contains(key),
+                        "An attack printed on P1 must never duplicate to C2: " + key)
+                    assertEquals(1, Regex(Regex.escape(key)).findAll(all).count())
+                }
+                assertTrue(p1.indexOf("QASHORT5") < p1.indexOf("QASHORT10"),
+                    "Selected attacks must retain source order.")
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertFalse(pages.last().contains("QALONG") ||
+                    pages.last().contains("QASHORT"))
+            }
+        }
+    }
+
     @Test
     fun g3RealSixMandatoryAttributesSurviveDenseCustomSkillsWithLosslessC2Continuation() {
         val base = sources("03_mara_siete_umbrales_custom_extended.json")

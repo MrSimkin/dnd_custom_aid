@@ -545,12 +545,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 return if(body.width.measurePt(complete)<=attackLabelWidth-10f)
                     complete else entry.name
             }
-            val p1Attacks=attackRows.take(6).filter{entry->
+            // Fill the six genuine P1 attack rows with the first SIX source-order
+            // entries which physically FIT, not only matches among the first
+            // six source entries. All other UUIDs remain deferred to C2.
+            val p1Attacks=attackRows.filter{entry->
                 val bonus=entry.attackModifier?.let{if(it>=0)"+"+it else it.toString()}?:""
                 body.width.measurePt(p1AttackLabel(entry))<=attackLabelWidth-10f &&
                 body.width.measurePt(bonus)<=attackBonusWidth-8f &&
                 body.width.measurePt(entry.damageEffect)<=attackDamageWidth-10f
-            }
+            }.take(6)
             val p1AttackIds = p1Attacks.map { it.id }.toSet()
 
             fun drawP1Attacks(stream: PDPageContentStream) {
