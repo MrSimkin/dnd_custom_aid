@@ -129,6 +129,65 @@ class PcSheetV11MeasuredFlowPlacerTest {
     }
 
     @Test
+    fun bk05MeasuredBookSplitsOnlyOversizedCardAcrossColumnsAndPagesLosslessly() {
+        // D-0076 §3.48 / BK05: an oversized essential spellbook card MUST
+        // split across columns and physical pages without invented source
+        // data, skipped UTF-16 offsets, overlap, or forced reduced font.
+        val tall = PcSheetV11FlowItem(
+            "book:oversized", "CONJURO REAL\\nNIVEL 9\\nDESCRIPCIÓN:\\n" +
+                (1..15).joinToString("\\n") {
+                    "PARRAFO_" + it.toString().padStart(3, '0')
+                },
+            keepTogetherIfFits = true,
+        )
+        val later = PcSheetV11FlowItem(
+            "book:next", "OTRO CONJURO\\nDESCRIPCIÓN REAL",
+            keepTogetherIfFits = true,
+        )
+        val items = listOf(tall, later)
+        val area = PcSheetV11RectPt(42f, 76f, 528f, 60f)
+        val placed = PcSheetV11MeasuredFlowPlacer.place(
+            PcSheetV11FlowSection.SPELLBOOK, items,
+            area, 2, 12f, 10f, measuredFont,
+        )
+        assertEquals(6, placed.lineCapacity)
+        val fragments = placed.sourceFlow.fragments.filter {
+            it.sourceKey == tall.sourceKey
+        }
+        assertEquals(3, fragments.size, "18 lines must span three 6-line columns.")
+        assertEquals(listOf(1 to 1, 1 to 2, 2 to 1),
+            fragments.map { it.localPageIndex to it.columnIndex })
+        assertEquals(listOf(0, 0, 0),
+            fragments.map { it.startLineIndexInColumn })
+        assertEquals(listOf(false, true, true),
+            fragments.map { it.continuedFromPrevious })
+        assertEquals(listOf(true, true, false),
+            fragments.map { it.continuesOnNext })
+        fragments.zipWithNext().forEach { (previous, current) ->
+            assertEquals(previous.endExclusive, current.startOffset)
+        }
+        assertEquals(0, fragments.first().startOffset)
+        assertEquals(tall.text.length, fragments.last().endExclusive)
+        assertEquals(tall.text, fragments.joinToString("") { it.text })
+        assertEquals(18, fragments.sumOf { it.lineRanges.size })
+        assertEquals(2, placed.sourceFlow.localPageCount)
+        val nextSpan = placed.sourceFlow.fragments.filter {
+            it.sourceKey == later.sourceKey
+        }
+        assertEquals(1, nextSpan.size)
+        assertEquals(2, nextSpan.single().localPageIndex)
+        assertEquals(2, nextSpan.single().columnIndex)
+        assertFalse(nextSpan.single().continuedFromPrevious)
+        assertFalse(nextSpan.single().continuesOnNext)
+        assertTrue(placed.cells.all {
+            area.contains(it.cellPt) &&
+                PcSheetV11Paper.letterBounds.contains(it.cellPt)
+        })
+        placed.sourceFlow.verifyLosslessAgainst(items)
+        placed.verifyGeometry()
+    }
+
+    @Test
     fun spellThreeColumnsAreMeasuredNotAssumedAndDoNotOverlap() {
         val original = "a".repeat(600)
         val input = listOf(PcSheetV11FlowItem("spell:long", original))
