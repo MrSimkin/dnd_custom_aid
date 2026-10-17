@@ -2489,7 +2489,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 for (localPage in 1..expanded.localPageCount) {
                     val page = PDPage(PDRectangle.LETTER)
                     pdf.addPage(page)
-                    physicalSectionKeys += "C2 - Equipo y tesoro"
+                    // Physical keys are MODULE identities; visible page titles keep
+                    // the same frozen V11 design. Never chain Equipo and Tesoro
+                    // as if they were one contiguous C2 source stream.
+                    physicalSectionKeys += "C2 - Equipo y tesoro / " + label
                     PDPageContentStream(pdf, page).use { stream ->
                         drawFrameAndHeader(stream,
                             "C2 - Equipo y tesoro / " + label + " / " + localPage)
@@ -2803,7 +2806,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val mixedC2Key = "C2 - Habilidades, acciones y recursos"
             val c2FromP1 = mixedC2P1Pages.minOrNull()
             fun isFromP2(key: String): Boolean =
-                key == "C2 - Equipo y tesoro" ||
+                key.startsWith("C2 - Equipo y tesoro / ") ||
                     key == "C2 - Rasgos / continuación" ||
                     key == "C2 - Equipo especial / continuación"
             val dedicatedC2FromP2 = physicalSectionKeys.indexOfFirst { isFromP2(it) }

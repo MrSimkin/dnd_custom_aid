@@ -2783,20 +2783,12 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "PASS",
-          "evidence": {
-            "test_name": "g3OnlyP2TraitsInMixedC2NeverInventAP1Backlink; g3MixedC2ActualAldrenIlyraMaraNavigationKeepsTrueP1AndP2Origins; test_v11_c2_source_navigation_contract.py",
-            "test_result": "PASS — Desktop Kotlin/PDFBox and native Android/Desktop code parity. App PDFs A/B with 118 original trait IDs: no false P1-origin link, P2→actual C2 page 4, 118/118 identities, final handwritten Notes. Six real fixture PDF baselines independently unchanged (all text+positions, drawings, physical pages). Not installed-Android or G4 certification.",
-            "source_commit": "d25c2824a90d4d19fa9ac3794f2621ea6b4ab4b3",
-            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38985980989",
-            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38985980989/artifacts/12083292410",
-            "pdf_zip_sha256": "a28abede505c59df652574fb2aec9885e1e742505ac4324eb9ee561d6a36225b",
-            "independent_inspection": "PyMuPDF text-word-bbox and vector drawing comparison of six actual Desktop app PDFs vs previous real artifact 12082570208; two additional A/B stress PDFs via the authentic service.",
-            "limitations": "G2 check for C206 still NOT_VERIFIED; C206 global remains NOT_VERIFIED; Android installed, other routes and comprehensive G4 remain pending."
-          },
+          "status": "NOT_VERIFIED",
+          "evidence": null,
           "named_tests": [
             "g3OnlyP2TraitsInMixedC2NeverInventAP1Backlink",
-            "g3MixedC2ActualAldrenIlyraMaraNavigationKeepsTrueP1AndP2Origins"
+            "g3MixedC2ActualAldrenIlyraMaraNavigationKeepsTrueP1AndP2Origins",
+            "g3C2EquipoAndTesoroOverflowKeepIndependentPhysicalNavigationInBothVariants"
           ],
           "source_parity_test": "scripts/test_v11_c2_source_navigation_contract.py"
         }

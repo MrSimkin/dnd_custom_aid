@@ -2410,6 +2410,120 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
 
+
+    @Test
+    fun g3C2EquipoAndTesoroOverflowKeepIndependentPhysicalNavigationInBothVariants() {
+        // C206: two DIFFERENT persisted P2 data streams must not be chained as
+        // a single C2 continuation just because their page headings share words.
+        // Real Aldren backup + distinct stress IDs, currencies and quantities.
+        val existing = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val equipmentTemplate = existing.permanent.sheet.inventoryItems.first { !it.special }
+        val coinTemplate = existing.permanent.sheet.currencies.first()
+        val extraEquipment = (1..82).map { n ->
+            equipmentTemplate.copy(
+                id = Uuid.parse("c2060001-0000-4000-8000-" +
+                    n.toString().padStart(12, '0')),
+                name = "EQUIPO-C206-" + n.toString().padStart(3, '0') +
+                    " objeto de continuidad con denominacion autentica y extensa",
+                quantity = 11000 + n,
+                special = false,
+                notes = null,
+                sortOrder = 2000 + n,
+            )
+        }
+        val extraCoins = (1..55).map { n ->
+            coinTemplate.copy(
+                key = "c206-moneda-" + n,
+                name = "TESORO-C206-" + n.toString().padStart(3, '0') +
+                    " denominacion persistida con leyenda mas extensa de lo normal",
+                amount = if (n == 1) 0 else 21000 + n,
+                sortOrder = 2500 + n,
+                isDefault = false,
+            )
+        }
+        val source = existing.copy(
+            permanent = existing.permanent.copy(
+                sheet = existing.permanent.sheet.copy(
+                    inventoryItems = existing.permanent.sheet.inventoryItems + extraEquipment,
+                    currencies = existing.permanent.sheet.currencies + extraCoins,
+                ),
+            ),
+        )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant,
+                    PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = false),
+                source,
+            )
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-C206-both-paired-overflow-" + variant.name + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply {
+                        startPage = n
+                        endPage = n
+                    }.getText(pdf)
+                }
+                val equipmentPages = pages.indices.filter {
+                    pages[it].contains("C2 - Equipo y tesoro / EQUIPO")
+                }.map { it + 1 }
+                val treasurePages = pages.indices.filter {
+                    pages[it].contains("C2 - Equipo y tesoro / TESORO")
+                }.map { it + 1 }
+                assertTrue(equipmentPages.size >= 2,
+                    "Stress ordinary equipment must span multiple physical C2 pages.")
+                assertTrue(treasurePages.isNotEmpty(),
+                    "The independent treasure stream must also overflow to C2.")
+                assertTrue(equipmentPages.last() < treasurePages.first())
+                assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " +
+                    equipmentPages.first()))
+                for (physical in equipmentPages) {
+                    val footer = pages[physical - 1]
+                    if (physical == equipmentPages.first()) {
+                        assertTrue(footer.contains("VIENE DE P2 PÁG. 2"))
+                        assertFalse(footer.contains("ANT. "))
+                    }
+                    if (physical == equipmentPages.last()) {
+                        assertFalse(footer.contains("SIG. " + treasurePages.first()),
+                            "Equipo cannot link to the next DIFFERENT table.")
+                        assertFalse(footer.contains("SIG. "),
+                            "Last Equipo page must not point to Tesoro.")
+                    } else {
+                        assertTrue(footer.contains("SIG. " + (physical + 1)))
+                    }
+                }
+                val firstTreasure = pages[treasurePages.first() - 1]
+                assertTrue(firstTreasure.contains("VIENE DE P2 PÁG. 2"),
+                    "Independent Tesoro must link to its real P2 parent.")
+                assertFalse(firstTreasure.contains("ANT. " + equipmentPages.last()),
+                    "First Tesoro must not claim the last Equipo page as a parent.")
+                assertFalse(firstTreasure.contains("ANT. "),
+                    "Treasure begins a new module, not a continuation of equipment.")
+                val whole = pages.joinToString("\n")
+                extraEquipment.forEach { item ->
+                    assertEquals(1, Regex(Regex.escape(item.name.substring(0, 16)))
+                        .findAll(whole).count(), "Missing/repeated equipment " + item.id)
+                    assertEquals(1, Regex("""(?<!\\d)""" + item.quantity +
+                        """(?!\\d)""").findAll(whole).count(),
+                        "Equipment amount must not duplicate: " + item.id)
+                }
+                extraCoins.forEach { coin ->
+                    assertEquals(1, Regex(Regex.escape(coin.name.substring(0, 16)))
+                        .findAll(whole).count(), "Missing/repeated coin " + coin.key)
+                    if (coin.amount != 0) {
+                        assertEquals(1, Regex("""(?<!\\d)""" + coin.amount +
+                            """(?!\\d)""").findAll(whole).count(),
+                            "Currency amount must not duplicate: " + coin.key)
+                    }
+                }
+                assertTrue(whole.contains("TESORO-C206-001"))
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" },
+                    "The final page must remain handwritten-only.")
+            }
+        }
+    }
+
     @Test
     fun g3OnlyP2TraitsInMixedC2NeverInventAP1Backlink() {
         // This case is outside the ordinary Aldren/Ilyra/Mara page distribution:
