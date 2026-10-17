@@ -23,6 +23,12 @@ data class PcSheetV11TextColumn(
         get() = (heightPt / lineHeightPt).toInt()
 }
 
+/**
+ * Expand persisted tabs only for visual PDF measurement/drawing.
+ * Preserve source text, IDs and original UTF-16 offsets for reconciliation.
+ */
+fun pcSheetV11PrintableText(text: String): String = text.replace("\t", "    ")
+
 /** Measured width in points with the exact font that the future PDF backend uses. */
 fun interface PcSheetV11TextWidth {
     fun measurePt(text: String): Float
@@ -204,7 +210,7 @@ object PcSheetV11TextFlow {
                 val next = if (ch.isHighSurrogate() && cursor + 1 < text.length &&
                     text[cursor + 1].isLowSurrogate()
                 ) cursor + 2 else cursor + 1
-                val measured = width.measurePt(text.substring(start, next))
+                val measured = width.measurePt(pcSheetV11PrintableText(text.substring(start, next)))
                 require(measured.isFinite() && measured >= 0f) {
                     "V11 text measurer returned an invalid width."
                 }

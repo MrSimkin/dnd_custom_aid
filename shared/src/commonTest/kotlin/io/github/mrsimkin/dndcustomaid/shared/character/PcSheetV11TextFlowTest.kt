@@ -124,6 +124,25 @@ class PcSheetV11TextFlowTest {
         assertEquals("   \n", blank.fragments.single().text)
     }
 
+
+    @Test
+    fun sourceTabsUsePrintableWidthWithoutChangingSourceOffsetsOrCharacters() {
+        val original = "A\tB"
+        val items = listOf(PcSheetV11FlowItem("narrative:story", original))
+        val placed = PcSheetV11MeasuredFlowPlacer.place(
+            PcSheetV11FlowSection.NARRATIVE, items,
+            PcSheetV11RectPt(42f, 76f, 5f, 30f),
+            1, 0f, 10f, monospace,
+        )
+        assertEquals(original, placed.cells.joinToString("") { it.sourceText })
+        assertEquals(listOf("A    ", "B"), placed.cells.map { it.drawableText })
+        assertEquals(listOf(0 to 2, 2 to 3),
+            placed.cells.map { it.sourceStartOffset to it.sourceEndExclusive })
+        assertEquals(1, placed.sourceFlow.localPageCount)
+        placed.sourceFlow.verifyLosslessAgainst(items)
+        placed.verifyGeometry()
+    }
+
     @Test
     fun invalidGeometryAndUnrenderableGlyphFailClosed() {
         assertFailsWith<IllegalArgumentException> {

@@ -14,6 +14,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11RectPt
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticData
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Typeface
 import io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetV11PrintableText
 import java.io.OutputStream
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
@@ -63,7 +64,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.beginText()
                 stream.setFont(if (label) headerPdfFont else bodyPdfFont, if (label) 12f else 9f)
                 stream.newLineAtOffset(x, y)
-                stream.showText(text)
+                stream.showText(pcSheetV11PrintableText(text))
                 stream.endText()
             }
 

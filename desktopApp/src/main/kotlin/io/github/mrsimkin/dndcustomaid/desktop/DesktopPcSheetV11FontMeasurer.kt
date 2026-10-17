@@ -5,6 +5,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ResolvedFont
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TextWidth
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Typeface
 import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetV11FontWidthPt
+import io.github.mrsimkin.dndcustomaid.shared.character.pcSheetV11PrintableText
 import java.io.InputStream
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.font.PDType0Font
@@ -60,7 +61,7 @@ internal class DesktopPcSheetV11FontMeasurer(
             metrics = metrics,
             width = PcSheetV11TextWidth { text ->
                 if (text.isEmpty()) 0f
-                else pcSheetV11FontWidthPt(font.getStringWidth(text), fontSizePt)
+                else pcSheetV11FontWidthPt(font.getStringWidth(pcSheetV11PrintableText(text)), fontSizePt)
             },
         )
     }

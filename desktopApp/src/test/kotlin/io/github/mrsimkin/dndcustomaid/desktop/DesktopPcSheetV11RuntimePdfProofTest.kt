@@ -2089,6 +2089,51 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun g3RealTabbedNarrativeAndDigitalNotesRenderOnBothVariantsWithoutSourceMutation() {
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val story = "P3_TAB_START\tP3_TAB_MIDDLE\tP3_TAB_END"
+        val notes = "CN3_TAB_START\tCN3_TAB_END"
+        val patched = original.copy(
+            permanent = original.permanent.copy(
+                sheet = original.permanent.sheet.copy(
+                    background = original.permanent.sheet.background.copy(story = story),
+                    generalNotes = notes,
+                ),
+            ),
+        )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val request = PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT)
+            val semantic = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticMapper
+                .map(request, patched)
+            val mapped = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowSourceMapper
+                .from(semantic)
+            assertEquals(story, mapped.narrative.single {
+                it.sourceKey == "narrative:story"
+            }.text, "Tab-expanded paper output must retain persisted narrative provenance.")
+            assertEquals(notes, semantic.digitalNotes.first { it.sourceId == null }.content)
+            val proof = DesktopPcSheetExportService().generateV11Proof(request, patched)
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { physical ->
+                    PDFTextStripper().apply {
+                        startPage = physical
+                        endPage = physical
+                    }.getText(pdf)
+                }
+                assertTrue(pages[2].contains("P3_TAB_START"))
+                assertTrue(pages[2].contains("P3_TAB_MIDDLE"))
+                assertTrue(pages[2].contains("P3_TAB_END"))
+                val digitalPages = pages.filter { it.contains("C-N3 - Notas digitales") }
+                assertTrue(digitalPages.any {
+                    it.contains("CN3_TAB_START") && it.contains("CN3_TAB_END")
+                }, "Tabs must not make genuine C-N3 PDFBox rendering fail.")
+                assertFalse(pages.last().contains("CN3_TAB_START"))
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+            }
+        }
+    }
+
     @Test
     fun digitalNotesHaveDedicatedPagesAndDisappearWhenSourceNotesAreAbsent() {
         val actual = sources("03_mara_siete_umbrales_custom_extended.json")

@@ -84,7 +84,7 @@ data class PcSheetV11PlacedLineCell(
 ) {
     /** Explicit paragraph delimiters are metadata; never pass CR/LF to a PDF showText call. */
     val drawableText: String
-        get() = sourceText.trimEnd('\r', '\n')
+        get() = pcSheetV11PrintableText(sourceText.trimEnd('\r', '\n'))
 }
 
 data class PcSheetV11PlacedFlow(
