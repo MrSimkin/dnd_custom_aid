@@ -1517,6 +1517,60 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3OversizedPersistedSpellSlotCountersUseP1C2WithoutClippingOrInventingValues() {
+        // A genuine Aldren backup supplies every unchanged field; only the
+        // explicit persisted slot counters are stressed at the Int boundary.
+        // The fixed 3x3 P1 cells cannot print ten-digit counters legibly.
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val source = original.copy(
+            permanent = original.permanent.copy(
+                sheet = original.permanent.sheet.copy(
+                    spellSlots = listOf(
+                        io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSlot(
+                            level = 1, totalSlots = 2147483647, spentSlots = 2147483646,
+                        ),
+                        io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSlot(
+                            level = 2, totalSlots = 3, spentSlots = 1,
+                        ),
+                    ),
+                ),
+            ),
+        )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source,
+            )
+            preserveRealApplicationPdf(
+                proof.bytes, "V11-INTERNAL-PROOF-P1-long-spell-slots-" + variant + ".pdf",
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { number ->
+                    PDFTextStripper().apply {
+                        startPage = number
+                        endPage = number
+                    }.getText(pdf)
+                }
+                val p1 = pages.first()
+                val c2 = pages.filter {
+                    it.contains("C2 - Habilidades, acciones y recursos")
+                }.joinToString("\n")
+                assertTrue(p1.contains("VER C2"),
+                    "Oversized slot quantities need a visible P1 continuation cue.")
+                assertFalse(p1.contains("2147483647") || p1.contains("2147483646"),
+                    "Oversized values cannot spill into adjacent P1 cells.")
+                assertTrue(p1.contains("N2"),
+                    "A normal, independent slot level remains on P1.")
+                assertTrue(c2.contains("ESPACIOS REALES NIVEL 1"))
+                assertEquals(1, Regex("2147483647").findAll(c2).count())
+                assertEquals(1, Regex("2147483646").findAll(c2).count())
+                assertFalse(c2.contains("ESPACIOS REALES NIVEL 2"),
+                    "Normal slot counters must not be moved unnecessarily.")
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+            }
+        }
+    }
+
+    @Test
     fun g3ExtremeRealMulticlassHitDiceContinueInC2WithoutP1CrashOrDataLoss() {
         // Build a discriminating stress case from a genuine Aldren backup;
         // mutate only real class rows, preserving stable unique source IDs.
