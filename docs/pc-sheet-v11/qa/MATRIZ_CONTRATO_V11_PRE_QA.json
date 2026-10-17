@@ -3171,8 +3171,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null,
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3Bk06EssentialSpellbookCardsNeverPrintUnapprovedTechnicalMetadata; overlongRealSpellCardContinuesLosslesslyAfterPhysicalIndexPage; realIlyraSpellcasterProducesP4AndHandwrittenGridAsLastPage; test_v11_spellbook_essential_card_contract.py",
+            "test_result": "PASS — actual Desktop PDFBox tests for two A/B essential book cards, full-description tail preserved, forbidden time/range/components/duration/source/prepared/notes absent; native Android/Desktop code parity, Android DEBUG compile; PDF independent inspection of 12 genuine app-generated PDFs. Index references 25/25 Ilyra and 24/24 Mara B correct; 10 earlier fixtures have unchanged pre-book vector paths and source word positions; original no-book PDFs preserve physical pages. Global G4/Android installed NOT authorized.",
+            "source_commit": "7cf0194266e1e579912e945efd550a5dd47f33e8",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38990283697",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38990283697/artifacts/12085520133",
+            "pdf_zip_sha256": "892db1ac658835ccf4af80988c4208283a273e0ffb0634fdb94bdc87babd0e41",
+            "independent_inspection": "PyMuPDF checked ZIP CRC PASS, 12 authentic Desktop service PDFs Letter 612×792, source descriptions and appendix index navigation, no unapproved technical card rows; Ilyra B 13→12 pages, Mara B 14→13; 10 baseline comparison of pre-book source words+bounding boxes and vector drawings identical, no-book counts unchanged; raster of first book page visually legible and bounded.",
+            "limitations": "BK06 G2 remains NOT_VERIFIED, BK06 global NOT_VERIFIED. BK03 school field is ABSENT from CharacterSpell; never invent it. Legacy Mara owner QA and installed Android not done; G4 BLOCKED; no active candidate."
+          },
           "named_tests": [
             "g3Bk06EssentialSpellbookCardsNeverPrintUnapprovedTechnicalMetadata"
           ],

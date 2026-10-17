@@ -1,5 +1,10 @@
 # Project State — global repository navigation
 
+### ACTUALIZACIÓN 2026-10-16 — BK06 LIBRO ESENCIAL CONTRACTUAL
+
+PR #173 DRAFT/unmerged. Libro opcional V11 corregido en Android/Desktop para cumplir D-0076 §3.47 y BK06: ficha de nombre, nivel, descripción original completa y escuela únicamente cuando exista origen verificable (CharacterSpell carece de campo escuela). Eliminadas líneas automáticas no autorizadas de tiempo/alcance/componentes/duración/preparación/notas del Libro; el personaje, P4, índice y notas finales no cambian. Código `7cf0194266e1e579912e945efd550a5dd47f33e8`; Scaffold #38990283697 y QA #38990283731 SUCCESS. Artefacto de 12 PDFs genuinos #12085520133, ZIP SHA `892db1ac658835ccf4af80988c4208283a273e0ffb0634fdb94bdc87babd0e41`, CRC PASS: Ilyra 13→12 (25/25 conjuros), Mara B 14→13 (24/24), 10 archivos pre-book iguales y stress A/B sin descripción cortada. `BK06.G3=PASS` limitado, `BK06.G2` y global pendientes, `G4=BLOCKED`. Checkpoint `docs/pc-sheet-v11/G3_BOOK_ESSENTIAL_CARDS_BK06_2026-10-16.md`; 105 reglas y G0–G6 se conservan, main/legacy/golden sin tocar.
+
+
 ### ACTUALIZACIÓN 2026-10-16 — C206 EQUIPO Y TESORO C2 INDEPENDIENTES
 
 La única PR #173 se mantiene DRAFT/unmerged. C206 corregido en ambos PDFBox V11: las claves de navegación C2 se separan por Equipo/Tesoro, sin cambiar títulos visibles, datos ni layout. Último SHA productivo `54320d2e13a80dbb92d9e6b59d83f67a1bd3b3f9`, test fix `a446371b4fda4a40ff64da5fa8293a4eaa374f52`; Scaffold #38987925558 y QA #38987925396 SUCCESS. Diez PDFs de la aplicación, artefacto 12083518190, ZIP SHA `edf5fac8417bb2e92e028b0290f6f2fc7587843220392c389ea0907de62a4a36`; independiente PyMuPDF confirma 8 baselines idénticos y A/B con dos C2 Equipo y dos C2 Tesoro enlazados por origen real sin cruce y 137 registros únicos. Matriz 105 reglas, C206 G3 PASS local con evidencia; C206 G2 y G4 pendientes, global NOT_VERIFIED, G4 BLOCKED. Checkpoint `docs/pc-sheet-v11/G3_C2_EQUIPO_TESORO_NAVEGACION_INDEPENDIENTE_2026-10-16.md`. Ningún merge/QA propietario, main/legacy/golden intactos.
