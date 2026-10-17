@@ -1543,11 +1543,20 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         endPage = number
                     }.getText(pdf)
                 }
-                val c2Pages = pages.filter {
-                    it.contains("C2 - Habilidades, acciones y recursos")
+                val c2PageIndices = pages.indices.filter {
+                    pages[it].contains("C2 - Habilidades, acciones y recursos")
                 }
-                assertTrue(c2Pages.isNotEmpty())
-                val c2Text = c2Pages.joinToString("\n")
+                assertTrue(c2PageIndices.isNotEmpty())
+                // Count persisted data within the actual C2 BODY, not its
+                // repeated character-name HEADER (which legitimately displays
+                // the same initial name tokens on every physical page).
+                val c2Text = c2PageIndices.joinToString("\n") { index ->
+                    val area = PDFTextStripperByArea().apply {
+                        addRegion("c2-body", Rectangle2D.Float(38f, 84f, 536f, 629f))
+                        extractRegions(pdf.getPage(index))
+                    }
+                    area.getTextForRegion("c2-body")
+                }
                 assertTrue(c2Text.contains("NOMBRE COMPLETO DEL PERSONAJE:"),
                     "The full saved source name must have a real C2 home.")
                 tokens.forEach { token ->
