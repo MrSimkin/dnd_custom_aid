@@ -3145,8 +3145,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null,
+          "status": "PASS",
+          "evidence": {
+            "test_name": "overlongRealSpellCardContinuesLosslesslyAfterPhysicalIndexPage; test_v11_spellbook_continuation_label_contract.py",
+            "test_result": "PASS — genuine Desktop PDFBox A/B stress: 14 physical pages each, 4 book pages, 5 identified CONTINUACIÓN: Fire Bolt signs each inside source-free header band; original start/end retained once; physical book index 25/25 references correct; final handwritten NOTES intact; source parity Android/Desktop; full Kotlin suite/Android DEBUG compile successful; 12 pre-existing real PDF baselines identical in pages, words, positions and vector paths.",
+            "source_commit": "05744b69c8eb114adfe7e88df5294a1d92886e2f",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38992203285",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38992203285/artifacts/12085324827",
+            "pdf_zip_sha256": "239210a76ba9962d7a92411ca024efc69df1cbbe8b67cddf7094cf5e26dfa991",
+            "independent_inspection": "PyMuPDF + physical cropped raster of first A continuation, 14 actual Desktop service PDFs, ZIP CRC PASS, A/B 14 pages and 5 marks each x44/314 y78.5..86.9 top-origin, source end and start once, all 25 index references target genuine book pages, 12 prior fixture PDFs unchanged word positions/vectors/pagination.",
+            "limitations": "BK05 G2 remains NOT_VERIFIED; global BK05 NOT_VERIFIED and G4 BLOCKED; no installed Android PDF parity/owner QA. For exceptionally long spell names, source-free banner falls back to explicit VER ÍNDICE instead of inventing/truncating persisted name."
+          },
           "named_tests": [
             "overlongRealSpellCardContinuesLosslesslyAfterPhysicalIndexPage"
           ],
