@@ -1828,6 +1828,21 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(sections.any { it.contains("COMIENZO-EXTENSO") })
             assertTrue(sections.any { it.contains("FIN-EXTENSO-VERIFICABLE") },
                 "The final spell text cannot be omitted when the card overflows.")
+            val realBookPages = sections.filter {
+                it.contains("Libro de conjuros /") &&
+                    !it.contains("Índice del Libro de Conjuros")
+            }
+            assertTrue(realBookPages.joinToString("\\n").contains("CONTINUACIÓN: Fire Bolt"),
+                "An oversized source-backed card must identify the real spell in its next column.")
+            val continuationMarks = realBookPages.sumOf { pageText ->
+                Regex("CONTINUACIÓN: Fire Bolt").findAll(pageText).count()
+            }
+            assertTrue(continuationMarks >= 2,
+                "A multi-page card must label more than one physical continuation.")
+            val firstActualBookPage = realBookPages.first()
+            assertFalse(firstActualBookPage.substringBefore("DESCRIPCIÓN:")
+                .contains("CONTINUACIÓN: Fire Bolt"),
+                "No continuation marker may precede an original first occurrence.")
             assertTrue(sections.last().lineSequence().any { it.trim() == "NOTAS" },
                 "Handwritten notes must remain the physical last page.")
         }

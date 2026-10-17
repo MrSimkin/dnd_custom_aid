@@ -3146,7 +3146,12 @@
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "NOT_VERIFIED",
-          "evidence": null
+          "evidence": null,
+          "named_tests": [
+            "overlongRealSpellCardContinuesLosslesslyAfterPhysicalIndexPage"
+          ],
+          "source_parity_test": "scripts/test_v11_spellbook_continuation_label_contract.py",
+          "continuation_rule": "Source-free 7pt header-band annotation at y707 on each genuinely continued physical column; source card bytes/index unchanged; no extra book field. Real name if it fits; otherwise explicit index fallback."
         }
       ]
     },

@@ -1548,6 +1548,49 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         val pageCells = flow.cells.filter {
                             it.localPageIndex == index + 1
                         }
+                        if (title == "Libro de conjuros") {
+                            // D-0076 §3.48 / BK05: a taller-than-column card
+                            // may continue losslessly, but each NEW physical
+                            // column must identify the SAME persisted spell.
+                            // All fragments start at line 0 in the next column.
+                            // Put the source-free sign within the real reserved
+                            // 15pt band BELOW header rule y717 and ABOVE flow
+                            // top y702: never spend a description line.
+                            val namesByKey = entries.associate {
+                                it.sourceKey to it.text.substringBefore('\\n')
+                            }
+                            val continuationParts = flow.sourceFlow.fragments.filter {
+                                it.localPageIndex == index + 1 &&
+                                    it.continuedFromPrevious
+                            }
+                            val actualColumns = flow.columnsPt
+                            continuationParts.forEach { fragment ->
+                                require(fragment.startLineIndexInColumn == 0) {
+                                    "Book continuation must begin at a genuine column top."
+                                }
+                                val col = actualColumns[fragment.columnIndex - 1]
+                                require(col.topPt == 702f) {
+                                    "V11 book continuation label needs the source-free header band."
+                                }
+                                val realName = namesByKey.getValue(fragment.sourceKey)
+                                val titleText = "CONTINUACIÓN: " + realName
+                                val fontSize = 7f
+                                val width = bodyPdfFont.getStringWidth(titleText) *
+                                    fontSize / 1000f
+                                val printed = if (width <= col.widthPt - 6f) titleText
+                                    else "CONTINUACIÓN (VER ÍNDICE)"
+                                require(bodyPdfFont.getStringWidth(printed) *
+                                    fontSize / 1000f <= col.widthPt - 6f)
+                                stream.saveGraphicsState()
+                                stream.setNonStrokingColor(Color(80, 122, 151))
+                                stream.beginText()
+                                stream.setFont(bodyPdfFont, fontSize)
+                                stream.newLineAtOffset(col.leftPt + 2f, col.topPt + 5f)
+                                stream.showText(printed)
+                                stream.endText()
+                                stream.restoreGraphicsState()
+                            }
+                        }
                         if (title == "C2 - Habilidades, acciones y recursos") {
                             val fromP2 = pageCells.any {
                                 it.sourceKey.startsWith("p2-trait:") ||
