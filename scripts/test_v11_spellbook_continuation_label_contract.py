@@ -19,7 +19,7 @@ class SpellbookContinuationParityTest(unittest.TestCase):
             stop = source.index('if (title == "C2 - Habilidades, acciones y recursos")', start)
             segment = source[start:stop]
             for required in (
-                "fragment.continuedFromPrevious",
+                "it.continuedFromPrevious",
                 "fragment.startLineIndexInColumn == 0",
                 "col.topPt == 702f",
                 '"CONTINUACIÓN: " + realName',
