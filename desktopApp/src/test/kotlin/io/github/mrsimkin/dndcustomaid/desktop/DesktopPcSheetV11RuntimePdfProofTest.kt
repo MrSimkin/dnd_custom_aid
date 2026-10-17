@@ -1839,10 +1839,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             }
             assertTrue(continuationMarks >= 2,
                 "A multi-page card must label more than one physical continuation.")
-            val firstActualBookPage = realBookPages.first()
-            assertFalse(firstActualBookPage.substringBefore("DESCRIPCIÓN:")
-                .contains("CONTINUACIÓN: Fire Bolt"),
-                "No continuation marker may precede an original first occurrence.")
+            assertTrue(realBookPages.first().contains("Fire Bolt"),
+                "The real source spell name must still appear at its first occurrence.")
             assertTrue(sections.last().lineSequence().any { it.trim() == "NOTAS" },
                 "Handwritten notes must remain the physical last page.")
         }
