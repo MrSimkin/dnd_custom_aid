@@ -1832,7 +1832,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 it.contains("Libro de conjuros /") &&
                     !it.contains("Índice del Libro de Conjuros")
             }
-            assertTrue(realBookPages.joinToString("\\n").contains("CONTINUACIÓN: Fire Bolt"),
+            assertTrue(realBookPages.joinToString("\n").contains("CONTINUACIÓN: Fire Bolt"),
                 "An oversized source-backed card must identify the real spell in its next column.")
             val continuationMarks = realBookPages.sumOf { pageText ->
                 Regex("CONTINUACIÓN: Fire Bolt").findAll(pageText).count()

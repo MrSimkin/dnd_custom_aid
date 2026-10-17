@@ -1563,7 +1563,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             // 15pt band BELOW header rule y717 and ABOVE flow
                             // top y702: never spend a description line.
                             val namesByKey = entries.associate {
-                                it.sourceKey to it.text.substringBefore('\\n')
+                                it.sourceKey to it.text.substringBefore('\n')
                             }
                             val continuationParts = flow.sourceFlow.fragments.filter {
                                 it.localPageIndex == index + 1 &&
