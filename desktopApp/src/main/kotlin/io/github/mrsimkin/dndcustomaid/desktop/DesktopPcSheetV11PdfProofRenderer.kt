@@ -2676,32 +2676,20 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // content remains source-backed; no fabricated school or rules.
                 val cards = spells.map { entry ->
                     val spell = entry.spell
-                    val components = buildList {
-                        if (spell.verbal) add("V")
-                        if (spell.somatic) add("S")
-                        if (spell.material) add("M")
-                    }.joinToString("/")
-                    val sourceLines = entry.sources.map { association ->
-                        "FUENTE " + (association.sourceName?.takeIf { it.isNotBlank() }
-                            ?: association.sourceId.toString()) +
-                            " | " + (if (association.prepared) "PREPARADO" else "SIN PREPARAR") +
-                            (association.saveDc?.let { " | CD " + it } ?: "") +
-                            (association.spellAttackModifier?.let { " | ATAQUE " + it } ?: "")
-                    }
+                    // D-0076 §3.47 / BK06: the OWNER approved the essential
+                    // spellbook card, not the expanded technical alternative.
+                    // A card contains source-backed NAME, LEVEL, SCHOOL (only
+                    // when actually available) and the ENTIRE DESCRIPTION.
+                    // CharacterSpell currently has no school field. Never
+                    // guess it from class, source, names or description.
+                    // Keep time/range/components/duration/preparation/notes
+                    // in the App source and other independently contracted
+                    // views; they are NOT printed in this optional card.
                     val lines = buildList {
-                        add("NIVEL " + spell.level + " | " + spell.name)
-                        add("LANZAMIENTO " + spell.castingTime + " | ALCANCE " + spell.rangeText)
-                        add("COMPONENTES " + components +
-                            (spell.materialText?.takeIf { it.isNotBlank() }?.let {
-                                " | MATERIAL " + it
-                            } ?: ""))
-                        add("DURACIÓN " + spell.duration +
-                            (if (spell.concentration) " | CONCENTRACIÓN" else "") +
-                            (if (spell.ritual) " | RITUAL" else ""))
-                        addAll(sourceLines)
+                        add(spell.name)
+                        add("NIVEL " + spell.level)
                         add("DESCRIPCIÓN:")
                         add(spell.description)
-                        spell.notes?.takeIf { it.isNotBlank() }?.let { add("NOTAS: " + it) }
                     }
                     PcSheetV11FlowItem(
                         sourceKey = "book:" + spell.id,

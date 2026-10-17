@@ -1232,10 +1232,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 "Ilyra's long persisted special object must survive C2 table layout.")
             assertTrue(printed.contains("Índice del Libro de Conjuros"))
             assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })
-            assertTrue(printed.contains("LANZAMIENTO"))
-            assertTrue(printed.contains("COMPONENTES"))
-            assertTrue(printed.contains("DURACIÓN"))
-            assertTrue(printed.contains("DESCRIPCIÓN:"))
+            assertTrue(printed.contains("LANZAMIENTO DE CONJUROS"),
+                "P1 casting and its separate spell references remain intact.")
+            assertTrue(printed.contains("DESCRIPCIÓN:"),
+                "Essential spellbook cards keep their complete descriptions.")
             // Index page references must point at the REAL physical PDF page,
             // not local section offsets or guesses.
             val bookIndexText = (1..pdf.numberOfPages).asSequence().map { number ->
@@ -1830,6 +1830,86 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 "The final spell text cannot be omitted when the card overflows.")
             assertTrue(sections.last().lineSequence().any { it.trim() == "NOTAS" },
                 "Handwritten notes must remain the physical last page.")
+        }
+    }
+
+
+    @Test
+    fun g3Bk06EssentialSpellbookCardsNeverPrintUnapprovedTechnicalMetadata() {
+        // D-0076 §3.47 chose essential cards (name, level, real school if
+        // available, full description), expressly rejecting technical fields.
+        // CharacterSpell does NOT persist a school; do not invent one.
+        val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val marker = "BK06_DESCRIPCION_REAL_INTEGRA_V11"
+        val modified = original.copy(
+            permanent = original.permanent.copy(
+                sheet = original.permanent.sheet.copy(
+                    spells = original.permanent.sheet.spells.mapIndexed { index, spell ->
+                        if (index != 0) spell else spell.copy(
+                            castingTime = "BK06_TIEMPO_NO_IMPRIMIR",
+                            rangeText = "BK06_ALCANCE_NO_IMPRIMIR",
+                            materialText = "BK06_MATERIAL_NO_IMPRIMIR",
+                            duration = "BK06_DURACION_NO_IMPRIMIR",
+                            notes = "BK06_NOTAS_NO_IMPRIMIR",
+                            description = marker + " \n" +
+                                ("Párrafo de la descripción del conjuro sin cortes. ").repeat(16) +
+                                "\n BK06_DESCRIPCION_FIN",
+                        )
+                    },
+                ),
+            ),
+        )
+        val forbidden = listOf(
+            "BK06_TIEMPO_NO_IMPRIMIR", "BK06_ALCANCE_NO_IMPRIMIR",
+            "BK06_MATERIAL_NO_IMPRIMIR", "BK06_DURACION_NO_IMPRIMIR",
+            "BK06_NOTAS_NO_IMPRIMIR",
+        )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = true),
+                modified,
+            )
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-BK06-essential-spellbook-" + variant.name + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { physical ->
+                    PDFTextStripper().apply {
+                        startPage = physical
+                        endPage = physical
+                    }.getText(pdf)
+                }
+                val book = pages.filter {
+                    it.contains("Libro de conjuros /") &&
+                        !it.contains("Índice del Libro de Conjuros")
+                }.joinToString("\n")
+                assertTrue(book.contains("DESCRIPCIÓN:"))
+                assertTrue(book.contains(marker))
+                assertTrue(book.contains("BK06_DESCRIPCION_FIN"),
+                    "The whole real spell description must survive the book reflow.")
+                assertTrue(book.contains("Fire Bolt"), "Each card still shows its real name.")
+                assertTrue(book.contains("NIVEL 0"), "Level is still source-backed.")
+                forbidden.forEach { sentinel ->
+                    assertFalse(book.contains(sentinel),
+                        "The optional essential card may not include: " + sentinel)
+                }
+                assertFalse(book.contains("FUENTE Mago"),
+                    "Spellcasting associations belong to the separate quick list.")
+                assertFalse(book.contains("COMPONENTES "),
+                    "The owner rejected the full technical card.")
+                assertFalse(book.contains("LANZAMIENTO "),
+                    "The owner rejected the casting-time row in spellbook cards.")
+                assertFalse(book.contains("DURACIÓN "),
+                    "The owner rejected the duration row in spellbook cards.")
+                assertFalse(book.contains("ESCUELA "),
+                    "No backed school field exists; it may not be fabricated.")
+                val p4 = pages.filter { it.contains("P4 - Conjuros /") }
+                    .joinToString("\n")
+                assertTrue(p4.contains("Fire Bolt"),
+                    "Removing extra book metadata must not change the quick list.")
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+            }
         }
     }
 
