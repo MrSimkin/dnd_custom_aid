@@ -134,14 +134,14 @@ class PcSheetV11MeasuredFlowPlacerTest {
         // split across columns and physical pages without invented source
         // data, skipped UTF-16 offsets, overlap, or forced reduced font.
         val tall = PcSheetV11FlowItem(
-            "book:oversized", "CONJURO REAL\\nNIVEL 9\\nDESCRIPCIÓN:\\n" +
-                (1..15).joinToString("\\n") {
+            "book:oversized", "CONJURO REAL\nNIVEL 9\nDESCRIPCIÓN:\n" +
+                (1..15).joinToString("\n") {
                     "PARRAFO_" + it.toString().padStart(3, '0')
                 },
             keepTogetherIfFits = true,
         )
         val later = PcSheetV11FlowItem(
-            "book:next", "OTRO CONJURO\\nDESCRIPCIÓN REAL",
+            "book:next", "OTRO CONJURO\nDESCRIPCIÓN REAL",
             keepTogetherIfFits = true,
         )
         val items = listOf(tall, later)
