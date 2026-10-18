@@ -39,6 +39,9 @@ data class PcSheetV11FlowItem(
     val sourceKey: String,
     val text: String,
     val keepTogetherIfFits: Boolean = false,
+    /** Optional CONTIGUOUS source group. Keep whole groups in one column only
+     * when their genuine measured lines fit; never invent or duplicate records. */
+    val groupKey: String? = null,
 )
 
 enum class PcSheetV11FlowSection {
@@ -145,7 +148,28 @@ object PcSheetV11TextFlow {
         }
 
         val fragments = mutableListOf<PcSheetV11FlowFragment>()
-        items.forEach { item ->
+        items.forEachIndexed { index, item ->
+            // Real V11 C2 attribute + dependent skills are one visual unit.
+            // Moving the *whole fitting group* to the next physical column
+            // prevents a stranded attribute heading with its first skill on
+            // another sheet/column. Oversized groups retain the existing
+            // lossless fragmentation path; no compressed text or fake labels.
+            val group = item.groupKey
+            if (group != null && (index == 0 || items[index - 1].groupKey != group)) {
+                var next = index
+                var measuredGroupLines = 0
+                while (next < items.size && items[next].groupKey == group) {
+                    measuredGroupLines += splitIntoMeasuredLines(
+                        items[next].text, column.widthPt, textWidth,
+                    ).size
+                    next++
+                    if (measuredGroupLines > column.lineCapacity) break
+                }
+                if (measuredGroupLines in 1..column.lineCapacity &&
+                    measuredGroupLines > remaining) {
+                    nextColumn()
+                }
+            }
             val lines = splitIntoMeasuredLines(item.text, column.widthPt, textWidth)
             if (lines.isEmpty()) return@forEach
             if (item.keepTogetherIfFits && lines.size <= column.lineCapacity &&

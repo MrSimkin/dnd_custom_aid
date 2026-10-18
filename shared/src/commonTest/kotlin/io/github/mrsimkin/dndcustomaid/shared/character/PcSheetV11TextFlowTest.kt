@@ -144,6 +144,66 @@ class PcSheetV11TextFlowTest {
     }
 
     @Test
+    fun customAttributeAndSkillsStayInSamePhysicalColumnWhenGroupFits() {
+        // Reproduce a real C2 boundary: three occupied lines precede a
+        // one-line attribute and its one-line linked skill in a 4-line column.
+        // Old per-item flow stranded the attribute in column 1.
+        val items = listOf(
+            PcSheetV11FlowItem("prior", "a\\nb\\nc"),
+            PcSheetV11FlowItem("attribute:real-id", "Fortuna 16",
+                keepTogetherIfFits = true, groupKey = "attr:real-id"),
+            PcSheetV11FlowItem("attribute-skill:real-skill", "Contratos",
+                keepTogetherIfFits = true, groupKey = "attr:real-id"),
+        )
+        val groupFlow = PcSheetV11TextFlow.paginate(
+            PcSheetV11FlowSection.TRAITS, items, 2,
+            geometry(width = 12f, lines = 4), monospace,
+        )
+        groupFlow.verifyLosslessAgainst(items)
+        val placements = groupFlow.fragments.associateBy { it.sourceKey }
+        val attribute = placements.getValue("attribute:real-id")
+        val skill = placements.getValue("attribute-skill:real-skill")
+        assertEquals(2, attribute.columnIndex)
+        assertEquals(attribute.columnIndex, skill.columnIndex)
+        assertEquals(attribute.localPageIndex, skill.localPageIndex)
+        assertEquals(listOf("prior", "attribute:real-id", "attribute-skill:real-skill"),
+            groupFlow.fragments.map { it.sourceKey })
+
+        // The default path must stay unchanged for unrelated V11 sections.
+        val ungrouped = items.map { it.copy(groupKey = null) }
+        val original = PcSheetV11TextFlow.paginate(
+            PcSheetV11FlowSection.TRAITS, ungrouped, 2,
+            geometry(width = 12f, lines = 4), monospace,
+        )
+        assertEquals(1, original.fragments.single {
+            it.sourceKey == "attribute:real-id"
+        }.columnIndex)
+        assertEquals(2, original.fragments.single {
+            it.sourceKey == "attribute-skill:real-skill"
+        }.columnIndex)
+    }
+
+    @Test
+    fun oversizedC2AttributeGroupStillPaginatesWithoutLosingIdsOrText() {
+        val items = listOf(
+            PcSheetV11FlowItem("attribute:big", "A".repeat(40),
+                groupKey = "attr:big", keepTogetherIfFits = true),
+            PcSheetV11FlowItem("attribute-skill:big", "B".repeat(40),
+                groupKey = "attr:big", keepTogetherIfFits = true),
+        )
+        val flow = PcSheetV11TextFlow.paginate(
+            PcSheetV11FlowSection.TRAITS, items, 2,
+            geometry(width = 10f, lines = 3), monospace,
+        )
+        flow.verifyLosslessAgainst(items)
+        assertTrue(flow.localPageCount > 1)
+        assertEquals(items.map { it.text },
+            items.map { item -> flow.fragments
+                .filter { it.sourceKey == item.sourceKey }
+                .joinToString("") { it.text } })
+    }
+
+    @Test
     fun invalidGeometryAndUnrenderableGlyphFailClosed() {
         assertFailsWith<IllegalArgumentException> {
             PcSheetV11TextColumn(10f, 9f, 10f)

@@ -1407,6 +1407,116 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3CustomAttributesKeepLinkedSkillsWithinFittingPhysicalC2ColumnsAB() {
+        // Real Mara source + source-typed UUID replicas create multiple C2
+        // column boundaries. IDs and ability links are persisted only in this
+        // test snapshot, never written back to Mara's saved backup.
+        val original = sources("03_mara_siete_umbrales_custom_extended.json")
+        val attrTemplate = original.permanent.successor.customAttributes.first {
+            it.name == "Fortuna"
+        }
+        val skillTemplate = original.permanent.closure.customSkills.first {
+            it.name == "Contratos arcanos"
+        }
+        val relation = original.permanent.successor.customSkillAbilities.first {
+            it.customSkillId == skillTemplate.id
+        }
+        val copies = (1..72).map { index ->
+            val number = index.toString().padStart(3, '0')
+            val attr = attrTemplate.copy(
+                id = Uuid.parse("a1100000-0000-4000-8000-" +
+                    index.toString().padStart(12, '0')),
+                name = "QAATR" + number +
+                    if (index % 3 == 0) " extensible adicional para dos renglones medidos"
+                    else "",
+                abbreviation = "Q" + number.takeLast(2),
+                sortOrder = 1000 + index,
+            )
+            val skill = skillTemplate.copy(
+                id = Uuid.parse("a1200000-0000-4000-8000-" +
+                    index.toString().padStart(12, '0')),
+                name = "QASKILL" + number,
+                sortOrder = 1000 + index,
+            )
+            Triple(attr, skill, relation.copy(
+                customSkillId = skill.id,
+                ability = io.github.mrsimkin.dndcustomaid.shared.character
+                    .CharacterAbilityReference.custom(attr.id),
+            ))
+        }
+        val source = original.copy(
+            permanent = original.permanent.copy(
+                closure = original.permanent.closure.copy(
+                    customSkills = original.permanent.closure.customSkills +
+                        copies.map { it.second },
+                ),
+                successor = original.permanent.successor.copy(
+                    customAttributes = original.permanent.successor.customAttributes +
+                        copies.map { it.first },
+                    customSkillAbilities = original.permanent.successor.customSkillAbilities +
+                        copies.map { it.third },
+                ),
+            ),
+        )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                ), source,
+            ).bytes
+            preserveRealApplicationPdf(bytes,
+                "V11-INTERNAL-PROOF-C2-grouped-custom-attributes-" + variant + ".pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val pageTexts = (1..pdf.numberOfPages).map { page ->
+                    PDFTextStripper().apply {
+                        startPage = page
+                        endPage = page
+                    }.getText(pdf)
+                }
+                val c2Areas = (0 until pdf.numberOfPages).filter { index ->
+                    pageTexts[index].contains("C2 - Habilidades, acciones y recursos")
+                }.flatMap { index ->
+                    val stripper = PDFTextStripperByArea().apply {
+                        addRegion("left", Rectangle2D.Float(38f, 85f, 270f, 635f))
+                        addRegion("right", Rectangle2D.Float(306f, 85f, 270f, 635f))
+                        extractRegions(pdf.getPage(index))
+                    }
+                    listOf(
+                        (index + 1) to stripper.getTextForRegion("left"),
+                        (index + 1) to stripper.getTextForRegion("right"),
+                    )
+                }
+                assertTrue(c2Areas.size >= 4,
+                    "Stress input must reach multiple C2 physical columns.")
+                val first = pageTexts.first()
+                val fullText = pageTexts.joinToString("\n")
+                var checkedGroups = 0
+                for ((attr, skill, _) in copies) {
+                    val key = attr.name.substringBefore(' ')
+                    if (first.contains(key)) continue // this attr is already on P1
+                    val a = c2Areas.withIndex().filter { it.value.second.contains(key) }
+                    val s = c2Areas.withIndex().filter {
+                        it.value.second.contains(skill.name)
+                    }
+                    assertEquals(1, a.size, "One custom attribute ID must print once: " + key)
+                    assertEquals(1, s.size, "One linked skill ID must print once: " + skill.name)
+                    assertEquals(a.single().index, s.single().index,
+                        "C2 cannot strand a fitting attribute and its linked skill " +
+                            "in different physical columns: " + key)
+                    assertTrue(fullText.contains(skill.name))
+                    checkedGroups++
+                }
+                assertTrue(checkedGroups >= 60)
+                assertTrue(pageTexts.last().lineSequence().any { it.trim() == "NOTAS" })
+                for (page in pdf.pages) {
+                    assertEquals(PDRectangle.LETTER.width, page.mediaBox.width)
+                    assertEquals(PDRectangle.LETTER.height, page.mediaBox.height)
+                }
+            }
+        }
+    }
+
+    @Test
     fun measuredVariantAPlacesOnlyCompleteCustomAttributeAndSkillGroupsOnP1() {
         val original = sources("03_mara_siete_umbrales_custom_extended.json")
         // Preserve the real Mara base character, two genuine custom attributes,

@@ -1942,6 +1942,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val identity = buildList {
                 data.attributes.drop(6).forEachIndexed { index, attribute ->
                     val alreadyPrintedOnP1 = index + 6 < p1PrintedAttributeCount
+                    val customC2Group = if (alreadyPrintedOnP1) null else
+                        "custom-attribute-group:" + index
                     if (!alreadyPrintedOnP1) {
                         add(PcSheetV11FlowItem(
                             "attribute:" + index,
@@ -1950,6 +1952,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 " / salvación " +
                                 (attribute.savingThrowTotal?.toString() ?: "sin valor"),
                             keepTogetherIfFits = true,
+                            groupKey = customC2Group,
                         ))
                     }
                     data.skills.withIndex()
@@ -1969,6 +1972,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     ": " + (skill.total?.toString() ?: "sin resolver") +
                                     " / " + skill.training.name,
                                 keepTogetherIfFits = true,
+                                groupKey = customC2Group,
                             ))
                         }
                 }
