@@ -1962,7 +1962,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 "Habilidad " + skill.name +
                                     // The source ability is still explicit if
                                     // the full attribute was already placed P1.
-                                    (if (alreadyPrintedOnP1) " (" + attribute.name + ")" else "") +
+                                    (if (alreadyPrintedOnP1) attribute.abbreviation
+                                        .takeIf { it.isNotBlank() }
+                                        ?.let { " (" + approvedAbilityAbbreviation(it) + ")" }
+                                        ?: "" else "") +
                                     ": " + (skill.total?.toString() ?: "sin resolver") +
                                     " / " + skill.training.name,
                                 keepTogetherIfFits = true,

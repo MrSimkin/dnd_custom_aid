@@ -1376,9 +1376,20 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         assertTrue(pages[0].contains(attribute),
                             "Golden B requires fitting custom attribute on physical P1: " +
                                 attribute)
+                        // V11: a skill detached from its P1 ability requires
+                        // the REAL custom abbreviation, exactly three uppercase
+                        // letters. A full ability name in parentheses is not
+                        // the approved separate-context paper grammar.
+                        val sourceAbbreviation = real.permanent.successor
+                            .customAttributes.first { it.name == attribute }
+                            .abbreviation.uppercase().take(3)
+                        assertEquals(3, sourceAbbreviation.length)
                         assertTrue(pages.any { text -> text.contains("C2 - ") &&
-                            text.contains(key + " (" + attribute + ")") },
-                            "The C2 skill must preserve its P1 custom ability ID relation.")
+                            text.contains(key + " (" + sourceAbbreviation + ")") },
+                            "Detached C2 skill must print source-backed (XXX), " +
+                                "not a full name or invented attribute.")
+                        assertFalse(full.contains(key + " (" + attribute + ")"),
+                            "A full custom attribute name is not a V11 (XXX) suffix.")
                     } else if (pages[0].contains(attribute)) {
                         assertTrue(pages[0].contains(skill),
                             "Fitting A custom abilities must keep their associated skill below.")
