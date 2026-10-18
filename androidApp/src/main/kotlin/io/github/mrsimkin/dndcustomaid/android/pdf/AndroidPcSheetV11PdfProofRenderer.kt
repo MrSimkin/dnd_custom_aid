@@ -97,12 +97,19 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 lastHandwrittenPage: Boolean = false,
             ) {
                 stream.saveGraphicsState()
-                stream.setStrokingColor(Color(80, 122, 151))
-                stream.setLineWidth(1.2f)
-                stream.addRect(24f, 24f, 564f, 744f)
+                // Exterior V11 double frame: exact real PDF vectors from ALL
+                // EIGHT immutable approved US-Letter golden documents. These
+                // are stable on every physical page (including C2 and NOTAS).
+                // PyMuPDF round-trip bounds: outer x26.362..585.638,
+                // y24.945..767.055; inner x30.614..581.386,
+                // y28.913..763.087. Preserve all content placements.
+                stream.setStrokingColor(Color(38, 75, 104))
+                stream.setLineWidth(0.95f)
+                stream.addRect(26.3622f, 24.9449f, 559.2756f, 742.1102f)
                 stream.stroke()
-                stream.setLineWidth(0.65f)
-                stream.addRect(29f, 29f, 554f, 734f)
+                stream.setStrokingColor(Color(191, 211, 222))
+                stream.setLineWidth(0.38f)
+                stream.addRect(30.6142f, 28.9134f, 550.7716f, 734.1732f)
                 stream.stroke()
                 stream.setNonStrokingColor(Color(231, 241, 247))
                 stream.addRect(148f, 736f, 422f, 26f)
