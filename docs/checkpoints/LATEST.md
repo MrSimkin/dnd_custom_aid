@@ -174,7 +174,7 @@ Documento del estado: docs/pc-sheet-v11/G3_PDF_REAL_P2_Y_NOTAS_2026-10-11.md. Es
 1. `AGENTS.md`;
 2. `RESUME.md`;
 3. this `LATEST.md`;
-4. `docs/checkpoints/2026-10-18_V11_G2_G3_C2_SPECIAL_MULTILINE_UUID_CONTINUATION.md` — checkpoint vigente V11 de referencia UUID en Equipo Especial multilineal C2; anteriores solo evidencia histórica;
+4. `docs/checkpoints/2026-10-18_V11_G4_INDEPENDENT_PDF_PHYSICAL_ENVELOPE.md` — checkpoint vigente G4 de barrido físico independiente de PDFs reales; el checkpoint de Equipo Especial multilineal C2 permanece como evidencia histórica;
 5. `docs/pc-sheet-v11/COMANDO_SIGUE_Y_G1_HANDOFF.md` — comando «sigue», controles G0 verificables, próxima etapa G1 y prompt de retoma;
 5. `docs/pc-sheet-v11/CONTRATO_VISUAL_APROBADO.md` — aprobación V11 + dos microajustes;
 6. `docs/pc-sheet-v11/PROCEDIMIENTO_QA_SIN_PERDIDA.md` + `qa/REGISTRO_QA_V11.json` + `qa/PLANTILLA_CIERRE_POR_RONDA.md` — cada QA Q0–Q7 planificado, cambio real y comprobación; no cierre por tests solos;
