@@ -77,12 +77,18 @@ object PcSheetV11PairedAmountRouting {
         // first ineligible row and all successors to measured C2, preserving
         // source order, IDs and single-print amount ownership.
         return source.copy(rows = source.rows.takeWhile { row ->
+            // Source labels with physical breaks cannot be passed to a PDF
+            // glyph-width measurer as a single line: the native Fira font has
+            // no U+000A glyph. Route the ENTIRE row and amount to measured C2
+            // before measuring width, preserving the contiguous source prefix.
+            if (row.label.any { it == '\n' || it == '\r' || it == '\t' }) {
+                return@takeWhile false
+            }
             val labelWidth = width.measurePt(pcSheetV11PrintableText(row.label))
             val amountWidth = width.measurePt(row.amount.toString())
             require(labelWidth.isFinite() && amountWidth.isFinite() &&
                 labelWidth >= 0f && amountWidth >= 0f)
-            !row.label.contains('\n') && !row.label.contains('\r') &&
-                labelWidth <= nameWidth - TEXT_INSET_PT &&
+            labelWidth <= nameWidth - TEXT_INSET_PT &&
                 amountWidth <= BASE_AMOUNT_WIDTH_PT - TEXT_INSET_PT
         })
     }
