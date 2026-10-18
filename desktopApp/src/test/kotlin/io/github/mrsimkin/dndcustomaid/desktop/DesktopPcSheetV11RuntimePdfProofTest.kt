@@ -2295,6 +2295,78 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun g3P4RealSpellSourceWithCrLfAndTabKeepsAllOriginAndPreparationAB() {
+        // Independent regression: a persisted spellcasting source is free-form
+        // and may contain actual line breaks/tabs. Old P4 inline-right sizing
+        // measured CR/LF with PDFBox and could abort export before writing PDF.
+        // Only ONE spell refers to this fresh source ID: all tokens must
+        // survive EXACTLY ONCE and no unrelated casting source is edited.
+        val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val sheet = original.permanent.sheet
+        val spell = sheet.spells.first { it.sourceAssociations.isNotEmpty() }
+        val source = sheet.spellcastingSources.first {
+            it.id == spell.sourceAssociations.first().sourceId
+        }
+        val newId = Uuid.parse("abcdef13-0000-4000-8000-000000000173")
+        val literalName = "QAP4SOURCEFIRST\r\nQAP4SOURCESECOND\tQAP4SOURCETHIRD"
+        val stressed = original.copy(permanent = original.permanent.copy(
+            sheet = sheet.copy(
+                spellcastingSources = sheet.spellcastingSources +
+                    source.copy(id = newId, name = literalName,
+                        sortOrder = source.sortOrder + 1),
+                spells = sheet.spells.map {
+                    if (it.id == spell.id) it.copy(
+                        sourceAssociations = listOf(
+                            it.sourceAssociations.first().copy(
+                                sourceId = newId, prepared = true,
+                            ),
+                        ),
+                    ) else it
+                },
+            ),
+        ))
+        assertEquals(literalName, stressed.permanent.sheet.spellcastingSources
+            .first { it.id == newId }.name)
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val real = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = false,
+                ), stressed,
+            )
+            val matching = real.semantic.spells.first { it.spell.id == spell.id }
+            assertEquals(1, matching.sources.size)
+            assertEquals(newId, matching.sources.single().sourceId)
+            assertEquals(true, matching.sources.single().prepared)
+            preserveRealApplicationPdf(real.bytes,
+                "V11-INTERNAL-PROOF-P4-source-physical-break-" +
+                    variant.name + ".pdf")
+            Loader.loadPDF(real.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { index ->
+                    PDFTextStripper().apply {
+                        startPage = index; endPage = index
+                    }.getText(pdf)
+                }
+                val p4 = pages.filter { it.contains("P4 - Conjuros") }
+                    .joinToString("\n")
+                for (token in listOf(
+                    "QAP4SOURCEFIRST", "QAP4SOURCESECOND", "QAP4SOURCETHIRD",
+                )) {
+                    assertEquals(1, Regex(token).findAll(p4).count(),
+                        "Real CR/LF/TAB source token must survive once in P4 $variant: $token")
+                }
+                assertTrue(p4.contains(spell.name),
+                    "The original UUID-backed spell cannot be dropped.")
+                assertTrue(p4.contains("[X]"),
+                    "The real prepared-by-source marker must survive.")
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" },
+                    "Physical final handwritten page must remain last.")
+            }
+        }
+    }
+
     @Test
     fun realIlyraP4AlignsOnlyFittingSpellOriginsWithoutLosingLongSources() {
         val generated = DesktopPcSheetExportService().generateV11Proof(

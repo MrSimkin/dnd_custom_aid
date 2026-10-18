@@ -1635,6 +1635,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // 168pt true 3-column text band with a 12pt glyph gutter;
                 // no fake slots and no shrinking long spell/source records.
                 if (sourceInfo.isNotBlank() &&
+                    // Persisted source names may contain actual CR/LF/TAB. A
+                    // fixed physical right lane is one row only; measuring
+                    // its multi-line content with PDFBox rejects control
+                    // glyphs. Route the entire UUID-backed source through
+                    // the existing measured/lossless P4 row instead.
+                    sourceInfo.none { it == '\r' || it == '\n' || it == '\t' } &&
                     body.width.measurePt(fullName) +
                     p4SourceFont.width.measurePt(sourceInfo) + 12f <= 168f
                 ) key to sourceInfo else null
