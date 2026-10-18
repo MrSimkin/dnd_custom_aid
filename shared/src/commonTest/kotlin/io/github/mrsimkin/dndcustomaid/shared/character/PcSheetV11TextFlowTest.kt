@@ -149,7 +149,7 @@ class PcSheetV11TextFlowTest {
         // one-line attribute and its one-line linked skill in a 4-line column.
         // Old per-item flow stranded the attribute in column 1.
         val items = listOf(
-            PcSheetV11FlowItem("prior", "a\\nb\\nc"),
+            PcSheetV11FlowItem("prior", "a\nb\nc"),
             PcSheetV11FlowItem("attribute:real-id", "Fortuna 16",
                 keepTogetherIfFits = true, groupKey = "attr:real-id"),
             PcSheetV11FlowItem("attribute-skill:real-skill", "Contratos",
