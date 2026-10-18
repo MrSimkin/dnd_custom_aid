@@ -1801,6 +1801,75 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3DenseRealLevelOneSpellsKeepLevelContextOnP4ContinuationPagesAB() {
+        // Start from authentic Ilyra, changing only the persisted spell rows.
+        // Dense single-level input exposes continuations without source headings;
+        // do not fabricate spell levels or give ownership to a synthetic name.
+        val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val base = original.permanent.sheet.spells.first {
+            it.sourceAssociations.isNotEmpty()
+        }
+        val stressSpells = (1..175).map { number ->
+            base.copy(
+                id = Uuid.parse(
+                    "f4000000-0000-4000-8000-" +
+                        number.toString().padStart(12, '0'),
+                ),
+                name = "QAP4UNO" + number.toString().padStart(3, '0'),
+                level = 1,
+                sortOrder = number,
+            )
+        }
+        val actual = original.copy(
+            permanent = original.permanent.copy(
+                sheet = original.permanent.sheet.copy(spells = stressSpells),
+            ),
+        )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                ),
+                actual,
+            )
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-P4-dense-single-level-" + variant + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pageTexts = (1..pdf.numberOfPages).map { physical ->
+                    PDFTextStripper().apply {
+                        startPage = physical
+                        endPage = physical
+                    }.getText(pdf)
+                }
+                val p4Pages = pageTexts.filter { it.contains("P4 - Conjuros /") }
+                assertTrue(p4Pages.size >= 2,
+                    "This stress fixture must actually exercise P4 page continuation.")
+                assertTrue(p4Pages.first().contains("NIVEL 1"))
+                val pageWithContinuedLevel = p4Pages.drop(1).filter {
+                    it.contains("QAP4UNO") && !it.contains(Regex("""(?m)^NIVEL 1\\s*$"""))
+                }
+                assertTrue(pageWithContinuedLevel.isNotEmpty(),
+                    "P4 continuation must contain actual level-1 source entries.")
+                pageWithContinuedLevel.forEach { page ->
+                    assertTrue(page.contains("NIVEL 1 / CONTINUACIÓN"),
+                        "Continued source rows must retain their true level label.")
+                }
+                val allP4 = p4Pages.joinToString("\n")
+                stressSpells.forEach { spell ->
+                    assertEquals(1, Regex(Regex.escape(spell.name)).findAll(allP4).count(),
+                        "Every real persisted spell must remain exactly once.")
+                }
+                assertTrue(pageTexts.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertFalse(pageTexts.last().contains("QAP4UNO"))
+                for (page in pdf.pages) {
+                    assertEquals(PDRectangle.LETTER.width, page.mediaBox.width)
+                    assertEquals(PDRectangle.LETTER.height, page.mediaBox.height)
+                }
+            }
+        }
+    }
+
+    @Test
     fun g3SameNameDistinctSpellSourcesKeepSourceIdentityAndPreparationOnP4AB() {
         // Real Ilyra backup, with only one genuine spell's associations and
         // two source names changed to form this discriminating technical case.
