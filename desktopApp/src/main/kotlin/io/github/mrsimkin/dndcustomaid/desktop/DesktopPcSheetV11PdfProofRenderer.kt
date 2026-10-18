@@ -1627,35 +1627,42 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         val pageCells = flow.cells.filter {
                             it.localPageIndex == index + 1
                         }
-                        // P4 level headings appear only once in the source stream.
-                        // If physical pagination carries the SAME level onto a new
-                        // page, its rows need a genuine level context. Use the
-                        // previously free 10pt strip between magical reference
-                        // cards (bottom 617) and source ledger (top 607), with no
-                        // source movement, invented levels or added paper pages.
-                        if (title.startsWith("P4 - ") && index > 0 &&
-                            pageCells.isNotEmpty()) {
-                            val firstKey = pageCells.first().sourceKey
-                            val firstEntryIndex = entries.indexOfFirst {
-                                it.sourceKey == firstKey
-                            }
-                            require(firstEntryIndex >= 0)
-                            val firstEntry = entries[firstEntryIndex]
-                            if (!firstEntry.sourceKey.startsWith("spell-level:")) {
-                                val currentLevel = entries.take(firstEntryIndex)
-                                    .lastOrNull { it.sourceKey.startsWith("spell-level:") }
-                                    ?.sourceKey?.removePrefix("spell-level:")
-                                    ?.toIntOrNull()
-                                if (currentLevel != null) {
-                                    val context = if (currentLevel == 0)
-                                        "TRUCOS / NIVEL 0 / CONTINUACIÓN"
-                                    else "NIVEL " + currentLevel + " / CONTINUACIÓN"
-                                    require(p4SourceFont.width.measurePt(context) <= 528f)
-                                    stream.beginText()
-                                    stream.setFont(bodyPdfFont, 7f)
-                                    stream.newLineAtOffset(44f, 610f)
-                                    stream.showText(pcSheetV11PrintableText(context))
-                                    stream.endText()
+                        // A level heading is printed once in the source stream.
+                        // When the SAME level crosses a P4 physical COLUMN
+                        // (including a new page), each continued column gets
+                        // source-backed context in the free 10pt header gap:
+                        // above the ledger (top 607) and below cards (bottom 617).
+                        // Never move/duplicate real rows or invent level headings.
+                        if (title.startsWith("P4 - ")) {
+                            flow.columnsPt.forEachIndexed { columnZero, column ->
+                                val firstCell = pageCells
+                                    .filter { it.columnIndex == columnZero + 1 }
+                                    .minByOrNull { it.rowIndex }
+                                if (firstCell != null &&
+                                    !firstCell.sourceKey.startsWith("spell-level:")) {
+                                    val firstIndex = entries.indexOfFirst {
+                                        it.sourceKey == firstCell.sourceKey
+                                    }
+                                    require(firstIndex >= 0)
+                                    val level = entries.take(firstIndex)
+                                        .lastOrNull {
+                                            it.sourceKey.startsWith("spell-level:")
+                                        }?.sourceKey?.removePrefix("spell-level:")
+                                        ?.toIntOrNull()
+                                    if (level != null) {
+                                        val context = if (level == 0)
+                                            "TRUCOS / NIVEL 0 / CONTINUACIÓN"
+                                        else "NIVEL " + level + " / CONTINUACIÓN"
+                                        require(p4SourceFont.width.measurePt(context) <=
+                                            column.widthPt - 4f) {
+                                            "P4 physical column continuation label overflows."
+                                        }
+                                        stream.beginText()
+                                        stream.setFont(bodyPdfFont, 7f)
+                                        stream.newLineAtOffset(column.leftPt + 2f, 610f)
+                                        stream.showText(pcSheetV11PrintableText(context))
+                                        stream.endText()
+                                    }
                                 }
                             }
                         }

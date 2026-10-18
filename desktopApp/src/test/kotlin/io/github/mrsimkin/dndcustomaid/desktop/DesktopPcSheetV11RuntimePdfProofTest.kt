@@ -1845,6 +1845,25 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(p4Pages.size >= 2,
                     "This stress fixture must actually exercise P4 page continuation.")
                 assertTrue(p4Pages.first().contains("NIVEL 1"))
+                // The real three-column first P4 page begins mid-level 1
+                // in BOTH column 2 and 3. Extract only their previously
+                // unused top strips; body text cannot satisfy this assertion.
+                val firstP4Physical = pageTexts.indexOfFirst {
+                    it.contains("P4 - Conjuros /")
+                }
+                assertTrue(firstP4Physical >= 0)
+                val area = PDFTextStripperByArea().apply {
+                    addRegion("column2-context",
+                        Rectangle2D.Float(222f, 166f, 170f, 20f))
+                    addRegion("column3-context",
+                        Rectangle2D.Float(402f, 166f, 170f, 20f))
+                    extractRegions(pdf.getPage(firstP4Physical))
+                }
+                for (region in listOf("column2-context", "column3-context")) {
+                    assertTrue(area.getTextForRegion(region)
+                        .contains("NIVEL 1 / CONTINUACIÓN"),
+                        "A new P4 physical column must identify the source level.")
+                }
                 val pageWithContinuedLevel = p4Pages.drop(1).filter {
                     it.contains("QAP4UNO") && !it.contains(Regex("""(?m)^NIVEL 1\\s*$"""))
                 }
