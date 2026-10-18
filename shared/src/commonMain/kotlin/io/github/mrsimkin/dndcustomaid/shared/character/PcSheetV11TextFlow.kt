@@ -171,7 +171,7 @@ object PcSheetV11TextFlow {
                 }
             }
             val lines = splitIntoMeasuredLines(item.text, column.widthPt, textWidth)
-            if (lines.isEmpty()) return@forEach
+            if (lines.isEmpty()) return@forEachIndexed
             if (item.keepTogetherIfFits && lines.size <= column.lineCapacity &&
                 lines.size > remaining
             ) {
