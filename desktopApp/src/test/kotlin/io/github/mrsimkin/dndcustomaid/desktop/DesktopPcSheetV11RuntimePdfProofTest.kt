@@ -4373,6 +4373,90 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3RealP2CustomCurrenciesWithPhysicalBreaksPreserveZeroOrderAndWholeC2AmountsAB() {
+        // A different approved source family than ammunition: real CUSTOM
+        // treasure denominations must still use the frozen P2 pair grammar.
+        // The first multiline denomination ends the contiguous P2 prefix;
+        // subsequent short currency rows stay in C2 in original source order.
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val template = original.permanent.sheet.currencies.first()
+        val currencies = listOf(
+            template.copy(
+                key = "qa-currency-zero", name = "QACOINZERO", amount = 0,
+                sortOrder = 1, isDefault = false,
+            ),
+            template.copy(
+                key = "qa-currency-line",
+                name = "QACOINLFSTART\r\nQACOINLFEND",
+                amount = 37, sortOrder = 2, isDefault = false,
+            ),
+            template.copy(
+                key = "qa-currency-tab",
+                name = "QACOINTABSTART\tQACOINTABEND",
+                amount = 41, sortOrder = 3, isDefault = false,
+            ),
+            template.copy(
+                key = "qa-currency-tail", name = "QACOINSHORTTAIL",
+                amount = 73, sortOrder = 4, isDefault = false,
+            ),
+        )
+        val stressed = original.copy(permanent = original.permanent.copy(
+            sheet = original.permanent.sheet.copy(currencies = currencies),
+        ))
+        val expected = currencies.toList()
+        val deferred = listOf("QACOINLFSTART", "QACOINLFEND",
+            "QACOINTABSTART", "QACOINTABEND", "QACOINSHORTTAIL")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val pdfBytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = false,
+                ), stressed,
+            ).bytes
+            assertEquals(expected, stressed.permanent.sheet.currencies,
+                "Printing must never rewrite persisted custom currency labels or amounts.")
+            preserveRealApplicationPdf(pdfBytes,
+                "V11-INTERNAL-PROOF-P2-currency-source-break-" + variant.name + ".pdf")
+            Loader.loadPDF(pdfBytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { page ->
+                    PDFTextStripper().apply {
+                        startPage = page
+                        endPage = page
+                    }.getText(pdf)
+                }
+                val p2 = pages[1]
+                val c2 = pages.filter { it.contains("C2 - Equipo y tesoro / TESORO") }
+                    .joinToString("\n")
+                val full = pages.joinToString("\n")
+                assertTrue(p2.contains("QACOINZERO"),
+                    "Actual saved zero-denomination row must remain in P2.")
+                assertFalse(c2.contains("QACOINZERO"),
+                    "Already-printed P2 currency must not appear again in C2.")
+                deferred.forEach { label ->
+                    assertFalse(p2.contains(label),
+                        "Single-row P2 cannot print deferred source label " + label)
+                    assertTrue(c2.contains(label),
+                        "Complete currency label must remain visible in C2: " + label)
+                    assertEquals(1, Regex(Regex.escape(label)).findAll(full).count(),
+                        "Currency source segment printed more than once: " + label)
+                }
+                assertTrue(c2.indexOf("QACOINLFSTART") < c2.indexOf("QACOINTABSTART"))
+                assertTrue(c2.indexOf("QACOINTABSTART") < c2.indexOf("QACOINSHORTTAIL"))
+                for (amount in listOf(37, 41, 73)) {
+                    assertEquals(1, Regex("""(?<!\d)""" + amount + """(?!\d)""")
+                        .findAll(full).count(),
+                        "Saved custom currency quantity must print exactly once: " + amount)
+                }
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                deferred.forEach { label ->
+                    assertFalse(pages.last().contains(label),
+                        "Digital currency must not migrate into manuscript NOTAS.")
+                }
+            }
+        }
+    }
+
+    @Test
     fun g3RealP2RecordedZeroCurrencyIsNotTreatedAsAbsentPaperEntry() {
         // Persisted zero IS a real value; no default currency may be generated.
         val source = sources("01_aldren_vale_srd5_1_champion_fighter.json")
