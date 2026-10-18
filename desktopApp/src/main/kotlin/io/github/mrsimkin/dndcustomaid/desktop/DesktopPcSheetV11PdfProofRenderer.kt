@@ -1710,6 +1710,64 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             }
                         }
                         if (title == "C2 - Habilidades, acciones y recursos") {
+                            // When a GENUINE custom attribute and linked skills
+                            // cannot fit a whole column, source-backed context
+                            // accompanies each following physical column.
+                            // It lives in the reserved 702..717pt header gap:
+                            // no duplicated attribute score/ID, no row moved,
+                            // no invented state, no new page or reduced font.
+                            flow.columnsPt.forEachIndexed { columnZero, column ->
+                                val firstCell = pageCells
+                                    .filter { it.columnIndex == columnZero + 1 }
+                                    .minByOrNull { it.rowIndex }
+                                val group = entries.firstOrNull {
+                                    it.sourceKey == firstCell?.sourceKey
+                                }?.groupKey
+                                val attrIndex = group
+                                    ?.removePrefix("custom-attribute-group:")
+                                    ?.toIntOrNull()
+                                if (attrIndex != null) {
+                                    val original = flow.cells.firstOrNull {
+                                        it.sourceKey == "attribute:" + attrIndex
+                                    }
+                                    if (original != null &&
+                                        (original.localPageIndex != index + 1 ||
+                                            original.columnIndex != columnZero + 1)
+                                    ) {
+                                        val attribute = requireNotNull(
+                                            data.attributes.drop(6).getOrNull(attrIndex)
+                                        ) { "C2 continuation lost its source attribute." }
+                                        val fontPt = 7f
+                                        fun fits(text: String): Boolean =
+                                            bodyPdfFont.getStringWidth(
+                                                pcSheetV11PrintableText(text)
+                                            ) * fontPt / 1000f <= column.widthPt - 4f
+                                        val full = "CONTINÚA ATRIBUTO: " + attribute.name
+                                        val short = attribute.abbreviation
+                                            .takeIf { it.isNotBlank() }
+                                            ?.let {
+                                                "CONTINÚA ATRIBUTO: " +
+                                                    approvedAbilityAbbreviation(it)
+                                            }
+                                        val sourceId = attribute.reference.customAttributeId
+                                            ?.toString()?.let { "CONTINÚA ID: " + it }
+                                        val context = listOfNotNull(full, short, sourceId)
+                                            .firstOrNull { fits(it) }
+                                        requireNotNull(context) {
+                                            "C2 source attribute continuation cannot fit the " +
+                                                "existing physical header band."
+                                        }
+                                        stream.saveGraphicsState()
+                                        stream.setNonStrokingColor(Color(80, 122, 151))
+                                        stream.beginText()
+                                        stream.setFont(bodyPdfFont, fontPt)
+                                        stream.newLineAtOffset(column.leftPt + 2f, 707f)
+                                        stream.showText(pcSheetV11PrintableText(context))
+                                        stream.endText()
+                                        stream.restoreGraphicsState()
+                                    }
+                                }
+                            }
                             val fromP2 = pageCells.any {
                                 it.sourceKey.startsWith("p2-trait:") ||
                                     it.sourceKey == "c2-heading:traits"

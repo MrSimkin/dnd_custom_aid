@@ -1407,6 +1407,131 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3OversizedRealCustomAttributeShowsItsIdentityOnEveryC2ContinuationColumnAB() {
+        // A real Mara attribute + 140 explicitly linked skills is larger
+        // than one physical C2 column. The original score row stays unique;
+        // each continuation column must identify the same persisted source
+        // without reprinting or inventing attribute values.
+        val original = sources("03_mara_siete_umbrales_custom_extended.json")
+        val prototype = original.permanent.successor.customAttributes.first {
+            it.name == "Fortuna"
+        }
+        val templateSkill = original.permanent.closure.customSkills.first {
+            it.name == "Contratos arcanos"
+        }
+        val relation = original.permanent.successor.customSkillAbilities.first {
+            it.customSkillId == templateSkill.id
+        }
+        val attribute = prototype.copy(
+            id = Uuid.parse("b1100000-0000-4000-8000-000000000001"),
+            name = "QAMEGAATRIBUTO",
+            abbreviation = "QMA",
+            sortOrder = 2000,
+        )
+        val skills = (1..140).map { number ->
+            templateSkill.copy(
+                id = Uuid.parse("b1200000-0000-4000-8000-" +
+                    number.toString().padStart(12, '0')),
+                name = "QAMEGASKILL" + number.toString().padStart(3, '0'),
+                sortOrder = 2000 + number,
+            )
+        }
+        val changed = original.copy(
+            permanent = original.permanent.copy(
+                closure = original.permanent.closure.copy(
+                    customSkills = original.permanent.closure.customSkills + skills,
+                ),
+                successor = original.permanent.successor.copy(
+                    customAttributes = original.permanent.successor.customAttributes +
+                        attribute,
+                    customSkillAbilities = original.permanent.successor.customSkillAbilities +
+                        skills.map { skill ->
+                            relation.copy(
+                                customSkillId = skill.id,
+                                ability = io.github.mrsimkin.dndcustomaid.shared.character
+                                    .CharacterAbilityReference.custom(attribute.id),
+                            )
+                        },
+                ),
+            ),
+        )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                ),
+                changed,
+            ).bytes
+            preserveRealApplicationPdf(bytes,
+                "V11-INTERNAL-PROOF-C2-oversized-custom-attribute-" + variant + ".pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val texts = (1..pdf.numberOfPages).map { page ->
+                    PDFTextStripper().apply {
+                        startPage = page
+                        endPage = page
+                    }.getText(pdf)
+                }
+                val c2 = (0 until pdf.numberOfPages).filter { index ->
+                    texts[index].contains("C2 - Habilidades, acciones y recursos")
+                }.flatMap { pageIndex ->
+                    val region = PDFTextStripperByArea().apply {
+                        addRegion("left-body",
+                            Rectangle2D.Float(40f, 90f, 262f, 630f))
+                        addRegion("right-body",
+                            Rectangle2D.Float(310f, 90f, 262f, 630f))
+                        addRegion("left-context",
+                            Rectangle2D.Float(40f, 75f, 262f, 16f))
+                        addRegion("right-context",
+                            Rectangle2D.Float(310f, 75f, 262f, 16f))
+                        extractRegions(pdf.getPage(pageIndex))
+                    }
+                    listOf(
+                        Triple(pageIndex + 1,
+                            region.getTextForRegion("left-body"),
+                            region.getTextForRegion("left-context")),
+                        Triple(pageIndex + 1,
+                            region.getTextForRegion("right-body"),
+                            region.getTextForRegion("right-context")),
+                    )
+                }
+                val active = c2.filter { (_, body, _) ->
+                    body.contains("QAMEGASKILL")
+                }
+                assertTrue(active.size >= 3,
+                    "Oversized group must span at least three physical C2 columns.")
+                val originalScoreRows = c2.sumOf { (_, body, _) ->
+                    Regex("QAMEGAATRIBUTO\\s+16\\s+/\\s+mod").findAll(body).count()
+                }
+                assertEquals(1, originalScoreRows,
+                    "Original custom attribute score must be printed only once.")
+                val first = c2.indexOfFirst { it.second.contains("QAMEGAATRIBUTO") }
+                assertTrue(first >= 0, "Source custom attribute row missing.")
+                val subsequent = c2.drop(first + 1).filter { (_, body, _) ->
+                    body.contains("QAMEGASKILL")
+                }
+                assertTrue(subsequent.size >= 2)
+                subsequent.forEach { (_, _, header) ->
+                    assertTrue(header.contains("CONTINÚA ATRIBUTO: QAMEGAATRIBUTO"),
+                        "Continued skills require the true source attribute in " +
+                            "the free per-column header band.")
+                }
+                val combined = texts.joinToString("\n")
+                skills.forEach { skill ->
+                    assertEquals(1, Regex(Regex.escape(skill.name)).findAll(combined).count(),
+                        "Linked source skill is missing or repeated: " + skill.name)
+                }
+                assertTrue(texts.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertFalse(texts.last().contains("QAMEGASKILL"),
+                    "Digital skill continuation cannot occupy the paper-only last page.")
+                for (page in pdf.pages) {
+                    assertEquals(PDRectangle.LETTER.width, page.mediaBox.width)
+                    assertEquals(PDRectangle.LETTER.height, page.mediaBox.height)
+                }
+            }
+        }
+    }
+
+    @Test
     fun g3CustomAttributesKeepLinkedSkillsWithinFittingPhysicalC2ColumnsAB() {
         // Real Mara source + source-typed UUID replicas create multiple C2
         // column boundaries. IDs and ability links are persisted only in this
