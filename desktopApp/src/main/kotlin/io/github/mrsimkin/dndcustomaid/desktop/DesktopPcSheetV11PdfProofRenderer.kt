@@ -2833,8 +2833,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 fontPt / 1000f <= available
                         val full = "CONTINÚA EQUIPO: " + item.name
                         val sourceId = "CONTINÚA ID: " + item.sourceId
+                        // The full name is drawn losslessly in its real
+                        // measured table cells. Its PAPER navigation label is
+                        // single-line: explicit source CR/LF must never be sent
+                        // to PDFBox getStringWidth/showText, which reject those
+                        // control glyphs. Use the actual persisted UUID instead.
+                        val canUseNameInHeader = item.name.none {
+                            it == '\n' || it == '\r'
+                        }
                         val label = when {
-                            fits(full) -> full
+                            canUseNameInHeader && fits(full) -> full
                             fits(sourceId) -> sourceId
                             else -> error("Real C2 special equipment continuation ID " +
                                 "does not fit the existing physical header.")

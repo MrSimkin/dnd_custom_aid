@@ -3308,6 +3308,79 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3C2SpecialEquipmentMultilineLongNameUsesRealIdContinuationAB() {
+        // Persisted names may contain real line breaks. They are rendered in
+        // the original four-column table, but a single-line continuation
+        // header must use the TRUE ID rather than passing CR/LF to the font.
+        val original = sources("03_mara_siete_umbrales_custom_extended.json")
+        val template = original.permanent.sheet.inventoryItems.first { it.special }
+        val id = Uuid.parse("c3000000-0000-4000-8000-000000000002")
+        val longName = "QANOMBREINICIO\n" +
+            "Denominación extensa original comprobable ".repeat(18) +
+            "\nQANOMBREFINAL"
+        val item = template.copy(
+            id = id,
+            name = longName,
+            description = "QADESCINICIO " +
+                "Detalle fuente persistido para continuidad especial. ".repeat(175) +
+                " QADESCFINAL",
+            notes = null,
+            special = true,
+            sortOrder = 5001,
+        )
+        val input = original.copy(permanent = original.permanent.copy(
+            sheet = original.permanent.sheet.copy(
+                inventoryItems = original.permanent.sheet.inventoryItems
+                    .filterNot { it.special } + item,
+            ),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                ), input,
+            )
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-C2-special-multiline-id-" + variant + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply {
+                        startPage = n
+                        endPage = n
+                    }.getText(pdf)
+                }
+                val c2 = pages.filter {
+                    it.contains("C2 - Equipo especial / continuación")
+                }
+                assertTrue(c2.size >= 2,
+                    "Persisted oversized description must span physical C2 pages.")
+                val allText = pages.joinToString("\n")
+                assertEquals(1, Regex("QANOMBREINICIO").findAll(allText).count())
+                assertEquals(1, Regex("QANOMBREFINAL").findAll(allText).count())
+                assertEquals(1, Regex("QADESCINICIO").findAll(allText).count())
+                assertEquals(1, Regex("QADESCFINAL").findAll(allText).count())
+                assertTrue(c2.first().contains("QANOMBREINICIO"))
+                assertFalse(c2.first().contains("CONTINÚA ID: " + id))
+                c2.drop(1).forEach { page ->
+                    assertTrue(page.contains("CONTINÚA ID: " + id),
+                        "Each continued real C2 page must retain the source UUID.")
+                    assertFalse(page.contains("CONTINÚA EQUIPO: QANOMBREINICIO"))
+                    assertTrue(page.contains("UBICACIÓN") &&
+                        page.contains("NOMBRE") && page.contains("DESCRIPCIÓN") &&
+                        page.contains("ACTIVO"))
+                }
+                assertTrue(c2.last().contains("QADESCFINAL"))
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertFalse(pages.last().contains("QADESCINICIO"))
+                for (page in pdf.pages) {
+                    assertEquals(PDRectangle.LETTER.width, page.mediaBox.width)
+                    assertEquals(PDRectangle.LETTER.height, page.mediaBox.height)
+                }
+            }
+        }
+    }
+
+    @Test
     fun overflowingOrdinaryInventoryUsesFullHeightC2WithoutRepeatingAnyAmount() {
         val existing = sources("01_aldren_vale_srd5_1_champion_fighter.json")
         val original = existing.permanent.sheet.inventoryItems.first { !it.special }
