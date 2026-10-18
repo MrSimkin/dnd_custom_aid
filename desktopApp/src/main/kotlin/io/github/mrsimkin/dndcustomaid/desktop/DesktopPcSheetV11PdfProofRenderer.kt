@@ -986,13 +986,29 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val imageY = frameY + 7f
                 val imageWidth = frameWidth - 14f
                 val imageHeight = frameHeight - 28f
+                // Frozen V11 golden uses a chamfered portrait frame, not
+                // the provisional rectangular proof. Preserve image viewport.
                 stream.saveGraphicsState()
-                stream.setStrokingColor(Color(80, 122, 151))
-                stream.setLineWidth(0.9f)
-                stream.addRect(frameX, frameY, frameWidth, frameHeight)
+                stream.setNonStrokingColor(Color.WHITE)
+                stream.setStrokingColor(Color(38, 75, 104))
+                stream.setLineWidth(0.65f)
+                val corner = 7f
+                stream.moveTo(frameX + corner, frameY)
+                stream.lineTo(frameX + frameWidth - corner, frameY)
+                stream.lineTo(frameX + frameWidth, frameY + corner)
+                stream.lineTo(frameX + frameWidth, frameY + frameHeight - corner)
+                stream.lineTo(frameX + frameWidth - corner, frameY + frameHeight)
+                stream.lineTo(frameX + corner, frameY + frameHeight)
+                stream.lineTo(frameX, frameY + frameHeight - corner)
+                stream.lineTo(frameX, frameY + corner)
+                stream.closePath()
+                stream.fillAndStroke()
+                stream.setStrokingColor(Color(191, 211, 222))
+                stream.setLineWidth(0.35f)
+                stream.moveTo(frameX + 12f, frameY + frameHeight - 4.5f)
+                stream.lineTo(frameX + frameWidth - 12f, frameY + frameHeight - 4.5f)
                 stream.stroke()
                 stream.restoreGraphicsState()
-                draw(stream, "RETRATO", frameX + 7f, frameY + frameHeight - 12f, false)
 
                 if (portraitBytes != null) {
                     // Same data the existing App export services load locally.
@@ -1018,29 +1034,40 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.drawImage(picture, px, py, drawWidth, drawHeight)
                     stream.restoreGraphicsState()
                 } else {
-                    // No usable local portrait: contract requires a reserved frame
-                    // with a neutral silhouette, not an invented character image.
-                    val cx = imageX + imageWidth / 2f
-                    val cy = imageY + imageHeight * 0.58f
+                    // The original approved paper's absent-portrait symbol is a
+                    // pair of PALE FILLED ellipses, never an outline-only avatar.
+                    // Normalize its original bounds to the existing V11 viewport.
                     stream.saveGraphicsState()
-                    stream.setStrokingColor(Color(130, 165, 186))
-                    stream.setLineWidth(1f)
-                    val radius = 19f
-                    val k = radius * 0.5522848f
-                    stream.moveTo(cx + radius, cy)
-                    stream.curveTo(cx + radius, cy + k, cx + k, cy + radius, cx, cy + radius)
-                    stream.curveTo(cx - k, cy + radius, cx - radius, cy + k, cx - radius, cy)
-                    stream.curveTo(cx - radius, cy - k, cx - k, cy - radius, cx, cy - radius)
-                    stream.curveTo(cx + k, cy - radius, cx + radius, cy - k, cx + radius, cy)
-                    stream.closePath()
-                    stream.stroke()
-                    stream.moveTo(imageX + 12f, imageY + 16f)
-                    stream.curveTo(imageX + 17f, imageY + 68f,
-                        imageX + imageWidth - 17f, imageY + 68f,
-                        imageX + imageWidth - 12f, imageY + 16f)
-                    stream.stroke()
+                    stream.setNonStrokingColor(Color(231, 242, 247))
+                    stream.setStrokingColor(Color(191, 211, 222))
+                    stream.setLineWidth(0.35f)
+                    val k = 0.5522848f
+                    fun filledOval(cx: Float, cy: Float, rx: Float, ry: Float) {
+                        stream.moveTo(cx + rx, cy)
+                        stream.curveTo(cx + rx, cy + k * ry, cx + k * rx, cy + ry, cx, cy + ry)
+                        stream.curveTo(cx - k * rx, cy + ry, cx - rx, cy + k * ry, cx - rx, cy)
+                        stream.curveTo(cx - rx, cy - k * ry, cx - k * rx, cy - ry, cx, cy - ry)
+                        stream.curveTo(cx + k * rx, cy - ry, cx + rx, cy - k * ry, cx + rx, cy)
+                        stream.closePath()
+                        stream.fillAndStroke()
+                    }
+                    val cx = frameX + frameWidth / 2f
+                    filledOval(cx, frameY + 70.2f, 14.85f, 14.85f)
+                    filledOval(cx, frameY + 39.3f, 27.85f, 19.65f)
                     stream.restoreGraphicsState()
                 }
+                // Golden's caption is beneath the figure and never covers its head.
+                // Keep the label when a real local image is shown as well.
+                val portraitCaption = "RETRATO"
+                val captionSize = 7f
+                val captionWidth = headerPdfFont.getStringWidth(portraitCaption) /
+                    1000f * captionSize
+                stream.beginText()
+                stream.setFont(headerPdfFont, captionSize)
+                stream.setNonStrokingColor(Color(80, 122, 151))
+                stream.newLineAtOffset(frameX + (frameWidth - captionWidth) / 2f, frameY + 6f)
+                stream.showText(portraitCaption)
+                stream.endText()
             }
 
             // V11 P1 uses genuine physical identity fields. Alignment is not a
