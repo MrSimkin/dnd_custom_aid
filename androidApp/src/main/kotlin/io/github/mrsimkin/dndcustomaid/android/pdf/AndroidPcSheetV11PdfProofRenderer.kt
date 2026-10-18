@@ -549,10 +549,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // entries which physically FIT, not only matches among the first
             // six source entries. All other UUIDs remain deferred to C2.
             val p1Attacks=attackRows.filter{entry->
+                // P1 cells are single physical rows. A measured "width" cannot
+                // prove that a source with CR/LF/TAB is safe to print there.
+                // Defer the COMPLETE UUID-backed attack to measured C2 rather
+                // than flattening, clipping, or dropping a source segment.
+                val hasPhysicalBreak = listOfNotNull(
+                    entry.name, entry.rangeText, entry.damageEffect,
+                ).any { field -> field.any { ch ->
+                    ch == '\r' || ch == '\n' || ch == '\t'
+                } }
                 val bonus=entry.attackModifier?.let{if(it>=0)"+"+it else it.toString()}?:""
-                body.width.measurePt(p1AttackLabel(entry))<=attackLabelWidth-10f &&
-                body.width.measurePt(bonus)<=attackBonusWidth-8f &&
-                body.width.measurePt(entry.damageEffect)<=attackDamageWidth-10f
+                !hasPhysicalBreak &&
+                    body.width.measurePt(p1AttackLabel(entry))<=attackLabelWidth-10f &&
+                    body.width.measurePt(bonus)<=attackBonusWidth-8f &&
+                    body.width.measurePt(entry.damageEffect)<=attackDamageWidth-10f
             }.take(6)
             val p1AttackIds = p1Attacks.map { it.id }.toSet()
 

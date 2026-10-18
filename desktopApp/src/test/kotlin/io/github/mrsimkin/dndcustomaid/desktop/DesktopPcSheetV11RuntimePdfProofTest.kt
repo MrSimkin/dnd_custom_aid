@@ -2839,6 +2839,101 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3P1AttacksWithPersistedLineBreaksAndTabsAreRoutedLosslesslyToRealC2AB() {
+        val source = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val template = source.permanent.sheet.combatEntries.first {
+            it.type == io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK
+        }
+        // Test a genuinely allowed source name, range and damage with
+        // independent hard breaks, not a synthetic PDF or a preformatted label.
+        val attacks = listOf(
+            template.copy(
+                id = Uuid.parse("a8000000-0000-4000-8000-000000000001"),
+                name = "QAATTACKNAMESTART\nQAATTACKNAMEEND",
+                rangeText = "5 ft",
+                damageEffect = "1d8+2",
+                notes = null,
+                sortOrder = 1,
+            ),
+            template.copy(
+                id = Uuid.parse("a8000000-0000-4000-8000-000000000002"),
+                name = "QAATTACKRANGE",
+                rangeText = "QAALCANCEINICIO\r\nQAALCANCEFINAL",
+                damageEffect = "1d6+2",
+                notes = null,
+                sortOrder = 2,
+            ),
+            template.copy(
+                id = Uuid.parse("a8000000-0000-4000-8000-000000000003"),
+                name = "QAATTACKDAMAGE",
+                rangeText = "10 ft",
+                damageEffect = "QADANOINICIO\tQADANOFINAL",
+                notes = null,
+                sortOrder = 3,
+            ),
+            template.copy(
+                id = Uuid.parse("a8000000-0000-4000-8000-000000000004"),
+                name = "QASAFEP1ROW",
+                rangeText = null,
+                damageEffect = "1d4+1",
+                notes = null,
+                sortOrder = 4,
+            ),
+        )
+        val stressed = source.copy(permanent = source.permanent.copy(
+            sheet = source.permanent.sheet.copy(combatEntries = attacks),
+        ))
+        val deferredMarkers = listOf(
+            "QAATTACKNAMESTART", "QAATTACKNAMEEND",
+            "QAATTACKRANGE", "QAALCANCEINICIO", "QAALCANCEFINAL",
+            "QAATTACKDAMAGE", "QADANOINICIO", "QADANOFINAL",
+        )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val before = stressed.permanent.sheet.combatEntries.toList()
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = false,
+                ), stressed,
+            ).bytes
+            assertEquals(before, stressed.permanent.sheet.combatEntries,
+                "Export must not mutate any persisted attack source.")
+            preserveRealApplicationPdf(bytes,
+                "V11-INTERNAL-PROOF-P1-attack-multiline-" + variant.name + ".pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { page ->
+                    PDFTextStripper().apply {
+                        startPage = page
+                        endPage = page
+                    }.getText(pdf)
+                }
+                val p1 = pages.first()
+                val full = pages.joinToString("\n")
+                val c2 = pages.filter {
+                    it.contains("C2 - Habilidades, acciones y recursos")
+                }.joinToString("\n")
+                assertTrue(p1.contains("QASAFEP1ROW"),
+                    "Ordinary source attacks should still use P1's real rows.")
+                assertFalse(c2.contains("QASAFEP1ROW"),
+                    "A fitting attack may not be repeated in C2.")
+                deferredMarkers.forEach { marker ->
+                    assertFalse(p1.contains(marker),
+                        "Multiline source $marker cannot occupy a single physical P1 row.")
+                    assertTrue(c2.contains(marker),
+                        "Full source attack $marker must survive on measured C2.")
+                    assertEquals(1, Regex(Regex.escape(marker)).findAll(full).count(),
+                        "The source segment $marker must appear exactly once.")
+                }
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                deferredMarkers.forEach { marker ->
+                    assertFalse(pages.last().contains(marker),
+                        "Final manuscript NOTAS is never digital overflow.")
+                }
+            }
+        }
+    }
+
+    @Test
     fun g3RealSixMandatoryAttributesSurviveDenseCustomSkillsWithLosslessC2Continuation() {
         val base = sources("03_mara_siete_umbrales_custom_extended.json")
         val sample = requireNotNull(base.permanent.closure.customSkills.firstOrNull())
