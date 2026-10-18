@@ -1046,8 +1046,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         stream.fillAndStroke()
                     }
                     val cx = frameX + frameWidth / 2f
-                    filledOval(cx, frameY + 70.2f, 14.85f, 14.85f)
-                    filledOval(cx, frameY + 39.3f, 27.85f, 19.65f)
+                    filledOval(cx, frameY + 73f, 14.85f, 14.85f)
+                    filledOval(cx, frameY + 32.3f, 27.85f, 19.65f)
                     stream.restoreGraphicsState()
                 }
                 // Golden's caption is beneath the figure and never covers its head.
@@ -1056,12 +1056,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 val captionSize = 7f
                 val captionWidth = headerPdfFont.getStringWidth(portraitCaption) /
                     1000f * captionSize
+                stream.saveGraphicsState()
                 stream.beginText()
                 stream.setFont(headerPdfFont, captionSize)
                 stream.setNonStrokingColor(Color(80, 122, 151))
                 stream.newLineAtOffset(frameX + (frameWidth - captionWidth) / 2f, frameY + 6f)
                 stream.showText(portraitCaption)
                 stream.endText()
+                stream.restoreGraphicsState()
             }
 
             // V11 P1 uses genuine physical identity fields. Alignment is not a
