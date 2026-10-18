@@ -1481,9 +1481,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     .containsMatchIn(c2),
                     "Already-printed custom attribute cannot repeat as a C2 score row.")
             }
-            assertTrue(c2.contains("Contratos arcanos (Fortuna)"))
-            assertTrue(c2.contains("Sincronía (Cordura)"))
-            assertTrue(c2.contains("Manipulación de éter (Éter)"))
+            // V11 detached-skill rule: use persisted custom abbreviations,
+            // not the full attribute names that are already present in P1.
+            assertTrue(c2.contains("Contratos arcanos (FOR)"))
+            assertTrue(c2.contains("Sincronía (COR)"))
+            assertTrue(c2.contains("Manipulación de éter (ETE)"))
+            assertFalse(c2.contains("Contratos arcanos (Fortuna)") ||
+                c2.contains("Sincronía (Cordura)") ||
+                c2.contains("Manipulación de éter (Éter)"))
         }
     }
 
