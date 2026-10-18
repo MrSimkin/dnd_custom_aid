@@ -71,7 +71,12 @@ object PcSheetV11PairedAmountRouting {
         val pairWidth = (areaPt.widthPt - gutterPt) / 2f
         val nameWidth = pairWidth - BASE_AMOUNT_WIDTH_PT - AMOUNT_GAP_PT
         require(nameWidth > TEXT_INSET_PT)
-        return source.copy(rows = source.rows.filter { row ->
+        // P2 must be a CONTIGUOUS source-order prefix. Filtering every fitting
+        // row would print a later short item ahead of an earlier long item
+        // deferred to C2. Keep the approved single-line P2 grammar; send the
+        // first ineligible row and all successors to measured C2, preserving
+        // source order, IDs and single-print amount ownership.
+        return source.copy(rows = source.rows.takeWhile { row ->
             val labelWidth = width.measurePt(pcSheetV11PrintableText(row.label))
             val amountWidth = width.measurePt(row.amount.toString())
             require(labelWidth.isFinite() && amountWidth.isFinite() &&

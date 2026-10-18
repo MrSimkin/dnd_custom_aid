@@ -2916,6 +2916,75 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3P2C2InventoryPrintsContiguousSourceOrderAcrossThePhysicalBoundaryAB() {
+        // Source-backed Aldren equipment deliberately interleaves one short,
+        // one genuinely non-fitting P2 identity and one later short identity.
+        // Filtering all fitting rows caused the later item to leap onto P2,
+        // ahead of its persisted predecessor in C2.
+        val real = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val template = real.permanent.sheet.inventoryItems.first { !it.special }
+        val items = listOf(
+            template.copy(
+                id = Uuid.parse("c2000000-0000-4000-8000-000000000001"),
+                name = "QAPRIMERO", quantity = 7131, sortOrder = 1,
+                special = false, notes = null,
+            ),
+            template.copy(
+                id = Uuid.parse("c2000000-0000-4000-8000-000000000002"),
+                name = "QALARGO " + "identidad original completa ".repeat(12),
+                quantity = 7132, sortOrder = 2,
+                special = false, notes = null,
+            ),
+            template.copy(
+                id = Uuid.parse("c2000000-0000-4000-8000-000000000003"),
+                name = "QADESPUES", quantity = 7133, sortOrder = 3,
+                special = false, notes = null,
+            ),
+        )
+        val altered = real.copy(
+            permanent = real.permanent.copy(
+                sheet = real.permanent.sheet.copy(inventoryItems = items),
+                closure = real.permanent.closure.copy(inventoryUsage = emptyList()),
+            ),
+        )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                ),
+                altered,
+            )
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-P2-C2-source-order-" + variant + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { number ->
+                    PDFTextStripper().apply {
+                        startPage = number
+                        endPage = number
+                    }.getText(pdf)
+                }
+                val p2 = pages.first { it.contains("P2 - Equipo y tesoro") }
+                val c2 = pages.filter { it.contains("C2 - Equipo y tesoro / EQUIPO") }
+                    .joinToString("\n")
+                assertTrue(p2.contains("QAPRIMERO") && p2.contains("7131"))
+                assertFalse(p2.contains("QALARGO") || p2.contains("QADESPUES"),
+                    "A later short identity must not leap ahead of its long predecessor.")
+                assertTrue(c2.contains("QALARGO") && c2.contains("QADESPUES"))
+                assertTrue(c2.indexOf("QALARGO") < c2.indexOf("QADESPUES"),
+                    "Source order must survive the physical P2-to-C2 transfer.")
+                assertTrue(c2.contains("7132") && c2.contains("7133"))
+                assertFalse(c2.contains("7131") || c2.contains("QAPRIMERO"))
+                assertEquals(1, pages.joinToString("\n").split("QADESPUES").size - 1)
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                for (page in pdf.pages) {
+                    assertEquals(PDRectangle.LETTER.width, page.mediaBox.width)
+                    assertEquals(PDRectangle.LETTER.height, page.mediaBox.height)
+                }
+            }
+        }
+    }
+
+    @Test
     fun overflowingOrdinaryInventoryUsesFullHeightC2WithoutRepeatingAnyAmount() {
         val existing = sources("01_aldren_vale_srd5_1_champion_fighter.json")
         val original = existing.permanent.sheet.inventoryItems.first { !it.special }

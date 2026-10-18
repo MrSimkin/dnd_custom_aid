@@ -160,6 +160,47 @@ class PcSheetV11PairedTableComposerTest {
     }
 
     @Test
+    fun deferredWideRowKeepsAllLaterRecordsInSourceOrderedC2Suffix() {
+        // The frozen P2 uses one-line name/amount cells. A long identity or
+        // numeric amount must defer the WHOLE following sequence to C2;
+        // do not select a later fitting row from the middle of the source.
+        for (kind in PcSheetV11PairedTableKind.entries) {
+            val rows = listOf(
+                PcSheetV11PairedTableRow("first:" + kind, "Inicio", 0, null),
+                PcSheetV11PairedTableRow("long:" + kind,
+                    "Nombre demasiado extenso ".repeat(15), 7, null),
+                PcSheetV11PairedTableRow("later:" + kind, "Final", 8, null),
+            )
+            val all = PcSheetV11PairedTableData(kind, rows)
+            val p2 = PcSheetV11PairedAmountRouting.p2Eligible(all, area, 12f, width)
+            assertEquals(listOf(rows[0]), p2.rows)
+            val remainder = all.rows.drop(p2.rows.size)
+            assertEquals(listOf(rows[1], rows[2]), remainder)
+            val p2Printed = place(p2)
+            val c2 = place(all.copy(rows = remainder))
+            assertEquals(listOf("first:" + kind),
+                p2Printed.quantities.map { it.sourceKey })
+            assertEquals(listOf("long:" + kind, "later:" + kind),
+                c2.quantities.map { it.sourceKey })
+            assertEquals(listOf("0", "7", "8"),
+                p2Printed.quantities.map { it.printableText } +
+                    c2.quantities.map { it.printableText })
+            p2Printed.verify()
+            c2.verify()
+
+            val hugeAmount = all.copy(rows = listOf(
+                rows[0],
+                PcSheetV11PairedTableRow("wide:" + kind, "Cabe", Int.MAX_VALUE, null),
+                rows[2],
+            ))
+            assertEquals(listOf(rows[0]),
+                PcSheetV11PairedAmountRouting.p2Eligible(
+                    hugeAmount, area, 12f, width,
+                ).rows, "A later short row may not jump ahead of a wide amount.")
+        }
+    }
+
+    @Test
     fun ordinaryP2AmountWidthsKeepTheApprovedOriginalColumns() {
         val data = PcSheetV11PairedTableData(PcSheetV11PairedTableKind.TREASURE, listOf(
             PcSheetV11PairedTableRow("coin:gold", "Oro", 0, null),
