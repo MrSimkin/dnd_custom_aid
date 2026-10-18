@@ -926,8 +926,15 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind.AMMUNITION }
                 .map { it.itemId }.toSet()
             val p1AmmoItems = data.source.sheet.inventoryItems
-                .filter { it.id in p1AmmunitionIds && it.quantity >= 0 &&
-                    p1Font.width.measurePt(it.name) <= 68f }
+                // The fixed paper mark row is SINGLE-LINE. A source ammo
+                // name containing CR/LF/TAB cannot be printed in this slot even
+                // when a font-width measurement appears to fit. Its genuine
+                // UUID/name/quantity remain in the existing measured C2 route.
+                .filter { item ->
+                    item.id in p1AmmunitionIds && item.quantity >= 0 &&
+                        item.name.none { ch -> ch == '\r' || ch == '\n' || ch == '\t' } &&
+                        p1Font.width.measurePt(item.name) <= 68f
+                }
                 .sortedWith(compareBy<
                     io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem> {
                     it.sortOrder

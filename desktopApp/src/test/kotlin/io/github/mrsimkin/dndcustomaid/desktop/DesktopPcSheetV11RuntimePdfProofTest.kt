@@ -2434,6 +2434,87 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3P1AmmunitionSourceNameWithLineBreakOrTabDefersToC2WithoutLosingQuantityAB() {
+        val source = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val usage = source.permanent.closure.inventoryUsage.single {
+            it.kind == io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind.AMMUNITION
+        }
+        val template = source.permanent.sheet.inventoryItems.first { it.id == usage.itemId }
+        val names = listOf(
+            "QAAMMOLINESTART\nQAAMMOLINEEND",
+            "QAAMMOTABSTART\tQAAMMOTABEND",
+            "QASHORTAMMO",
+        )
+        val quantities = listOf(7, 9, 4)
+        val ids = (1..3).map { number ->
+            Uuid.parse("a9000000-0000-4000-8000-" +
+                number.toString().padStart(12, '0'))
+        }
+        val customItems = names.mapIndexed { index, name ->
+            template.copy(
+                id = ids[index],
+                name = name,
+                quantity = quantities[index],
+                sortOrder = index + 1,
+            )
+        }
+        val stressed = source.copy(permanent = source.permanent.copy(
+            sheet = source.permanent.sheet.copy(
+                inventoryItems = source.permanent.sheet.inventoryItems
+                    .filterNot { it.id == usage.itemId } + customItems,
+            ),
+            closure = source.permanent.closure.copy(
+                inventoryUsage = source.permanent.closure.inventoryUsage
+                    .filterNot { it.itemId == usage.itemId } +
+                    ids.map { id -> usage.copy(itemId = id) },
+            ),
+        ))
+        val hardNames = listOf("QAAMMOLINESTART", "QAAMMOLINEEND",
+            "QAAMMOTABSTART", "QAAMMOTABEND")
+        val sourceItems = stressed.permanent.sheet.inventoryItems.toList()
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = false,
+                ), stressed,
+            )
+            assertEquals(sourceItems, stressed.permanent.sheet.inventoryItems,
+                "Paper export must not mutate original inventory entries.")
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-P1-ammo-source-break-" + variant.name + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { page ->
+                    PDFTextStripper().apply {
+                        startPage = page
+                        endPage = page
+                    }.getText(pdf)
+                }
+                val p1 = pages.first()
+                val c2 = pages.filter { it.contains("C2 - Habilidades, acciones y recursos") }
+                    .joinToString("\n")
+                hardNames.forEach { marker ->
+                    assertFalse(p1.contains(marker),
+                        "One-line P1 ammunition cannot contain " + marker)
+                    assertTrue(c2.contains(marker),
+                        "Persisted source item must survive as C2 ammunition: " + marker)
+                }
+                assertTrue(c2.contains("CANTIDAD 7"))
+                assertTrue(c2.contains("CANTIDAD 9"))
+                assertTrue(p1.contains("QASHORTAMMO"),
+                    "Eligible ammo should still use a real P1 row.")
+                assertFalse(c2.contains("MUNICIÓN QASHORTAMMO"),
+                    "C2 may retain a source-backed summary but must not repeat P1 marks.")
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                hardNames.forEach { marker ->
+                    assertFalse(pages.last().contains(marker),
+                        "Final manuscript page may not absorb digital inventory.")
+                }
+            }
+        }
+    }
+
+    @Test
     fun nonAmmunitionInventoryIsNeverPromotedToTrackedAmmunitionFromItsName() {
         val fixture = sources("01_aldren_vale_srd5_1_champion_fighter.json")
         val untagged = fixture.copy(
