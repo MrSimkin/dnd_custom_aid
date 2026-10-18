@@ -51,6 +51,19 @@ jobs:
         run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
       - name: Build and test Kotlin surfaces
         run: gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
+      - name: Independent V11 physical-envelope audit of real Desktop App PDFs
+        if: github.ref == 'refs/heads/docs/pc-sheet-v11-approved-implementation-handoff'
+        run: |
+          python3 -m pip install --user 'PyMuPDF==1.26.7'
+          python3 scripts/test_audit_v11_pdf_physical_envelope.py
+          python3 scripts/audit_v11_pdf_physical_envelope.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-physical-envelope-audit.json
+      - name: Upload independent V11 physical-envelope audit
+        if: github.ref == 'refs/heads/docs/pc-sheet-v11-approved-implementation-handoff'
+        uses: actions/upload-artifact@v7
+        with:
+          name: v11-independent-physical-envelope-audit
+          path: desktopApp/build/v11-physical-envelope-audit.json
+          if-no-files-found: error
       - name: Upload Android debug APK
         uses: actions/upload-artifact@v7
         with:
