@@ -12,8 +12,14 @@ Nuevo control ejecutable `scripts/audit_v11_pdf_physical_envelope.py`, **orácul
 
 ## Integración y continuación
 
-El workflow `.github/workflows/scaffold-check.yml` ejecuta la auditoría tras generar los PDF auténticos en CI, solo en esta rama, con mínimo 48 archivos, y conserva `v11-independent-physical-envelope-audit` como artefacto. **CI del nuevo commit y SHA de reporte: por verificar**; no escribir SUCCESS antes de comprobarlo.
+El workflow `.github/workflows/scaffold-check.yml` ejecuta la auditoría tras generar los PDF auténticos en CI, solo en esta rama, con mínimo 48 archivos, y conserva `v11-independent-physical-envelope-audit` como artefacto. **CI Scaffold #39147958117 SUCCESS** en commit `a2b8568b9f8a71d8e758bf726a71d629e101e52b`; informe publicado como artefacto **#12144595619**, extraído y verificado: 48 PDF/466 páginas, 0 alertas.
 
 **G4 sigue BLOCKED**: 105 reglas globales `NOT_VERIFIED`, reconciliación completa de las 48 secciones D-0076 y ocho PDF golden pendiente, QA del APK exacto/legado todavía pendiente. No se han modificado la matriz de reglas, los 32 M50800 ni los dos V11-QA; `active_candidate=null`, sin cambio de estado de aceptación. Golden original, cuatro exportadores legacy y `main` intactos. RCR-1 sin activar. PR #173 no fusionada.
 
 **Siguiente:** con el manifiesto independiente de cada PDF disponible en Actions, efectuar auditoría de contenido y geometría **contra los ocho golden y el contrato completo**; registrar por ID verdaderos FAIL/PASS con candidato y prueba, reparar exclusivamente defectos confirmados en ambos renderers V11. No abrir G5 hasta G4 formal PASS.
+
+## Evidencia post-CI y golden recuperado (2026-10-18)
+
+**2026-10-18 — Verificación CI completa del auditor G4:** [Scaffold #39147958117](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39147958117) **SUCCESS**, commit `a2b8568b9f8a71d8e758bf726a71d629e101e52b`; jobs Kotlin (incl. Android DEBUG y Desktop PDF), backend y base de datos **SUCCESS**. [Informe independiente #12144595619](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39147958117/artifacts/12144595619) leído de ZIP verificable: **48 PDF, 466 páginas, 0 alertas, 48/48 PASS solo del perímetro físico**; 48 PDF App [#12143809732](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39147958117/artifacts/12143809732). **Golden renovado** por reejecución exitosa de [#38482518998](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38482518998), [8 PDF + 2 PNG #12143757898](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38482518998/artifacts/12143757898), ZIP nuevo SHA `51ab3c75890b9fa5973e05e339ad0efdabf271d561f82e02a55062b7c80c9512`, CRC PASS y todos los PDF Carta. Sigue **G4 BLOCKED**, 105 reglas globales NOT_VERIFIED; esta auditoría NO sustituye cotejo golden/D-0076, Android instalado ni QA propietario. PR #173 DRAFT/sin merge.
+
+La descarga del ZIP de referencias de la reejecución mantiene disponibles las ocho hojas originales aprobadas para el **siguiente cotejo físico independiente**, que sigue pendiente. No atribuirle PASS a las 105 obligaciones contractuales ni tocar los registros QA de propietario.
