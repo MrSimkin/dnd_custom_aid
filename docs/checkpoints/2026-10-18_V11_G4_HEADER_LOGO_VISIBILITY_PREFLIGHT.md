@@ -13,3 +13,13 @@
 **G0 QA histórica PARCIAL; G1 semántico PASS; G2/G3 funcionales parciales; G4 BLOCKED.** La matriz de 105 reglas permanece **NOT_VERIFIED**, `active_candidate=null`, las 32 observaciones M50800 y V11-QA-001/002 siguen abiertas donde corresponda, RCR-1 no utilizado (0/2). Sin nueva versión de APK owner, sin QA real del dispositivo, sin G5/G6, sin fusionar PR ni actualizar main.
 
 **Siguiente paso obligatorio:** leer el resultado CI exacto de esta auditoría. Si falla por la imagen, examinar PDF real y corregir solo causa medida dentro del contrato V11; si pasa, registrar **PASS LOCAL de presencia visible**, nunca PASS global. Después seguir cotejo exhaustivo de la cabecera/logo y las reglas G4 con ocho golden, sin rediseñar.
+
+## Resultado exacto del control (2026-10-18) — PASS LOCAL
+
+- **Implementación auditada:** commit [`0af6b2c78b7c1fc66b1681f99c54cc21001aaaba`](https://github.com/MrSimkin/dnd_custom_aid/commit/0af6b2c78b7c1fc66b1681f99c54cc21001aaaba); [Scaffold #39169494332](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39169494332) **SUCCESS**, incluidos Kotlin/Android DEBUG/Desktop, backend y hosted-db.
+- **Prueba roja/verde sintética:** `V11 logo visibility independent synthetic red/green: PASS`.
+- **Salida real:** `V11_LOGO_VISIBLE=510/510; PDFs=54; golden=59 pages`. Los 54 archivos PDF provienen de la aplicación Desktop en ese commit; [artefacto #12152216888](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39169494332/artifacts/12152216888).
+- **Informe independiente:** [artefacto #12151992599](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39169494332/artifacts/12151992599) contiene `v11-header-logo-visibility.json` junto con auditores previos. Doble marco `510/510` y auditor de perímetro `0` errores en el mismo run.
+- **Interpretación estricta:** solo se verificó visibilidad física del logotipo dentro de su área; **no** igualdad de píxeles/composición exacta de logo, nombre, cabecera entera o tipografía frente a golden. No se auditó la instalación Android ni las cuatro familias legacy en el dispositivo.
+
+**Gate:** PASS LOCAL de presencia visual, G4 global sigue **BLOCKED** con 105 reglas `NOT_VERIFIED` y `active_candidate=null`; G5/G6 pendientes. QA owner no realizada, M50800 histórico y V11-QA-001/002 sin cierre, RCR-1=0/2, sin merge. **Siguiente trabajo:** inspección física independiente de cabecera/logo completa contra ocho golden y reconciliación por grupos de reglas del contrato, sin certificar paridad que este control no mide.
