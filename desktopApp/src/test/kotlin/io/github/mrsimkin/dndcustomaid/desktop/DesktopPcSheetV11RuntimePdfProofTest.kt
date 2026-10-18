@@ -3236,6 +3236,78 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3OversizedSpecialEquipmentKeepsSourceIdentityOnEveryC2PageAB() {
+        // The approved four-column C2 must not orphan an oversized
+        // item's continued description when its original NOMBRE/UBICACIÓN
+        // fields were printed on an earlier physical page.
+        val original = sources("03_mara_siete_umbrales_custom_extended.json")
+        val template = original.permanent.sheet.inventoryItems.first { it.special }
+        val label = "QAC2ANCLA"
+        val longDescription = "QAC2INICIO " +
+            ("Descripción auténtica del equipo con texto extenso y legible. ")
+                .repeat(175) + " QAC2FINAL"
+        val huge = template.copy(
+            id = Uuid.parse("c3000000-0000-4000-8000-000000000001"),
+            name = label,
+            description = longDescription,
+            notes = null,
+            special = true,
+            sortOrder = 5000,
+        )
+        val changed = original.copy(permanent = original.permanent.copy(
+            sheet = original.permanent.sheet.copy(
+                inventoryItems = original.permanent.sheet.inventoryItems
+                    .filterNot { it.special } + huge,
+            ),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                ), changed,
+            )
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-C2-long-special-item-" + variant + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { pageIndex ->
+                    PDFTextStripper().apply {
+                        startPage = pageIndex
+                        endPage = pageIndex
+                    }.getText(pdf)
+                }
+                val specialPages = pages.filter {
+                    it.contains("C2 - Equipo especial / continuación")
+                }
+                assertTrue(specialPages.size >= 2,
+                    "The real source description must cross a physical C2 page.")
+                assertTrue(specialPages.first().contains(label) &&
+                    specialPages.first().contains("QAC2INICIO"))
+                assertFalse(specialPages.first().contains("CONTINÚA EQUIPO: " + label),
+                    "The first appearance is the genuine source row, not a repeat.")
+                specialPages.drop(1).forEach { page ->
+                    assertTrue(page.contains("CONTINÚA EQUIPO: " + label),
+                        "A new physical C2 page must retain the source identity.")
+                    assertTrue(page.contains("UBICACIÓN") && page.contains("NOMBRE") &&
+                        page.contains("DESCRIPCIÓN") && page.contains("ACTIVO"),
+                        "The approved four columns must remain physically present.")
+                }
+                assertEquals(1, Regex("QAC2INICIO").findAll(
+                    pages.joinToString("\n")).count())
+                assertEquals(1, Regex("QAC2FINAL").findAll(
+                    pages.joinToString("\n")).count())
+                assertTrue(specialPages.last().contains("QAC2FINAL"),
+                    "The complete final source suffix must survive measured pagination.")
+                assertFalse(pages.last().contains("QAC2FINAL"))
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                for (page in pdf.pages) {
+                    assertEquals(PDRectangle.LETTER.width, page.mediaBox.width)
+                    assertEquals(PDRectangle.LETTER.height, page.mediaBox.height)
+                }
+            }
+        }
+    }
+
+    @Test
     fun overflowingOrdinaryInventoryUsesFullHeightC2WithoutRepeatingAnyAmount() {
         val existing = sources("01_aldren_vale_srd5_1_champion_fighter.json")
         val original = existing.permanent.sheet.inventoryItems.first { !it.special }

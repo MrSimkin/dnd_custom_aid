@@ -2809,6 +2809,43 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         "C2 - Equipo especial / continuación / " + (pageIndex + 1))
                     draw(stream, "EQUIPO ESPECIAL", 42f,
                         c2SpecialArea.topPt + 6f, true)
+                    // An oversized source row can continue with ONLY its
+                    // description: name/location were drawn on the prior
+                    // physical page. Identify the SAME record in the free
+                    // C2 header strip instead of repeating its data fields.
+                    // This uses the approved header grammar and consumes no
+                    // row or additional page.
+                    val continuedPart = fragments.firstOrNull()
+                        ?.takeIf { it.startLine > 0 }
+                    if (continuedPart != null) {
+                        val item = specialC2Rows[continuedPart.rowIndex].first
+                        val x = 192f
+                        val fontPt = 7f
+                        val available = c2SpecialArea.rightPt - x - 3f
+                        fun fits(text: String) =
+                            bodyPdfFont.getStringWidth(pcSheetV11PrintableText(text)) *
+                                fontPt / 1000f <= available
+                        val full = "CONTINÚA EQUIPO: " + item.name
+                        val sourceId = "CONTINÚA ID: " + item.sourceId
+                        val label = when {
+                            fits(full) -> full
+                            fits(sourceId) -> sourceId
+                            else -> error("Real C2 special equipment continuation ID " +
+                                "does not fit the existing physical header.")
+                        }
+                        require(headerPdfFont.getStringWidth("EQUIPO ESPECIAL") *
+                            12f / 1000f < x - 42f - 10f) {
+                            "Special equipment continuation must not overlap the heading."
+                        }
+                        stream.saveGraphicsState()
+                        stream.setNonStrokingColor(Color(80, 122, 151))
+                        stream.beginText()
+                        stream.setFont(bodyPdfFont, fontPt)
+                        stream.newLineAtOffset(x, c2SpecialArea.topPt + 6f)
+                        stream.showText(pcSheetV11PrintableText(label))
+                        stream.endText()
+                        stream.restoreGraphicsState()
+                    }
                     val printedHeight = specialHeaderHeight +
                         fragments.sumOf { it.heightPt.toDouble() }.toFloat()
                     val tableBottom = c2SpecialArea.topPt - printedHeight
