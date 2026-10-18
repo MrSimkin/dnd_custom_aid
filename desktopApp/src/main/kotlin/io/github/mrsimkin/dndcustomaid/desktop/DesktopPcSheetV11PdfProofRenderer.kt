@@ -3023,32 +3023,56 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             physicalSectionKeys += "NOTAS-FINAL"
             PDPageContentStream(pdf, finalPage).use { stream ->
                 drawFrameAndHeader(stream, "NOTAS", lastHandwrittenPage = true)
-                // Final physical page: NO digital content. Two handwriting
-                // columns at the top, complete aligned square grid below.
-                // Technical proof geometry; final acceptance compares to golden.
-                for (column in 0..1) {
-                    val left = if (column == 0) 42f else 316f
-                    val right = if (column == 0) 296f else 570f
-                    for (row in 0 until 15) {
-                        val y = 694f - row * 16f
-                        stream.moveTo(left, y)
-                        stream.lineTo(right, y)
+                // Frozen owner-approved V11 golden (7 final NOTAS examples):
+                // 17 softly alternating ruled rows per column, followed by a
+                // pale blue 34 x 20 COMPLETE grid. All dimensions are physical
+                // US-Letter points, measured on the original golden PDF vectors.
+                // Do not use inherited black / 1pt PDFBox graphics defaults.
+                stream.saveGraphicsState()
+                try {
+                    val noteLeft = 39.685f
+                    val noteRight = 310.787f
+                    val ruledWidth = 261.528f
+                    for (columnLeft in listOf(noteLeft, noteRight)) {
+                        for (row in 0 until 17) {
+                            val base = 676.551f - row * 18.993f
+                            stream.setNonStrokingColor(
+                                if (row % 2 == 0) Color(231, 242, 247)
+                                else Color(240, 247, 250),
+                            )
+                            stream.addRect(columnLeft, base, ruledWidth, 18.993f)
+                            stream.fill()
+                            stream.setStrokingColor(Color(148, 176, 193))
+                            stream.setLineWidth(0.32f)
+                            stream.moveTo(columnLeft, base + 1f)
+                            stream.lineTo(columnLeft + ruledWidth, base + 1f)
+                            stream.stroke()
+                        }
+                    }
+                    val gridLeft = 39.685f
+                    val gridBottom = 57.827f
+                    val gridWidth = 532.63f
+                    val gridHeight = 305.008f
+                    stream.setStrokingColor(Color(148, 176, 193))
+                    stream.setLineWidth(0.45f)
+                    stream.addRect(gridLeft, gridBottom, gridWidth, gridHeight)
+                    stream.stroke()
+                    stream.setStrokingColor(Color(191, 211, 222))
+                    stream.setLineWidth(0.27f)
+                    for (column in 1 until 34) {
+                        val x = gridLeft + column * gridWidth / 34f
+                        stream.moveTo(x, gridBottom)
+                        stream.lineTo(x, gridBottom + gridHeight)
                         stream.stroke()
                     }
-                }
-                // 528pt = 33 exact 16pt cells; 352pt = 22 exact rows.
-                // No clipped or partial square at the outer edge.
-                for (column in 0..33) {
-                    val x = 42f + column * 16f
-                    stream.moveTo(x, 96f)
-                    stream.lineTo(x, 448f)
-                    stream.stroke()
-                }
-                for (row in 0..22) {
-                    val y = 96f + row * 16f
-                    stream.moveTo(42f, y)
-                    stream.lineTo(570f, y)
-                    stream.stroke()
+                    for (row in 1 until 20) {
+                        val y = gridBottom + row * gridHeight / 20f
+                        stream.moveTo(gridLeft, y)
+                        stream.lineTo(gridLeft + gridWidth, y)
+                        stream.stroke()
+                    }
+                } finally {
+                    stream.restoreGraphicsState()
                 }
             }
             require(pdf.numberOfPages >= 4) { "A V11 proof must include P1/P2/P3 and final Notes." }
