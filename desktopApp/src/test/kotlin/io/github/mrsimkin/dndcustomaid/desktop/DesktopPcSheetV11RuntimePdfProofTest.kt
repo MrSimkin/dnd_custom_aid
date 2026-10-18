@@ -1801,6 +1801,87 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3DenseRealCantripsKeepLevelZeroContextAcrossPhysicalColumnsAB() {
+        // The old dense regression exercises only level 1. Cantrips must retain
+        // TRUCOS / NIVEL 0 context even when their true heading lives in another
+        // physical column or page; never replace it with an invented level 1.
+        val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val base = original.permanent.sheet.spells.first {
+            it.sourceAssociations.isNotEmpty()
+        }
+        val stressSpells = (1..175).map { number ->
+            base.copy(
+                id = Uuid.parse(
+                    "f5000000-0000-4000-8000-" +
+                        number.toString().padStart(12, '0'),
+                ),
+                name = "QAP4TRUCO" + number.toString().padStart(3, '0'),
+                level = 0,
+                sortOrder = number,
+            )
+        }
+        val input = original.copy(
+            permanent = original.permanent.copy(
+                sheet = original.permanent.sheet.copy(spells = stressSpells),
+            ),
+        )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                ),
+                input,
+            )
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-P4-dense-cantrips-" + variant + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { index ->
+                    PDFTextStripper().apply {
+                        startPage = index
+                        endPage = index
+                    }.getText(pdf)
+                }
+                val firstP4 = pages.indexOfFirst { it.contains("P4 - Conjuros /") }
+                assertTrue(firstP4 >= 0, "Real cantrips must produce a P4.")
+                val p4Pages = pages.filter { it.contains("P4 - Conjuros /") }
+                assertTrue(p4Pages.size >= 2,
+                    "175 cantrips must exercise physical P4 page continuation.")
+                assertTrue(p4Pages.first().contains("TRUCOS / NIVEL 0"),
+                    "Source level 0 must retain the approved cantrip heading.")
+                val strips = PDFTextStripperByArea().apply {
+                    addRegion("column2", Rectangle2D.Float(222f, 166f, 170f, 20f))
+                    addRegion("column3", Rectangle2D.Float(402f, 166f, 170f, 20f))
+                    extractRegions(pdf.getPage(firstP4))
+                }
+                for (region in listOf("column2", "column3")) {
+                    assertTrue(
+                        strips.getTextForRegion(region)
+                            .contains("TRUCOS / NIVEL 0 / CONTINUACIÓN"),
+                        "Real P4 cantrips must retain level 0 in each physical column.")
+                }
+                assertTrue(p4Pages.drop(1).any {
+                    it.contains("QAP4TRUCO") &&
+                        it.contains("TRUCOS / NIVEL 0 / CONTINUACIÓN")
+                }, "A later P4 page must identify continued level-zero spells.")
+                val allP4 = p4Pages.joinToString("\n")
+                stressSpells.forEach { spell ->
+                    assertEquals(1, Regex(Regex.escape(spell.name)).findAll(allP4).count(),
+                        "Every source-backed cantrip must be printed exactly once.")
+                }
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertFalse(pages.last().contains("QAP4TRUCO"),
+                    "Cantrip overflow must never use the final handwritten page.")
+                assertFalse(allP4.contains("NIVEL 1 / CONTINUACIÓN"),
+                    "Do not relabel persisted cantrips as level-one spells.")
+                for (page in pdf.pages) {
+                    assertEquals(PDRectangle.LETTER.width, page.mediaBox.width)
+                    assertEquals(PDRectangle.LETTER.height, page.mediaBox.height)
+                }
+            }
+        }
+    }
+
+    @Test
     fun g3DenseRealLevelOneSpellsKeepLevelContextOnP4ContinuationPagesAB() {
         // Start from authentic Ilyra, changing only the persisted spell rows.
         // Dense single-level input exposes continuations without source headings;
