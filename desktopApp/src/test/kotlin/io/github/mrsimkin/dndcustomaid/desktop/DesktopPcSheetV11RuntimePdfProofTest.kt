@@ -2503,8 +2503,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(c2.contains("CANTIDAD 9"))
                 assertTrue(p1.contains("QASHORTAMMO"),
                     "Eligible ammo should still use a real P1 row.")
-                assertFalse(c2.contains("MUNICIÓN QASHORTAMMO"),
-                    "C2 may retain a source-backed summary but must not repeat P1 marks.")
+                assertTrue(c2.contains("MUNICIÓN QASHORTAMMO"),
+                    "C2 retains the real source summary; this is not a duplicate P1 marks row.")
+                assertFalse(c2.contains("MARCAS: ____ / 4"),
+                    "A P1-tracked item must not get a second marks track on C2.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
                 hardNames.forEach { marker ->
                     assertFalse(pages.last().contains(marker),
