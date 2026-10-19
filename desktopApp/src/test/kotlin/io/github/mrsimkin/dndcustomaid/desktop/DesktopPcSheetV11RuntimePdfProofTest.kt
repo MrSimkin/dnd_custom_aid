@@ -4501,6 +4501,17 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(equipmentPages.last() < treasurePages.first())
                 assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " +
                     equipmentPages.first()))
+                assertTrue(pages[1].contains("OTROS C2: TESORO PÁG. " +
+                    treasurePages.first()),
+                    "P2 must link independently to the physical TESORO start.")
+                val p2Footer = PDFTextStripperByArea().apply {
+                    addRegion("module-forward-links",
+                        Rectangle2D.Float(42f, 716f, 528f, 18f))
+                    extractRegions(pdf.getPage(1))
+                }.getTextForRegion("module-forward-links")
+                assertTrue(p2Footer.contains("TESORO PÁG. " + treasurePages.first()),
+                    "Every distinct P2 module needs a visible source-backed forward cue.")
+
                 for (physical in equipmentPages) {
                     val footer = pages[physical - 1]
                     if (physical == equipmentPages.first()) {
@@ -4641,6 +4652,18 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 if (fixture.contains("mara")) {
                     assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " + mixedPhysical))
                     assertTrue(pages[mixedPhysical - 1].contains("P2 PÁG. 2"))
+                    val ordinaryC2 = pages.indexOfFirst {
+                        it.contains("C2 - Equipo y tesoro / EQUIPO")
+                    } + 1
+                    val specialC2 = pages.indexOfFirst {
+                        it.contains("C2 - Equipo especial / continuación")
+                    } + 1
+                    assertTrue(ordinaryC2 > mixedPhysical && specialC2 > ordinaryC2)
+                    assertTrue(pages[1].contains("EQUIPO PÁG. " + ordinaryC2),
+                        "Mara P2 must lead to its separate ordinary-equipment C2.")
+                    assertTrue(pages[1].contains("ESPECIAL PÁG. " + specialC2),
+                        "Mara P2 must lead to its separate special-equipment C2.")
+
                 }
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
             }
