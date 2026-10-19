@@ -1925,6 +1925,33 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             }
                             stream.restoreGraphicsState()
                         }
+                        // CN304: a digital C-N3 record is never replaced by paper
+                        // notes. Only unused floor below the LAST measured source
+                        // line can carry secondary handwriting rules. No extra
+                        // page, caption, fictitious record or pagination offset.
+                        if (title == "C-N3 - Notas digitales" && pageCells.isNotEmpty()) {
+                            val lastSourceBottom = pageCells.minOf { it.cellPt.bottomPt }
+                            val ruleBottom = 92f // above the real page footer
+                            val rulePitch = 16f
+                            val ruleTopLimit = lastSourceBottom - 24f
+                            val fullRules = ((ruleTopLimit - ruleBottom) / rulePitch).toInt() + 1
+                            if (fullRules >= 4) {
+                                require(ruleBottom + (fullRules - 1) * rulePitch <=
+                                    lastSourceBottom - 24f) {
+                                    "C-N3 manual reserve overlaps genuine note content."
+                                }
+                                stream.saveGraphicsState()
+                                stream.setStrokingColor(Color(174, 203, 220))
+                                stream.setLineWidth(0.35f)
+                                repeat(fullRules) { row ->
+                                    val y = ruleBottom + row * rulePitch
+                                    stream.moveTo(42f, y)
+                                    stream.lineTo(570f, y)
+                                    stream.stroke()
+                                }
+                                stream.restoreGraphicsState()
+                            }
+                        }
                         // Mixed C2 must preserve the approved blue interior
                         // cartela language for each genuine source-group heading.
                         // Paint ONLY within its already-measured cell: this
