@@ -3471,6 +3471,82 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun g3RealMaraC_N3SourceAnchorsAndLongNoteContinuationKeepIdentityAB() {
+        // The frozen V11 contract requires genuine, exclusively digital
+        // C-N3 pages. Nine original titled Mara cards + general notes were
+        // previously printed without a visible record boundary on the page.
+        val fixture = sources("03_mara_siete_umbrales_custom_extended.json")
+        val cards = fixture.permanent.sheet.noteCards
+        val note = cards.first()
+        val longText = "CN3ACTUALSTART " +
+            (1..180).joinToString(" ") { "CN3REALCONTENTWORD" + it } +
+            " CN3ACTUALFINISH"
+        val stressed = fixture.copy(permanent = fixture.permanent.copy(
+            sheet = fixture.permanent.sheet.copy(
+                generalNotes = "",
+                noteCards = listOf(note.copy(content = longText)),
+            ),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val regular = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant,
+                    PcSheetExportStateSelection.PERMANENT), fixture,
+            )
+            preserveRealApplicationPdf(regular.bytes,
+                "V11-INTERNAL-PROOF-CN3-separated-Mara-" + variant.name + ".pdf")
+            Loader.loadPDF(regular.bytes).use { pdf ->
+                val texts = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }
+                        .getText(pdf)
+                }
+                val noteIndex = texts.indexOfFirst {
+                    it.contains("C-N3 - Notas digitales")
+                }
+                assertTrue(noteIndex > 0)
+                val noteText = texts[noteIndex]
+                assertTrue(noteText.contains("Nota 1") && noteText.contains("Nota 9"))
+                val raw = pdf.getPage(noteIndex).contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                val startBandRects = Regex(
+                    """(?m)(?:^|\s)42(?:\.0)?\s+[-\d.]+\s+528(?:\.0)?\s+12\.\d+\s+re(?:\s|$)"""
+                ).findAll(raw).count()
+                assertEquals(fixture.permanent.sheet.noteCards.size + 1,
+                    startBandRects, "One source-backed blue band per genuine note start.")
+                assertTrue(texts.last().lineSequence().any { it.trim() == "NOTAS" })
+            }
+            val long = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant,
+                    PcSheetExportStateSelection.PERMANENT), stressed,
+            )
+            preserveRealApplicationPdf(long.bytes,
+                "V11-INTERNAL-PROOF-CN3-long-note-continuation-" + variant.name + ".pdf")
+            Loader.loadPDF(long.bytes).use { pdf ->
+                val texts = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }
+                        .getText(pdf)
+                }
+                val cn3 = texts.filter {
+                    it.contains("C-N3 - Notas digitales")
+                }
+                assertTrue(cn3.size >= 2,
+                    "Long genuine digital note must span multiple C-N3 physical pages.")
+                assertTrue(cn3.drop(1).all {
+                    it.contains("CONTINÚA: " + note.title)
+                }, "A physical continuation page must identify the original note.")
+                val all = cn3.joinToString("\n")
+                assertEquals(1, Regex("CN3ACTUALSTART").findAll(all).count())
+                assertEquals(1, Regex("CN3ACTUALFINISH").findAll(all).count())
+                assertEquals(1, Regex("CN3REALCONTENTWORD180").findAll(all).count())
+                assertTrue(texts.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertFalse(texts.last().contains("CN3REALCONTENTWORD"))
+                assertEquals(longText, stressed.permanent.sheet.noteCards.single().content)
+            }
+        }
+    }
+
     @Test
     fun realMaraSinglePageC2EquipmentUsesBothSourceBackedPairs() {
         // The owner-approved C2 keeps two item/quantity pairs on the same

@@ -1,0 +1,22 @@
+# V11 G2/G3 — C-N3 notas digitales con anclajes y continuidad de identidad
+
+**Fecha:** 2026-10-19 UTC / 2026-10-18 Chile. Base `19dc812d9647924a8ac9d4ab32d4ac9462a3a39d`, rama exclusiva PR #173 DRAFT, NO MERGE.
+
+## Evidencia primaria y contrato
+
+- Se abrió el PDF realmente generado por Desktop en Scaffold [#39189299120](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39189299120), `V11-INTERNAL-PROOF-Mara-A.pdf`, folio **8**. El primer párrafo de nota y los títulos 1–9 están separados por solo ~1.6pt de aire (títulos sucesivos y texto contiguo), sin cartela ni marca de límite; en raster la lectura de fichas se mezcla.
+- El contrato V11 exige C-N3 exclusivamente digital, registro real completo, NOTAS manuscrita final independiente. La observación histórica original sobre notas continuadas de Mara 50800 existe **pero ese APK legacy no es V11 ni puede considerarse reparado por este bloque**. Este es un hallazgo propio desde PDF V11 actual, no un cierre de observación original del propietario.
+
+## Cambio productivo Android y Desktop
+
+1. Cada `digital-note:<ID|general>` nuevo en C-N3 recibe una banda física azul niebla muy fina del alto **ya medido** de la primera línea y una regla superior, utilizando `cell.sourceStartOffset == 0`. No hay texto inventado, ninguna modificación de coordenadas de datos, nuevo renglón ni página adicional por esta presentación. El papel de la siguiente nota deja de parecer una continuación del texto anterior.
+2. Si el **primer** bloque impreso en una página C-N3 es la continuación de una nota real (`sourceStartOffset > 0`), su cabecera reutiliza el título original persistido `CONTINÚA: <título>`. Para títulos físicamente ilegibles o demasiado largos usa su UUID existente como alternativa, nunca una identidad fabricada ni alteración del texto. Solo C-N3, no afecta P3/C2/Libro ni notas manuscritas.
+3. Prueba exacta del servicio Desktop real en variantes **A/B**: PDF original Mara con 9 tarjetas más notas generales, banda física por inicio real, y caso fuente modificado con **una nota larga autenticada** que debe continuar en 2+ páginas con su título y preservar tokens de principio/fin una vez, sin contaminar NOTAS final. Exportadores Android/Desktop reciben cambio equivalente.
+
+## Validación y gates
+
+**CI pendiente al registrar código**. No declarar PASS de nueva separación ni cabecera de continuación hasta comprobar el run exacto, auditores previos y PDFs auténticos; si falla, aplicar reparación mínima con evidencia. No se cambia el ZIP aprobado, QA legacy, ni la matriz de reglas.
+
+**G0 histórico PARCIAL; G1 semántico PASS; G2/G3 parciales; G4 BLOCKED** 105 reglas `NOT_VERIFIED`, `active_candidate=null`; G5/G6 pendientes, RCR-1=0/2, sin owner-APK/QA ni merge.
+
+**Siguiente:** si CI+PDF demuestran la mejora, registrar métricas y no-regresión. Priorizar luego pérdida de datos/ligaduras entre módulos o iniciar conciliación física modular de G4; no seguir creando separadores cosméticos innecesarios.

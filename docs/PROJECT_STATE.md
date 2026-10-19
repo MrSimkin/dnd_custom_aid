@@ -1,3 +1,5 @@
+**2026-10-18/19 — C-N3 V11:** mejora productiva anclajes visuales entre notas y títulos/UUID auténticos en páginas de continuación; test real Mara A/B con registro extenso. CI pendiente; ruta `docs/checkpoints/2026-10-19_V11_G2_G3_CN3_NOTE_BOUNDARY_CONTINUATION.md`, G4 BLOCKED 105 NOT_VERIFIED, G5/G6 pendientes, #173 DRAFT sin merge.
+
 **2026-10-18 — V11 PR #173 C2 Equipo+Especial PASS LOCAL:** código Android/Desktop `9168ba8` + [Scaffold 39189299120](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39189299120) SUCCESS, 60 PDF Desktop/549p, Ilyra-B 12→11 sin pérdida de registros; checkpoint `docs/checkpoints/2026-10-18_V11_G2_G3_C2_PAIRED_PLUS_SPECIAL_MEASURED.md`. Solo prueba local; G4 BLOCKED 105 NOT_VERIFIED, G5/G6 pendientes, RCR-1 0/2, PR DRAFT sin merge.
 
 **2026-10-18 — V11 PR #173 C2 Equipo+Especial:** trabajo funcional de compactación de dos módulos autenticados en una hoja Carta si geometría medida lo permite, Android/Desktop y test A/B. CI PENDIENTE. Ruta: `docs/checkpoints/2026-10-18_V11_G2_G3_C2_PAIRED_PLUS_SPECIAL_MEASURED.md`; G4 BLOCKED 105 NOT_VERIFIED, sin QA owner/G5/G6/merge.

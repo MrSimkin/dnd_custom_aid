@@ -1662,11 +1662,43 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 val flow = body.place(section, entries, area, columns, if (columns == 1) 0f else 12f)
                 val pageCount = maxOf(if (alwaysPage) 1 else 0, flow.sourceFlow.localPageCount)
                 repeat(minOf(pageCount, maxPhysicalPages ?: pageCount)) { index ->
+                    val pageCells = flow.cells.filter {
+                        it.localPageIndex == index + 1
+                    }
+                    // A note card can span physical C-N3 pages. Keep the
+                    // persisted title (or stable source ID) visible on its
+                    // NEXT page, instead of leaving owner-visible paragraphs
+                    // without a note identity. No source text is duplicated.
+                    val basicTitle = title + " / " + (index + 1)
+                    val pageTitle = if (title == "C-N3 - Notas digitales" &&
+                        pageCells.firstOrNull()?.sourceStartOffset?.let { it > 0 } == true
+                    ) {
+                        val sourceKey = requireNotNull(pageCells.firstOrNull()).sourceKey
+                        val note = data.digitalNotes.firstOrNull {
+                            "digital-note:" + (it.sourceId?.toString() ?: "general") ==
+                                sourceKey
+                        }
+                        val sourceLabel = note?.title?.takeIf {
+                            it.isNotBlank() &&
+                                it.none { c -> c == '\r' || c == '\n' || c == '\t' }
+                        } ?: (note?.sourceId?.toString() ?: "NOTAS GENERALES")
+                        val full = basicTitle + " / CONTINÚA: " + sourceLabel
+                        val stable = basicTitle + " / CONTINÚA ID: " +
+                            (note?.sourceId?.toString() ?: "GENERAL")
+                        fun fitsTitle(value: String): Boolean =
+                            headerPdfFont.getStringWidth(pcSheetV11PrintableText(value)) *
+                                12f / 1000f <= 524f
+                        when {
+                            fitsTitle(full) -> full
+                            fitsTitle(stable) -> stable
+                            else -> basicTitle + " / CONTINÚA"
+                        }
+                    } else basicTitle
                     val page = PDPage(PDRectangle.LETTER)
                     pdf.addPage(page)
                     physicalSectionKeys += title
                     PDPageContentStream(pdf, page).use { stream ->
-                        drawFrameAndHeader(stream, title + " / " + (index + 1))
+                        drawFrameAndHeader(stream, pageTitle)
                         if (title.startsWith("P4 - ")) drawP4MagicReference(stream)
                         if (title.startsWith("P3 - Narrativa / continuación")) {
                             drawP3ContinuationPaper(stream)
@@ -1682,9 +1714,6 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             drawP1CombatReference(stream)
                             drawP1GroupedSkills(stream)
                             drawP1BIndependentSkills(stream)
-                        }
-                        val pageCells = flow.cells.filter {
-                            it.localPageIndex == index + 1
                         }
                         // A level heading is printed once in the source stream.
                         // When the SAME level crosses a P4 physical COLUMN
@@ -1859,6 +1888,34 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     stream.lineTo(cell.cellPt.rightPt, cell.cellPt.bottomPt)
                                     stream.stroke()
                                 }
+                            }
+                            stream.restoreGraphicsState()
+                        }
+                        // C-N3 source cards in the genuine Mara PDF were
+                        // visibly glued together: the last text line of one
+                        // record touched the next card title. A thin blue-mist
+                        // START band and top rule give each persisted note its
+                        // own physical anchor, without inserting fake text,
+                        // changing word coordinates, or consuming extra pages.
+                        // A continued record has no new start band: its real
+                        // source identity is instead in this page's header.
+                        if (title == "C-N3 - Notas digitales") {
+                            val starts = pageCells.filter {
+                                it.sourceKey.startsWith("digital-note:") &&
+                                    it.sourceStartOffset == 0
+                            }
+                            stream.saveGraphicsState()
+                            stream.setNonStrokingColor(Color(217, 236, 245))
+                            stream.setStrokingColor(Color(130, 165, 186))
+                            stream.setLineWidth(0.45f)
+                            starts.forEach { cell ->
+                                val rect = cell.cellPt
+                                stream.addRect(rect.leftPt, rect.bottomPt,
+                                    rect.widthPt, rect.heightPt)
+                                stream.fill()
+                                stream.moveTo(rect.leftPt, rect.topPt)
+                                stream.lineTo(rect.rightPt, rect.topPt)
+                                stream.stroke()
                             }
                             stream.restoreGraphicsState()
                         }
