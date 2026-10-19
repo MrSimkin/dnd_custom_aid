@@ -1,0 +1,138 @@
+{
+  "kind": "bounded independent real-PDF source/physical check",
+  "verification_date": "2026-10-19",
+  "source_commit": "36914c870305c96f61273ce48d2fb53e82ec9b75",
+  "source_run": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39328633469",
+  "real_app_pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39328633469/artifacts/12223282713",
+  "zip_sha256": "cc5fa99c1a3775d60d4dd0fbbb1300610db6dfb378b4afcb6419119fa52d6c6a",
+  "pdf_engine": "Desktop App / PDFBox; independently extracted with PyMuPDF",
+  "result": "PASS for listed scenarios only, not G4/owner/installed Android",
+  "P304": {
+    "stage": "G3",
+    "scenario": "500 source-backed consecutive words, long story and 4 real continuation pages in A/B",
+    "cases": [
+      {
+        "file": "V11-INTERNAL-PROOF-P3-long-story-heading-A.pdf",
+        "sha256": "ae037e73297c77a9d82db9379f28d1461f27d831ddfb1201edd413eb9ed56250",
+        "variant": "A",
+        "pages": 11,
+        "continuation_pages": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "word_viaje": 500,
+        "word_registrado": 500,
+        "start_markers": 1,
+        "end_markers": 1,
+        "last_notes": true
+      },
+      {
+        "file": "V11-INTERNAL-PROOF-P3-long-story-heading-B.pdf",
+        "sha256": "76d3488bc2fb767552011a864c3a73d1effdc038f3bd7640e0b351f0a047c69d",
+        "variant": "B",
+        "pages": 11,
+        "continuation_pages": [
+          4,
+          5,
+          6,
+          7
+        ],
+        "word_viaje": 500,
+        "word_registrado": 500,
+        "start_markers": 1,
+        "end_markers": 1,
+        "last_notes": true
+      }
+    ]
+  },
+  "C206": {
+    "stage": "G3",
+    "scenario": "independent physical module destinations on P2 and C2, A/B stress and Mara",
+    "cases": [
+      {
+        "file": "V11-INTERNAL-PROOF-C206-both-paired-overflow-A.pdf",
+        "sha256": "2af3ad3769bc1b874b306aa8088a3d4f7606efddb7cc06837985b67724617287",
+        "variant": "A",
+        "pages": 10,
+        "p2_forward": "OTROS C2: TESORO PÁG. 7",
+        "destination_pages": {
+          "EQUIPO": 5,
+          "TESORO": 7
+        },
+        "max_footer_text_bottom_top_origin_pt": 731.39
+      },
+      {
+        "file": "V11-INTERNAL-PROOF-C206-both-paired-overflow-B.pdf",
+        "sha256": "6f33bde3a790d7adbd51a1ea5a415789bd81fe8ec371f8762882c40ffda88144",
+        "variant": "B",
+        "pages": 10,
+        "p2_forward": "OTROS C2: TESORO PÁG. 7",
+        "destination_pages": {
+          "EQUIPO": 5,
+          "TESORO": 7
+        },
+        "max_footer_text_bottom_top_origin_pt": 731.39
+      },
+      {
+        "file": "V11-INTERNAL-PROOF-Mara-A.pdf",
+        "sha256": "896e251976b5d783b237a823dbc549442380a725ceca02154c4d02919620531c",
+        "variant": "A",
+        "pages": 9,
+        "p2_forward": "OTROS C2: EQUIPO PÁG. 6 | ESPECIAL PÁG. 7",
+        "destination_pages": {
+          "RASGOS/MIXTO": 5,
+          "EQUIPO": 6,
+          "ESPECIAL": 7
+        },
+        "max_footer_text_bottom_top_origin_pt": 731.39
+      },
+      {
+        "file": "V11-INTERNAL-PROOF-Mara-B.pdf",
+        "sha256": "1c1e1553149dadca71a2618ade6afa7d70f5e73b3a31ab43392db8c4f90b7d24",
+        "variant": "B",
+        "pages": 13,
+        "p2_forward": "OTROS C2: EQUIPO PÁG. 6 | ESPECIAL PÁG. 7",
+        "destination_pages": {
+          "RASGOS/MIXTO": 5,
+          "EQUIPO": 6,
+          "ESPECIAL": 7
+        },
+        "max_footer_text_bottom_top_origin_pt": 731.39
+      }
+    ]
+  },
+  "C207": {
+    "stage": "G3",
+    "status": "PARTIAL_EVIDENCE_ONLY",
+    "reason": "This shows only the proven asymmetric right-side grid; all other usable C2 holes and the eight golden are not yet reconciled.",
+    "cases": [
+      {
+        "file": "V11-INTERNAL-PROOF-C206-both-paired-overflow-A.pdf",
+        "page": 6,
+        "notes_cartelas_in_right_lower": 1,
+        "cartela_top_left_pt": [
+          321,
+          359
+        ],
+        "additional_source_words_under_cartela_right": 0
+      },
+      {
+        "file": "V11-INTERNAL-PROOF-C206-both-paired-overflow-B.pdf",
+        "page": 6,
+        "notes_cartelas_in_right_lower": 1,
+        "cartela_top_left_pt": [
+          321,
+          359
+        ],
+        "additional_source_words_under_cartela_right": 0
+      }
+    ]
+  },
+  "unverified": [
+    "No comparative inspection against all eight approved golden PDF layouts or installed-Android printout has been completed for the unified candidate; no global G4 PASS.",
+    "All 105 rule-level statuses remain NOT_VERIFIED, G4 gate BLOCKED.",
+    "G2 composition checks for P304 and C206 retain NOT_VERIFIED; Android device PDF not measured."
+  ]
+}

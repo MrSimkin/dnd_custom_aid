@@ -2273,8 +2273,21 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3P3ExtremeStoryContinuationKeepsRealSourceHeadingOnEveryLaterPageAB; longRealHistoryContinuesInNarrativePagesWithoutBreakingFinalHandwriting",
+            "test_result": "G3 scoped PASS: genuine Desktop PDF A/B, 11 pages each, 4 narrative continuation pages with history heading; extracted 500/500 original story words and exactly one start/end marker, terminal NOTES intact; PDF SHA256 recorded per fixture.",
+            "source_commit": "36914c870305c96f61273ce48d2fb53e82ec9b75",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39328633469",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39328633469/artifacts/12223282713",
+            "pdf_zip_sha256": "cc5fa99c1a3775d60d4dd0fbbb1300610db6dfb378b4afcb6419119fa52d6c6a",
+            "independent_inspection": "PyMuPDF 2 source-backed fixture PDFs, SHA256 + exact word counts + physical continuation pages, docs/pc-sheet-v11/qa/evidence/2026-10-19_P3_C206_REAL_PDF_SCOPE.json.",
+            "limitations": "Only scoped Desktop A/B G3; Android compiled/source parity but no installed Android runtime or all-golden match. G2 NOT_VERIFIED; rule-level G4 NOT_VERIFIED."
+          },
+          "named_tests": [
+            "g3P3ExtremeStoryContinuationKeepsRealSourceHeadingOnEveryLaterPageAB",
+            "longRealHistoryContinuesInNarrativePagesWithoutBreakingFinalHandwriting"
+          ]
         }
       ]
     },
@@ -2785,14 +2798,14 @@
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "PASS",
           "evidence": {
-            "test_name": "g3C2EquipoAndTesoroOverflowKeepIndependentPhysicalNavigationInBothVariants; g3OnlyP2TraitsInMixedC2NeverInventAP1Backlink; g3MixedC2ActualAldrenIlyraMaraNavigationKeepsTrueP1AndP2Origins; test_v11_c2_source_navigation_contract.py",
-            "test_result": "PASS: source-true independent C2 EQUIPO and TESORO streams, full Kotlin Desktop PDFBox test suite, Android debug compilation, source parity; A/B stress PDFs each 10 pages, equipment C2 pages 5/6, treasure C2 pages 7/8, source P2 backlinks on each stream, 82 equipment and 55 genuine coin source labels appear exactly once; source quantities uniquely printed; 8 baseline PDFs completely unchanged in words, positions, paths and page counts.",
-            "source_commit": "a446371b4fda4a40ff64da5fa8293a4eaa374f52",
-            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38987925558",
-            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/38987925558/artifacts/12083518190",
-            "pdf_zip_sha256": "edf5fac8417bb2e92e028b0290f6f2fc7587843220392c389ea0907de62a4a36",
-            "independent_inspection": "PyMuPDF independent PDF extraction and word-bbox/vector comparison over real App service artifact: baseline 8 documents unchanged against artifact #12083292410; stress A/B 10p and navigation link checks, 137 source names once each, Letter and last notes physically verified, archive CRC PASS.",
-            "limitations": "Local G3 Desktop PASS and PDFBox Android/Desktop source parity, NOT installed Android. G2 check NOT_VERIFIED; C206 global NOT_VERIFIED; no G4 full reconciled candidate/G5/owner QA."
+            "test_name": "g3C2EquipoAndTesoroOverflowKeepIndependentPhysicalNavigationInBothVariants; g3MixedC2ActualAldrenIlyraMaraNavigationKeepsTrueP1AndP2Origins; g3OnlyP2TraitsInMixedC2NeverInventAP1Backlink",
+            "test_result": "G3 scoped PASS: real C206 A/B P2 links Tesoro physical 7, Mara A/B P2 links Equipo 6 and Especial 7, genuine C2 module destinations verified; 4 PDFs 10/10/9/13 folios, exact original source and page counts maintained. Android source route parity, Kotlin/Android build and independent physical audit SUCCESS.",
+            "source_commit": "36914c870305c96f61273ce48d2fb53e82ec9b75",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39328633469",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39328633469/artifacts/12223282713",
+            "pdf_zip_sha256": "cc5fa99c1a3775d60d4dd0fbbb1300610db6dfb378b4afcb6419119fa52d6c6a",
+            "independent_inspection": "PyMuPDF external PDF word/physical destination extraction, SHA256 and footer bbox for 4 real app PDFs; report docs/pc-sheet-v11/qa/evidence/2026-10-19_P3_C206_REAL_PDF_SCOPE.json. Prior independent 70-PDF regression check 70/70 no removed source or moved page.",
+            "limitations": "C206 G3 scoped PASS refreshed to post-forward-links source SHA. C206 G2 and global C206 remain NOT_VERIFIED. No physical Android installed or completed golden-eight reconciliation."
           },
           "named_tests": [
             "g3OnlyP2TraitsInMixedC2NeverInventAP1Backlink",
