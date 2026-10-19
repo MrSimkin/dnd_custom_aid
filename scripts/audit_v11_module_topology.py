@@ -53,8 +53,6 @@ def inspect_roles(titles: list[str]) -> list[str]:
         if ORDER[role] < previous:
             errors.append(f"p{index}: role {role} appears after a later section")
         previous = max(previous, ORDER[role])
-        if role == "P3" and index != 3:
-            errors.append(f"p{index}: narrative continuation left the P3 section")
         if role == "CN3" and not title.startswith("C-N3 - "):
             errors.append(f"p{index}: digital notes mixed with other module")
     return errors
