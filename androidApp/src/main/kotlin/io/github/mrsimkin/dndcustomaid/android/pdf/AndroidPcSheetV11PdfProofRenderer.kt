@@ -2544,6 +2544,64 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     draw(stream, cell.printableText, cell.rectPt.leftPt + 2f,
                         body.metrics.baselineIn(cell.rectPt), false)
                 }
+                // C207: on a FULL-HEIGHT C2 paired-table page, one real
+                // object/amount pair may end hundreds of points above the
+                // other. That blank pair is handwriting paper, not dozens
+                // of source-free (and unusable) EQUIPO/TESORO rows. A full
+                // bottom NOTES grid already takes priority when it fits.
+                if (compactC2 && !notesUsable) {
+                    val printedBottoms = (1..2).map { pair ->
+                        pageLabels.filter { it.pairIndex == pair }
+                            .minOfOrNull { it.rectPt.bottomPt }
+                    }
+                    for (pairZero in 0..1) {
+                        val availableFrom = printedBottoms[pairZero] ?: continue
+                        val longerSideBottom = printedBottoms[1 - pairZero] ?: continue
+                        // Require a genuine asymmetric source stream; never
+                        // replace cells on the longer, still occupied side.
+                        if (availableFrom - longerSideBottom < 128f) continue
+                        val pair = placed.pairs[pairZero]
+                        val gridPitch = 16f
+                        val gridBottom = maxOf(area.bottomPt + 2f, 78f)
+                        val completeRows =
+                            ((availableFrom - 28f - gridBottom) / gridPitch).toInt()
+                        if (completeRows < 4) continue
+                        val gridTop = gridBottom + completeRows * gridPitch
+                        require(gridTop + 18f <= availableFrom - 10f) {
+                            "C2 paired-table side notes would overlap source cells."
+                        }
+                        val completeColumns = (pair.widthPt / gridPitch).toInt()
+                        require(completeColumns >= 4)
+                        val gridWidth = completeColumns * gridPitch
+                        val gridLeft = pair.leftPt + (pair.widthPt - gridWidth) / 2f
+                        // The original table covers the entire physical
+                        // height. Clear ONLY the shorter pair's unused cells
+                        // before drawing a complete source-free NOTES grid.
+                        stream.saveGraphicsState()
+                        stream.setNonStrokingColor(Color.WHITE)
+                        stream.addRect(pair.leftPt + 0.6f, area.bottomPt + 0.6f,
+                            pair.widthPt - 1.2f, gridTop + 18f - area.bottomPt - 0.6f)
+                        stream.fill()
+                        stream.restoreGraphicsState()
+                        drawC2ManuscriptCartela(stream, gridLeft, gridWidth, gridTop)
+                        stream.saveGraphicsState()
+                        stream.setStrokingColor(Color(130, 165, 186))
+                        stream.setLineWidth(0.5f)
+                        for (column in 0..completeColumns) {
+                            val x = gridLeft + column * gridPitch
+                            stream.moveTo(x, gridBottom)
+                            stream.lineTo(x, gridTop)
+                            stream.stroke()
+                        }
+                        for (row in 0..completeRows) {
+                            val y = gridBottom + row * gridPitch
+                            stream.moveTo(gridLeft, y)
+                            stream.lineTo(gridLeft + gridWidth, y)
+                            stream.stroke()
+                        }
+                        stream.restoreGraphicsState()
+                    }
+                }
                 if (notesUsable) drawUnusedC2NotesGrid(stream, tableBottom)
             }
 
