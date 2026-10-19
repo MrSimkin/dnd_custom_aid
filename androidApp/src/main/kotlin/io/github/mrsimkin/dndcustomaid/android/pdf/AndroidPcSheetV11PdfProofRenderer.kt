@@ -1634,6 +1634,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     // its multi-line content with PDFBox rejects control
                     // glyphs. Route the entire UUID-backed source through
                     // the existing measured/lossless P4 row instead.
+                    // Both the spell NAME and its casting SOURCE must be
+                    // physically single-line before entering the fixed P4
+                    // right lane. Multiline persisted names belong to the
+                    // existing lossless three-column text flow, never a
+                    // one-line PDFBox width call (CR/LF have no font glyph).
+                    fullName.none { it == '\r' || it == '\n' || it == '\t' } &&
                     sourceInfo.none { it == '\r' || it == '\n' || it == '\t' } &&
                     body.width.measurePt(fullName) +
                     p4SourceFont.width.measurePt(sourceInfo) + 12f <= 168f

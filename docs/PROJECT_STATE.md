@@ -1,3 +1,5 @@
+**2026-10-18 — P4 nombre multilínea V11:** cambiado código Android/Desktop + test de PDF real Ilyra A/B y Libro opcional; CI PENDIENTE. [Checkpoint](docs/checkpoints/2026-10-18_V11_G2_G3_P4_MULTILINE_SPELL_NAMES_AND_BOOK.md). G4 BLOCKED (105 NOT_VERIFIED), G5/G6 pendientes, RCR-1=0/2, PR #173 sin merge.
+
 **2026-10-18 — PR #173 V11 P4 origen multilineal:** código Android/Desktop `8b57bae` + CI real [Scaffold 39171821142](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39171821142) SUCCESS, dos PDF nuevos A/B y 54 regresiones comparadas, informe en `docs/checkpoints/2026-10-18_V11_G2_G3_P4_SOURCE_CONTROL_BREAKS.md`. PASS LOCAL acotado; G4 BLOCKED 105 reglas NOT_VERIFIED, G5/G6 sin PASS, owner QA pendiente, sin merge.
 
 **2026-10-18 — V11/PR #173 P4 fuente real multilínea:** cambios Kotlin solo de selección de carril de origen en ambos exportadores + prueba Desktop real A/B. CI de cambio todavía pendiente; G4 BLOCKED, 105 reglas NOT_VERIFIED, RCR-1 no consumido, QA owner y G5/G6 pendientes. Ruta actual: `docs/checkpoints/2026-10-18_V11_G2_G3_P4_SOURCE_CONTROL_BREAKS.md`.

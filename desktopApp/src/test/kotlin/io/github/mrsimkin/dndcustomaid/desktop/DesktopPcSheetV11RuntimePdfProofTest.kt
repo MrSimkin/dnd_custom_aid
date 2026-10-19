@@ -2367,6 +2367,78 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun g3P4SpellNameWithPhysicalBreaksKeepsTheRealSpellAndOptionalBookAB() {
+        // Real Ilyra backup and its actual UUID/source associations. A legal
+        // persisted spell name contains CRLF and TAB. Previously P4's
+        // right-lane selection measured this complete name with PDFBox even
+        // before falling back to multiline flow. No other spell is altered.
+        val source = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val originalSpells = source.permanent.sheet.spells
+        val target = originalSpells.first { it.sourceAssociations.isNotEmpty() }
+        val multilineName = "QAP4SPELLFIRST\r\nQAP4SPELLSECOND\tQAP4SPELLTHIRD"
+        val stressed = source.copy(permanent = source.permanent.copy(
+            sheet = source.permanent.sheet.copy(spells = originalSpells.map {
+                if (it.id == target.id) it.copy(name = multilineName) else it
+            }),
+        ))
+        assertEquals(multilineName, stressed.permanent.sheet.spells
+            .first { it.id == target.id }.name)
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val real = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = true,
+                ), stressed,
+            )
+            val semantic = real.semantic.spells.first { it.spell.id == target.id }
+            assertEquals(multilineName, semantic.spell.name)
+            assertEquals(target.sourceAssociations.map { it.sourceId },
+                semantic.sources.map { it.sourceId })
+            assertEquals(target.sourceAssociations.map { it.prepared },
+                semantic.sources.map { it.prepared })
+            assertEquals(originalSpells, source.permanent.sheet.spells,
+                "Export must not mutate the original source backup.")
+            preserveRealApplicationPdf(real.bytes,
+                "V11-INTERNAL-PROOF-P4-spell-name-break-" + variant.name + ".pdf")
+            Loader.loadPDF(real.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { page ->
+                    PDFTextStripper().apply {
+                        startPage = page
+                        endPage = page
+                    }.getText(pdf)
+                }
+                val p4 = pages.filter { it.contains("P4 - Conjuros") }
+                    .joinToString("\n")
+                val tokens = listOf("QAP4SPELLFIRST", "QAP4SPELLSECOND",
+                    "QAP4SPELLTHIRD")
+                tokens.forEach { token ->
+                    assertEquals(1, Regex(token).findAll(p4).count(),
+                        "P4 must print every real spell-name fragment exactly " +
+                            "once in variant $variant: $token")
+                }
+                assertTrue(p4.contains("P4 - Conjuros"))
+                // Optional annex must still follow P4 and the real spell ID:
+                // the book INDEX and CARD use source text, not a fabricated
+                // single-line replacement just to make the PDF export work.
+                val indexPage = pages.indexOfFirst {
+                    it.contains("Índice del Libro de Conjuros")
+                }
+                val bookPage = pages.indexOfFirst { it.contains("Libro de conjuros") &&
+                    !it.contains("Índice del Libro de Conjuros") }
+                assertTrue(indexPage >= 0 && bookPage > indexPage)
+                val book = pages.drop(bookPage).dropLast(1).joinToString("\n")
+                tokens.forEach { token ->
+                    assertTrue(book.contains(token),
+                        "Spellbook must retain authentic multiline name token $token")
+                }
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" },
+                    "NOTAS remains the last physical page, not a book continuation.")
+            }
+        }
+    }
+
     @Test
     fun realIlyraP4AlignsOnlyFittingSpellOriginsWithoutLosingLongSources() {
         val generated = DesktopPcSheetExportService().generateV11Proof(
