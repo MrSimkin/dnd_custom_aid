@@ -1684,21 +1684,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             "digital-note:" + (it.sourceId?.toString() ?: "general") ==
                                 sourceKey
                         }
-                        val sourceLabel = note?.title?.takeIf {
-                            it.isNotBlank() &&
-                                it.none { c -> c == '\r' || c == '\n' || c == '\t' }
-                        } ?: (note?.sourceId?.toString() ?: "NOTAS GENERALES")
-                        val full = basicTitle + " / CONTINÚA: " + sourceLabel
-                        val stable = basicTitle + " / CONTINÚA ID: " +
-                            (note?.sourceId?.toString() ?: "GENERAL")
-                        fun fitsTitle(value: String): Boolean =
-                            headerPdfFont.getStringWidth(pcSheetV11PrintableText(value)) *
-                                12f / 1000f <= 524f
-                        when {
-                            fitsTitle(full) -> full
-                            fitsTitle(stable) -> stable
-                            else -> basicTitle + " / CONTINÚA"
-                        }
+                        io.github.mrsimkin.dndcustomaid.shared.character
+                            .PcSheetV11NoteContinuationHeader.choose(
+                                baseTitle = basicTitle,
+                                sourceTitle = note?.title,
+                                stableId = note?.sourceId?.toString() ?: "GENERAL",
+                                fits = { value ->
+                                    headerPdfFont.getStringWidth(
+                                        pcSheetV11PrintableText(value)
+                                    ) * 12f / 1000f <= 524f
+                                },
+                            )
                     } else basicTitle
                     val page = PDPage(PDRectangle.LETTER)
                     pdf.addPage(page)
