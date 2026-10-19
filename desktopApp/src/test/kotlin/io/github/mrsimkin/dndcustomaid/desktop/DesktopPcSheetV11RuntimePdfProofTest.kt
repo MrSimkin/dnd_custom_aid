@@ -3463,7 +3463,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     // A genuine PDFBox vector line at the printable-floor row.
                     // Text-only tests would not prove a writable paper reserve.
                     val firstRule = Regex(
-                        """(?m)(?:^|\\s)42(?:\\.0)?\\s+92(?:\\.0)?\\s+m\\s+570(?:\\.0)?\\s+92(?:\\.0)?\\s+l\\s+S(?:\\s|$)"""
+                        """(?m)(?:^|\s)42(?:\.0)?\s+92(?:\.0)?\s+m\s+570(?:\.0)?\s+92(?:\.0)?\s+l\s+S(?:\s|$)"""
                     )
                     assertTrue(firstRule.containsMatchIn(raw),
                         "C-N3 must use genuine ruled-paper PDF vectors, not fake underscores.")
