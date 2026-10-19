@@ -3420,6 +3420,59 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3ShortDigitalNoteReservesHandwritingOnlyBelowMeasuredSourceAB() {
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val without = original.copy(permanent = original.permanent.copy(
+            sheet = original.permanent.sheet.copy(
+                generalNotes = "", noteCards = emptyList(),
+            ),
+        ))
+        val shortText = "CN3_MANUSCRIPT_SOURCE_UNCHANGED"
+        val with = without.copy(permanent = without.permanent.copy(
+            sheet = without.permanent.sheet.copy(generalNotes = shortText),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val request = PcSheetV11ExportRequest(
+                variant, PcSheetExportStateSelection.PERMANENT,
+            )
+            val before = DesktopPcSheetExportService().generateV11Proof(request, without)
+            val after = DesktopPcSheetExportService().generateV11Proof(request, with)
+            preserveRealApplicationPdf(after.bytes,
+                "V11-INTERNAL-PROOF-CN3-manuscript-" + variant.name + ".pdf")
+            Loader.loadPDF(before.bytes).use { emptyPdf ->
+                Loader.loadPDF(after.bytes).use { pdf ->
+                    // A secondary manuscript reserve must not create a page.
+                    // Only the one source-backed C-N3 page is new.
+                    assertEquals(emptyPdf.numberOfPages + 1, pdf.numberOfPages)
+                    val texts = (1..pdf.numberOfPages).map { physical ->
+                        PDFTextStripper().apply {
+                            startPage = physical; endPage = physical
+                        }.getText(pdf)
+                    }
+                    val cn3 = texts.indices.filter {
+                        texts[it].contains("C-N3 - Notas digitales")
+                    }
+                    assertEquals(1, cn3.size)
+                    assertEquals(1, Regex(shortText).findAll(texts.joinToString("\n")).count())
+                    assertFalse(texts.last().contains(shortText))
+                    assertTrue(texts.last().lineSequence().any { it.trim() == "NOTAS" })
+                    val page = pdf.getPage(cn3.single())
+                    val raw = page.contents.use {
+                        it.readBytes().toString(Charsets.ISO_8859_1)
+                    }
+                    // A genuine PDFBox vector line at the printable-floor row.
+                    // Text-only tests would not prove a writable paper reserve.
+                    val firstRule = Regex(
+                        """(?m)(?:^|\\s)42(?:\\.0)?\\s+92(?:\\.0)?\\s+m\\s+570(?:\\.0)?\\s+92(?:\\.0)?\\s+l\\s+S(?:\\s|$)"""
+                    )
+                    assertTrue(firstRule.containsMatchIn(raw),
+                        "C-N3 must use genuine ruled-paper PDF vectors, not fake underscores.")
+                }
+            }
+        }
+    }
+
+    @Test
     fun digitalNotesHaveDedicatedPagesAndDisappearWhenSourceNotesAreAbsent() {
         val actual = sources("03_mara_siete_umbrales_custom_extended.json")
         val saved = DesktopPcSheetExportService().generateV11Proof(
