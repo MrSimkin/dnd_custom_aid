@@ -28,6 +28,12 @@ class TestG4ModuleCoverage(unittest.TestCase):
         self.assertEqual(result["areas"][0]["pending_ids"], ["P301"])
         self.assertEqual(result["areas"][0]["stage_checks"][0]["stage"], "G3")
 
+    def test_module_clear_does_not_mean_global_gate_ready(self):
+        data = sample("PASS", candidate={"sha": "candidate"}, evidence={"pdf": "proof"})
+        result = module.summarize(data, "P3")
+        self.assertTrue(result["selected_area_clear"])
+        self.assertFalse(result["ready"])
+
     def test_unknown_area_rejected(self):
         with self.assertRaises(ValueError):
             module.summarize(sample(), "NO_SUCH_AREA")
