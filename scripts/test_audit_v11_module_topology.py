@@ -27,7 +27,7 @@ class TopologyTests(unittest.TestCase):
             ["P1 - Hero", "P2 - Inventory", "P3 - History",
              "Unknown module", "NOTAS"],
             ["P1 - Hero", "P2 - Inventory", "P3 - History",
-             "P3 - Narrativa / continuación", "NOTAS"],
+             "P4 - Conjuros", "P3 - Narrativa / continuación", "NOTAS"],
         ):
             self.assertTrue(inspect_roles(titles), titles)
 
