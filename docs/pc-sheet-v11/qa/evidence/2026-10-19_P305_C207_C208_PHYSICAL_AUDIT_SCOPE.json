@@ -58,5 +58,59 @@
     "C208: every observed physical C2 page contained printable digital source words, no notes-only C2 page; every observed grid complete. Not full G2 comparison of all possible non-existent C2 pages.",
     "Android renderer/build CI checked but no PDF from installed Android; no owner review.",
     "All 105 G4 rule-level statuses remain NOT_VERIFIED, active_candidate null; G5/G6 pending."
-  ]
+  ],
+  "C207_missing_bottom_reserve": {
+    "source_commit": "9700bc1c03a9f36b88fd7a798598d394bb5fe404",
+    "run": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39342450957",
+    "independent_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39342450957/artifacts/12229493866",
+    "desktop_real_pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39342450957/artifacts/12229369073",
+    "audit_artifact_sha256": "b2d1781a662121486c149a02023fcfeb8cad0ba6ed21c6e5666a8360631a38fc",
+    "algorithm": "scripts/audit_v11_c207_vacancy.py",
+    "regression_tests": "scripts/test_audit_v11_c207_vacancy.py (4/4 PASS in CI and local)",
+    "scope": "Only missing BOTTOM manuscript grids in source-backed C2 areas with >=128 pt free. Full-width Equipo Especial treated as one region; uses actual NOTES vector extent. Not a complete check for every writable C2 hole.",
+    "current": {
+      "archive_sha256": "5378503652d00bba27adcd161fe3dfd324b9075678daea997150b93190bb8775",
+      "source_pdf_count": 72,
+      "c2_pages": 197,
+      "regions": 358,
+      "short_gaps": 78,
+      "regions_with_existing_grids": 289,
+      "missing": 0,
+      "ci_result": "PASS_SCOPED",
+      "ci_run": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39342450957"
+    },
+    "historical_negative": {
+      "archive_sha256": "795b0aa70cc2067a6f9e63052b2799e771160e4083dc413dc837aa26008530cc",
+      "pdf_count": 68,
+      "c2_pages": 189,
+      "missing": 2,
+      "pages": [
+        {
+          "file": "V11-INTERNAL-PROOF-C206-both-paired-overflow-A.pdf",
+          "page": 6,
+          "missing_side": "right",
+          "free_height_pt": 369.41
+        },
+        {
+          "file": "V11-INTERNAL-PROOF-C206-both-paired-overflow-B.pdf",
+          "page": 6,
+          "missing_side": "right",
+          "free_height_pt": 369.41
+        }
+      ],
+      "local_verification": "Independent PyMuPDF audit returns FAIL on old genuine Desktop PDF batch; earlier C207 implementation fixed those same scenarios."
+    },
+    "golden": {
+      "source_zip": "docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip",
+      "eight_verified_in_CI": true,
+      "source_hashes_published_in": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39342450957/artifacts/12229493866",
+      "scope": "Eight frozen PDF files CRC and SHA256/metadata inventory ONLY. Their internal headings differ from Desktop C2 strings; c2_title_pages=[] does NOT establish absence of C2 content or golden matching.",
+      "full_physical_reconciliation": "PENDING"
+    },
+    "G4": "BLOCKED",
+    "C207_G3": "NOT_VERIFIED",
+    "C207_global": "NOT_VERIFIED",
+    "installed_android_pdf": "NOT_VERIFIED",
+    "owner_approval": "NOT_OBTAINED"
+  }
 }
