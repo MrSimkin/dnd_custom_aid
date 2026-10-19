@@ -2313,8 +2313,23 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "audit_v11_p3_c2_manuscript.py / P305",
+            "test_result": "SCOPED G3 PHYSICAL PASS; P305: 92 P3 real physical pages, 616 source-lined shaded areas, 18,953 printed source words aligned to actual PDF rules; 0 violations; does not promote rule-level G4 PASS.",
+            "source_commit": "faf0a038d4316ce136deae595a5eb9dc531e46a1",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39339891507",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39339891507/artifacts/12228174438",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39339891507/artifacts/12228538001",
+            "audit_zip_sha256": "3479656d650c85de42a41e8132b0f96a8521480545906c509c80675a3a67a94c",
+            "fixture_id": "P3 shaded narrative fields and overflow continuation A/B within 72 genuine Desktop service PDF",
+            "source_independent_inspection": "PyMuPDF 1.26.7 over 72 real Desktop App PDFs, full per-PDF SHA256 and page errors in linked artifact; scope evidence docs/pc-sheet-v11/qa/evidence/2026-10-19_P305_C207_C208_PHYSICAL_AUDIT_SCOPE.json",
+            "limitations": "Not all eight frozen golden PDFs reconciled; G2 stage NOT_VERIFIED, Android installed not checked; owner QA unapproved and global G4 NOT_VERIFIED."
+          },
+          "named_tests": [
+            "P305:scripts/audit_v11_p3_c2_manuscript.py"
+          ],
+          "independent_test_target": "scripts/audit_v11_p3_c2_manuscript.py"
         }
       ]
     },
@@ -2864,8 +2879,23 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "audit_v11_p3_c2_manuscript.py / C208",
+            "test_result": "SCOPED G3 PHYSICAL PASS; C208: 197 C2 physical pages with real source text, 218 complete 16pt grids and zero orphan notes-only C2 pages; 0 violations; does not promote rule-level G4 PASS.",
+            "source_commit": "faf0a038d4316ce136deae595a5eb9dc531e46a1",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39339891507",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39339891507/artifacts/12228174438",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39339891507/artifacts/12228538001",
+            "audit_zip_sha256": "3479656d650c85de42a41e8132b0f96a8521480545906c509c80675a3a67a94c",
+            "fixture_id": "C2 no orphan notes-only pages and no truncated cells in emitted grids across 72 real Desktop PDFs",
+            "source_independent_inspection": "PyMuPDF 1.26.7 over 72 real Desktop App PDFs, full per-PDF SHA256 and page errors in linked artifact; scope evidence docs/pc-sheet-v11/qa/evidence/2026-10-19_P305_C207_C208_PHYSICAL_AUDIT_SCOPE.json",
+            "limitations": "Not all eight frozen golden PDFs reconciled; G2 stage NOT_VERIFIED, Android installed not checked; owner QA unapproved and global G4 NOT_VERIFIED."
+          },
+          "named_tests": [
+            "C208:scripts/audit_v11_p3_c2_manuscript.py"
+          ],
+          "independent_test_target": "scripts/audit_v11_p3_c2_manuscript.py"
         }
       ]
     },

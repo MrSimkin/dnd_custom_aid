@@ -1,0 +1,62 @@
+{
+  "date": "2026-10-19",
+  "scope": "G3 physical renderer output, not G4 nor all golden/installed Android",
+  "source_commit": "faf0a038d4316ce136deae595a5eb9dc531e46a1",
+  "scaffold_run": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39339891507",
+  "complete_independent_json_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39339891507/artifacts/12228538001",
+  "real_desktop_pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39339891507/artifacts/12228174438",
+  "audit_artifact_zip_sha256": "3479656d650c85de42a41e8132b0f96a8521480545906c509c80675a3a67a94c",
+  "auditor": "scripts/audit_v11_p3_c2_manuscript.py (PyMuPDF 1.26.7)",
+  "status": "PASS_LOCAL_PHYSICAL_ONLY",
+  "metrics": {
+    "pdfs": 72,
+    "p3_physical_pages": 92,
+    "p3_shaded_writing_bands": 616,
+    "p3_aligned_source_words": 18953,
+    "c2_physical_pages": 197,
+    "c2_manuscript_notes_cartelas": 218,
+    "c2_physically_complete_16pt_grids": 218,
+    "c2_orphan_notes_only_pages": 0,
+    "c2_printed_words_covered_by_grids": 0,
+    "violations": 0
+  },
+  "sample_pdf_sha256": [
+    {
+      "name": "V11-INTERNAL-PROOF-Mara-A.pdf",
+      "sha256": "c43c49d04692f74ca15ac05f9d9276be23ebc45524c4b8291982e97a88f27ea3",
+      "pages": 9
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-Mara-B.pdf",
+      "sha256": "9ac263913b7d4e548a3bf0856af57f62f5ab399089d09852e7a9c3db3f482a5b",
+      "pages": 13
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P3-three-paragraphs-A.pdf",
+      "sha256": "f84b7c1292a209d37b13a2490df8865cce75650c60890076d4034e39ed774a46",
+      "pages": 13
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P3-three-paragraphs-B.pdf",
+      "sha256": "56b0298fc8117a7e56b98f5c38674200fe0b9c30ab0814f2722e0c69af6fe922",
+      "pages": 13
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C206-both-paired-overflow-A.pdf",
+      "sha256": "5ebe4c2bd31054bbd37984ae3c21ee02c5da61120d7f87d460dc35d5d44360a3",
+      "pages": 10
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C206-both-paired-overflow-B.pdf",
+      "sha256": "1f272b966fbf23f31e06b6746567190a2b55033e3426cf4da98147df091e3e8d",
+      "pages": 10
+    }
+  ],
+  "limitations": [
+    "P305: verified physical placement of all words printed in detected shaded P3 bands, not source completeness or all eight golden visual comparisons.",
+    "C207: every EXISTING NOTES cartela forms a complete grid; missing cartelas in other types of usable whitespace have NOT been comprehensively ruled out, so do not mark C207 G3 PASS.",
+    "C208: every observed physical C2 page contained printable digital source words, no notes-only C2 page; every observed grid complete. Not full G2 comparison of all possible non-existent C2 pages.",
+    "Android renderer/build CI checked but no PDF from installed Android; no owner review.",
+    "All 105 G4 rule-level statuses remain NOT_VERIFIED, active_candidate null; G5/G6 pending."
+  ]
+}
