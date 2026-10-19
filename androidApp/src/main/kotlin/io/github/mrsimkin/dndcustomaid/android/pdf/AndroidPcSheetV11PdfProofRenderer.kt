@@ -1681,7 +1681,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         io.github.mrsimkin.dndcustomaid.shared.character
                             .PcSheetV11NoteContinuationHeader.choose(
                                 baseTitle = basicTitle,
-                                sourceTitle = note?.title,
+                                sourceTitle = note?.title ?: (note?.sourceId?.toString()
+                                    ?: "NOTAS GENERALES"),
                                 stableId = note?.sourceId?.toString() ?: "GENERAL",
                                 fits = { value ->
                                     headerPdfFont.getStringWidth(
