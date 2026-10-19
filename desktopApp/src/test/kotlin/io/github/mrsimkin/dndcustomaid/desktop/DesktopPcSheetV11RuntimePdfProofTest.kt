@@ -4470,6 +4470,32 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.map { it + 1 }
                 assertTrue(equipmentPages.size >= 2,
                     "Stress ordinary equipment must span multiple physical C2 pages.")
+                // C207: real C206 source creates a large EMPTY LOWER-RIGHT
+                // pair on the SECOND equipment C2 page, while LEFT source
+                // labels/amounts still run to the printable floor. That
+                // reserved paper must carry a COMPLETE genuine NOTES grid,
+                // not dozens of visually misleading empty EQUIPO rows.
+                val secondEquipment = pdf.getPage(equipmentPages[1] - 1)
+                val manuscript = PDFTextStripperByArea().apply {
+                    addRegion("unused-right-pair",
+                        Rectangle2D.Float(312f, 348f, 258f, 360f))
+                    addRegion("occupied-left-pair",
+                        Rectangle2D.Float(42f, 348f, 258f, 360f))
+                    extractRegions(secondEquipment)
+                }
+                assertTrue(manuscript.getTextForRegion("unused-right-pair")
+                    .contains("NOTAS"),
+                    "Real C2 unused right table cells require a paper NOTES cartela.")
+                assertFalse(manuscript.getTextForRegion("occupied-left-pair")
+                    .contains("NOTAS"),
+                    "Handwriting reserve must never replace LEFT persisted equipment.")
+                val secondContent = secondEquipment.contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                assertTrue(Regex(
+                    """(?m)(?:^|\s)313(?:\.0)?\s+78(?:\.0)?\s+m\s+313(?:\.0)?\s+[-\d.]+\s+l"""
+                ).containsMatchIn(secondContent),
+                    "Right C2 NOTES grid must contain real full-height PDF vectors.")
                 assertTrue(treasurePages.isNotEmpty(),
                     "The independent treasure stream must also overflow to C2.")
                 assertTrue(equipmentPages.last() < treasurePages.first())
