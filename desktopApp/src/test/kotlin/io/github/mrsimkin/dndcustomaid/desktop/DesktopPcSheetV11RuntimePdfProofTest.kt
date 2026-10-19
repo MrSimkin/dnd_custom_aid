@@ -3526,6 +3526,47 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3VeryLongSourceNoteTitleKeepsStableContinuationIdInRealPdfAB() {
+        val fixture = sources("03_mara_siete_umbrales_custom_extended.json")
+        val original = fixture.permanent.sheet.noteCards.first()
+        val longName = "TÍTULO EXTENSO DE NOTA " + "persistida ".repeat(115)
+        val originalContent = "CN3-LARGE-NAME-START " +
+            (1..440).joinToString(" ") { "CN3-LARGE-NAME-WORD" + it } +
+            " CN3-LARGE-NAME-END"
+        val patched = fixture.copy(permanent = fixture.permanent.copy(
+            sheet = fixture.permanent.sheet.copy(
+                generalNotes = "",
+                noteCards = listOf(original.copy(title = longName, content = originalContent)),
+            ),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val request = PcSheetV11ExportRequest(
+                variant, PcSheetExportStateSelection.PERMANENT,
+            )
+            val semantic = io.github.mrsimkin.dndcustomaid.shared.character
+                .PcSheetV11SemanticMapper.map(request, patched)
+            val sourceId = requireNotNull(semantic.digitalNotes.single().sourceId)
+            val proof = DesktopPcSheetExportService().generateV11Proof(request, patched)
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-CN3-long-source-title-" + variant.name + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { physical ->
+                    PDFTextStripper().apply {
+                        startPage = physical; endPage = physical
+                    }.getText(pdf)
+                }
+                val joined = pages.joinToString("\n")
+                assertEquals(1, Regex("CN3-LARGE-NAME-START").findAll(joined).count())
+                assertEquals(1, Regex("CN3-LARGE-NAME-END").findAll(joined).count())
+                assertTrue(pages.any { it.contains("CONTINÚA ID: " + sourceId) },
+                    "A long real note title cannot erase its UUID in the continuation.")
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertFalse(pages.last().contains("CN3-LARGE-NAME-END"))
+            }
+        }
+    }
+
+    @Test
     fun g3RealMaraC_N3SourceAnchorsAndLongNoteContinuationKeepIdentityAB() {
         // The frozen V11 contract requires genuine, exclusively digital
         // C-N3 pages. Nine original titled Mara cards + general notes were
