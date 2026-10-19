@@ -1224,7 +1224,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     startPage = physical
                     endPage = physical
                 }.getText(pdf)
-            }.filter { it.contains("C2 - Equipo especial / continuación") }
+            }.filter { it.contains("EQUIPO ESPECIAL") &&
+                it.contains("C2 - Equipo") }
             assertTrue(c2SpecialText.isNotEmpty())
             assertTrue(c2SpecialText.all { it.contains("UBICACIÓN") &&
                 it.contains("DESCRIPCIÓN") && it.contains("ACTIVO") })
@@ -1724,6 +1725,54 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertFalse(c2.contains("Contratos arcanos (Fortuna)") ||
                 c2.contains("Sincronía (Cordura)") ||
                 c2.contains("Manipulación de éter (Éter)"))
+        }
+    }
+
+    @Test
+    fun g3IlyraGenuineSingleOrdinaryAndSpecialC2ShareOnePhysicalPageAB() {
+        // Real Ilyra source: exactly one leftover normal object and one
+        // deferred Spellbook with location, notes and true active mark.
+        // The former app emitted two mostly-empty dedicated C2 pages.
+        val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant,
+                    PcSheetExportStateSelection.PERMANENT), original,
+            )
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-C2-ordinary-plus-special-" + variant.name + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { page ->
+                    PDFTextStripper().apply {
+                        startPage = page
+                        endPage = page
+                    }.getText(pdf)
+                }
+                val c2 = pages.filter {
+                    it.contains("C2 - Equipo y tesoro / EQUIPO + EQUIPO ESPECIAL")
+                }
+                assertEquals(1, c2.size, "Two short real C2 modules must share a page.")
+                val text = c2.single()
+                for (required in listOf(
+                    "EQUIPO / CANTIDAD", "Suministros de calígrafo", "1",
+                    "EQUIPO ESPECIAL", "UBICACIÓN", "NOMBRE", "DESCRIPCIÓN",
+                    "ACTIVO", "Spellbook", "Mochila", "Evocation Savant",
+                    "NOTAS", "VIENE DE P2 PÁG. 2",
+                )) {
+                    assertTrue(text.contains(required),
+                        "Missing real combined C2 source/column/footer: $required")
+                }
+                assertFalse(pages.any {
+                    it.contains("C2 - Equipo especial / continuación")
+                }, "An unnecessary extra special page must no longer exist.")
+                assertEquals(1, Regex("Suministros de calígrafo")
+                    .findAll(pages.joinToString("\n")).count())
+                assertEquals(1, Regex("Evocation Savant")
+                    .findAll(text).count())
+                val c2Pos = pages.indexOf(text) + 1
+                assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " + c2Pos))
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+            }
         }
     }
 

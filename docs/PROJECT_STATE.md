@@ -1,3 +1,5 @@
+**2026-10-18 — V11 PR #173 C2 Equipo+Especial:** trabajo funcional de compactación de dos módulos autenticados en una hoja Carta si geometría medida lo permite, Android/Desktop y test A/B. CI PENDIENTE. Ruta: `docs/checkpoints/2026-10-18_V11_G2_G3_C2_PAIRED_PLUS_SPECIAL_MEASURED.md`; G4 BLOCKED 105 NOT_VERIFIED, sin QA owner/G5/G6/merge.
+
 **2026-10-18 — PR #173 C2 Equipo/Tesoro compactado, PASS LOCAL:** `16a4201` producción y `08b7772` prueba. [Scaffold 39185287349](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39185287349) SUCCESS, 58 PDF Desktop/550p; casos A/B 8→7p, otras 56 salidas estables y auditores físicos 0 alertas. Evidencia y no conformidades en `docs/checkpoints/2026-10-18_V11_G2_G3_C2_COMPACT_EQUIPMENT_TREASURE.md`; G4 BLOCKED 105 NOT_VERIFIED, G5/G6 pendientes, sin owner QA ni merge.
 
 **2026-10-18 — PR #173 V11 C2:** optimización productiva condicional de dos tablas C2 de Equipo y Tesoro en página física compartida sin comprimir filas; prueba real A/B extendida; CI pendiente. Continuidad: `docs/checkpoints/2026-10-18_V11_G2_G3_C2_COMPACT_EQUIPMENT_TREASURE.md`. G4 BLOCKED 105 NOT_VERIFIED, G5/G6 pendientes, RCR-1 0/2.

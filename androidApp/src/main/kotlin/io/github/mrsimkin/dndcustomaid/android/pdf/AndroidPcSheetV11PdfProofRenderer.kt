@@ -2822,6 +2822,34 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     } else null
                 } else null
             } else null
+            data class DeferredOrdinaryForSpecial(
+                val label: String,
+                val original: PcSheetV11PairedTablePlaced,
+                val expanded: PcSheetV11PairedTablePlaced,
+                val upperHeight: Float,
+            )
+            var deferredOrdinaryForSpecial: DeferredOrdinaryForSpecial? = null
+            fun drawSeparatePairedC2(
+                label: String,
+                original: PcSheetV11PairedTablePlaced,
+                expanded: PcSheetV11PairedTablePlaced,
+            ) {
+                val amountsAlreadyOnP2 = original.quantities.asSequence()
+                    .filter { it.localPageIndex == 1 }
+                    .map { it.sourceKey }.toSet()
+                for (localPage in 1..expanded.localPageCount) {
+                    val page = PDPage(PDRectangle.LETTER)
+                    pdf.addPage(page)
+                    physicalSectionKeys += "C2 - Equipo y tesoro / " + label
+                    PDPageContentStream(pdf, page).use { stream ->
+                        drawFrameAndHeader(stream,
+                            "C2 - Equipo y tesoro / " + label + " / " + localPage)
+                        drawPaired(stream, label + " / CANTIDAD",
+                            fullC2PairedArea, expanded, localPage, amountsAlreadyOnP2,
+                            compactC2 = true)
+                    }
+                }
+            }
             if (compactPaired != null) {
                 val page = PDPage(PDRectangle.LETTER)
                 pdf.addPage(page)
@@ -2846,20 +2874,25 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 for ((label, remaining, original) in pairedRemainders) {
                     if (remaining.rows.isEmpty()) continue
                     val expanded = placeC2Paired(remaining, fullC2PairedArea)
-                    val amountsAlreadyOnP2 = original.quantities.asSequence()
-                        .filter { it.localPageIndex == 1 }
-                        .map { it.sourceKey }.toSet()
-                    for (localPage in 1..expanded.localPageCount) {
-                        val page = PDPage(PDRectangle.LETTER)
-                        pdf.addPage(page)
-                        physicalSectionKeys += "C2 - Equipo y tesoro / " + label
-                        PDPageContentStream(pdf, page).use { stream ->
-                            drawFrameAndHeader(stream,
-                                "C2 - Equipo y tesoro / " + label + " / " + localPage)
-                            drawPaired(stream, label + " / CANTIDAD",
-                                fullC2PairedArea, expanded, localPage, amountsAlreadyOnP2,
-                                compactC2 = true)
-                        }
+                    val occupied = (expanded.labels.maxOfOrNull { it.rowIndex + 1 }
+                        ?: 0) * body.metrics.lineHeightPt
+                    val upperHeight = maxOf(90f, occupied + 18f)
+                    // Only ONE short, standard-width ordinary pair may join
+                    // ONE deferred special record. The real full-width special
+                    // table is measured below before this reservation commits.
+                    // Large, multi-page or currency cases remain unchanged.
+                    val reserveForSpecial = label == "EQUIPO" &&
+                        pairedRemainders.count { it.second.rows.isNotEmpty() } == 1 &&
+                        specialDeferredToC2.size == 1 &&
+                        PcSheetV11PairedAmountRouting.c2AmountWidth(
+                            remaining, body.width,
+                        ) <= PcSheetV11PairedAmountRouting.BASE_AMOUNT_WIDTH_PT &&
+                        expanded.localPageCount == 1 && upperHeight <= 180f
+                    if (reserveForSpecial) {
+                        deferredOrdinaryForSpecial =
+                            DeferredOrdinaryForSpecial(label, original, expanded, upperHeight)
+                    } else {
+                        drawSeparatePairedC2(label, original, expanded)
                     }
                 }
             }
@@ -2939,15 +2972,59 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 specialC2Rows.size) {
                 "Every deferred special item must occupy at least one physical C2 row."
             }
+            // Join a genuinely short special record with a genuinely
+            // short ordinary pair only if the already-measured complete
+            // special row fits in its own lower full-width rectangle.
+            // If not, flush the deferred ordinary page unchanged before the
+            // original special continuation pages; never attempt compression.
+            val sharedC2 = deferredOrdinaryForSpecial?.takeIf { pending ->
+                c2SpecialPages.size == 1 && c2SpecialPages.single().size == 1 &&
+                    c2SpecialPages.single().single().startLine == 0 &&
+                    specialHeaderHeight +
+                        c2SpecialPages.single().sumOf { it.heightPt.toDouble() } <
+                        fullC2PairedArea.heightPt - pending.upperHeight - 22f - 10f
+            }
+            if (deferredOrdinaryForSpecial != null && sharedC2 == null) {
+                val separate = requireNotNull(deferredOrdinaryForSpecial)
+                drawSeparatePairedC2(separate.label, separate.original, separate.expanded)
+            }
             c2SpecialPages.forEachIndexed { pageIndex, fragments ->
+                val shared = sharedC2?.takeIf { pageIndex == 0 }
+                val drawingArea = if (shared != null) PcSheetV11RectPt(
+                    42f, c2SpecialArea.bottomPt, 528f,
+                    c2SpecialArea.heightPt - shared.upperHeight - 22f,
+                ) else c2SpecialArea
                 val page = PDPage(PDRectangle.LETTER)
                 pdf.addPage(page)
-                physicalSectionKeys += "C2 - Equipo especial / continuación"
+                physicalSectionKeys += if (shared != null)
+                    "C2 - Equipo y tesoro / EQUIPO + EQUIPO ESPECIAL"
+                    else "C2 - Equipo especial / continuación"
                 PDPageContentStream(pdf, page).use { stream ->
-                    drawFrameAndHeader(stream,
-                        "C2 - Equipo especial / continuación / " + (pageIndex + 1))
+                    if (shared != null) {
+                        drawFrameAndHeader(stream,
+                            "C2 - Equipo y tesoro / EQUIPO + EQUIPO ESPECIAL")
+                        val topArea = PcSheetV11RectPt(
+                            42f, c2SpecialArea.topPt - shared.upperHeight,
+                            528f, shared.upperHeight,
+                        )
+                        val topPlaced = placeC2Paired(
+                            pairedRemainders.first().second, topArea,
+                        )
+                        require(topPlaced.localPageCount == 1) {
+                            "Measured shared C2 ordinary equipment cannot fit its top panel."
+                        }
+                        val alreadyP2 = shared.original.quantities
+                            .filter { it.localPageIndex == 1 }
+                            .map { it.sourceKey }.toSet()
+                        drawPaired(stream, "EQUIPO / CANTIDAD", topArea,
+                            topPlaced, 1, alreadyP2, compactC2 = true,
+                            writeC2Notes = false)
+                    } else {
+                        drawFrameAndHeader(stream,
+                            "C2 - Equipo especial / continuación / " + (pageIndex + 1))
+                    }
                     draw(stream, "EQUIPO ESPECIAL", 42f,
-                        c2SpecialArea.topPt + 6f, true)
+                        drawingArea.topPt + 6f, true)
                     // An oversized source row can continue with ONLY its
                     // description: name/location were drawn on the prior
                     // physical page. Identify the SAME record in the free
@@ -2960,7 +3037,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         val item = specialC2Rows[continuedPart.rowIndex].first
                         val x = 192f
                         val fontPt = 7f
-                        val available = c2SpecialArea.rightPt - x - 3f
+                        val available = drawingArea.rightPt - x - 3f
                         fun fits(text: String) =
                             bodyPdfFont.getStringWidth(pcSheetV11PrintableText(text)) *
                                 fontPt / 1000f <= available
@@ -2988,20 +3065,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         stream.setNonStrokingColor(Color(80, 122, 151))
                         stream.beginText()
                         stream.setFont(bodyPdfFont, fontPt)
-                        stream.newLineAtOffset(x, c2SpecialArea.topPt + 6f)
+                        stream.newLineAtOffset(x, drawingArea.topPt + 6f)
                         stream.showText(pcSheetV11PrintableText(label))
                         stream.endText()
                         stream.restoreGraphicsState()
                     }
                     val printedHeight = specialHeaderHeight +
                         fragments.sumOf { it.heightPt.toDouble() }.toFloat()
-                    val tableBottom = c2SpecialArea.topPt - printedHeight
-                    require(tableBottom >= c2SpecialArea.bottomPt - 0.1f)
+                    val tableBottom = drawingArea.topPt - printedHeight
+                    require(tableBottom >= drawingArea.bottomPt - 0.1f)
                     stream.saveGraphicsState()
                     stream.setStrokingColor(Color(130, 165, 186))
                     stream.setLineWidth(0.55f)
                     stream.setNonStrokingColor(Color(217, 236, 245))
-                    stream.addRect(42f, c2SpecialArea.topPt -
+                    stream.addRect(42f, drawingArea.topPt -
                         specialHeaderHeight, 528f, specialHeaderHeight)
                     stream.fill()
                     stream.setNonStrokingColor(Color(238, 247, 251))
@@ -3014,23 +3091,23 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     specialColumns.dropLast(1).forEach { width ->
                         separator += width
                         stream.moveTo(separator, tableBottom)
-                        stream.lineTo(separator, c2SpecialArea.topPt)
+                        stream.lineTo(separator, drawingArea.topPt)
                         stream.stroke()
                     }
-                    stream.moveTo(42f, c2SpecialArea.topPt - specialHeaderHeight)
-                    stream.lineTo(570f, c2SpecialArea.topPt - specialHeaderHeight)
+                    stream.moveTo(42f, drawingArea.topPt - specialHeaderHeight)
+                    stream.lineTo(570f, drawingArea.topPt - specialHeaderHeight)
                     stream.stroke()
                     stream.restoreGraphicsState()
                     var headerX = 42f
                     listOf("UBICACIÓN", "NOMBRE", "DESCRIPCIÓN", "ACTIVO")
                         .forEachIndexed { index, label ->
                             draw(stream, label, headerX + 5f,
-                                c2SpecialArea.topPt - 13f, false)
+                                drawingArea.topPt - 13f, false)
                             headerX += specialColumns[index]
                         }
                     val positions = listOf(42f, 42f + specialColumns[0],
                         42f + specialColumns[0] + specialColumns[1])
-                    var rowTop = c2SpecialArea.topPt - specialHeaderHeight
+                    var rowTop = drawingArea.topPt - specialHeaderHeight
                     fragments.forEach { part ->
                         val (item, fields) = specialC2Rows[part.rowIndex]
                         fields.forEachIndexed { column, allLines ->
@@ -3046,7 +3123,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             }
                         }
                         if (part.startLine == 0) {
-                            val markerX = c2SpecialArea.rightPt -
+                            val markerX = drawingArea.rightPt -
                                 specialColumns.last() / 2f - 4.5f
                             val markerY = rowTop - 16f
                             stream.addRect(markerX, markerY, 9f, 9f)
