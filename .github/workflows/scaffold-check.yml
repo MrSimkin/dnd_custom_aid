@@ -58,6 +58,7 @@ jobs:
           python3 scripts/test_audit_v11_pdf_physical_envelope.py
           python3 scripts/test_audit_v11_module_topology.py
           python3 scripts/audit_v11_module_topology.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-module-topology.json
+          python3 scripts/audit_v11_p3_c2_manuscript.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-p3-c2-manuscript-audit.json
           python3 scripts/audit_v11_pdf_physical_envelope.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-physical-envelope-audit.json
           python3 scripts/audit_v11_final_notes_golden.py --golden-zip docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-final-notes-golden.json
           python3 scripts/audit_v11_portrait_placeholder_golden.py --golden-zip docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-portrait-placeholder-golden.json
@@ -72,6 +73,7 @@ jobs:
           path: |
             desktopApp/build/v11-physical-envelope-audit.json
             desktopApp/build/v11-module-topology.json
+            desktopApp/build/v11-p3-c2-manuscript-audit.json
             desktopApp/build/v11-final-notes-golden.json
             desktopApp/build/v11-portrait-placeholder-golden.json
             desktopApp/build/v11-double-outer-frame-golden.json
