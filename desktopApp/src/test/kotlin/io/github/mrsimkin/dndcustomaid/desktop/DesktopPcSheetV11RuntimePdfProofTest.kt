@@ -2036,6 +2036,51 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3P3ExtremeStoryContinuationKeepsRealSourceHeadingOnEveryLaterPageAB() {
+        // A real source-backed history can occupy SEVERAL physical P3
+        // continuation sheets. Heading context must survive page turns,
+        // with no duplicate story content, fake narrative or extra sheet.
+        val actual = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val story = "P3LONG-CONTINUATION-START " +
+            "Viaje registrado con fechas y testigos verificables. ".repeat(500) +
+            " P3LONG-CONTINUATION-END"
+        val patched = actual.copy(permanent = actual.permanent.copy(
+            sheet = actual.permanent.sheet.copy(
+                background = actual.permanent.sheet.background.copy(story = story),
+            ),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                patched,
+            )
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-P3-long-story-heading-" + variant.name + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { physical ->
+                    PDFTextStripper().apply {
+                        startPage = physical; endPage = physical
+                    }.getText(pdf)
+                }
+                val continuation = pages.filter {
+                    it.contains("P3 - Narrativa / continuación")
+                }
+                assertTrue(continuation.size >= 2,
+                    "Stress fixture must exercise at least TWO P3 continuation sheets.")
+                assertTrue(continuation.drop(1).all {
+                    it.contains("HISTORIA Y CRÓNICA / CONTINUACIÓN")
+                }, "Every further P3 physical page must name its original story.")
+                val combined = pages.joinToString("\n")
+                assertEquals(1, Regex("P3LONG-CONTINUATION-START").findAll(combined).count())
+                assertEquals(1, Regex("P3LONG-CONTINUATION-END").findAll(combined).count())
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" },
+                    "The final page remains exclusively paper notes.")
+                assertFalse(pages.last().contains("P3LONG-CONTINUATION-END"))
+            }
+        }
+    }
+
+    @Test
     fun longRealHistoryContinuesInNarrativePagesWithoutBreakingFinalHandwriting() {
         val source = sources("01_aldren_vale_srd5_1_champion_fighter.json")
         val story = "INICIO-HISTORIA-P3 " +
