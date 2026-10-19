@@ -4569,8 +4569,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 val p2 = pages[1]
-                val c2 = pages.filter { it.contains("C2 - Equipo y tesoro / TESORO") }
-                    .joinToString("\n")
+                val combined = pages.filter {
+                    it.contains("C2 - Equipo y tesoro / EQUIPO Y TESORO")
+                }
+                assertEquals(1, combined.size,
+                    "Two sparse genuine paired C2 modules should share one physical page.")
+                assertTrue(combined.single().contains("EQUIPO / CANTIDAD") &&
+                    combined.single().contains("TESORO / CANTIDAD"))
+                assertTrue(combined.single().contains("VIENE DE P2 PÁG. 2"))
+                val c2 = combined.joinToString("\n")
                 val full = pages.joinToString("\n")
                 assertTrue(p2.contains("QACOINZERO"),
                     "Actual saved zero-denomination row must remain in P2.")
@@ -4591,6 +4598,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         .findAll(full).count(),
                         "Saved custom currency quantity must print exactly once: " + amount)
                 }
+                assertTrue(combined.single().lineSequence().any {
+                    it.trim() == "NOTAS"
+                }, "Unused combined C2 must remain useful manuscript paper.")
+                assertEquals(7, pages.size,
+                    "Compacting two actually short C2 modules must save exactly one page.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
                 deferred.forEach { label ->
                     assertFalse(pages.last().contains(label),

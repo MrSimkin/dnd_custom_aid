@@ -2336,6 +2336,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 localPage: Int,
                 suppressAmounts: Set<String> = emptySet(),
                 compactC2: Boolean = false,
+                writeC2Notes: Boolean = true,
             ) {
                 if (!compactC2) {
                     val ordinary = placed.data.kind ==
@@ -2350,7 +2351,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // Unlike P2, C2's last table page must free genuine unused paper
                 // for handwritten NOTES, without drawing empty object/quantity rows
                 // underneath. These bounds come from measured source cells.
-                val notesUsable = compactC2 && lowestPrintedBottom != null &&
+                val notesUsable = compactC2 && writeC2Notes &&
+                    lowestPrintedBottom != null &&
                     ((lowestPrintedBottom - 28f - 78f) / 16f).toInt() >= 3
                 val tableBottom = if (notesUsable) requireNotNull(lowestPrintedBottom)
                     else area.bottomPt
@@ -2763,35 +2765,107 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
 
             val fullC2PairedArea = PcSheetV11RectPt(42f, 76f, 528f, 626f)
-            for ((label, complete, original) in listOf(
+            val pairedRemainders = listOf(
                 Triple("EQUIPO", completeEquipment, inventoryPlaced),
                 Triple("TESORO", completeTreasure, treasurePlaced),
-            )) {
-                val remaining = remainingPairedRows(complete, original)
-                if (remaining.rows.isEmpty()) continue
-                val expanded = PcSheetV11PairedTableComposer.place(
-                    remaining, fullC2PairedArea, 12f,
-                    PcSheetV11PairedAmountRouting.c2AmountWidth(remaining, body.width),
-                    PcSheetV11PairedAmountRouting.AMOUNT_GAP_PT,
-                    body.metrics.lineHeightPt, body.width,
-                    balanceSinglePageC2 = true,
-                )
-                val amountsAlreadyOnP2 = original.quantities.asSequence()
-                    .filter { it.localPageIndex == 1 }
-                    .map { it.sourceKey }.toSet()
-                for (localPage in 1..expanded.localPageCount) {
-                    val page = PDPage(PDRectangle.LETTER)
-                    pdf.addPage(page)
-                    // Physical keys are MODULE identities; visible page titles keep
-                    // the same frozen V11 design. Never chain Equipo and Tesoro
-                    // as if they were one contiguous C2 source stream.
-                    physicalSectionKeys += "C2 - Equipo y tesoro / " + label
-                    PDPageContentStream(pdf, page).use { stream ->
-                        drawFrameAndHeader(stream,
-                            "C2 - Equipo y tesoro / " + label + " / " + localPage)
-                        drawPaired(stream, label + " / CANTIDAD",
-                            fullC2PairedArea, expanded, localPage, amountsAlreadyOnP2,
-                            compactC2 = true)
+            ).map { (label, complete, original) ->
+                Triple(label, remainingPairedRows(complete, original), original)
+            }
+            fun placeC2Paired(
+                remaining: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData,
+                area: PcSheetV11RectPt,
+            ): PcSheetV11PairedTablePlaced = PcSheetV11PairedTableComposer.place(
+                remaining, area, 12f,
+                PcSheetV11PairedAmountRouting.c2AmountWidth(remaining, body.width),
+                PcSheetV11PairedAmountRouting.AMOUNT_GAP_PT,
+                body.metrics.lineHeightPt, body.width,
+                balanceSinglePageC2 = true,
+            )
+            data class CompactPairedC2(
+                val topArea: PcSheetV11RectPt,
+                val bottomArea: PcSheetV11RectPt,
+                val equipment: PcSheetV11PairedTablePlaced,
+                val treasure: PcSheetV11PairedTablePlaced,
+            )
+            // C203/C205: if both genuine continuations fit on one physical
+            // sheet, keep their separate PAIR grammars but stack the two
+            // modules. Formerly even five short equipment items plus three
+            // currencies forced two wasteful C2 pages. Never squeeze font,
+            // move P2 data, truncate labels, or join separate source IDs.
+            // Oversized quantities and dense/multipage tables retain their
+            // existing dedicated full-height C2 path without changes.
+            val compactPaired = if (pairedRemainders.all { it.second.rows.isNotEmpty() } &&
+                pairedRemainders.all { (_, remaining, _) ->
+                    PcSheetV11PairedAmountRouting.c2AmountWidth(remaining, body.width) <=
+                        PcSheetV11PairedAmountRouting.BASE_AMOUNT_WIDTH_PT
+                }
+            ) {
+                val equipmentRemainder = pairedRemainders[0].second
+                val treasureRemainder = pairedRemainders[1].second
+                val fullEquipment = placeC2Paired(equipmentRemainder, fullC2PairedArea)
+                val fullTreasure = placeC2Paired(treasureRemainder, fullC2PairedArea)
+                if (fullEquipment.localPageCount == 1 && fullTreasure.localPageCount == 1) {
+                    val occupiedEquipment = (fullEquipment.labels.maxOfOrNull {
+                        it.rowIndex + 1
+                    } ?: 0) * body.metrics.lineHeightPt
+                    // 14.5pt blue cartela ABOVE each module, plus a 5.5pt
+                    // physical gap. The two content rectangles never overlap.
+                    val upperHeight = maxOf(70f, occupiedEquipment + 12f)
+                    val lowerTop = fullC2PairedArea.topPt - upperHeight - 20f
+                    if (lowerTop > fullC2PairedArea.bottomPt + 55f) {
+                        val topArea = PcSheetV11RectPt(
+                            42f, fullC2PairedArea.topPt - upperHeight, 528f, upperHeight,
+                        )
+                        val bottomArea = PcSheetV11RectPt(
+                            42f, fullC2PairedArea.bottomPt, 528f,
+                            lowerTop - fullC2PairedArea.bottomPt,
+                        )
+                        val top = placeC2Paired(equipmentRemainder, topArea)
+                        val bottom = placeC2Paired(treasureRemainder, bottomArea)
+                        if (top.localPageCount == 1 && bottom.localPageCount == 1) {
+                            CompactPairedC2(topArea, bottomArea, top, bottom)
+                        } else null
+                    } else null
+                } else null
+            } else null
+            if (compactPaired != null) {
+                val page = PDPage(PDRectangle.LETTER)
+                pdf.addPage(page)
+                physicalSectionKeys += "C2 - Equipo y tesoro / EQUIPO Y TESORO"
+                PDPageContentStream(pdf, page).use { stream ->
+                    drawFrameAndHeader(stream, "C2 - Equipo y tesoro / EQUIPO Y TESORO")
+                    val equipoAmounts = pairedRemainders[0].third.quantities
+                        .filter { it.localPageIndex == 1 }
+                        .map { it.sourceKey }.toSet()
+                    val tesoroAmounts = pairedRemainders[1].third.quantities
+                        .filter { it.localPageIndex == 1 }
+                        .map { it.sourceKey }.toSet()
+                    drawPaired(stream, "EQUIPO / CANTIDAD", compactPaired.topArea,
+                        compactPaired.equipment, 1, equipoAmounts,
+                        compactC2 = true, writeC2Notes = false)
+                    drawPaired(stream, "TESORO / CANTIDAD", compactPaired.bottomArea,
+                        compactPaired.treasure, 1, tesoroAmounts, compactC2 = true)
+                }
+            } else {
+                // Original independent page path remains authoritative when the
+                // measured physical envelopes do not fit together.
+                for ((label, remaining, original) in pairedRemainders) {
+                    if (remaining.rows.isEmpty()) continue
+                    val expanded = placeC2Paired(remaining, fullC2PairedArea)
+                    val amountsAlreadyOnP2 = original.quantities.asSequence()
+                        .filter { it.localPageIndex == 1 }
+                        .map { it.sourceKey }.toSet()
+                    for (localPage in 1..expanded.localPageCount) {
+                        val page = PDPage(PDRectangle.LETTER)
+                        pdf.addPage(page)
+                        physicalSectionKeys += "C2 - Equipo y tesoro / " + label
+                        PDPageContentStream(pdf, page).use { stream ->
+                            drawFrameAndHeader(stream,
+                                "C2 - Equipo y tesoro / " + label + " / " + localPage)
+                            drawPaired(stream, label + " / CANTIDAD",
+                                fullC2PairedArea, expanded, localPage, amountsAlreadyOnP2,
+                                compactC2 = true)
+                        }
                     }
                 }
             }
