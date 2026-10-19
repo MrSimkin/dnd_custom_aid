@@ -3483,6 +3483,39 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val c2FromP2 = listOfNotNull(
                 dedicatedC2FromP2, mixedC2TraitPages.minOrNull(),
             ).minOrNull()
+            // C206: P2 can have MULTIPLE independent C2 descendants (traits,
+            // ordinary equipment, treasure, special equipment). Its existing
+            // bottom cue points only to the first. Preserve that established
+            // reference and add explicit per-module destinations in the unused
+            // footer band, with actual FINAL physical page numbers.
+            val p2C2Destinations = buildList {
+                mixedC2TraitPages.minOrNull()?.let { add("RASGOS" to it) }
+                physicalSectionKeys.forEachIndexed { physicalIndex, section ->
+                    val sourceModule = when {
+                        section == "C2 - Rasgos / continuación" -> "RASGOS"
+                        section == "C2 - Equipo y tesoro / EQUIPO Y TESORO" ->
+                            "EQUIPO/TESORO"
+                        section.startsWith("C2 - Equipo y tesoro / EQUIPO") -> "EQUIPO"
+                        section.startsWith("C2 - Equipo y tesoro / TESORO") -> "TESORO"
+                        section == "C2 - Equipo especial / continuación" -> "ESPECIAL"
+                        else -> null
+                    }
+                    if (sourceModule != null) add(sourceModule to (physicalIndex + 1))
+                }
+            }.distinctBy { it.first }.sortedBy { it.second }
+            require(p2C2Destinations.minOfOrNull { it.second } == c2FromP2) {
+                "The P2 C2 source modules must agree with the primary backlink."
+            }
+            val otherP2C2Links = p2C2Destinations
+                .filter { it.second != c2FromP2 }
+                .joinToString(" | ") { (module, physical) ->
+                    module + " PÁG. " + physical
+                }.takeIf { it.isNotEmpty() }?.let { "OTROS C2: " + it }
+            if (otherP2C2Links != null) {
+                require(body.width.measurePt(otherP2C2Links) <= 528f) {
+                    "All genuine P2 module destinations must fit the reserved footer."
+                }
+            }
             // A C2 page never points at P2 merely because it happens to be a
             // continuation: derive the correct base-page role from its module.
             for (index in 0 until totalPages - 1) {
@@ -3533,6 +3566,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 ).use { stream ->
                     if (link.isNotEmpty()) {
                         draw(stream, link, 42f, 35f, false)
+                    }
+                    if (key == "P2 - Equipo y tesoro" &&
+                        otherP2C2Links != null
+                    ) {
+                        // PDF y=63: below source body (>=76), above the original
+                        // watermark y=46 and navigation y=35. No page/layout
+                        // mutation; never replace the first legacy cue.
+                        draw(stream, otherP2C2Links, 42f, 63f, false)
                     }
                     val label = "HOJA " + physicalPage + " / " + totalPages
                     val x = 570f - body.width.measurePt(label)
