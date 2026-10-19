@@ -1670,7 +1670,42 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     // NEXT page, instead of leaving owner-visible paragraphs
                     // without a note identity. No source text is duplicated.
                     val basicTitle = title + " / " + (index + 1)
-                    val pageTitle = if (title == "C-N3 - Notas digitales" &&
+                    // P3 stories and profile fields can span multiple C2-style
+                    // flow pages. The first page carries its original heading;
+                    // later physical pages must retain that SAME source-backed
+                    // narrative identity in the free header, not merely say P3.
+                    // No paragraph, cell, source offset or page boundary changes.
+                    val pageTitle = if (title == "P3 - Narrativa / continuación" &&
+                        index > 0
+                    ) {
+                        val firstCell = pageCells.minWithOrNull(
+                            compareBy({ it.columnIndex }, { it.rowIndex })
+                        )
+                        val sourcePosition = firstCell?.let { first ->
+                            entries.indexOfFirst { it.sourceKey == first.sourceKey }
+                        } ?: -1
+                        val heading = if (sourcePosition >= 0 &&
+                            firstCell?.sourceKey?.startsWith("narrative:") == true
+                        ) {
+                            entries.take(sourcePosition).lastOrNull {
+                                it.sourceKey == "p3-story-heading" ||
+                                    it.sourceKey.startsWith("p3-field-heading:")
+                            }?.text
+                        } else null
+                        if (heading == null) basicTitle else {
+                            fun fits(value: String): Boolean =
+                                headerPdfFont.getStringWidth(
+                                    pcSheetV11PrintableText(value)
+                                ) * 12f / 1000f <= 524f
+                            val full = basicTitle + " / " + heading
+                            val short = "P3 / " + (index + 1) + " / " + heading
+                            when {
+                                fits(full) -> full
+                                fits(short) -> short
+                                else -> error("P3 continuation must retain its real source heading")
+                            }
+                        }
+                    } else if (title == "C-N3 - Notas digitales" &&
                         pageCells.firstOrNull()?.sourceStartOffset?.let { it > 0 } == true
                     ) {
                         val sourceKey = requireNotNull(pageCells.firstOrNull()).sourceKey
