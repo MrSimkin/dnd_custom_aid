@@ -18,3 +18,9 @@ Los PDF genuinos del candidato anterior ([Scaffold #39181706739](https://github.
 **Al publicar código: CI y PDF A/B del commit PENDIENTES.** No inventar PASS. G0 QA histórico PARCIAL; G1 semántico PASS; G2/G3 parciales; **G4 BLOCKED 105 reglas NOT_VERIFIED, active_candidate=null**, G5/G6 pendientes, RCR-1=0/2. M50800 y V11-QA-001/002 intactos. PR #173 DRAFT sin merge. Cualquier fallo real se investiga acotadamente, nunca degradando el contrato ni cambiando el test para ocultarlo.
 
 **Siguiente bloque:** comprobar PDF reales, geometría del área compacta y no regresión; después tratar otros grupos de C2 con evidencia primaria, no ciclos de auditorías repetidas.
+
+## CI 1 y reparación acotada del test de no regresión
+
+- [Scaffold #39184693848](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39184693848): **FAIL**: 158 pruebas Desktop, **una sola** falla: `sparseTreasureContinuationKeepsWritingGridBelowRealPairedRows`. Causa demostrada: el test antiguo asumía **página física dedicada** para Tesoro y buscaba literal `C2 - Equipo y tesoro / TESORO`, incluso en el caso donde el nuevo comportamiento aprobado comparte una página con Equipo. No es fallo de pérdida de registros ni de medida: la prueba no encontraba el módulo por su título anterior.
+- Se conserva su obligación sustantiva: **Tesoro auténtico en tabla de pares C2**, títulos, denominación fuente, cuadrícula NOTAS y última página manuscrita. La selección de página ahora reconoce ambos caminos solo si también existe cartela genuina `TESORO / CANTIDAD`; no se salta una aserción ni se desactiva la prueba.
+- Cambia únicamente el test que imponía una página dedicada; código de producción de `16a4201` intacto. **Nuevo CI PENDIENTE.** Primer intento ordinario de reparación local (no RCR-1); ninguna matriz G4 ni evidencia histórica cambia.

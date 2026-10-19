@@ -3797,10 +3797,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.getText(pdf)
             }
             val treasureC2 = pages.filter {
-                it.contains("C2 - Equipo y tesoro / TESORO")
+                // Treasure keeps an independent genuine paired module, even
+                // when it shares a physical C2 page with ordinary Equipment.
+                it.contains("C2 - Equipo y tesoro") &&
+                    it.contains("TESORO / CANTIDAD")
             }
             assertTrue(treasureC2.isNotEmpty(),
-                "Real treasure must overflow P2 into its own paired C2 continuation.")
+                "Real treasure must remain a distinct C2 paired module even on shared paper.")
             assertTrue(treasureC2.last().contains("DENOMINACIÓN C2"))
             assertTrue(treasureC2.last().lineSequence().any { it.trim() == "NOTAS" },
                 "Unused measured C2 space must contain a manuscript NOTES grid.")
