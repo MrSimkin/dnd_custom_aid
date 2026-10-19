@@ -45,7 +45,92 @@
         "end_markers": 1,
         "last_notes": true
       }
-    ]
+    ],
+    "three_distinct_paragraphs": {
+      "source_commit": "d4d16de7e747f14c610b04332ffcca7d6affde63",
+      "run": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39333912231",
+      "artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39333912231/artifacts/12226272287",
+      "archive_sha256": "5378503652d00bba27adcd161fe3dfd324b9075678daea997150b93190bb8775",
+      "cases": [
+        {
+          "file": "V11-INTERNAL-PROOF-P3-three-paragraphs-A.pdf",
+          "variant": "A",
+          "sha256": "15605162d64c3fe68de987ef8358729253e169051eda0fe6beac0fe6b2c8d097",
+          "pages": 13,
+          "narrativeContinuation": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "orderedParagraphMarkers": [
+            "P3-PARRAFO-UNO-INICIO",
+            "P3-PARRAFO-UNO-FIN",
+            "P3-PARRAFO-DOS-INICIO",
+            "P3-PARRAFO-DOS-FIN",
+            "P3-PARRAFO-TRES-INICIO",
+            "P3-PARRAFO-TRES-FIN"
+          ],
+          "markerOccurrenceEach": 1,
+          "wordRepetitions": {
+            "RASTROUNO": 190,
+            "RASTRODOS": 190,
+            "RASTROTRES": 190
+          },
+          "finalHandwrittenNotes": true,
+          "independent_result": "PASS"
+        },
+        {
+          "file": "V11-INTERNAL-PROOF-P3-three-paragraphs-B.pdf",
+          "variant": "B",
+          "sha256": "38d7d3268980d4dbf7277a6ad02dd5aaf39b1578728d56aecb53c6872e4d813e",
+          "pages": 13,
+          "narrativeContinuation": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "orderedParagraphMarkers": [
+            "P3-PARRAFO-UNO-INICIO",
+            "P3-PARRAFO-UNO-FIN",
+            "P3-PARRAFO-DOS-INICIO",
+            "P3-PARRAFO-DOS-FIN",
+            "P3-PARRAFO-TRES-INICIO",
+            "P3-PARRAFO-TRES-FIN"
+          ],
+          "markerOccurrenceEach": 1,
+          "wordRepetitions": {
+            "RASTROUNO": 190,
+            "RASTRODOS": 190,
+            "RASTROTRES": 190
+          },
+          "finalHandwrittenNotes": true,
+          "independent_result": "PASS"
+        }
+      ],
+      "regression": {
+        "existing_pdf_count": 70,
+        "new_pdf_count": 72,
+        "added_2_P3_paragraph_PDFs": true,
+        "existing_page_counts_unchanged": 70,
+        "existing_word_positions_unchanged": 70,
+        "existing_drawing_counts_unchanged": 70
+      },
+      "visual_inspection": {
+        "pages": [
+          "A/p8",
+          "A/p9"
+        ],
+        "finding": "Narrative paragraphs line up with ruled paper, source continuation headings visible, no visible overlap.",
+        "owner_approval": false
+      },
+      "scope": "P304/G3 scoped real Desktop A/B independent inspection; NOT G4 all-golden/Android-installed/owner PASS."
+    }
   },
   "C206": {
     "stage": "G3",
@@ -128,7 +213,15 @@
         ],
         "additional_source_words_under_cartela_right": 0
       }
-    ]
+    ],
+    "additional_limited_scan": {
+      "source_pdf_count": 70,
+      "c2_physical_pages": 193,
+      "pages_with_visible_NOTAS_label": 163,
+      "pages_with_more_than_120_pt_blank_bottom_but_no_NOTAS_label": 0,
+      "method": "PyMuPDF C2 printed role, source-word max-bottom y102..705, text presence; conservative heuristic only, does not prove vector grid completeness",
+      "result": "PARTIAL_OBSERVATION_NOT_PASS"
+    }
   },
   "unverified": [
     "No comparative inspection against all eight approved golden PDF layouts or installed-Android printout has been completed for the unified candidate; no global G4 PASS.",

@@ -2275,16 +2275,17 @@
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "PASS",
           "evidence": {
-            "test_name": "g3P3ExtremeStoryContinuationKeepsRealSourceHeadingOnEveryLaterPageAB; longRealHistoryContinuesInNarrativePagesWithoutBreakingFinalHandwriting",
-            "test_result": "G3 scoped PASS: genuine Desktop PDF A/B, 11 pages each, 4 narrative continuation pages with history heading; extracted 500/500 original story words and exactly one start/end marker, terminal NOTES intact; PDF SHA256 recorded per fixture.",
-            "source_commit": "36914c870305c96f61273ce48d2fb53e82ec9b75",
-            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39328633469",
-            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39328633469/artifacts/12223282713",
-            "pdf_zip_sha256": "cc5fa99c1a3775d60d4dd0fbbb1300610db6dfb378b4afcb6419119fa52d6c6a",
-            "independent_inspection": "PyMuPDF 2 source-backed fixture PDFs, SHA256 + exact word counts + physical continuation pages, docs/pc-sheet-v11/qa/evidence/2026-10-19_P3_C206_REAL_PDF_SCOPE.json.",
-            "limitations": "Only scoped Desktop A/B G3; Android compiled/source parity but no installed Android runtime or all-golden match. G2 NOT_VERIFIED; rule-level G4 NOT_VERIFIED."
+            "test_name": "g3P3ThreeLongPersistedParagraphsKeepOrderAcrossPhysicalPagesAB; g3P3ExtremeStoryContinuationKeepsRealSourceHeadingOnEveryLaterPageAB; longRealHistoryContinuesInNarrativePagesWithoutBreakingFinalHandwriting",
+            "test_result": "G3 scoped PASS on real Desktop App PDF A/B: THREE original separated paragraphs remain in strict source order over six genuine P3 continuation sheets (p4..p9), 6 unique boundary markers exactly once per variant, 190 source word occurrences for each of 3 distinct paragraphs (570 total per variant), final NOTES paper-only; all 70 prior app PDFs retain page counts, words/0.1pt coordinates and vector path counts.",
+            "source_commit": "d4d16de7e747f14c610b04332ffcca7d6affde63",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39333912231",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39333912231/artifacts/12226272287",
+            "pdf_zip_sha256": "5378503652d00bba27adcd161fe3dfd324b9075678daea997150b93190bb8775",
+            "independent_inspection": "PyMuPDF independently extracted 2 genuine Desktop App A/B PDFBox PDFs, verified file SHA256, paragraphs and word/order/page markers, compared all 70 preexisting PDFs. Report: docs/pc-sheet-v11/qa/evidence/2026-10-19_P3_C206_REAL_PDF_SCOPE.json",
+            "limitations": "P304/G3 scoped real Desktop A/B verified. G2 P304 NOT_VERIFIED and global P304 NOT_VERIFIED; still lacks full eight golden and installed-Android/owner QA."
           },
           "named_tests": [
+            "g3P3ThreeLongPersistedParagraphsKeepOrderAcrossPhysicalPagesAB",
             "g3P3ExtremeStoryContinuationKeepsRealSourceHeadingOnEveryLaterPageAB",
             "longRealHistoryContinuesInNarrativePagesWithoutBreakingFinalHandwriting"
           ]
