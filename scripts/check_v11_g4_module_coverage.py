@@ -57,6 +57,10 @@ def summarize(data, selected=None):
         "ready": bool(candidate) and all(
             r["status"] == "PASS" for r in rules
         ) and data.get("gate") == "PASS",
+        "selected_area_clear": all(
+            r["status"] == "PASS" for r in rules
+            if selected is None or r["area"] == selected
+        ),
     }
 
 def main():
@@ -70,7 +74,7 @@ def main():
     except (OSError, ValueError, KeyError, TypeError) as exc:
         parser.error(str(exc))
     print(json.dumps(report, ensure_ascii=False, indent=2))
-    if args.strict and (report["total_pending"] or not report["ready"]):
+    if args.strict and (report["total_pending"] or (args.area is None and not report["ready"])):
         raise SystemExit(1)
 
 if __name__ == "__main__":
