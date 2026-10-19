@@ -3481,7 +3481,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         val cards = fixture.permanent.sheet.noteCards
         val note = cards.first()
         val longText = "CN3ACTUALSTART " +
-            (1..180).joinToString(" ") { "CN3REALCONTENTWORD" + it } +
+            (1..440).joinToString(" ") { "CN3REALCONTENTWORD" + it } +
             " CN3ACTUALFINISH"
         val stressed = fixture.copy(permanent = fixture.permanent.copy(
             sheet = fixture.permanent.sheet.copy(
@@ -3539,7 +3539,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val all = cn3.joinToString("\n")
                 assertEquals(1, Regex("CN3ACTUALSTART").findAll(all).count())
                 assertEquals(1, Regex("CN3ACTUALFINISH").findAll(all).count())
-                assertEquals(1, Regex("CN3REALCONTENTWORD180").findAll(all).count())
+                assertEquals(1, Regex("CN3REALCONTENTWORD440").findAll(all).count())
                 assertTrue(texts.last().lineSequence().any { it.trim() == "NOTAS" })
                 assertFalse(texts.last().contains("CN3REALCONTENTWORD"))
                 assertEquals(longText, stressed.permanent.sheet.noteCards.single().content)

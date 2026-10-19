@@ -20,3 +20,9 @@
 **G0 histórico PARCIAL; G1 semántico PASS; G2/G3 parciales; G4 BLOCKED** 105 reglas `NOT_VERIFIED`, `active_candidate=null`; G5/G6 pendientes, RCR-1=0/2, sin owner-APK/QA ni merge.
 
 **Siguiente:** si CI+PDF demuestran la mejora, registrar métricas y no-regresión. Priorizar luego pérdida de datos/ligaduras entre módulos o iniciar conciliación física modular de G4; no seguir creando separadores cosméticos innecesarios.
+
+## Primera ejecución, fallo reproducible de la condición de estrés (sin fallo productivo)
+
+- [Scaffold #39192840524](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39192840524) **FAIL** en 1/160 pruebas (`g3RealMaraC_N3SourceAnchorsAndLongNoteContinuationKeepIdentityAB`): el fixture añadía 180 tokens (~texto legible que aún cabía en un único C-N3), de modo que no ejercitaba una continuación. Error concreto: `Long genuine digital note must span multiple C-N3 physical pages.`. Kotlin compiló; los otros 159 tests pasaron. QA traceability [#39192840617](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39192840617) SUCCESS documental.
+- **Reparación limitada del oráculo de prueba, no del producto:** extender el único campo `content` de la nota estresada de 180 a 440 términos numerados, todos de origen claro; el test mantiene su obligación de confirmar 2+ páginas, identidad en cabecera, inicio/fin únicos, fuente no mutada. No reducir las aserciones de continuidad ni inventar PASS.
+- Nuevo Scaffold exacto **PENDIENTE**; primer ajuste ordinario, sin activar RCR-1.
