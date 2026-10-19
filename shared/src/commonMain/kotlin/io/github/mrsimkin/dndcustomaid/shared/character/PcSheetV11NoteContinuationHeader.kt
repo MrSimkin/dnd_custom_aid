@@ -17,10 +17,10 @@ object PcSheetV11NoteContinuationHeader {
             it.isNotBlank() && it.none { c -> c == '\r' || c == '\n' || c == '\t' }
         }
         val candidates = buildList {
-            if (printableTitle != null) add("$" + "{baseTitle} / CONTINÚA: $" + "{printableTitle}")
-            add("$" + "{baseTitle} / CONTINÚA ID: $" + "{stableId}")
-            add("C-N3 / CONTINÚA ID: $" + "{stableId}")
-            add("CONTINÚA ID: $" + "{stableId}")
+            if (printableTitle != null) add(baseTitle + " / CONTINÚA: " + printableTitle)
+            add(baseTitle + " / CONTINÚA ID: " + stableId)
+            add("C-N3 / CONTINÚA ID: " + stableId)
+            add("CONTINÚA ID: " + stableId)
         }
         return candidates.firstOrNull(fits)
             ?: error("C-N3 continuation cannot display its genuine note identifier")
