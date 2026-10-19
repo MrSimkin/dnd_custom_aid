@@ -2036,6 +2036,83 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3P3ThreeLongPersistedParagraphsKeepOrderAcrossPhysicalPagesAB() {
+        // P304 needs actual paragraph boundaries, not only a single
+        // giant repeated sentence. The fixture is derived from a real App
+        // snapshot and leaves persisted source untouched.
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val paragraphs = listOf(
+            "P3-PARRAFO-UNO-INICIO " +
+                "RASTROUNO testimonio escrito sin cambio de identidad. ".repeat(190) +
+                " P3-PARRAFO-UNO-FIN",
+            "P3-PARRAFO-DOS-INICIO " +
+                "RASTRODOS trayectoria cronologica del personaje original. ".repeat(190) +
+                " P3-PARRAFO-DOS-FIN",
+            "P3-PARRAFO-TRES-INICIO " +
+                "RASTROTRES cierre narrativo con detalles persistidos completos. ".repeat(190) +
+                " P3-PARRAFO-TRES-FIN",
+        )
+        val story = paragraphs.joinToString("\n\n")
+        val updated = original.copy(permanent = original.permanent.copy(
+            sheet = original.permanent.sheet.copy(
+                background = original.permanent.sheet.background.copy(story = story),
+            ),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val request = PcSheetV11ExportRequest(
+                variant, PcSheetExportStateSelection.PERMANENT,
+            )
+            val semantic = io.github.mrsimkin.dndcustomaid.shared.character
+                .PcSheetV11SemanticMapper.map(request, updated)
+            val mapped = io.github.mrsimkin.dndcustomaid.shared.character
+                .PcSheetV11FlowSourceMapper.from(semantic)
+            assertEquals(story, mapped.narrative.single {
+                it.sourceKey == "narrative:story"
+            }.text, "The actual source must retain every paragraph boundary.")
+            val proof = DesktopPcSheetExportService().generateV11Proof(request, updated)
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-P3-three-paragraphs-" + variant.name + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { physical ->
+                    PDFTextStripper().apply {
+                        startPage = physical
+                        endPage = physical
+                    }.getText(pdf)
+                }
+                val continuation = pages.filter {
+                    it.contains("P3 - Narrativa / continuación")
+                }
+                assertTrue(continuation.size >= 3,
+                    "Three long source paragraphs must span genuine P3 pages.")
+                assertTrue(continuation.drop(1).all {
+                    it.contains("HISTORIA Y CRÓNICA / CONTINUACIÓN")
+                })
+                val allText = pages.joinToString("\n")
+                val orderedMarkers = listOf(
+                    "P3-PARRAFO-UNO-INICIO", "P3-PARRAFO-UNO-FIN",
+                    "P3-PARRAFO-DOS-INICIO", "P3-PARRAFO-DOS-FIN",
+                    "P3-PARRAFO-TRES-INICIO", "P3-PARRAFO-TRES-FIN",
+                )
+                val positions = orderedMarkers.map { marker ->
+                    assertEquals(1, Regex(Regex.escape(marker)).findAll(allText).count(),
+                        "Original paragraph marker omitted or duplicated: " + marker)
+                    allText.indexOf(marker)
+                }
+                assertTrue(positions.zipWithNext().all { (left, right) -> left < right },
+                    "Printed P3 source paragraphs must keep their genuine order.")
+                for (word in listOf("RASTROUNO", "RASTRODOS", "RASTROTRES")) {
+                    assertEquals(190, Regex("\\b" + word + "\\b")
+                        .findAll(allText).count(),
+                        "Every real narrative sentence must survive unchanged: " + word)
+                }
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertTrue(orderedMarkers.none { it in pages.last() },
+                    "No digital narrative may continue on final paper-only NOTAS.")
+            }
+        }
+    }
+
+    @Test
     fun g3P3ExtremeStoryContinuationKeepsRealSourceHeadingOnEveryLaterPageAB() {
         // A real source-backed history can occupy SEVERAL physical P3
         // continuation sheets. Heading context must survive page turns,
