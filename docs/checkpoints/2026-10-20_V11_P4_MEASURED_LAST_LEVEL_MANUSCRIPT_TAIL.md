@@ -15,3 +15,9 @@ La auditoría física P4 existente `scripts/audit_v11_p4_slot_meters.py` se **am
 **Gates:** G0 PARTIAL, G1 semántico PASS previo, G2/G3 PARTIAL, G4 **BLOCKED 105/105 NOT_VERIFIED, active_candidate=null**, G5/G6 pendientes; Android instalado y aprobación técnica/visual del propietario faltan; C211 bloqueado normal 3/3, RCR-1 estructural 0/2. PR #173 OPEN DRAFT NO MERGE.
 
 **Siguiente:** cerrar CI del HEAD funcional, comparar 76 PDF y registrar el PASS LOCAL restringido o fallo específico, luego resolver otra diferencia material o encaminar QA contractual sin repetir análisis.
+
+## CI inicial: fallo real de prueba histórica, ajuste localizado
+
+[Scaffold #39503168589](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39503168589) del commit funcional `4aeb4b20b875761ad129f0706d086564df5b1dce` fue **FAILURE en `desktopApp:test`** (167 pruebas, 1 falló). Kotlin Android+Desktop sí compiló, backend y DB SUCCESS, QA traceability #39503168825 SUCCESS. Error exacto: `genuineSpellRowsAndBlankPaperRowsHaveOnePhysicalSquareEach` en `DesktopPcSheetV11RuntimePdfProofTest.kt:2717`: esperaba 132 casillas de 7pt en Ilyra B, observó **139**. La diferencia son **7 filas manuscritas añadidas en el hueco del nivel 9**, finalidad explícita de este cambio. Este test tenía un conteo fijo anterior (80 filas del papel uniforme Ilyra y 60 Mara, más 27 medidores ESP y el número real de spells), no contempla el cierre del espacio físico derecho. Se actualiza en la **misma prueba**, sin suavizar la aserción ni tocar PDF/producción, a **87 Ilyra / 68 Mara** (80+7 y 60+8); se exige todavía exactamente una casilla por fuente o fila manuscrita más 27 medidores ESP. El incremento Mara procede del déficit físico medido de 108,72pt con paso 12,42pt, pendiente confirmar en CI.
+
+No afirmar PASS de esta modificación hasta el run exacto de test revisado y los 76 PDF auténticos; no tocar C211. Todas las obligaciones G0–G6 siguen intactas.

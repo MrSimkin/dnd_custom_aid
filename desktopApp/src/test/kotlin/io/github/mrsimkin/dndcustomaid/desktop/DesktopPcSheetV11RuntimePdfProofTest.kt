@@ -2680,10 +2680,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     @Test
     fun genuineSpellRowsAndBlankPaperRowsHaveOnePhysicalSquareEach() {
         for ((fixture, variant, expectedBlankRows) in listOf(
+            // 10 real level groups had 8 / 6 handwritten rows each.
+            // Golden P4's previously unused third-column tail now fits
+            // 7 additional Ilyra / 8 additional Mara BLANK vector rows.
+            // Keep the physical square count exact; do not weaken this
+            // assertion or conflate empty writing with a digital spell.
             Triple("02_ilyra_quill_srd5_2_1_evoker_wizard.json",
-                PcSheetV11Variant.B, 80),
+                PcSheetV11Variant.B, 87),
             Triple("03_mara_siete_umbrales_custom_extended.json",
-                PcSheetV11Variant.B, 60),
+                PcSheetV11Variant.B, 68),
         )) {
             val generated = DesktopPcSheetExportService().generateV11Proof(
                 PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
