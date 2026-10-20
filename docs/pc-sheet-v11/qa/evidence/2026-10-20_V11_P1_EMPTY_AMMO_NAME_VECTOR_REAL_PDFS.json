@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-20",
+  "status": "PASS_LOCAL_PHYSICAL_ONLY",
+  "feature": "P1 source-absent ammunition name, real editable vector paper line",
+  "not": "G4, eight-golden parity, installed Android or owner QA",
+  "repo": "MrSimkin/dnd_custom_aid",
+  "pr": 173,
+  "authority": {
+    "contract": "docs/pc-sheet-v11/CONTRATO_VISUAL_APROBADO.md",
+    "owner_decision": "D-0076 §3.39: one truly blank ammo name + 20 paper squares grouped 5+5 without invented source",
+    "baseline_commit": "cabc497763a57b55658a6a059bae9b04b332d163",
+    "functional_commit": "167a2448dd052a1131d69814bec1beaafcb55993",
+    "regex_test_fix_commit": "73f8c323e4aaee19082be66e8ae9b5017d3490c8",
+    "parity_test_fix_commit": "47b9fd571a17a60dc0daddef7f7ef83d47cceae4"
+  },
+  "traceability": {
+    "initial_run_id": 39507309995,
+    "result": "success",
+    "exact_run_id": 39507483514,
+    "preserved_requirements": "20 real empty marks per blank case, 5+5 per row, actual-munitions and over-20 formatting unchanged, same Android and Desktop code grammar"
+  },
+  "functional_checks": {
+    "scaffold_run_id": 39507483479,
+    "result": "success",
+    "backend": "success",
+    "database": "success",
+    "kotlin_desktop_tests": "success",
+    "android_apk_compiled": "success",
+    "installed_android": "not tested"
+  },
+  "artifacts": {
+    "before_real_pdfs": {
+      "artifact_id": 12302848879,
+      "zip_sha256": "88c958c9be22f66050a13f88182372a585ac097eb2160e497a8441a63aea7e2a"
+    },
+    "after_real_pdfs": {
+      "artifact_id": 12304018126,
+      "zip_sha256": "5a1edc437a9a46e0977df2d239561f36a4ecddf24e757df61d2bef0b3fce3ac8"
+    },
+    "physical_auditors": {
+      "artifact_id": 12304431771,
+      "zip_sha256": "915103b034ae1888f38b40ba60a0c81c1e5df9262a10f34fb0124ccdf26c4059"
+    },
+    "local_py_mu_pdf_report_sha256": "9cf257fc4f054b7710d39ded89e64a2041ac0e29a5a2aaa171e6ee362eca3847"
+  },
+  "physical_comparison": {
+    "pdfs": 76,
+    "physical_pages": 711,
+    "p1_all_source_words_and_coordinates_preserved_except_faux_underscores": 76,
+    "faux_underscores_removed": 50,
+    "new_exact_vector_empty_name_lines": 50,
+    "p1_pages_with_actual_ammunition_full_vectors_unchanged": 26,
+    "all_other_pages_text_and_coordinates_unchanged": 635,
+    "all_other_pages_vectors_unchanged": 635,
+    "physical_p1_clipped_cards_auditor": {
+      "pdfs": 76,
+      "passed": 76,
+      "identity_frames": 304,
+      "combat_cells": 608,
+      "empty_ammo_name_lines": 50,
+      "errors": 0
+    },
+    "errors": 0
+  },
+  "visual": "Inspected Ilyra B P1 genuine before/after crop: blue writable horizontal baseline replaces faux underscore glyphs, no change to adjacent 20 boxes",
+  "gates": {
+    "G0": "PARTIAL",
+    "G1": "prior semantic PASS",
+    "G2": "PARTIAL",
+    "G3": "PARTIAL / this subfeature PASS_LOCAL",
+    "G4": "BLOCKED 105/105 NOT_VERIFIED; active_candidate=null",
+    "G5": "NOT_STARTED",
+    "G6": "NOT_STARTED",
+    "C211": "BLOCKED after 3/3 ordinary; RCR-1 structural 0/2",
+    "PR173": "OPEN DRAFT UNMERGED",
+    "owner_technical_visual_approval": false
+  }
+}
