@@ -1,0 +1,131 @@
+{
+  "date": "2026-10-19",
+  "scope": "C209 approved frozen-extreme golden ordering vs actual Desktop service A/B; physical pages, source/geometry preservation; NOT G4 or Android installed/owner approval",
+  "source_branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "production_commit": "2be1da3bad51d38485857b12d1a049dd10427f1e",
+  "CI_run": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39348234906",
+  "CI_result": "SUCCESS",
+  "real_app_PDF_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39348234906/artifacts/12231673955",
+  "independent_audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39348234906/artifacts/12232286677",
+  "frozen_golden_zip_sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+  "golden_extreme": {
+    "A": {
+      "source": "V11_Carta/pdfs/v11_extremo_variante_A.pdf",
+      "sha256": "c53e93d5733aabe5918415afc57d97292b1f8c4310bedbcd030d74ced76f1368",
+      "c2_physical_pages": [
+        4,
+        5,
+        6
+      ],
+      "p4_physical_pages": [
+        7,
+        8
+      ]
+    },
+    "B": {
+      "source": "V11_Carta/pdfs/v11_extremo_variante_B.pdf",
+      "sha256": "7198eb5d9cbb89d2bc66d130d736d47564404f5c9f424797dfb2f5d87feceadc",
+      "c2_physical_pages": [
+        4,
+        5
+      ],
+      "p4_physical_pages": [
+        6,
+        7
+      ]
+    }
+  },
+  "changed_paths": [
+    "shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11PageSequence.kt",
+    "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt",
+    "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+    "scripts/audit_v11_module_topology.py",
+    "scripts/test_audit_v11_module_topology.py",
+    "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+    "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt"
+  ],
+  "real_app": {
+    "PDFs": 74,
+    "physical_pages": 691,
+    "previous_baseline_PDFs": 72,
+    "new_test_PDFs": [
+      "V11-INTERNAL-PROOF-C209-golden-order-A.pdf",
+      "V11-INTERNAL-PROOF-C209-golden-order-B.pdf"
+    ],
+    "same_page_count_common": 72,
+    "identical_C2_P4_source_words_coordinates_common": 72,
+    "identical_C2_P4_vector_geometry_common": 72,
+    "pdfs_with_module_reorder": 41,
+    "pdfs_without_module_reorder": 31,
+    "incorrect_C2_before_P4_order": 0,
+    "checked_P2_to_C2_forward_references": 125,
+    "incorrect_P2_to_C2_forward_references": 0,
+    "geometry_smoke_errors": 0,
+    "independent_module_topology_errors": 0,
+    "local_PDFs_C209_A": {
+      "C2": [
+        4,
+        5,
+        6
+      ],
+      "P4": [
+        7
+      ],
+      "P2_extra_references": "EQUIPO PÁG. 5 | ESPECIAL PÁG. 6"
+    },
+    "local_PDFs_C209_B": {
+      "C2": [
+        4,
+        5,
+        6
+      ],
+      "P4": [
+        7
+      ],
+      "P2_extra_references": "EQUIPO PÁG. 5 | ESPECIAL PÁG. 6"
+    }
+  },
+  "interruption_reconciliation": {
+    "first_commit": "36d9a64f34f786a0e158eb8dd595b8cfd7761282",
+    "second_commit": "71b944a873e74a7b79b4c424bff90a797dbcbcd2",
+    "third_commit": "e03e9802091c5ec7519230a9198c3054b881f4c7",
+    "last_functional_commit": "2be1da3bad51d38485857b12d1a049dd10427f1e",
+    "failed_CI_runs": [
+      {
+        "id": 39346969279,
+        "cause": "Prior shared sequence test still expected P4 before C2"
+      },
+      {
+        "id": 39347006877,
+        "cause": "Same shared sequence test still expected old order"
+      },
+      {
+        "id": 39347438321,
+        "cause": "Desktop tests fixed P4 at physical page four plus real golden-order test still failing"
+      }
+    ],
+    "final_CI_run": 39348234906,
+    "final_CI_conclusion": "SUCCESS",
+    "no_unpublished_github_patch_identified": true,
+    "local_files": "Only inspection scripts and PDF artifacts; no mounted Git checkout, so local scripts do not imply pending repo modifications."
+  },
+  "gate_status": {
+    "G0": "PARTIAL",
+    "G1": "previous semantic PASS",
+    "G2_G3": "PARTIAL (C209 local Desktop A/B physical PASS only)",
+    "G4": "BLOCKED",
+    "rules_not_verified": 105,
+    "active_candidate": null,
+    "G5_G6": "PENDING",
+    "owner_visual_technical_implementation_approved": false,
+    "android_installed_PDF_approved": false,
+    "pr_draft": true,
+    "pr_merged": false
+  },
+  "limitations": [
+    "Golden extreme source character and page composition differ from actual real App fixtures; matching page NUMBER is not a global requirement, only ordering/relative invariants.",
+    "Android Kotlin renderer block and shared page order changed and built successfully; no installed Android runtime PDF visually checked.",
+    "Eight golden all-section geometry and D-0076 §3.1–3.48 not fully reconciled; no G4 promotion.",
+    "Comparisons of C2/P4 module physical coordinates exclude navigation footer text deliberately recalculated by final page numbers."
+  ]
+}
