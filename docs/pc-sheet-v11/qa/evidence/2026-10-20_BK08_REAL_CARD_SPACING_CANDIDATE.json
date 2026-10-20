@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-20",
+  "package": "BK08 internal development name, advances original BK03 physical card grammar",
+  "contract": "docs/pc-sheet-v11/CONTRATO_VISUAL_APROBADO.md",
+  "baseline": {
+    "code_commit": "72dfab01749df4871ae9c018e33209c56afb9503",
+    "run": 39454778210,
+    "pdf_artifact_id": 12281106205,
+    "zip_sha256": "a3d00991a2327a18a68962bf8fa478a97be27e0a20bb36322dc01e4526f8bbe7",
+    "pdfs": 76,
+    "physical_pages": 709,
+    "book_pages": 31,
+    "book_pdfs": 12,
+    "adjacent_frames_same_column": 211,
+    "gap_pt": 0
+  },
+  "candidate": {
+    "code_commit": "9d732951a336603297678962fd30eaf5ba02c6e1",
+    "run": 39482624205,
+    "scaffold_result": "success",
+    "qa_traceability_run": 39482624101,
+    "qa_traceability_result": "success",
+    "pdf_artifact_id": 12292766210,
+    "zip_sha256": "fc34670f43260d4949b52702a93f7f42b6046e6b9ae6634de9f032e0368273ec",
+    "pdfs": 76,
+    "physical_pages": 711,
+    "book_pages": 33,
+    "book_pdfs": 12,
+    "adjacent_frames_same_column": 207,
+    "gaps_pt_all": 12.42,
+    "gaps_below_6pt": 0,
+    "content_preservation_errors": 0,
+    "all_preindex_source_and_vectors_identical_except_footer_page_count": 590,
+    "final_notes_unchanged_nonfooter_text_geometry": 76,
+    "final_notes_unchanged_vectors": 76,
+    "all_book_contents_exact_word_order_preserved_in_printable_body": 12,
+    "single_line_index_backlinks_to_matching_real_spell_page": {
+      "passed": 249,
+      "checked": 249
+    },
+    "page_count_changes": [
+      {
+        "file": "V11-INTERNAL-PROOF-BK05-long-card-A.pdf",
+        "old": 13,
+        "new": 14
+      },
+      {
+        "file": "V11-INTERNAL-PROOF-BK05-long-card-B.pdf",
+        "old": 13,
+        "new": 14
+      }
+    ],
+    "android_app_runtime": "not installed/inspected; Kotlin Android build SUCCESS is not owner QA"
+  },
+  "golden_reference": {
+    "zip_sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+    "pdf": "V11_Carta/pdfs/v11_extremo_variante_B.pdf",
+    "physical_page": 9,
+    "example_inter_card_vertical_gap_pt": 8.5,
+    "scope": "visual spacing comparison; candidate 12.42pt gap is not exact golden 8.5pt"
+  },
+  "verification": {
+    "method": "Independent PyMuPDF reading authentic downloadable App Desktop PDFs from the exact GitHub Actions runs; compare physical 8-segment card outlines, within-column y-gap, words in printable body, pre-index page vectors, mandatory end page, physical one-line index entries; visually inspected Mara B p10.",
+    "local_comparison_report_sha256": "69ce93882d6f4143db934c9f37ab8b028ea5c652425e6664a2b3183e1812b725",
+    "caveats": "249 visible single-line index links verified; wrapped/multiline index entries, full 8-golden equivalence, Android installed rendering and owner approval remain pending. No G4 rule formally PASS."
+  },
+  "status": {
+    "functional_slice": "PASS LOCAL verified only for BK03/BK08 measured physical separation",
+    "g0": "PARTIAL",
+    "g1": "PASS prior semantic",
+    "g2": "PARTIAL",
+    "g3": "PARTIAL; BK08 substage PASS LOCAL",
+    "g4": "BLOCKED",
+    "g4_not_verified_rules": 105,
+    "g4_active_candidate": null,
+    "g5": "NOT_STARTED",
+    "g6": "NOT_STARTED",
+    "c211": "BLOCKED 3/3 normal attempts",
+    "rcr1_structural": "0/2",
+    "pr_173": {
+      "draft": true,
+      "merged": false
+    }
+  }
+}
