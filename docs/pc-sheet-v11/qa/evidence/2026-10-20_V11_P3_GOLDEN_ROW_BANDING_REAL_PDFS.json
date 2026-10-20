@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-20",
+  "name": "P3 alternating golden manuscript shade and field-title strips",
+  "scope": "PASS LOCAL physical drawing reconciliation, NOT G4 PASS",
+  "functional_commit": "917766bb64196f120e1b19659cef51c30a9fbf1c",
+  "authority": {
+    "contract": "docs/pc-sheet-v11/CONTRATO_VISUAL_APROBADO.md",
+    "golden_zip_sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+    "golden_pdf": "V11_Carta/pdfs/v11_extremo_variante_B.pdf",
+    "golden_page": 3
+  },
+  "before": {
+    "commit": "d8b7db19b808b2955956c0fb05ff584683556926",
+    "run_id": 39490469236,
+    "pdfs_artifact_id": 12295018331,
+    "pdfs_zip_sha256": "5e49034fb44e3404215e357ada25e3e4fc12a0bb1fd4cf2eb22d30fe8782424b",
+    "field_title_shaded_panels": 0,
+    "p3_alternating_row_panels": 0
+  },
+  "candidate": {
+    "scaffold_run_id": 39493923916,
+    "scaffold_result": "success",
+    "traceability_run_id": 39493923928,
+    "traceability_result": "success",
+    "pdfs_artifact_id": 12296978059,
+    "pdfs_zip_sha256": "db6fde5d360c2ab9642c2f9c85ca67914af0e2e19c67907b24babd52645e7d9d",
+    "audit_artifact_id": 12296434436,
+    "audit_zip_sha256": "1233e25f1db0232c67b993a5ec8408d4a432a1e9cc02f95ca36cbc0da41b5265",
+    "p3_audit_json_sha256": "f114cea06473066e6f09a2308de3ea92d09f19190297f80874892ea13a57d263"
+  },
+  "independent_comparison": {
+    "mechanism": "PyMuPDF on exact Github downloaded 76 Desktop App PDFs against previous functional commit; words including physical boxes for all folios, previous vectors inclusion on P3, full vector equality elsewhere, measured header/row vector fill coordinates+color, visually inspected Mara B P3.",
+    "pdfs": 76,
+    "physical_pages": 711,
+    "pages_with_exact_text_and_word_coordinates": 711,
+    "p3_pages": 96,
+    "p3_pages_retaining_all_original_vector_paths": 96,
+    "non_p3_pages_exact_vector_drawings": 615,
+    "p3_first_pages": 76,
+    "p3_field_title_shaded_panels": 456,
+    "p3_paired_field_alternate_first_rows": 456,
+    "p3_story_alternate_first_rows": 152,
+    "p3_continuation_pages": 20,
+    "p3_continuation_column_first_rows": 40,
+    "errors": 0,
+    "local_full_comparison_json_sha256": "bb39d6903a1e51f18f66f768d3a70d6218f3fce1036d39c87305b95c5eae47ee"
+  },
+  "existing_physical_auditor_extended": {
+    "file": "scripts/audit_v11_p3_c2_manuscript.py",
+    "pdfs": 76,
+    "p3_pages": 96,
+    "p3_golden_field_title_bands": 456,
+    "p3_golden_alternate_rows": 648,
+    "p3_source_words_physically_aligned": 19325,
+    "c2_pages": 209,
+    "c2_manuscript_notes_cartelas": 230,
+    "c2_complete_grids": 230,
+    "failures": 0,
+    "result": "PASS_LOCAL_PHYSICAL_ONLY"
+  },
+  "limits": {
+    "visual_equivalence": "only first-page field header and every-other-row blue-mist grammar; not all P3 or 8 golden pages equivalent",
+    "android": "built APK; not visually checked installed",
+    "owner": "no approval inferred from authorization to continue",
+    "gates": "G0 PARTIAL / G1 PASS prior semantic / G2-G3 PARTIAL / G4 BLOCKED (105/105 NOT_VERIFIED, active_candidate=null) / G5-G6 pending",
+    "c211": "BLOCKED 3/3 ordinary; RCR-1 structural 0/2",
+    "pr173": "DRAFT OPEN, no merge"
+  }
+}
