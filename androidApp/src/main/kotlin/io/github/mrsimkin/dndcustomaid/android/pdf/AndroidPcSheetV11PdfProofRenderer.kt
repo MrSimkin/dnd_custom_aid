@@ -2512,6 +2512,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 rect: PcSheetV11RectPt,
                 twoColumns: Boolean,
                 manuscriptRowHeightPt: Float = body.metrics.lineHeightPt,
+                alternateP2Rows: Boolean = false,
             ) {
                 require(manuscriptRowHeightPt.isFinite() && manuscriptRowHeightPt >=
                     body.metrics.lineHeightPt) { "Writing rows cannot be compressed." }
@@ -2521,6 +2522,22 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.setNonStrokingColor(Color(238, 247, 251))
                 stream.addRect(rect.leftPt, rect.bottomPt, rect.widthPt, rect.heightPt)
                 stream.fill()
+                // Golden P2 writes against alternating blue-mist rows, not
+                // an undifferentiated blue table. Opt in on P2 ONLY: this
+                // shared function also serves C2, whose proven geometry and
+                // complete manuscript grids must remain unchanged.
+                if (alternateP2Rows) {
+                    val complete = (rect.heightPt / manuscriptRowHeightPt).toInt()
+                    stream.setNonStrokingColor(Color(231, 242, 247))
+                    for (row in 0 until complete step 2) {
+                        val top = rect.topPt - row * manuscriptRowHeightPt
+                        val bottom = maxOf(rect.bottomPt, top - manuscriptRowHeightPt)
+                        if (top > bottom) {
+                            stream.addRect(rect.leftPt, bottom, rect.widthPt, top-bottom)
+                            stream.fill()
+                        }
+                    }
+                }
                 stream.setStrokingColor(Color(130, 165, 186))
                 stream.setLineWidth(0.45f)
                 stream.addRect(rect.leftPt, rect.bottomPt, rect.widthPt, rect.heightPt)
@@ -2645,7 +2662,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableKind.TREASURE -> 19.5f
                     }
                 } else body.metrics.lineHeightPt
-                grid(stream, visibleTable, true, manuscriptRowHeight)
+                grid(stream, visibleTable, true, manuscriptRowHeight,
+                    alternateP2Rows = !compactC2)
                 if (compactC2) {
                     // Approved C2 paper grammar: a real pale-blue cartela
                     // with clipped corners, within the EXISTING 14.5pt
@@ -2774,7 +2792,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 drawPaired(stream, "EQUIPO   /   CANTIDAD", equipmentArea, inventoryPlaced, localPage)
                 drawPaired(stream, "TESORO   /   CANTIDAD", treasureArea, treasurePlaced, localPage)
                 drawP2Cartela(stream, "RASGOS Y ATRIBUTOS", traitsArea)
-                grid(stream, traitsArea, true)
+                grid(stream, traitsArea, true, alternateP2Rows = true)
                 traitsPlaced.cells.filter { it.localPageIndex == localPage }.forEach { cell ->
                     if (cell.drawableText.isNotEmpty()) {
                         draw(stream, cell.drawableText, cell.cellPt.leftPt + 2f,
@@ -2795,6 +2813,21 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     specialArea.widthPt,
                     specialArea.heightPt - specialHeaderHeight)
                 stream.fill()
+                // Source-backed EQUIPO ESPECIAL must share golden P2's
+                // alternating writing-row grammar. Paper-only fill is
+                // behind genuine location/name/description/ACTIVO values
+                // and their original vector marks; no new digital rows.
+                stream.setNonStrokingColor(Color(231, 242, 247))
+                for (row in 0 until specialCapacity step 2) {
+                    val top = specialArea.topPt - specialHeaderHeight -
+                        row * specialRowHeight
+                    val bottom = maxOf(specialArea.bottomPt, top - specialRowHeight)
+                    if (top > bottom) {
+                        stream.addRect(specialArea.leftPt, bottom,
+                            specialArea.widthPt, top-bottom)
+                        stream.fill()
+                    }
+                }
                 stream.addRect(specialArea.leftPt, specialArea.bottomPt,
                     specialArea.widthPt, specialArea.heightPt)
                 stream.stroke()

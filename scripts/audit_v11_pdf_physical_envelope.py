@@ -13,6 +13,31 @@ import fitz  # PyMuPDF: independent of the application's PDFBox renderer
 
 PAGE = (612.0, 792.0)
 TEXT_BOUNDS = (34.0, 30.0, 578.0, 767.0)
+# Frozen golden-inspired alternating physical P2 paper ink, not a
+# mock/screenshot test; positions are top-origin actual PDF coordinates.
+P2_SHADE = tuple(v / 255 for v in (231, 242, 247))
+P2_MODULES = (
+    ("Equipo", 42.0, 108.0, 258.0, 12.42),
+    ("Tesoro", 42.0, 344.0, 258.0, 12.42),
+    ("Rasgos", 312.0, 108.0, 258.0, 12.42),
+    ("Equipo especial", 42.0, 497.0, 528.0, 25.0),
+)
+
+
+def p2_alternating_writing_rows(page: fitz.Page) -> list[str]:
+    """Independent guard for four P2 bands, without touching C2 or pagination."""
+    tinted = [
+        d["rect"] for d in page.get_drawings()
+        if d["type"] == "f" and d.get("fill") is not None
+        and all(abs(d["fill"][i] - P2_SHADE[i]) < .012 for i in range(3))
+    ]
+    errors = []
+    for name, x, y, width, height in P2_MODULES:
+        if not any(abs(r.x0-x) < .4 and abs(r.y0-y) < .4
+                   and abs(r.width-width) < .4 and abs(r.height-height) < .5
+                   for r in tinted):
+            errors.append(f"P2 missing golden row shade in {name} at ({x},{y})")
+    return errors
 FOOTER = re.compile(r"\bHOJA\s+(\d+)\s*/\s*(\d+)\b")
 
 
@@ -29,6 +54,8 @@ def inspect_one(path: Path) -> dict:
         lines = [line.strip() for line in page.get_text().splitlines() if line.strip()]
         role = lines[1] if len(lines) >= 2 else ""
         roles.append(role)
+        if index == 2:
+            errors.extend(p2_alternating_writing_rows(page))
         fonts = " ".join(item[3] for item in page.get_fonts(full=True))
         if "BarlowCondensed" not in fonts or (index < total and "FiraSans" not in fonts):
             errors.append(f"p{index}: expected embedded text font missing")
