@@ -1129,7 +1129,25 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.7f)
                 (identityFieldFrames.map { it.third } + listOf(player, alignment)).forEach { frame ->
-                    stream.addRect(frame.leftPt, frame.bottomPt, frame.widthPt, frame.heightPt)
+                    // P1 C2c golden uses four INDIVIDUAL chamfered identity
+                    // outlines. Stay strictly inside the old 28pt rectangles;
+                    // labels, values, source offsets and writing lines remain
+                    // at the exact previously verified PDF coordinates.
+                    val cut = 4f
+                    require(frame.widthPt > cut * 2f && frame.heightPt > cut * 2f)
+                    val l = frame.leftPt
+                    val r = frame.rightPt
+                    val b = frame.bottomPt
+                    val t = frame.topPt
+                    stream.moveTo(l + cut, b)
+                    stream.lineTo(r - cut, b)
+                    stream.lineTo(r, b + cut)
+                    stream.lineTo(r, t - cut)
+                    stream.lineTo(r - cut, t)
+                    stream.lineTo(l + cut, t)
+                    stream.lineTo(l, t - cut)
+                    stream.lineTo(l, b + cut)
+                    stream.closePath()
                     stream.stroke()
                 }
                 stream.restoreGraphicsState()
@@ -1206,19 +1224,33 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.55f)
-                stream.setNonStrokingColor(Color(238, 247, 251))
-                stream.addRect(left, bottom, 258f, height * 4f)
-                stream.fill()
-                stream.addRect(left, bottom, 258f, height * 4f)
-                stream.stroke()
-                stream.moveTo(left + colWidth, bottom)
-                stream.lineTo(left + colWidth, bottom + height * 4f)
-                stream.stroke()
-                for (line in 1..3) {
-                    val y = bottom + line * height
-                    stream.moveTo(left, y)
-                    stream.lineTo(left + colWidth * 2f, y)
-                    stream.stroke()
+                // Golden P1 keeps individually framed combat/survival
+                // metrics, with a clipped-corner C2c language. Retain the
+                // existing two-column, four-row source geometry until the
+                // full golden P1 layout is reconciled, rather than inventing
+                // new fields or relocating the eight persisted values.
+                repeat(4) { row ->
+                    repeat(2) { column ->
+                        val l = left + column * colWidth
+                        val r = l + colWidth
+                        val b = bottom + (3 - row) * height
+                        val t = b + height
+                        val cut = 3f
+                        stream.setNonStrokingColor(
+                            if (row % 2 == 0) Color(238, 247, 251)
+                            else Color(244, 250, 253),
+                        )
+                        stream.moveTo(l + cut, b)
+                        stream.lineTo(r - cut, b)
+                        stream.lineTo(r, b + cut)
+                        stream.lineTo(r, t - cut)
+                        stream.lineTo(r - cut, t)
+                        stream.lineTo(l + cut, t)
+                        stream.lineTo(l, t - cut)
+                        stream.lineTo(l, b + cut)
+                        stream.closePath()
+                        stream.fillAndStroke()
+                    }
                 }
                 stream.restoreGraphicsState()
                 values.forEachIndexed { index, (label, value) ->
