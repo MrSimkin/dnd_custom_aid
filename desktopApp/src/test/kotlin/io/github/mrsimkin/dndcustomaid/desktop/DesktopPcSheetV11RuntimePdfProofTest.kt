@@ -2618,7 +2618,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json"),
         )
         Loader.loadPDF(generated.bytes).use { pdf ->
-            val p4 = pdf.getPage(3)
+            val firstP4 = (1..pdf.numberOfPages).firstOrNull { physical ->
+                PDFTextStripper().apply {
+                    startPage = physical
+                    endPage = physical
+                }.getText(pdf).contains("P4 - Conjuros")
+            } ?: error("Real Ilyra export must retain printed P4.")
+            val p4 = pdf.getPage(firstP4 - 1)
             val region = PDFTextStripperByArea().apply {
                 // Left P4 168pt column: real source origin is visibly
                 // right-aligned; spell name remains in a separate left lane.
@@ -2632,7 +2638,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(region.getTextForRegion("real-right-origins").contains("[X] Mago"),
                 "A short real casting source must be printed in the golden right lane.")
             val p4Text = PDFTextStripper().apply {
-                startPage = 4; endPage = 4
+                startPage = firstP4; endPage = firstP4
             }.getText(pdf)
             assertTrue(p4Text.contains("Magic Initiate") &&
                 p4Text.contains("Elven Lineage"),
@@ -2698,9 +2704,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             real,
         ).bytes
         Loader.loadPDF(bytes).use { pdf ->
+            val firstP4 = (1..pdf.numberOfPages).firstOrNull { physical ->
+                PDFTextStripper().apply {
+                    startPage = physical
+                    endPage = physical
+                }.getText(pdf).contains("P4 - Conjuros")
+            } ?: error("Real caster must retain an actual printed P4.")
             val p4 = PDFTextStripper().apply {
-                startPage = 4
-                endPage = 4
+                startPage = firstP4
+                endPage = firstP4
             }.getText(pdf)
             assertTrue(p4.contains("TRUCOS / NIVEL 0"))
             assertTrue(p4.contains("NIVEL 9"))
@@ -4739,8 +4751,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " + c2.first()),
                     "P2 must use the NEW final physical C2 destination.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
-                assertTrue(pages.last().contains("HOJA " + pdf.numberOfPages),
-                    "Final paper-only NOTAS must keep updated physical pagination.")
+                assertFalse(pages.last().contains("P4 - Conjuros") ||
+                    pages.last().contains("C2 - "),
+                    "Final manuscript page must remain separate from all digital content.")
             }
         }
     }
