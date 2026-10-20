@@ -1848,6 +1848,34 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                             column.widthPt - 4f) {
                                             "P4 physical column continuation label overflows."
                                         }
+                                        // True level continues into this physical
+                                        // column. The approved P4 grammar uses
+                                        // BLUE LEVEL BANDS, not floating labels.
+                                        // Reserve only the EXISTING empty 10pt
+                                        // gap below cards and above printed ledger;
+                                        // no source cell/row/page is relocated.
+                                        val bottom = 607.3f
+                                        val top = 616.3f
+                                        val left = column.leftPt
+                                        val right = left + column.widthPt
+                                        val cut = 2f
+                                        require(column.topPt == 607f &&
+                                            bottom > column.topPt && top < 617f)
+                                        stream.saveGraphicsState()
+                                        stream.setNonStrokingColor(Color(217, 236, 245))
+                                        stream.setStrokingColor(Color(80, 122, 151))
+                                        stream.setLineWidth(0.45f)
+                                        stream.moveTo(left + cut, bottom)
+                                        stream.lineTo(right - cut, bottom)
+                                        stream.lineTo(right, bottom + cut)
+                                        stream.lineTo(right, top - cut)
+                                        stream.lineTo(right - cut, top)
+                                        stream.lineTo(left + cut, top)
+                                        stream.lineTo(left, top - cut)
+                                        stream.lineTo(left, bottom + cut)
+                                        stream.closePath()
+                                        stream.fillAndStroke()
+                                        stream.restoreGraphicsState()
                                         stream.beginText()
                                         stream.setFont(bodyPdfFont, 7f)
                                         stream.newLineAtOffset(column.leftPt + 2f, 610f)
