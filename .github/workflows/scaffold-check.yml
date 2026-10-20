@@ -65,6 +65,8 @@ jobs:
           python3 scripts/audit_v11_final_notes_golden.py --golden-zip docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-final-notes-golden.json
           python3 scripts/audit_v11_portrait_placeholder_golden.py --golden-zip docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-portrait-placeholder-golden.json
           python3 scripts/audit_v11_double_outer_frame_golden.py --golden-zip docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 54 --report desktopApp/build/v11-double-outer-frame-golden.json
+          python3 scripts/test_audit_v11_p4_slot_meters.py
+          python3 scripts/audit_v11_p4_slot_meters.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --minimum-casters 2 --report desktopApp/build/v11-p4-physical-slot-meters.json
           python3 scripts/test_audit_v11_header_logo_visibility.py
           python3 scripts/audit_v11_header_logo_visibility.py --golden-zip docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 54 --report desktopApp/build/v11-header-logo-visibility.json
       - name: Upload independent V11 physical-envelope audit
@@ -81,6 +83,7 @@ jobs:
             desktopApp/build/v11-portrait-placeholder-golden.json
             desktopApp/build/v11-double-outer-frame-golden.json
             desktopApp/build/v11-header-logo-visibility.json
+            desktopApp/build/v11-p4-physical-slot-meters.json
             docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip
           if-no-files-found: error
       - name: Upload Android debug APK
