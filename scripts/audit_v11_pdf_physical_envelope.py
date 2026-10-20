@@ -17,10 +17,12 @@ TEXT_BOUNDS = (34.0, 30.0, 578.0, 767.0)
 # mock/screenshot test; positions are top-origin actual PDF coordinates.
 P2_SHADE = tuple(v / 255 for v in (231, 242, 247))
 P2_MODULES = (
-    ("Equipo", 42.0, 108.0, 258.0, 12.42),
-    ("Tesoro", 42.0, 344.0, 258.0, 12.42),
-    ("Rasgos", 312.0, 108.0, 258.0, 12.42),
-    ("Equipo especial", 42.0, 497.0, 528.0, 25.0),
+    # REAL golden source-free P2 rows expand to manuscript rhythm;
+    # source-populated tables use the measured Fira baseline height.
+    ("Equipo", 42.0, 108.0, 258.0, (12.42, 16.5)),
+    ("Tesoro", 42.0, 344.0, 258.0, (12.42, 19.5)),
+    ("Rasgos", 312.0, 108.0, 258.0, (12.42,)),
+    ("Equipo especial", 42.0, 497.0, 528.0, (25.0,)),
 )
 
 
@@ -32,9 +34,10 @@ def p2_alternating_writing_rows(page: fitz.Page) -> list[str]:
         and all(abs(d["fill"][i] - P2_SHADE[i]) < .012 for i in range(3))
     ]
     errors = []
-    for name, x, y, width, height in P2_MODULES:
+    for name, x, y, width, possible_heights in P2_MODULES:
         if not any(abs(r.x0-x) < .4 and abs(r.y0-y) < .4
-                   and abs(r.width-width) < .4 and abs(r.height-height) < .5
+                   and abs(r.width-width) < .4
+                   and any(abs(r.height-height) < .5 for height in possible_heights)
                    for r in tinted):
             errors.append(f"P2 missing golden row shade in {name} at ({x},{y})")
     return errors

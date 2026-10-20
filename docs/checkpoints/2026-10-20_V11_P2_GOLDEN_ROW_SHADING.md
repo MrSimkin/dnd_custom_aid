@@ -17,3 +17,7 @@ Se **amplía el auditor existente** `scripts/audit_v11_pdf_physical_envelope.py`
 **Gates:** G0 PARCIAL; G1 semántico PASS previo; G2/G3 PARCIALES; **G4 BLOCKED 105/105 NOT_VERIFIED, active_candidate=null**; G5/G6 pendientes; Android instalado/QA owner sin aceptación; C211 RCR-1 3/3 normal agotado y 0/2 estructural. PR #173 DRAFT no fusionada.
 
 **Próximo:** validar output exacto, persistir evidencia física, avanzar otra brecha independiente sin reabrir lo que ya pasó.
+
+## Precisión del guard físico (mismo requisito, no cambio visual adicional)
+
+Se comprobó **sobre PDF de base reales** que P2 Equipo sin registros usa renglones manuscritos de **16,5pt** (primera regla y=124,5pt en Mara B), Tesoro sin registros usa **19,5pt**, y con registros las tablas usan **12,42pt** medidos. El auditor de envolvente introducido con esta modificación se ajusta para aceptar **solo ambos ritmos respaldados** para Equipo y Tesoro. Rasgos mantiene 12,42pt; Especial 25pt. No se toca Kotlin ni la geometría fuente. La primera corrida del commit `dbe4791d51497c128a090cc6e12289a198766850` puede fallar porque el guard inicial esperaba 12,42pt para filas vacías: cualquier resultado de esa corrida se registra como prueba del código anterior, NO se interpreta como un fallo de contenido ni como PASS de este guard revisado.
