@@ -17,3 +17,7 @@ Se amplían **solo controles existentes**: Kotlin `g3RealP1WithoutAmmunitionHasO
 **Gates:** G0 histórico PARCIAL, G1 PASS solo semántico previo, G2/G3 PARCIALES, G4 **BLOCKED 105/105 NOT_VERIFIED, active_candidate=null**, G5/G6 pendientes, C211 BLOCKED normal 3/3 estructural RCR-1 0/2; owner Android instalado/visual/technical approval pendientes. PR #173 DRAFT OPEN NO MERGE.
 
 **Siguiente:** cotejar PDF exacto, documentar evidencia física o fallo; continuar exclusivamente otra diferencia material sin especulación.
+
+## Primera QA de trazabilidad: expectativa obsoleta corregida sin modificar producción
+
+[Owner QA traceability #39507309995](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39507309995) **FAIL** en `scripts/test_v11_ammunition_manual_contract.py`: el test histórico `test_same_genuine_source_grammar` exigía literalmente `p1DrawSmall(stream, "____________", 316f, 122f)` para **ambas** plataformas, precisamente el comportamiento falsamente digital que el cambio elimina. Se modifica SOLO este test para prohibir esa cadena, exigir las operaciones `moveTo(316f,120f)` y `lineTo(377f,120f)` en ambas fuentes y mantener las demás obligaciones (20 casillas, grupos 5+5, altura, igualdad de fuente de renderer). No se modifica Kotlin de producción ni se rebaja un control físico. El Scaffold del commit anterior y el nuevo QA CI deben cerrarse antes de declarar PASS LOCAL.

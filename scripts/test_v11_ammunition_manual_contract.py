@@ -18,7 +18,12 @@ class EmptyAmmoParity(unittest.TestCase):
             section=text.split("fun drawP1Ammunition(",1)[1].split("fun drawP1Portrait(",1)[0]
             self.assertIn("if (p1AmmoItems.isEmpty())",section)
             self.assertIn("repeat(20) { index ->",section)
-            self.assertIn('p1DrawSmall(stream, "____________", 316f, 122f)',section)
+            # Approved empty ammunition uses a real blank name LINE,
+            # never fake underscore glyphs. Both native renderers must
+            # have identical paper geometry and 20 grouped source-free marks.
+            self.assertNotIn('p1DrawSmall(stream, "____________", 316f, 122f)',section)
+            self.assertIn('stream.moveTo(316f, 120f)',section)
+            self.assertIn('stream.lineTo(377f, 120f)',section)
             self.assertIn("val y = if (index < 10) 119f else 103f",section)
             self.assertIn("val x = 392f + column * 8f + (column / 5) * 4f",section)
             self.assertIn("p1AmmoItems.forEachIndexed",section)
