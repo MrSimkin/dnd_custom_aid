@@ -72,8 +72,36 @@ def physical_p1(pdf_bytes):
                        and top <= w[1] and w[3] <= top+(28 if row < 2 else 32)]
             if label not in in_card:
                 errors.append(f"P1 real {label} outside card row={row},col={col}")
+        # Genuine EMPTY ammunition receives twenty UNMARKED 6pt squares
+        # arranged as 10+10, and exactly one writable vector NAME baseline.
+        # The legacy internal proof printed a literal 12-underscore token;
+        # this is paper, never a persisted ammunition label.
+        blank_square_y = (667., 683.)
+        blank_square_x = (392., 400., 408., 416., 424.,
+                          436., 444., 452., 460., 468.)
+        def has_square(x,y):
+            return any(d["type"] == "s" and
+                       near_rect(tuple(d["rect"]), (x,y,x+6.,y+6.), .25)
+                       for d in drawings)
+        empty_ammunition = all(
+            has_square(x,y) for y in blank_square_y for x in blank_square_x
+        )
+        if empty_ammunition:
+            if any(w[4] == "____________" and 315 <= w[0] <= 380 and
+                   661 <= w[1] <= 674 for w in words):
+                errors.append("P1 empty ammunition printed fake underscore glyphs.")
+            if not any(
+                d["type"] == "s" and near_rect(
+                    tuple(d["rect"]), (316.,672.,377.,672.), .35
+                ) and d.get("color") is not None
+                and all(abs(d["color"][i] - (130/255,165/255,186/255)[i]) < .025
+                        for i in range(3))
+                for d in drawings
+            ):
+                errors.append("P1 empty ammunition has no physical writable name line.")
         return dict(errors=errors, identities=len(IDENTITY)-len(missing_id),
-                    combat=len(COMBAT)-len(missing_combat))
+                    combat=len(COMBAT)-len(missing_combat),
+                    empty_ammo_name_lines=int(empty_ammunition))
 
 
 def main():
@@ -93,6 +121,8 @@ def main():
                   pdfs=len(paths), valid=len(records)-len(failures),
                   identity_frames=sum(r["identities"] for r in records),
                   combat_cells=sum(r["combat"] for r in records),
+                  empty_ammo_name_lines=sum(r.get("empty_ammo_name_lines",0)
+                                            for r in records),
                   errors=len(failures), records=records)
     a.report.parent.mkdir(parents=True,exist_ok=True)
     a.report.write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",

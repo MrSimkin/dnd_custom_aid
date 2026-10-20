@@ -974,10 +974,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // exactly 20 unmarked squares, grouped 5+5 in two subrows.
                 // Do not invent a type, a quantity or a second ammunition ID.
                 if (p1AmmoItems.isEmpty()) {
-                    p1DrawSmall(stream, "____________", 316f, 122f)
+                    // Empty ammunition NAME is a writable PAPER baseline,
+                    // not 12 black underscore glyphs impersonating a source.
+                    // Draw it beside (never into) the 20 original grouped marks.
+                    // Real ammunition titles and the contract's "____ / X"
+                    // over-20 counter remain untouched.
                     stream.saveGraphicsState()
                     stream.setStrokingColor(Color(130, 165, 186))
                     stream.setLineWidth(0.55f)
+                    stream.moveTo(316f, 120f)
+                    stream.lineTo(377f, 120f)
+                    stream.stroke()
                     repeat(20) { index ->
                         val column = index % 10
                         val x = 392f + column * 8f + (column / 5) * 4f

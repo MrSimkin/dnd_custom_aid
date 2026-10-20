@@ -4518,6 +4518,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 endPage = 1
             }.getText(pdf)
             assertTrue(page1.contains("MUNICIONES / MARCAS:"))
+            assertFalse(page1.contains("____________"),
+                "Empty ammo name must be a real writable vector baseline, not fake printed underscores.")
+            assertTrue(Regex(
+                """(?:^|\\s)316\\s+120\\s+m\\s+377\\s+120\\s+l\\s+S(?:\\s|$)"""
+            ).containsMatchIn(ops), "Exactly one measured blank ammo-name vector rule is required.")
             assertFalse(page1.contains("MARCAS: ____ / 20"),
                 "Paper-only marks do not imply 20 units of ammo.")
         }
