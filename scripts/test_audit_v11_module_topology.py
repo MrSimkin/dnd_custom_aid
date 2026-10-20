@@ -10,7 +10,7 @@ class TopologyTests(unittest.TestCase):
         for titles in (
             ["P1 - Hero", "P2 - Inventory", "P3 - History", "NOTAS"],
             ["P1 - Hero", "P2 - Inventory", "P3 - History",
-             "P4 - Conjuros", "C2 - Recursos", "C2 - Equipo",
+             "C2 - Recursos", "C2 - Equipo", "P4 - Conjuros",
              "C-N3 - Notas digitales", "C-N3 - Notas digitales / CONTINÚA: Fuente",
              "Índice del Libro de Conjuros", "Libro de conjuros", "NOTAS"],
         ):
@@ -28,8 +28,36 @@ class TopologyTests(unittest.TestCase):
              "Unknown module", "NOTAS"],
             ["P1 - Hero", "P2 - Inventory", "P3 - History",
              "P4 - Conjuros", "P3 - Narrativa / continuación", "NOTAS"],
+            ["P1 - Hero", "P2 - Inventory", "P3 - History",
+             "P4 - Conjuros", "C2 - Equipo", "NOTAS"],
+
         ):
             self.assertTrue(inspect_roles(titles), titles)
+
+    def test_frozen_owner_golden_extreme_places_c2_before_quick_spells(self):
+        import zipfile
+        from pathlib import Path
+        import fitz
+        frozen = Path(__file__).resolve().parents[1] / (
+            "docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip"
+        )
+        with zipfile.ZipFile(frozen) as archive:
+            for variant in ("A", "B"):
+                raw = archive.read(
+                    "V11_Carta/pdfs/v11_extremo_variante_" + variant + ".pdf"
+                )
+                with fitz.open(stream=raw, filetype="pdf") as pdf:
+                    titles = [
+                        page.get_text().splitlines()[3]
+                        for page in pdf
+                    ]
+                c2 = [i for i, t in enumerate(titles)
+                      if t == "CONTINUACIONES C2"]
+                p4 = [i for i, t in enumerate(titles)
+                      if t == "LISTA RÁPIDA DE CONJUROS"]
+                self.assertTrue(c2 and p4)
+                self.assertLess(max(c2), min(p4),
+                    "Frozen golden V11 extreme requires C2 before P4")
 
     def test_title_classification_strict(self):
         self.assertEqual(classify("C-N3 - Notas digitales / CONTINÚA: nota"), "CN3")

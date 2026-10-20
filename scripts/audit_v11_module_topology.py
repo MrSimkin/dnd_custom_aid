@@ -11,7 +11,7 @@ from pathlib import Path
 
 import fitz
 
-ORDER = {"P1": 0, "P2": 1, "P3": 2, "P4": 3, "C2": 4,
+ORDER = {"P1": 0, "P2": 1, "P3": 2, "C2": 3, "P4": 4,
          "CN3": 5, "BOOK": 6, "NOTES": 7}
 
 

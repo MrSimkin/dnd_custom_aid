@@ -2718,75 +2718,6 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             addSection("P3 - Narrativa / continuación", PcSheetV11FlowSection.NARRATIVE,
                 p3Overflow, 2, area = PcSheetV11RectPt(42f, 76f, 528f, 597f))
 
-            if (data.hasQuickSpellList) {
-                // Contract: a spell page, when present, reserves visible levels 0–9
-                // even if a given level has no real spells; 10–12 require real
-                // epic rules data and are not invented. Sources/preparation stay
-                // linked to the specific persisted casting-source association.
-                fun quickRows(manuscriptRowsPerLevel: Int): List<PcSheetV11FlowItem> = buildList {
-                    require(manuscriptRowsPerLevel >= 1)
-                    val levels = (0..9).toList() +
-                        data.spells.map { it.spell.level }.filter { it >= 10 }.distinct().sorted()
-                    levels.forEach { level ->
-                        add(PcSheetV11FlowItem("spell-level:" + level,
-                            if (level == 0) "TRUCOS / NIVEL 0" else "NIVEL " + level,
-                            keepTogetherIfFits = true))
-                        val spellsHere = data.spells.filter { it.spell.level == level }
-                        spellsHere.forEach { entry ->
-                            val key = "quick-spell:" + entry.spell.id
-                            val sourceInfo = p4SourceLabels.getValue(key)
-                            add(PcSheetV11FlowItem(key,
-                                // Five measured spaces separate the actual first
-                                // spell glyph from the 7pt vector box (verified original
-                                // 3-space result overlapped its border by ~1.8pt).
-                                // No source name or status is abbreviated or trimmed.
-                                "     " + entry.spell.name +
-                                    (if (sourceInfo.isBlank() || key in p4RightSources) ""
-                                    else " | " + sourceInfo),
-                                keepTogetherIfFits = true))
-                        }
-                        // Rows are PAPER-ONLY: no fabricated spell, source, preparation
-                        // or spell slot. Every level is writable, even when populated.
-                        repeat(if (level in 0..9) manuscriptRowsPerLevel else 1) { row ->
-                            add(PcSheetV11FlowItem(
-                                "spell-handwritten:" + level + ":" + row,
-                                "[ ] ______________________",
-                                keepTogetherIfFits = true,
-                            ))
-                        }
-                    }
-                }
-                // G2/G3: measure the TRUE three-column page before reserving
-                // manuscript lines. The original internal proof shortened the
-                // page area and stranded most of a Letter sheet as blank paper.
-                // Expand paper-only entries, not digital spell data, as far as
-                // one physical page permits. Never create a second filler page.
-                val p4WritingArea = PcSheetV11RectPt(42f, 76f, 528f, 531f)
-                val minimalQuick = quickRows(1)
-                val minimalPlacement = body.place(
-                    PcSheetV11FlowSection.QUICK_SPELLS,
-                    minimalQuick, p4WritingArea, 3, 12f,
-                )
-                val quick = if (minimalPlacement.sourceFlow.localPageCount == 1) {
-                    var lowest = 1
-                    var highest = 20
-                    while (lowest < highest) {
-                        val candidateRows = (lowest + highest + 1) / 2
-                        val candidate = body.place(
-                            PcSheetV11FlowSection.QUICK_SPELLS,
-                            quickRows(candidateRows), p4WritingArea, 3, 12f,
-                        )
-                        if (candidate.sourceFlow.localPageCount == 1) {
-                            lowest = candidateRows
-                        } else {
-                            highest = candidateRows - 1
-                        }
-                    }
-                    quickRows(lowest)
-                } else minimalQuick
-                addSection("P4 - Conjuros", PcSheetV11FlowSection.QUICK_SPELLS,
-                    quick, 3, area = p4WritingArea)
-            }
 
             // Resource balances and ammunition are drawn only from persisted source
             // records. AMMUNITION is the explicit inventory-usage classification;
@@ -3318,6 +3249,81 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     require(kotlin.math.abs(rowTop - tableBottom) <= 0.5f)
                     drawUnusedC2NotesGrid(stream, tableBottom)
                 }
+            }
+
+            // C209: frozen owner-approved V11 extreme A/B places source-backed
+            // C2 continuation pages after P3 and BEFORE P4. D-0076 §3.30
+            // likewise prefers C2 adjacent to its originating base modules.
+            // P4's own measured spell text and 3-column layout are untouched;
+            // footer/backlinks are resolved from FINAL physical pages.
+            if (data.hasQuickSpellList) {
+                // Contract: a spell page, when present, reserves visible levels 0–9
+                // even if a given level has no real spells; 10–12 require real
+                // epic rules data and are not invented. Sources/preparation stay
+                // linked to the specific persisted casting-source association.
+                fun quickRows(manuscriptRowsPerLevel: Int): List<PcSheetV11FlowItem> = buildList {
+                    require(manuscriptRowsPerLevel >= 1)
+                    val levels = (0..9).toList() +
+                        data.spells.map { it.spell.level }.filter { it >= 10 }.distinct().sorted()
+                    levels.forEach { level ->
+                        add(PcSheetV11FlowItem("spell-level:" + level,
+                            if (level == 0) "TRUCOS / NIVEL 0" else "NIVEL " + level,
+                            keepTogetherIfFits = true))
+                        val spellsHere = data.spells.filter { it.spell.level == level }
+                        spellsHere.forEach { entry ->
+                            val key = "quick-spell:" + entry.spell.id
+                            val sourceInfo = p4SourceLabels.getValue(key)
+                            add(PcSheetV11FlowItem(key,
+                                // Five measured spaces separate the actual first
+                                // spell glyph from the 7pt vector box (verified original
+                                // 3-space result overlapped its border by ~1.8pt).
+                                // No source name or status is abbreviated or trimmed.
+                                "     " + entry.spell.name +
+                                    (if (sourceInfo.isBlank() || key in p4RightSources) ""
+                                    else " | " + sourceInfo),
+                                keepTogetherIfFits = true))
+                        }
+                        // Rows are PAPER-ONLY: no fabricated spell, source, preparation
+                        // or spell slot. Every level is writable, even when populated.
+                        repeat(if (level in 0..9) manuscriptRowsPerLevel else 1) { row ->
+                            add(PcSheetV11FlowItem(
+                                "spell-handwritten:" + level + ":" + row,
+                                "[ ] ______________________",
+                                keepTogetherIfFits = true,
+                            ))
+                        }
+                    }
+                }
+                // G2/G3: measure the TRUE three-column page before reserving
+                // manuscript lines. The original internal proof shortened the
+                // page area and stranded most of a Letter sheet as blank paper.
+                // Expand paper-only entries, not digital spell data, as far as
+                // one physical page permits. Never create a second filler page.
+                val p4WritingArea = PcSheetV11RectPt(42f, 76f, 528f, 531f)
+                val minimalQuick = quickRows(1)
+                val minimalPlacement = body.place(
+                    PcSheetV11FlowSection.QUICK_SPELLS,
+                    minimalQuick, p4WritingArea, 3, 12f,
+                )
+                val quick = if (minimalPlacement.sourceFlow.localPageCount == 1) {
+                    var lowest = 1
+                    var highest = 20
+                    while (lowest < highest) {
+                        val candidateRows = (lowest + highest + 1) / 2
+                        val candidate = body.place(
+                            PcSheetV11FlowSection.QUICK_SPELLS,
+                            quickRows(candidateRows), p4WritingArea, 3, 12f,
+                        )
+                        if (candidate.sourceFlow.localPageCount == 1) {
+                            lowest = candidateRows
+                        } else {
+                            highest = candidateRows - 1
+                        }
+                    }
+                    quickRows(lowest)
+                } else minimalQuick
+                addSection("P4 - Conjuros", PcSheetV11FlowSection.QUICK_SPELLS,
+                    quick, 3, area = p4WritingArea)
             }
 
             addSection("C-N3 - Notas digitales", PcSheetV11FlowSection.DIGITAL_NOTES,

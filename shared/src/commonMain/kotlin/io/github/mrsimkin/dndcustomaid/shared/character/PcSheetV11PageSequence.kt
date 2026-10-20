@@ -76,8 +76,10 @@ object PcSheetV11PageSequenceBuilder {
             add(PcSheetV11PageRole.CHARACTER_P1)
             add(PcSheetV11PageRole.INVENTORY_P2)
             add(PcSheetV11PageRole.NARRATIVE_P3)
-            if (data.hasQuickSpellList) add(PcSheetV11PageRole.QUICK_SPELLS_P4)
+            // Approved V11 extreme A/B: C2 continuation immediately after P3,
+            // before the optional quick-spell P4. Never invent C2 pages.
             repeat(requirements.continuationPages) { add(PcSheetV11PageRole.CONTINUATION_C2) }
+            if (data.hasQuickSpellList) add(PcSheetV11PageRole.QUICK_SPELLS_P4)
             repeat(requirements.digitalNotePages) { add(PcSheetV11PageRole.DIGITAL_NOTES_CN3) }
             repeat(requirements.spellbookPages) { add(PcSheetV11PageRole.SPELLBOOK) }
             add(PcSheetV11PageRole.FINAL_HANDWRITTEN_NOTES)

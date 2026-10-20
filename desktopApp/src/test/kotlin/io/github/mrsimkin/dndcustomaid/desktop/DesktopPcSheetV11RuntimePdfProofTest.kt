@@ -4701,6 +4701,51 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3C209RealMaraABPrintsC2BeforeOptionalQuickSpellsAsFrozenGolden() {
+        // Frozen approved V11 extreme A/B and D-0076 §3.30 place
+        // P1/P2 C2 continuations after the narrative base, before P4.
+        // Prove the ACTUAL Desktop service's physical pages and P2 backlink,
+        // not a source-only Kotlin role list or synthetic golden PDF.
+        val source = sources("03_mara_multiclass_custom_multisource.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val request = PcSheetV11ExportRequest(
+                variant, PcSheetExportStateSelection.PERMANENT,
+            )
+            val proof = DesktopPcSheetExportService().generateV11Proof(request, source)
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-C209-golden-order-" + variant.name + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { i ->
+                    PDFTextStripper().apply {
+                        startPage = i
+                        endPage = i
+                    }.getText(pdf)
+                }
+                val c2 = pages.indices.filter {
+                    pages[it].contains("C2 - ") &&
+                        !pages[it].contains("C-N3 - Notas digitales")
+                }.map { it + 1 }
+                val spells = pages.indices.filter {
+                    pages[it].contains("P4 - Conjuros")
+                }.map { it + 1 }
+                assertTrue(c2.isNotEmpty() && spells.isNotEmpty(),
+                    "The genuine Mara snapshot must exercise both C2 and P4.")
+                assertEquals(4, c2.first(),
+                    "C2 must immediately follow P1/P2/P3 in this scenario.")
+                assertTrue(c2.last() < spells.first(),
+                    "All real C2 overflow belongs before optional P4.")
+                assertEquals(c2.last() + 1, spells.first(),
+                    "No unrelated or fabricated page between C2 and P4.")
+                assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " + c2.first()),
+                    "P2 must use the NEW final physical C2 destination.")
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertTrue(pages.last().contains("HOJA " + pdf.numberOfPages),
+                    "Final paper-only NOTAS must keep updated physical pagination.")
+            }
+        }
+    }
+
+    @Test
     fun g3MixedC2ActualAldrenIlyraMaraNavigationKeepsTrueP1AndP2Origins() {
         for ((fixture, variant) in listOf(
             "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
