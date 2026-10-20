@@ -3452,6 +3452,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         sourceKey = "book:" + spell.id,
                         text = lines.joinToString("\n"),
                         keepTogetherIfFits = true,
+                        leadingSeparationLines = 1, // BK08: one REAL measured blank row between cards.
                     )
                 }
                 val contentFlow = body.place(

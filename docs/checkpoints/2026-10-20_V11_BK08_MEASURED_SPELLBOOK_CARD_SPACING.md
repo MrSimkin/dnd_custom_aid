@@ -1,0 +1,17 @@
+# V11 BK08 — separación física de fichas del Libro (2026-10-20)
+
+**Autoridad de implementación:** [PR #173](https://github.com/MrSimkin/dnd_custom_aid/pull/173) DRAFT SIN MERGE; rama `docs/pc-sheet-v11-approved-implementation-handoff`, base remota `93b8eaa312370cb8c432b9594f505ef4cf957f32`. Predecesor BK07 PASS LOCAL exacto por [Scaffold #39454778210](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39454778210), checkpoint de evidencia `2026-10-20_V11_BK07_BOOK_CARDS_GOLDEN_PANELS.md`. Scaffold y QA finales del commit documental BK07 `93b8eaa` **SUCCESS** (#39456310497, #39456310562).
+
+## Desviación observada y contrato
+La maqueta V11 aprobada (ZIP `35a1c6ea...`, `v11_extremo_variante_B.pdf`, página física 9) presenta **fichas separadas por margen blanco real**, no paneles tocándose; la página real Desktop App `V11-INTERNAL-PROOF-Mara-B`, página física 10, después de BK07 ya tiene contornos y cabeceras, pero **todas las fichas adyacentes comparten el mismo borde horizontal sin aire entre ellas**. Es diferencia visible y reproducible respecto de la obligación BK03 de dos columnas de fichas de altura variable; no modifica el contrato ni añade una regla formal BK08 a la matriz G4.
+
+## Cambio funcional controlado
+Se agrega `leadingSeparationLines` (0 por defecto) a `PcSheetV11FlowItem`. El paginador compartido Android/Desktop consume **una celda real medida de papel**, sin bytes de texto ni marcas falsas, entre entradas del Libro cuando hay espacio en la misma columna; no consume esa celda al inicio de columna o de una continuación. Si dejar el hueco impediría que quepa **una ficha íntegra**, se traslada esta a la siguiente columna limpia conforme BK04. Las fichas demasiado grandes se fragmentan sin perder ni duplicar texto conforme BK05. Solo las entradas fuente `book:` reciben `leadingSeparationLines=1` en ambos renderers; índices, notas, P1–P4, C2, rasgos y cuatro familias legacy tienen valor por defecto 0 y no se intervienen.
+
+Cuatro tests Kotlin nuevos: hueco físico + texto original íntegro + comparación con valor por defecto, salto de tarjeta íntegra a nueva columna sin gap de cabecera, separación no consumida en continuación de tarjeta grande, valor negativo rechazado. Los tests ya existentes de Book BK04/BK05/BK06 y auditor físico BK07 continúan en Scaffold.
+
+**Estado al publicar código:** FUNCIONAL IMPLEMENTADO, **CI EXACTO PENDIENTE**, NO PASS anticipado. La separación puede aumentar páginas físicas reales de Libro (comportamiento adaptativo esperable), por lo que el índice de páginas debe recalcularse desde el nuevo flow y cotejarse físicamente; no reutilizar números de páginas BK07 sin medir. Comparar el artefacto del nuevo run con BK07 para confirmar que el contenido completo del Libro y los enlaces del índice sobreviven, solo el anexo/índice cambia físicamente y las páginas base no se corrompen. Si falla alguna condición, inspeccionar la evidencia exacta del CI antes de reparar; no iterar a ciegas.
+
+**Gates:** G0 PARCIAL; G1 PASS semántico previo; G2/G3 PARCIALES; **G4 BLOCKED: 105/105 NOT_VERIFIED, `active_candidate=null`**; G5/G6 pendientes, sin verificación en Android instalado ni QA owner. C211 sigue BLOQUEADO 3/3 normales, estructural 0/2. #173 DRAFT SIN MERGE.
+
+**Siguiente paso:** CI exacto, descargar PDF genuinos BK08, contar intervalos entre paneles y verificar contenido/índice real frente a BK07 y golden; registrar evidencia positiva/negativa, luego seguir otro módulo fuera de C211, sin inventar aprobación técnica/visual del propietario.

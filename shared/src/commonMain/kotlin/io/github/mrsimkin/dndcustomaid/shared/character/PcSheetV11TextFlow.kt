@@ -42,7 +42,19 @@ data class PcSheetV11FlowItem(
     /** Optional CONTIGUOUS source group. Keep whole groups in one column only
      * when their genuine measured lines fit; never invent or duplicate records. */
     val groupKey: String? = null,
-)
+    /** Whitespace is PAPER GEOMETRY, never source text. Reserve this many
+     * whole measured line cells before an item IF the current physical
+     * column already contains another item. Never reserve it at a new
+     * column start or for a continued fragment. Default remains zero.
+     * The approved V11 spellbook uses one line between real cards. */
+    val leadingSeparationLines: Int = 0,
+) {
+    init {
+        require(leadingSeparationLines >= 0) {
+            "A V11 leading separation cannot have a negative line count."
+        }
+    }
+}
 
 enum class PcSheetV11FlowSection {
     NARRATIVE,
@@ -172,6 +184,23 @@ object PcSheetV11TextFlow {
             }
             val lines = splitIntoMeasuredLines(item.text, column.widthPt, textWidth)
             if (lines.isEmpty()) return@forEachIndexed
+            val separation = item.leadingSeparationLines
+            if (separation > 0 && remaining < column.lineCapacity) {
+                // A real manuscript gap must not steal a source line or
+                // split a card that fits completely in a fresh column.
+                // If the gap cannot precede at least one source line
+                // (or a keep-together card), begin the next column
+                // and omit this leading-only gap there.
+                val wholeFitsFresh = lines.size <= column.lineCapacity
+                if (remaining <= separation ||
+                    (item.keepTogetherIfFits && wholeFitsFresh &&
+                        lines.size + separation > remaining)
+                ) {
+                    nextColumn()
+                } else {
+                    remaining -= separation
+                }
+            }
             if (item.keepTogetherIfFits && lines.size <= column.lineCapacity &&
                 lines.size > remaining
             ) {

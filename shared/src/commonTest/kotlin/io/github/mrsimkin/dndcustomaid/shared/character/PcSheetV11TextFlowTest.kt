@@ -48,6 +48,82 @@ class PcSheetV11TextFlowTest {
     }
 
     @Test
+    fun spellbookCardSeparationOccupiesARealCellAndNeverChangesPersistedText() {
+        val items = listOf(
+            PcSheetV11FlowItem("book:a", "Primero", keepTogetherIfFits = true,
+                leadingSeparationLines = 1),
+            PcSheetV11FlowItem("book:b", "Segundo", keepTogetherIfFits = true,
+                leadingSeparationLines = 1),
+        )
+        val result = PcSheetV11TextFlow.paginate(
+            PcSheetV11FlowSection.SPELLBOOK, items, 2,
+            geometry(width = 12f, lines = 4), monospace,
+        )
+        result.verifyLosslessAgainst(items)
+        assertEquals(listOf(0, 2),
+            result.fragments.map { it.startLineIndexInColumn })
+        assertEquals(listOf(1, 1), result.fragments.map { it.columnIndex })
+        assertEquals("PrimeroSegundo", result.fragments.joinToString("") { it.text })
+        val unchanged = PcSheetV11TextFlow.paginate(
+            PcSheetV11FlowSection.SPELLBOOK,
+            items.map { it.copy(leadingSeparationLines = 0) }, 2,
+            geometry(width = 12f, lines = 4), monospace,
+        )
+        assertEquals(listOf(0, 1),
+            unchanged.fragments.map { it.startLineIndexInColumn })
+    }
+
+    @Test
+    fun spellbookGapMovesWholeFittingCardWithoutBlankColumnStart() {
+        val items = listOf(
+            PcSheetV11FlowItem("book:first", "a\nb\nc", keepTogetherIfFits = true,
+                leadingSeparationLines = 1),
+            PcSheetV11FlowItem("book:second", "Conjuro", keepTogetherIfFits = true,
+                leadingSeparationLines = 1),
+        )
+        val result = PcSheetV11TextFlow.paginate(
+            PcSheetV11FlowSection.SPELLBOOK, items, 2,
+            geometry(width = 12f, lines = 4), monospace,
+        )
+        result.verifyLosslessAgainst(items)
+        assertEquals(listOf(1, 2), result.fragments.map { it.columnIndex })
+        assertEquals(listOf(0, 0),
+            result.fragments.map { it.startLineIndexInColumn })
+        assertEquals(1, result.localPageCount)
+    }
+
+    @Test
+    fun longerThanColumnBookCardStillFragmentsWithoutExtraGapOrLostSource() {
+        val items = listOf(
+            PcSheetV11FlowItem("book:long", "a\nb\nc\nd\ne\nf\ng",
+                keepTogetherIfFits = true, leadingSeparationLines = 1),
+            PcSheetV11FlowItem("book:next", "Z", keepTogetherIfFits = true,
+                leadingSeparationLines = 1),
+        )
+        val result = PcSheetV11TextFlow.paginate(
+            PcSheetV11FlowSection.SPELLBOOK, items, 2,
+            geometry(width = 12f, lines = 4), monospace,
+        )
+        result.verifyLosslessAgainst(items)
+        val fragments = result.fragments
+        assertEquals(listOf("book:long", "book:long", "book:next"),
+            fragments.map { it.sourceKey })
+        assertEquals(listOf(1, 2, 1), fragments.map { it.columnIndex })
+        assertEquals(listOf(0, 0, 0),
+            fragments.map { it.startLineIndexInColumn })
+        assertEquals(listOf(1, 1, 2), fragments.map { it.localPageIndex })
+        assertTrue(fragments.first().continuesOnNext)
+        assertTrue(fragments[1].continuedFromPrevious)
+    }
+
+    @Test
+    fun negativeBookSeparationIsRejectedAtTheSource() {
+        assertFailsWith<IllegalArgumentException> {
+            PcSheetV11FlowItem("bad", "real", leadingSeparationLines = -1)
+        }
+    }
+
+    @Test
     fun manyVeryLongEntriesPaginateWithoutLossOrInfiniteLoop() {
         val items = (1..386).map { n ->
             PcSheetV11FlowItem(
