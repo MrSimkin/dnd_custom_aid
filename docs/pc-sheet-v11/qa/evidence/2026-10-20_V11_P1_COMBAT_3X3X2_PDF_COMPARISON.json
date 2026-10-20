@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-20",
+  "functional_commit": "1cad2971b38610f3de7c605c0d23061950b7b393",
+  "scope": "P1 3+3+2 real-source combat-card G3 local proof; NOT G4/owner approval",
+  "contract": "docs/pc-sheet-v11/CONTRATO_VISUAL_APROBADO.md",
+  "baseline": {
+    "commit": "9c53225a2804ac0bd9dc7ef146d173b371a1d90a",
+    "run_id": 39487245834,
+    "artifact_id": 12294302755,
+    "zip_sha256": "24c82310fb1e84e168b3c4126b844cc4e79da4643c1f103ba34defac03eb6c80",
+    "layout": "2 columns x 4 rows",
+    "pdfs": 76,
+    "pages": 711
+  },
+  "candidate": {
+    "run_id": 39490469236,
+    "conclusion": "success",
+    "qa_run_id": 39490469224,
+    "qa_conclusion": "success",
+    "pdf_artifact_id": 12295018331,
+    "pdf_zip_sha256": "5e49034fb44e3404215e357ada25e3e4fc12a0bb1fd4cf2eb22d30fe8782424b",
+    "physical_auditor_artifact_id": 12294869361,
+    "auditor_zip_sha256": "32836714c361324e6df0269cb13fa6159de5ce6a3427796f249f8e401ecd6d8c",
+    "pdfs": 76,
+    "pages": 711
+  },
+  "external_pdf_comparison": {
+    "same_pdf_names": 76,
+    "pdf_page_counts_preserved": 76,
+    "total_pages": 711,
+    "unchanged_word_text_and_physical_coordinates_outside_p1_combat": 76,
+    "combat_panel_source_word_multiset_preserved": 76,
+    "pages_after_p1_identical_text_and_vector_drawings": 635,
+    "geometry_eight_cards_three_three_two": 76,
+    "source_location_errors": 0,
+    "differential_errors": 0,
+    "independent_comparison_json_sha256": "239e6765dcf493293c52cc2284b51ad6bb972ac922475198e3a0ed7cde465ff2",
+    "physical_auditor": {
+      "valid_pdf_count": 76,
+      "physical_identity_frames": 304,
+      "physical_combat_cards": 608,
+      "failures": 0
+    },
+    "visually_inspected": "V11-INTERNAL-PROOF-Mara-B.pdf page 1; 3 CA/initiative/speed, 3 proficiency/actual-temp-HP/dice, 2 current/max-HP; source labels and values visible",
+    "font_and_paper": "Barlow Condensed labels, Fira Sans actual values, Letter bounds unchanged"
+  },
+  "golden_reference": {
+    "zip_sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+    "pdf": "V11_Carta/pdfs/v11_extremo_variante_B.pdf",
+    "page": 1
+  },
+  "limitations": "PASS LOCAL only for P1 combat 3+3+2 subfeature. Golden overall P1 dimensions/content/palette not fully reconciled. Gold mockup INSPIRACIÓN has no backed field; PV TEMP real persisted unchanged. Android APK built, no installed visual check, owner has not accepted previous work; G4 rule matrix unchanged.",
+  "gates": {
+    "g0": "PARTIAL",
+    "g1": "PASS prior semantic",
+    "g2": "PARTIAL",
+    "g3": "PARTIAL; this subfeature local PASS",
+    "g4": "BLOCKED;105 NOT_VERIFIED; active_candidate=null",
+    "g5": "NOT_STARTED",
+    "g6": "NOT_STARTED",
+    "c211": "BLOCKED 3/3 normal; RCR-1 structural 0/2",
+    "pr173": "DRAFT unmerged"
+  }
+}
