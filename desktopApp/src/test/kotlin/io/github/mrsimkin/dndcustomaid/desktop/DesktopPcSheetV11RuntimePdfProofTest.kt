@@ -1770,14 +1770,21 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         "Missing real C2 source or native paper field: $required")
                 }
                 val all = pages.joinToString("\n")
-                assertEquals(1, Regex("Suministros de calígrafo")
-                    .findAll(all).count())
+                // PDF text extraction interleaves the printed amount
+                // with wrapped names; require each real source word exactly
+                // once instead of a fictitious one-line concatenation.
+                for (sourceWord in listOf("Suministros", "calígrafo")) {
+                    assertEquals(1, Regex(Regex.escape(sourceWord))
+                        .findAll(all).count(),
+                        "Wrapped real equipment cannot lose/duplicate " + sourceWord)
+                }
                 assertEquals(1, Regex("Evocation Savant").findAll(text).count())
                 if (combined.isNotEmpty()) {
                     assertTrue(text.contains("EQUIPO / CANTIDAD") &&
-                        text.contains("Suministros de calígrafo"))
+                        text.contains("Suministros") && text.contains("calígrafo"))
                 } else {
-                    assertTrue(pages[1].contains("Suministros de calígrafo"),
+                    assertTrue(pages[1].contains("Suministros") &&
+                        pages[1].contains("calígrafo"),
                         "A source item absent from C2 must genuinely fit P2.")
                 }
                 val c2Pos = pages.indexOf(text) + 1
