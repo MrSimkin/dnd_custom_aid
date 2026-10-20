@@ -81,6 +81,7 @@ jobs:
             desktopApp/build/v11-portrait-placeholder-golden.json
             desktopApp/build/v11-double-outer-frame-golden.json
             desktopApp/build/v11-header-logo-visibility.json
+            docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip
           if-no-files-found: error
       - name: Upload Android debug APK
         uses: actions/upload-artifact@v7
