@@ -4713,6 +4713,54 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3C211RealMaraABPrintsMeasuredLongEquipmentOnP2AndOnlySuffixOnC2() {
+        // RED in the genuine pre-C211 C210 Mara A/B PDF: P2 EQUIPO has
+        // ZERO real object words even though 34 persisted objects go to C2.
+        // Reuse the approved P2 two-pair paper grid, no truncation, no
+        // invented items, no second quantity or legacy renderer changes.
+        val source = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant,
+                    PcSheetExportStateSelection.PERMANENT), source,
+            )
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-C211-real-equipment-P2-" + variant.name + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val p2 = PDFTextStripper().apply { startPage = 2; endPage = 2 }
+                    .getText(pdf)
+                val firstName = source.permanent.sheet.inventoryItems
+                    .sortedWith(compareBy({ it.sortOrder }, { it.id.toString() }))
+                    .first().name
+                val firstTokens = firstName.split(Regex("\\s+")).take(3)
+                for (token in firstTokens) {
+                    assertTrue(p2.contains(token),
+                        "The first REAL long object must begin on P2: " + token)
+                }
+                val p2ObjectBand = PDFTextStripperByArea().apply {
+                    addRegion("equipment", Rectangle2D.Float(42f, 105f, 258f, 220f))
+                    extractRegions(pdf.getPage(1))
+                }.getTextForRegion("equipment")
+                assertTrue(p2ObjectBand.contains(firstTokens.first()),
+                    "Only the Equipment zone may receive the source-backed item.")
+                assertTrue(p2ObjectBand.lineSequence().count { it.isNotBlank() } >= 5)
+                val texts = (1..pdf.numberOfPages).map { number ->
+                    PDFTextStripper().apply {
+                        startPage = number
+                        endPage = number
+                    }.getText(pdf)
+                }
+                assertTrue(texts.any { it.contains("C2 - Equipo y tesoro") },
+                    "Long Mara inventory still requires measured C2 continuation.")
+                assertTrue(texts.last().lineSequence().any { it.trim() == "NOTAS" },
+                    "Final manuscript page must never be occupied by real items.")
+                assertFalse(texts[2].contains("C2 - Equipo y tesoro"),
+                    "Equipment continuation may not invade narrative P3.")
+            }
+        }
+    }
+
+    @Test
     fun g3C209RealMaraABPrintsC2BeforeOptionalQuickSpellsAsFrozenGolden() {
         // Frozen approved V11 extreme A/B and D-0076 §3.30 place
         // P1/P2 C2 continuations after the narrative base, before P4.

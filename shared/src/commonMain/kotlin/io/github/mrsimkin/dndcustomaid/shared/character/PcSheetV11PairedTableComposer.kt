@@ -67,30 +67,48 @@ object PcSheetV11PairedAmountRouting {
         areaPt: PcSheetV11RectPt,
         gutterPt: Float,
         width: PcSheetV11TextWidth,
+        lineHeightPt: Float = 12f,
     ): PcSheetV11PairedTableData {
         val pairWidth = (areaPt.widthPt - gutterPt) / 2f
         val nameWidth = pairWidth - BASE_AMOUNT_WIDTH_PT - AMOUNT_GAP_PT
-        require(nameWidth > TEXT_INSET_PT)
-        // P2 must be a CONTIGUOUS source-order prefix. Filtering every fitting
-        // row would print a later short item ahead of an earlier long item
-        // deferred to C2. Keep the approved single-line P2 grammar; send the
-        // first ineligible row and all successors to measured C2, preserving
-        // source order, IDs and single-print amount ownership.
-        return source.copy(rows = source.rows.takeWhile { row ->
-            // Source labels with physical breaks cannot be passed to a PDF
-            // glyph-width measurer as a single line: the native Fira font has
-            // no U+000A glyph. Route the ENTIRE row and amount to measured C2
-            // before measuring width, preserving the contiguous source prefix.
+        require(nameWidth > TEXT_INSET_PT && lineHeightPt.isFinite() &&
+            lineHeightPt > 0f)
+        // P2 must be a CONTIGUOUS source-order prefix. Its approved two
+        // LABEL | QUANTITY pairs can hold legibly WRAPPED real item names:
+        // sending all Mara items to C2 merely because their first name
+        // exceeds one narrow line leaves P2 equipment entirely empty.
+        // Measure the WHOLE next source record in the actual bounded P2
+        // compositor, keeping its quantity attached to its FIRST label line.
+        // Stop before the first record that would cross a physical P2 page
+        // or straddle both pairs. Send that whole record plus the ordered
+        // suffix to C2, never skip it to cherry-pick later short records.
+        val result = mutableListOf<PcSheetV11PairedTableRow>()
+        source.rows.forEach { row ->
+            // Preserve the already verified CR/LF/TAB C2 route; never feed
+            // those control glyphs to the single-line P2 source presentation.
             if (row.label.any { it == '\n' || it == '\r' || it == '\t' }) {
-                return@takeWhile false
+                return source.copy(rows = result)
             }
-            val labelWidth = width.measurePt(pcSheetV11PrintableText(row.label))
             val amountWidth = width.measurePt(row.amount.toString())
-            require(labelWidth.isFinite() && amountWidth.isFinite() &&
-                labelWidth >= 0f && amountWidth >= 0f)
-            labelWidth <= nameWidth - TEXT_INSET_PT &&
-                amountWidth <= BASE_AMOUNT_WIDTH_PT - TEXT_INSET_PT
-        })
+            require(amountWidth.isFinite() && amountWidth >= 0f)
+            if (amountWidth > BASE_AMOUNT_WIDTH_PT - TEXT_INSET_PT) {
+                return source.copy(rows = result)
+            }
+            val trial = PcSheetV11PairedTableComposer.place(
+                source.copy(rows = result + row),
+                areaPt, gutterPt, BASE_AMOUNT_WIDTH_PT, AMOUNT_GAP_PT,
+                lineHeightPt, width,
+            )
+            if (trial.localPageCount != 1 || trial.labelFlow.fragments
+                    .groupBy { it.sourceKey }.values.any { fragments ->
+                        fragments.map { it.localPageIndex to it.columnIndex }
+                            .distinct().size != 1
+                    }) {
+                return source.copy(rows = result)
+            }
+            result.add(row)
+        }
+        return source.copy(rows = result)
     }
 
     fun c2AmountWidth(
