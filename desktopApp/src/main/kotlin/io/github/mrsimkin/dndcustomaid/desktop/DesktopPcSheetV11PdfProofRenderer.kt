@@ -768,10 +768,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 "PV TEMP" to source.tempHp.toString(),
                 "DADOS" to p1HitDice,
             )
-            val p1CombatRoutes = p1CombatSourceFields.map { (label, value) ->
+            val p1CombatRoutes = p1CombatSourceFields.mapIndexed { index, (label, value) ->
+                // Six narrow genuine source cards and two wider hit-point
+                // cards. Oversized values retain their real source in C2.
+                val cardWidth = if (index == 4 || index == 5) 129f else 86f
                 PcSheetV11CompactFieldRouter.route(
                     "p1-combat:" + label, label, value,
-                    129f - 8f, body.width,
+                    cardWidth - 12f, body.width,
                 )
             }
             val extraCombatData = buildList {
@@ -1190,17 +1193,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     field.first to p1CombatRoutes[index].paperValue
                 }
                 val left = 312f
-                val bottom = 503f
-                val colWidth = 129f
-                val height = 22f
-                // Frozen V11 golden P1: clipped pale-blue combat banner,
-                // not a floating Fira body label. The genuine App already
-                // reserves y=594..616 for this header, above the table y<=591.
-                // Preserve all source-backed combat fields and existing rows.
-                val combatTitle = "COMBATE Y SUPERVIVENCIA"
-                require(headerPdfFont.getStringWidth(combatTitle) * 11f / 1000f <= 240f) {
-                    "P1 combat heading exceeds its source-free cartela."
-                }
+                val paperTop = 591f
+                // Golden P1 has 3+3+2 real cards. This App persists PV TEMP,
+                // not INSPIRACIÓN: never invent an absent golden state.
+                // First six cards are 86pt wide, bottom two 129pt each.
+                val slots = listOf(
+                    Triple(0, 0, 0), Triple(1, 1, 0), Triple(2, 2, 0),
+                    Triple(3, 0, 1), Triple(6, 1, 1), Triple(7, 2, 1),
+                    Triple(4, 0, 2), Triple(5, 1, 2),
+                )
+                val title = "COMBATE Y SUPERVIVENCIA"
+                require(headerPdfFont.getStringWidth(title) * 11f / 1000f <= 240f)
                 stream.saveGraphicsState()
                 stream.setNonStrokingColor(Color(217, 236, 245))
                 stream.setStrokingColor(Color(80, 122, 151))
@@ -1219,51 +1222,61 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.beginText()
                 stream.setFont(headerPdfFont, 11f)
                 stream.newLineAtOffset(321f, 600f)
-                stream.showText(combatTitle)
+                stream.showText(title)
                 stream.endText()
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.55f)
-                // Golden P1 keeps individually framed combat/survival
-                // metrics, with a clipped-corner C2c language. Retain the
-                // existing two-column, four-row source geometry until the
-                // full golden P1 layout is reconciled, rather than inventing
-                // new fields or relocating the eight persisted values.
-                repeat(4) { row ->
-                    repeat(2) { column ->
-                        val l = left + column * colWidth
-                        val r = l + colWidth
-                        val b = bottom + (3 - row) * height
-                        val t = b + height
-                        val cut = 3f
-                        stream.setNonStrokingColor(
-                            if (row % 2 == 0) Color(238, 247, 251)
-                            else Color(244, 250, 253),
-                        )
-                        stream.moveTo(l + cut, b)
-                        stream.lineTo(r - cut, b)
-                        stream.lineTo(r, b + cut)
-                        stream.lineTo(r, t - cut)
-                        stream.lineTo(r - cut, t)
-                        stream.lineTo(l + cut, t)
-                        stream.lineTo(l, t - cut)
-                        stream.lineTo(l, b + cut)
-                        stream.closePath()
-                        stream.fillAndStroke()
-                    }
+                slots.forEach { (_, col, row) ->
+                    val narrow = row < 2
+                    val rawWidth = if (narrow) 86f else 129f
+                    val rawHeight = if (narrow) 28f else 32f
+                    // 2.4pt gutters, all inside the OLD source paper bounds
+                    // x312..570 and y503..591: do not touch attack tables.
+                    val l = left + col * rawWidth + 1.2f
+                    val r = left + (col + 1) * rawWidth - 1.2f
+                    val t = paperTop - row * 28f - 1.2f
+                    val b = paperTop - row * 28f - rawHeight + 1.2f
+                    require(l >= 312f && r <= 570f && b >= 503f && t <= 591f)
+                    val cut = 3f
+                    stream.setNonStrokingColor(if (row == 1)
+                        Color(244, 250, 253) else Color(238, 247, 251))
+                    stream.moveTo(l + cut, b)
+                    stream.lineTo(r - cut, b)
+                    stream.lineTo(r, b + cut)
+                    stream.lineTo(r, t - cut)
+                    stream.lineTo(r - cut, t)
+                    stream.lineTo(l + cut, t)
+                    stream.lineTo(l, t - cut)
+                    stream.lineTo(l, b + cut)
+                    stream.closePath()
+                    stream.fillAndStroke()
                 }
                 stream.restoreGraphicsState()
-                values.forEachIndexed { index, (label, value) ->
-                    val x = left + (index % 2) * colWidth + 4f
-                    val top = bottom + (4 - index / 2) * height
-                    require(body.width.measurePt(label) <= colWidth - 8f) {
-                        "P1 combat label too wide: " + label
+                slots.forEach { (sourceIndex, col, row) ->
+                    val (label, value) = values[sourceIndex]
+                    val narrow = row < 2
+                    val width = if (narrow) 86f else 129f
+                    val top = paperTop - row * 28f
+                    val x = left + col * width
+                    val labelPt = 9f
+                    require(headerPdfFont.getStringWidth(label) *
+                        labelPt / 1000f <= width - 12f) {
+                        "P1 true source combat label exceeds its real card: " + label
                     }
-                    require(body.width.measurePt(value) <= colWidth - 8f) {
-                        "P1 source combat value cannot fit: " + label
+                    stream.beginText()
+                    stream.setFont(headerPdfFont, labelPt)
+                    stream.newLineAtOffset(x + 5f, top - 10f)
+                    stream.showText(label)
+                    stream.endText()
+                    if (value.isNotEmpty()) {
+                        val measured = body.width.measurePt(value)
+                        require(measured <= width - 12f) {
+                            "P1 combat value must flow into source-backed C2: " + label
+                        }
+                        draw(stream, value, x + (width - measured) / 2f,
+                            top - (if (narrow) 22f else 24f), false)
                     }
-                    draw(stream, label, x, top - 9f, false)
-                    if (value.isNotEmpty()) draw(stream, value, x, top - 19f, false)
                 }
             }
 

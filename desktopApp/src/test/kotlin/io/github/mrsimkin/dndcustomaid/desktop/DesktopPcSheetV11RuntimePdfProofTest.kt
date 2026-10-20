@@ -261,6 +261,32 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun p1GoldenThreeThreeTwoCombatKeepsAllEightRealSourcesWithoutInventingInspiration() {
+        // Check 4 real A/B PDFs; the independent CI PDF oracle verifies
+        // exact 3+3+2 clipped physical cells and source label placement.
+        for (fixture in listOf(
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json",
+            "03_mara_siete_umbrales_custom_extended.json",
+        )) for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources(fixture))
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val p1 = PDFTextStripper().apply {
+                    startPage = 1
+                    endPage = 1
+                }.getText(pdf)
+                listOf("CA", "INICIATIVA", "VELOCIDAD", "COMPETENCIA",
+                    "PV ACTUALES", "PV MÁXIMOS", "PV TEMP", "DADOS").forEach {
+                    assertTrue(p1.contains(it), "Lost real P1 combat source: " + it)
+                }
+                assertFalse(p1.contains("INSPIRACIÓN"),
+                    "Unpersisted golden INSPIRACIÓN must stay absent.")
+            }
+        }
+    }
+
+    @Test
     fun actualP1CombatHasFrozenClippedBlueTitleWithoutReflowingSourceCards() {
         // Frozen golden B P1: pale-blue 8-segment stroked+filled combat banner
         // x270.425..572.315/y180.850..203.811 (top-origin). Our source-backed

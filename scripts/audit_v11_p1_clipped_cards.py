@@ -10,9 +10,19 @@ import fitz
 INK = (80/255, 122/255, 151/255)
 IDENTITY = [(158, 87, 570, 115), (158, 117, 284, 145),
             (295, 117, 421, 145), (432, 117, 570, 145)]
-COMBAT = [(312 + col*129, 201 + row*22,
-           441 + col*129, 223 + row*22)
-          for row in range(4) for col in range(2)]
+# Frozen P1 3+3+2 actual app positions, PDF top-origin.
+COMBAT = [
+    (312 + col*(86 if row < 2 else 129) + 1.2,
+     201 + row*28 + 1.2,
+     312 + (col+1)*(86 if row < 2 else 129) - 1.2,
+     201 + row*28 + (28 if row < 2 else 32) - 1.2)
+    for row in range(3) for col in range(3 if row < 2 else 2)
+]
+LABELS = [
+    ("CA", 0, 0), ("INICIATIVA", 1, 0), ("VELOCIDAD", 2, 0),
+    ("COMPETENCIA", 0, 1), ("PV", 1, 1), ("DADOS", 2, 1),
+    ("PV", 0, 2), ("PV", 1, 2),
+]
 
 
 def near_rect(a, b, tolerance=.8):
@@ -50,6 +60,18 @@ def physical_p1(pdf_bytes):
                   if missing_id else [])
         if missing_combat:
             errors.append("P1 combat missing clipped source cells: "+str(missing_combat))
+        # Printed SOURCE labels must be inside their actual cards.
+        # Numeric values may be deferred to measured C2 when too wide.
+        words = page.get_text("words")
+        for label, col, row in LABELS:
+            width = 86 if row < 2 else 129
+            left = 312 + col*width
+            top = 201 + row*28
+            in_card = [w[4] for w in words
+                       if left <= w[0] and w[2] <= left+width
+                       and top <= w[1] and w[3] <= top+(28 if row < 2 else 32)]
+            if label not in in_card:
+                errors.append(f"P1 real {label} outside card row={row},col={col}")
         return dict(errors=errors, identities=len(IDENTITY)-len(missing_id),
                     combat=len(COMBAT)-len(missing_combat))
 
@@ -67,7 +89,7 @@ def main():
         records.append(dict(file=path.name, sha256=hashlib.sha256(data).hexdigest(),
                             **physical_p1(data)))
     failures = [r for r in records if r["errors"]]
-    report = dict(scope="P1 C2c identity and combat physical clipped frames only, NOT G4/owner PASS",
+    report = dict(scope="P1 C2c identity plus 3+3+2 real combat sources, NOT G4/owner PASS",
                   pdfs=len(paths), valid=len(records)-len(failures),
                   identity_frames=sum(r["identities"] for r in records),
                   combat_cells=sum(r["combat"] for r in records),
