@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-20",
+  "status": "PASS_LOCAL_PHYSICAL_ONLY",
+  "scope": "P4 last level9 measured manuscript continuation, NOT G4 or owner approval",
+  "code_commit": "4aeb4b20b875761ad129f0706d086564df5b1dce",
+  "verified_test_commit": "4379b859d7745c4a61ed99805b5a90cad1fc4cc7",
+  "initial_run": {
+    "id": 39503168589,
+    "status": "failure",
+    "reason": "one strict prior fixed-count test expected 132 squares, observed 139 (+7 Ilyra paper rows); renderer and Android compiled"
+  },
+  "exact_runs": {
+    "scaffold": {
+      "id": 39504035835,
+      "conclusion": "success"
+    },
+    "traceability": {
+      "id": 39504035780,
+      "conclusion": "success"
+    }
+  },
+  "artifacts": {
+    "old_pdfs": {
+      "id": 12301641077,
+      "sha256": "51c4c7a102bf7c695fed6ea259b4d9444b9528923c511d37669a826d1c1b9df8"
+    },
+    "new_pdfs": {
+      "id": 12302848879,
+      "sha256": "88c958c9be22f66050a13f88182372a585ac097eb2160e497a8441a63aea7e2a"
+    },
+    "physical_audit": {
+      "id": 12302982885,
+      "sha256": "7787e66e837f5f24b976cd0b32a97ffe3153b6227006d23c87ed5e363ec1a70e",
+      "p4_audit_json_sha256": "345d3bde8c215847465a565c46f2824a8acc09580772d4bb1fed0f125a04d399"
+    },
+    "local_comparison_sha256": "b3e3ee8b9ce95e92b8b4c9265b7eb4f1b8c6ded2d844eb6f97230bcdd1e026d2"
+  },
+  "physical_diff": {
+    "pdfs": 76,
+    "pages": 711,
+    "unchanged_words_and_coordinates": 711,
+    "non_p4_pages_same_vectors": 662,
+    "p4_pages_original_vectors_preserved": 49,
+    "dense_p4_pages_unchanged": 8,
+    "eligible_p4_single_page_last_level9": 41,
+    "actually_extended_p4_pages": 39,
+    "previously_full_p4_pages": 2,
+    "added_manuscript_rows": 269,
+    "added_vector_operations": 807,
+    "errors": 0
+  },
+  "audited_original_p4_rules": {
+    "casters": 45,
+    "failures": 0,
+    "checked_last_level9_bands": 41,
+    "existing_level_context_cards_preserved": 94,
+    "levels_0_to_9": true,
+    "nine_ESPs_and_27_vector_squares": true
+  },
+  "examples": {
+    "Ilyra_B": {
+      "physical_page": 6,
+      "old_bottom_y": 619.7,
+      "new_bottom_y": 706.64,
+      "extra_rows": 7
+    },
+    "Mara_B": {
+      "physical_page": 7,
+      "old_bottom_y": 607.28,
+      "new_bottom_y": 706.64,
+      "extra_rows": 8
+    }
+  },
+  "limits": {
+    "g0": "PARTIAL",
+    "g1": "prior semantic PASS only",
+    "g2": "PARTIAL",
+    "g3": "PARTIAL, local subfeature PASS only",
+    "g4": "BLOCKED 105/105 NOT_VERIFIED active_candidate=null",
+    "g5": "NOT_STARTED",
+    "g6": "NOT_STARTED",
+    "c211": "BLOCKED 3/3 ordinary, RCR-1 structural 0/2",
+    "android_installed": false,
+    "owner_accepted": false,
+    "global_golden_parity": false,
+    "pr173": "OPEN DRAFT UNMERGED"
+  }
+}
