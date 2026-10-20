@@ -1852,6 +1852,45 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 val attrIndex = group
                                     ?.removePrefix("custom-attribute-group:")
                                     ?.toIntOrNull()
+                                // A source group can cross a PHYSICAL C2 column after its blue
+                                // cartela was printed in the preceding column. Repeat only
+                                // its true group identity in the existing free header band,
+                                // never a source row, UUID, count or invented game state.
+                                // Custom attributes have their own source-specific caption.
+                                if (attrIndex == null && firstCell != null &&
+                                    !firstCell.sourceKey.startsWith("c2-heading:")) {
+                                    val sourcePosition = entries.indexOfFirst {
+                                        it.sourceKey == firstCell.sourceKey
+                                    }
+                                    val precedingHeading = if (sourcePosition > 0)
+                                        entries.take(sourcePosition).lastOrNull {
+                                            it.sourceKey.startsWith("c2-heading:")
+                                        } else null
+                                    if (precedingHeading != null) {
+                                        val fontPt = 7f
+                                        val shortName = precedingHeading.text
+                                            .substringBefore(" / ").substringBefore(",")
+                                        val context = listOf(
+                                            "CONTINÚA: " + precedingHeading.text,
+                                            "CONTINÚA: " + shortName,
+                                        ).firstOrNull { candidate ->
+                                            bodyPdfFont.getStringWidth(
+                                                pcSheetV11PrintableText(candidate)
+                                            ) * fontPt / 1000f <= column.widthPt - 4f
+                                        }
+                                        requireNotNull(context) {
+                                            "C2 source group continuation cannot fit the existing header band."
+                                        }
+                                        stream.saveGraphicsState()
+                                        stream.setNonStrokingColor(Color(80, 122, 151))
+                                        stream.beginText()
+                                        stream.setFont(bodyPdfFont, fontPt)
+                                        stream.newLineAtOffset(column.leftPt + 2f, 707f)
+                                        stream.showText(pcSheetV11PrintableText(context))
+                                        stream.endText()
+                                        stream.restoreGraphicsState()
+                                    }
+                                }
                                 if (attrIndex != null) {
                                     val original = flow.cells.firstOrNull {
                                         it.sourceKey == "attribute:" + attrIndex

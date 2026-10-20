@@ -4759,6 +4759,56 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3C210RealMaraABPreservesSourceGroupNameAtC2ColumnBreak() {
+        // RED on prior genuine C209 A/B app PDFs: right-hand source text
+        // starts with RECURSO but its true blue group cartela stayed left.
+        // This is only a paper navigation label, never another source record.
+        val source = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                ), source,
+            )
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-C210-source-group-continuation-" +
+                    variant.name + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { number ->
+                    PDFTextStripper().apply {
+                        startPage = number
+                        endPage = number
+                    }.getText(pdf)
+                }
+                assertEquals(9, pages.size,
+                    "A source-only C2 header must not create or remove pages.")
+                val c2Index = pages.indexOfFirst {
+                    it.contains("C2 - Habilidades, acciones y recursos")
+                }
+                assertTrue(c2Index >= 0, "Mara's real mixed C2 was lost.")
+                val physicalRightHeader = PDFTextStripperByArea().apply {
+                    addRegion("right-band",
+                        Rectangle2D.Float(310f, 73f, 260f, 34f))
+                    extractRegions(pdf.getPage(c2Index))
+                }.getTextForRegion("right-band")
+                assertTrue(
+                    physicalRightHeader.contains("CONTINÚA: RECURSOS Y MUNICIONES"),
+                    "A continued real resource group requires its label in " +
+                        "the RESERVED right C2 header, not an anonymous paragraph.",
+                )
+                val c2Text = pages[c2Index]
+                assertTrue(c2Text.contains("RECURSO Reserva 3"),
+                    "Group context may not remove real Mara resource records.")
+                assertEquals(1,
+                    Regex(Regex.escape("CONTINÚA: RECURSOS Y MUNICIONES"))
+                        .findAll(c2Text).count(),
+                    "A physical C2 source-group header must not duplicate itself.")
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+            }
+        }
+    }
+
+    @Test
     fun g3MixedC2ActualAldrenIlyraMaraNavigationKeepsTrueP1AndP2Origins() {
         for ((fixture, variant) in listOf(
             "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
