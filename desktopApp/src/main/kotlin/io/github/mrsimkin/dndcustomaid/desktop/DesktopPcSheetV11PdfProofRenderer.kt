@@ -1594,9 +1594,21 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.addRect(rect.leftPt, rect.bottomPt,
                     rect.widthPt, rect.heightPt)
                 stream.fill()
+                // Golden P3 alternating blue-mist handwriting ROWS.
+                // Paper-only fills precede existing measured ruled baselines
+                // and source glyphs; no added text/rows/pagination.
+                val rows = (rect.heightPt / lineHeight).toInt()
+                stream.setNonStrokingColor(Color(231, 242, 247))
+                for (row in 0 until rows step 2) {
+                    val top = rect.topPt - row * lineHeight
+                    val bottom = maxOf(rect.bottomPt, top - lineHeight)
+                    if (top > bottom) {
+                        stream.addRect(rect.leftPt, bottom, rect.widthPt, top-bottom)
+                        stream.fill()
+                    }
+                }
                 stream.setStrokingColor(Color(174, 203, 220))
                 stream.setLineWidth(0.35f)
-                val rows = (rect.heightPt / lineHeight).toInt()
                 for (row in 1..rows) {
                     val y = rect.topPt - row * lineHeight
                     if (y >= rect.bottomPt) {
@@ -1621,6 +1633,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         PcSheetV11RectPt(rect.leftPt + 1f, rect.bottomPt + 1f,
                             rect.widthPt - 2f, rect.heightPt - 18f),
                         body.metrics.lineHeightPt)
+                    // Restore the frozen golden blue field-title band
+                    // INSIDE the pre-existing 17pt label reservation.
+                    stream.saveGraphicsState()
+                    stream.setNonStrokingColor(Color(231, 242, 247))
+                    stream.addRect(rect.leftPt + 1f, rect.topPt - 17f,
+                        rect.widthPt - 2f, 16f)
+                    stream.fill()
+                    stream.restoreGraphicsState()
                     // Section labels are genuine Barlow Condensed, not
                     // Fira Sans values. Enforce width with the embedded
                     // PDF font before changing their physical typography.

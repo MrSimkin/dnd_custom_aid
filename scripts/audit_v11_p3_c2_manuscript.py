@@ -16,6 +16,7 @@ from pathlib import Path
 import fitz
 
 PALE = (0.93333, 0.96863, 0.98431)
+GOLDEN_ROW = (231/255, 242/255, 247/255)
 
 
 def close(a: float, b: float, tolerance: float = 0.16) -> bool:
@@ -79,6 +80,47 @@ def p3_result(page: fitz.Page) -> tuple[int, int, list[str]]:
                     + repr(word[4]) + f" bbox={tuple(round(x, 2) for x in word[:4])}"
                 )
     return len(areas), matched, failures
+
+
+def p3_golden_row_grammar(page: fitz.Page, first_page: bool) -> tuple[int,int,list[str]]:
+    """Verify 6 real P3 golden title panels and alternating measured paper."""
+    color_fills = [
+        dr["rect"] for dr in page.get_drawings()
+        if dr["type"] == "f" and dr.get("fill") is not None
+        and all(close(dr["fill"][i], GOLDEN_ROW[i], .013) for i in range(3))
+    ]
+    def found(x,y,w,h,xy_tol=.42,height_tol=.42):
+        return any(close(r.x0,x,xy_tol) and close(r.y0,y,xy_tol)
+                   and close(r.width,w,xy_tol) and close(r.height,h,height_tol)
+                   for r in color_fills)
+    def stripe(x,y,w):
+        return any(close(r.x0,x,.42) and close(r.y0,y,.42)
+                   and close(r.width,w,.42) and 9 < r.height < 15
+                   for r in color_fills)
+    errors=[]
+    headings=0
+    stripes=0
+    if first_page:
+        # PDF top-origin: golden-preserved first-page 3 paired fields.
+        for y in (121.,184.,247.):
+            for x in (43.,313.):
+                if found(x,y,256.,16.): headings+=1
+                else: errors.append(f"P3 golden title band missing at {x},{y}")
+        for y in (137.,200.,263.):
+            for x in (43.,313.):
+                if stripe(x,y,256.): stripes+=1
+                else: errors.append(f"P3 alternating field row missing at {x},{y}")
+        for x in (47.,312.):
+            if stripe(x,343.,253.): stripes+=1
+            else: errors.append(f"P3 alternating story row missing at x={x}")
+    else:
+        # Long true-source P3 continuation: both columns must retain style.
+        for x in (42.,312.):
+            if any(close(r.x0,x,.42) and r.width>230
+                   and 110<r.y0<150 and 9<r.height<15
+                   for r in color_fills): stripes+=1
+            else: errors.append(f"P3 continuation missing alternating rows x={x}")
+    return headings,stripes,errors
 
 
 def c2_result(page: fitz.Page) -> tuple[int, int, list[str]]:
@@ -171,6 +213,7 @@ def audit(pdf_files: list[Path], minimum_pdfs: int) -> dict:
         "scope": "physical P305/C207/C208 only; not all golden, Android or G4",
         "pdf_count": 0,
         "p3_pages": 0, "p3_shaded_bands": 0, "p3_aligned_words": 0,
+        "p3_golden_field_title_bands": 0, "p3_golden_alternate_rows": 0,
         "c2_pages": 0, "c2_notes_cartelas": 0, "c2_complete_grids": 0,
         "failures": [], "pdfs": [],
     }
@@ -191,6 +234,11 @@ def audit(pdf_files: list[Path], minimum_pdfs: int) -> dict:
                 areas, aligned, failures = p3_result(page)
                 result["p3_shaded_bands"] += areas
                 result["p3_aligned_words"] += aligned
+                headings, stripes, new_failures = p3_golden_row_grammar(
+                    page, first_page=role.startswith("P3 - Trasfondo"))
+                result["p3_golden_field_title_bands"] += headings
+                result["p3_golden_alternate_rows"] += stripes
+                failures.extend(new_failures)
             elif role.startswith("C2 - "):
                 result["c2_pages"] += 1
                 cartelas, complete, failures = c2_result(page)
