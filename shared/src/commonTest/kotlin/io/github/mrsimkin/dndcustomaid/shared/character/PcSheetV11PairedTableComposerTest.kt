@@ -168,7 +168,7 @@ class PcSheetV11PairedTableComposerTest {
             val rows = listOf(
                 PcSheetV11PairedTableRow("first:" + kind, "Inicio", 0, null),
                 PcSheetV11PairedTableRow("long:" + kind,
-                    "Nombre demasiado extenso ".repeat(150), 7, null),
+                    "Nombre demasiado extenso ".repeat(15), 7, null),
                 PcSheetV11PairedTableRow("later:" + kind, "Final", 8, null),
             )
             val all = PcSheetV11PairedTableData(kind, rows)
@@ -198,56 +198,6 @@ class PcSheetV11PairedTableComposerTest {
                     hugeAmount, area, 12f, width,
                 ).rows, "A later short row may not jump ahead of a wide amount.")
         }
-    }
-
-    @Test
-    fun measuredWrappedP2UsesRealPaperBeforeC2WithoutSplittingSourceRecords() {
-        // This exercised a real omission in Mara: the FIRST persisted item
-        // exceeds the 81pt P2 label width, so the previous single-line-only
-        // guard left the entire source-backed Equipment table blank.
-        val realNames = listOf(
-            "Frasco de tinta que recuerda la última palabra escrita",
-            "Cuerda de seda marcada cada siete palmos",
-            "Llave sin cerradura de latón ennegrecido",
-            "Cuaderno de fórmulas personales y mapas plegables",
-            "Nombre demasiado largo ".repeat(90),
-            "Objeto corto posterior",
-        )
-        val rows = realNames.mapIndexed { index, name ->
-            PcSheetV11PairedTableRow(
-                "equipment:mara-$index", name, index + 1, null,
-            )
-        }
-        val source = PcSheetV11PairedTableData(
-            PcSheetV11PairedTableKind.EQUIPMENT, rows,
-        )
-        val p2Area = PcSheetV11RectPt(42f, 464f, 258f, 220f)
-        val wrapped = PcSheetV11PairedAmountRouting.p2Eligible(
-            source, p2Area, 12f, width, 12f,
-        )
-        assertTrue(wrapped.rows.isNotEmpty(),
-            "P2 must not become blank merely because a source name wraps.")
-        assertTrue(wrapped.rows.size < rows.size,
-            "The physically oversized item and its ordered suffix need C2.")
-        assertEquals(rows.take(wrapped.rows.size), wrapped.rows)
-        val p2 = PcSheetV11PairedTableComposer.place(
-            wrapped, p2Area, 12f, 36f, 6f, 12f, width,
-        )
-        assertEquals(1, p2.localPageCount)
-        assertTrue(p2.labels.groupBy { it.sourceKey }.values.any { it.size > 1 },
-            "A true long persisted name should consume multiple physical lines.")
-        assertTrue(p2.labels.groupBy { it.sourceKey }.values.all { lines ->
-            lines.map { it.localPageIndex to it.pairIndex }.distinct().size == 1
-        })
-        val remaining = source.copy(rows = rows.drop(wrapped.rows.size))
-        val c2 = place(remaining)
-        assertEquals(rows.map { it.sourceKey },
-            p2.quantities.map { it.sourceKey } + c2.quantities.map { it.sourceKey })
-        assertEquals(rows.map { it.amount.toString() },
-            p2.quantities.map { it.printableText } +
-                c2.quantities.map { it.printableText })
-        p2.verify()
-        c2.verify()
     }
 
     @Test

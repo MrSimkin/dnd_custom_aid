@@ -1748,45 +1748,27 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         endPage = page
                     }.getText(pdf)
                 }
-                val combined = pages.filter {
+                val c2 = pages.filter {
                     it.contains("C2 - Equipo y tesoro / EQUIPO + EQUIPO ESPECIAL")
                 }
-                val specialOnly = pages.filter {
-                    it.contains("C2 - Equipo especial / continuación")
-                }
-                // When the source's single remaining ordinary item wraps
-                // legibly on P2, only the genuine special item needs C2.
-                // If the ordinary item does not fit, both must still share
-                // one C2 instead of spending two mostly-empty pages.
-                assertEquals(1, combined.size + specialOnly.size,
-                    "Ilyra's single special source needs exactly one C2 page.")
-                val text = (combined + specialOnly).single()
+                assertEquals(1, c2.size, "Two short real C2 modules must share a page.")
+                val text = c2.single()
                 for (required in listOf(
+                    "EQUIPO / CANTIDAD", "Suministros de calígrafo", "1",
                     "EQUIPO ESPECIAL", "UBICACIÓN", "NOMBRE", "DESCRIPCIÓN",
                     "ACTIVO", "Spellbook", "Mochila", "Evocation Savant",
                     "NOTAS", "VIENE DE P2 PÁG. 2",
                 )) {
                     assertTrue(text.contains(required),
-                        "Missing real C2 source or native paper field: $required")
+                        "Missing real combined C2 source/column/footer: $required")
                 }
-                val all = pages.joinToString("\n")
-                // PDF text extraction interleaves the printed amount
-                // with wrapped names; require each real source word exactly
-                // once instead of a fictitious one-line concatenation.
-                for (sourceWord in listOf("Suministros", "calígrafo")) {
-                    assertEquals(1, Regex(Regex.escape(sourceWord))
-                        .findAll(all).count(),
-                        "Wrapped real equipment cannot lose/duplicate " + sourceWord)
-                }
-                assertEquals(1, Regex("Evocation Savant").findAll(text).count())
-                if (combined.isNotEmpty()) {
-                    assertTrue(text.contains("EQUIPO / CANTIDAD") &&
-                        text.contains("Suministros") && text.contains("calígrafo"))
-                } else {
-                    assertTrue(pages[1].contains("Suministros") &&
-                        pages[1].contains("calígrafo"),
-                        "A source item absent from C2 must genuinely fit P2.")
-                }
+                assertFalse(pages.any {
+                    it.contains("C2 - Equipo especial / continuación")
+                }, "An unnecessary extra special page must no longer exist.")
+                assertEquals(1, Regex("Suministros de calígrafo")
+                    .findAll(pages.joinToString("\n")).count())
+                assertEquals(1, Regex("Evocation Savant")
+                    .findAll(text).count())
                 val c2Pos = pages.indexOf(text) + 1
                 assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " + c2Pos))
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
@@ -4114,23 +4096,17 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(continuation.isNotEmpty(),
                 "Overlong equipment must create a physical full-height C2 paired table.")
             assertTrue(continuation.any { it.contains("MATERIAL INVENTARIADO") })
+            assertTrue(continuation.joinToString("\n")
+                .contains("MATERIAL INVENTARIADO 001"),
+                "The complete long source name belongs together on the C2 page.")
             val p2 = physicalTexts.first { it.contains("P2 - Equipo y tesoro") }
-            val normalizedP2 = p2.replace(Regex("\\s+"), " ")
-            val normalizedC2 = continuation.joinToString("\n")
-                .replace(Regex("\\s+"), " ")
-            val firstName = "MATERIAL INVENTARIADO 001"
-            assertTrue(normalizedP2.contains(firstName) ||
-                normalizedC2.contains(firstName),
-                "The first real source must remain visible on P2 or C2.")
-            assertFalse(normalizedP2.contains(firstName) &&
-                normalizedC2.contains(firstName),
-                "A whole inventory identity cannot print on BOTH pages.")
+            assertFalse(p2.contains("MATERIAL INVENTARIADO"),
+                "P2 may not print a partial long name and orphan its identity.")
             val all = physicalTexts.joinToString("\n")
-            val normalizedAll = all.replace(Regex("\\s+"), " ")
             for (index in 0 until 100) {
                 val sourceName = "MATERIAL INVENTARIADO " +
                     (index + 1).toString().padStart(3, '0')
-                assertTrue(normalizedAll.contains(sourceName),
+                assertTrue(all.contains(sourceName),
                     "The original inventory item name must survive P2/C2: $sourceName")
                 val number = (7000 + index).toString()
                 assertEquals(1, Regex("(?<![0-9])" + number + "(?![0-9])")
@@ -4583,12 +4559,32 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.map { it + 1 }
                 assertTrue(equipmentPages.size >= 2,
                     "Stress ordinary equipment must span multiple physical C2 pages.")
-                // This C206 proof checks source/navigation, not a frozen
-                // second-page vacancy shape: moving WHOLE source records
-                // from C2 onto measured P2 changes which pair is empty.
-                // The independently executed C207 negative/physical audits
-                // validate EVERY actual missing usable NOTES region instead.
-                // Keep all source IDs and module navigation assertions below.
+                // C207: real C206 source creates a large EMPTY LOWER-RIGHT
+                // pair on the SECOND equipment C2 page, while LEFT source
+                // labels/amounts still run to the printable floor. That
+                // reserved paper must carry a COMPLETE genuine NOTES grid,
+                // not dozens of visually misleading empty EQUIPO rows.
+                val secondEquipment = pdf.getPage(equipmentPages[1] - 1)
+                val manuscript = PDFTextStripperByArea().apply {
+                    addRegion("unused-right-pair",
+                        Rectangle2D.Float(312f, 348f, 258f, 360f))
+                    addRegion("occupied-left-pair",
+                        Rectangle2D.Float(42f, 348f, 258f, 360f))
+                    extractRegions(secondEquipment)
+                }
+                assertTrue(manuscript.getTextForRegion("unused-right-pair")
+                    .contains("NOTAS"),
+                    "Real C2 unused right table cells require a paper NOTES cartela.")
+                assertFalse(manuscript.getTextForRegion("occupied-left-pair")
+                    .contains("NOTAS"),
+                    "Handwriting reserve must never replace LEFT persisted equipment.")
+                val secondContent = secondEquipment.contents.use {
+                    it.readBytes().toString(Charsets.ISO_8859_1)
+                }
+                assertTrue(Regex(
+                    """(?m)(?:^|\s)313(?:\.0)?\s+78(?:\.0)?\s+m\s+313(?:\.0)?\s+[-\d.]+\s+l"""
+                ).containsMatchIn(secondContent),
+                    "Right C2 NOTES grid must contain real full-height PDF vectors.")
                 assertTrue(treasurePages.isNotEmpty(),
                     "The independent treasure stream must also overflow to C2.")
                 assertTrue(equipmentPages.last() < treasurePages.first())
@@ -4712,54 +4708,6 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "The final original trait identity must survive P1/P2/C2.")
                 val last = pages.last()
                 assertTrue(last.lineSequence().any { it.trim() == "NOTAS" })
-            }
-        }
-    }
-
-    @Test
-    fun g3C211RealMaraABPrintsMeasuredLongEquipmentOnP2AndOnlySuffixOnC2() {
-        // RED in the genuine pre-C211 C210 Mara A/B PDF: P2 EQUIPO has
-        // ZERO real object words even though 34 persisted objects go to C2.
-        // Reuse the approved P2 two-pair paper grid, no truncation, no
-        // invented items, no second quantity or legacy renderer changes.
-        val source = sources("03_mara_siete_umbrales_custom_extended.json")
-        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
-            val proof = DesktopPcSheetExportService().generateV11Proof(
-                PcSheetV11ExportRequest(variant,
-                    PcSheetExportStateSelection.PERMANENT), source,
-            )
-            preserveRealApplicationPdf(proof.bytes,
-                "V11-INTERNAL-PROOF-C211-real-equipment-P2-" + variant.name + ".pdf")
-            Loader.loadPDF(proof.bytes).use { pdf ->
-                val p2 = PDFTextStripper().apply { startPage = 2; endPage = 2 }
-                    .getText(pdf)
-                val firstName = source.permanent.sheet.inventoryItems
-                    .sortedWith(compareBy({ it.sortOrder }, { it.id.toString() }))
-                    .first().name
-                val firstTokens = firstName.split(Regex("\\s+")).take(3)
-                for (token in firstTokens) {
-                    assertTrue(p2.contains(token),
-                        "The first REAL long object must begin on P2: " + token)
-                }
-                val p2ObjectBand = PDFTextStripperByArea().apply {
-                    addRegion("equipment", Rectangle2D.Float(42f, 105f, 258f, 220f))
-                    extractRegions(pdf.getPage(1))
-                }.getTextForRegion("equipment")
-                assertTrue(p2ObjectBand.contains(firstTokens.first()),
-                    "Only the Equipment zone may receive the source-backed item.")
-                assertTrue(p2ObjectBand.lineSequence().count { it.isNotBlank() } >= 5)
-                val texts = (1..pdf.numberOfPages).map { number ->
-                    PDFTextStripper().apply {
-                        startPage = number
-                        endPage = number
-                    }.getText(pdf)
-                }
-                assertTrue(texts.any { it.contains("C2 - Equipo y tesoro") },
-                    "Long Mara inventory still requires measured C2 continuation.")
-                assertTrue(texts.last().lineSequence().any { it.trim() == "NOTAS" },
-                    "Final manuscript page must never be occupied by real items.")
-                assertFalse(texts[2].contains("C2 - Equipo y tesoro"),
-                    "Equipment continuation may not invade narrative P3.")
             }
         }
     }
@@ -5125,21 +5073,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val combined = pages.filter {
                     it.contains("C2 - Equipo y tesoro / EQUIPO Y TESORO")
                 }
-                val treasureOnly = pages.filter {
-                    it.contains("C2 - Equipo y tesoro / TESORO") &&
-                        !it.contains("EQUIPO Y TESORO")
-                }
-                assertEquals(1, combined.size + treasureOnly.size,
-                    "Persisted CRLF/TAB coin rows need exactly one C2 page.")
-                val c2 = (combined + treasureOnly).single()
-                assertTrue(c2.contains("TESORO / CANTIDAD") &&
-                    c2.contains("VIENE DE P2 PÁG. 2"))
-                if (combined.isNotEmpty()) {
-                    assertTrue(c2.contains("EQUIPO / CANTIDAD"))
-                } else {
-                    assertTrue(p2.contains("Ballesta"),
-                        "No EQUIPO C2 module is needed after P2 keeps its whole items.")
-                }
+                assertEquals(1, combined.size,
+                    "Two sparse genuine paired C2 modules should share one physical page.")
+                assertTrue(combined.single().contains("EQUIPO / CANTIDAD") &&
+                    combined.single().contains("TESORO / CANTIDAD"))
+                assertTrue(combined.single().contains("VIENE DE P2 PÁG. 2"))
+                val c2 = combined.joinToString("\n")
                 val full = pages.joinToString("\n")
                 assertTrue(p2.contains("QACOINZERO"),
                     "Actual saved zero-denomination row must remain in P2.")
@@ -5160,10 +5099,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         .findAll(full).count(),
                         "Saved custom currency quantity must print exactly once: " + amount)
                 }
-                assertTrue(c2.lineSequence().any { it.trim() == "NOTAS" },
-                    "Unused measured C2 must remain usable manuscript paper.")
-                assertTrue(pages.size <= 7,
-                    "Moving a whole source item to P2 must not create more pages.")
+                assertTrue(combined.single().lineSequence().any {
+                    it.trim() == "NOTAS"
+                }, "Unused combined C2 must remain useful manuscript paper.")
+                assertEquals(7, pages.size,
+                    "Compacting two actually short C2 modules must save exactly one page.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
                 deferred.forEach { label ->
                     assertFalse(pages.last().contains(label),

@@ -2314,9 +2314,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 input: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData,
                 area: PcSheetV11RectPt,
             ): io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData =
-                PcSheetV11PairedAmountRouting.p2Eligible(
-                    input, area, 12f, body.width, body.metrics.lineHeightPt,
-                )
+                PcSheetV11PairedAmountRouting.p2Eligible(input, area, 12f, body.width)
             val inventoryPlaced = PcSheetV11PairedTableComposer.place(
                 rowsForP2(completeEquipment, equipmentArea),
                 equipmentArea, 12f, 36f, 6f, body.metrics.lineHeightPt, body.width,
