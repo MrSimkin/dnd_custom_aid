@@ -4706,7 +4706,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         // P1/P2 C2 continuations after the narrative base, before P4.
         // Prove the ACTUAL Desktop service's physical pages and P2 backlink,
         // not a source-only Kotlin role list or synthetic golden PDF.
-        val source = sources("03_mara_multiclass_custom_multisource.json")
+        val source = sources("03_mara_siete_umbrales_custom_extended.json")
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
             val request = PcSheetV11ExportRequest(
                 variant, PcSheetExportStateSelection.PERMANENT,
