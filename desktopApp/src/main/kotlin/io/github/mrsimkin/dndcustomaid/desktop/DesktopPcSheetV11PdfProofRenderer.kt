@@ -2052,6 +2052,67 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             }
                             stream.restoreGraphicsState()
                         }
+                        // BK07: approved V11 spellbook cards are distinct
+                        // clipped-corner physical panels, not unframed prose.
+                        // The existing measured cell envelopes and source text
+                        // remain IMMUTABLE: this paints behind them only and
+                        // never changes a page/column, entry offset or font.
+                        // A split spell receives one panel per actual fragment,
+                        // without repeating its title or description.
+                        if (title == "Libro de conjuros") {
+                            val originals = entries.associate {
+                                it.sourceKey to it.text
+                            }
+                            val bookParts = pageCells.filter {
+                                it.sourceKey.startsWith("book:")
+                            }.groupBy { it.columnIndex to it.sourceKey }
+                            stream.saveGraphicsState()
+                            bookParts.forEach { (identity, partCells) ->
+                                val column = flow.columnsPt[identity.first - 1]
+                                val left = column.leftPt - 4f
+                                val right = column.rightPt + 4f
+                                val top = partCells.maxOf { it.cellPt.topPt }
+                                val bottom = partCells.minOf { it.cellPt.bottomPt }
+                                require(top - bottom >= body.metrics.lineHeightPt - 0.1f)
+                                require(left >= 35f && right <= 577f &&
+                                    top <= 703f && bottom >= 75.5f) {
+                                    "V11 book card cannot escape the approved Letter paper area."
+                                }
+                                val cut = minOf(4f, (top - bottom) / 4f)
+                                stream.setNonStrokingColor(Color.WHITE)
+                                stream.setStrokingColor(Color(38, 75, 104))
+                                stream.setLineWidth(0.55f)
+                                stream.moveTo(left + cut, bottom)
+                                stream.lineTo(right - cut, bottom)
+                                stream.lineTo(right, bottom + cut)
+                                stream.lineTo(right, top - cut)
+                                stream.lineTo(right - cut, top)
+                                stream.lineTo(left + cut, top)
+                                stream.lineTo(left, top - cut)
+                                stream.lineTo(left, bottom + cut)
+                                stream.closePath()
+                                stream.fillAndStroke()
+                                // The real title and level occupy the source
+                                // prefix before DESCRIPCIÓN, not a fabricated
+                                // school or technical spell field. Shade only
+                                // those EXISTING measured lines; no duplicate
+                                // text and no invented per-card header row.
+                                val raw = originals.getValue(identity.second)
+                                val descriptionStart = raw.indexOf("DESCRIPCIÓN:")
+                                require(descriptionStart >= 0) {
+                                    "V11 essential book card lost its source section label."
+                                }
+                                stream.setNonStrokingColor(Color(231, 242, 247))
+                                partCells.filter {
+                                    it.sourceStartOffset < descriptionStart
+                                }.forEach { headingCell ->
+                                    stream.addRect(left + 1f, headingCell.cellPt.bottomPt,
+                                        right - left - 2f, headingCell.cellPt.heightPt)
+                                    stream.fill()
+                                }
+                            }
+                            stream.restoreGraphicsState()
+                        }
                         pageCells.forEach { cell ->
                             // The approved P4 has a blank handwritten ESP. line
                             // meter and THREE small blank squares per magic
