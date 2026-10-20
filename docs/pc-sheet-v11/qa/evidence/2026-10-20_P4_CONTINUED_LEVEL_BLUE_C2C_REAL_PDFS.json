@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "date": "2026-10-20",
+  "status": "PASS_LOCAL_RESTRICTED_ONLY",
+  "scope": "P4 level continuation source-neutral blue C2c context paper; neither G4 nor owner PASS",
+  "functional_commit": "d851c47da22fecd1f9749091d21a31369e2dfb03",
+  "golden": {
+    "pdf": "V11_Carta/pdfs/v11_ordinario_6mas2_variante_B.pdf",
+    "page": 4,
+    "zip_sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a"
+  },
+  "baseline": {
+    "commit": "206c2dba5368ef359b123c6909c5f48327c71ca4",
+    "pdf_artifact_id": 12298907449,
+    "pdf_zip_sha256": "67c64f435e89a01a0cfd102bc6ab87a50563d1f19e83143cb801dd0cfe92e4ac",
+    "real_continuation_labels": 94,
+    "blue_c2c_continuation_bands": 0
+  },
+  "candidate": {
+    "scaffold_run_id": 39500838628,
+    "scaffold_conclusion": "success",
+    "qa_traceability_run_id": 39500838621,
+    "qa_traceability_conclusion": "success",
+    "pdf_artifact_id": 12301641077,
+    "pdf_zip_sha256": "51c4c7a102bf7c695fed6ea259b4d9444b9528923c511d37669a826d1c1b9df8",
+    "independent_auditors_artifact_id": 12302400060,
+    "auditors_zip_sha256": "62fff5fee02bb167ef39c38f5703a519ef31dbd79941fd01454f53932fc5368d",
+    "physical_auditor": "scripts/audit_v11_p4_slot_meters.py",
+    "caster_count": 45,
+    "physical_audit_failed_pdfs": 0,
+    "physical_level_continuation_bands": 94
+  },
+  "independent_comparison": {
+    "method": "Downloaded both genuine App-produced 76 PDF ZIP artifacts; PyMuPDF compares words+coordinates every page, complete original vector drawings per P4, vector equality non-P4, and 8-segment blue fills matched to each physical CONTINUACIÓN; inspected Ilyra B P4 crop before/after",
+    "pdfs": 76,
+    "total_pages": 711,
+    "unchanged_pages_word_text_and_positions": 711,
+    "p4_pages": 49,
+    "p4_pages_original_drawings_preserved": 49,
+    "non_p4_pages_full_vector_drawings_unchanged": 662,
+    "blue_clipped_context_cards_confirmed": 94,
+    "errors": 0,
+    "local_report_sha256": "a7026e6b9ea1e4a9a6b6af33eee6fdc884dfaae62c78169252ec1a9bdca52ed3"
+  },
+  "limitations": [
+    "Only P4 continuation cartelas, not full golden P4 conformance",
+    "No Android-installed screenshot/QA or proprietor technical/visual approval",
+    "No update to G4 matrix, previous semantic and narrower evidence preserved",
+    "C211 blocked RCR-1 untouched"
+  ],
+  "gates": {
+    "g0": "PARTIAL",
+    "g1": "PASS prior semantic only",
+    "g2": "PARTIAL",
+    "g3": "PARTIAL; scoped P4 physical PASS LOCAL",
+    "g4": "BLOCKED; 105/105 NOT_VERIFIED; active_candidate=null",
+    "g5": "NOT_STARTED",
+    "g6": "NOT_STARTED",
+    "c211": "BLOCKED normal 3/3; RCR-1 structural 0/2",
+    "pr173": "DRAFT OPEN NO MERGE"
+  }
+}

@@ -17,3 +17,15 @@ Se **amplía el auditor físico P4 existente** `scripts/audit_v11_p4_slot_meters
 **Gates inmutables:** G0 histórico PARTIAL, G1 semantic PASS previo, G2/G3 PARTIAL, **G4 BLOCKED 105/105 NOT_VERIFIED active_candidate=null**, G5/G6 NOT_STARTED; QA Android instalado y aprobación del owner ausentes. C211 normal BLOCKED 3/3; RCR-1 estructural 0/2. PR #173 OPEN DRAFT SIN MERGE.
 
 **Siguiente:** comprobar CI y comparación PDF del commit exacto; registrar PASS LOCAL limitado o fallo. Luego otra diferencia medible independiente o paso de reconciliación formal sin repetir trabajo.
+
+## Cierre físico del commit funcional exacto — PASS LOCAL P4 continuación (NO G4)
+
+El commit `d851c47da22fecd1f9749091d21a31369e2dfb03` cerró [Scaffold #39500838628](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39500838628) y [QA traceability #39500838621](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39500838621) ambos **SUCCESS**. Kotlin Desktop/Android APK, backend y DB pasan. [76 PDF reales App #12301641077](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39500838628/artifacts/12301641077) ZIP SHA256 `51c4c7a102bf7c695fed6ea259b4d9444b9528923c511d37669a826d1c1b9df8`; [auditores existentes #12302400060](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39500838628/artifacts/12302400060) ZIP SHA256 `62fff5fee02bb167ef39c38f5703a519ef31dbd79941fd01454f53932fc5368d`.
+
+**Comparación PyMuPDF externa con el HEAD anterior**: mismos 76 PDF y 711 páginas; **711/711 con las mismas palabras y coordenadas**, **662/662 folios ajenos a P4 con dibujo vectorial idéntico**, **49/49 folios P4 preservan TODOS los trazos anteriores** y añaden exclusivamente **94 cartelas** de ocho lados con tinta/ubicación exactas: una por cada etiqueta auténtica `CONTINUACIÓN`. **0 errores**. Auditor físico P4 ampliado PASS sobre 76 documentos (**45 casters**) con **94 bandas continuadas**, mantuvo niveles normales 0–9, nueve medidores ESP. y tres cuadrados por nivel. Informe de comparación local SHA256 `a7026e6b9ea1e4a9a6b6af33eee6fdc884dfaae62c78169252ec1a9bdca52ed3`. También se verificó visualmente el recorte PDF Ilyra B P4: ambos contextos NIVEL 2/6 tienen ahora banda sin mover el rótulo ni la lista.
+
+[Acta JSON estructurada](../pc-sheet-v11/qa/evidence/2026-10-20_P4_CONTINUED_LEVEL_BLUE_C2C_REAL_PDFS.json).
+
+**Precisiones**: es PASS LOCAL del pequeño subalcance P4, NO paridad P4 completa ni PASS de G4, ni autorización técnica/visual del propietario; APK compilado NO instalado. G0 PARTIAL, G1 semantic PASS previo, G2/G3 PARTIAL, G4 BLOCKED **105/105 NOT_VERIFIED; active_candidate=null**, G5/G6 pendientes, C211 intacto BLOCKED normal 3/3, RCR-1 estructural 0/2. PR #173 DRAFT NO MERGE.
+
+**Siguiente desarrollo**: otro defecto comprobable que afecte la fidelidad fuente/gráfica del P4 restante o módulo distinto; priorizar una operación real y pequeña sobre diagnósticos abstractos, con cotejo proporcional, antes de concluir G4/owner QA.
