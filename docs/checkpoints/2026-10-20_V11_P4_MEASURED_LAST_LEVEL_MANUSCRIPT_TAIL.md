@@ -1,0 +1,17 @@
+# V11 P4 — completar papel manuscrito real del último nivel sin páginas ficticias
+
+**2026-10-20.** Autoridad: rama `docs/pc-sheet-v11-approved-implementation-handoff`, [PR #173](https://github.com/MrSimkin/dnd_custom_aid/pull/173) DRAFT NO MERGE. Base `956650bde82edeb1cf1cf6b0bdd8b2c3f61d0c5a`; main `0c009f10d5e66880d68fa3732491c6fc3e172f22`. Scaffold documental #39502163177 seguía in_progress al abrir el trabajo; QA #39502163111 SUCCESS. Evidencia previa de cartelas P4 sigue válida para su subalcance, no reabrir.
+
+## Diferencia primaria comprobada en PDF reales
+
+En los **76 PDF App** obtenidos de [Scaffold #39500838628 / artifact #12301641077](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39500838628/artifacts/12301641077), hay **45 páginas físicas P4 con relleno en la tercera columna; 37 dejan más de 50pt de espacio imprimible sin filas manuscritas al pie** de esa columna. Ejemplos concretos: Ilyra B, tercera columna termina físicamente en `PDF top-y619.70`, quedan **96.3pt** libres hasta y716; Mara B termina en y607.28, quedan **108.72pt**; las columnas 1–2 en ambos terminan en y706.64 (solo 9.36pt libres). El golden `v11_ordinario_6mas2_variante_B.pdf` P4, ZIP `35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a`, usa renglones azules de escritura hasta una altura semejante en las tres columnas. La hoja V11 debe aprovechar papel sin crear datos mágicos o páginas de relleno.
+
+## Cambio funcional Android + Desktop
+
+La función local `quickRows(manuscriptRowsPerLevel, extraLastLevel9PaperRows=0)` permite anexar filas `spell-handwritten:9:n` **DESPUÉS de todas las fuentes digitales**, en el mismo nivel 9 real ya reservado; nunca añade/duplica conjuros, slots, niveles ni fuentes. Solo actúa si el bloque P4 mínimo ya cabe en **una página**, no hay niveles épicos reales (10+), el último renglón del nivel 9 **ya está en la columna 3**. A partir del ritmo uniforme máximo medido existente, busca con `body.place` y binary search el **máximo papel manuscrito adicional que siga cabiendo en la misma página**; así se llena la franja libre del final sin desplazar ningún texto fuente anterior ni alterar la siguiente sección. En P4 denso multipágina, épico o sin último nivel en col3, conserva la composición anterior.
+
+La auditoría física P4 existente `scripts/audit_v11_p4_slot_meters.py` se **amplía**, no duplica: cuando la verdadera cabecera NIVEL 9 está en la col3 de un P4 de una página, exige que la última fila física de escritura llegue hasta PDF y703..717; preserva nueve medidores ESP, veintisiete casillas, 0–9 y las cartelas azules previas. Validar con la misma suite de 76 PDF genuinos, comparar posiciones de palabras/paginación, dibujos del resto de folios, retención de fuentes y cotas de las filas finales. **No inventar PASS** hasta CI y cotejo real.
+
+**Gates:** G0 PARTIAL, G1 semántico PASS previo, G2/G3 PARTIAL, G4 **BLOCKED 105/105 NOT_VERIFIED, active_candidate=null**, G5/G6 pendientes; Android instalado y aprobación técnica/visual del propietario faltan; C211 bloqueado normal 3/3, RCR-1 estructural 0/2. PR #173 OPEN DRAFT NO MERGE.
+
+**Siguiente:** cerrar CI del HEAD funcional, comparar 76 PDF y registrar el PASS LOCAL restringido o fallo específico, luego resolver otra diferencia material o encaminar QA contractual sin repetir análisis.

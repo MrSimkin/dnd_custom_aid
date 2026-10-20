@@ -56,6 +56,42 @@ def continued_level_bands(page):
     return len(continued), failures
 
 
+def final_level9_manuscript_paper(page):
+    """Source-neutral golden P4: use remaining writable rows in last column.
+
+    Apply only when the genuine level-9 header is in physical column 3
+    of a SINGLE P4 page. Dense multi-page and epic P4 are not altered.
+    The top-origin writing region ends at PDF y=716pt.
+    """
+    words = page.get_text("words")
+    level9_in_right = any(
+        word[4] == "NIVEL" and 400 <= word[0] <= 575
+        and 200 < word[1] < 700
+        and idx+1 < len(words) and words[idx+1][4] == "9"
+        for idx, word in enumerate(words)
+    )
+    if not level9_in_right:
+        return False, 0.0, []
+    ends = [
+        drawing["rect"].y1
+        for drawing in page.get_drawings()
+        if drawing["type"] == "f" and drawing.get("fill") is not None
+        and abs(drawing["rect"].x0 - 402.0) < .45
+        and abs(drawing["rect"].width - 168.0) < .45
+        and 200 < drawing["rect"].y0 < 718
+        and all(abs(drawing["fill"][i] - color) < .013
+                for i, color in enumerate((238/255, 247/255, 251/255)))
+    ]
+    if not ends:
+        return True, 0.0, ["P4 final level 9 lacks real pale writing rows"]
+    bottom = max(ends)
+    errors = ([] if 703 <= bottom <= 717 else [
+        f"P4 last-level handwritten lines end at y={bottom:.2f}, "
+        "leaving avoidable unused printable paper"
+    ])
+    return True, bottom, errors
+
+
 def p4_pages(doc):
     return [(index + 1, page) for index, page in enumerate(doc)
             if P4_HEADING.search(page.get_text())]
@@ -108,12 +144,21 @@ def audit_document(doc):
             errors.append(f"level {n} printed {levels.count(n)} times, expected once")
     unexpected = sorted(set(levels) - set(range(10)))
     # Higher levels can be real epic spells. No source claim from PDF alone.
+    # The last-level paper cap is a single-page physical golden property.
+    # Do not demand an empty filler page for genuinely overflowing casters.
+    final_paper = {"checked": False, "bottom_top_origin": None}
+    if len(pages) == 1 and not unexpected:
+        checked, bottom, paper_errors = final_level9_manuscript_paper(pages[0][1])
+        final_paper = {"checked": checked,
+                       "bottom_top_origin": round(bottom, 2) if checked else None}
+        errors.extend(paper_errors)
     meters = [meter for r in findings for meter in r["meters"]]
     if len(meters) != 9:
         errors.append(f"ESP. meters {len(meters)}, expected nine for levels 1..9")
     return {"has_p4": True, "pages": findings, "levels_found": levels,
             "extra_epic_levels_not_source_audited": unexpected,
             "meter_count": len(meters),
+            "last_level9_paper": final_paper,
             "level_continuations_with_blue_bands": sum(
                 r["level_continuations_with_blue_bands"] for r in findings),
             "errors": errors}
@@ -137,6 +182,10 @@ def main(argv=None):
     failures = [row["file"] for row in results if row["errors"]]
     report = {"scope": "P4 physical 0..9 levels + 9 ESP. meters / 27 vector squares; local Desktop PDFs only; NOT G4 PASS",
               "pdfs": len(paths), "casters": casters, "failed_pdfs": len(failures),
+              "last_level9_paper_checks": sum(
+                  1 for row in results
+                  if row.get("last_level9_paper", {}).get("checked")
+              ),
               "blue_level_continuation_bands": sum(
                   row.get("level_continuations_with_blue_bands", 0)
                   for row in results),

@@ -3493,8 +3493,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // even if a given level has no real spells; 10–12 require real
                 // epic rules data and are not invented. Sources/preparation stay
                 // linked to the specific persisted casting-source association.
-                fun quickRows(manuscriptRowsPerLevel: Int): List<PcSheetV11FlowItem> = buildList {
-                    require(manuscriptRowsPerLevel >= 1)
+                fun quickRows(
+                    manuscriptRowsPerLevel: Int,
+                    extraLastLevel9PaperRows: Int = 0,
+                ): List<PcSheetV11FlowItem> = buildList {
+                    require(manuscriptRowsPerLevel >= 1 && extraLastLevel9PaperRows >= 0)
                     val levels = (0..9).toList() +
                         data.spells.map { it.spell.level }.filter { it >= 10 }.distinct().sorted()
                     levels.forEach { level ->
@@ -3517,7 +3520,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         }
                         // Rows are PAPER-ONLY: no fabricated spell, source, preparation
                         // or spell slot. Every level is writable, even when populated.
-                        repeat(if (level in 0..9) manuscriptRowsPerLevel else 1) { row ->
+                        val paperRows = (if (level in 0..9)
+                            manuscriptRowsPerLevel else 1) +
+                            (if (level == 9) extraLastLevel9PaperRows else 0)
+                        repeat(paperRows) { row ->
                             add(PcSheetV11FlowItem(
                                 "spell-handwritten:" + level + ":" + row,
                                 "[ ] ______________________",
@@ -3552,7 +3558,45 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             highest = candidateRows - 1
                         }
                     }
-                    quickRows(lowest)
+                    val baseRows = quickRows(lowest)
+                    val basePlacement = body.place(
+                        PcSheetV11FlowSection.QUICK_SPELLS,
+                        baseRows, p4WritingArea, 3, 12f,
+                    )
+                    require(basePlacement.sourceFlow.localPageCount == 1)
+                    // Original golden P4 fills each column with handwriting
+                    // paper. Measured genuine App sheets often leave the LAST
+                    // column 7-8 writable rows short even when all source
+                    // levels are present. Grow ONLY the tail of the final
+                    // non-epic level 9, after every real spell/heading.
+                    // Never add a P4 filler page or give fake epic levels.
+                    val finalLevel9InLastColumn =
+                        data.spells.none { it.spell.level >= 10 } &&
+                            basePlacement.cells.any { cell ->
+                                cell.sourceKey == "spell-handwritten:9:" + (lowest - 1) &&
+                                    cell.localPageIndex == 1 && cell.columnIndex == 3
+                            }
+                    if (finalLevel9InLastColumn) {
+                        var extraLow = 0
+                        var extraHigh = 42
+                        while (extraLow < extraHigh) {
+                            val extraCandidate = (extraLow + extraHigh + 1) / 2
+                            val candidate = body.place(
+                                PcSheetV11FlowSection.QUICK_SPELLS,
+                                quickRows(lowest, extraCandidate),
+                                p4WritingArea, 3, 12f,
+                            )
+                            if (candidate.sourceFlow.localPageCount == 1) {
+                                extraLow = extraCandidate
+                            } else {
+                                extraHigh = extraCandidate - 1
+                            }
+                        }
+                        // Only adds genuine vector WRITING ROWS at the end.
+                        // Existing source cells keep identical coordinates,
+                        // font, value and physical page number.
+                        quickRows(lowest, extraLow)
+                    } else baseRows
                 } else minimalQuick
                 addSection("P4 - Conjuros", PcSheetV11FlowSection.QUICK_SPELLS,
                     quick, 3, area = p4WritingArea)
