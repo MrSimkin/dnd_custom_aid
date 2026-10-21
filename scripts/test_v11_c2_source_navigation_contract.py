@@ -46,7 +46,7 @@ class C2PhysicalOriginParityTest(unittest.TestCase):
             self.assertIn("val savingInk = printedToken(savingStart, saving)", source)
             self.assertIn('entries.single { it.sourceKey == cell.sourceKey }.text ==', source)
             self.assertIn("stream.curveTo(cx + rx, cy + ry*k,", source)
-            self.assertIn("stream.addRect(left - 0.75f, bottom,", source)
+            self.assertIn("stream.addRect(left - 1.25f, bottom,", source)
             self.assertIn("stream.addRect(x, baseline - 1.5f, 7f, 7f)", source)
             self.assertIn("Color(231, 242, 247)", source)
             self.assertIn("Color(217, 236, 245)", source)
