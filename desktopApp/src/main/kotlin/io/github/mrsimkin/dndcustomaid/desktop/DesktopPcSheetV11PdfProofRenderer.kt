@@ -2315,7 +2315,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                             prior.rowIndex + 1 == cell.rowIndex &&
                                             prior.drawableText.isEmpty() &&
                                             prior.sourceEndExclusive == scoreStart &&
-                                            prior.cellPt.bottomPt == cell.cellPt.topPt
+                                            kotlin.math.abs(prior.cellPt.bottomPt - cell.cellPt.topPt) <= 0.02f
                                     }
                                     val bottom = baseline - 2.7f
                                     val top = baseline + if (reserved != null) 17f else 8.9f

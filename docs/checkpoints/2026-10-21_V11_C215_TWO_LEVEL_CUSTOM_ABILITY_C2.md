@@ -19,3 +19,11 @@
 **Gates:** G0 histórico PARCIAL; G1 semántico PASS anterior; G2/G3 PARCIALES; G4 BLOCKED con 105/105 NOT_VERIFIED y active_candidate=null; G5/G6 PENDIENTES. C211 BLOCKED 3/3 normales, 0/2 RCR-1 estructurales, sin reiniciar. C212/C213/C214 PASS locales acotados previos, sin nueva aprobación técnica o visual del propietario.
 
 **Siguiente trabajo:** verificar el nuevo binario exacto y PDF físico. Si pasa, registrar métricas y precisar qué resta de C204; luego continuar únicamente otras brechas verificables y reconciliación progresiva G4 sin falsas promociones.
+
+## Primer PDF real C215: defecto físico medido y corrección acotada
+
+Primer candidato `f4eb1db`, test guard fijo en `59bb4e4`. [Scaffold #39675089783](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39675089783) y [QA #39675089838](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39675089838) SUCCESS, **pero esto NO es PASS físico del acabado**. Se cotejaron 76 PDFs antes (711 páginas, ZIP SHA-256 `e8b41860f969fa28a24ba25f4cdbf9e4a6f87c28ccd4e9c91c7626b96d6d7321`) y después (713 páginas, ZIP SHA-256 `3b8bc54866beef1f0554e7686e3e91c9a2ec9d7fcf270a210c396cd0ad1a6445`). Solo dos fixtures densos C2 A/B agregan una página cada uno. **199/199 registros source score/mod/salvación idénticos**, **676/676 identificadores QA** preservados y **502 páginas no-C2** con mismos vectores. Sin embargo, el auditor encontró **115** rectángulos y óvalos grandes y **84** todavía compactos, en vez de todos grandes.
+
+**Mecanismo exacto:** la reserva de salto `nombre + "\\n\\n" + valores` existe en cada atributo; el detector exigía igualdad bit a bit entre `prior.cellPt.bottomPt` y `cell.cellPt.topPt`, expresiones de Float cuyo redondeo puede diferir `6.103515625e-05` pt según índice de fila. Comparación de geometría con tolerancia mínima `abs(...) <= 0.02f` resuelve solo ese falso negativo, sin mover ningún valor/renglón/page ni relajar el `sourceEndExclusive == scoreStart`, identidad de columna ni celda en blanco. Test paridad Android/Desktop modificado.
+
+**Estado de este parche:** corrección física implementada; **aún no PASS hasta PDF del commit exacto**, volver a comprobar los 76 y que los 199 pares de figuras tengan altura 19.7pt, conservando 713 páginas, identidad del resto de secciones y cero superposiciones. Si no sucede, STOP y no elevar C204/G4.
