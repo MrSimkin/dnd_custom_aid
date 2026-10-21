@@ -306,7 +306,7 @@ Documento del estado: docs/pc-sheet-v11/G3_PDF_REAL_P2_Y_NOTAS_2026-10-11.md. Es
 1. `AGENTS.md`;
 2. `RESUME.md`;
 3. this `LATEST.md`;
-4. `docs/checkpoints/2026-10-21_V11_C212_C2_CONTINUATION_GOLDEN_CLIPPED_BANDS.md` — C212 encabezado C2c pendiente de prueba física del commit exacto; conservar el control G4 anterior `docs/checkpoints/2026-10-21_V11_G4_MODULE_CANDIDATE_STAGE_REPORT_GUARD.md` y C211 BLOCKED (3/3 sin reinicio);
+4. `docs/checkpoints/2026-10-21_V11_C213_CUSTOM_ATTRIBUTE_C2_LINKED_BANDS.md` — C213 agrupar atributos custom con skills en C2, prueba física del commit exacto pendiente; conservar C212 PASS LOCAL, G4 BLOCKED y C211 BLOCKED (3/3 normal, RCR-1 estructural 0/2);
 5. `docs/pc-sheet-v11/COMANDO_SIGUE_Y_G1_HANDOFF.md` — comando «sigue», controles G0 verificables, próxima etapa G1 y prompt de retoma;
 5. `docs/pc-sheet-v11/CONTRATO_VISUAL_APROBADO.md` — aprobación V11 + dos microajustes;
 6. `docs/pc-sheet-v11/PROCEDIMIENTO_QA_SIN_PERDIDA.md` + `qa/REGISTRO_QA_V11.json` + `qa/PLANTILLA_CIERRE_POR_RONDA.md` — cada QA Q0–Q7 planificado, cambio real y comprobación; no cierre por tests solos;
