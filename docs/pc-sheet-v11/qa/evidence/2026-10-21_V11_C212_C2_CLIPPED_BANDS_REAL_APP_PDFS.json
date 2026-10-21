@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21",
+  "scope": "C212 C2 continuation header clipped blue band, Desktop App real PDFs only; NO G4/Android installed/owner approval",
+  "result": "PASS_LOCAL_PHYSICAL_ONLY",
+  "source_commit": "c33ca92ed2f186989b3529316344daa20e175d75",
+  "main_observed": "0c009f10d5e66880d68fa3732491c6fc3e172f22",
+  "source": {
+    "baseline": {
+      "run_id": 39634133232,
+      "pdf_artifact_id": 12359299975,
+      "pdf_zip_sha256": "a5149fbe073c4a86509e5af5d3746f3d1f4e430f11ce1e9b2543ec05a1234168",
+      "pdfs": 76,
+      "pages": 711
+    },
+    "candidate": {
+      "run_id": 39640521647,
+      "qa_run_id": 39640521109,
+      "pdf_artifact_id": 12365134171,
+      "pdf_zip_sha256": "0c7d882eea93dcc81a90a64deec5fa7e7ffbf5b5a4932e805ae5d513d677d6e7",
+      "audit_artifact_id": 12364864271,
+      "pdfs": 76,
+      "pages": 711
+    }
+  },
+  "verification": {
+    "scaffold_conclusion": "success",
+    "qa_traceability_conclusion": "success",
+    "independent_pyMuPDF_diff": {
+      "common_pdf_files": 76,
+      "physical_pages": 711,
+      "unchanged_word_coordinate_pages": 711,
+      "unchanged_vector_pages": 675,
+      "modified_context_pages": 36,
+      "added_exact_c2c_bands": 42,
+      "prior_path_removed_count": 0,
+      "unexpected_path_added_count": 0,
+      "page_count_changes": 0,
+      "text_coordinate_differences": 0,
+      "result": "PASS_SCOPED",
+      "local_json_sha256": "5511072989f111b58159ddbd4349518cf8f40348b1d66903fe531ef18bb41966"
+    },
+    "physical_ci_audit": {
+      "report": "desktopApp/build/v11-p3-c2-manuscript-audit.json",
+      "pdf_count": 76,
+      "p3_pages": 96,
+      "c2_pages": 209,
+      "c2_complete_grids": 230,
+      "c2_context_labels": 42,
+      "c2_context_blue_bands": 42,
+      "result": "PASS_LOCAL_PHYSICAL_ONLY"
+    },
+    "physical_envelope": {
+      "count": 76,
+      "pages": 711,
+      "errors": 0
+    },
+    "module_topology": {
+      "count": 76,
+      "pages": 711,
+      "errors": 0
+    },
+    "raster_view": "Mara A physical p4, blue C2c enclosing CONTINÚA: RECURSOS Y MUNICIONES in right column; no text overlap"
+  },
+  "open_gates": {
+    "G0": "PARCIAL historical QA",
+    "G1": "PASS semantic prior",
+    "G2": "PARCIAL C212 scoped PASS",
+    "G3": "PARCIAL C212 Desktop scoped PASS",
+    "G4": "BLOCKED 105/105 NOT_VERIFIED",
+    "G5": "PENDING",
+    "G6": "PENDING",
+    "active_candidate": null,
+    "C211": "BLOCKED 3/3 normal attempts, 0/2 structural recoveries"
+  },
+  "limitations": [
+    "No installed Android PDF QA",
+    "No full 8-golden visual parity",
+    "No technical or visual owner approval",
+    "No merge permission"
+  ]
+}
