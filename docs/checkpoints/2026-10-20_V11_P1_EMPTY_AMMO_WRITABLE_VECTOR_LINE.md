@@ -33,3 +33,7 @@ El auditor físico P1 **ya existente**, ampliado, obtuvo **76/76 PASS**, 304 mar
 **Solo PASS LOCAL** para sustituir un falso nombre por escritura manual; NO paridad completa de P1 ni G4. G0 parcial, G1 semántico PASS anterior, G2/G3 parciales, **G4 BLOCKED 105/105 NOT_VERIFIED active_candidate=null**, G5/G6 pendientes; C211 permanece RCR-1 normal 3/3, estructural 0/2; Android APK compilado, no instalado; NO aprobación técnica/visual owner. PR #173 DRAFT sin fusionar.
 
 **Siguiente:** buscar una brecha material de datos/continuidad aún sin demostrar en C-N3, P2 o C2, sin repetir los contratos ya cerrados ni reintentar C211.
+
+## Corrección de trazabilidad del registro (2026-10-21; sin cambio funcional)
+
+Se verificó una discrepancia interna en `qa/evidence/2026-10-20_V11_P1_EMPTY_AMMO_NAME_VECTOR_REAL_PDFS.json`: la clave genérica `traceability.result = success` podía leerse erróneamente como resultado del run inicial `39507309995`, expresamente FAIL en este checkpoint. Se sustituyó por `initial_result = failure` y `exact_result = success` para el run posterior `39507483514`. Commit `20faf60ab8797f71563eaf31ca493d7473203b3c`. No se modifican Kotlin, tests, PDFs ni gates; no se presenta como nueva corrección de producto. Sigue pendiente una brecha funcional nueva y su CI/PDF exactos. G4 permanece BLOCKED con 105/105 NOT_VERIFIED y `active_candidate=null`; C211 3/3 normal, RCR-1 estructural 0/2; PR #173 no fusionar.
