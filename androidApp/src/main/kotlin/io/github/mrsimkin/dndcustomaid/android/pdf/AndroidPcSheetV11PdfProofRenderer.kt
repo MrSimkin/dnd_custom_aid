@@ -2246,6 +2246,99 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 stream.restoreGraphicsState()
                             }
                         }
+                        // C214: bounded source-anchored V11 score/modifier
+                        // outlines. Existing printed numbers remain the ONLY
+                        // source values; no duplicate score or inferred save
+                        // proficiency. Metrics and fragment offsets are the
+                        // same as the immutable source text renderer below.
+                        if (title == "C2 - Habilidades, acciones y recursos") {
+                            pageCells.filter {
+                                it.sourceKey.startsWith("attribute:")
+                            }.forEach { cell ->
+                                val index = cell.sourceKey.removePrefix("attribute:").toIntOrNull()
+                                val ability = index?.let { data.attributes.drop(6).getOrNull(it) }
+                                requireNotNull(ability) {
+                                    "C2 custom ability paper card has no persisted source."
+                                }
+                                val prefix = ability.name + " "
+                                val score = ability.score.toString()
+                                val modifier = ability.modifier.toString()
+                                val saving = ability.savingThrowTotal?.toString() ?: "sin valor"
+                                val scoreStart = prefix.length
+                                val modifierStart = scoreStart + score.length + " / mod ".length
+                                val savingStart = modifierStart + modifier.length +
+                                    " / salvación ".length
+                                val exact = prefix + score + " / mod " + modifier +
+                                    " / salvación " + saving
+                                require(entries.single { it.sourceKey == cell.sourceKey }.text ==
+                                    exact) { "C2 ability ink must match its source, not a guess." }
+                                fun printedToken(start: Int, value: String): Pair<Float, Float>? {
+                                    val end = start + value.length
+                                    if (start < cell.sourceStartOffset ||
+                                        end > cell.sourceEndExclusive) return null
+                                    val before = cell.sourceText.substring(
+                                        0, start - cell.sourceStartOffset)
+                                    if (before.any { it == '\r' || it == '\n' || it == '\t' } ||
+                                        value.any { it == '\r' || it == '\n' || it == '\t' })
+                                        return null
+                                    val x = cell.cellPt.leftPt + body.width.measurePt(before)
+                                    val right = x + body.width.measurePt(value)
+                                    if (x < cell.cellPt.leftPt ||
+                                        right > cell.cellPt.rightPt - 1f) return null
+                                    return x to right
+                                }
+                                val scoreInk = printedToken(scoreStart, score)
+                                val modifierInk = printedToken(modifierStart, modifier)
+                                val savingInk = printedToken(savingStart, saving)
+                                if (scoreInk != null || modifierInk != null || savingInk != null) {
+                                    val baseline = body.metrics.baselineIn(cell.cellPt)
+                                    val bottom = baseline - 2.7f
+                                    val top = baseline + 8.9f
+                                    require(bottom > cell.cellPt.bottomPt &&
+                                        top < cell.cellPt.topPt) {
+                                        "C2 ability mini-cards must stay within the measured row."
+                                    }
+                                    stream.saveGraphicsState()
+                                    stream.setStrokingColor(Color(80, 122, 151))
+                                    stream.setLineWidth(0.45f)
+                                    scoreInk?.let { (left, right) ->
+                                        // The tight measured box avoids the real
+                                        // attribute name and following slash.
+                                        stream.addRect(left - 0.75f, bottom,
+                                            right - left + 1.5f, top - bottom)
+                                        stream.stroke()
+                                    }
+                                    modifierInk?.let { (left, right) ->
+                                        val cx = (left + right) / 2f
+                                        val cy = (top + bottom) / 2f
+                                        val rx = (right - left) / 2f + 0.75f
+                                        val ry = (top - bottom) / 2f
+                                        val k = 0.5522848f
+                                        stream.moveTo(cx + rx, cy)
+                                        stream.curveTo(cx + rx, cy + ry*k,
+                                            cx + rx*k, cy + ry, cx, cy + ry)
+                                        stream.curveTo(cx - rx*k, cy + ry,
+                                            cx - rx, cy + ry*k, cx - rx, cy)
+                                        stream.curveTo(cx - rx, cy - ry*k,
+                                            cx - rx*k, cy - ry, cx, cy - ry)
+                                        stream.curveTo(cx + rx*k, cy - ry,
+                                            cx + rx, cy - ry*k, cx + rx, cy)
+                                        stream.closePath()
+                                        stream.stroke()
+                                    }
+                                    savingInk?.let { (_, right) ->
+                                        val x = right + 4f
+                                        if (x + 7f < cell.cellPt.rightPt - 1f) {
+                                            // Blank handwriting/proficiency
+                                            // square, never an invented state.
+                                            stream.addRect(x, baseline - 1.5f, 7f, 7f)
+                                            stream.stroke()
+                                        }
+                                    }
+                                    stream.restoreGraphicsState()
+                                }
+                            }
+                        }
                         // BK07: approved V11 spellbook cards are distinct
                         // clipped-corner physical panels, not unframed prose.
                         // The existing measured cell envelopes and source text
