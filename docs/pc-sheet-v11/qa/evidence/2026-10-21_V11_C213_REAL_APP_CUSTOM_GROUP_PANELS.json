@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21",
+  "scope": "C213 C2 physical custom attribute heading, linked skill row bands, continuation group gutter rail; Desktop App real PDFs; not G4",
+  "status": "PASS_LOCAL_PHYSICAL_ONLY",
+  "branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "source_product_commit": "fb31db0bdd713ad6a2a0c350c3e8035ad5b30350",
+  "source_verified_commit": "64282206243de4e2c3cd58a2a0cb590fe3c42fa1",
+  "golden": {
+    "zip_sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+    "pdf": "V11_Carta/pdfs/v11_extremo_variante_A.pdf",
+    "physical_page": 4,
+    "scope": "group headers and alternate linked skill bands, not entire visual parity"
+  },
+  "ci": {
+    "scaffold_run": 39663757661,
+    "scaffold_conclusion": "success",
+    "qa_traceability_run": 39663569355,
+    "qa_traceability_conclusion": "success",
+    "source_sha": "64282206243de4e2c3cd58a2a0cb590fe3c42fa1"
+  },
+  "pdfs": {
+    "before": {
+      "run": 39640521647,
+      "artifact_id": 12365134171,
+      "zip_sha256": "0c7d882eea93dcc81a90a64deec5fa7e7ffbf5b5a4932e805ae5d513d677d6e7",
+      "note": "older c33ca92 product commit; later documentation-only commits did not alter generator"
+    },
+    "after": {
+      "run": 39663757661,
+      "artifact_id": 12376971384,
+      "zip_sha256": "391494dc23323c55706a9f0012bbfeeb62ea89a43596e63e5741cfa1b586e4c8"
+    }
+  },
+  "independent_physical_diff": {
+    "pdfs": 76,
+    "physical_pages": 711,
+    "page_count_changes": 0,
+    "text_and_word_coordinate_identical_pages": 711,
+    "vector_unchanged_pages": 681,
+    "vector_changed_pages": 30,
+    "new_paths_total": 713,
+    "removed_paths_total": 0,
+    "new_true_attribute_clipped_blue_headers": 199,
+    "new_true_skill_alternate_band_fragments": 311,
+    "new_real_custom_group_gutter_rails": 203,
+    "changes_outside_C2_skill_attribute_group": 0,
+    "stress_QAATR_headings_checked": 144,
+    "stress_QAATR_headings_inside_real_blue_panels": 144,
+    "oversized_source_continuation_pages_checked": 4,
+    "failures": 0,
+    "result": "PASS_LOCAL_SCOPED",
+    "comparison_method": "PyMuPDF get_text(words) strict page-wise equality; measured vector path multiset subtraction, classify all added physical paths by fill/color/width/geometry, reject missing old paths, changed unrelated-page drawings and QAATR headers without source group band"
+  },
+  "limits": [
+    "No exact full-golden 8-PDF parity",
+    "No independent installed Android PDF test",
+    "No owner technical/visual approval",
+    "C204 score rectangle/modifier oval/save geometry still pending",
+    "G4 matrix unchanged: 105/105 NOT_VERIFIED"
+  ]
+}
