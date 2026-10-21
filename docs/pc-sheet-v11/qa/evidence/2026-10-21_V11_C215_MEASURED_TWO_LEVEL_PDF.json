@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21",
+  "branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "scope": "C215 two-level real-source custom ability C2, measured blank row, score rectangle and modifier oval enlargement",
+  "status": "PASS_LOCAL_PHYSICAL_ONLY",
+  "source_commit": "e1d887368e19a7b4eb26e9d8fd8be677d728b23f",
+  "baseline_commit": "b35cb0edc898ae01d5002462ade748a9e7cffb8f",
+  "main_observed": "0c009f10d5e66880d68fa3732491c6fc3e172f22",
+  "checks": {
+    "scaffold_run": 39676934860,
+    "scaffold_conclusion": "success",
+    "traceability_run": 39676934764,
+    "traceability_conclusion": "success"
+  },
+  "artifacts": {
+    "baseline": {
+      "run": 39669461876,
+      "id": 12379791454,
+      "zip_sha256": "e8b41860f969fa28a24ba25f4cdbf9e4a6f87c28ccd4e9c91c7626b96d6d7321",
+      "pdfs": 76,
+      "pages": 711
+    },
+    "candidate": {
+      "run": 39676934860,
+      "id": 12382464137,
+      "zip_sha256": "3b59fe3eddd09a5573915a80c3561955e491e80483bedfc0d3433aa1108fba1b",
+      "pdfs": 76,
+      "pages": 713
+    }
+  },
+  "independent_review": {
+    "comparison": "Offline PyMuPDF by exact PDF filename, source-tag regex and physical PDF vector inspection",
+    "identical_filenames": 76,
+    "before_pages": 711,
+    "after_pages": 713,
+    "non_C2_pages_with_identical_drawings": 502,
+    "extra_pages_count": 2,
+    "extra_pages_only_in": [
+      "V11-INTERNAL-PROOF-C2-grouped-custom-attributes-A.pdf",
+      "V11-INTERNAL-PROOF-C2-grouped-custom-attributes-B.pdf"
+    ],
+    "real_ability_score_modifier_saving_triples_before": 199,
+    "real_ability_score_modifier_saving_triples_after": 199,
+    "qa_identity_tokens_before": 676,
+    "qa_identity_tokens_after": 676,
+    "tall_score_rectangles": 199,
+    "tall_bezier_modifier_ovals": 199,
+    "tall_shape_height_pt": 19.7,
+    "unexpected_non_numeric_words_intersecting_shapes": 0,
+    "failures": 0,
+    "status": "PASS_SCOPED",
+    "physical_examples": [
+      "V11-INTERNAL-PROOF-Mara-A.pdf C2 physical p4",
+      "V11-INTERNAL-PROOF-C2-grouped-custom-attributes-A.pdf C2 physical p4",
+      "V11-INTERNAL-PROOF-C2-grouped-custom-attributes-B.pdf C2 physical p4"
+    ]
+  },
+  "earlier_candidate_diagnostic": {
+    "guard_adjustment_sha": "59bb4e4359bbc71ad704add904db2652d18f0eba",
+    "zip_sha256": "3b8bc54866beef1f0554e7686e3e91c9a2ec9d7fcf270a210c396cd0ad1a6445",
+    "tall_rectangles": 115,
+    "compact_fallback_rectangles": 84,
+    "root_cause": "IEEE-754 Float exact adjacency equality despite coordinate rounding difference ~0.000061pt",
+    "resolution": "Retain same identity/column/blank-row/offset invariants; compare adjacent vertical borders with tolerance 0.02pt, on both platforms."
+  },
+  "gates": {
+    "G0": "PARTIAL",
+    "G1": "SEMANTIC_PASS_PRIOR",
+    "G2": "PARTIAL",
+    "G3": "PARTIAL",
+    "G4": "BLOCKED 105/105 NOT_VERIFIED active_candidate=null",
+    "G5": "PENDING",
+    "G6": "PENDING",
+    "C211": "BLOCKED 3/3 normal 0/2 structural",
+    "PR_173": "OPEN DRAFT NO MERGE"
+  },
+  "limits": [
+    "No full visual golden equivalence of C204 and eight approved golden PDFs",
+    "Android physical PDF not generated on installed device",
+    "No owner technical or visual acceptance of current implementation",
+    "No G4/G5/G6 promotion",
+    "C215 source presentation may legitimately use extra C2 pages; no page-count-free guarantee"
+  ]
+}
