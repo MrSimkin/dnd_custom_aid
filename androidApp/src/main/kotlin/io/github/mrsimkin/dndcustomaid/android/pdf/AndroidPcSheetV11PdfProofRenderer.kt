@@ -2260,7 +2260,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 requireNotNull(ability) {
                                     "C2 custom ability paper card has no persisted source."
                                 }
-                                val prefix = ability.name + " "
+                                // A heading row, a genuinely measured EMPTY spacer line
+                                // and a numerical-value row form a two-level
+                                // paper card; no synthetic ability values.
+                                val prefix = ability.name + "\n\n"
                                 val score = ability.score.toString()
                                 val modifier = ability.modifier.toString()
                                 val saving = ability.savingThrowTotal?.toString() ?: "sin valor"
@@ -2292,11 +2295,27 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 val savingInk = printedToken(savingStart, saving)
                                 if (scoreInk != null || modifierInk != null || savingInk != null) {
                                     val baseline = body.metrics.baselineIn(cell.cellPt)
+                                    // The EMPTY line immediately before the
+                                    // numeric row is a real measured reservation,
+                                    // not a guessed blank. It lets full-height
+                                    // score/oval ink extend into that RESERVED
+                                    // row without touching the title above.
+                                    // If a pathological wrapped item continues
+                                    // across a physical column here, retain the
+                                    // source and use the prior compact outline.
+                                    val reserved = pageCells.firstOrNull { prior ->
+                                        prior.sourceKey == cell.sourceKey &&
+                                            prior.columnIndex == cell.columnIndex &&
+                                            prior.rowIndex + 1 == cell.rowIndex &&
+                                            prior.drawableText.isEmpty() &&
+                                            prior.sourceEndExclusive == scoreStart &&
+                                            prior.cellPt.bottomPt == cell.cellPt.topPt
+                                    }
                                     val bottom = baseline - 2.7f
-                                    val top = baseline + 8.9f
+                                    val top = baseline + if (reserved != null) 17f else 8.9f
                                     require(bottom > cell.cellPt.bottomPt &&
-                                        top < cell.cellPt.topPt) {
-                                        "C2 ability mini-cards must stay within the measured row."
+                                        top < (reserved?.cellPt?.topPt ?: cell.cellPt.topPt)) {
+                                        "C2 custom card must stay within its measured rows."
                                     }
                                     stream.saveGraphicsState()
                                     stream.setStrokingColor(Color(80, 122, 151))
@@ -2304,14 +2323,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     scoreInk?.let { (left, right) ->
                                         // The tight measured box avoids the real
                                         // attribute name and following slash.
-                                        stream.addRect(left - 0.75f, bottom,
-                                            right - left + 1.5f, top - bottom)
+                                        stream.addRect(left - 1.25f, bottom,
+                                            right - left + 2.5f, top - bottom)
                                         stream.stroke()
                                     }
                                     modifierInk?.let { (left, right) ->
                                         val cx = (left + right) / 2f
                                         val cy = (top + bottom) / 2f
-                                        val rx = (right - left) / 2f + 0.75f
+                                        val rx = (right - left) / 2f + 1.25f
                                         val ry = (top - bottom) / 2f
                                         val k = 0.5522848f
                                         stream.moveTo(cx + rx, cy)
@@ -2573,7 +2592,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     if (!alreadyPrintedOnP1) {
                         add(PcSheetV11FlowItem(
                             "attribute:" + index,
-                            attribute.name + " " + attribute.score +
+                            attribute.name + "\n\n" + attribute.score +
                                 " / mod " + attribute.modifier +
                                 " / salvación " +
                                 (attribute.savingThrowTotal?.toString() ?: "sin valor"),

@@ -32,6 +32,15 @@ class C2PhysicalOriginParityTest(unittest.TestCase):
             self.assertIn('it.sourceKey.startsWith("attribute-skill:")', source)
             self.assertIn('it.sourceKey.startsWith("attribute:")', source)
             self.assertIn("val railX = column.leftPt - 3f", source)
+            # C215: real measured two-level card, one blank line between
+            # true ability title and score. Preserve fragment/source offsets.
+            self.assertIn('ability.name + "\\n\\n"', source)
+            self.assertIn('attribute.name + "\\n\\n" + attribute.score', source)
+            self.assertIn('prior.rowIndex + 1 == cell.rowIndex', source)
+            self.assertIn('prior.sourceEndExclusive == scoreStart', source)
+            self.assertIn('prior.drawableText.isEmpty()', source)
+            self.assertIn('prior.cellPt.bottomPt == cell.cellPt.topPt', source)
+            self.assertIn('top = baseline + if (reserved != null) 17f else 8.9f', source)
             self.assertIn("val scoreInk = printedToken(scoreStart, score)", source)
             self.assertIn("val modifierInk = printedToken(modifierStart, modifier)", source)
             self.assertIn("val savingInk = printedToken(savingStart, saving)", source)
