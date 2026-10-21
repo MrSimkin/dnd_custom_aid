@@ -16,9 +16,10 @@
   },
   "traceability": {
     "initial_run_id": 39507309995,
-    "result": "success",
     "exact_run_id": 39507483514,
-    "preserved_requirements": "20 real empty marks per blank case, 5+5 per row, actual-munitions and over-20 formatting unchanged, same Android and Desktop code grammar"
+    "preserved_requirements": "20 real empty marks per blank case, 5+5 per row, actual-munitions and over-20 formatting unchanged, same Android and Desktop code grammar",
+    "initial_result": "failure",
+    "exact_result": "success"
   },
   "functional_checks": {
     "scaffold_run_id": 39507483479,
