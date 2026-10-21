@@ -20,6 +20,11 @@ class C2PhysicalOriginParityTest(unittest.TestCase):
             self.assertIn("val c2FromP1 = mixedC2P1Pages.minOrNull()", source)
             self.assertIn('physicalSectionKeys += "C2 - Equipo y tesoro / " + label', source)
             self.assertIn('key.startsWith("C2 - Equipo y tesoro / ")', source)
+            self.assertEqual(source.count("drawC2ContinuationCartela(stream, column)"), 2,
+                "Every genuine C2 continued source-group or attribute heading needs golden cartela.")
+            self.assertIn("stream.fillAndStroke()", source)
+            self.assertIn("val bottom = 703f", source)
+            self.assertIn("val top = 716f", source)
             self.assertIn('origins.takeIf { it.isNotEmpty() }', source)
             self.assertIn('physicalPage == mixedC2TraitPages.minOrNull()', source)
             part = source.split('val mixedC2Key = "C2 - Habilidades, acciones y recursos"', 1)[1]

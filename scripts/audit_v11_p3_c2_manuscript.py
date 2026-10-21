@@ -206,6 +206,43 @@ def c2_result(page: fitz.Page) -> tuple[int, int, list[str]]:
     return len(cartelas), complete, failures
 
 
+def c2_context_result(page: fitz.Page) -> tuple[int, int, list[str]]:
+    """Golden C2c continuation bands around existing real source identity ink.
+
+    Deliberately checks only captions already printed in the reserved header
+    gap; does not invent missing source identities or approve whole C2.
+    """
+    captions = [
+        w for w in page.get_text("words")
+        if w[4].startswith("CONTINÚA") and 76.3 <= w[1] <= 79.0
+        and w[3] < 88
+    ]
+    color = (217 / 255, 236 / 255, 245 / 255)
+    bands = [
+        dr for dr in page.get_drawings()
+        if dr.get("fill") is not None
+        and all(close(dr["fill"][j], color[j], .015) for j in range(3))
+        and close(dr["rect"].y0, 76., .3)
+        and close(dr["rect"].y1, 89., .3)
+        and dr["rect"].width > 235
+        and dr.get("type") in {"fs", "f"}
+    ]
+    matched = 0
+    failures = []
+    for word in captions:
+        if any(
+            dr["rect"].x0 <= word[0] - .2 and dr["rect"].x1 >= word[2] + .2
+            for dr in bands
+        ):
+            matched += 1
+        else:
+            failures.append(
+                f"C206 continued source identity lacks C2c cartela at "
+                f"x={word[0]:.2f}, y={word[1]:.2f}"
+            )
+    return len(captions), matched, failures
+
+
 def audit(pdf_files: list[Path], minimum_pdfs: int) -> dict:
     if len(pdf_files) < minimum_pdfs:
         raise ValueError(f"Expected >= {minimum_pdfs} genuine PDFs; got {len(pdf_files)}")
@@ -215,6 +252,7 @@ def audit(pdf_files: list[Path], minimum_pdfs: int) -> dict:
         "p3_pages": 0, "p3_shaded_bands": 0, "p3_aligned_words": 0,
         "p3_golden_field_title_bands": 0, "p3_golden_alternate_rows": 0,
         "c2_pages": 0, "c2_notes_cartelas": 0, "c2_complete_grids": 0,
+        "c2_context_labels": 0, "c2_context_blue_bands": 0,
         "failures": [], "pdfs": [],
     }
     for source in pdf_files:
@@ -244,6 +282,11 @@ def audit(pdf_files: list[Path], minimum_pdfs: int) -> dict:
                 cartelas, complete, failures = c2_result(page)
                 result["c2_notes_cartelas"] += cartelas
                 result["c2_complete_grids"] += complete
+                if role.startswith("C2 - Habilidades, acciones y recursos"):
+                    count, matched, context_failures = c2_context_result(page)
+                    result["c2_context_labels"] += count
+                    result["c2_context_blue_bands"] += matched
+                    failures.extend(context_failures)
             else:
                 continue
             for detail in failures[:8]:
@@ -257,6 +300,8 @@ def audit(pdf_files: list[Path], minimum_pdfs: int) -> dict:
         result["failures"].append("C207/C208 insufficient genuine C2 grid coverage")
     if not result["p3_aligned_words"]:
         result["failures"].append("P305 no source words checked")
+    if result["c2_context_labels"] < 2:
+        result["failures"].append("C206 no genuine C2 source-continuation captions exercised")
     result["result"] = "PASS_LOCAL_PHYSICAL_ONLY" if not result["failures"] else "FAIL"
     return result
 

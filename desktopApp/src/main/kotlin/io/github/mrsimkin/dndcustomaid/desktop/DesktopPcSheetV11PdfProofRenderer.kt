@@ -1724,6 +1724,37 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 ) key to sourceInfo else null
             }.toMap()
 
+                fun drawC2ContinuationCartela(
+                    stream: PDPageContentStream,
+                    column: PcSheetV11RectPt,
+                ) {
+                    // Golden C2c: a genuine column-continuation identity is a
+                    // small clipped BLUE band, not loose ink above the source.
+                    // The 703..716pt header gap is already empty; source rows
+                    // start below 702pt. No pagination/content change.
+                    val bottom = 703f
+                    val top = 716f
+                    require(column.topPt <= 702f && top < 717f && bottom > column.topPt)
+                    val cut = 2.5f
+                    val left = column.leftPt
+                    val right = column.rightPt
+                    stream.saveGraphicsState()
+                    stream.setNonStrokingColor(Color(217, 236, 245))
+                    stream.setStrokingColor(Color(80, 122, 151))
+                    stream.setLineWidth(0.45f)
+                    stream.moveTo(left + cut, bottom)
+                    stream.lineTo(right - cut, bottom)
+                    stream.lineTo(right, bottom + cut)
+                    stream.lineTo(right, top - cut)
+                    stream.lineTo(right - cut, top)
+                    stream.lineTo(left + cut, top)
+                    stream.lineTo(left, top - cut)
+                    stream.lineTo(left, bottom + cut)
+                    stream.closePath()
+                    stream.fillAndStroke()
+                    stream.restoreGraphicsState()
+                }
+
             fun addSection(
                 title: String,
                 section: PcSheetV11FlowSection,
@@ -1981,6 +2012,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         requireNotNull(context) {
                                             "C2 source group continuation cannot fit the existing header band."
                                         }
+                                        drawC2ContinuationCartela(stream, column)
                                         stream.saveGraphicsState()
                                         stream.setNonStrokingColor(Color(80, 122, 151))
                                         stream.beginText()
@@ -2022,6 +2054,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                             "C2 source attribute continuation cannot fit the " +
                                                 "existing physical header band."
                                         }
+                                        drawC2ContinuationCartela(stream, column)
                                         stream.saveGraphicsState()
                                         stream.setNonStrokingColor(Color(80, 122, 151))
                                         stream.beginText()
