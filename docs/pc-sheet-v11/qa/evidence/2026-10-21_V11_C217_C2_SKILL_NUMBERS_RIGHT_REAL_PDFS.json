@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21",
+  "branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "source_sha": "74e9860d9f2eb1a121c6749ba750e95752333a83",
+  "scope": "C217 true linked custom C2 skill totals aligned to measured right edge, preserve true training left and C216 empty square; Desktop-generated V11 PDF, Android code parity",
+  "status": "PASS_LOCAL_PHYSICAL_ONLY",
+  "not_global_C204_or_G4": true,
+  "approved_reference": {
+    "golden_zip_sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+    "golden_pdf": "V11_Carta/pdfs/v11_extremo_variante_A.pdf",
+    "golden_page": 4,
+    "contrast": "Golden numeric skill totals at far right; real C216 inline"
+  },
+  "ci": {
+    "scaffold_run": 39695802858,
+    "scaffold_status": "success",
+    "qa_traceability_run": 39695802842,
+    "qa_status": "success"
+  },
+  "artifacts": {
+    "baseline": {
+      "run": 39689107598,
+      "artifact_id": 12387592619,
+      "zip_sha256": "9ff8c3cafc61e560e2ea7fa94c6c077c983d6d8d0b70f724d975b7839f933ebf"
+    },
+    "candidate": {
+      "run": 39695802858,
+      "artifact_id": 12390577095,
+      "zip_sha256": "d243ef1c41c3b0c58ce6a7d713245a488a968c8b6bc07d796678af0b006d59e1"
+    }
+  },
+  "independent_pdf_comparison": {
+    "method": "PyMuPDF every named pdf and page, normalized source word multiset equality, exact page role, full PDF drawn vector path contents excluding seqno (an operation-order identifier), baseline and candidate letter-page text bbox; numeric token right edge x=296 or 566 actual physical points",
+    "pdfs_before_and_after": 76,
+    "physical_pages_before_and_after": 713,
+    "page_count_changed": 0,
+    "pages_with_identical_physical_vector_geometry": 713,
+    "pages_with_identical_all_word_boxes_and_order": 679,
+    "non_C2_pages_with_identical_word_boxes_and_order": 623,
+    "C2_pages_only_with_source_text_repositioned": 34,
+    "real_linked_skill_rows": 490,
+    "totals_measured_at_right_edge": 490,
+    "rows_not_right_aligned": 0,
+    "numeric_token_duplicates_or_losses": 0,
+    "normalized_source_words_missing": 0,
+    "normalized_source_words_added": 0,
+    "unexpected_graphics_or_page_role_changes": 0,
+    "failures": 0,
+    "result": "PASS_LOCAL_SCOPED"
+  },
+  "visual_inspection": "True Mara-A PDF physical p4 raster, score row and skill row crop; Sincronía 9 and Manipulación de éter 8 at right of measured column, paper boxes remain empty on left; training PROFICIENT/EXPERTISE printed adjacent to genuine name",
+  "limits": [
+    "No owner technical or visual acceptance of current implementation",
+    "No installed Android physical PDF proof; Kotlin compilation+writer parity only",
+    "No broad golden full-visual parity for C204 or all eight approved PDFs",
+    "No G4 105 rules changed to PASS; active_candidate remains null",
+    "No G5/G6 or merge; C211 remains blocked"
+  ]
+}
