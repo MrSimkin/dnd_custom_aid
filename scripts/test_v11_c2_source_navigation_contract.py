@@ -25,6 +25,15 @@ class C2PhysicalOriginParityTest(unittest.TestCase):
             self.assertIn("stream.fillAndStroke()", source)
             self.assertIn("val bottom = 703f", source)
             self.assertIn("val top = 716f", source)
+            # C213 physical paper grouping is sourced from real C2 group keys.
+            self.assertIn("val c2CustomGroups = pageCells.mapNotNull", source)
+            self.assertIn('sourceGroup?.startsWith("custom-attribute-group:") == true', source)
+            self.assertIn('it.groupKey == identity.first', source)
+            self.assertIn('it.sourceKey.startsWith("attribute-skill:")', source)
+            self.assertIn('it.sourceKey.startsWith("attribute:")', source)
+            self.assertIn("val railX = column.leftPt - 3f", source)
+            self.assertIn("Color(231, 242, 247)", source)
+            self.assertIn("Color(217, 236, 245)", source)
             self.assertIn('origins.takeIf { it.isNotEmpty() }', source)
             self.assertIn('physicalPage == mixedC2TraitPages.minOrNull()', source)
             part = source.split('val mixedC2Key = "C2 - Habilidades, acciones y recursos"', 1)[1]

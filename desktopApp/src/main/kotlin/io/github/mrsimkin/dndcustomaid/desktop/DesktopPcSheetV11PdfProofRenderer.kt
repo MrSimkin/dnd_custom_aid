@@ -2185,6 +2185,73 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             }
                             stream.restoreGraphicsState()
                         }
+                        // C213: actual persisted custom attribute/skill grouping.
+                        // Paint only inside measured source cells; never alter
+                        // text, IDs, wrapping, source order or physical pages.
+                        if (title == "C2 - Habilidades, acciones y recursos") {
+                            val c2GroupKeys = entries.associate { it.sourceKey to it.groupKey }
+                            val c2CustomGroups = pageCells.mapNotNull { cell ->
+                                val sourceGroup = c2GroupKeys[cell.sourceKey]
+                                if (sourceGroup?.startsWith("custom-attribute-group:") == true)
+                                    sourceGroup to cell else null
+                            }.groupBy { (group, cell) -> group to cell.columnIndex }
+                            c2CustomGroups.forEach { (identity, grouped) ->
+                                val column = flow.columnsPt[identity.second - 1]
+                                val realCells = grouped.map { it.second }
+                                require(realCells.all { column.contains(it.cellPt) })
+                                val groupTop = realCells.maxOf { it.cellPt.topPt }
+                                val groupBottom = realCells.minOf { it.cellPt.bottomPt }
+                                require(groupTop - groupBottom >= body.metrics.lineHeightPt - 0.1f)
+                                val linkedKeys = entries.filter {
+                                    it.groupKey == identity.first &&
+                                        it.sourceKey.startsWith("attribute-skill:")
+                                }.map { it.sourceKey }
+                                stream.saveGraphicsState()
+                                // Alternate rows by real skill identity: wrapped
+                                // fragments retain their parent band's parity.
+                                stream.setNonStrokingColor(Color(231, 242, 247))
+                                realCells.filter {
+                                    it.sourceKey.startsWith("attribute-skill:") &&
+                                        linkedKeys.indexOf(it.sourceKey) % 2 == 0
+                                }.forEach { row ->
+                                    stream.addRect(row.cellPt.leftPt, row.cellPt.bottomPt,
+                                        row.cellPt.widthPt, row.cellPt.heightPt)
+                                    stream.fill()
+                                }
+                                val headings = realCells.filter {
+                                    it.sourceKey.startsWith("attribute:")
+                                }
+                                if (headings.isNotEmpty()) {
+                                    val top = headings.maxOf { it.cellPt.topPt }
+                                    val bottom = headings.minOf { it.cellPt.bottomPt }
+                                    val left = column.leftPt
+                                    val right = column.rightPt
+                                    val cut = minOf(2.5f, (top - bottom) / 4f)
+                                    stream.setNonStrokingColor(Color(217, 236, 245))
+                                    stream.setStrokingColor(Color(80, 122, 151))
+                                    stream.setLineWidth(0.55f)
+                                    stream.moveTo(left + cut, bottom)
+                                    stream.lineTo(right - cut, bottom)
+                                    stream.lineTo(right, bottom + cut)
+                                    stream.lineTo(right, top - cut)
+                                    stream.lineTo(right - cut, top)
+                                    stream.lineTo(left + cut, top)
+                                    stream.lineTo(left, top - cut)
+                                    stream.lineTo(left, bottom + cut)
+                                    stream.closePath()
+                                    stream.fillAndStroke()
+                                }
+                                // Narrow gutter rail persists when the header
+                                // was printed in a previous physical column.
+                                val railX = column.leftPt - 3f
+                                require(railX >= 38f && railX + 1.5f < column.leftPt)
+                                stream.setNonStrokingColor(Color(80, 122, 151))
+                                stream.addRect(railX, groupBottom + 1f, 1.5f,
+                                    groupTop - groupBottom - 2f)
+                                stream.fill()
+                                stream.restoreGraphicsState()
+                            }
+                        }
                         // BK07: approved V11 spellbook cards are distinct
                         // clipped-corner physical panels, not unframed prose.
                         // The existing measured cell envelopes and source text
