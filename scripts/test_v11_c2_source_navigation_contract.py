@@ -43,6 +43,13 @@ class C2PhysicalOriginParityTest(unittest.TestCase):
             self.assertIn('cell.sourceText.startsWith("      Habilidad ")', source)
             self.assertIn('body.width.measurePt("      ") >= 11f', source)
             self.assertIn('stream.addRect(cell.cellPt.leftPt + 2f, base - 1f, 7f, 7f)', source)
+            # C217 source-backed total is only moved if both sides fit.
+            self.assertIn('val realTotal = wholeSource.substring(', source)
+            self.assertIn('val realTraining = wholeSource.substring(trainingSep + 3)', source)
+            self.assertIn('val rightX = cell.cellPt.rightPt -', source)
+            self.assertIn('labelEnd + 9f <= rightX', source)
+            self.assertIn('draw(stream, realTotal, rightX, baseline, false)', source)
+            self.assertIn('cell.sourceEndExclusive == wholeSource.length', source)
             self.assertIn('attribute.name + "\\n\\n" + attribute.score', source)
             self.assertIn('prior.rowIndex + 1 == cell.rowIndex', source)
             self.assertIn('prior.sourceEndExclusive == scoreStart', source)

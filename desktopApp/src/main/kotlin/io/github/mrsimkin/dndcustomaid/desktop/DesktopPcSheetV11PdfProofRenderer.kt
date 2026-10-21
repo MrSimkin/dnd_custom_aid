@@ -2550,6 +2550,43 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 )
                                 stream.showText(pcSheetV11PrintableText(cell.drawableText))
                                 stream.endText()
+                            } else if (title == "C2 - Habilidades, acciones y recursos" &&
+                                cell.sourceKey.startsWith("attribute-skill:") &&
+                                cell.sourceStartOffset == 0) {
+                                // C217: reposition the unique REAL skill total
+                                // into the golden's right-value edge. Full
+                                // source identity and training stay printed.
+                                // Long/wrapped skills keep their prior safe ink.
+                                val wholeSource = entries.single {
+                                    it.sourceKey == cell.sourceKey
+                                }.text
+                                val trainingSep = wholeSource.lastIndexOf(" / ")
+                                val valueSep = if (trainingSep >= 0)
+                                    wholeSource.lastIndexOf(": ", trainingSep) else -1
+                                if (cell.sourceEndExclusive == wholeSource.length &&
+                                    valueSep > 0 && trainingSep > valueSep + 2) {
+                                    val realTotal = wholeSource.substring(
+                                        valueSep + 2, trainingSep)
+                                    val realTraining = wholeSource.substring(trainingSep + 3)
+                                    val leftInk = wholeSource.substring(0, valueSep) +
+                                        " (" + realTraining + ")"
+                                    val rightX = cell.cellPt.rightPt -
+                                        body.width.measurePt(realTotal) - 4f
+                                    val labelEnd = cell.cellPt.leftPt +
+                                        body.width.measurePt(leftInk)
+                                    if (realTotal.isNotBlank() && realTraining.isNotBlank() &&
+                                        labelEnd + 9f <= rightX) {
+                                        val baseline = body.metrics.baselineIn(cell.cellPt)
+                                        draw(stream, leftInk, cell.cellPt.leftPt, baseline, false)
+                                        draw(stream, realTotal, rightX, baseline, false)
+                                    } else {
+                                        draw(stream, cell.drawableText, cell.cellPt.leftPt,
+                                            body.metrics.baselineIn(cell.cellPt), false)
+                                    }
+                                } else if (cell.drawableText.isNotEmpty()) {
+                                    draw(stream, cell.drawableText, cell.cellPt.leftPt,
+                                        body.metrics.baselineIn(cell.cellPt), false)
+                                }
                             } else if (cell.drawableText.isNotEmpty()) {
                                 draw(stream, cell.drawableText,
                                     cell.cellPt.leftPt,

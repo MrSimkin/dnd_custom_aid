@@ -286,6 +286,41 @@ def c2_skill_checkbox_result(page: fitz.Page) -> tuple[int, int, list[str]]:
     return len(words), matched, errors
 
 
+def c2_source_skill_right_value_result(page: fitz.Page) -> tuple[int, list[str]]:
+    """C217: independent real-PDF check, numeric skill total on right edge.
+
+    Wrapped rows and non-numeric unresolved source totals retain old
+    lossless representation; they must never be counted as right-aligned.
+    """
+    import re
+    words = page.get_text("words")
+    matched = 0
+    failures: list[str] = []
+    for w in words:
+        if w[4] != "Habilidad" or not (
+            52 < w[0] < 70 or 322 < w[0] < 340
+        ) or not (90 < w[1] < 704):
+            continue
+        right_edge = 300 if w[0] < 200 else 570
+        same_row = [v for v in words if abs(v[1] - w[1]) <= .55 and v[0] > w[0]]
+        totals = [v for v in same_row if
+                  re.fullmatch(r"[+-]?[0-9]+", v[4]) and
+                  close(v[2], right_edge - 4, .8)]
+        if totals:
+            matched += 1
+            for total in totals:
+                collision = [other for other in same_row if
+                             other != total and other[0] < total[2] and
+                             other[2] > total[0] and
+                             abs(other[1] - total[1]) < 2]
+                if collision:
+                    failures.append(
+                        f"C217 right-aligned total overlaps printed source at "
+                        f"x={total[0]:.2f}, y={total[1]:.2f}"
+                    )
+    return matched, failures
+
+
 def audit(pdf_files: list[Path], minimum_pdfs: int) -> dict:
     if len(pdf_files) < minimum_pdfs:
         raise ValueError(f"Expected >= {minimum_pdfs} genuine PDFs; got {len(pdf_files)}")
@@ -297,6 +332,7 @@ def audit(pdf_files: list[Path], minimum_pdfs: int) -> dict:
         "c2_pages": 0, "c2_notes_cartelas": 0, "c2_complete_grids": 0,
         "c2_context_labels": 0, "c2_context_blue_bands": 0,
         "c2_linked_skill_rows": 0, "c2_linked_skill_paper_boxes": 0,
+        "c2_right_aligned_skill_totals": 0,
         "failures": [], "pdfs": [],
     }
     for source in pdf_files:
@@ -335,6 +371,9 @@ def audit(pdf_files: list[Path], minimum_pdfs: int) -> dict:
                     result["c2_linked_skill_rows"] += count
                     result["c2_linked_skill_paper_boxes"] += matched
                     failures.extend(skill_failures)
+                    count, value_failures = c2_source_skill_right_value_result(page)
+                    result["c2_right_aligned_skill_totals"] += count
+                    failures.extend(value_failures)
             else:
                 continue
             for detail in failures[:8]:
@@ -348,6 +387,8 @@ def audit(pdf_files: list[Path], minimum_pdfs: int) -> dict:
         result["failures"].append("C207/C208 insufficient genuine C2 grid coverage")
     if not result["p3_aligned_words"]:
         result["failures"].append("P305 no source words checked")
+    if result["c2_right_aligned_skill_totals"] < 3:
+        result["failures"].append("C217 no real right-aligned skill totals")
     if result["c2_linked_skill_rows"] < 3:
         result["failures"].append("C216 insufficient actual linked skills exercised")
     if result["c2_context_labels"] < 2:
