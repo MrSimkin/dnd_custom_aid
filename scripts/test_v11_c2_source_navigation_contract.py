@@ -35,6 +35,14 @@ class C2PhysicalOriginParityTest(unittest.TestCase):
             # C215: real measured two-level card, one blank line between
             # true ability title and score. Preserve fragment/source offsets.
             self.assertIn('ability.name + "\\n\\n"', source)
+            # C216: the paper box is sourced only from a real attribute-skill,
+            # with reserved measured text inset and no duplicate on wrapping.
+            self.assertIn('"      Habilidad " + skill.name', source)
+            self.assertIn('cell.sourceKey.startsWith("attribute-skill:") &&', source)
+            self.assertIn('cell.sourceStartOffset == 0)', source)
+            self.assertIn('cell.sourceText.startsWith("      Habilidad ")', source)
+            self.assertIn('body.width.measurePt("      ") >= 11f', source)
+            self.assertIn('stream.addRect(cell.cellPt.leftPt + 2f, base - 1f, 7f, 7f)', source)
             self.assertIn('attribute.name + "\\n\\n" + attribute.score', source)
             self.assertIn('prior.rowIndex + 1 == cell.rowIndex', source)
             self.assertIn('prior.sourceEndExclusive == scoreStart', source)

@@ -243,6 +243,49 @@ def c2_context_result(page: fitz.Page) -> tuple[int, int, list[str]]:
     return len(captions), matched, failures
 
 
+
+def c2_skill_checkbox_result(page: fitz.Page) -> tuple[int, int, list[str]]:
+    """C216: actual source-linked skills have one blank PDF vector paper box.
+
+    Only the first line of an indented `Habilidad` source is eligible;
+    generic standalone skills use an unindented source and are not counted.
+    This is a physical-PDF check, not a count inferred from Kotlin call sites.
+    """
+    words = [
+        w for w in page.get_text("words")
+        if w[4] == "Habilidad" and 90 <= w[1] <= 704
+        and (51 <= w[0] <= 70 or 321 <= w[0] <= 340)
+    ]
+    boxes = [
+        dr["rect"] for dr in page.get_drawings()
+        if dr.get("type") == "s"
+        and dr.get("width") is not None
+        and close(dr["width"], .65, .07)
+        and close(dr["rect"].width, 7, .08)
+        and close(dr["rect"].height, 7, .08)
+        and any(close(dr["rect"].x0, x, .22) for x in (44, 314))
+    ]
+    matched = 0
+    errors: list[str] = []
+    for w in words:
+        x = 44 if w[0] < 200 else 314
+        near = [r for r in boxes if close(r.x0, x, .22)
+                and w[1] - 8 <= r.y0 <= w[3]]
+        if len(near) == 1:
+            matched += 1
+            if any(not (other is w) and other[0] < near[0].x1
+                   and other[2] > near[0].x0 and other[1] < near[0].y1
+                   and other[3] > near[0].y0
+                   for other in page.get_text("words")):
+                errors.append("C216 manual skill square collides with digital source ink")
+        else:
+            errors.append(
+                f"C216 genuine linked skill lacks unique 7pt paper box "
+                f"at x={w[0]:.2f}, y={w[1]:.2f}"
+            )
+    return len(words), matched, errors
+
+
 def audit(pdf_files: list[Path], minimum_pdfs: int) -> dict:
     if len(pdf_files) < minimum_pdfs:
         raise ValueError(f"Expected >= {minimum_pdfs} genuine PDFs; got {len(pdf_files)}")
@@ -253,6 +296,7 @@ def audit(pdf_files: list[Path], minimum_pdfs: int) -> dict:
         "p3_golden_field_title_bands": 0, "p3_golden_alternate_rows": 0,
         "c2_pages": 0, "c2_notes_cartelas": 0, "c2_complete_grids": 0,
         "c2_context_labels": 0, "c2_context_blue_bands": 0,
+        "c2_linked_skill_rows": 0, "c2_linked_skill_paper_boxes": 0,
         "failures": [], "pdfs": [],
     }
     for source in pdf_files:
@@ -287,6 +331,10 @@ def audit(pdf_files: list[Path], minimum_pdfs: int) -> dict:
                     result["c2_context_labels"] += count
                     result["c2_context_blue_bands"] += matched
                     failures.extend(context_failures)
+                    count, matched, skill_failures = c2_skill_checkbox_result(page)
+                    result["c2_linked_skill_rows"] += count
+                    result["c2_linked_skill_paper_boxes"] += matched
+                    failures.extend(skill_failures)
             else:
                 continue
             for detail in failures[:8]:
@@ -300,6 +348,8 @@ def audit(pdf_files: list[Path], minimum_pdfs: int) -> dict:
         result["failures"].append("C207/C208 insufficient genuine C2 grid coverage")
     if not result["p3_aligned_words"]:
         result["failures"].append("P305 no source words checked")
+    if result["c2_linked_skill_rows"] < 3:
+        result["failures"].append("C216 insufficient actual linked skills exercised")
     if result["c2_context_labels"] < 2:
         result["failures"].append("C206 no genuine C2 source-continuation captions exercised")
     result["result"] = "PASS_LOCAL_PHYSICAL_ONLY" if not result["failures"] else "FAIL"

@@ -2556,6 +2556,29 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     body.metrics.baselineIn(cell.cellPt),
                                     false)
                             }
+                            // C216: the approved C2 paper uses an EMPTY
+                            // manual checkbox for each real linked custom skill,
+                            // not a literal "[ ]" glyph or inferred training.
+                            // The source flow reserves six measured spaces so
+                            // this 7pt square cannot obscure the printed name.
+                            // Wrapped continuations never gain a second box.
+                            if (title == "C2 - Habilidades, acciones y recursos" &&
+                                cell.sourceKey.startsWith("attribute-skill:") &&
+                                cell.sourceStartOffset == 0) {
+                                require(cell.sourceText.startsWith("      Habilidad ")) {
+                                    "C2 linked skill square lacks its measured source inset."
+                                }
+                                require(body.width.measurePt("      ") >= 11f) {
+                                    "C2 paper skill checkbox needs genuine font-measured clearance."
+                                }
+                                val base = body.metrics.baselineIn(cell.cellPt)
+                                stream.saveGraphicsState()
+                                stream.setStrokingColor(Color(130, 165, 186))
+                                stream.setLineWidth(0.65f)
+                                stream.addRect(cell.cellPt.leftPt + 2f, base - 1f, 7f, 7f)
+                                stream.stroke()
+                                stream.restoreGraphicsState()
+                            }
                             if (cell.sourceKey in ammunitionTracks &&
                                 cell.sourceStartOffset == 0) {
                                 val count = ammunitionTracks.getValue(cell.sourceKey)
@@ -2613,7 +2636,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         .forEach { (_, skill) ->
                             add(PcSheetV11FlowItem(
                                 "attribute-skill:" + skill.customSkillId,
-                                "Habilidad " + skill.name +
+                                // Six spaces are measurable handwriting
+                                // clearance for the genuine 7pt paper box.
+                                "      Habilidad " + skill.name +
                                     // The source ability is still explicit if
                                     // the full attribute was already placed P1.
                                     (if (alreadyPrintedOnP1) attribute.abbreviation
