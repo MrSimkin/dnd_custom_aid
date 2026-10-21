@@ -19,6 +19,8 @@ on:
       - "scripts/check_v11_qa_registry.py"
       - "scripts/test_check_v11_qa_registry.py"
       - "scripts/check_v11_pre_qa_gate.py"
+      - "scripts/check_v11_g4_module_coverage.py"
+      - "tests/test_v11_g4_module_coverage.py"
       - "scripts/test_check_v11_pre_qa_gate.py"
       - "scripts/test_v11_rasgos_render_contract.py"
       - "scripts/test_v11_attacks_render_contract.py"
@@ -50,6 +52,8 @@ on:
       - "scripts/check_v11_qa_registry.py"
       - "scripts/test_check_v11_qa_registry.py"
       - "scripts/check_v11_pre_qa_gate.py"
+      - "scripts/check_v11_g4_module_coverage.py"
+      - "tests/test_v11_g4_module_coverage.py"
       - "scripts/test_check_v11_pre_qa_gate.py"
       - "scripts/test_v11_rasgos_render_contract.py"
       - "scripts/test_v11_attacks_render_contract.py"
@@ -85,6 +89,8 @@ jobs:
           python3 -m py_compile scripts/check_v11_pre_qa_gate.py scripts/test_check_v11_pre_qa_gate.py
           python3 scripts/check_v11_pre_qa_gate.py --repo-root . --mode inventory
           python3 -m unittest discover -s scripts -p 'test_check_v11_pre_qa_gate.py' -v
+      - name: V11 G4 module report cannot false-clear pending stages
+        run: python3 -m unittest discover -s tests -p 'test_v11_g4_module_coverage.py' -v
       - name: V11 Rasgos G1/G2/G3 Android and Desktop source-contract guard
         run: python3 -m unittest discover -s scripts -p 'test_v11_rasgos_render_contract.py' -v
       - name: V11 P1 attacks G3 parity and real-PDF test inventory
