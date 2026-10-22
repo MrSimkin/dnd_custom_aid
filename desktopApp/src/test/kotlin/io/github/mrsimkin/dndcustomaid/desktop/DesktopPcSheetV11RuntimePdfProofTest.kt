@@ -2712,6 +2712,72 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun g3P4UniformRealSourceProfilesDoNotPrintContradictoryOverallNumbersAB() {
+        // Real Ilyra backup: leave global 15/+7 and every spell/UUID untouched.
+        // Adjust ALL persisted source profiles equally, so C221's per-source
+        // disagreement set remains empty, but source-level values are explicit.
+        val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val sheet = original.permanent.sheet
+        assertEquals(15, sheet.spellSaveDc)
+        assertEquals(7, sheet.spellAttackModifier)
+        val successor = original.permanent.successor
+        assertTrue(successor.spellcastingProfiles.isNotEmpty())
+        val adjusted = original.copy(permanent = original.permanent.copy(
+            successor = successor.copy(
+                spellcastingProfiles = successor.spellcastingProfiles.map {
+                    it.copy(
+                        saveDcAdjustment = it.saveDcAdjustment + 2,
+                        spellAttackAdjustment = it.spellAttackAdjustment - 2,
+                    )
+                },
+            ),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val result = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                adjusted,
+            )
+            val labels = io.github.mrsimkin.dndcustomaid.shared.character
+                .PcSheetV11SpellSourceLabels
+            assertTrue(labels.conflictingReferenceFields(result.semantic.spells).isEmpty(),
+                "Every real associated source received the same explicit adjustment.")
+            assertEquals(setOf("CD SALVACIÓN", "ATAQUE MÁGICO"),
+                labels.globalReferenceDisagreements(
+                    result.semantic.spells, sheet.spellSaveDc, sheet.spellAttackModifier,
+                ))
+            val associated = result.semantic.spells.flatMap { it.sources }
+                .distinctBy { it.sourceId }
+            assertTrue(associated.isNotEmpty())
+            assertTrue(associated.all { it.saveDc == 17 && it.spellAttackModifier == 5 },
+                "The displayed guard must be backed by real changed source-profile math.")
+            preserveRealApplicationPdf(result.bytes,
+                "V11-INTERNAL-PROOF-P4-uniform-profile-global-disagreement-" +
+                    variant.name + ".pdf")
+            Loader.loadPDF(result.bytes).use { pdf ->
+                val p4 = (1..pdf.numberOfPages).map { index ->
+                    PDFTextStripper().apply {
+                        startPage = index
+                        endPage = index
+                    }.getText(pdf)
+                }.filter { it.contains("P4 - Conjuros") }
+                assertTrue(p4.isNotEmpty())
+                val reference = p4.first().substringAfter("REFERENCIA MÁGICA")
+                    .substringBefore("NIVEL")
+                assertEquals(2, Regex("SEGÚN FUENTE").findAll(reference).count(),
+                    "Only the two genuinely inconsistent overall P4 cards may be guarded.")
+                assertTrue(reference.contains("INT"),
+                    "The unaffected casting-ability card must be preserved.")
+                assertFalse(reference.contains("\n15\n"))
+                assertFalse(reference.contains("\n+7\n"))
+                assertTrue(p4.joinToString("\n").contains("[X] Mago"),
+                    "A truthful reference may not remove source-specific preparation.")
+                assertTrue(PDFTextStripper().getText(pdf).contains("NOTAS"))
+            }
+        }
+    }
+
     @Test
     fun g3P4RealSpellSourceWithCrLfAndTabKeepsAllOriginAndPreparationAB() {
         // Independent regression: a persisted spellcasting source is free-form

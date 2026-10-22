@@ -42,6 +42,50 @@ class PcSheetV11SpellSourceLabelsTest {
         ).isEmpty())
     }
 
+
+    @Test
+    fun uniformGenuineSourcesMayDisagreeWithOverallStatsWithoutContradictingEachOther() {
+        val spell = CharacterSpell(
+            id = Uuid.parse("aa000003-0000-4000-8000-000000000001"),
+            name = "Fuente perfilada", level = 1,
+            castingTime = "", rangeText = "", verbal = false,
+            somatic = false, material = false, materialText = null,
+            duration = "", concentration = false, ritual = false,
+            description = "", notes = null, sortOrder = 0,
+        )
+        val first = PcSheetSpellbookSourceProjection(
+            sourceId = Uuid.parse("12345600-0000-4000-8000-000000000004"),
+            sourceName = "Mago", originKind = null, prepared = true,
+            castingAbility = CharacterAbilityReference.NONE,
+            saveDc = 18, spellAttackModifier = 5,
+        )
+        val entries = listOf(PcSheetSpellbookEntry(
+            spell, listOf(
+                first, first.copy(sourceId =
+                    Uuid.parse("12345600-0000-4000-8000-000000000005")),
+            ),
+        ))
+        // C221 alone sees no contradiction: both sources have the SAME profile.
+        assertTrue(PcSheetV11SpellSourceLabels.conflictingReferenceFields(entries).isEmpty())
+        // But the overall 15/+7 is NOT a faithful universal P4 source value.
+        assertEquals(setOf("CD SALVACIÓN", "ATAQUE MÁGICO"),
+            PcSheetV11SpellSourceLabels.globalReferenceDisagreements(
+                entries, overallDc = 15, overallAttackModifier = 7,
+            ))
+        assertTrue(PcSheetV11SpellSourceLabels.globalReferenceDisagreements(
+            entries, overallDc = 18, overallAttackModifier = 5,
+        ).isEmpty())
+        // Missing source-specific data does not create a fabricated disagreement.
+        val noProfile = entries.map {
+            it.copy(sources = it.sources.map { source ->
+                source.copy(saveDc = null, spellAttackModifier = null)
+            })
+        }
+        assertTrue(PcSheetV11SpellSourceLabels.globalReferenceDisagreements(
+            noProfile, overallDc = 15, overallAttackModifier = 7,
+        ).isEmpty())
+    }
+
     @Test
     fun equalVisibleNamesKeepDistinctRealIdsAndIndependentPreparation() {
         val one = Uuid.parse("12345600-0000-4000-8000-000000000001")

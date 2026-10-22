@@ -27,6 +27,30 @@ object PcSheetV11SpellSourceLabels {
         }
     }
 
+
+    /**
+     * C223: an overall character value is not an authoritative value for a
+     * specific spellcasting source when the persisted source profile explicitly
+     * disagrees. Null source metrics do NOT prove a disagreement; C221 separately
+     * handles mixed known/unknown per-source profiles. The owner has not yet
+     * approved a per-source numeric card layout, so reuse its truthful cue.
+     */
+    fun globalReferenceDisagreements(
+        entries: List<PcSheetSpellbookEntry>,
+        overallDc: Int?,
+        overallAttackModifier: Int?,
+    ): Set<String> {
+        val sources = entries.flatMap { it.sources }.distinctBy { it.sourceId }
+        return buildSet {
+            if (overallDc != null && sources.any { it.saveDc != null && it.saveDc != overallDc })
+                add("CD SALVACIÓN")
+            if (overallAttackModifier != null && sources.any {
+                it.spellAttackModifier != null &&
+                    it.spellAttackModifier != overallAttackModifier
+            }) add("ATAQUE MÁGICO")
+        }
+    }
+
     fun forSpells(entries: List<PcSheetSpellbookEntry>): Map<Uuid, String> {
         val sources = entries.flatMap { it.sources }.distinctBy { it.sourceId }
         fun label(source: PcSheetSpellbookSourceProjection): String =

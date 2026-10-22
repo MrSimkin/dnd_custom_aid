@@ -1298,8 +1298,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // source identity and independent prepared state.
                 // Exact per-source numeric card geometry is still an OWNER
                 // decision under D-0076, so do not fabricate it here.
-                val varying = io.github.mrsimkin.dndcustomaid.shared.character
-                    .PcSheetV11SpellSourceLabels.conflictingReferenceFields(data.spells)
+                val labels = io.github.mrsimkin.dndcustomaid.shared.character
+                    .PcSheetV11SpellSourceLabels
+                val varying = labels.conflictingReferenceFields(data.spells) +
+                    labels.globalReferenceDisagreements(
+                        data.spells, source.spellSaveDc, source.spellAttackModifier,
+                    )
                 val ability = when (source.spellcastingAbility) {
                     SpellcastingAbility.STRENGTH -> "FUE"
                     SpellcastingAbility.DEXTERITY -> "DES"
