@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21",
+  "source_product_sha": "e0513e514c26bf5746d6bb27d0581c31c9c36faf",
+  "verified_sha": "348a6b9ebcbff3d37eb4fd036047a7efd0420906",
+  "branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "scope": "V11 P4 source-backed IntMax slot TOTAL and SPENT shown together on one unchanged physical level-1 line using free measured left-of-meter band; no font reduction, no clipped digital data, unchanged three empty manual boxes; Android+Desktop implementation",
+  "status": "PASS_LOCAL_PHYSICAL_ONLY",
+  "authority": [
+    "docs/pc-sheet-v11/CONTRATO_VISUAL_APROBADO.md",
+    "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md §§3.25-3.26"
+  ],
+  "ci": {
+    "scaffold_exact_final_run": 39702383965,
+    "scaffold_final_conclusion": "success",
+    "owner_qa_traceability_product_run": 39702313846,
+    "owner_qa_traceability_product_conclusion": "success",
+    "initial_scaffold_run": 39702313827,
+    "initial_scaffold_conclusion": "failure",
+    "first_run_failure_scope": "Synthetic auditor fixture incorrectly inserted a duplicate second P4 meter; test corrected to change the original physical row in commit 348a6b9. Product geometry unchanged by this test-only adjustment."
+  },
+  "artifacts": {
+    "baseline": {
+      "run": 39700421544,
+      "pdf_artifact_id": 12392678444,
+      "zip_sha256": "47ae9a6f103ac039153bc49c9e8df9c3d74908229e3967ac4ff34996317a093d"
+    },
+    "verified": {
+      "run": 39702383965,
+      "pdf_artifact_id": 12393483195,
+      "zip_sha256": "7056283e34ee15d0023c7fe93f67cd080f20e4503d186796138a0b55a2adaf45"
+    }
+  },
+  "independent_comparison": {
+    "method": "PyMuPDF 76 shared-name PDFs strict equality per page all source word order, word bounding boxes and all vector path geometry, supplemented by new real Mara A/B IntMax source fixtures verified physically on P4 and C2 and raster-cropped.",
+    "baseline_pdfs": 76,
+    "verified_pdfs": 78,
+    "new_stress_pdfs": 2,
+    "baseline_pages": 713,
+    "baseline_pages_byte_semantic_identical_text_and_geometry": 713,
+    "new_stress_pages": 18,
+    "verified_total_pages": 731,
+    "new_stress_pdf_names": [
+      "V11-INTERNAL-PROOF-P4-intmax-real-spell-slots-A.pdf",
+      "V11-INTERNAL-PROOF-P4-intmax-real-spell-slots-B.pdf"
+    ],
+    "real_p4_full_text": "ESP.2147483647 G.2147483646",
+    "p4_full_label_exercised": 2,
+    "per_fixture_one_p4_occurrence": 1,
+    "per_fixture_full_source_seen_in_C2": 1,
+    "first_new_label_bbox_top_origin": [
+      79.385,
+      373.525,
+      120.503,
+      381.925
+    ],
+    "second_new_label_bbox_top_origin": [
+      121.903,
+      373.525,
+      157.092,
+      381.925
+    ],
+    "three_empty_squares_per_level": 3,
+    "title_and_first_box_ink_collision": false,
+    "source_name_or_number_loss": false,
+    "baseline_regressions": 0,
+    "errors": 0,
+    "result": "PASS_SCOPED"
+  },
+  "visual_inspection": "Real generated Mara-A P4 p7 enlarged: NIVEL 1 then ESP.2147483647 G.2147483646 in the same baseline, with non-overlapping three unmarked 7pt paper squares to right, genuine level 2 count remains unchanged",
+  "limits": [
+    "Only exercised two maximum-sized positive source Int values in P4; no unbounded length beyond Int or custom negative slot counts were claimed",
+    "No full eight golden pixel parity or G4/P410 PASS",
+    "No installed Android-generated PDF; Kotlin build+shared writer source parity only",
+    "No owner technical or visual acceptance",
+    "No change to 105 G4 NOT_VERIFIED rules / active_candidate=null, no merge; C211 BLOCKED normal 3/3 structural 0/2"
+  ]
+}

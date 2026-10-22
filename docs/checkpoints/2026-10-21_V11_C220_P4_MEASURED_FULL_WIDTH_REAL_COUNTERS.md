@@ -19,3 +19,20 @@ El auditor PyMuPDF P4 existente ahora localiza las casillas por sus **coordenada
 **Gates:** G0 parcial histórico; G1 semántico PASS previo; G2/G3 parciales, G4 BLOCKED **105/105 NOT_VERIFIED**, `active_candidate=null`; G5/G6 pendientes; C211 BLOCKED 3/3 normal, RCR-1 estructural 0/2. C212–C219 PASS LOCAL previos no reabiertos. Android instalado/owner técnico y visual/merge no autorizados.
 
 **Siguiente trabajo:** si C220 pasa, conciliar las excepciones P4 de representación por fuentes/preparación con reglas P406–P410 y golden aprobados usando datos verdaderos, y continuar G2/G3/G4 sin crear PASS desde checks locales.
+
+## Evidencia final exacta de C220: **PASS LOCAL FÍSICO**, no G4
+
+**Código productivo:** [`e0513e5`](https://github.com/MrSimkin/dnd_custom_aid/commit/e0513e514c26bf5746d6bb27d0581c31c9c36faf); **corrección exclusivamente de fixture de auditor:** [`348a6b9`](https://github.com/MrSimkin/dnd_custom_aid/commit/348a6b9ebcbff3d37eb4fd036047a7efd0420906). El [Scaffold exacto final #39702383965](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39702383965) **SUCCESS** en backend, BD, Kotlin/Android, auditorías P4 y generación de PDF real Desktop. [QA traceability #39702313846](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39702313846) **SUCCESS** en el commit productivo. El primer Scaffold #39702313827 falló por un test sintético que añadía una segunda etiqueta ESP. a otra fila; se ajustó el fixture para desplazar **la única etiqueta de la misma fila**. El código PDF no fue modificado por ese ajuste.
+
+**A/B auténticos:** anterior [76 PDF C219 #12392678444](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39700421544/artifacts/12392678444), ZIP SHA-256 `47ae9a6f103ac039153bc49c9e8df9c3d74908229e3967ac4ff34996317a093d`; nuevo [78 PDF C220 #12393483195](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39702383965/artifacts/12393483195), ZIP SHA-256 `7056283e34ee15d0023c7fe93f67cd080f20e4503d186796138a0b55a2adaf45`.
+
+PyMuPDF independiente:
+- **Los 76 PDF existentes conservan 713/713 páginas idénticas en TODAS las palabras, coordenadas y vectores de PDF.** No hubo regresiones a C219 ni a otros módulos.
+- Se añadieron **exactamente 2 PDF genuinos del Desktop App**, casos de estrés Mara A/B, de **9 páginas cada uno** (total candidato 78 PDF / 731 páginas). En cada PDF aparecen `2147483647` y `2147483646` una vez en su registro completo fuente C2 y una vez **intencionalmente repetidos** como `ESP.2147483647 G.2147483646` en la página P4 p7; ningún valor suprimido, recortado ni falsificado.
+- En P4, `NIVEL 1` y ambas cifras reales comparten UNA línea horizontal. Bbox física del indicador de total x79.385–120.503, gasto x121.903–157.092; **3 casillas de 7pt** siguen a derecha sin superposición, fuente Barlow 7pt no reducida. Sin páginas ni áreas invadidas. N2 y sus cifras reales permanecen igual.
+- Se inspeccionó raster ampliado de la cabecera P4 física, sin colisión visible; el auditor `scripts/audit_v11_p4_slot_meters.py` revisa casillas **por posiciones invariables en columna**, evitando falsos FAIL al moverse el indicador numérico fuente.
+- [Acta JSON reproducible](../pc-sheet-v11/qa/evidence/2026-10-21_V11_C220_P4_INTMAX_COUNTERS_REAL_PDFS.json) con SHA de archivos, IDs y geometría.
+
+**Veredicto solo C220:** PASS LOCAL para enteros de 10 dígitos en una cabecera P4 realmente generada, manteniendo texto y flujo previo. **NO afirmar P410 completo, golden global ni G4 PASS**; 105 reglas siguen `NOT_VERIFIED` y `active_candidate=null`. G0 PARCIAL, G1 PASS semántico previo, G2/G3 PARCIALES, G5/G6 pendientes. C211 BLOCKED 3/3 normal y RCR-1 0/2 estructural; C212–C219 PASS locales previos intactos. No existe PDF Android instalado ni aceptación técnica/visual del propietario, sin merge.
+
+**Próximo trabajo:** avanzar por una nueva diferencia funcional demostrable en representación de fuentes y preparación por conjuro de P4 (P406), contrastada con D-0076 §3.24 y golden, sin inferir fuente ni marca cuando hay varias asociaciones. Registrar pruebas y no mover compuertas sin verificación independiente.
