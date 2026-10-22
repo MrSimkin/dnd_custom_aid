@@ -2771,6 +2771,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 val p4 = pages.filter { it.contains("P4 - Conjuros") }
                 assertTrue(p4.isNotEmpty())
+                val p1 = pages.first()
+                assertEquals(1, Regex("SEGÚN FUENTE").findAll(p1).count(),
+                    "P1 must guard contradictory aptitude without masking DC/attack.")
+                assertTrue(p1.contains("15"))
+                assertTrue(p1.contains("+7"))
                 val reference = p4.first().substringAfter("REFERENCIA MÁGICA")
                     .substringBefore("NIVEL")
                 assertEquals(1, Regex("SEGÚN FUENTE").findAll(reference).count(),
@@ -2835,6 +2840,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }.filter { it.contains("P4 - Conjuros") }
                 assertTrue(p4.isNotEmpty())
+                val p1 = PDFTextStripper().apply {
+                    startPage = 1
+                    endPage = 1
+                }.getText(pdf)
+                assertEquals(2, Regex("SEGÚN FUENTE").findAll(p1).count(),
+                    "P1 must guard DC and attack independently of true INT aptitude.")
+                assertTrue(p1.contains("INT"))
                 val reference = p4.first().substringAfter("REFERENCIA MÁGICA")
                     .substringBefore("NIVEL")
                 assertEquals(2, Regex("SEGÚN FUENTE").findAll(reference).count(),

@@ -709,6 +709,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     SpellcastingAbility.CHARISMA->"CAR"
                     SpellcastingAbility.OTHER,SpellcastingAbility.NONE->""
                 }
+                // C225: P1 and P4 share source-specific truth; do not
+                // print contradictory character-wide magical statistics.
+                val varyingP1 = io.github.mrsimkin.dndcustomaid.shared.character
+                    .PcSheetV11SpellSourceLabels.contradictoryOverallFields(
+                        data.spells, source.spellcastingAbility,
+                        source.spellSaveDc, source.spellAttackModifier,
+                    )
                 listOf("APTITUD" to magical,
                     "CD SALVACIÓN" to(source.spellSaveDc?.toString()?:""),
                     "ATAQUE MÁGICO" to (source.spellAttackModifier?.let{
@@ -720,7 +727,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         stream.newLineAtOffset(x,270f)
                         stream.showText(label)
                         stream.endText()
-                        if(value.isNotEmpty())draw(stream,value,x,255f,false)
+                        val ink = if (label in varyingP1) "SEGÚN FUENTE" else value
+                        if(ink.isNotEmpty()){
+                            require(body.width.measurePt(ink) <= 81f) {
+                                "P1 real magic reference must fit its native source card"
+                            }
+                            draw(stream,ink,x,255f,false)
+                        }
                     }
                 draw(stream,"ESPACIOS",315f,243f,false)
                 draw(stream,"GASTADOS",407f,243f,false)
@@ -1300,12 +1313,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // decision under D-0076, so do not fabricate it here.
                 val labels = io.github.mrsimkin.dndcustomaid.shared.character
                     .PcSheetV11SpellSourceLabels
-                val varying = labels.conflictingReferenceFields(data.spells) +
-                    labels.globalReferenceDisagreements(
-                        data.spells, source.spellSaveDc, source.spellAttackModifier,
-                    ) + labels.globalAbilityDisagreement(
-                        data.spells, source.spellcastingAbility,
-                    )
+                val varying = labels.contradictoryOverallFields(
+                    data.spells, source.spellcastingAbility,
+                    source.spellSaveDc, source.spellAttackModifier,
+                )
                 val ability = when (source.spellcastingAbility) {
                     SpellcastingAbility.STRENGTH -> "FUE"
                     SpellcastingAbility.DEXTERITY -> "DES"

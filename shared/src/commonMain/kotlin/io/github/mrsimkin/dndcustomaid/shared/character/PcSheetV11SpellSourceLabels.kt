@@ -75,6 +75,17 @@ object PcSheetV11SpellSourceLabels {
         ) setOf("APTITUD") else emptySet()
     }
 
+
+    /** C225: identical semantic contract for source-backed P1 and P4 cards. */
+    fun contradictoryOverallFields(
+        entries: List<PcSheetSpellbookEntry>,
+        overallAbility: SpellcastingAbility,
+        overallDc: Int?,
+        overallAttackModifier: Int?,
+    ): Set<String> = conflictingReferenceFields(entries) +
+        globalReferenceDisagreements(entries, overallDc, overallAttackModifier) +
+        globalAbilityDisagreement(entries, overallAbility)
+
     fun forSpells(entries: List<PcSheetSpellbookEntry>): Map<Uuid, String> {
         val sources = entries.flatMap { it.sources }.distinctBy { it.sourceId }
         fun label(source: PcSheetSpellbookSourceProjection): String =

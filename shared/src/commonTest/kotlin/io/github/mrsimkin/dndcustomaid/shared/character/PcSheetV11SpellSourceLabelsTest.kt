@@ -135,6 +135,47 @@ class PcSheetV11SpellSourceLabelsTest {
         ))
     }
 
+
+    @Test
+    fun p1AndP4UseSameSourceProfileTruthForThreeFields() {
+        val spell = CharacterSpell(
+            id = Uuid.parse("aa000005-0000-4000-8000-000000000001"),
+            name = "Referencia por fuente", level = 1, castingTime = "",
+            rangeText = "", verbal = false, somatic = false,
+            material = false, materialText = null, duration = "",
+            concentration = false, ritual = false, description = "",
+            notes = null, sortOrder = 0,
+        )
+        val source = PcSheetSpellbookSourceProjection(
+            sourceId = Uuid.parse("12345600-0000-4000-8000-000000000011"),
+            sourceName = "Mago", originKind = null, prepared = true,
+            castingAbility = CharacterAbilityReference.builtIn(CharacterAbility.WISDOM),
+            saveDc = 17, spellAttackModifier = 5,
+        )
+        val entries = listOf(PcSheetSpellbookEntry(spell, listOf(source)))
+        val labels = PcSheetV11SpellSourceLabels
+        assertEquals(setOf("APTITUD", "CD SALVACIÓN", "ATAQUE MÁGICO"),
+            labels.contradictoryOverallFields(
+                entries, SpellcastingAbility.INTELLIGENCE, 15, 7,
+            ))
+        assertTrue(labels.contradictoryOverallFields(
+            entries, SpellcastingAbility.WISDOM, 17, 5,
+        ).isEmpty())
+        assertTrue(labels.contradictoryOverallFields(
+            emptyList(), SpellcastingAbility.INTELLIGENCE, 15, 7,
+        ).isEmpty())
+        val unknown = source.copy(
+            sourceId = Uuid.parse("12345600-0000-4000-8000-000000000012"),
+            castingAbility = CharacterAbilityReference.NONE,
+            saveDc = null, spellAttackModifier = null,
+        )
+        assertEquals(setOf("APTITUD", "CD SALVACIÓN", "ATAQUE MÁGICO"),
+            labels.contradictoryOverallFields(
+                listOf(PcSheetSpellbookEntry(spell, listOf(source, unknown))),
+                SpellcastingAbility.WISDOM, 17, 5,
+            ))
+    }
+
     @Test
     fun equalVisibleNamesKeepDistinctRealIdsAndIndependentPreparation() {
         val one = Uuid.parse("12345600-0000-4000-8000-000000000001")
