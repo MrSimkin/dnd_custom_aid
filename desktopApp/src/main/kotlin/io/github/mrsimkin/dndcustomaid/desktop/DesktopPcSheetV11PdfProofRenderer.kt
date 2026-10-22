@@ -1298,6 +1298,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // This is a physical banner above the three-column level ledger,
             // NOT additional fake spell slots or a generic body-text section.
             fun drawP4MagicReference(stream: PDPageContentStream) {
+                // C221: for contradictory source-specific spellcasting
+                // profiles never print one global number as a universal
+                // value. Per-spell P4 rows continue to print each genuine
+                // source identity and independent prepared state.
+                // Exact per-source numeric card geometry is still an OWNER
+                // decision under D-0076, so do not fabricate it here.
+                val varying = io.github.mrsimkin.dndcustomaid.shared.character
+                    .PcSheetV11SpellSourceLabels.conflictingReferenceFields(data.spells)
                 val ability = when (source.spellcastingAbility) {
                     SpellcastingAbility.STRENGTH -> "FUE"
                     SpellcastingAbility.DEXTERITY -> "DES"
@@ -1311,9 +1319,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     if (it >= 0) "+" + it else it.toString()
                 }
                 val fields: List<Pair<String, String?>> = listOf(
-                    "APTITUD" to ability,
-                    "CD SALVACIÓN" to source.spellSaveDc?.toString(),
-                    "ATAQUE MÁGICO" to attack,
+                    "APTITUD" to if ("APTITUD" in varying) "SEGÚN FUENTE" else ability,
+                    "CD SALVACIÓN" to if ("CD SALVACIÓN" in varying)
+                        "SEGÚN FUENTE" else source.spellSaveDc?.toString(),
+                    "ATAQUE MÁGICO" to if ("ATAQUE MÁGICO" in varying)
+                        "SEGÚN FUENTE" else attack,
                 )
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(80, 122, 151))

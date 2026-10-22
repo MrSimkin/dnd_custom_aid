@@ -2590,6 +2590,79 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3P4MultipleRealSourceIdsNeverClaimUnknownDcAndAttackAsUniversalAB() {
+        // An Ilyra spell and its actual source remain genuine.
+        // Add a real persisted second source ID, deliberately without
+        // a casting profile; null source DC/attack must not be presented
+        // as the same numbers as a known profile. No layout specification
+        // for future per-source cards is invented by this test.
+        val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val sheet = original.permanent.sheet
+        val selected = sheet.spells.first { it.sourceAssociations.isNotEmpty() }
+        val primary = sheet.spellcastingSources.first {
+            it.id == selected.sourceAssociations.first().sourceId
+        }
+        val addedId = Uuid.parse("abcdef21-0000-4000-8000-000000000173")
+        val added = primary.copy(
+            id = addedId, name = "QA ORIGEN SIN PERFIL",
+            linkedClassId = null,
+            originKind =
+                io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingOriginKind.OTHER,
+            originReferenceId = null,
+            sortOrder = primary.sortOrder + 1,
+        )
+        val stressed = original.copy(
+            permanent = original.permanent.copy(
+                sheet = sheet.copy(
+                    spellcastingSources = sheet.spellcastingSources + added,
+                    spells = sheet.spells.map { spell ->
+                        if (spell.id == selected.id) spell.copy(
+                            sourceAssociations = spell.sourceAssociations +
+                                io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSourceAssociation(
+                                    sourceId = addedId, prepared = false,
+                                ),
+                        ) else spell
+                    },
+                ),
+            ),
+        )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                ), stressed,
+            )
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-P4-conflicting-magic-reference-" +
+                    variant.name + ".pdf")
+            val actual = proof.semantic.spells.first { it.spell.id == selected.id }
+            assertEquals(2, actual.sources.size)
+            assertEquals(listOf(true, false), actual.sources.map { it.prepared })
+            val varying = io.github.mrsimkin.dndcustomaid.shared.character
+                .PcSheetV11SpellSourceLabels.conflictingReferenceFields(
+                    proof.semantic.spells,
+                )
+            assertTrue("CD SALVACIÓN" in varying || "ATAQUE MÁGICO" in varying,
+                "The synthetic persisted second source must ACTUALLY differ.")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val content = PDFTextStripper().getText(pdf)
+                val p4 = (1..pdf.numberOfPages).map { physical ->
+                    PDFTextStripper().apply {
+                        startPage = physical
+                        endPage = physical
+                    }.getText(pdf)
+                }.filter { it.contains("P4 - Conjuros") }.joinToString("\n")
+                assertTrue(p4.contains("SEGÚN FUENTE"),
+                    "P4 must not show a fake universal DC or attack.")
+                assertTrue(p4.contains("QA ORIGEN SIN PERFIL") &&
+                    p4.contains("[ ]"),
+                    "Every actual source/preparation association remains visible.")
+                assertTrue(content.contains("NOTAS"))
+            }
+        }
+    }
+
+    @Test
     fun g3P4RealSpellSourceWithCrLfAndTabKeepsAllOriginAndPreparationAB() {
         // Independent regression: a persisted spellcasting source is free-form
         // and may contain actual line breaks/tabs. Old P4 inline-right sizing

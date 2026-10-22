@@ -9,6 +9,24 @@ import kotlin.uuid.Uuid
  * prefix of their real UUID, not a fabricated presentation ordinal.
  */
 object PcSheetV11SpellSourceLabels {
+    /**
+     * C221: a universal P4 reference MUST NOT present one score/ability
+     * as if it applied to multiple genuinely different casting sources.
+     * Null/UNKNOWN is not silently collapsed into a known source value.
+     * A stable UUID is the identity; preparation and equal visible names
+     * are irrelevant to this particular three-field contradiction.
+     */
+    fun conflictingReferenceFields(entries: List<PcSheetSpellbookEntry>): Set<String> {
+        val profiles = entries.flatMap { it.sources }.distinctBy { it.sourceId }
+        if (profiles.size <= 1) return emptySet()
+        return buildSet {
+            if (profiles.map { it.castingAbility }.distinct().size > 1) add("APTITUD")
+            if (profiles.map { it.saveDc }.distinct().size > 1) add("CD SALVACIÓN")
+            if (profiles.map { it.spellAttackModifier }.distinct().size > 1)
+                add("ATAQUE MÁGICO")
+        }
+    }
+
     fun forSpells(entries: List<PcSheetSpellbookEntry>): Map<Uuid, String> {
         val sources = entries.flatMap { it.sources }.distinctBy { it.sourceId }
         fun label(source: PcSheetSpellbookSourceProjection): String =
