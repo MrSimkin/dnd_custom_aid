@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "date_chile": "2026-10-22",
+  "repo": "MrSimkin/dnd_custom_aid",
+  "pr": 173,
+  "scope": "C228 source-backed customized casting ability with global OTHER/NONE; local physical PASS only",
+  "functional_sha": "0365a1c7fe3c79042a3913c142c235168c024df4",
+  "ci": {
+    "scaffold": {
+      "run": 39861906118,
+      "conclusion": "success"
+    },
+    "qa": {
+      "run": 39861906127,
+      "conclusion": "success"
+    }
+  },
+  "before": {
+    "artifact_id": 12447073887,
+    "ci_run": 39828557324,
+    "pdfs": 90,
+    "pages": 825,
+    "zip_sha256": "148ce9869cd29f566380bdd0eea238bb7fce6c2670b509e3757f15c878138996"
+  },
+  "after": {
+    "artifact_id": 12462716343,
+    "ci_run": 39861906118,
+    "pdfs": 92,
+    "pages": 843,
+    "zip_sha256": "3b10ff123010bf60e7cf1e19b791bd57fa42287ef04ea1a965576e4285506245"
+  },
+  "audit": {
+    "artifact_id": 12462801093,
+    "zip_sha256": "d1fd8dfcf5aaa0ae2d1eae88e4d0c8cc5f0211e6bd99653f7e3484279bf28ce9",
+    "pdfs": 92,
+    "pages": 843,
+    "physical_envelope_errors": 0,
+    "module_topology_errors": 0,
+    "c207_c2_pages": 247,
+    "c207_regions": 450,
+    "c207_missing_reservations": 0,
+    "final_notes_pass": 92,
+    "failed_frames": 0,
+    "failed_logos": 0,
+    "failed_p4_slots": 0,
+    "failed_books": 0
+  },
+  "independent_comparison": {
+    "tool": "PyMuPDF 1.26.7 source and physical comparison against exact prior CI PDF ZIP",
+    "common_pdfs": 90,
+    "common_pages": 825,
+    "pagination_unchanged_pdfs": 90,
+    "text_and_position_unchanged_pages": 769,
+    "changed_pages": 56,
+    "changed_p1_pages": 28,
+    "changed_p4_pages": 28,
+    "added_words_per_changed_page": [
+      "SEGÚN",
+      "FUENTE"
+    ],
+    "removed_words": 0,
+    "vector_unchanged_pages": 797,
+    "p4_empty_aptitude_underlines_intentionally_removed": 28,
+    "unexpected_vector_changes": 0,
+    "other_words_or_positions_changed": 0,
+    "images_reference_counts_unchanged_pages": 825,
+    "image_byte_equality": "NOT_CLAIMED",
+    "pdf_byte_identical": "NOT_CLAIMED",
+    "errors": 0
+  },
+  "new_pdfs": [
+    {
+      "name": "V11-INTERNAL-PROOF-P1-P4-Mara-custom-aptitude-A.pdf",
+      "sha256": "dc5a840382aae78136a0b68ad410b940b3ff8f62f360589878c83a6c7fc4621b",
+      "pages": 9,
+      "p1": "APTITUD SEGÚN FUENTE; CD SALVACIÓN SEGÚN FUENTE; ATAQUE MÁGICO +8",
+      "p4_page": 7,
+      "p4": "APTITUD SEGÚN FUENTE; CD SALVACIÓN SEGÚN FUENTE; ATAQUE MÁGICO +8",
+      "raster": "inspected both reference bands, readable, no clipping"
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P1-P4-Mara-custom-aptitude-B.pdf",
+      "sha256": "45f4416109b92e4e0696530da9147faf720cb541e368283565cafb3453f1b115",
+      "pages": 9,
+      "p1": "APTITUD SEGÚN FUENTE; CD SALVACIÓN SEGÚN FUENTE; ATAQUE MÁGICO +8",
+      "p4_page": 7,
+      "p4": "APTITUD SEGÚN FUENTE; CD SALVACIÓN SEGÚN FUENTE; ATAQUE MÁGICO +8",
+      "raster": "inspected both reference bands, readable, no clipping"
+    }
+  ],
+  "limitations": [
+    "not complete golden eight-way equivalence",
+    "not installed Android QA",
+    "not owner technical or visual approval",
+    "not G4 release candidate",
+    "not authorization to merge"
+  ],
+  "gates": {
+    "g0": "PARCIAL",
+    "g1": "PASS_SEMANTIC_SCOPE_HISTORICAL",
+    "g2": "PARCIAL",
+    "g3": "PARCIAL",
+    "g4": "BLOCKED_105_OF_105_NOT_VERIFIED_ACTIVE_CANDIDATE_NULL",
+    "g5": "PENDING",
+    "g6": "PENDING",
+    "c211": "BLOCKED_3_OF_3_NORMAL_0_OF_2_STRUCTURAL"
+  }
+}

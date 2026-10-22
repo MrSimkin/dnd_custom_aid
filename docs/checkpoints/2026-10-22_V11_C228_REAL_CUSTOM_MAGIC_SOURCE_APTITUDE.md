@@ -1,6 +1,6 @@
 # C228 — Aptitud de fuente mágica personalizada real en P1 y P4
 
-**Fecha Chile:** 2026-10-22. **PR #173 DRAFT / NO MERGE**. Estado al publicar: **IN_PROGRESS: CI y cotejo físico C228 PENDIENTES**.
+**Fecha Chile:** 2026-10-22. **PR #173 DRAFT / NO MERGE**. Estado al publicar: **C228 PASS LOCAL FÍSICO VERIFICADO (NO G4 / OWNER)**.
 
 ## Hallazgo en salida auténtica, sin rediseño
 
@@ -20,3 +20,17 @@ C224 compara contradicciones entre global built-in y fuentes; C225 reutiliza el 
 Rama anterior `45c1b476508bab59edad18b4c4eb094ca0d6a1e0`, main `0c009f10d5e66880d68fa3732491c6fc3e172f22`. C227 PASS LOCAL físico, **no** global. G0 PARCIAL; G1 semántico PASS histórico, G2/G3 PARCIALES; G4 BLOCKED **105/105 NOT_VERIFIED** `active_candidate=null`; G5/G6 pendientes; C211 BLOCKED 3/3 normales y 0/2 estructural. Se preservan las 32 observaciones M50800 y V11-QA-001/002, golden, matriz y D-0076 sin modificar. No hay aprobación técnica/visual owner, ni QA Android instalado. No fusionar la PR.
 
 **Siguiente acción:** confirmar prueba de PDF real y registrar C228 PASS LOCAL o incidencia precisa con presupuesto RCR-1. Posteriormente seleccionar otra brecha funcional fuente-contrastada independiente o conciliación de reglas pendientes de G2/G3, sin reabrir 7+ casillas mágicas por su diseño no aprobado.
+
+## Cierre físico C228 — PASS LOCAL, sin promoción de G4
+
+**Commit funcional exacto:** `0365a1c7fe3c79042a3913c142c235168c024df4`. [Scaffold #39861906118](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39861906118) y [QA #39861906127](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39861906127) ambos **SUCCESS**; Kotlin Shared/Desktop/Android compilado, tests e integración real Mara A/B correctos; auditor físico CI success. No se requirió reparación posterior ni se consumió presupuesto de C228.
+
+[Lote real C228 #12462716343](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39861906118/artifacts/12462716343): ZIP SHA256 `3b10ff123010bf60e7cf1e19b791bd57fa42287ef04ea1a965576e4285506245`, **92 PDF/843 páginas**. Comparador PyMuPDF independiente contra [C227 #12447073887](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39828557324/artifacts/12447073887), ZIP `148ce9869cd29f566380bdd0eea238bb7fce6c2670b509e3757f15c878138996`: **90/90** mismos PDF y paginación, **825/825** páginas mantenidas; en **769** páginas todos los tokens/posiciones y dibujos idénticos. En **28 páginas P1 y 28 páginas P4**, se añadieron exclusivamente las palabras `SEGÚN FUENTE` en APTITUD antes vacía; **cero palabras eliminadas y cero desplazamientos del texto anterior**. En las 28 P4 se eliminó únicamente la antigua línea horizontal manuscrita vacía de APTITUD, ahora correctamente sustituida por valor; el resto de los vectores es idéntico (797/825 páginas completamente iguales en trazos). Referencias/cantidades de imágenes iguales; **no se declara igualdad de bytes de imagen ni equivalencia pixel-a-pixel golden**.
+
+**Dos PDF App nuevos Mara original A/B**, 9 páginas Carta c/u, ambos con P1 y P4 (página 7) «APTITUD SEGÚN FUENTE / CD SALVACIÓN SEGÚN FUENTE / ATAQUE MÁGICO +8», sin alterar el perfil `customAttributeId` ni los conjuros. SHA A `dc5a840382aae78136a0b68ad410b940b3ff8f62f360589878c83a6c7fc4621b`, B `45f4416109b92e4e0696530da9147faf720cb541e368283565cafb3453f1b115`. Se inspeccionaron los recortes raster 2× de **ambas** franjas en A/B: sin letras cortadas ni superposición visible. Página final NOTAS se conserva.
+
+[Auditor físico CI #12462801093](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39861906118/artifacts/12462801093), ZIP SHA256 `d1fd8dfcf5aaa0ae2d1eae88e4d0c8cc5f0211e6bd99653f7e3484279bf28ce9`: **92 PDF/843 páginas, 0 errores de perímetro/topología, 92/92 últimas NOTAS, 0 faltantes C207 en 247 páginas C2 / 450 regiones, 0 fallos de marcos/logos, P4 y Libro**. [Acta JSON exacta](../pc-sheet-v11/qa/evidence/2026-10-22_V11_C228_REAL_CUSTOM_MAGIC_SOURCE_P1_P4_PDFS.json).
+
+**Conclusión local:** C228 PASS físico respecto de su alcance; C227 y anteriores no reabiertos. G0 PARCIAL, G1 semántico PASS histórico, G2/G3 PARCIALES; **G4 105/105 NOT_VERIFIED**, `active_candidate=null`; G5/G6 pendientes; C211 BLOCKED 3/3 normal 0/2 estructural. Matriz, golden, observaciones M50800/V11 y aprobación owner **intactas**. Android instalado no evaluado. PR #173 DRAFT **NO MERGE**.
+
+**Siguiente paso seguro:** seleccionar un requisito genuinamente pendiente de G2/G3 distinto del bloqueo C211 y del seguimiento 7+ sin política aprobada, o reconciliar evidencia física ya probada con reglas individuales, sin convertir PASS local en PASS integral.
