@@ -2604,7 +2604,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
         val addedId = Uuid.parse("abcdef21-0000-4000-8000-000000000173")
         val added = primary.copy(
-            id = addedId, name = "QA ORIGEN SIN PERFIL",
+            id = addedId, name = "QAORIGENSINPERFIL",
             linkedClassId = null,
             originKind =
                 io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingOriginKind.OTHER,
@@ -2657,9 +2657,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.filter { it.contains("P4 - Conjuros") }.joinToString("\n")
                 assertTrue(p4.contains("SEGÚN FUENTE"),
                     "P4 must not show a fake universal DC or attack.")
-                assertTrue(p4.contains("QA ORIGEN SIN PERFIL") &&
-                    p4.contains("[ ]"),
-                    "Every actual source/preparation association remains visible.")
+                assertTrue(p4.contains("QAORIGENSINPERFIL"),
+                    "The additional persisted source UUID must survive physically.")
+                assertTrue(p4.contains("[ ]"),
+                    "An unprepared source cannot acquire a false preparation mark.")
                 assertTrue(content.contains("NOTAS"))
             }
         }
