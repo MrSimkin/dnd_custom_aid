@@ -1999,6 +1999,52 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun g3RealCharacterNameHardBreakIsNavigableAndLosslessInBothV11Variants() {
+        // Actual Aldren backup with only its pasted character name modified.
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val rawName = "QACABECERA\r\nQANOMBRECOMPLETO\tDELPC"
+        val input = original.copy(permanent = original.permanent.copy(
+            sheet = original.permanent.sheet.copy(name = rawName),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                input,
+            )
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-P1-character-name-hard-break-" + variant + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { page ->
+                    PDFTextStripper().apply {
+                        startPage = page
+                        endPage = page
+                    }.getText(pdf)
+                }
+                pages.forEach { page ->
+                    assertTrue(page.contains("VER C2"),
+                        "Every physical header must navigate to the unmodified name.")
+                }
+                val c2Body = pdf.pages.mapNotNull { page ->
+                    val area = PDFTextStripperByArea().apply {
+                        addRegion("body", Rectangle2D.Float(38f, 84f, 536f, 629f))
+                        extractRegions(page)
+                    }
+                    area.getTextForRegion("body")
+                        .takeIf { it.contains("NOMBRE COMPLETO DEL PERSONAJE:") }
+                }.joinToString("\n")
+                assertEquals(1, Regex("QACABECERA").findAll(c2Body).count())
+                assertEquals(1, Regex("QANOMBRECOMPLETO").findAll(c2Body).count())
+                assertEquals(1, Regex("DELPC").findAll(c2Body).count())
+                assertTrue(pages.first().contains("CONTINÚA EN C2 PÁG."),
+                    "P1 must link to its actual C2 source body.")
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertTrue(pdf.numberOfPages >= 4)
+            }
+        }
+    }
+
     @Test
     fun g3OversizedPersistedSpellSlotCountersUseP1C2WithoutClippingOrInventingValues() {
         // A genuine Aldren backup supplies every unchanged field; only the

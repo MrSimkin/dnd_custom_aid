@@ -20,10 +20,14 @@ object PcSheetV11HeaderNameRouter {
         width: PcSheetV11TextWidth,
     ): PcSheetV11HeaderNameRoute {
         require(availableWidthPt.isFinite() && availableWidthPt > 0f)
+        // The header is physically one line: do not send persisted CR/LF
+        // to the embedded PDF font measurer. Preserve the source in C2.
+        val hasHardBreak = sourceName.any { it == '\r' || it == '\n' }
         val printable = pcSheetV11PrintableText(sourceName)
+            .replace("\r\n", " ").replace('\r', ' ').replace('\n', ' ')
         val completeWidth = width.measurePt(printable)
         require(completeWidth.isFinite() && completeWidth >= 0f)
-        if (completeWidth <= availableWidthPt) {
+        if (completeWidth <= availableWidthPt && !hasHardBreak) {
             return PcSheetV11HeaderNameRoute(printable, null)
         }
         require(width.measurePt(NAVIGATION_SUFFIX) <= availableWidthPt) {
