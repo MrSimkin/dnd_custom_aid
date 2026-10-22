@@ -1388,6 +1388,22 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 val full = pages.joinToString("\n")
+                if (variant == PcSheetV11Variant.A) {
+                    // C218 approved P1/C2 signed-ink grammar. These are
+                    // genuine, persisted Mara numbers, NOT computed test
+                    // fixtures or a guessed training proficiency state.
+                    val actualC2 = pages.filter { it.contains(
+                        "C2 - Habilidades, acciones y recursos",
+                    ) }.joinToString("\n")
+                    assertTrue(actualC2.contains("mod +1 / salvación +0"),
+                        "C2 Cordura must show the real modifier and save with a plus.")
+                    assertTrue(actualC2.contains("mod +4 / salvación +8"),
+                        "C2 Éter must keep both real nonnegative signed values.")
+                    assertTrue(actualC2.contains("salvación sin valor"),
+                        "A missing source save must remain explicitly unresolved.")
+                    assertTrue(actualC2.contains("+9") && actualC2.contains("+8"),
+                        "C2 linked true skill totals must retain golden plus signs.")
+                }
                 for ((attribute, skill) in linked) {
                     val key = "Habilidad " + skill
                     assertTrue(full.contains(attribute),

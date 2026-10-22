@@ -213,6 +213,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 "CHARISMA" -> "CARISMA"
                 else -> name
             }
+            // C218: the approved V11 paper displays true positive/zero
+            // ability and skill modifiers with an explicit plus, as P1 does.
+            // This is a display-only formatting of the persisted Int.
+            fun signedC2(value: Int): String =
+                if (value >= 0) "+" + value else value.toString()
+
             fun approvedAbilityAbbreviation(raw: String): String = when (raw.uppercase()) {
                 "STR" -> "FUE"
                 "DEX" -> "DES"
@@ -2265,8 +2271,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 // paper card; no synthetic ability values.
                                 val prefix = ability.name + "\n\n"
                                 val score = ability.score.toString()
-                                val modifier = ability.modifier.toString()
-                                val saving = ability.savingThrowTotal?.toString() ?: "sin valor"
+                                val modifier = signedC2(ability.modifier)
+                                val saving = ability.savingThrowTotal?.let {
+                                    signedC2(it)
+                                } ?: "sin valor"
                                 val scoreStart = prefix.length
                                 val modifierStart = scoreStart + score.length + " / mod ".length
                                 val savingStart = modifierStart + modifier.length +
@@ -2653,9 +2661,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         add(PcSheetV11FlowItem(
                             "attribute:" + index,
                             attribute.name + "\n\n" + attribute.score +
-                                " / mod " + attribute.modifier +
+                                " / mod " + signedC2(attribute.modifier) +
                                 " / salvación " +
-                                (attribute.savingThrowTotal?.toString() ?: "sin valor"),
+                                (attribute.savingThrowTotal?.let {
+                                    signedC2(it)
+                                } ?: "sin valor"),
                             keepTogetherIfFits = true,
                             groupKey = customC2Group,
                         ))
@@ -2676,7 +2686,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                         .takeIf { it.isNotBlank() }
                                         ?.let { " (" + approvedAbilityAbbreviation(it) + ")" }
                                         ?: "" else "") +
-                                    ": " + (skill.total?.toString() ?: "sin resolver") +
+                                    ": " + (skill.total?.let {
+                                        signedC2(it)
+                                    } ?: "sin resolver") +
                                     " / " + skill.training.name,
                                 keepTogetherIfFits = true,
                                 groupKey = customC2Group,
@@ -2693,7 +2705,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             add(PcSheetV11FlowItem("skill:" + index,
                                 "Habilidad " + skill.name +
                                     (abbreviation?.let { " (" + it + ")" } ?: "") +
-                                    ": " + (skill.total?.toString() ?: "sin resolver") +
+                                    ": " + (skill.total?.let {
+                                        signedC2(it)
+                                    } ?: "sin resolver") +
                                     " / " + skill.training.name))
                         }
                     }

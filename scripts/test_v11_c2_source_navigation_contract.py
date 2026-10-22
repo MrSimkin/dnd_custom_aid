@@ -44,6 +44,13 @@ class C2PhysicalOriginParityTest(unittest.TestCase):
             self.assertIn('body.width.measurePt("      ") >= 11f', source)
             self.assertIn('stream.addRect(cell.cellPt.leftPt + 2f, base - 1f, 7f, 7f)', source)
             # C217 source-backed total is only moved if both sides fit.
+            # C218: all C2 persisted numeric modifier/save/skill inks
+            # share the genuine P1 plus/minus grammar in both exporters.
+            self.assertIn('fun signedC2(value: Int): String =', source)
+            self.assertIn('if (value >= 0) "+" + value else value.toString()', source)
+            self.assertIn('val modifier = signedC2(ability.modifier)', source)
+            self.assertIn('signedC2(attribute.modifier)', source)
+            self.assertIn('signedC2(it)', source)
             self.assertIn('val realTotal = wholeSource.substring(', source)
             self.assertIn('val realTraining = wholeSource.substring(trainingSep + 3)', source)
             self.assertIn('val rightX = cell.cellPt.rightPt -', source)
