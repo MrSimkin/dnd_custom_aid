@@ -2093,6 +2093,59 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun g3P1SixPersistedSpellSlotsFitWithoutShrinkingSevenPointPaperBoxesAB() {
+        // C227: real Ilyra backup, with its first-level total explicitly
+        // increased from four to six and spent count to four. This exercises
+        // the real PDF renderer, not a visual mock or fabricated source ID.
+        val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val slots = original.permanent.sheet.spellSlots
+        assertEquals(4, slots.single { it.level == 1 }.totalSlots)
+        val six = original.copy(permanent = original.permanent.copy(
+            sheet = original.permanent.sheet.copy(spellSlots = slots.map {
+                if (it.level == 1) it.copy(totalSlots = 6, spentSlots = 4) else it
+            }),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val result = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                six,
+            )
+            preserveRealApplicationPdf(result.bytes,
+                "V11-INTERNAL-PROOF-P1-six-real-spell-slots-" + variant.name + ".pdf")
+            Loader.loadPDF(result.bytes).use { pdf ->
+                val p1 = pdf.getPage(0)
+                assertEquals(612f, p1.mediaBox.width)
+                assertEquals(792f, p1.mediaBox.height)
+                val native = p1.contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                fun squareAt(x: Int, y: Int): Int = Regex(
+                    """(?m)(?:^|\s)\Q$x\E(?:\.0)?\s+\Q$y\E(?:\.0)?\s+7(?:\.0)?\s+7(?:\.0)?\s+re(?:\s|$)""",
+                ).findAll(native).count()
+                // N1: six real 7pt squares with 3pt gap; no seventh.
+                for (x in listOf(334, 344, 354, 364, 374, 384)) {
+                    assertEquals(1, squareAt(x, 210),
+                        "A genuine N1 six-slot square must be present at x=$x.")
+                }
+                assertEquals(0, squareAt(394, 210),
+                    "Do not invent a seventh source slot or cross the cell boundary.")
+                // Unchanged real N2=3: five-point gaps are preserved.
+                for (x in listOf(419, 431, 443)) {
+                    assertEquals(1, squareAt(x, 210))
+                }
+                assertEquals(0, squareAt(453, 210),
+                    "Existing 1..5 spacing must never switch to six-slot spacing.")
+                val p1Text = PDFTextStripper().apply {
+                    startPage = 1
+                    endPage = 1
+                }.getText(pdf)
+                assertTrue(p1Text.contains("ESPACIOS"))
+                assertTrue(p1Text.contains("GASTADOS"))
+                assertTrue(PDFTextStripper().getText(pdf).contains("NOTAS"))
+            }
+        }
+    }
+
     @Test
     fun g3OversizedPersistedSpellSlotCountersUseP1C2WithoutClippingOrInventingValues() {
         // A genuine Aldren backup supplies every unchanged field; only the

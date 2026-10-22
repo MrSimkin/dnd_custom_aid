@@ -747,15 +747,17 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         } else {
                         draw(stream,v.totalSlots.toString(),x+19f,y,false)
                         draw(stream,v.spentSlots.toString(),x+45f,y,false)
-                        // C226: five original-size 7pt paper boxes fit
-                        // the existing 85pt row; only genuine totals 1..5.
-                        // For larger totals, preserve actual numeric counters.
-                        if(v.totalSlots in 1..5){
-                            require(19f+(v.totalSlots-1)*12f+7f <= 78f) {
+                        // C227: six actual slots also fit the unchanged
+                        // 85pt cell with SIX full-size 7pt paper boxes
+                        // separated by 3pt; 1..5 retain C226's 5pt gaps.
+                        // Never invent a tracking grammar for 7+ slots.
+                        if(v.totalSlots in 1..6){
+                            val markStep = if(v.totalSlots == 6) 10f else 12f
+                            require(19f+(v.totalSlots-1)*markStep+7f <= 78f) {
                                 "P1 spell-slot marks overflow the native cell"
                             }
                             repeat(v.totalSlots){n->
-                                val px=x+19f+n*12f
+                                val px=x+19f+n*markStep
                                 stream.addRect(px,y-12f,7f,7f)
                                 stream.stroke()
                                 if(n<v.spentSlots)draw(stream,"X",px+1f,y-10f,false)
