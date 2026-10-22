@@ -8,7 +8,7 @@ import audit_v11_p4_slot_meters as audit
 
 
 def specimen(missing_level=None, missing_square=None, extra_meter=False,
-             real_total_level=None):
+             real_total_level=None, long_level=None):
     doc = fitz.open()
     page = doc.new_page(width=612, height=792)
     page.insert_text((45, 73), "P4 - Conjuros", fontsize=12)
@@ -19,9 +19,12 @@ def specimen(missing_level=None, missing_square=None, extra_meter=False,
         page.insert_text((45, y),
                          "TRUCOS / NIVEL 0" if level == 0 else f"NIVEL {level}", fontsize=8)
         if level:
-            page.insert_text((110, y),
-                             "ESP.4 G.2" if level == real_total_level else "ESP.",
-                             fontsize=7)
+            # A genuine expanded label stays in the original level row,
+            # not a second synthetic meter elsewhere on the page.
+            label = ("ESP.2147483647 G.2147483646" if level == long_level
+                     else "ESP.4 G.2" if level == real_total_level else "ESP.")
+            page.insert_text((82 if level == long_level else 110, y),
+                             label, fontsize=7)
             for index in range(3):
                 if missing_square == (level, index):
                     continue
@@ -46,14 +49,11 @@ class PhysicalP4Meters(unittest.TestCase):
         self.assertEqual(1, result["source_backed_meter_count"])
 
     def test_shifted_real_long_meter_keeps_all_three_physical_squares(self):
-        with specimen(real_total_level=1) as doc:
-            page = doc[0]
-            # Two source-backed long Int counters use the free band
-            # left of the fixed preparation/gasto paper squares.
-            page.insert_text((82, 655), "ESP.2147483647 G.2147483646", fontsize=7)
+        with specimen(long_level=1) as doc:
             result = audit.audit_document(doc)
+        self.assertFalse(result["errors"], result["errors"])
         self.assertEqual(9, result["meter_count"])
-        self.assertGreaterEqual(result["source_backed_meter_count"], 1)
+        self.assertEqual(1, result["source_backed_meter_count"])
 
     def test_missing_level_cannot_be_hidden_by_successful_pdf_generation(self):
         with specimen(missing_level=7) as doc:
