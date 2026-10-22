@@ -129,6 +129,40 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun p4UsesRealPerLevelTotalAndSpentSlotsWithoutMakingUpHigherLevelCounts() {
+        // D-0076 §§3.25–3.26: P4 must repeat source-backed P1 total
+        // and spent counts on the SAME paper line as each level.
+        // Mara has N1=4/2, N2=3/1, N3=3/2, N4=3/0, N5=2/1.
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                ), mara,
+            ).bytes
+            Loader.loadPDF(bytes).use { pdf ->
+                val p4Pages = (1..pdf.numberOfPages).map { physical ->
+                    PDFTextStripper().apply {
+                        startPage = physical
+                        endPage = physical
+                    }.getText(pdf)
+                }.filter { it.contains("P4 - Conjuros") }
+                assertTrue(p4Pages.isNotEmpty())
+                val ink = p4Pages.joinToString("\n")
+                listOf("ESP.4 G.2", "ESP.3 G.1", "ESP.3 G.2",
+                    "ESP.3 G.0", "ESP.2 G.1").forEach { real ->
+                    assertTrue(ink.contains(real),
+                        "P4 must print the REAL persisted source meter $real, $variant")
+                }
+                // Higher levels do not acquire fictitious total/spent
+                // numbers just because the paper has blank slot squares.
+                assertEquals(5, Regex("""ESP\.\d+ G\.\d+""").findAll(ink).count(),
+                    "P4 must not synthesize slot totals for absent levels.")
+            }
+        }
+    }
+
+    @Test
     fun realP1SpellcastingUsesMeasuredClippedBlueHeaderWithoutMovingSourcePanel() {
         // Frozen approved P1 gold: x270.425..572.315,
         // top-origin y549.354..572.315, 8-segment clipped blue banner.

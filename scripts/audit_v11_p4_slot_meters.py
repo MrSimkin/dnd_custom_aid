@@ -2,8 +2,9 @@
 """Independent physical P4 spell-meter audit on actual Desktop App PDFs.
 
 Checks a deliberately narrow part of the frozen V11 contract: one printed
-level 0..9 and, for levels 1..9, one ESP. label with three genuine 7pt vector
-squares on the same baseline. It cannot establish spell-source completeness,
+level 0..9 and, for levels 1..9, an ESP. physical meter with three genuine
+7pt vector squares on the same baseline. An ESP.N G.M label means true
+persisted capacity/spent; blank ESP. remains blank paper, never synthetic. It cannot establish spell-source completeness,
 visual golden equivalence, Android parity or G4 acceptance.
 """
 import argparse
@@ -118,12 +119,18 @@ def audit_spell_page(page, page_number):
     errors.extend(context_errors)
     meters = []
     for word in page.get_text("words"):
-        if str(word[4]).strip() != "ESP.":
+        if not str(word[4]).strip().startswith("ESP."):
             continue
         x, y = float(word[0]), (float(word[1]) + float(word[3])) / 2
         boxes = [r for r in squares
                  if 36 <= r.x0 - x <= 76 and abs((r.y0 + r.y1) / 2 - y) <= 9]
-        meters.append({"x": round(x, 2), "y": round(y, 2), "boxes": len(boxes)})
+        meters.append({
+            "x": round(x, 2), "y": round(y, 2), "boxes": len(boxes),
+            "actual_total": (
+                int(word[4][4:]) if re.fullmatch(r"ESP\.[0-9]+", word[4])
+                else None
+            ),
+        })
         if len(boxes) != 3:
             errors.append(f"ESP. meter at x={x:.1f}, y={y:.1f} has {len(boxes)} squares, expected 3")
     return {"page": page_number, "levels": levels, "meters": meters,
@@ -158,6 +165,9 @@ def audit_document(doc):
     return {"has_p4": True, "pages": findings, "levels_found": levels,
             "extra_epic_levels_not_source_audited": unexpected,
             "meter_count": len(meters),
+            "source_backed_meter_count": sum(
+                1 for meter in meters if meter["actual_total"] is not None
+            ),
             "last_level9_paper": final_paper,
             "level_continuations_with_blue_bands": sum(
                 r["level_continuations_with_blue_bands"] for r in findings),

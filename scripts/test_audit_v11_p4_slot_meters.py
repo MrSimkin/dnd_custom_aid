@@ -7,7 +7,8 @@ import fitz
 import audit_v11_p4_slot_meters as audit
 
 
-def specimen(missing_level=None, missing_square=None, extra_meter=False):
+def specimen(missing_level=None, missing_square=None, extra_meter=False,
+             real_total_level=None):
     doc = fitz.open()
     page = doc.new_page(width=612, height=792)
     page.insert_text((45, 73), "P4 - Conjuros", fontsize=12)
@@ -18,7 +19,9 @@ def specimen(missing_level=None, missing_square=None, extra_meter=False):
         page.insert_text((45, y),
                          "TRUCOS / NIVEL 0" if level == 0 else f"NIVEL {level}", fontsize=8)
         if level:
-            page.insert_text((110, y), "ESP.", fontsize=7)
+            page.insert_text((110, y),
+                             "ESP.4 G.2" if level == real_total_level else "ESP.",
+                             fontsize=7)
             for index in range(3):
                 if missing_square == (level, index):
                     continue
@@ -34,6 +37,13 @@ class PhysicalP4Meters(unittest.TestCase):
             result = audit.audit_document(doc)
         self.assertFalse(result["errors"], result["errors"])
         self.assertEqual(9, result["meter_count"])
+
+    def test_real_source_total_and_spent_keep_nine_blank_paper_meter_squares(self):
+        with specimen(real_total_level=1) as doc:
+            result = audit.audit_document(doc)
+        self.assertFalse(result["errors"], result["errors"])
+        self.assertEqual(9, result["meter_count"])
+        self.assertEqual(1, result["source_backed_meter_count"])
 
     def test_missing_level_cannot_be_hidden_by_successful_pdf_generation(self):
         with specimen(missing_level=7) as doc:

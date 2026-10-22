@@ -2434,12 +2434,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             stream.restoreGraphicsState()
                         }
                         pageCells.forEach { cell ->
-                            // The approved P4 has a blank handwritten ESP. line
-                            // meter and THREE small blank squares per magic
-                            // level 1..9 in that level's existing blue header.
-                            // These are PAPER ONLY: never synthesize a numeric
-                            // slot capacity, spent slot, prepared spell or
-                            // fake epic (10..12) progression.
+                            // C219: repeat genuinely persisted P1 total/spent
+                            // spell slots on P4's physical SAME-LINE level
+                            // meter, as approved D-0076 §§3.25–3.26.
+                            // Three separate blank squares remain PAPER ONLY:
+                            // their number and state never claim digital slots.
+                            // For pathological oversized values retain the
+                            // prior blank paper meter rather than clipping real
+                            // digits or inferring smaller numbers.
                             if (title.startsWith("P4 - ") &&
                                 cell.sourceKey.startsWith("spell-level:") &&
                                 cell.sourceStartOffset == 0) {
@@ -2447,13 +2449,23 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     .toIntOrNull()
                                 if (level != null && level in 1..9) {
                                     val baseline = body.metrics.baselineIn(cell.cellPt)
-                                    val label = "ESP."
                                     val labelPt = 7f
                                     val labelX = cell.cellPt.rightPt - 83f
                                     val firstSquareX = cell.cellPt.rightPt - 33f
+                                    val actualSlots = data.spellSlots.firstOrNull {
+                                        it.level == level
+                                    }
+                                    val fullActualLabel = actualSlots?.let {
+                                        "ESP.${it.totalSlots} G.${it.spentSlots}"
+                                    }
+                                    val maxLabelWidth = firstSquareX - labelX - 5f
+                                    val label = fullActualLabel?.takeIf { realLabel ->
+                                        headerPdfFont.getStringWidth(realLabel) *
+                                            labelPt / 1000f <= maxLabelWidth
+                                    } ?: "ESP."
                                     require(headerPdfFont.getStringWidth(label) *
-                                        labelPt / 1000f <= firstSquareX - labelX - 5f) {
-                                        "P4 blank slot label cannot fit reserved level band."
+                                        labelPt / 1000f <= maxLabelWidth) {
+                                        "P4 true slot label cannot fit existing level band."
                                     }
                                     require(firstSquareX + 2 * 11f + 7f <=
                                         cell.cellPt.rightPt - 2f) {
@@ -2469,9 +2481,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     stream.setLineWidth(0.6f)
                                     // Paper-only meter: a GENUINE blue ruled line,
                                     // NEVER literal underscores printed as fake ink.
-                                    stream.moveTo(labelX + 24f, baseline - 1f)
-                                    stream.lineTo(firstSquareX - 7f, baseline - 1f)
-                                    stream.stroke()
+                                    if (label == "ESP.") {
+                                        stream.moveTo(labelX + 24f, baseline - 1f)
+                                        stream.lineTo(firstSquareX - 7f, baseline - 1f)
+                                        stream.stroke()
+                                    }
                                     repeat(3) { slot ->
                                         stream.addRect(firstSquareX + slot * 11f,
                                             baseline - 1f, 7f, 7f)
