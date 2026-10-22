@@ -2724,14 +2724,22 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility.INTELLIGENCE,
             sheet.spellcastingAbility,
         )
+        // Real Ilyra INT 18 (+4), WIS 13 (+1). Offset by +3 in both
+        // profile adjustments so C224 isolates APTITUD, not CD/attack.
+        assertEquals(18, sheet.intelligence)
+        assertEquals(13, sheet.wisdom)
         val successor = original.permanent.successor
         assertTrue(successor.spellcastingProfiles.isNotEmpty())
         val changed = original.copy(permanent = original.permanent.copy(
             successor = successor.copy(
                 spellcastingProfiles = successor.spellcastingProfiles.map {
-                    it.copy(ability = io.github.mrsimkin.dndcustomaid.shared.character
-                        .CharacterAbilityReference.builtIn(
-                            io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility.WISDOM))
+                    it.copy(
+                        ability = io.github.mrsimkin.dndcustomaid.shared.character
+                            .CharacterAbilityReference.builtIn(
+                                io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility.WISDOM),
+                        saveDcAdjustment = it.saveDcAdjustment + 3,
+                        spellAttackAdjustment = it.spellAttackAdjustment + 3,
+                    )
                 },
             ),
         ))

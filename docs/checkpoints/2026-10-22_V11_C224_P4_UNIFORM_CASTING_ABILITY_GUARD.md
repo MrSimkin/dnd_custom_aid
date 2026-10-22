@@ -10,7 +10,7 @@ D-0076 §§3.24–3.26 y contrato visual V11 aprobado: la franja P4 debe refleja
 
 - Shared `PcSheetV11SpellSourceLabels.globalAbilityDisagreement`: compara la aptitud explícita de fuentes UUID con uno de seis atributos globales conocidos. Omite divergencias no demostrables ante fuente sin configurar o global `OTHER/NONE`; una fuente con atributo custom frente a global estándar contradice correctamente la atribución universal.
 - Android y Desktop V11 usan el mismo método y el rótulo conservador `SEGÚN FUENTE` **solo** en tarjeta `APTITUD` si hay contradicción demostrada. Se mantienen geometría, CD, ataque, identidades UUID, preparación y resto de páginas.
-- Shared test: uniformidad entre fuentes y contradicción global, coincidencia, estado no configurado, global OTHER/NONE, aptitud custom. Prueba Desktop desde backup auténtico Ilyra: cambia únicamente aptitud de perfiles persistidos a SAB para ambas variantes A/B, manteniendo hoja global INT, conjuros, CD, ataque, nombres/estados, y exige la tarjeta no engañosa en **PDF real del servicio de la App**; genera dos PDFs A/B para cotejo independiente.
+- Shared test: uniformidad entre fuentes y contradicción global, coincidencia, estado no configurado, global OTHER/NONE, aptitud custom. Prueba Desktop desde backup auténtico Ilyra: cambia únicamente aptitud de perfiles persistidos a SAB para ambas variantes A/B, compensando +3 en ajustes de CD/ataque (INT 18→SAB 13) para mantener los valores numéricos originales, además de hoja global INT, conjuros, nombres/estados, y exige la tarjeta no engañosa en **PDF real del servicio de la App**; genera dos PDFs A/B para cotejo independiente.
 
 ## Procedencia y pendientes
 
@@ -21,3 +21,5 @@ Antes de declarar PASS LOCAL C224: verificar SHA exacto, Scaffold Kotlin Shared/
 **Gates no promocionados:** G0 QA histórico PARCIAL; G1 semántico PASS anterior; G2/G3 PARCIALES; G4 BLOCKED **105/105 NOT_VERIFIED** y `active_candidate=null`; G5/G6 PENDIENTES. C211 BLOCKED 3/3 normales, 0/2 recuperación estructural. 32 observaciones M50800 y dos V11 QA siguen vigentes; original PDF runtime propietario Mara no recuperado, Android instalado no revisado, QA propietario no aprobado. PR #173 sigue DRAFT sin fusionar.
 
 **Próximo paso:** CI exacto de C224 y auditoría física real antes de más cambios; luego conciliación modular G4 con golden y fuentes D-0076 sin reabrir C211 sin causa y alternativa nuevas.
+
+**Ajuste preventivo de la prueba, mismo bloque C224:** el primer fixture editaba la aptitud sin compensar el modificador INT +4 frente a SAB +1, lo que creaba también discrepancias en CD/ataque y hacía imposible aislar el control de APTITUD. La versión corregida suma +3 a ambos ajustes de perfil persistido, conservando los dos valores numéricos originales. No se alteró código de producción; CI del candidato corregido sigue siendo condición de PASS.
