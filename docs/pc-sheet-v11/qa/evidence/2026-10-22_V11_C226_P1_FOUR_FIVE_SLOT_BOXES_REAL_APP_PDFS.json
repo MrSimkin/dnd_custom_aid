@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "date": "2026-10-22",
+  "repo": "MrSimkin/dnd_custom_aid",
+  "pr": 173,
+  "scope": "C226 P1 true source 4/5 spell slot marks; PASS LOCAL ONLY",
+  "product_sha": "e104cec3976b0fe1ad6a9e868fc758e8ed9f9d6e",
+  "ci": {
+    "scaffold": {
+      "run": 39824298970,
+      "conclusion": "success"
+    },
+    "qa": {
+      "run": 39824298962,
+      "conclusion": "success"
+    }
+  },
+  "before": {
+    "artifact_id": 12442961337,
+    "pdfs": 86,
+    "pages": 793,
+    "zip_sha256": "a2246c975ae3e97dd95016133909e627d3fcb40aeff7519431f8f152bab8660f"
+  },
+  "after": {
+    "artifact_id": 12446397671,
+    "pdfs": 88,
+    "pages": 809,
+    "zip_sha256": "fc4787d05d2a01f348ddf583c33e3ec1fa013be3eff1c3226d6776b9ae182de2"
+  },
+  "auditors": {
+    "artifact_id": 12447005202,
+    "zip_sha256": "9691c9967c65c99cbc58658dcd5adfa60a63b7aa53f0a5977e91bd5fbf940b81",
+    "pdfs": 88,
+    "pages": 809,
+    "physical_envelope_errors": 0,
+    "c207_missing_reservations": 0
+  },
+  "comparison": {
+    "tool": "external PyMuPDF 1.26.7",
+    "common_pdfs": 86,
+    "unchanged_pagination": 86,
+    "common_pages": 793,
+    "unchanged_words_positions_pages": 742,
+    "unchanged_drawings_pages": 742,
+    "unchanged_image_references_pages": 793,
+    "changed_p1_pages_only": 51,
+    "previous_vectors_preserved": true,
+    "added_7pt_rectangles": 204,
+    "all_in_p1_spell_grid": true,
+    "removed_words": 0,
+    "added_X_mark_words": 77,
+    "unexpected_words": 0,
+    "unexpected_drawings": 0
+  },
+  "new_pdfs": [
+    {
+      "variant": "A",
+      "file": "V11-INTERNAL-PROOF-P1-real-four-five-slot-boxes-A.pdf",
+      "pages": 8,
+      "sha256": "b9eda81e231563a69345a8ff4e74a8fa0be6b4ea4059ceae27f457ac1c8a66a2",
+      "level1": {
+        "slots": 4,
+        "spent": 1,
+        "physical_boxes": 4
+      },
+      "level2": {
+        "slots": 5,
+        "spent": 3,
+        "physical_boxes": 5
+      },
+      "paper_letter": true,
+      "last_notes": true,
+      "visual_raster": "no visible collisions"
+    },
+    {
+      "variant": "B",
+      "file": "V11-INTERNAL-PROOF-P1-real-four-five-slot-boxes-B.pdf",
+      "pages": 8,
+      "sha256": "0d9235c4b2223583e24a734e64e24f3f106e0d45d08d9cac3f198d47b5c4ac30",
+      "level1": {
+        "slots": 4,
+        "spent": 1,
+        "physical_boxes": 4
+      },
+      "level2": {
+        "slots": 5,
+        "spent": 3,
+        "physical_boxes": 5
+      },
+      "paper_letter": true,
+      "last_notes": true,
+      "visual_raster": "no visible collisions"
+    }
+  ],
+  "gate": "C226_PASS_LOCAL_ONLY",
+  "limits": [
+    "6+ slot manual tracking still unresolved",
+    "not full golden compliance",
+    "not owner installed Android review",
+    "not owner approval",
+    "no merge"
+  ],
+  "g4": {
+    "rule_count": 105,
+    "not_verified": 105,
+    "active_candidate": null
+  },
+  "c211": "BLOCKED_3_OF_3_NORMAL_0_OF_2_STRUCTURAL"
+}
