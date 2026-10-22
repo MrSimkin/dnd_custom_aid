@@ -176,6 +176,46 @@ class PcSheetV11SpellSourceLabelsTest {
             ))
     }
 
+
+    @Test
+    fun customSpellSourceNeverLeavesSourceBackedAptitudeBlankForOtherOrNone() {
+        val spell = CharacterSpell(
+            id = Uuid.parse("aa000006-0000-4000-8000-000000000001"),
+            name = "Cronomancia", level = 1, castingTime = "", rangeText = "",
+            verbal = false, somatic = false, material = false, materialText = null,
+            duration = "", concentration = false, ritual = false,
+            description = "", notes = null, sortOrder = 0,
+        )
+        val customAbility = CharacterAbilityReference.custom(
+            Uuid.parse("7a300000-0000-4000-8000-000000000502"),
+        )
+        val configured = PcSheetSpellbookSourceProjection(
+            sourceId = Uuid.parse("7a300000-0000-4000-8000-000000000100"),
+            sourceName = "Cronomancia umbral", originKind = null, prepared = true,
+            castingAbility = customAbility, saveDc = 17, spellAttackModifier = 8,
+        )
+        val real = listOf(PcSheetSpellbookEntry(spell, listOf(configured)))
+        for (global in listOf(SpellcastingAbility.OTHER, SpellcastingAbility.NONE)) {
+            assertEquals(setOf("APTITUD"),
+                PcSheetV11SpellSourceLabels.contradictoryOverallFields(
+                    real, global, 17, 8,
+                ),
+            )
+        }
+        assertTrue(PcSheetV11SpellSourceLabels.contradictoryOverallFields(
+            emptyList(), SpellcastingAbility.OTHER, 17, 8,
+        ).isEmpty(), "No persisted spell associations cannot claim a source.")
+        val unknown = listOf(PcSheetSpellbookEntry(spell, listOf(
+            configured.copy(castingAbility = CharacterAbilityReference.NONE),
+        )))
+        assertTrue(PcSheetV11SpellSourceLabels.contradictoryOverallFields(
+            unknown, SpellcastingAbility.OTHER, 17, 8,
+        ).isEmpty(), "Unconfigured source ability must not fabricate a field.")
+        assertTrue(PcSheetV11SpellSourceLabels.contradictoryOverallFields(
+            real, SpellcastingAbility.INTELLIGENCE, 17, 8,
+        ).contains("APTITUD"), "Already-proven C224 contradiction is preserved.")
+    }
+
     @Test
     fun equalVisibleNamesKeepDistinctRealIdsAndIndependentPreparation() {
         val one = Uuid.parse("12345600-0000-4000-8000-000000000001")

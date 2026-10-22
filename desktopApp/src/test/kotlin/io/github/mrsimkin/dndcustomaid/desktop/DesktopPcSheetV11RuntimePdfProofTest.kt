@@ -2815,6 +2815,58 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
 
+
+    @Test
+    fun g3CustomMaraSourceAbilityUsesExistingTruthfulP1AndP4CueAB() {
+        // This is the owner's existing persisted Mara backup: global OTHER,
+        // genuine custom attribute and genuine associated spell source.
+        // No source data or layout is modified to manufacture a disagreement.
+        val real = sources("03_mara_siete_umbrales_custom_extended.json")
+        assertEquals(
+            io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility.OTHER,
+            real.permanent.sheet.spellcastingAbility,
+        )
+        val projected = real.permanent.successor.spellcastingProfiles
+        assertTrue(projected.any { it.ability.customAttributeId != null },
+            "Mara must really have a configured source-specific custom ability.")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val result = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                real,
+            )
+            val labels = io.github.mrsimkin.dndcustomaid.shared.character
+                .PcSheetV11SpellSourceLabels
+            assertTrue("APTITUD" in labels.contradictoryOverallFields(
+                result.semantic.spells, real.permanent.sheet.spellcastingAbility,
+                real.permanent.sheet.spellSaveDc,
+                real.permanent.sheet.spellAttackModifier,
+            ))
+            assertTrue(result.semantic.spells.flatMap { it.sources }.any {
+                it.castingAbility.customAttributeId != null
+            }, "A cue requires a genuine source association, not only global OTHER.")
+            preserveRealApplicationPdf(result.bytes,
+                "V11-INTERNAL-PROOF-P1-P4-Mara-custom-aptitude-" + variant.name + ".pdf")
+            Loader.loadPDF(result.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { page ->
+                    PDFTextStripper().apply { startPage = page; endPage = page }
+                        .getText(pdf)
+                }
+                val p1 = pages.first()
+                assertEquals(2, Regex("SEGÚN FUENTE").findAll(p1).count(),
+                    "P1 must show source cue for real custom aptitude and mismatched CD.")
+                val p4 = pages.filter { it.contains("P4 - Conjuros") }
+                assertTrue(p4.isNotEmpty())
+                val ref = p4.first().substringAfter("REFERENCIA MÁGICA")
+                    .substringBefore("NIVEL")
+                assertEquals(2, Regex("SEGÚN FUENTE").findAll(ref).count(),
+                    "P4 must repeat source cue independently of P1.")
+                assertTrue(ref.contains("+8"),
+                    "Unaffected real spell attack value must remain source accurate.")
+                assertTrue(pages.last().contains("NOTAS"))
+            }
+        }
+    }
+
     @Test
     fun g3P4UniformPersistedCastingAbilitiesCannotClaimGlobalIntAB() {
         // Genuine Ilyra backup: leave spell UUIDs, preparation, global CD/attack

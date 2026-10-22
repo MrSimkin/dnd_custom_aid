@@ -76,7 +76,26 @@ object PcSheetV11SpellSourceLabels {
     }
 
 
-    /** C225: identical semantic contract for source-backed P1 and P4 cards. */
+    /**
+     * C228: a sheet's unmapped OTHER/NONE magic aptitude is not an absence
+     * of a real spellcasting ability when an associated persisted source
+     * explicitly names a built-in or custom attribute. P1/P4 already have
+     * an approved source-specific cue; do not invent a universal attribute.
+     * In particular, no spells or only unconfigured source profiles must
+     * keep the original blank reference.
+     */
+    fun unmappedOverallAbilityFromRealSource(
+        entries: List<PcSheetSpellbookEntry>,
+        overallAbility: SpellcastingAbility,
+    ): Set<String> {
+        if (overallAbility != SpellcastingAbility.OTHER &&
+            overallAbility != SpellcastingAbility.NONE) return emptySet()
+        return if (entries.flatMap { it.sources }.distinctBy { it.sourceId }
+            .any { it.castingAbility.configured }
+        ) setOf("APTITUD") else emptySet()
+    }
+
+    /** C225/C228: identical semantic contract for source-backed P1 and P4. */
     fun contradictoryOverallFields(
         entries: List<PcSheetSpellbookEntry>,
         overallAbility: SpellcastingAbility,
@@ -84,7 +103,8 @@ object PcSheetV11SpellSourceLabels {
         overallAttackModifier: Int?,
     ): Set<String> = conflictingReferenceFields(entries) +
         globalReferenceDisagreements(entries, overallDc, overallAttackModifier) +
-        globalAbilityDisagreement(entries, overallAbility)
+        globalAbilityDisagreement(entries, overallAbility) +
+        unmappedOverallAbilityFromRealSource(entries, overallAbility)
 
     fun forSpells(entries: List<PcSheetSpellbookEntry>): Map<Uuid, String> {
         val sources = entries.flatMap { it.sources }.distinctBy { it.sourceId }
