@@ -51,6 +51,30 @@ object PcSheetV11SpellSourceLabels {
         }
     }
 
+
+    /**
+     * C224: one global built-in casting aptitude cannot describe explicitly
+     * configured source aptitudes that disagree. Unknown source ability cannot
+     * prove disagreement; global NONE/OTHER is not a mapped built-in.
+     */
+    fun globalAbilityDisagreement(
+        entries: List<PcSheetSpellbookEntry>,
+        overallAbility: SpellcastingAbility,
+    ): Set<String> {
+        val expected = when (overallAbility) {
+            SpellcastingAbility.STRENGTH -> CharacterAbility.STRENGTH
+            SpellcastingAbility.DEXTERITY -> CharacterAbility.DEXTERITY
+            SpellcastingAbility.CONSTITUTION -> CharacterAbility.CONSTITUTION
+            SpellcastingAbility.INTELLIGENCE -> CharacterAbility.INTELLIGENCE
+            SpellcastingAbility.WISDOM -> CharacterAbility.WISDOM
+            SpellcastingAbility.CHARISMA -> CharacterAbility.CHARISMA
+            SpellcastingAbility.OTHER, SpellcastingAbility.NONE -> null
+        } ?: return emptySet()
+        return if (entries.flatMap { it.sources }.distinctBy { it.sourceId }
+            .any { it.castingAbility.configured && it.castingAbility.builtIn != expected }
+        ) setOf("APTITUD") else emptySet()
+    }
+
     fun forSpells(entries: List<PcSheetSpellbookEntry>): Map<Uuid, String> {
         val sources = entries.flatMap { it.sources }.distinctBy { it.sourceId }
         fun label(source: PcSheetSpellbookSourceProjection): String =

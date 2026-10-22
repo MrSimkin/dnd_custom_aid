@@ -1303,6 +1303,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 val varying = labels.conflictingReferenceFields(data.spells) +
                     labels.globalReferenceDisagreements(
                         data.spells, source.spellSaveDc, source.spellAttackModifier,
+                    ) + labels.globalAbilityDisagreement(
+                        data.spells, source.spellcastingAbility,
                     )
                 val ability = when (source.spellcastingAbility) {
                     SpellcastingAbility.STRENGTH -> "FUE"

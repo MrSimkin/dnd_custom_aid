@@ -86,6 +86,55 @@ class PcSheetV11SpellSourceLabelsTest {
         ).isEmpty())
     }
 
+
+    @Test
+    fun uniformExplicitAbilityCannotBeReplacedByContradictoryGlobalInt() {
+        val spell = CharacterSpell(
+            id = Uuid.parse("aa000004-0000-4000-8000-000000000001"),
+            name = "Aptitud por origen", level = 1,
+            castingTime = "", rangeText = "", verbal = false,
+            somatic = false, material = false, materialText = null,
+            duration = "", concentration = false, ritual = false,
+            description = "", notes = null, sortOrder = 0,
+        )
+        val first = PcSheetSpellbookSourceProjection(
+            sourceId = Uuid.parse("12345600-0000-4000-8000-000000000007"),
+            sourceName = "Mago", originKind = null, prepared = true,
+            castingAbility = CharacterAbilityReference.builtIn(CharacterAbility.WISDOM),
+            saveDc = 15, spellAttackModifier = 7,
+        )
+        val entries = listOf(PcSheetSpellbookEntry(spell, listOf(
+            first, first.copy(sourceId = Uuid.parse(
+                "12345600-0000-4000-8000-000000000008")),
+        )))
+        assertTrue(PcSheetV11SpellSourceLabels.conflictingReferenceFields(entries).isEmpty())
+        assertEquals(setOf("APTITUD"), PcSheetV11SpellSourceLabels.globalAbilityDisagreement(
+            entries, SpellcastingAbility.INTELLIGENCE,
+        ))
+        assertTrue(PcSheetV11SpellSourceLabels.globalAbilityDisagreement(
+            entries, SpellcastingAbility.WISDOM,
+        ).isEmpty())
+        val unknown = entries.map { it.copy(sources = it.sources.map { source ->
+            source.copy(castingAbility = CharacterAbilityReference.NONE)
+        }) }
+        assertTrue(PcSheetV11SpellSourceLabels.globalAbilityDisagreement(
+            unknown, SpellcastingAbility.INTELLIGENCE,
+        ).isEmpty())
+        assertTrue(PcSheetV11SpellSourceLabels.globalAbilityDisagreement(
+            entries, SpellcastingAbility.NONE,
+        ).isEmpty())
+        assertTrue(PcSheetV11SpellSourceLabels.globalAbilityDisagreement(
+            entries, SpellcastingAbility.OTHER,
+        ).isEmpty())
+        val custom = entries.map { it.copy(sources = it.sources.map { source ->
+            source.copy(castingAbility = CharacterAbilityReference.custom(
+                Uuid.parse("12345600-0000-4000-8000-000000000009")))
+        }) }
+        assertEquals(setOf("APTITUD"), PcSheetV11SpellSourceLabels.globalAbilityDisagreement(
+            custom, SpellcastingAbility.INTELLIGENCE,
+        ))
+    }
+
     @Test
     fun equalVisibleNamesKeepDistinctRealIdsAndIndependentPreparation() {
         val one = Uuid.parse("12345600-0000-4000-8000-000000000001")

@@ -2713,6 +2713,70 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
 
+
+    @Test
+    fun g3P4UniformPersistedCastingAbilitiesCannotClaimGlobalIntAB() {
+        // Genuine Ilyra backup: leave spell UUIDs, preparation, global CD/attack
+        // intact and alter only the explicit per-source casting aptitudes.
+        val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val sheet = original.permanent.sheet
+        assertEquals(
+            io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility.INTELLIGENCE,
+            sheet.spellcastingAbility,
+        )
+        val successor = original.permanent.successor
+        assertTrue(successor.spellcastingProfiles.isNotEmpty())
+        val changed = original.copy(permanent = original.permanent.copy(
+            successor = successor.copy(
+                spellcastingProfiles = successor.spellcastingProfiles.map {
+                    it.copy(ability = io.github.mrsimkin.dndcustomaid.shared.character
+                        .CharacterAbilityReference.builtIn(
+                            io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility.WISDOM))
+                },
+            ),
+        ))
+        val labels = io.github.mrsimkin.dndcustomaid.shared.character
+            .PcSheetV11SpellSourceLabels
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val result = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                changed,
+            )
+            assertTrue(labels.conflictingReferenceFields(result.semantic.spells).isEmpty(),
+                "All associated genuine source profiles should be uniformly WIS.")
+            assertEquals(setOf("APTITUD"), labels.globalAbilityDisagreement(
+                result.semantic.spells, sheet.spellcastingAbility,
+            ))
+            val associated = result.semantic.spells.flatMap { it.sources }
+                .distinctBy { it.sourceId }
+            assertTrue(associated.isNotEmpty())
+            assertTrue(associated.all {
+                it.castingAbility.builtIn ==
+                    io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility.WISDOM
+            }, "Associated sources must retain their genuine UUID and WIS aptitude.")
+            preserveRealApplicationPdf(result.bytes,
+                "V11-INTERNAL-PROOF-P4-uniform-source-aptitude-" + variant.name + ".pdf")
+            Loader.loadPDF(result.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { page ->
+                    PDFTextStripper().apply { startPage = page; endPage = page }
+                        .getText(pdf)
+                }
+                val p4 = pages.filter { it.contains("P4 - Conjuros") }
+                assertTrue(p4.isNotEmpty())
+                val reference = p4.first().substringAfter("REFERENCIA MÁGICA")
+                    .substringBefore("NIVEL")
+                assertEquals(1, Regex("SEGÚN FUENTE").findAll(reference).count(),
+                    "Only the false global APTITUD card must be guarded.")
+                assertFalse(reference.contains("\nINT\n"))
+                assertTrue(reference.contains("CD SALVACIÓN"))
+                assertTrue(reference.contains("ATAQUE MÁGICO"))
+                assertTrue(p4.joinToString("\n").contains("[X] Mago"),
+                    "Source/preparation identity cannot disappear.")
+                assertTrue(pages.last().contains("NOTAS"))
+            }
+        }
+    }
+
     @Test
     fun g3P4UniformRealSourceProfilesDoNotPrintContradictoryOverallNumbersAB() {
         // Real Ilyra backup: leave global 15/+7 and every spell/UUID untouched.
