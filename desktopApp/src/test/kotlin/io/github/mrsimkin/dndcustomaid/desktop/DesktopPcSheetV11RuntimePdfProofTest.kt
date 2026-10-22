@@ -2045,6 +2045,54 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun g3P1RealFourFiveSlotPaperMarksAreSevenPointBoxesAB() {
+        // Ilyra has FOUR real persisted level-one slots. Exercise also a
+        // genuine persisted FIVE-slot value at level two, altering only its
+        // counts in an otherwise untouched source backup.
+        val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val slots = original.permanent.sheet.spellSlots
+        assertEquals(4, slots.single { it.level == 1 }.totalSlots)
+        assertEquals(3, slots.single { it.level == 2 }.totalSlots)
+        val changed = original.copy(permanent = original.permanent.copy(
+            sheet = original.permanent.sheet.copy(spellSlots = slots.map { slot ->
+                if (slot.level == 2) slot.copy(totalSlots = 5, spentSlots = 3)
+                else slot
+            }),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val result = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                changed,
+            )
+            preserveRealApplicationPdf(result.bytes,
+                "V11-INTERNAL-PROOF-P1-real-four-five-slot-boxes-" + variant.name + ".pdf")
+            Loader.loadPDF(result.bytes).use { pdf ->
+                val p1 = pdf.getPage(0)
+                assertEquals(612f, p1.mediaBox.width)
+                assertEquals(792f, p1.mediaBox.height)
+                val content = p1.contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                fun actualSquare(x: Int): Int = Regex(
+                    """(?m)(?:^|\s)\Q$x\E(?:\.0)?\s+210(?:\.0)?\s+7(?:\.0)?\s+7(?:\.0)?\s+re(?:\s|$)""",
+                ).findAll(content).count()
+                // N1=4: 334,346,358,370; N2=5: 419..467; same y=210pt.
+                for (x in listOf(334, 346, 358, 370, 419, 431, 443, 455, 467)) {
+                    assertEquals(1, actualSquare(x),
+                        "P1 must draw one true usable square for source x=$x.")
+                }
+                assertEquals(0, actualSquare(382), "Do not invent fifth box for N1=4.")
+                assertEquals(0, actualSquare(479), "Do not invent sixth box for N2=5.")
+                val pageText = PDFTextStripper().apply {
+                    startPage = 1; endPage = 1
+                }.getText(pdf)
+                assertTrue(pageText.contains("ESPACIOS"))
+                assertTrue(pageText.contains("GASTADOS"))
+                assertTrue(PDFTextStripper().getText(pdf).contains("NOTAS"))
+            }
+        }
+    }
+
     @Test
     fun g3OversizedPersistedSpellSlotCountersUseP1C2WithoutClippingOrInventingValues() {
         // A genuine Aldren backup supplies every unchanged field; only the

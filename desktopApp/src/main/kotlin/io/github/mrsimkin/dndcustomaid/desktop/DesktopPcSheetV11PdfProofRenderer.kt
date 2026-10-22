@@ -753,7 +753,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         } else {
                         draw(stream,v.totalSlots.toString(),x+19f,y,false)
                         draw(stream,v.spentSlots.toString(),x+45f,y,false)
-                        if(v.totalSlots in 1..3){
+                        // C226: five original-size 7pt paper boxes fit
+                        // the existing 85pt row; only genuine totals 1..5.
+                        // For larger totals, preserve actual numeric counters.
+                        if(v.totalSlots in 1..5){
+                            require(19f+(v.totalSlots-1)*12f+7f <= 78f) {
+                                "P1 spell-slot marks overflow the native cell"
+                            }
                             repeat(v.totalSlots){n->
                                 val px=x+19f+n*12f
                                 stream.addRect(px,y-12f,7f,7f)

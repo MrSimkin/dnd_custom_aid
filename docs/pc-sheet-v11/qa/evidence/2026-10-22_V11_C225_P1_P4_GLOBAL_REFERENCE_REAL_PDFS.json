@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "date": "2026-10-22",
+  "project": "MrSimkin/dnd_custom_aid",
+  "pr": 173,
+  "scope": "C225 P1/P4 truthful source conflict parity; local PASS only",
+  "functional_sha": "097bfeb941524c66c586112b90a41b912f116411",
+  "scaffold": {
+    "run": 39815515425,
+    "conclusion": "success"
+  },
+  "qa": {
+    "run": 39815515423,
+    "conclusion": "success"
+  },
+  "before": {
+    "artifact_id": 12438041282,
+    "pdfs": 86,
+    "pages": 793,
+    "zip_sha256": "dcc98d9d60e0965b4c08d5dc0aec9a5edb8b4f98f27f8c720bf3568d1f285377"
+  },
+  "after": {
+    "artifact_id": 12442961337,
+    "pdfs": 86,
+    "pages": 793,
+    "zip_sha256": "a2246c975ae3e97dd95016133909e627d3fcb40aeff7519431f8f152bab8660f"
+  },
+  "auditors": {
+    "artifact_id": 12442662001,
+    "zip_sha256": "2acaba32bb91b511b43efac36ba0a192dae4511eeaa545874f45af40f58ec160",
+    "pdfs": 86,
+    "pages": 793,
+    "envelope_errors": 0,
+    "c207_c2_pages": 233,
+    "c207_regions": 424,
+    "c207_missing": 0
+  },
+  "external_comparison": {
+    "method": "PyMuPDF original Desktop App PDFs from exact two CI SHAs",
+    "same_pagination": 86,
+    "common_pdf_count": 86,
+    "common_pages": 793,
+    "identical_words_positions_pages": 755,
+    "changed_page_count": 38,
+    "changed_only_page_one": true,
+    "changed_word_boxes_scope": "P1 x312..567 top-origin y524..550",
+    "changed_words_all_within_scope": true,
+    "identical_vector_graphics_pages": 793,
+    "identical_image_reference_pages": 793,
+    "unexpected_changes": 0
+  },
+  "visual": {
+    "case": "Ilyra A source explicit WIS, global INT",
+    "new_p1_text": "APTITUD SEGÚN FUENTE; CD SALVACIÓN 15; ATAQUE MÁGICO +7",
+    "clipping_observed": false
+  },
+  "gate": "C225_PASS_LOCAL_ONLY",
+  "g4": "BLOCKED_105_NOT_VERIFIED_ACTIVE_CANDIDATE_NULL",
+  "c211": "BLOCKED_3_OF_3_NORMAL_0_OF_2_STRUCTURAL",
+  "owner_android_installed": "NOT_VERIFIED",
+  "owner_qa": "NOT_APPROVED",
+  "pr_merged": false
+}
