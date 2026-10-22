@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21",
+  "source_commit": "86d1059105be2266cc1196358b61c10ff3ab12b0",
+  "branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "scope": "P4 one-line real per-level spell slot TOTAL and SPENT counters in the existing 3-column level banners on genuine Desktop App PDFs; Android source parity/compile",
+  "result": "PASS_LOCAL_PHYSICAL_ONLY",
+  "global_C204_or_G4_approved": false,
+  "authority": [
+    "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md §3.25 and §3.26",
+    "docs/pc-sheet-v11/CONTRATO_VISUAL_APROBADO.md quick-spell chapter"
+  ],
+  "ci": {
+    "scaffold_run": 39700421544,
+    "scaffold_result": "success",
+    "qa_traceability_run": 39700421494,
+    "qa_result": "success",
+    "android_build_and_kotlin_tests": "success"
+  },
+  "artifacts": {
+    "before": {
+      "scaffold_run": 39697902090,
+      "artifact_id": 12392115480,
+      "zip_sha256": "af222e39307c835d91a37278f9896bc43952c6e6913d119fd3bf5a607de8e449"
+    },
+    "after": {
+      "scaffold_run": 39700421544,
+      "artifact_id": 12392678444,
+      "zip_sha256": "47ae9a6f103ac039153bc49c9e8df9c3d74908229e3967ac4ff34996317a093d"
+    }
+  },
+  "physical_diff": {
+    "method": "Offline PyMuPDF strict by PDF filename and per-page role, text token multiset comparison after normalizing only added source-meter labels ESP.N G.M to original ESP.; draw-path multiset excluding operation-sequence index; crop/raster visual inspection of actual Mara-A P4",
+    "pdfs_before": 76,
+    "pdfs_after": 76,
+    "pages_before": 713,
+    "pages_after": 713,
+    "p4_physical_pages": 49,
+    "all_other_pages_without_text_or_vector_change": 664,
+    "preexisting_p4_meters_total": 405,
+    "new_true_source_slot_spent_labels": 187,
+    "unchanged_blank_manual_esp_meters": 218,
+    "source_word_differences_outside_only_level_meter_labels": 0,
+    "page_role_differences": 0,
+    "old_paper_rule_paths_removed_for_true_labels": 187,
+    "other_old_paths_removed": 0,
+    "other_new_paths_added": 0,
+    "p4_pages_with_no_graphic_changes": 2,
+    "numeric_counts_not_supported_by_snapshot_or_source": "not claimed for oversized values; original paper-only fallback",
+    "actual_mara_P4_readable_headers": [
+      "ESP.4 G.2",
+      "ESP.3 G.1",
+      "ESP.3 G.2",
+      "ESP.3 G.0",
+      "ESP.2 G.1"
+    ],
+    "unchanged_level_title_and_manual_three_boxes": true,
+    "geometry_or_text_collision_observed": false,
+    "errors": 0,
+    "status": "PASS_LOCAL_SCOPED"
+  },
+  "ci_physical_auditor": {
+    "name": "scripts/audit_v11_p4_slot_meters.py",
+    "recognizes_real_source_ESP_count_labels": true,
+    "counts_three_vector_paper_squares_per_meter": true,
+    "notes": "Scaffold CI including auditor succeeded, so source-backed labels have not broken existing P4 physical paper checks"
+  },
+  "limitations": [
+    "Not full P4 goldens match, only approved source-backed meter subrequirement and app corpus",
+    "The compact 45pt level band cannot print huge int values such as 2147483647 together; renderer preserves the former blank meter rather than clipping or inventing data, while original P1/C2 routes retain source data",
+    "No installed Android runtime-PDF image proof; code/compile parity only",
+    "No owner technical or visual approval of implementation",
+    "No G4 matrix PASS or active candidate; 105/105 NOT_VERIFIED, G5/G6 pending",
+    "C211 blocked, PR #173 DRAFT without merge"
+  ]
+}
