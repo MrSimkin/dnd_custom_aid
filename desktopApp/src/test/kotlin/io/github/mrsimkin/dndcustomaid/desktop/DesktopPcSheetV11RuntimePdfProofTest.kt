@@ -2617,10 +2617,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     spellcastingSources = sheet.spellcastingSources + added,
                     spells = sheet.spells.map { spell ->
                         if (spell.id == selected.id) spell.copy(
-                            sourceAssociations = spell.sourceAssociations +
-                                io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSourceAssociation(
-                                    sourceId = addedId, prepared = false,
-                                ),
+                            sourceAssociations = spell.sourceAssociations.mapIndexed {
+                                index, association ->
+                                if (index == 0) association.copy(prepared = true)
+                                else association
+                            } + io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSourceAssociation(
+                                sourceId = addedId, prepared = false,
+                            ),
                         ) else spell
                     },
                 ),
