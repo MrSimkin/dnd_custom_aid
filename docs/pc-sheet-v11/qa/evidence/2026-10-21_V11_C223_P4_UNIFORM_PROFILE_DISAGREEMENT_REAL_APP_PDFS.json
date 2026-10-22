@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "local_date": "2026-10-21",
+  "scope": "C223 P4 global spell save DC/attack versus uniformly explicit source profiles; PASS LOCAL only",
+  "repo": "MrSimkin/dnd_custom_aid",
+  "branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "pr": 173,
+  "functional_sha": "440b74fb369503419392dbde75176ef566f68bcc",
+  "ci": {
+    "scaffold": {
+      "run_id": 39713904751,
+      "conclusion": "success",
+      "verified": true,
+      "artifact_id": 12398337724
+    },
+    "qa": {
+      "run_id": 39713904856,
+      "conclusion": "success"
+    },
+    "docs_route_intermediate": {
+      "sha": "a3670c971f6edfb97c5bf5eb6df17b459c017f18",
+      "run_id": 39714409104,
+      "conclusion": "failure",
+      "failure": "Read first on resume still named C222 while canonical pointer named C223; repaired in closure commit, require green retry"
+    }
+  },
+  "artifacts": {
+    "before": {
+      "run_id": 39709479218,
+      "artifact_id": 12396234354,
+      "pdfs": 82,
+      "pages": 761,
+      "zip_sha256": "91305d815c5e74eb1540d718791de216c3fe09ea0de04c638dcbaa017d2bdf61"
+    },
+    "after": {
+      "run_id": 39713904751,
+      "artifact_id": 12398337724,
+      "pdfs": 84,
+      "pages": 777,
+      "zip_sha256": "3fd2e9f3c747edcffe2a677ba4b58685f66a4f402edddd530e293489cacbb5b2"
+    },
+    "auditors": {
+      "run_id": 39713904751,
+      "artifact_id": 12398178346,
+      "zip_sha256": "0c4b8f7531d8f63c5729fbfb842fe4b052176a40509a3b8f85efa7d118909ef6"
+    }
+  },
+  "external_pymupdf_comparison": {
+    "method": "PyMuPDF 1.26.7 against real Desktop App PDF artifact ZIP contents from prior and current CI runs",
+    "common_pdfs": 82,
+    "unchanged_pagination_documents": 82,
+    "old_pages": 761,
+    "new_pages": 761,
+    "unchanged_words_coordinates_pages": 733,
+    "p4_approved_guard_only_changes_pages": 28,
+    "unchanged_vectors_pages": 761,
+    "unchanged_image_references_pages": 761,
+    "unexpected_changes": 0,
+    "intentional_change": "On 28 Mara-derived physical P4 pages, remove ONLY the source-contradictory global CD 17 and substitute SEGÚN FUENTE; all non-card text and positions unchanged; no changes to source tokens including other '17' occurrences"
+  },
+  "new_pdf_checks": [
+    {
+      "name": "V11-INTERNAL-PROOF-P4-uniform-profile-global-disagreement-A.pdf",
+      "sha256": "bba1ad234e19c227fde6f5808a1eac241a3e8d332407ea1fdb479ce2659777ba",
+      "pages": 8,
+      "p4_page": 6,
+      "reference": "APTITUD INT / CD SALVACIÓN SEGÚN FUENTE / ATAQUE MÁGICO SEGÚN FUENTE",
+      "letter": true,
+      "final_notes": true,
+      "visual_raster": "inspected, no clipping"
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P4-uniform-profile-global-disagreement-B.pdf",
+      "sha256": "37c46dbb176cd819c9b756f80b6098459362b22231ae44daf5d8526eb31ef8dd",
+      "pages": 8,
+      "p4_page": 6,
+      "reference": "APTITUD INT / CD SALVACIÓN SEGÚN FUENTE / ATAQUE MÁGICO SEGÚN FUENTE",
+      "letter": true,
+      "final_notes": true,
+      "visual_raster": "inspected, no clipping"
+    }
+  ],
+  "scoped_independent_audit": {
+    "pdfs": 84,
+    "pages": 777,
+    "physical_envelope_errors": 0,
+    "c207_missing_reservations": 0,
+    "final_notes_pass": 84,
+    "p1_clipped_cards_valid": 84,
+    "p4_failed_pdfs": 0
+  },
+  "gate": "C223_PASS_LOCAL_ONLY",
+  "g4": "BLOCKED_105_NOT_VERIFIED_ACTIVE_CANDIDATE_NULL",
+  "c211": "BLOCKED_3_OF_3_NORMAL_0_OF_2_STRUCTURAL",
+  "limitations": [
+    "Not full V11 golden equivalence",
+    "Not owner-installed Android runtime",
+    "Not owner acceptance of V11",
+    "Owner historical Mara runtime original missing",
+    "Physical per-source numeric-card design unresolved",
+    "PR #173 remains DRAFT/UNMERGED"
+  ]
+}
