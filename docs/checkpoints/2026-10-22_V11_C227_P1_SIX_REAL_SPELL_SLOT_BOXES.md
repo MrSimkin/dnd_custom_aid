@@ -1,6 +1,6 @@
 # C227 — Seis espacios de conjuro reales: seis casillas manuscritas en P1
 
-**Fecha:** 2026-10-22 (Chile). **Rama única:** `docs/pc-sheet-v11-approved-implementation-handoff`, PR #173 DRAFT, **NO MERGE**. **Estado inicial: IN_PROGRESS; no PASS sin CI y cotejo de PDF reales**.
+**Fecha:** 2026-10-22 (Chile). **Rama única:** `docs/pc-sheet-v11-approved-implementation-handoff`, PR #173 DRAFT, **NO MERGE**. **C227 PASS LOCAL FÍSICO verificado (no G4, no aceptación del propietario)**.
 
 ## Contrato, evidencia original y solución acotada
 
@@ -18,3 +18,17 @@ D-0076 §§3.11–3.12 y matriz P115–P116: representar espacios digitales real
 Mantener `G0` PARCIAL, `G1` PASS semántico histórico, `G2/G3` PARCIALES, `G4` BLOCKED **105/105 NOT_VERIFIED** con `active_candidate=null`, `G5/G6` pendientes. C211 sigue BLOCKED con 3/3 intentos ordinarios y 0/2 recuperación estructural. Sin editar matriz G4, observaciones M50800-01..32, V11-QA-001/002, contrato ni historial; QA del propietario e instalación Android no aprobados. **No se autoriza merge**.
 
 **Próximo paso:** ejecutar/leer CI exacto y hacer comparación de PDF real; actualizar este checkpoint con hashes y resultados. Para 7+ casillas, registrar como necesidad de composición/decisión o seleccionar otra brecha independiente: no apretar los controles a dimensiones ilegibles ni añadir líneas o páginas sin aprobación.
+
+## Cierre físico C227 — PASS LOCAL acotado, no G4
+
+**SHA funcional:** `7b83d97158aba7b2253bd76cce5c8a0fe2ad2cfb`. [Scaffold #39828557324](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39828557324) **SUCCESS** (Kotlin, Android, Desktop, auditor físico, backend, DB); [QA #39828557429](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39828557429) **SUCCESS**. El CI aplicó la prueba real de Ilyra variante A/B y produjo los PDF directamente con el exportador Kotlin, no con un generador de prueba alternativo. No fue necesario reparar código ni consumir presupuesto de reintentos C227.
+
+**Artefacto nuevo:** [90 PDF reales #12447073887](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39828557324/artifacts/12447073887) / **825 páginas**, ZIP SHA256 `148ce9869cd29f566380bdd0eea238bb7fce6c2670b509e3757f15c878138996`. Baseline C226: [88 PDF #12446397671](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39824298970/artifacts/12446397671) / 809 páginas, ZIP `fc4787d05d2a01f348ddf583c33e3ec1fa013be3eff1c3226d6776b9ae182de2`. Comparador PyMuPDF independiente: **88/88** mismos saltos de página, **809/809 páginas** con palabras+posiciones idénticas, **809/809** con dibujos vectoriales idénticos, **809/809** con referencias de imágenes idénticas. CERO diferencias materiales en los casos anteriores. No se afirma igualdad binaria, pues los PDF pueden diferir en metadatos.
+
+**Dos PDF de servicio real nuevos** `V11-INTERNAL-PROOF-P1-six-real-spell-slots-A.pdf` SHA `6a93223527dbd5ef08ffd1e94528f4dd35cbd400d41ca7ee18b97a0f8761af40` y variante B SHA `ba66662fd7a8bb33b74c848e22f8df1478093e73c6f849403c3f063d432a05b5`. Cada uno tiene ocho páginas Carta, mantiene última NOTAS y visualiza en P1 los **seis rectángulos de 7×7pt** en x 334/344/354/364/374/384, y 210 en coordenadas PDF, con **cuatro X** de gasto real. Nivel 2 retiene sus tres marcas previas x 419/431/443; no aparece una séptima casilla. Inspección raster a 3× de ambas variantes: legibilidad y separación suficiente, sin cruce de columnas ni superposición visible.
+
+[Auditor independiente #12448445845](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39828557324/artifacts/12448445845), ZIP SHA `11face4d01897d59ccb0e9efff65faaa073a257a62950e8647b90d73a0172b69`: **90 PDF/825 páginas, 0 errores físicos**, 90/90 última NOTAS, cero omisiones C207 en 241 páginas C2 / 440 regiones, 0 fallos de marcos (825/825), logo (825/825), P4 o Libro. [Acta auditable JSON](qa/evidence/2026-10-22_V11_C227_P1_SIX_REAL_SLOTS_REAL_APP_PDFS.json) documenta identidades y límites.
+
+**Conclusión:** C227 PASS LOCAL FÍSICO de 6 casillas, no design approval ni equivalencia integral al golden, sin inspección de APK instalado. **7+ siguen sin un layout o política de marcas aprobados**, no generar casillas ficticias ni reducir tamaño. G0 PARCIAL / G1 semántico PASS histórico / G2/G3 PARCIALES / G4 BLOCKED **105/105 NOT_VERIFIED active_candidate=null** / G5/G6 PENDIENTES. C211 separado BLOCKED 3/3 normal, 0/2 estructural; 32 M50800 y V11-QA-001/002 intactos. PR #173 DRAFT NO MERGE.
+
+**Siguiente paso seguro:** seleccionar una brecha material independiente de G2/G3 y validarla contra salida genuina, o documentar la decisión necesaria para 7+ sin imponer una solución de presentación. Antes de G4, conciliar todos los criterios D-0076, matrices y golden contra un candidato exacto, sin reclamar PASS por lotes locales.

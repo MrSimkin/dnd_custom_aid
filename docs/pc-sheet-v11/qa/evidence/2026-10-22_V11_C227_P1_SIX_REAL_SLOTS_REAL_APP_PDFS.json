@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "date": "2026-10-22",
+  "repo": "MrSimkin/dnd_custom_aid",
+  "pr": 173,
+  "branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "scope": "C227 six real P1 spell slot checkboxes from native Android/Desktop renderer; PASS LOCAL ONLY",
+  "functional_sha": "7b83d97158aba7b2253bd76cce5c8a0fe2ad2cfb",
+  "ci": {
+    "scaffold": {
+      "run": 39828557324,
+      "conclusion": "success"
+    },
+    "qa": {
+      "run": 39828557429,
+      "conclusion": "success"
+    }
+  },
+  "baseline": {
+    "run": 39824298970,
+    "artifact_id": 12446397671,
+    "pdfs": 88,
+    "pages": 809,
+    "zip_sha256": "fc4787d05d2a01f348ddf583c33e3ec1fa013be3eff1c3226d6776b9ae182de2"
+  },
+  "candidate": {
+    "run": 39828557324,
+    "artifact_id": 12447073887,
+    "pdfs": 90,
+    "pages": 825,
+    "zip_sha256": "148ce9869cd29f566380bdd0eea238bb7fce6c2670b509e3757f15c878138996"
+  },
+  "auditors": {
+    "run": 39828557324,
+    "artifact_id": 12448445845,
+    "zip_sha256": "11face4d01897d59ccb0e9efff65faaa073a257a62950e8647b90d73a0172b69",
+    "pdf_count": 90,
+    "page_count": 825,
+    "envelope_errors": 0,
+    "module_topology_errors": 0,
+    "final_notes_pass": 90,
+    "c207_c2_pages": 241,
+    "c207_regions": 440,
+    "c207_missing": 0,
+    "double_frame_failed_pages": 0,
+    "logo_visibility_failed_pages": 0,
+    "p4_slot_meter_failed_pdfs": 0,
+    "spellbook_failed_books": 0
+  },
+  "comparison": {
+    "method": "independent local PyMuPDF word bounding boxes, drawings ignoring seqno, image refs",
+    "common_pdfs": 88,
+    "pagination_unchanged_pdfs": 88,
+    "common_pages": 809,
+    "words_positions_unchanged_pages": 809,
+    "vectors_unchanged_pages": 809,
+    "image_references_unchanged_pages": 809,
+    "unexplained_differences": 0,
+    "bytewise_pdf_identity": "NOT_CLAIMED; PDF metadata can change"
+  },
+  "new_pdfs": [
+    {
+      "variant": "A",
+      "name": "V11-INTERNAL-PROOF-P1-six-real-spell-slots-A.pdf",
+      "sha256": "6a93223527dbd5ef08ffd1e94528f4dd35cbd400d41ca7ee18b97a0f8761af40",
+      "pages": 8,
+      "first_page_letter": true,
+      "final_notes": true,
+      "level1": {
+        "total": 6,
+        "spent": 4,
+        "box_dimensions_pt": [
+          7,
+          7
+        ],
+        "physical_x": [
+          334,
+          344,
+          354,
+          364,
+          374,
+          384
+        ],
+        "physical_y": 210,
+        "boxes": 6,
+        "x_marks": 4,
+        "extra_seventh_box": false
+      },
+      "level2": {
+        "total": 3,
+        "spent": 1,
+        "original_spacing_pt": 12,
+        "boxes": 3
+      },
+      "raster_inspection": "P1 at 3x: no visible clipping, column crossing or overlapping marks"
+    },
+    {
+      "variant": "B",
+      "name": "V11-INTERNAL-PROOF-P1-six-real-spell-slots-B.pdf",
+      "sha256": "ba66662fd7a8bb33b74c848e22f8df1478093e73c6f849403c3f063d432a05b5",
+      "pages": 8,
+      "first_page_letter": true,
+      "final_notes": true,
+      "level1": {
+        "total": 6,
+        "spent": 4,
+        "box_dimensions_pt": [
+          7,
+          7
+        ],
+        "physical_x": [
+          334,
+          344,
+          354,
+          364,
+          374,
+          384
+        ],
+        "physical_y": 210,
+        "boxes": 6,
+        "x_marks": 4,
+        "extra_seventh_box": false
+      },
+      "level2": {
+        "total": 3,
+        "spent": 1,
+        "original_spacing_pt": 12,
+        "boxes": 3
+      },
+      "raster_inspection": "P1 at 3x: no visible clipping, column crossing or overlapping marks"
+    }
+  ],
+  "gate": "C227_PASS_LOCAL_ONLY",
+  "g4": {
+    "rules": 105,
+    "not_verified": 105,
+    "active_candidate": null
+  },
+  "c211": "BLOCKED_3_OF_3_NORMAL_0_OF_2_STRUCTURAL",
+  "limitations": [
+    "7+ spell slots handwritten tracking requires different layout or owner decision",
+    "not full D-0076/golden acceptance",
+    "not installed Android QA",
+    "not owner technical or visual approval",
+    "no merge authorized"
+  ]
+}
