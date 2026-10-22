@@ -25,7 +25,7 @@ def specimen(missing_level=None, missing_square=None, extra_meter=False,
             for index in range(3):
                 if missing_square == (level, index):
                     continue
-                page.draw_rect(fitz.Rect(162 + index * 11, y - 6, 169 + index * 11, y + 1))
+                page.draw_rect(fitz.Rect(177 + index * 11, y - 6, 184 + index * 11, y + 1))
     if extra_meter:
         page.insert_text((110, 615), "ESP.", fontsize=7)
     return doc
@@ -44,6 +44,16 @@ class PhysicalP4Meters(unittest.TestCase):
         self.assertFalse(result["errors"], result["errors"])
         self.assertEqual(9, result["meter_count"])
         self.assertEqual(1, result["source_backed_meter_count"])
+
+    def test_shifted_real_long_meter_keeps_all_three_physical_squares(self):
+        with specimen(real_total_level=1) as doc:
+            page = doc[0]
+            # Two source-backed long Int counters use the free band
+            # left of the fixed preparation/gasto paper squares.
+            page.insert_text((82, 655), "ESP.2147483647 G.2147483646", fontsize=7)
+            result = audit.audit_document(doc)
+        self.assertEqual(9, result["meter_count"])
+        self.assertGreaterEqual(result["source_backed_meter_count"], 1)
 
     def test_missing_level_cannot_be_hidden_by_successful_pdf_generation(self):
         with specimen(missing_level=7) as doc:

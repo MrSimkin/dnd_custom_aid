@@ -2444,7 +2444,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 if (level != null && level in 1..9) {
                                     val baseline = body.metrics.baselineIn(cell.cellPt)
                                     val labelPt = 7f
-                                    val labelX = cell.cellPt.rightPt - 83f
+                                    val regularX = cell.cellPt.rightPt - 83f
                                     val firstSquareX = cell.cellPt.rightPt - 33f
                                     val actualSlots = data.spellSlots.firstOrNull {
                                         it.level == level
@@ -2452,14 +2452,42 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     val fullActualLabel = actualSlots?.let {
                                         "ESP.${it.totalSlots} G.${it.spentSlots}"
                                     }
-                                    val maxLabelWidth = firstSquareX - labelX - 5f
-                                    val label = fullActualLabel?.takeIf { realLabel ->
-                                        headerPdfFont.getStringWidth(realLabel) *
-                                            labelPt / 1000f <= maxLabelWidth
-                                    } ?: "ESP."
+                                    // C220: when genuine integers do not fit
+                                    // the 45pt meter, reuse the actual FREE
+                                    // baseline between "NIVEL X" and its three
+                                    // 7pt paper squares. NEVER shrink any font,
+                                    // split the approved one-line level header,
+                                    // change a number or cover the title.
+                                    val trueHeading = entries.single {
+                                        it.sourceKey == cell.sourceKey
+                                    }.text
+                                    val headingInkWidth = bodyPdfFont.getStringWidth(
+                                        pcSheetV11PrintableText(trueHeading)
+                                    ) * 9f / 1000f
+                                    val expandedX = cell.cellPt.leftPt +
+                                        headingInkWidth + 8f
+                                    val chosen = fullActualLabel?.let { sourceLabel ->
+                                        val width = headerPdfFont.getStringWidth(
+                                            sourceLabel
+                                        ) * labelPt / 1000f
+                                        when {
+                                            width <= firstSquareX - regularX - 5f ->
+                                                regularX to sourceLabel
+                                            expandedX < regularX &&
+                                                width <= firstSquareX - expandedX - 5f ->
+                                                expandedX to sourceLabel
+                                            else -> null
+                                        }
+                                    }
+                                    val labelX = chosen?.first ?: regularX
+                                    val label = chosen?.second ?: "ESP."
                                     require(headerPdfFont.getStringWidth(label) *
-                                        labelPt / 1000f <= maxLabelWidth) {
-                                        "P4 true slot label cannot fit existing level band."
+                                        labelPt / 1000f <= firstSquareX - labelX - 5f) {
+                                        "P4 true slot label exceeds available paper after safe fitting."
+                                    }
+                                    require(labelX >= cell.cellPt.leftPt +
+                                        headingInkWidth + 7f) {
+                                        "P4 true slot label overlaps the real level heading."
                                     }
                                     require(firstSquareX + 2 * 11f + 7f <=
                                         cell.cellPt.rightPt - 2f) {

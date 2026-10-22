@@ -122,8 +122,20 @@ def audit_spell_page(page, page_number):
         if not str(word[4]).strip().startswith("ESP."):
             continue
         x, y = float(word[0]), (float(word[1]) + float(word[3])) / 2
+        # C220: genuine long totals may start right after the actual
+        # "NIVEL X" heading, not at the former fixed x=right-83.
+        # Locate the three boxes by the immutable PHYSICAL column
+        # right edge, rather than the variable position of ESP.N G.M.
+        column_right = next((edge for left, edge in
+                             ((42., 210.), (222., 390.), (402., 570.))
+                             if left <= x < edge - 2), None)
+        expected_first_box_x = (column_right - 33
+                                if column_right is not None else None)
         boxes = [r for r in squares
-                 if 36 <= r.x0 - x <= 76 and abs((r.y0 + r.y1) / 2 - y) <= 9]
+                 if expected_first_box_x is not None
+                 and any(abs(r.x0 - (expected_first_box_x + n * 11)) <= .6
+                         for n in range(3))
+                 and abs((r.y0 + r.y1) / 2 - y) <= 9]
         meters.append({
             "x": round(x, 2), "y": round(y, 2), "boxes": len(boxes),
             "actual_total": (

@@ -129,6 +129,52 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun p4PrintsBothIntMaxSpellSlotCountersOnOneLineWithoutClippingOrFakeSpentBoxes() {
+        // C220: the existing P1 oversized-slot real-persistence scenario
+        // was a noncaster (no P4). Exercise the SAME Int boundary in
+        // genuine Mara with populated spells and active P4.
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        val extreme = mara.copy(
+            permanent = mara.permanent.copy(
+                sheet = mara.permanent.sheet.copy(
+                    spellSlots = mara.permanent.sheet.spellSlots.map { slot ->
+                        if (slot.level == 1) slot.copy(
+                            totalSlots = 2147483647,
+                            spentSlots = 2147483646,
+                        ) else slot
+                    },
+                ),
+            ),
+        )
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(
+                    variant, PcSheetExportStateSelection.PERMANENT,
+                ), extreme,
+            ).bytes
+            preserveRealApplicationPdf(bytes,
+                "V11-INTERNAL-PROOF-P4-intmax-real-spell-slots-" + variant + ".pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val p4Text = (1..pdf.numberOfPages).map { page ->
+                    PDFTextStripper().apply {
+                        startPage = page
+                        endPage = page
+                    }.getText(pdf)
+                }.filter { it.contains("P4 - Conjuros") }.joinToString("\n")
+                assertTrue(p4Text.contains("ESP.2147483647 G.2147483646"),
+                    "The real maximum-size total and spent count must share one " +
+                        "untruncated physical P4 level row, $variant")
+                assertEquals(1,
+                    Regex("""ESP\.2147483647\s+G\.2147483646""")
+                        .findAll(p4Text).count(),
+                    "The true huge counters must not duplicate in the P4 module.")
+                assertTrue(p4Text.contains("ESP.3 G.1"),
+                    "Ordinary real N2 must keep its prior source-backed counter.")
+            }
+        }
+    }
+
+    @Test
     fun p4UsesRealPerLevelTotalAndSpentSlotsWithoutMakingUpHigherLevelCounts() {
         // D-0076 §§3.25–3.26: P4 must repeat source-backed P1 total
         // and spent counts on the SAME paper line as each level.
