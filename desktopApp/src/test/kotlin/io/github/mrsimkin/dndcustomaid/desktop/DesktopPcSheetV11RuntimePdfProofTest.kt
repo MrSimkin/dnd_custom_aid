@@ -2867,6 +2867,61 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+
+    @Test
+    fun g3IlyraConfiguredCastingSourceKeepsMetricsVisibleWhenOverallBlankAB() {
+        // Source = genuine Ilyra persisted wizard profile. Only two optional
+        // overall reference numbers become absent; the profile still computes
+        // the real source-specific CD/attack from INT and proficiency.
+        val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        assertEquals(15, original.permanent.sheet.spellSaveDc)
+        assertEquals(7, original.permanent.sheet.spellAttackModifier)
+        val changed = original.copy(permanent = original.permanent.copy(
+            sheet = original.permanent.sheet.copy(
+                spellSaveDc = null, spellAttackModifier = null,
+            ),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val result = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                changed,
+            )
+            val sources = result.semantic.spells.flatMap { it.sources }
+                .distinctBy { it.sourceId }
+            assertTrue(sources.isNotEmpty())
+            assertTrue(sources.all { it.saveDc == 15 && it.spellAttackModifier == 7 },
+                "The genuine source profile must retain its derivable metrics.")
+            val labels = io.github.mrsimkin.dndcustomaid.shared.character
+                .PcSheetV11SpellSourceLabels
+            assertEquals(setOf("CD SALVACIÓN", "ATAQUE MÁGICO"),
+                labels.contradictoryOverallFields(
+                    result.semantic.spells, changed.permanent.sheet.spellcastingAbility,
+                    changed.permanent.sheet.spellSaveDc,
+                    changed.permanent.sheet.spellAttackModifier,
+                ))
+            preserveRealApplicationPdf(result.bytes,
+                "V11-INTERNAL-PROOF-P1-P4-Ilyra-source-metrics-without-overall-" +
+                    variant.name + ".pdf")
+            Loader.loadPDF(result.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { page ->
+                    PDFTextStripper().apply { startPage = page; endPage = page }.getText(pdf)
+                }
+                val p1 = pages.first()
+                assertEquals(2, Regex("SEGÚN FUENTE").findAll(p1).count(),
+                    "Both missing global metrics must refer to genuine source.")
+                assertTrue(p1.contains("INT"))
+                val p4 = pages.filter { it.contains("P4 - Conjuros") }
+                assertTrue(p4.isNotEmpty())
+                val ref = p4.first().substringAfter("REFERENCIA MÁGICA")
+                    .substringBefore("NIVEL")
+                assertEquals(2, Regex("SEGÚN FUENTE").findAll(ref).count())
+                assertTrue(ref.contains("INT"),
+                    "Aptitude must remain the genuinely common built-in ability.")
+                assertTrue(pages.last().contains("NOTAS"))
+            }
+        }
+    }
+
     @Test
     fun g3P4UniformPersistedCastingAbilitiesCannotClaimGlobalIntAB() {
         // Genuine Ilyra backup: leave spell UUIDs, preparation, global CD/attack

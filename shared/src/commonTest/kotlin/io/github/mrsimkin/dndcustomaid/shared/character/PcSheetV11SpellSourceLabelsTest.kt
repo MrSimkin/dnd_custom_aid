@@ -216,6 +216,48 @@ class PcSheetV11SpellSourceLabelsTest {
         ).contains("APTITUD"), "Already-proven C224 contradiction is preserved.")
     }
 
+
+    @Test
+    fun realSourceMetricsWithMissingGlobalOnlyGuardKnownFields() {
+        val spell = CharacterSpell(
+            id = Uuid.parse("aa000007-0000-4000-8000-000000000001"),
+            name = "Referencia derivada", level = 1, castingTime = "",
+            rangeText = "", verbal = false, somatic = false, material = false,
+            materialText = null, duration = "", concentration = false,
+            ritual = false, description = "", notes = null, sortOrder = 0,
+        )
+        val source = PcSheetSpellbookSourceProjection(
+            sourceId = Uuid.parse("12345600-0000-4000-8000-000000000020"),
+            sourceName = "Mago", originKind = null, prepared = false,
+            castingAbility = CharacterAbilityReference.builtIn(CharacterAbility.INTELLIGENCE),
+            saveDc = 15, spellAttackModifier = 7,
+        )
+        val actual = listOf(PcSheetSpellbookEntry(spell, listOf(source)))
+        assertEquals(setOf("CD SALVACIÓN", "ATAQUE MÁGICO"),
+            PcSheetV11SpellSourceLabels.contradictoryOverallFields(
+                actual, SpellcastingAbility.INTELLIGENCE, null, null,
+            ))
+        assertTrue(PcSheetV11SpellSourceLabels.contradictoryOverallFields(
+            actual, SpellcastingAbility.INTELLIGENCE, 15, 7,
+        ).isEmpty())
+        assertTrue(PcSheetV11SpellSourceLabels.contradictoryOverallFields(
+            emptyList(), SpellcastingAbility.INTELLIGENCE, null, null,
+        ).isEmpty())
+        assertEquals(setOf("CD SALVACIÓN"),
+            PcSheetV11SpellSourceLabels.contradictoryOverallFields(
+                listOf(PcSheetSpellbookEntry(spell, listOf(source.copy(
+                    spellAttackModifier = null,
+                )))),
+                SpellcastingAbility.INTELLIGENCE, null, null,
+            ))
+        assertTrue(PcSheetV11SpellSourceLabels.contradictoryOverallFields(
+            listOf(PcSheetSpellbookEntry(spell, listOf(source.copy(
+                saveDc = null, spellAttackModifier = null,
+            )))),
+            SpellcastingAbility.INTELLIGENCE, null, null,
+        ).isEmpty(), "An unknown source cannot manufacture either global metric.")
+    }
+
     @Test
     fun equalVisibleNamesKeepDistinctRealIdsAndIndependentPreparation() {
         val one = Uuid.parse("12345600-0000-4000-8000-000000000001")

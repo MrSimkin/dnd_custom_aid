@@ -95,7 +95,26 @@ object PcSheetV11SpellSourceLabels {
         ) setOf("APTITUD") else emptySet()
     }
 
-    /** C225/C228: identical semantic contract for source-backed P1 and P4. */
+    /**
+     * C229: no global CD/attack is not proof that an explicitly associated
+     * casting source has no actual stat. If the source knows its own metric,
+     * direct readers to that genuine source, using the already-approved cue.
+     * An unknown source statistic must NOT produce a fabricated reference.
+     */
+    fun missingOverallMetricsFromRealSource(
+        entries: List<PcSheetSpellbookEntry>,
+        overallDc: Int?,
+        overallAttackModifier: Int?,
+    ): Set<String> {
+        val sources = entries.flatMap { it.sources }.distinctBy { it.sourceId }
+        return buildSet {
+            if (overallDc == null && sources.any { it.saveDc != null }) add("CD SALVACIÓN")
+            if (overallAttackModifier == null &&
+                sources.any { it.spellAttackModifier != null }) add("ATAQUE MÁGICO")
+        }
+    }
+
+    /** C225/C228/C229: common source-backed P1/P4 reference contract. */
     fun contradictoryOverallFields(
         entries: List<PcSheetSpellbookEntry>,
         overallAbility: SpellcastingAbility,
@@ -104,7 +123,8 @@ object PcSheetV11SpellSourceLabels {
     ): Set<String> = conflictingReferenceFields(entries) +
         globalReferenceDisagreements(entries, overallDc, overallAttackModifier) +
         globalAbilityDisagreement(entries, overallAbility) +
-        unmappedOverallAbilityFromRealSource(entries, overallAbility)
+        unmappedOverallAbilityFromRealSource(entries, overallAbility) +
+        missingOverallMetricsFromRealSource(entries, overallDc, overallAttackModifier)
 
     fun forSpells(entries: List<PcSheetSpellbookEntry>): Map<Uuid, String> {
         val sources = entries.flatMap { it.sources }.distinctBy { it.sourceId }
