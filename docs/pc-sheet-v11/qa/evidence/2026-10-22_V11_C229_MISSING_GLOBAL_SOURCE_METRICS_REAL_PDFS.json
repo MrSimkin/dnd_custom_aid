@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "date_chile": "2026-10-22",
+  "repo": "MrSimkin/dnd_custom_aid",
+  "pr": 173,
+  "scope": "C229 genuine source DC/attack with missing global reference: PASS LOCAL ONLY",
+  "functional_sha": "de5df41c9d5538282701084c16a800ed52d7344e",
+  "ci": {
+    "scaffold": {
+      "run": 39883400413,
+      "status": "SUCCESS"
+    },
+    "qa": {
+      "run": 39883400285,
+      "status": "SUCCESS"
+    }
+  },
+  "before": {
+    "run": 39861906118,
+    "artifact": 12462716343,
+    "pdfs": 92,
+    "pages": 843,
+    "zip_sha256": "3b10ff123010bf60e7cf1e19b791bd57fa42287ef04ea1a965576e4285506245"
+  },
+  "after": {
+    "run": 39883400413,
+    "artifact": 12471702417,
+    "pdfs": 94,
+    "pages": 859,
+    "zip_sha256": "51aecd7968af871e3bbe439ed04ffa1fa49fdcf9df0e5d7f8163b610f2b9011f"
+  },
+  "audit": {
+    "artifact": 12472370115,
+    "zip_sha256": "8ae36051960b188c02847331954cb17d779619225b2f344aa1bbd1a10ad4dbea",
+    "pdfs": 94,
+    "pages": 859,
+    "errors": 0,
+    "final_notes_pass": 94,
+    "c207_pages": 251,
+    "c207_regions": 458,
+    "c207_missing": 0
+  },
+  "comparison": {
+    "tool": "PyMuPDF, actual CI PDF ZIPs",
+    "common_pdfs": 92,
+    "pagination_identical": 92,
+    "common_pages": 843,
+    "pages_same_words_and_bboxes": 843,
+    "pages_same_vectors": 843,
+    "pages_same_image_references": 843,
+    "unexpected_changes": 0,
+    "bytewise_pdf_identity": "NOT_CLAIMED"
+  },
+  "new_pdf_cases": [
+    {
+      "variant": "A",
+      "name": "V11-INTERNAL-PROOF-P1-P4-Ilyra-source-metrics-without-overall-A.pdf",
+      "sha256": "c094906db9f215dc87cfe84e49d0eab302faab6662dc550f12da603adda625e0",
+      "pages": 8,
+      "p1_source_cues": 2,
+      "p4_source_cues": 2,
+      "ability": "INT",
+      "global_dc": null,
+      "global_attack": null,
+      "source_dc": 15,
+      "source_attack": 7,
+      "last_notes": true,
+      "raster_checked": true
+    },
+    {
+      "variant": "B",
+      "name": "V11-INTERNAL-PROOF-P1-P4-Ilyra-source-metrics-without-overall-B.pdf",
+      "sha256": "ffa60651d090c01b674d88672c262d3b59e0c9f36847e07ce783a2d8c2339060",
+      "pages": 8,
+      "p1_source_cues": 2,
+      "p4_source_cues": 2,
+      "ability": "INT",
+      "global_dc": null,
+      "global_attack": null,
+      "source_dc": 15,
+      "source_attack": 7,
+      "last_notes": true,
+      "raster_checked": true
+    }
+  ],
+  "gate": "C229_PASS_LOCAL_ONLY",
+  "g4": {
+    "rules": 105,
+    "not_verified": 105,
+    "active_candidate": null
+  },
+  "g0": "PARTIAL",
+  "g1": "HISTORICAL_SEMANTIC_PASS",
+  "g2": "PARTIAL",
+  "g3": "PARTIAL",
+  "g5": "PENDING",
+  "g6": "PENDING",
+  "c211": "BLOCKED_3_NORMAL_ATTEMPTS_NO_STRUCTURAL_RECOVERY",
+  "owner_installed_android": "NOT_VERIFIED",
+  "owner_approval": "NOT_GRANTED",
+  "pr_merged": false
+}
