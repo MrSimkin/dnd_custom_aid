@@ -1394,8 +1394,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3P1SpellSlotsUse3x3GridWithRealTotalsAndSpentAndNeverInventAbsentLevelsAB",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B (Mara): P1 prints N1..N9 in the fixed 3x3 grid (x 315/400/485, rows 222/199/176) and never prints N10..N12. Owner decision 2026-10-26: no character has 7+ slots, so epic levels do not apply.",
+            "source_commit": "9aea70317df9740d3796813f47b8df68b27752e9",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684609581",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684709297",
+            "independent_inspection": "PyMuPDF over the CI artifact: the 94 previous PDFs are identical (859/859 pages words, vectors, images); 2 new Mara A/B PDFs; CI physical envelope audit 96 PDF / 877 pages, errors 0; raster crop of the P1 spellcasting panel inspected. Test positions are read from the real PDF (PDFBox text positions).",
+            "limitations": "Mara fixture only (real slots N1-N5); no fixture with real epic rules because the owner declared that case not applicable; G1/G2 NOT_VERIFIED; no installed Android, no owner visual approval; global P115 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -1427,8 +1436,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3P1SpellSlotsUse3x3GridWithRealTotalsAndSpentAndNeverInventAbsentLevelsAB; p4UsesRealPerLevelTotalAndSpentSlotsWithoutMakingUpHigherLevelCounts",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B (Mara): P1 prints the real total and the real spent count in separate cells for each persisted level (N4 shows a genuine spent 0), and absent levels N6..N9 print no total or spent; P4 repeats the same counters without synthesizing absent levels.",
+            "source_commit": "9aea70317df9740d3796813f47b8df68b27752e9",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684609581",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684709297",
+            "independent_inspection": "PyMuPDF over the CI artifact: the 94 previous PDFs are identical (859/859 pages words, vectors, images); 2 new Mara A/B PDFs; CI physical envelope audit 96 PDF / 877 pages, errors 0; raster crop of the P1 spellcasting panel inspected. Test positions are read from the real PDF (PDFBox text positions).",
+            "limitations": "Mara fixture only; G1/G2 NOT_VERIFIED; no installed Android, no owner visual approval; global P116 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
