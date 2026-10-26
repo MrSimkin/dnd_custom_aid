@@ -1300,8 +1300,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(p1.contains("INICIATIVA"))
             assertTrue(p1.contains("COMPETENCIA"))
             assertTrue(p1.contains("JUGADOR"))
-            assertTrue(p1.contains("HABILIDADES BAJO ATRIBUTO"),
-                "Variant A must place matching built-in skills physically under attributes.")
+            assertFalse(p1.contains("HABILIDADES BAJO ATRIBUTO"),
+                "C232: the stray caption is gone; skills stay physically under their attributes.")
             assertTrue(p1.contains("Atletismo"),
                 "Athletics should remain grouped beneath STR.")
             assertTrue(p1.contains("Acrobacias"),

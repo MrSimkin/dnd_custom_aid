@@ -427,7 +427,15 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         }
                     }
                 }
-                draw(stream,"HABILIDADES BAJO ATRIBUTO",44f,92f,false)
+                // C232 step 3: the golden fills the unused foot of the left column with
+                // blank banded manuscript rows (13pt) instead of a stray caption.
+                var blankRowTop = p1AttributeTop(p1PrintedAttributeCount) - 3f
+                var blankRowIndex = 0
+                while (blankRowTop - 13f >= 105f) {
+                    fillBand(stream, 42f, blankRowTop - 13f, 258f, 13f, blankRowIndex)
+                    blankRowTop -= 13f
+                    blankRowIndex += 1
+                }
             }
 
             // Variant B has a physically separate skills area, never a prose
