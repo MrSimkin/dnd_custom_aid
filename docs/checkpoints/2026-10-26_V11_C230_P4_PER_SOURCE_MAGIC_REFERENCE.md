@@ -30,6 +30,10 @@ Segunda decisión del propietario (2026-10-26): ningún personaje tiene más de 
 
 **CI:** [Scaffold #40382631343](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40382631343) y [QA #40382631470](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40382631470) SUCCESS en `5cee7050` (código `6ad1fb88`). La comparación sobre los artefactos de CI ([C230 #12679961537](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40382631343/artifacts/12679961537) contra [C229 #12471702417](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39883400413/artifacts/12471702417)) repite el resultado local: 94/94 paginaciones, 859/859 vectores e imágenes, 823 páginas con las mismas palabras y 36 con solo la referencia P4 cambiada. Auditores físicos de CI: 94 PDF / 859 páginas, 0 errores; medidores P4 sin PDF fallido; P3/C2 0 fallos.
 
+## Matriz de cumplimiento
+
+Primer registro formal desde el 17 de octubre: `MATRIZ_CONTRATO_V11_PRE_QA.json` marca **G3 PASS acotado** para `P410` (encabezados P4 en una línea y referencia mágica con valores por fuente) y `P406` (preparación por fuente, sin aplanar ni confundir con gasto), con prueba, commit, CI y artefactos. G1/G2 de esas reglas y el estado global de cada regla siguen NOT_VERIFIED; G4 sigue 105/105 NOT_VERIFIED con `active_candidate=null`. Un PASS de etapa caduca si cambia el candidato del release.
+
 ## Qué NO demuestra
 
 No es G4 ni aprobación del propietario; no hay APK instalado. Android solo se compiló, no se ejecutó en dispositivo. Falta la comparación de PDF reales contra el lote C229 (94 PDF / 859 páginas) y el acta con hashes.

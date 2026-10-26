@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-10-17",
+  "updated": "2026-10-26",
   "purpose": "Pre-owner-QA V11 enforceable requirement crosswalk; NOT a QA or PASS declaration",
   "gate": "BLOCKED",
   "active_candidate": null,
@@ -2545,8 +2545,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3P4MultipleRealSourceIdsNeverClaimUnknownDcAndAttackAsUniversalAB; g3P4RealSpellSourceWithCrLfAndTabKeepsAllOriginAndPreparationAB",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs (94 PDF / 859 pages, A/B): preparation stays per real source UUID ('[X] Mago / [ ] QAORIGENSINPERFIL'), is never merged across sources or confused with spent slots, and an added source without profile keeps its own unprepared mark.",
+            "source_commit": "6ad1fb88c8788855cd03b8107216e93d5c3f3c9f",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40382631343",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40382631343/artifacts/12679961537",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40382631343/artifacts/12678174458",
+            "independent_inspection": "PyMuPDF text extraction of the P4 rows in the CI artifact plus the C221 and C230 comparisons against the previous PDF set (no preparation mark lost or moved). Evidence: docs/pc-sheet-v11/qa/evidence/2026-10-21_V11_C221_P4_SOURCE_CONFLICT_REAL_APP_PDFS.json and 2026-10-26_V11_C230_P4_PER_SOURCE_MAGIC_REFERENCE_LOCAL.json",
+            "limitations": "Local Desktop PDFs only; G1/G2 stages NOT_VERIFIED; no installed Android, no owner visual approval, global P406 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2656,8 +2665,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "p4PrintsBothIntMaxSpellSlotCountersOnOneLineWithoutClippingOrFakeSpentBoxes; g3P4UniformRealSourceProfilesDoNotPrintContradictoryOverallNumbersAB; g3IlyraConfiguredCastingSourceKeepsMetricsVisibleWhenOverallBlankAB",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs (94 PDF / 859 pages, A/B): P4 level headers keep TOTAL and SPENT slot counters on one line (C219/C220), and the top magical reference prints each real source value, e.g. 'Mago 17' per source, one line or up to three 7pt lines, falling back to 'SEGUN FUENTE' only beyond three sources (C230). CI physical audits: envelope 94/859 errors 0; P4 slot meters failed_pdfs 0.",
+            "source_commit": "6ad1fb88c8788855cd03b8107216e93d5c3f3c9f",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40382631343",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40382631343/artifacts/12679961537",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40382631343/artifacts/12678174458",
+            "independent_inspection": "PyMuPDF comparison of the C229 and C230 CI artifacts: 94/94 pagination, 859/859 vectors and images identical, 36 pages differ only in the P4 reference; raster crops inspected for Ilyra (3 stacked sources) and Mara (1 source). Evidence: docs/pc-sheet-v11/qa/evidence/2026-10-26_V11_C230_P4_PER_SOURCE_MAGIC_REFERENCE_LOCAL.json and 2026-10-21_V11_C220_P4_INTMAX_COUNTERS_REAL_PDFS.json",
+            "limitations": "Local Desktop PDFs only; G2 stage NOT_VERIFIED; four or more sources keep the cue; unknown source metric prints a dash; no installed Android, no owner visual approval, global P410 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
