@@ -174,16 +174,46 @@ object PcSheetV11SpellSourceLabels {
         }
     }
 
+    /**
+     * C231 (owner decision 2026-10-26): P4 identifies a casting source by its
+     * ORIGIN TYPE, with no specific names, except a class source, which keeps
+     * its class name without subclass (e.g. "Mago", "Clérigo"). The type
+     * labels are the same ones the app's source editor uses (D-0058 /
+     * "Tipo de origen"). An association to a missing source record (no stored type) reads "Otro".
+     */
+    fun sourceLabel(source: PcSheetSpellbookSourceProjection): String {
+        val name = source.sourceName?.trim()?.replace(Regex("\\s+"), " ")
+            ?.takeIf { it.isNotEmpty() }
+        return when (source.originKind) {
+            CharacterSpellcastingOriginKind.CLASS -> name ?: "Clase"
+            CharacterSpellcastingOriginKind.TRAIT -> "Rasgo"
+            CharacterSpellcastingOriginKind.RACE -> "Raza"
+            CharacterSpellcastingOriginKind.BACKGROUND -> "Trasfondo"
+            CharacterSpellcastingOriginKind.FEAT -> "Dote"
+            CharacterSpellcastingOriginKind.ITEM -> "Objeto"
+            CharacterSpellcastingOriginKind.MAGIC_ITEM -> "Objeto mágico"
+            CharacterSpellcastingOriginKind.GIFT -> "Don"
+            CharacterSpellcastingOriginKind.OTHER -> "Otro"
+            // An association whose source record no longer exists has no stored type.
+            null -> "Otro"
+        }
+    }
+
+    private fun isNameBased(source: PcSheetSpellbookSourceProjection): Boolean =
+        source.originKind == null || source.originKind == CharacterSpellcastingOriginKind.CLASS
+
     fun forSpells(entries: List<PcSheetSpellbookEntry>): Map<Uuid, String> {
         val sources = entries.flatMap { it.sources }.distinctBy { it.sourceId }
-        fun label(source: PcSheetSpellbookSourceProjection): String =
-            source.sourceName?.takeIf { it.isNotBlank() } ?: source.sourceId.toString()
+        fun label(source: PcSheetSpellbookSourceProjection): String = sourceLabel(source)
 
         val byName = sources.groupBy { label(it).trim().lowercase() }
         return sources.associate { source ->
             val original = label(source)
             val siblings = byName.getValue(original.trim().lowercase())
-            if (siblings.size == 1) {
+            // Type labels (Dote, Raza...) may legitimately repeat: the owner wants
+            // no names there, and each row still keeps its own preparation mark.
+            // Only name-based labels get a collision-free UUID prefix.
+            if (siblings.size == 1 || !isNameBased(source)) {
                 source.sourceId to original
             } else {
                 val id = source.sourceId.toString()

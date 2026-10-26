@@ -55,13 +55,13 @@ class PcSheetV11SpellSourceLabelsTest {
         )
         val mago = PcSheetSpellbookSourceProjection(
             sourceId = Uuid.parse("12345600-0000-4000-8000-000000000006"),
-            sourceName = "Mago", originKind = null, prepared = true,
+            sourceName = "Mago", originKind = CharacterSpellcastingOriginKind.CLASS, prepared = true,
             castingAbility = CharacterAbilityReference.builtIn(CharacterAbility.INTELLIGENCE),
             saveDc = 15, spellAttackModifier = 7,
         )
         val hechicero = PcSheetSpellbookSourceProjection(
             sourceId = Uuid.parse("12345600-0000-4000-8000-000000000007"),
-            sourceName = "Hechicero", originKind = null, prepared = false,
+            sourceName = "Hechicero", originKind = CharacterSpellcastingOriginKind.CLASS, prepared = false,
             castingAbility = CharacterAbilityReference.builtIn(CharacterAbility.CHARISMA),
             saveDc = 17, spellAttackModifier = null,
         )
@@ -293,17 +293,20 @@ class PcSheetV11SpellSourceLabelsTest {
     }
 
     @Test
-    fun equalVisibleNamesKeepDistinctRealIdsAndIndependentPreparation() {
+    fun sourcesAreLabelledByOriginTypeAndOnlyClassKeepsItsName() {
         val one = Uuid.parse("12345600-0000-4000-8000-000000000001")
         val two = Uuid.parse("12345601-0000-4000-8000-000000000002")
         val three = Uuid.parse("88888888-0000-4000-8000-000000000003")
-        fun source(id: Uuid, name: String, prepared: Boolean) =
-            PcSheetSpellbookSourceProjection(
-                sourceId = id, sourceName = name,
-                originKind = null, prepared = prepared,
-                castingAbility = CharacterAbilityReference.NONE,
-                saveDc = null, spellAttackModifier = null,
-            )
+        val four = Uuid.parse("99999999-0000-4000-8000-000000000004")
+        val five = Uuid.parse("77777777-0000-4000-8000-000000000005")
+        fun source(
+            id: Uuid, name: String, kind: CharacterSpellcastingOriginKind?, prepared: Boolean,
+        ) = PcSheetSpellbookSourceProjection(
+            sourceId = id, sourceName = name,
+            originKind = kind, prepared = prepared,
+            castingAbility = CharacterAbilityReference.NONE,
+            saveDc = null, spellAttackModifier = null,
+        )
         val first = PcSheetSpellbookEntry(
             spell = CharacterSpell(
                 id = Uuid.parse("aa000001-0000-4000-8000-000000000001"),
@@ -314,18 +317,27 @@ class PcSheetV11SpellSourceLabelsTest {
                 description = "", notes = null, sortOrder = 0,
             ),
             sources = listOf(
-                source(one, "Mago", true),
-                source(two, "mago ", false),
-                source(three, "Dote", false),
+                source(one, "Mago", CharacterSpellcastingOriginKind.CLASS, true),
+                source(two, "mago ", CharacterSpellcastingOriginKind.CLASS, false),
+                source(three, "Sage — Magic Initiate (Wizard)", CharacterSpellcastingOriginKind.FEAT, false),
+                source(four, "Otra dote", CharacterSpellcastingOriginKind.FEAT, true),
+                source(five, "Sin tipo", null, false),
             ),
         )
         val names = PcSheetV11SpellSourceLabels.forSpells(listOf(first))
+        // Two class sources with the same visible name keep a collision-free id prefix.
         assertEquals("Mago (#12345600)", names.getValue(one))
         assertEquals("mago (#12345601)", names.getValue(two))
+        // Non-class sources show only their type, even when two share it (owner decision).
         assertEquals("Dote", names.getValue(three))
+        assertEquals("Dote", names.getValue(four))
+        // No stored type means no specific name is printed either.
+        assertEquals("Otro", names.getValue(five))
         val result = PcSheetV11SpellSourceLabels.perSpell(first, names)
         assertTrue(result.contains("[X] Mago (#12345600)"))
         assertTrue(result.contains("[ ] mago (#12345601)"))
-        assertTrue(result.contains("[ ] Dote"))
+        assertTrue(result.contains("[ ] Dote / [X] Dote"))
+        assertTrue(result.contains("[ ] Otro"))
+        assertTrue(!result.contains("Magic Initiate") && !result.contains("Otra dote"))
     }
 }

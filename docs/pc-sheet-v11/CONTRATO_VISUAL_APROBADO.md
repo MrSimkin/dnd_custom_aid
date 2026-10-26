@@ -73,3 +73,18 @@ El inventario verificable de reglas vive en `qa/MATRIZ_CONTRATO_V11_PRE_QA.json`
 El propietario aprobó P1/P3/P4, P2, C2, final y variante B tras revisión V11. Los dos microajustes mencionados son obligaciones técnicas, no convocatoria a V12. Un error medido frente al golden podrá corregirse dentro del gate y límites fijados, pero nunca reabrir el diseño por preferencias del Worker.
 
 **STOP obligado:** si la nueva fuente o datos verdaderos obligan a cambiar semántica o estructura y no hay equivalencia con el contrato; elevar **una sola** decisión material respaldada por evidencia, no interrogatorios en cadena.
+
+## Aclaración del propietario — fuentes de conjuro en P1 y P4 (2026-10-26)
+
+**Dicho por el propietario (2026-10-26):**
+
+- La fuente de lanzamiento de cada fila de la Lista rápida de Conjuros se rotula por su **TIPO DE ORIGEN, sin nombres específicos**, salvo la **Clase**, que se rotula con el nombre de la clase **sin subclase** (por ejemplo `Mago`, `Clérigo`). Los demás tipos son, por ejemplo, `Rasgo`, `Dote`, `Raza`, `Otro`. El propietario no recordaba la lista completa. Esta regla reemplaza la impresión de nombres completos como `Sage — Magic Initiate (Wizard)` (regla `P411`).
+- **«SEGÚN FUENTE» significa mostrar el valor de cada fuente**, por ejemplo CD = `Mago 15 / Hechicero 17`; lo mismo para Aptitud y Ataque mágico. Se aplica en P1 y P4.
+- Dos fuentes del mismo tipo pueden verse con el mismo rótulo (respuesta afirmativa del propietario); cada fila conserva su marca de preparación.
+- Cantidad de casillas de espacios por nivel en P1: **depende de la hoja del PJ, mínimo 0, máximo 4**. No hay personajes con 7 o más espacios por nivel.
+
+**Supuestos del Worker, NO dichos por el propietario (confirmar o corregir):**
+
+- La lista completa de tipos se toma del editor de fuentes de la App (D-0058, «Tipo de origen»): Clase, Rasgo, Raza, Trasfondo, Dote, Objeto, Objeto mágico, Don, Otro.
+- Una asociación cuya fuente ya no existe (sin tipo guardado) se rotula `Otro`.
+- Si el texto por fuente no cabe en la tarjeta (más de tres fuentes en P4 o 81 pt en P1) se conserva el aviso `SEGÚN FUENTE` en lugar de truncar.

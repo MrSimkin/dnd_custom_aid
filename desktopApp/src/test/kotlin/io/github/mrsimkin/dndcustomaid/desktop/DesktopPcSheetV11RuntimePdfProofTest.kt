@@ -2886,15 +2886,18 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         endPage = physical
                     }.getText(pdf)
                 }.filter { it.contains("P4 - Conjuros") }.joinToString("\n")
-                // C230: this fixture has FOUR real sources (three Ilyra origins
-                // plus the added one), more than the three lines a 44pt card
-                // can hold legibly, so the truthful cue remains the fallback.
+                // C231 (owner rule): sources are labelled by origin TYPE, so the
+                // added OTHER source reads "Otro" and its name is not printed.
                 assertEquals(4, proof.semantic.spells.flatMap { it.sources }
                     .distinctBy { it.sourceId }.size)
-                assertTrue(p4.contains("SEGÚN FUENTE"),
-                    "C230: more than three sources keep the truthful fallback cue.")
-                assertTrue(p4.contains("QAORIGENSINPERFIL"),
-                    "The additional persisted source UUID must survive physically.")
+                assertFalse(p4.contains("QAORIGENSINPERFIL"),
+                    "C231: only the class keeps its name; other sources show their type.")
+                assertTrue(p4.contains("[ ] Otro"),
+                    "The additional persisted source must survive with its own unprepared mark.")
+                assertTrue(showsPerSource(
+                    p4.substringAfter("REFERENCIA MÁGICA").substringBefore("NIVEL"),
+                    proof, "CD SALVACIÓN"),
+                    "C231: the CD card lists every source by its type label.")
                 assertTrue(p4.contains("[ ]"),
                     "An unprepared source cannot acquire a false preparation mark.")
                 assertTrue(content.contains("NOTAS"))
@@ -2957,8 +2960,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         .getText(pdf)
                 }
                 val p1 = pages.first()
-                assertEquals(2, Regex("SEGÚN FUENTE").findAll(p1).count(),
-                    "P1 must show source cue for real custom aptitude and mismatched CD.")
+                assertEquals(0, Regex("SEGÚN FUENTE").findAll(p1).count(),
+                    "C231: P1 lists the real source value when it fits its card.")
+                assertTrue(p1.contains("Cronomancia umbral"),
+                    "C231: the single class source keeps its class name on P1.")
                 val p4 = pages.filter { it.contains("P4 - Conjuros") }
                 assertTrue(p4.isNotEmpty())
                 val ref = p4.first().substringAfter("REFERENCIA MÁGICA")
@@ -3360,9 +3365,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val p4Text = PDFTextStripper().apply {
                 startPage = firstP4; endPage = firstP4
             }.getText(pdf)
-            assertTrue(p4Text.contains("Magic Initiate") &&
+            assertTrue(p4Text.contains("Trasfondo") && p4Text.contains("Raza"),
+                "C231: non-class origins are labelled by type, not by long names.")
+            assertFalse(p4Text.contains("Magic Initiate") ||
                 p4Text.contains("Elven Lineage"),
-                "Long genuine multi-word origins must remain in the measured flow.")
+                "C231: specific origin names are not printed on P4.")
             for (name in listOf("Fire Bolt", "Light", "Mage Hand", "Fireball")) {
                 assertEquals(1, Regex(Regex.escape(name) + """(?=\s|$)""")
                     .findAll(p4Text).count(),
@@ -3380,7 +3387,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             // Keep the physical square count exact; do not weaken this
             // assertion or conflate empty writing with a digital spell.
             Triple("02_ilyra_quill_srd5_2_1_evoker_wizard.json",
-                PcSheetV11Variant.B, 87),
+                PcSheetV11Variant.B, 91),
             Triple("03_mara_siete_umbrales_custom_extended.json",
                 PcSheetV11Variant.B, 68),
         )) {

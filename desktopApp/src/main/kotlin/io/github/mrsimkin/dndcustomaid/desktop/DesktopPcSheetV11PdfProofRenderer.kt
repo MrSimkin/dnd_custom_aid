@@ -733,8 +733,30 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         stream.newLineAtOffset(x,270f)
                         stream.showText(label)
                         stream.endText()
+                        // C231: P1 also lists each real source with its own value
+                        // (owner decision) when it fits the 81pt native card at a
+                        // legible size; otherwise the truthful cue remains.
+                        val perSourceP1 = if (label in varyingP1)
+                            io.github.mrsimkin.dndcustomaid.shared.character
+                                .PcSheetV11SpellSourceLabels.perSourceReference(
+                                    data.spells, label,
+                                ) { id -> data.attributes.firstOrNull {
+                                    it.reference.customAttributeId == id
+                                }?.abbreviation }
+                        else null
                         val ink = if (label in varyingP1) "SEGÚN FUENTE" else value
-                        if(ink.isNotEmpty()){
+                        val perSourcePt = perSourceP1?.let { text ->
+                            listOf(9f, 8f, 7f).firstOrNull {
+                                body.width.measurePt(text) * it / 9f <= 81f
+                            }
+                        }
+                        if (perSourceP1 != null && perSourcePt != null) {
+                            stream.beginText()
+                            stream.setFont(bodyPdfFont, perSourcePt)
+                            stream.newLineAtOffset(x, 255f)
+                            stream.showText(pcSheetV11PrintableText(perSourceP1))
+                            stream.endText()
+                        } else if(ink.isNotEmpty()){
                             require(body.width.measurePt(ink) <= 81f) {
                                 "P1 real magic reference must fit its native source card"
                             }
