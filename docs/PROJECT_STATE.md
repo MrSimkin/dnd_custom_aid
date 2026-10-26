@@ -1,4 +1,4 @@
-**2026-10-26 — C230 V11 en curso:** P4 imprime el valor de cada fuente real cuando difieren (`Mago 15 / Hechicero 17`). Código en PR #173, CI/PDF pendientes; sin PASS. [Checkpoint](checkpoints/2026-10-26_V11_C230_P4_PER_SOURCE_MAGIC_REFERENCE.md). **G4 105/105 NOT_VERIFIED, C211 BLOCKED, owner/Android pendiente, PR #173 DRAFT NO MERGE.**
+**2026-10-26 — C230 V11 PASS LOCAL físico:** P4 imprime el valor de cada fuente real cuando difieren (`Mago 15 / Hechicero 17`). Scaffold #40382631343 y QA #40382631470 SUCCESS, 94 PDF/859p; solo 36 páginas cambian (referencia P4). [Checkpoint](checkpoints/2026-10-26_V11_C230_P4_PER_SOURCE_MAGIC_REFERENCE.md). **G4 105/105 NOT_VERIFIED, C211 BLOCKED, owner/Android pendiente, PR #173 DRAFT NO MERGE.**
 
 **2026-10-22 — C229 V11 PASS LOCAL físico:** SHA `de5df41`, Scaffold #39883400413 y QA #39883400285 SUCCESS, 94 PDF/859p; 92 PDF anteriores/843p intactos en contenido físico. Ilyra A/B con CD y ataque según fuente real, INT conservado. [Acta](pc-sheet-v11/qa/evidence/2026-10-22_V11_C229_MISSING_GLOBAL_SOURCE_METRICS_REAL_PDFS.json). **G4 105/105 NOT_VERIFIED, C211 BLOCKED, owner/Android pendiente, PR #173 DRAFT NO MERGE.**
 

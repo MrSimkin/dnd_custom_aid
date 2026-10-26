@@ -3,12 +3,19 @@
     "date_chile":  "2026-10-26",
     "repo":  "MrSimkin/dnd_custom_aid",
     "pr":  173,
-    "scope":  "C230 P4 per-source magic reference (owner decision): LOCAL comparison only, CI/PDF of exact commit pending",
+    "scope":  "C230 P4 per-source magic reference (owner decision): PASS LOCAL FISICO acotado, NO G4",
     "baseline_commit":  "31d5c574",
-    "functional_commit":  "see git log: feat(v11) C230",
+    "functional_commit":  "6ad1fb88 (documentation commit 5cee7050 is the CI HEAD)",
     "ci":  {
-               "scaffold":  "PENDING",
-               "qa":  "PENDING"
+               "scaffold":  {
+                                "run":  40382631343,
+                                "status":  "SUCCESS",
+                                "head":  "5cee70505cc985a071e232038a252ba731005aea"
+                            },
+               "qa":  {
+                          "run":  40382631470,
+                          "status":  "SUCCESS"
+                      }
            },
     "local_environment":  "JDK 17.0.20 / Gradle 9.5.0 / Android platform 36, Windows; DesktopPcSheetV11RuntimePdfProofTest generated both sets",
     "comparison":  {
@@ -35,7 +42,7 @@
                    "P1 keeps SEGUN FUENTE (81pt cell)",
                    "Unknown source metric prints a dash"
                ],
-    "gate":  "C230_LOCAL_COMPARISON_ONLY",
+    "gate":  "C230_PASS_LOCAL_ONLY",
     "g4":  {
                "rules":  105,
                "not_verified":  105,
@@ -50,5 +57,32 @@
     "c211":  "BLOCKED_3_NORMAL_ATTEMPTS_NO_STRUCTURAL_RECOVERY",
     "owner_installed_android":  "NOT_VERIFIED",
     "owner_approval":  "NOT_GRANTED",
-    "pr_merged":  false
+    "pr_merged":  false,
+    "ci_artifacts":  {
+                         "new_pdfs":  12679961537,
+                         "previous_pdfs_C229":  12471702417,
+                         "physical_audit":  12678174458,
+                         "pdfs":  94,
+                         "pages":  859
+                     },
+    "ci_comparison":  {
+                          "tool":  "PyMuPDF on the CI artifacts (C229 vs C230)",
+                          "common_pdfs":  94,
+                          "pagination_identical":  94,
+                          "pages_same_vectors":  859,
+                          "pages_same_image_references":  859,
+                          "pages_same_words_and_bboxes":  823,
+                          "pages_changed":  36,
+                          "removed_tokens":  [
+                                                 "SEGUN",
+                                                 "FUENTE"
+                                             ],
+                          "bytewise_pdf_identity":  "NOT_CLAIMED"
+                      },
+    "ci_audits":  {
+                      "physical_envelope":  "94 PDF / 859 pages / errors 0",
+                      "p4_slot_meters":  "failed_pdfs 0, 61 casters",
+                      "p3_c2_manuscript":  "failures 0, PASS_LOCAL_PHYSICAL_ONLY",
+                      "c207_missing_reservations":  0
+                  }
 }

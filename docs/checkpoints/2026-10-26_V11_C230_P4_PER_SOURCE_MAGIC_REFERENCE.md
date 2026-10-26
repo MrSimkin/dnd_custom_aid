@@ -1,6 +1,6 @@
 # C230 — P4: referencia mágica con el valor de cada fuente real
 
-Fecha 2026-10-26 (Chile). PR #173 DRAFT/NO MERGE, rama `docs/pc-sheet-v11-approved-implementation-handoff`, HEAD anterior `31d5c574`. **Estado: IN_PROGRESS. NO PASS hasta CI exacto y verificación física de PDF real.**
+Fecha 2026-10-26 (Chile). PR #173 DRAFT/NO MERGE, rama `docs/pc-sheet-v11-approved-implementation-handoff`, HEAD anterior `31d5c574`. **Estado: PASS LOCAL FÍSICO acotado (NO G4, NO aprobación del propietario).**
 
 ## Decisión del propietario que cierra la brecha
 
@@ -28,7 +28,7 @@ Segunda decisión del propietario (2026-10-26): ningún personaje tiene más de 
 
 [Acta local](../pc-sheet-v11/qa/evidence/2026-10-26_V11_C230_P4_PER_SOURCE_MAGIC_REFERENCE_LOCAL.json). Se generaron con `DesktopPcSheetV11RuntimePdfProofTest` los 94 PDF del código anterior (`31d5c574`) y los 94 del nuevo, y se compararon con PyMuPDF: **94/94 paginaciones iguales; 859/859 páginas con los mismos vectores e imágenes; 823/859 con las mismas palabras y posiciones**. Las **36 páginas distintas** (18 PDF A/B) son todas la referencia P4: desaparece `SEGÚN FUENTE` y aparecen nombres y valores de las fuentes; ninguna otra diferencia. Inspección raster: Ilyra (tres fuentes, líneas apiladas de 7 pt) cabe en la tarjeta; Mara (una fuente) imprime una línea. Con una fuente sin dato (Sage, High Elf en Ilyra) la tarjeta muestra `—`.
 
-Es comparación **local**, no el artefacto de CI. Un PASS local acotado exige además Scaffold y QA SUCCESS del commit exacto.
+**CI:** [Scaffold #40382631343](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40382631343) y [QA #40382631470](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40382631470) SUCCESS en `5cee7050` (código `6ad1fb88`). La comparación sobre los artefactos de CI ([C230 #12679961537](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40382631343/artifacts/12679961537) contra [C229 #12471702417](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39883400413/artifacts/12471702417)) repite el resultado local: 94/94 paginaciones, 859/859 vectores e imágenes, 823 páginas con las mismas palabras y 36 con solo la referencia P4 cambiada. Auditores físicos de CI: 94 PDF / 859 páginas, 0 errores; medidores P4 sin PDF fallido; P3/C2 0 fallos.
 
 ## Qué NO demuestra
 
