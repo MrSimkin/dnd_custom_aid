@@ -1,0 +1,407 @@
+{
+  "scope": "physical P305/C207/C208 only; not all golden, Android or G4",
+  "pdf_count": 78,
+  "p3_pages": 98,
+  "p3_shaded_bands": 664,
+  "p3_aligned_words": 19511,
+  "c2_pages": 195,
+  "c2_notes_cartelas": 216,
+  "c2_complete_grids": 214,
+  "failures": [
+    "V11-INTERNAL-PROOF-C206-both-paired-overflow-A.pdf: physical page 6: C207 incomplete/irregular 16pt grid at y=183.00; vertical=17, horizontal=41",
+    "V11-INTERNAL-PROOF-C206-both-paired-overflow-B.pdf: physical page 6: C207 incomplete/irregular 16pt grid at y=183.00; vertical=17, horizontal=41"
+  ],
+  "pdfs": [
+    {
+      "name": "V11-INTERNAL-PROOF-Aldren-A.pdf",
+      "sha256": "71f70b8e000198ddd35901c9e79a5a008dcbca37120690c92885751fa18b4a13",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-Aldren-no-special-A.pdf",
+      "sha256": "63ba4a54783bb9a3673ed51551f351ecb792c01a7a40ded7c46960acabaf7ef0",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-BK04-whole-next-column-A.pdf",
+      "sha256": "ef33cadc9519103818d4b4df170ba1d5697b26f1670afbe28d0a9ce201728093",
+      "pages": 10
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-BK04-whole-next-column-B.pdf",
+      "sha256": "caad4afcfd990627a8f86108174c34ea2ef982f83c52012504cb4934e5f91a0e",
+      "pages": 10
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-BK05-long-card-A.pdf",
+      "sha256": "79c1030652ecce581525d228d6a7eae0a03bf8aa7fff868afbeecff19a9c2279",
+      "pages": 13
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-BK05-long-card-B.pdf",
+      "sha256": "fa226375c02db5b2bd4108f25544436a6f114598c3091f1a1165cde18740772a",
+      "pages": 13
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-BK06-essential-spellbook-A.pdf",
+      "sha256": "db84ddeee3dbe924e08910d6d892393ec24b7073607d7c8eb1a72b4aae396099",
+      "pages": 11
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-BK06-essential-spellbook-B.pdf",
+      "sha256": "7dd284b74af26d4f54efd142a1d68f2922b8dc521f8b6b43738d3db3dd93eb47",
+      "pages": 11
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C2-grouped-custom-attributes-A.pdf",
+      "sha256": "23f55fe225514d362d6f812249392694a6ff9539bcc1973e6bf363116c8e94da",
+      "pages": 11
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C2-grouped-custom-attributes-B.pdf",
+      "sha256": "d8d8d5692bc0c7cb0d953bc85f42cf0592bb72917bc4cd1daa24d03d1cdbf0af",
+      "pages": 11
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C2-long-special-item-A.pdf",
+      "sha256": "c823b64449693130b1eb8999d0445719bf6b8b939d4482573551e9bdcaa17a93",
+      "pages": 13
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C2-long-special-item-B.pdf",
+      "sha256": "7a8f6fdc43adea33a2cf6b28f606197ec4445e1274df226ccfc8fea66ff92ebd",
+      "pages": 13
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C2-ordinary-plus-special-A.pdf",
+      "sha256": "434c0725d5c93c353227a2d84072b8e6fd64960732c6000656b2159a1ef1435e",
+      "pages": 8
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C2-ordinary-plus-special-B.pdf",
+      "sha256": "5192c80d6a8c0ddba07df923878186749034309600951a47b4f32928567b48eb",
+      "pages": 8
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C2-oversized-custom-attribute-A.pdf",
+      "sha256": "0f072f9d2f5b25a390450e1fa29a256e1e7131eb4de1b5f1f20d937fb18c0bb8",
+      "pages": 11
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C2-oversized-custom-attribute-B.pdf",
+      "sha256": "44bc671b8e56943dc2101e32489b514bdab21d8a3ebf605112878b622ad8b210",
+      "pages": 11
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C2-special-multiline-id-A.pdf",
+      "sha256": "2e10e3743d684ea0bca4eb8c53b370b60a6769d8717f9cb5769d35c53419ca39",
+      "pages": 12
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C2-special-multiline-id-B.pdf",
+      "sha256": "3bba92fb378273c57eeb9c94c0298fb3ccd30eb4be74eb3c1556fdc94658a80a",
+      "pages": 12
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C206-both-paired-overflow-A.pdf",
+      "sha256": "551ee136aa2bcfbbc9567db3448ddc4d1c72a5acb66d1d5f13409c1425b83a6e",
+      "pages": 10
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C206-both-paired-overflow-B.pdf",
+      "sha256": "67a6ed89c712fa46437355673e7845eee2ec9e9dcda737613e4fa1611431055c",
+      "pages": 10
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C209-golden-order-A.pdf",
+      "sha256": "a4fb79600c365a91f9a79ac7f297a532cc37c9a2e177fad5b242154d346d9783",
+      "pages": 9
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C209-golden-order-B.pdf",
+      "sha256": "deeb39e6f5a2aea765ff3b26004bd48953182a286bfa2f86edf53c62838e6dbb",
+      "pages": 9
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C210-source-group-continuation-A.pdf",
+      "sha256": "733dd7e60ad8109b5872e1f714446ce1532eabab99a83ef3962b319c6a152398",
+      "pages": 9
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C210-source-group-continuation-B.pdf",
+      "sha256": "811f221dd933c2eed3d80a8ced9fa104f5e4e939c0337dfcd6847cfefd01654e",
+      "pages": 9
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C211-real-equipment-P2-A.pdf",
+      "sha256": "d936717eaf37c885eff2d204361bb972ef99a0c456a9d93b80fd91ae838d8c0d",
+      "pages": 9
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-C211-real-equipment-P2-B.pdf",
+      "sha256": "07bd428effc61e013937c7171edfddcf7b178116cc3a7613aceabdadbec04f7b",
+      "pages": 9
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-CN3-long-note-continuation-A.pdf",
+      "sha256": "25426165e28f3fcb37169ba615c5562dc2639e1a43ba1390f7ec032196e1a4c8",
+      "pages": 11
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-CN3-long-note-continuation-B.pdf",
+      "sha256": "5dccfaaeba3cef4b035aaa5693dc3e75fe8c479bfbabe48baf74b97cc84a2686",
+      "pages": 11
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-CN3-long-source-title-A.pdf",
+      "sha256": "23849858f8146c05a59c4b605526323f20de08a9695a2f5a6a43dd8ffb96c1d3",
+      "pages": 11
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-CN3-long-source-title-B.pdf",
+      "sha256": "f481d90a95ae7f3970b507a99ecf1802a1317798971f60b178e5a9cfad15029d",
+      "pages": 11
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-CN3-manuscript-A.pdf",
+      "sha256": "4ff107665eefa75b9902d7ff2cd39544143f34cd73c23419858f866cc2b0395f",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-CN3-manuscript-B.pdf",
+      "sha256": "47fe29814b419e4e44515b1ee2f2fe14c2f6bd637fe1b0bffda054891941212a",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-CN3-separated-Mara-A.pdf",
+      "sha256": "579fedf7e9b9c36aff20201d85d8f2b20422ff8ad3547cae5d6ed06c82fdd68f",
+      "pages": 9
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-CN3-separated-Mara-B.pdf",
+      "sha256": "ba8d9cc996b4689cf030d38f53c4b709515a959e4385da658f3990f6ab2396f2",
+      "pages": 9
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-dense-six-attributes-A.pdf",
+      "sha256": "10499d9b1ab9f87f75546ce29ecb0b72d9ec5fc87911ff44944626ab509ff96f",
+      "pages": 10
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-dense-six-attributes-B.pdf",
+      "sha256": "f34db4b3fad98d2cf479b052d44ef389ac20e6208e6c76de8cfb046141fbe8ea",
+      "pages": 10
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-Ilyra-B.pdf",
+      "sha256": "fe34ab98359c0fd8a7a33bf47a8587cc39c9be63295026abcafe4f82940d0e3c",
+      "pages": 11
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-Mara-A.pdf",
+      "sha256": "84ba626ea86b030aef2333e8e72d301a07fce2fa64d673f08e2d056ca3137f5b",
+      "pages": 9
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-Mara-B.pdf",
+      "sha256": "c9b17eab0c5ddf2c6ffa8f539400638ce7ab5328e21457e5f1b1f4618834b49d",
+      "pages": 13
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P1-ammo-source-break-A.pdf",
+      "sha256": "749f70f070c79cf9a059946a1a409c1aa18f69ae96f4e2fa815f3ed928798b5e",
+      "pages": 7
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P1-ammo-source-break-B.pdf",
+      "sha256": "5f58158946d81ef43e38e107b72c1acc55d11adab85aa5db754c71c0f8b71ec4",
+      "pages": 7
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P1-attack-fit-order-A.pdf",
+      "sha256": "d0002967bf87d9abdc3e76529888e3a1d3072bc3a6fe6b59ee07895c9b98561e",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P1-attack-fit-order-B.pdf",
+      "sha256": "9f75f0b7a409d5534b8da074de1e4519a88e6fb3da6fdbca33f268b1a95d5795",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P1-attack-multiline-A.pdf",
+      "sha256": "b6c3abaa693c8daa8cd325f0cfd3c82d90f895790c378c16888d1b092dbf7f53",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P1-attack-multiline-B.pdf",
+      "sha256": "8e3414373e267e048e1c44a5803a7bfe9389e01ac8eaa64b99ee93d0825bd510",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P1-long-character-name-A.pdf",
+      "sha256": "81e7f0f60b360e5b86f584fa7fdc6c1c6adfcb7d25412731f9c65fe5fa0206d3",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P1-long-character-name-B.pdf",
+      "sha256": "109fd96e5915a9f58f1800d53c29e7351a0b0c55f7da7c17661a661a90fbd449",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P1-long-spell-slots-A.pdf",
+      "sha256": "d84dde2aa59dd577dbc4eb0a7a8c5b7c7f41de30739001932bd7f9f18d7965d9",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P1-long-spell-slots-B.pdf",
+      "sha256": "010242a28abf1e69aebd8dc0dc87e431b66b519fd8c3d47048a0a7cd061cd251",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P1-multiclass-dice-A.pdf",
+      "sha256": "527aacc7b16d247ed9aba1ea974f9f7d2095ae899ada81249faf4294b11a5b22",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P1-multiclass-dice-B.pdf",
+      "sha256": "d91a77fe9058e408ab8bf6f48d3f34acfd1665edaf611ea96c9f7c48f92c87d7",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P2-C2-large-amounts-A.pdf",
+      "sha256": "3baa9d2c06e4bca118e48257d3c645f6873620f9bef455e27f5fd1a58272aef1",
+      "pages": 10
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P2-C2-large-amounts-B.pdf",
+      "sha256": "9db99a0d7150999b66921068fc3176f68e4acc754136d154e451cf4eb94db81f",
+      "pages": 10
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P2-C2-source-order-A.pdf",
+      "sha256": "e8d52cb5174b6f19ac1cbae8c81ae03cf740c96b98c1288101c174beb63e930c",
+      "pages": 7
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P2-C2-source-order-B.pdf",
+      "sha256": "f9110a241210e4cd0bacf6a45f195d733bb2c1f49911d8d549677c2480bdbf56",
+      "pages": 7
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P2-currency-source-break-A.pdf",
+      "sha256": "d9a4ba3148525e12bcbb5ea0048da2fd69f984d905918ab3fdb9d32a9d8dcee3",
+      "pages": 7
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P2-currency-source-break-B.pdf",
+      "sha256": "e9be6909334a855cb3567278440758d25d598f24a4f92212404ae93cbf0c3d86",
+      "pages": 7
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P2-empty-equipment-treasure-A.pdf",
+      "sha256": "318e7fdec1d13887f727bce932aea0f00a477eb52f6b123b03c074eb38e2c01f",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P2-only-traits-C2-A.pdf",
+      "sha256": "a78ef747f4297b944003cebad736d17010430e398f67626abc46dd807a353c2f",
+      "pages": 7
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P2-only-traits-C2-B.pdf",
+      "sha256": "cf2eb40a9947da3e3f957100025d551a34a4d78131202a424ffe46dad7dd31b2",
+      "pages": 7
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P3-long-story-heading-A.pdf",
+      "sha256": "e82db27da273af984e0f93dc1d68bf6d87e96cac07de6368035ee897879b2072",
+      "pages": 10
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P3-long-story-heading-B.pdf",
+      "sha256": "057ff0b34c6ce0f8c85bc406cc1a833dfc9c309f01ac727a1dbd3c62a0ba180a",
+      "pages": 10
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P3-three-paragraphs-A.pdf",
+      "sha256": "9662fae896454d0384f4a83e3338e24830f1ae347501eb888d027373e054e5fb",
+      "pages": 12
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P3-three-paragraphs-B.pdf",
+      "sha256": "ddd2cf6e94966e49132d7665afe0403a7f093f73a0719f100c24e7aad6fb93e9",
+      "pages": 12
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P4-dense-cantrips-A.pdf",
+      "sha256": "ea6799543fb92a04197ca12e53badf889002601782adcdaabfd2d76a6e10bc1c",
+      "pages": 9
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P4-dense-cantrips-B.pdf",
+      "sha256": "89d1c4e5bd38957efed9bdccb59a73ca33a57f2b57c7d3e916ca2b1a9b0fbfbf",
+      "pages": 9
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P4-dense-single-level-A.pdf",
+      "sha256": "4bd090995efd2f7423227b00730570ada4eec9373868e06efa73cbe6650cbfe5",
+      "pages": 9
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P4-dense-single-level-B.pdf",
+      "sha256": "a1978a7e18f83d995ef95df818ee94a1cc7199fd99e8fb4a11ed4c32af20a218",
+      "pages": 9
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P4-same-name-distinct-sources-A.pdf",
+      "sha256": "b853cea3e4f65f20263275a41c35c8b767044368e8bb13356c30040d1ea2b1c9",
+      "pages": 8
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P4-same-name-distinct-sources-B.pdf",
+      "sha256": "9d08f472097a126497d3501ff65516da722acd8051a8b7d6975b96a54d43a10c",
+      "pages": 8
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P4-source-physical-break-A.pdf",
+      "sha256": "d924a3d1822efe5af5d94b274ff1548f84480eb1f0c69bd2a9dce9bb0e2bb243",
+      "pages": 8
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P4-source-physical-break-B.pdf",
+      "sha256": "2514a66a393715241a445e18bd52049d95341fe2216bf1ab831b8ad26b61884c",
+      "pages": 8
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P4-spell-name-break-A.pdf",
+      "sha256": "01b0cad94d56fc9fe1b002581f2806e2aeda150a44d87ec638b3ec64fed69c59",
+      "pages": 11
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P4-spell-name-break-B.pdf",
+      "sha256": "da02203685195658c06ae4a85944e18b373dc943a75df1289b9a6e6f1497bca0",
+      "pages": 11
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-source-tabs-A.pdf",
+      "sha256": "bbd31c8f3b5f771625a8e4bf9f79a72b892ce56ab91d86095b2109213b021f9e",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-source-tabs-B.pdf",
+      "sha256": "a5d26ef7afdfe213c33fcce671f50bdc5cd46448cd2056e9dbcd8e9eb4bdf053",
+      "pages": 6
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-source-tabs-mechanical-A.pdf",
+      "sha256": "baaf0ba22cb09d7282efdc6a31998e97aef87618e39004674019cefc4fe234ab",
+      "pages": 14
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-source-tabs-mechanical-B.pdf",
+      "sha256": "51cc7b3e25afff006f50087cbafc18f4e697b65382d767ff6048af4b09fc2e23",
+      "pages": 14
+    }
+  ],
+  "result": "FAIL"
+}

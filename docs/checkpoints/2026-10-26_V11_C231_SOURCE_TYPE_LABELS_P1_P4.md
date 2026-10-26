@@ -57,4 +57,16 @@ Comprobación local con los 96 PDF reales de escritorio contra el paso 1: **96/9
 
 La etiqueta `HABILIDADES BAJO ATRIBUTO` no existe en el golden (las habilidades ya están físicamente bajo su atributo) y quedaba sola al pie de la hoja. Se elimina, y el pie sin uso de la columna izquierda se rellena, como en el golden, con filas manuscritas de 13 pt con las mismas bandas de tono alternado. No cambia ningún dato impreso. En la variante B se decidió **no** compactar los bloques de atributo: el espacio liberado solo añadiría más filas vacías, y el contrato pide evitar huecos arbitrarios, no minimizar altura.
 
-Comprobación local con los 96 PDF reales contra el paso 2: 96/96 paginaciones iguales; 877/877 imágenes iguales; solo cambia la página 1 de los 48 PDF de variante A; las únicas palabras que desaparecen son las tres de la etiqueta; ninguna palabra nueva. Las pruebas de PDF reales pasan (la prueba de Aldren ahora afirma la ausencia de la etiqueta) y la verificación de texto de ataques (`test_v11_attacks_render_contract.py`) se actualizó a las bandas del paso 2; fallaba en la CI de `a5b9a88c` y se corrigió en `ae4cf199`. Pendiente: CI exacto.
+Comprobación local con los 96 PDF reales contra el paso 2: 96/96 paginaciones iguales; 877/877 imágenes iguales; solo cambia la página 1 de los 48 PDF de variante A; las únicas palabras que desaparecen son las tres de la etiqueta; ninguna palabra nueva. Las pruebas de PDF reales pasan (la prueba de Aldren ahora afirma la ausencia de la etiqueta) y la verificación de texto de ataques (`test_v11_attacks_render_contract.py`) se actualizó a las bandas del paso 2; fallaba en la CI de `a5b9a88c` y se corrigió en `ae4cf199`.
+
+### CI de los pasos 2 y 3 y cierre de la lista de P1
+
+[Scaffold #40405131084](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40405131084) y [QA #40405131302](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40405131302) SUCCESS en `8b57bd22` (también en `ae4cf199`). Comparación de artefactos de CI contra el paso 1 (`b3f41a2f`): 96 PDF / 877 páginas, misma paginación, 877/877 imágenes iguales, solo cambia la página 1 (vectores en los 96 PDF; palabras solo en los 48 de variante A, por la etiqueta eliminada). Auditorías de CI: envoltura física 96 PDF / 0 errores; tarjetas recortadas de P1 96/96 válidas, 384 marcos de identidad y 768 celdas de combate, 0 errores.
+
+Estado de la lista medida de P1:
+
+1. Jerarquía etiqueta/valor — **hecho** (paso 1).
+2. Bandas de tono alternado — **hecho** (paso 2).
+3. Rótulos internos `P1 - Personaje / combate / habilidades / n` y `PRUEBA INTERNA V11 - NO APROBADA` — **se conservan**: los genera `addSection` para todas las páginas, las pruebas los usan para identificar cada página física y marcan el PDF como no aprobado. Se decidirán al preparar el candidato de release, no ahora.
+4. Etiqueta suelta y pie de columna A — **hecho** (paso 3); compactar atributos B — **no se hace** (solo añadiría huecos).
+5. Rasgos en varias líneas — **conforme al contrato**: la aclaración del propietario del 2026-10-16 exige no truncar nombres largos y cubrirlos con envoltura legible; el golden muestra una línea solo porque sus datos ficticios son cortos. Reducir la letra hasta 6,1 pt como el golden no evita el salto con entradas reales como `Spellcasting - Rasgo de Clase: Mago 1 — SRD 5.2.1` (≈160 pt en una columna de 123 pt), así que no se cambia.
