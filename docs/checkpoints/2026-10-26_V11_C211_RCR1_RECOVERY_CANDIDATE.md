@@ -53,3 +53,11 @@ Los dos PDF reconstruidos y el informe del auditor se guardan en `docs/pc-sheet-
 **Prueba roja → verde (local):** el auditor `audit_v11_p3_c2_manuscript.py` que fallaba en C206 A/B pág. 6 queda en verde sobre los 96 PDF; también `audit_v11_c207_vacancy`, envoltura física, topología, tarjetas de P1, medidores P4 y tarjetas del Libro. 442 pruebas Shared y 178 de escritorio pasan; Android compila. Comparación con el lote de CI de `8b57bd22`: ninguna palabra de origen perdida; solo cambian títulos de página, y 22 PDF tienen una página C2 menos porque el equipo cabe en P2. Mara A/B: ocho objetos en P2 con sangría.
 
 **Pendiente:** CI exacto. Si falla, queda **una** corrección (R2/2); si vuelve a fallar, STOP definitivo de C211. Presupuesto global: 1/2 recuperaciones estructurales gastadas.
+
+## R2/2 — corrección única (2026-10-26)
+
+**CI de `af7a1058`:** `Scaffold checks` (run 40413679203) SUCCESS, con compilación Shared/Android/Desktop y los auditores físicos sobre los PDF reales. `PC Sheet V11 owner QA traceability` (run 40413679233) FAILURE en un solo control textual: `test_v11_p2_empty_paper_rhythm_contract.py` buscaba `alternateP2Rows = !compactC2)` literal, y R1 añadió el argumento `stopRulesBelow` detrás.
+
+**Corrección:** solo el tripwire. Ahora exige `alternateP2Rows = !compactC2,` y `stopRulesBelow = sideNotes.map` en ambos renderizadores. El código de la app no cambia. Se cuenta como R2/2 (criterio conservador): si la CI de esta corrección falla, C211 queda en STOP definitivo.
+
+**Local antes de subir:** las 60 pruebas Python pasan. `check_resume_route`, `generate_android_pc_sheet_renderer --check`, `check_android_pc_sheet_pdf_delivery` y `check_v11_qa_registry` pasan. `check_v11_qa_registry` requiere `PYTHONUTF8=1` en Windows: `git show` se decodifica en cp1252 y no es un defecto en Linux.
