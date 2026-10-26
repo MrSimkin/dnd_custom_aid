@@ -44,6 +44,40 @@ class PcSheetV11SpellSourceLabelsTest {
 
 
     @Test
+    fun perSourceReferenceListsEachRealSourceWithItsOwnValue() {
+        val spell = CharacterSpell(
+            id = Uuid.parse("aa000004-0000-4000-8000-000000000001"),
+            name = "Dos fuentes", level = 1,
+            castingTime = "", rangeText = "", verbal = false,
+            somatic = false, material = false, materialText = null,
+            duration = "", concentration = false, ritual = false,
+            description = "", notes = null, sortOrder = 0,
+        )
+        val mago = PcSheetSpellbookSourceProjection(
+            sourceId = Uuid.parse("12345600-0000-4000-8000-000000000006"),
+            sourceName = "Mago", originKind = null, prepared = true,
+            castingAbility = CharacterAbilityReference.builtIn(CharacterAbility.INTELLIGENCE),
+            saveDc = 15, spellAttackModifier = 7,
+        )
+        val hechicero = PcSheetSpellbookSourceProjection(
+            sourceId = Uuid.parse("12345600-0000-4000-8000-000000000007"),
+            sourceName = "Hechicero", originKind = null, prepared = false,
+            castingAbility = CharacterAbilityReference.builtIn(CharacterAbility.CHARISMA),
+            saveDc = 17, spellAttackModifier = null,
+        )
+        val entries = listOf(PcSheetSpellbookEntry(spell, listOf(mago, hechicero)))
+        fun ref(field: String) =
+            PcSheetV11SpellSourceLabels.perSourceReference(entries, field) { null }
+        assertEquals("Mago 15 / Hechicero 17", ref("CD SALVACIÓN"))
+        assertEquals("Mago INT / Hechicero CAR", ref("APTITUD"))
+        // A source without the metric shows a dash, never a invented number.
+        assertEquals("Mago +7 / Hechicero —", ref("ATAQUE MÁGICO"))
+        assertEquals(null, PcSheetV11SpellSourceLabels.perSourceReference(
+            emptyList(), "CD SALVACIÓN",
+        ) { null })
+    }
+
+    @Test
     fun uniformGenuineSourcesMayDisagreeWithOverallStatsWithoutContradictingEachOther() {
         val spell = CharacterSpell(
             id = Uuid.parse("aa000003-0000-4000-8000-000000000001"),

@@ -2802,8 +2802,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         endPage = physical
                     }.getText(pdf)
                 }.filter { it.contains("P4 - Conjuros") }.joinToString("\n")
+                // C230: this fixture has FOUR real sources (three Ilyra origins
+                // plus the added one), more than the three lines a 44pt card
+                // can hold legibly, so the truthful cue remains the fallback.
+                assertEquals(4, proof.semantic.spells.flatMap { it.sources }
+                    .distinctBy { it.sourceId }.size)
                 assertTrue(p4.contains("SEGÚN FUENTE"),
-                    "P4 must not show a fake universal DC or attack.")
+                    "C230: more than three sources keep the truthful fallback cue.")
                 assertTrue(p4.contains("QAORIGENSINPERFIL"),
                     "The additional persisted source UUID must survive physically.")
                 assertTrue(p4.contains("[ ]"),
@@ -2815,6 +2820,22 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
 
+
+    /**
+     * C230: P4 lists every real source with its value, either on one line
+     * ("Mago 15 / Hechicero 17") or, for long names, one source per line.
+     */
+    private fun showsPerSource(
+        text: String, proof: DesktopPcSheetV11PdfProof, field: String,
+    ): Boolean {
+        val parts = requireNotNull(io.github.mrsimkin.dndcustomaid.shared.character
+            .PcSheetV11SpellSourceLabels.perSourceParts(
+                proof.semantic.spells, field,
+            ) { id -> proof.semantic.attributes.firstOrNull {
+                it.reference.customAttributeId == id
+            }?.abbreviation })
+        return text.contains(parts.joinToString(" / ")) || parts.all { text.contains(it) }
+    }
 
     @Test
     fun g3CustomMaraSourceAbilityUsesExistingTruthfulP1AndP4CueAB() {
@@ -2858,8 +2879,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(p4.isNotEmpty())
                 val ref = p4.first().substringAfter("REFERENCIA MÁGICA")
                     .substringBefore("NIVEL")
-                assertEquals(2, Regex("SEGÚN FUENTE").findAll(ref).count(),
-                    "P4 must repeat source cue independently of P1.")
+                assertEquals(0, Regex("SEGÚN FUENTE").findAll(ref).count(),
+                    "C230: P4 prints real per-source values instead of the cue.")
+                for (field in listOf("APTITUD", "CD SALVACIÓN")) {
+                    assertTrue(showsPerSource(ref, result, field),
+                        "C230: P4 $field must list every real source value.")
+                }
                 assertTrue(ref.contains("+8"),
                     "Unaffected real spell attack value must remain source accurate.")
                 assertTrue(pages.last().contains("NOTAS"))
@@ -2914,7 +2939,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(p4.isNotEmpty())
                 val ref = p4.first().substringAfter("REFERENCIA MÁGICA")
                     .substringBefore("NIVEL")
-                assertEquals(2, Regex("SEGÚN FUENTE").findAll(ref).count())
+                assertEquals(0, Regex("SEGÚN FUENTE").findAll(ref).count())
+                for (field in listOf("CD SALVACIÓN", "ATAQUE MÁGICO")) {
+                    assertTrue(showsPerSource(ref, result, field),
+                        "C230: P4 $field must list the real source value.")
+                }
                 assertTrue(ref.contains("INT"),
                     "Aptitude must remain the genuinely common built-in ability.")
                 assertTrue(pages.last().contains("NOTAS"))
@@ -2986,8 +3015,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(p1.contains("+7"))
                 val reference = p4.first().substringAfter("REFERENCIA MÁGICA")
                     .substringBefore("NIVEL")
-                assertEquals(1, Regex("SEGÚN FUENTE").findAll(reference).count(),
-                    "Only the false global APTITUD card must be guarded.")
+                assertEquals(0, Regex("SEGÚN FUENTE").findAll(reference).count(),
+                    "C230: the false global APTITUD card lists the real source aptitude.")
+                assertTrue(showsPerSource(reference, result, "APTITUD"))
                 assertFalse(reference.contains("\nINT\n"))
                 assertTrue(reference.contains("CD SALVACIÓN"))
                 assertTrue(reference.contains("ATAQUE MÁGICO"))
@@ -3057,8 +3087,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(p1.contains("INT"))
                 val reference = p4.first().substringAfter("REFERENCIA MÁGICA")
                     .substringBefore("NIVEL")
-                assertEquals(2, Regex("SEGÚN FUENTE").findAll(reference).count(),
-                    "Only the two genuinely inconsistent overall P4 cards may be guarded.")
+                assertEquals(0, Regex("SEGÚN FUENTE").findAll(reference).count(),
+                    "C230: the two inconsistent overall P4 cards list real source values.")
+                for (field in listOf("CD SALVACIÓN", "ATAQUE MÁGICO")) {
+                    assertTrue(showsPerSource(reference, result, field))
+                }
                 assertTrue(reference.contains("INT"),
                     "The unaffected casting-ability card must be preserved.")
                 assertFalse(reference.contains("\n15\n"))

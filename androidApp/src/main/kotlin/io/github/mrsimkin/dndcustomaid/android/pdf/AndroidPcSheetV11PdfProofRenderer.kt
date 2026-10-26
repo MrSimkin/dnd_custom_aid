@@ -1337,12 +1337,25 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 val attack = source.spellAttackModifier?.let {
                     if (it >= 0) "+" + it else it.toString()
                 }
+                // C230 (owner decision): a contradictory field prints each real
+                // source with its own value ("Mago 15 / Hechicero 17"). If it
+                // cannot fit the card even at the smallest legible size, fall
+                // back to the previous truthful cue instead of truncating.
+                fun perSourceParts(field: String): List<String>? = labels.perSourceParts(
+                    data.spells, field,
+                ) { id -> data.attributes.firstOrNull {
+                    it.reference.customAttributeId == id
+                }?.abbreviation }
+                fun perSource(field: String): String? =
+                    perSourceParts(field)?.joinToString(" / ")
                 val fields: List<Pair<String, String?>> = listOf(
-                    "APTITUD" to if ("APTITUD" in varying) "SEGÚN FUENTE" else ability,
+                    "APTITUD" to if ("APTITUD" in varying)
+                        perSource("APTITUD") ?: "SEGÚN FUENTE" else ability,
                     "CD SALVACIÓN" to if ("CD SALVACIÓN" in varying)
-                        "SEGÚN FUENTE" else source.spellSaveDc?.toString(),
+                        perSource("CD SALVACIÓN") ?: "SEGÚN FUENTE"
+                    else source.spellSaveDc?.toString(),
                     "ATAQUE MÁGICO" to if ("ATAQUE MÁGICO" in varying)
-                        "SEGÚN FUENTE" else attack,
+                        perSource("ATAQUE MÁGICO") ?: "SEGÚN FUENTE" else attack,
                 )
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(80, 122, 151))
@@ -1404,7 +1417,32 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         stream.lineTo(x + 160f, 629f)
                         stream.stroke()
                     } else {
-                        draw(stream, value, x + 8f, 625f, true)
+                        fun fits(text: String, pt: Float) =
+                            headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) *
+                                pt / 1000f <= 152f
+                        val size = listOf(12f, 10f, 9f, 8f).firstOrNull { fits(value, it) }
+                        // Long source names: one source per line at 7pt (max 3
+                        // lines inside the 44pt card) before giving up.
+                        val stacked = if (size == null && label in varying)
+                            perSourceParts(label)?.takeIf { parts ->
+                                parts.size <= 3 && parts.all { fits(it, 7f) }
+                            } else null
+                        if (stacked != null) {
+                            stacked.forEachIndexed { line, text ->
+                                stream.beginText()
+                                stream.setFont(headerPdfFont, 7f)
+                                stream.newLineAtOffset(x + 8f, 637f - line * 7.5f)
+                                stream.showText(pcSheetV11PrintableText(text))
+                                stream.endText()
+                            }
+                        } else {
+                            val ink = if (size == null) "SEGÚN FUENTE" else value
+                            stream.beginText()
+                            stream.setFont(headerPdfFont, size ?: 12f)
+                            stream.newLineAtOffset(x + 8f, 625f)
+                            stream.showText(pcSheetV11PrintableText(ink))
+                            stream.endText()
+                        }
                     }
                 }
             }

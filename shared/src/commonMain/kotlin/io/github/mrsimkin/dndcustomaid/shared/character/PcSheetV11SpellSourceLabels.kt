@@ -126,6 +126,54 @@ object PcSheetV11SpellSourceLabels {
         unmappedOverallAbilityFromRealSource(entries, overallAbility) +
         missingOverallMetricsFromRealSource(entries, overallDc, overallAttackModifier)
 
+    /**
+     * C230 (owner decision): when a contradictory P4 reference field cannot be
+     * a single universal value, print each real source with its own value,
+     * e.g. `Mago 15 / Hechicero 17`. A source that does not know the value
+     * prints an explicit dash instead of a fabricated number. Returns null
+     * when there are no sources (callers keep the previous cue).
+     */
+    fun perSourceReference(
+        entries: List<PcSheetSpellbookEntry>,
+        field: String,
+        customAbbreviation: (Uuid) -> String?,
+    ): String? = perSourceParts(entries, field, customAbbreviation)
+        ?.joinToString(" / ")
+
+    /** The same entries as [perSourceReference], one `Name value` per real source. */
+    fun perSourceParts(
+        entries: List<PcSheetSpellbookEntry>,
+        field: String,
+        customAbbreviation: (Uuid) -> String?,
+    ): List<String>? {
+        val sources = entries.flatMap { it.sources }.distinctBy { it.sourceId }
+        if (sources.isEmpty()) return null
+        val names = forSpells(entries)
+        fun value(source: PcSheetSpellbookSourceProjection): String = when (field) {
+            "APTITUD" -> source.castingAbility.builtIn?.let {
+                when (it) {
+                    CharacterAbility.STRENGTH -> "FUE"
+                    CharacterAbility.DEXTERITY -> "DES"
+                    CharacterAbility.CONSTITUTION -> "CON"
+                    CharacterAbility.INTELLIGENCE -> "INT"
+                    CharacterAbility.WISDOM -> "SAB"
+                    CharacterAbility.CHARISMA -> "CAR"
+                }
+            } ?: source.castingAbility.customAttributeId?.let(customAbbreviation) ?: "—"
+            "CD SALVACIÓN" -> source.saveDc?.toString() ?: "—"
+            "ATAQUE MÁGICO" -> source.spellAttackModifier?.let {
+                if (it >= 0) "+$it" else it.toString()
+            } ?: "—"
+            else -> "—"
+        }
+        return sources.map { source ->
+            // Source names may carry CR/LF/TAB from user input; the printed
+            // reference is a single physical line.
+            names.getValue(source.sourceId).trim()
+                .replace(Regex("\\s+"), " ") + " " + value(source)
+        }
+    }
+
     fun forSpells(entries: List<PcSheetSpellbookEntry>): Map<Uuid, String> {
         val sources = entries.flatMap { it.sources }.distinctBy { it.sourceId }
         fun label(source: PcSheetSpellbookSourceProjection): String =
