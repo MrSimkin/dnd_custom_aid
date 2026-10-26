@@ -76,6 +76,21 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.endText()
             }
 
+            // C232 step 2: the approved golden alternates two blue-mist tones on every
+            // ruled row (#E7F2F7 / #F0F7FA) with a thin line at the bottom of each row.
+            fun fillBand(stream: PDPageContentStream, x: Float, y: Float, w: Float, h: Float, index: Int) {
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(if (index % 2 == 0) Color(231, 242, 247) else Color(240, 247, 250))
+                stream.addRect(x, y, w, h)
+                stream.fill()
+                stream.setStrokingColor(Color(148, 176, 193))
+                stream.setLineWidth(0.32f)
+                stream.moveTo(x, y + 0.2f)
+                stream.lineTo(x + w, y + 0.2f)
+                stream.stroke()
+                stream.restoreGraphicsState()
+            }
+
             // C232: in the approved golden the P1 field LABELS are small (about 6-7pt)
             // and the VALUES carry the visual weight; the old 12pt labels inverted it.
             fun drawP1Label(stream: PDPageContentStream, text: String, x: Float, y: Float, pt: Float = 7f) {
@@ -294,7 +309,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.saveGraphicsState()
                     stream.setStrokingColor(Color(130,165,186))
                     stream.setLineWidth(0.6f)
-                    stream.setNonStrokingColor(Color(238,247,251))
+                    stream.setNonStrokingColor(if (i % 2 == 0) Color(231,242,247) else Color(240,247,250))
                     stream.addRect(42f,bottom,258f,top-bottom)
                     stream.fill()
                     stream.addRect(42f,bottom,258f,top-bottom)
@@ -385,6 +400,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     rows.forEachIndexed { idx,(_,skill) ->
                         val y=top-36f-idx*10.5f
                         require(y>p1AttributeTop(attrIndex+1)+1f)
+                        fillBand(stream, 43f, y - 3f, 256f, 10.5f, idx + 1)
                         stream.saveGraphicsState()
                         stream.setStrokingColor(Color(130,165,186))
                         stream.addRect(47f,y-2f,7f,7f)
@@ -509,6 +525,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 bSkillsPlaced?.cells?.filter{it.localPageIndex==1}?.forEach{cell->
                     if(cell.drawableText.isNotEmpty()){
                         val baseline = skillFont.metrics.baselineIn(cell.cellPt)
+                        val bandRow = Math.round((bSkillsArea.topPt - cell.cellPt.topPt) /
+                            skillFont.metrics.lineHeightPt)
+                        val bandLeft = if (cell.cellPt.leftPt < 170f) 47f else 176f
+                        val bandWidth = if (cell.cellPt.leftPt < 170f) 120f else 119f
+                        fillBand(stream, bandLeft, cell.cellPt.bottomPt, bandWidth,
+                            cell.cellPt.heightPt, bandRow)
                         if (cell.sourceStartOffset == 0) {
                             // One genuine blank 7×7pt square per SOURCE skill,
                             // never one per wrapped fragment. P/E text is only
@@ -628,11 +650,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // source-backed labels/bonuses/damage and all page breaks intact.
                 // Tint only inside the original 7 x 12pt table body, not header.
                 stream.saveGraphicsState()
-                stream.setNonStrokingColor(Color(244, 250, 253))
-                for (rowIndex in 0..6 step 2) {
+                for (rowIndex in 0..6) {
                     val rowTop = headerBottom - rowIndex * 12f
-                    stream.addRect(left + 1f, rowTop - 12f, 256f, 12f)
-                    stream.fill()
+                    fillBand(stream, left + 1f, rowTop - 12f, 256f, 12f, rowIndex)
                 }
                 stream.restoreGraphicsState()
                 stream.saveGraphicsState()
@@ -941,6 +961,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val left = 312f
                 val width = 258f
                 val top = 382f
+                repeat(6) { row ->
+                    val y = top - 21f - row * 10f
+                    for (col in 0..1) {
+                        fillBand(stream, left + col * 129f + 1f, y - 3f, 127f, 10f, row)
+                    }
+                }
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130, 165, 186))
                 stream.setLineWidth(0.5f)
