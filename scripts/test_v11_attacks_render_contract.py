@@ -23,10 +23,10 @@ class P1AttacksStageTripwire(unittest.TestCase):
         for platform in (DESKTOP, ANDROID):
             with self.subTest(platform=str(platform)):
                 body = attack_region(platform.read_text(encoding="utf-8"))
-                self.assertIn("setNonStrokingColor(Color(244, 250, 253))", body)
-                self.assertIn("for (rowIndex in 0..6 step 2)", body)
-                self.assertIn("stream.addRect(left + 1f, rowTop - 12f, 256f, 12f)", body)
-                self.assertIn("stream.fill()", body)
+                # C232 step 2: every body row uses the golden's two alternating
+                # blue-mist tones through fillBand (previously only even rows).
+                self.assertIn("for (rowIndex in 0..6)", body)
+                self.assertIn("fillBand(stream, left + 1f, rowTop - 12f, 256f, 12f, rowIndex)", body)
                 self.assertIn("stream.addRect(left, bottom, 258f, top - bottom)", body)
                 self.assertIn("val top = 491f", body)
                 self.assertIn("val bottom = 392f", body)
