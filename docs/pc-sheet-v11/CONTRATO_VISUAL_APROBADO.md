@@ -88,3 +88,13 @@ El propietario aprobó P1/P3/P4, P2, C2, final y variante B tras revisión V11. 
 - La lista completa de tipos se toma del editor de fuentes de la App (D-0058, «Tipo de origen»): Clase, Rasgo, Raza, Trasfondo, Dote, Objeto, Objeto mágico, Don, Otro.
 - Una asociación cuya fuente ya no existe (sin tipo guardado) se rotula `Otro`.
 - Si el texto por fuente no cabe en la tarjeta (más de tres fuentes en P4 o 81 pt en P1) se conserva el aviso `SEGÚN FUENTE` en lugar de truncar.
+
+## Aclaración del propietario — Equipo y Tesoro con nombres largos (2026-10-26)
+
+**Dicho por el propietario (2026-10-26),** tras ver la página 2 de Mara vacía y una vista previa del arreglo:
+
+- La página 2 se llena **primero**: un objeto o una moneda con nombre largo **no se manda entero a C2**; se escribe en la página 2 partido en varias líneas, en el orden original. Solo el sobrante continúa en C2. Aprobado («apruebo el arreglo de esta forma»).
+- Cuando un objeto ocupa varias líneas, **las líneas siguientes a la primera llevan una pequeña sangría**, para que se note que ese bloque es un mismo texto. La cantidad se escribe una sola vez, en la primera línea.
+- Se aplica a las tablas pareadas de Equipo y Tesoro en P2 y en C2.
+
+**Detalles técnicos del Worker (no dichos por el propietario):** sangría de 8 pt; las líneas se cortan a la anchura con sangría para que ninguna invada la columna de cantidad; siguen yendo a C2 solo los nombres con saltos de línea guardados o las cantidades más anchas que su casilla. Equipo Especial no cambia en esta aclaración (sigue con su límite de dos líneas por celda; es un defecto aparte pendiente).

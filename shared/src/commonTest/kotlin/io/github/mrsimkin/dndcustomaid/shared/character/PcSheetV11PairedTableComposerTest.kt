@@ -160,15 +160,40 @@ class PcSheetV11PairedTableComposerTest {
     }
 
     @Test
+    fun longP2LabelWrapsWithIndentedContinuationLinesAndOneAmount() {
+        // C211 R1 + owner 2026-10-26: P2 keeps long identities, wrapping them;
+        // every line after the first is indented, the amount sits on line one.
+        val rows = listOf(
+            PcSheetV11PairedTableRow("long", "Nombre demasiado extenso ".repeat(6).trim(), 7, null),
+            PcSheetV11PairedTableRow("short", "Final", 8, null),
+        )
+        val all = PcSheetV11PairedTableData(PcSheetV11PairedTableKind.EQUIPMENT, rows)
+        val p2 = PcSheetV11PairedAmountRouting.p2Eligible(all, area, 12f, width)
+        assertEquals(rows, p2.rows)
+        val placed = place(p2)
+        val longLines = placed.labels.filter { it.sourceKey == "long" }
+        assertTrue(longLines.size > 1, "The long label must wrap over several lines.")
+        val pair = placed.pairs[longLines.first().pairIndex - 1]
+        assertEquals(pair.leftPt, longLines.first().rectPt.leftPt)
+        longLines.drop(1).forEach {
+            assertEquals(pair.leftPt + PcSheetV11PairedAmountRouting.CONTINUATION_INDENT_PT,
+                it.rectPt.leftPt)
+        }
+        assertEquals(listOf("7", "8"), placed.quantities.map { it.printableText })
+        assertEquals(longLines.first().rowIndex,
+            placed.quantities.first { it.sourceKey == "long" }.rowIndex)
+        placed.verify()
+    }
+    @Test
     fun deferredWideRowKeepsAllLaterRecordsInSourceOrderedC2Suffix() {
-        // The frozen P2 uses one-line name/amount cells. A long identity or
-        // numeric amount must defer the WHOLE following sequence to C2;
-        // do not select a later fitting row from the middle of the source.
+        // C211 R1: a long identity wraps on P2. Only a row P2 cannot print (here a
+        // label with a physical line break) defers the WHOLE following sequence
+        // to C2; never select a later fitting row from the middle of the source.
         for (kind in PcSheetV11PairedTableKind.entries) {
             val rows = listOf(
                 PcSheetV11PairedTableRow("first:" + kind, "Inicio", 0, null),
                 PcSheetV11PairedTableRow("long:" + kind,
-                    "Nombre demasiado extenso ".repeat(15), 7, null),
+                    "Nombre con salto\nde línea", 7, null),
                 PcSheetV11PairedTableRow("later:" + kind, "Final", 8, null),
             )
             val all = PcSheetV11PairedTableData(kind, rows)

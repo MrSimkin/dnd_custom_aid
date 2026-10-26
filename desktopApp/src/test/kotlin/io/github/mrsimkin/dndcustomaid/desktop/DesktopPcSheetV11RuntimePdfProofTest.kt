@@ -1954,25 +1954,28 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         endPage = page
                     }.getText(pdf)
                 }
+                // C211 R1 (owner 2026-10-26): the leftover ordinary object now fits
+                // P2 wrapped over several lines, so only the special item reaches C2.
+                fun flat(s: String) = s.replace(Regex("\\s+"), " ")
+                assertTrue(flat(pages[1]).contains("Suministros de calígrafo"),
+                    "C211: P2 is filled before C2, long names wrap on P2.")
+                assertFalse(pages.any { it.contains("C2 - Equipo y tesoro / EQUIPO") },
+                    "No ordinary object is left for C2.")
                 val c2 = pages.filter {
-                    it.contains("C2 - Equipo y tesoro / EQUIPO + EQUIPO ESPECIAL")
+                    it.contains("C2 - Equipo especial / continuación")
                 }
-                assertEquals(1, c2.size, "Two short real C2 modules must share a page.")
+                assertEquals(1, c2.size, "The single deferred special item uses one C2 page.")
                 val text = c2.single()
                 for (required in listOf(
-                    "EQUIPO / CANTIDAD", "Suministros de calígrafo", "1",
                     "EQUIPO ESPECIAL", "UBICACIÓN", "NOMBRE", "DESCRIPCIÓN",
                     "ACTIVO", "Spellbook", "Mochila", "Evocation Savant",
                     "NOTAS", "VIENE DE P2 PÁG. 2",
                 )) {
                     assertTrue(text.contains(required),
-                        "Missing real combined C2 source/column/footer: $required")
+                        "Missing real C2 special source/column/footer: $required")
                 }
-                assertFalse(pages.any {
-                    it.contains("C2 - Equipo especial / continuación")
-                }, "An unnecessary extra special page must no longer exist.")
                 assertEquals(1, Regex("Suministros de calígrafo")
-                    .findAll(pages.joinToString("\n")).count())
+                    .findAll(flat(pages.joinToString("\n"))).count())
                 assertEquals(1, Regex("Evocation Savant")
                     .findAll(text).count())
                 val c2Pos = pages.indexOf(text) + 1
@@ -4625,12 +4628,20 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val c2 = pages.filter { it.contains("C2 - Equipo y tesoro / EQUIPO") }
                     .joinToString("\n")
                 assertTrue(p2.contains("QAPRIMERO") && p2.contains("7131"))
-                assertFalse(p2.contains("QALARGO") || p2.contains("QADESPUES"),
+                // C211 R1: the long identity is no longer deferred; it starts on P2
+                // (wrapped, continuation lines indented). Source order must hold in
+                // the physical reading sequence P2 -> C2, every amount exactly once.
+                assertTrue(p2.contains("QALARGO"),
+                    "C211: a long label starts on P2 instead of emptying it.")
+                val sequence = (listOf(p2) + c2).joinToString("\n")
+                assertTrue(sequence.indexOf("QAPRIMERO") < sequence.indexOf("QALARGO") &&
+                    sequence.indexOf("QALARGO") < sequence.indexOf("QADESPUES"),
                     "A later short identity must not leap ahead of its long predecessor.")
-                assertTrue(c2.contains("QALARGO") && c2.contains("QADESPUES"))
-                assertTrue(c2.indexOf("QALARGO") < c2.indexOf("QADESPUES"),
-                    "Source order must survive the physical P2-to-C2 transfer.")
-                assertTrue(c2.contains("7132") && c2.contains("7133"))
+                for (amount in listOf("7131", "7132", "7133")) {
+                    assertEquals(1, Regex("(?<![0-9])" + amount + "(?![0-9])")
+                        .findAll(pages.joinToString("\n")).count(),
+                        "Each real amount prints exactly once: $amount")
+                }
                 assertFalse(c2.contains("7131") || c2.contains("QAPRIMERO"))
                 assertEquals(1, pages.joinToString("\n").split("QADESPUES").size - 1)
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
@@ -4828,13 +4839,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(continuation.isNotEmpty(),
                 "Overlong equipment must create a physical full-height C2 paired table.")
             assertTrue(continuation.any { it.contains("MATERIAL INVENTARIADO") })
-            assertTrue(continuation.joinToString("\n")
-                .contains("MATERIAL INVENTARIADO 001"),
-                "The complete long source name belongs together on the C2 page.")
+            fun flat(s: String) = s.replace(Regex("\\s+"), " ")
             val p2 = physicalTexts.first { it.contains("P2 - Equipo y tesoro") }
-            assertFalse(p2.contains("MATERIAL INVENTARIADO"),
-                "P2 may not print a partial long name and orphan its identity.")
-            val all = physicalTexts.joinToString("\n")
+            // C211 R1: P2 is filled first; long names wrap there, the rest continues in C2.
+            assertTrue(flat(p2).contains("MATERIAL INVENTARIADO 001"),
+                "C211: the first long object starts on P2 instead of leaving it empty.")
+            assertTrue(flat(continuation.joinToString("\n")).contains("MATERIAL INVENTARIADO 100"),
+                "The last long object continues in the C2 table.")
+            val all = flat(physicalTexts.joinToString("\n"))
             for (index in 0 until 100) {
                 val sourceName = "MATERIAL INVENTARIADO " +
                     (index + 1).toString().padStart(3, '0')
@@ -5303,10 +5315,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // not dozens of visually misleading empty EQUIPO rows.
                 val secondEquipment = pdf.getPage(equipmentPages[1] - 1)
                 val manuscript = PDFTextStripperByArea().apply {
+                    // C211 R1: wrapped P2 rows shift where the right pair ends, so
+                    // inspect the WHOLE right/left pair height below the header.
                     addRegion("unused-right-pair",
-                        Rectangle2D.Float(312f, 348f, 258f, 360f))
+                        Rectangle2D.Float(312f, 120f, 258f, 588f))
                     addRegion("occupied-left-pair",
-                        Rectangle2D.Float(42f, 348f, 258f, 360f))
+                        Rectangle2D.Float(42f, 120f, 258f, 588f))
                     extractRegions(secondEquipment)
                 }
                 assertTrue(manuscript.getTextForRegion("unused-right-pair")
@@ -5360,7 +5374,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "First Tesoro must not claim the last Equipo page as a parent.")
                 assertFalse(firstTreasure.contains("ANT. "),
                     "Treasure begins a new module, not a continuation of equipment.")
-                val whole = pages.joinToString("\n")
+                // C211 R1: names can now wrap on P2; compare whitespace-normalized text.
+                val whole = pages.joinToString("\n").replace(Regex("\\s+"), " ")
                 extraEquipment.forEach { item ->
                     assertEquals(1, Regex(Regex.escape(item.name.substring(0, 16)))
                         .findAll(whole).count(), "Missing/repeated equipment " + item.id)
@@ -5807,13 +5822,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 val p2 = pages[1]
+                // C211 R1: Aldren ordinary objects now fit P2 (wrapped), so only the
+                // deferred currencies reach C2, on their own TESORO page.
                 val combined = pages.filter {
-                    it.contains("C2 - Equipo y tesoro / EQUIPO Y TESORO")
+                    it.contains("C2 - Equipo y tesoro / TESORO")
                 }
                 assertEquals(1, combined.size,
-                    "Two sparse genuine paired C2 modules should share one physical page.")
-                assertTrue(combined.single().contains("EQUIPO / CANTIDAD") &&
-                    combined.single().contains("TESORO / CANTIDAD"))
+                    "The deferred currencies use one physical C2 page.")
+                assertTrue(combined.single().contains("TESORO / CANTIDAD"))
+                assertFalse(pages.any { it.contains("C2 - Equipo y tesoro / EQUIPO") },
+                    "No ordinary object is left for C2.")
                 assertTrue(combined.single().contains("VIENE DE P2 PÁG. 2"))
                 val c2 = combined.joinToString("\n")
                 val full = pages.joinToString("\n")

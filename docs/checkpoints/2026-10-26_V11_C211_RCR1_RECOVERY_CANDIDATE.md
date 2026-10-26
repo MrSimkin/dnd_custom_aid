@@ -1,6 +1,6 @@
 # C211 — RCR-1: candidato de recuperación (evidencia recuperada, SIN implementar)
 
-Fecha 2026-10-26 (Chile). PR #173 DRAFT/NO MERGE. **Estado: RECOVERY_CANDIDATE. No se ha escrito código de recuperación. R1/2 NO consumido.**
+Fecha 2026-10-26 (Chile). PR #173 DRAFT/NO MERGE. **Estado: RECOVERY_ACTIVE — R1/2 implementado con autorización del propietario (2026-10-26); pendiente de CI exacto.**
 
 ```text
 INCIDENTE: C211  Gate detectado: G3 (auditor físico C207)  Gate causante: G3 (dibujo de tablas pareadas en C2)
@@ -38,3 +38,18 @@ DECISIÓN: RECOVERY_CANDIDATE — se ejecuta R1 solo con la autorización del pr
 ```
 
 Los dos PDF reconstruidos y el informe del auditor se guardan en `docs/pc-sheet-v11/qa/evidence/c211/`. El experimento local se hizo en un worktree temporal y no se integró en la rama.
+
+## R1/2 — ejecución (2026-10-26)
+
+**Autorización del propietario:** «apruebo, pero añadiría que si los objetos quedan en varias líneas dale a las líneas siguientes a la primera una pequeña sangría» y «apruebo el arreglo de esta forma e incorpora al contrato». Vista previa mostrada antes (P2 y C2 de Mara).
+
+**Cambio (Shared + Android + Desktop):**
+
+1. `PcSheetV11PairedAmountRouting.p2Eligible`: un nombre largo ya no es inelegible; se conserva el prefijo contiguo y solo van a C2 los nombres con saltos guardados o cantidades más anchas que su casilla.
+2. `PcSheetV11PairedTableComposer.place`: sangría de 8 pt en las líneas de continuación; el corte de línea usa la anchura con sangría.
+3. `drawPaired` (causa raíz): las cuadrículas NOTAS laterales de C2 se calculan antes de dibujar la tabla; las líneas de fila y el separador de cantidad de esa pareja se detienen encima de la cuadrícula.
+4. Pruebas: una prueba nueva de sangría y cantidad única; cinco pruebas de PDF y una de Shared reescritas a la regla aprobada (orden de origen, cada cantidad una sola vez, ningún dato perdido); comparación de texto normalizada donde ahora hay saltos de línea.
+
+**Prueba roja → verde (local):** el auditor `audit_v11_p3_c2_manuscript.py` que fallaba en C206 A/B pág. 6 queda en verde sobre los 96 PDF; también `audit_v11_c207_vacancy`, envoltura física, topología, tarjetas de P1, medidores P4 y tarjetas del Libro. 442 pruebas Shared y 178 de escritorio pasan; Android compila. Comparación con el lote de CI de `8b57bd22`: ninguna palabra de origen perdida; solo cambian títulos de página, y 22 PDF tienen una página C2 menos porque el equipo cabe en P2. Mara A/B: ocho objetos en P2 con sangría.
+
+**Pendiente:** CI exacto. Si falla, queda **una** corrección (R2/2); si vuelve a fallar, STOP definitivo de C211. Presupuesto global: 1/2 recuperaciones estructurales gastadas.

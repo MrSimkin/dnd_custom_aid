@@ -61,6 +61,8 @@ object PcSheetV11PairedAmountRouting {
     const val BASE_AMOUNT_WIDTH_PT = 36f
     const val AMOUNT_GAP_PT = 6f
     const val TEXT_INSET_PT = 2f
+    /** C211/owner 2026-10-26: continuation lines of one long label are indented. */
+    const val CONTINUATION_INDENT_PT = 8f
 
     fun p2Eligible(
         source: PcSheetV11PairedTableData,
@@ -73,9 +75,13 @@ object PcSheetV11PairedAmountRouting {
         require(nameWidth > TEXT_INSET_PT)
         // P2 must be a CONTIGUOUS source-order prefix. Filtering every fitting
         // row would print a later short item ahead of an earlier long item
-        // deferred to C2. Keep the approved single-line P2 grammar; send the
-        // first ineligible row and all successors to measured C2, preserving
-        // source order, IDs and single-print amount ownership.
+        // deferred to C2; send the first ineligible row and all successors to
+        // measured C2, preserving source order, IDs and single-print amounts.
+        // C211 recovery R1 (owner-approved 2026-10-26): a long label is NOT
+        // ineligible. It wraps over several measured P2 lines (G2 grammar:
+        // amount once, on the first line; continuation lines indented), so P2
+        // is filled before C2 as in the golden. Only labels with physical
+        // breaks or amounts wider than the frozen slot move to C2.
         return source.copy(rows = source.rows.takeWhile { row ->
             // Source labels with physical breaks cannot be passed to a PDF
             // glyph-width measurer as a single line: the native Fira font has
@@ -88,8 +94,7 @@ object PcSheetV11PairedAmountRouting {
             val amountWidth = width.measurePt(row.amount.toString())
             require(labelWidth.isFinite() && amountWidth.isFinite() &&
                 labelWidth >= 0f && amountWidth >= 0f)
-            labelWidth <= nameWidth - TEXT_INSET_PT &&
-                amountWidth <= BASE_AMOUNT_WIDTH_PT - TEXT_INSET_PT
+            amountWidth <= BASE_AMOUNT_WIDTH_PT - TEXT_INSET_PT
         })
     }
 
@@ -180,7 +185,10 @@ object PcSheetV11PairedTableComposer {
                 "The real quantity does not fit the measured quantity field."
             }
         }
-        val geometry = PcSheetV11TextColumn(labelWidthPt, areaPt.heightPt, lineHeightPt)
+        // Wrap at the indented width so a continuation line never reaches the amount slot.
+        val wrapWidthPt = labelWidthPt - PcSheetV11PairedAmountRouting.CONTINUATION_INDENT_PT
+        require(wrapWidthPt > 0f)
+        val geometry = PcSheetV11TextColumn(wrapWidthPt, areaPt.heightPt, lineHeightPt)
         val originalTextItems = data.rows.map {
             PcSheetV11FlowItem(it.sourceKey, it.label, keepTogetherIfFits = true)
         }
@@ -198,7 +206,7 @@ object PcSheetV11PairedTableComposer {
             val target = (totalLines + 1) / 2
             (target until geometry.lineCapacity).firstNotNullOfOrNull { capacity ->
                 val trialGeometry = PcSheetV11TextColumn(
-                    labelWidthPt,
+                    wrapWidthPt,
                     capacity * lineHeightPt + lineHeightPt * 0.001f,
                     lineHeightPt,
                 )
@@ -226,15 +234,17 @@ object PcSheetV11PairedTableComposer {
                     val rowNumber = fragment.startLineIndexInColumn + index
                     require(rowNumber in 0 until placementCapacity)
                     val raw = source.label.substring(range.startOffset, range.endExclusive)
+                    val indent = if (range.startOffset == 0) 0f
+                        else PcSheetV11PairedAmountRouting.CONTINUATION_INDENT_PT
                     val cell = PcSheetV11PairedTableCell(
                         sourceKey = source.sourceKey,
                         localPageIndex = fragment.localPageIndex,
                         pairIndex = fragment.columnIndex,
                         rowIndex = rowNumber,
                         rectPt = PcSheetV11RectPt(
-                            pair.leftPt,
+                            pair.leftPt + indent,
                             pair.topPt - (rowNumber + 1) * lineHeightPt,
-                            labelWidthPt,
+                            labelWidthPt - indent,
                             lineHeightPt,
                         ),
                         sourceText = raw,
