@@ -208,6 +208,90 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+    /** Words of page 1 as (text, x, baseline y in PDF coordinates). */
+    private fun page1Words(pdf: org.apache.pdfbox.pdmodel.PDDocument):
+        List<Triple<String, Float, Float>> {
+        val words = mutableListOf<Triple<String, Float, Float>>()
+        val stripper = object : PDFTextStripper() {
+            override fun writeString(
+                text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+            ) {
+                val word = StringBuilder()
+                var wx = 0f
+                var wy = 0f
+                fun flush() {
+                    if (word.isNotEmpty()) words += Triple(word.toString(), wx, wy)
+                    word.clear()
+                }
+                for (position in textPositions) {
+                    val ch = position.unicode
+                    if (ch.isBlank()) flush() else {
+                        if (word.isEmpty()) {
+                            wx = position.xDirAdj
+                            wy = 792f - position.yDirAdj
+                        }
+                        word.append(ch)
+                    }
+                }
+                flush()
+            }
+        }
+        stripper.startPage = 1
+        stripper.endPage = 1
+        stripper.getText(pdf)
+        return words
+    }
+
+    @Test
+    fun g3P1SpellSlotsUse3x3GridWithRealTotalsAndSpentAndNeverInventAbsentLevelsAB() {
+        // P115/P116 (owner 2026-10-26: no character has 7+ slots, so only
+        // the 3x3 levels 1..9 apply and levels 10..12 are never drawn).
+        // Mara persists real slots for N1..N5 only (N4 spent is a real 0).
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        val real = mara.permanent.sheet.spellSlots.associateBy { it.level }
+        assertTrue(real.keys.containsAll(listOf(1, 2, 3, 4, 5)) &&
+            real.keys.none { it in 6..9 }, "Fixture must have real N1-N5 and no N6-N9.")
+        assertEquals(0, real.getValue(4).spentSlots, "Fixture needs a REAL spent zero.")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                mara,
+            ).bytes
+            preserveRealApplicationPdf(bytes,
+                "V11-INTERNAL-PROOF-P1-spell-slot-grid-3x3-" + variant.name + ".pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val words = page1Words(pdf)
+                fun near(word: Triple<String, Float, Float>, x: Float, y: Float) =
+                    kotlin.math.abs(word.second - x) <= 2.5f &&
+                        kotlin.math.abs(word.third - y) <= 2.5f
+                for (level in 1..9) {
+                    val x = 315f + ((level - 1) % 3) * 85f
+                    val y = 222f - ((level - 1) / 3) * 23f
+                    assertTrue(words.any { it.first == "N$level" && near(it, x, y) },
+                        "P1 must print N$level at its fixed 3x3 grid cell, $variant")
+                    val inRow = words.filter {
+                        kotlin.math.abs(it.third - y) <= 2.5f &&
+                            it.second > x + 10f && it.second < x + 80f
+                    }
+                    val slot = real[level]
+                    if (slot == null) {
+                        assertTrue(inRow.isEmpty(),
+                            "P1 must not invent total/spent for absent level $level: $inRow")
+                    } else {
+                        assertTrue(inRow.any {
+                            it.first == slot.totalSlots.toString() && near(it, x + 19f, y)
+                        }, "P1 N$level must print the real total ${slot.totalSlots}")
+                        assertTrue(inRow.any {
+                            it.first == slot.spentSlots.toString() && near(it, x + 45f, y)
+                        }, "P1 N$level must print the real spent ${slot.spentSlots}")
+                    }
+                }
+                assertTrue(words.none { it.first == "N10" || it.first == "N11" ||
+                    it.first == "N12" }, "Levels 10..12 need real epic rules and are absent.")
+            }
+        }
+    }
+
     @Test
     fun realP1SpellcastingUsesMeasuredClippedBlueHeaderWithoutMovingSourcePanel() {
         // Frozen approved P1 gold: x270.425..572.315,

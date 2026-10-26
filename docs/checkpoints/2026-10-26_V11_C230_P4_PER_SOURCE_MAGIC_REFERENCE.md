@@ -41,3 +41,7 @@ No es G4 ni aprobación del propietario; no hay APK instalado. Android solo se c
 **Gates sin promoción:** G0 parcial, G1 PASS semántico anterior, G2/G3 parciales, G4 BLOCKED 105/105 NOT_VERIFIED con `active_candidate=null`, G5/G6 pendientes, C211 BLOCKED 3/3 normal y 0/2 estructural. PR #173 DRAFT NO MERGE.
 
 **Próximo paso:** CI exacto de este commit, comparar los PDF del Scaffold contra C229, registrar acta y cerrar este checkpoint con PASS LOCAL acotado o con el defecto demostrado. Después, reglas G2/G3 sin tocar; no abrir más bordes mágicos sin necesidad demostrable.
+
+## En curso tras C230: P115/P116
+
+Se añadió la prueba real de escritorio g3P1SpellSlotsUse3x3GridWithRealTotalsAndSpentAndNeverInventAbsentLevelsAB (A/B, Mara): P1 imprime N1..N9 en la cuadrícula 3x3 fija, totales y gastados reales (incluido un 0 real en N4), no inventa N6..N9 ausentes y no dibuja N10..N12. Pasa localmente y se inspeccionó el raster. **P115/P116 siguen NOT_VERIFIED en la matriz hasta registrar el CI exacto de ese commit.**
