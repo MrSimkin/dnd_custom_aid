@@ -1335,8 +1335,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "realAldrenProducesPdfWithNoInventedQuickSpellPageOrSpellbook",
+            "test_result": "SCOPED G3 PASS on the real Aldren (non-caster) PDF: P1 still prints LANZAMIENTO DE CONJUROS with ESPACIOS and GASTADOS, without inventing spells.",
+            "source_commit": "9aea70317df9740d3796813f47b8df68b27752e9",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684609581",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684709297",
+            "independent_inspection": "Assertions run on text and vector operators of the real Desktop App PDFs generated in CI (PDFBox); PyMuPDF CI audit v11-p4-physical-slot-meters failed_pdfs 0 and envelope audit 96 PDF / 877 pages errors 0; full P4 pages of Ilyra and Mara inspected as raster next to the approved golden spell page.",
+            "limitations": "One non-caster fixture, variant as in the test; G1/G2 NOT_VERIFIED; no installed Android or owner approval; global P113 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2412,8 +2421,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "realAldrenProducesPdfWithNoInventedQuickSpellPageOrSpellbook; realIlyraSpellcasterProducesP4AndHandwrittenGridAsLastPage",
+            "test_result": "SCOPED G3 PASS: the non-caster Aldren PDF has no P4, no quick spell page and no spellbook index; the real caster Ilyra PDF has P4.",
+            "source_commit": "9aea70317df9740d3796813f47b8df68b27752e9",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684609581",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684709297",
+            "independent_inspection": "Assertions run on text and vector operators of the real Desktop App PDFs generated in CI (PDFBox); PyMuPDF CI audit v11-p4-physical-slot-meters failed_pdfs 0 and envelope audit 96 PDF / 877 pages errors 0; full P4 pages of Ilyra and Mara inspected as raster next to the approved golden spell page.",
+            "limitations": "Two fixtures; sources of any type beyond those fixtures are not enumerated; G1/G2 NOT_VERIFIED; no installed Android or owner approval; global P401 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2471,8 +2489,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "realIlyraSpellcasterProducesP4AndHandwrittenGridAsLastPage; physicalP4GoldenPaperHasClippedReferenceCardsAndNineWritableSlotMeters",
+            "test_result": "SCOPED G3 PASS on real Ilyra and Mara PDFs: P4 reserves TRUCOS / NIVEL 0 and NIVEL 1..9 even when levels are empty and never prints NIVEL 10.",
+            "source_commit": "9aea70317df9740d3796813f47b8df68b27752e9",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684609581",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684709297",
+            "independent_inspection": "Assertions run on text and vector operators of the real Desktop App PDFs generated in CI (PDFBox); PyMuPDF CI audit v11-p4-physical-slot-meters failed_pdfs 0 and envelope audit 96 PDF / 877 pages errors 0; full P4 pages of Ilyra and Mara inspected as raster next to the approved golden spell page.",
+            "limitations": "Ilyra and Mara only; G1/G2 NOT_VERIFIED; no installed Android or owner approval; global P403 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2530,8 +2557,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "genuineSpellRowsAndBlankPaperRowsHaveOnePhysicalSquareEach; paperOnlySpellRowsUseVectorMarksInsteadOfLiteralBrackets",
+            "test_result": "SCOPED G3 PASS on real Ilyra and Mara PDFs: exactly one 7pt preparation square per real spell or blank handwritten row plus 27 distinct level-meter squares, drawn as vectors, no underscore glyphs.",
+            "source_commit": "9aea70317df9740d3796813f47b8df68b27752e9",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684609581",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684709297",
+            "independent_inspection": "Assertions run on text and vector operators of the real Desktop App PDFs generated in CI (PDFBox); PyMuPDF CI audit v11-p4-physical-slot-meters failed_pdfs 0 and envelope audit 96 PDF / 877 pages errors 0; full P4 pages of Ilyra and Mara inspected as raster next to the approved golden spell page.",
+            "limitations": "Variant B counts asserted exactly; A/B parity relies on the shared renderer path; G2 NOT_VERIFIED; no installed Android or owner approval; global P405 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2631,8 +2667,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "realAldrenProducesPdfWithNoInventedQuickSpellPageOrSpellbook; p4UsesRealPerLevelTotalAndSpentSlotsWithoutMakingUpHigherLevelCounts; g3P1SpellSlotsUse3x3GridWithRealTotalsAndSpentAndNeverInventAbsentLevelsAB",
+            "test_result": "SCOPED G3 PASS: no spells or slots are invented for a non-caster, and P1/P4 never synthesize totals, spent counts or levels the source does not persist.",
+            "source_commit": "9aea70317df9740d3796813f47b8df68b27752e9",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684609581",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684709297",
+            "independent_inspection": "Assertions run on text and vector operators of the real Desktop App PDFs generated in CI (PDFBox); PyMuPDF CI audit v11-p4-physical-slot-meters failed_pdfs 0 and envelope audit 96 PDF / 877 pages errors 0; full P4 pages of Ilyra and Mara inspected as raster next to the approved golden spell page.",
+            "limitations": "Slot invention and absent spells are covered; class level / prepared count (CL/PREP) fields are not separately asserted; G1/G2 NOT_VERIFIED; no installed Android or owner approval; global P408 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2657,8 +2702,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "physicalP4GoldenPaperHasClippedReferenceCardsAndNineWritableSlotMeters",
+            "test_result": "SCOPED G3 PASS on real Ilyra and Mara PDFs: exactly 27 blank 7x7 vector boxes, three for each level 1..9, no level 0 meter and no fabricated level 10+; blank meters use embedded Barlow 7pt.",
+            "source_commit": "9aea70317df9740d3796813f47b8df68b27752e9",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684609581",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40393168593/artifacts/12684709297",
+            "independent_inspection": "Assertions run on text and vector operators of the real Desktop App PDFs generated in CI (PDFBox); PyMuPDF CI audit v11-p4-physical-slot-meters failed_pdfs 0 and envelope audit 96 PDF / 877 pages errors 0; full P4 pages of Ilyra and Mara inspected as raster next to the approved golden spell page.",
+            "limitations": "The nine handwritten lines per level are not separately asserted; variant B only in this test (CI P4 slot-meter audit covers all 96 PDFs); G2 NOT_VERIFIED; no installed Android or owner approval; global P409 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
