@@ -2599,8 +2599,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3P4MultipleRealSourceIdsNeverClaimUnknownDcAndAttackAsUniversalAB; g3SameNameDistinctSpellSourcesKeepSourceIdentityAndPreparationOnP4AB; realIlyraP4AlignsOnlyFittingSpellOriginsWithoutLosingLongSources",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: preparation stays per real source UUID with the type labels ('[ ] Mago / [X] Raza', '[ ] Otro'), is never merged across sources or with spent slots.",
+            "source_commit": "9e6cfda54a3927c562abb1c6140ce040821a60e4",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40401076028",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40401076028/artifacts/12689960020",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40401076028/artifacts/12689915217",
+            "independent_inspection": "PyMuPDF over the CI artifacts of C231 against the previous set (C230 + P115 test): 96 PDF / 877 pages, same pagination, 877/877 images identical, 816 pages identical in words and only 61 pages change (P1 spellcasting cells, P4 rows and reference); CI physical envelope audit 96 PDF errors 0, P4 slot meters failed_pdfs 0; raster crops of Ilyra P4 and Mara/Ilyra P1 inspected. Evidence: docs/pc-sheet-v11/qa/evidence/2026-10-26_V11_C231_SOURCE_TYPE_LABELS_CI.json",
+            "limitations": "Ilyra fixtures; G1/G2 NOT_VERIFIED; no installed Android or owner approval; global P406 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2728,8 +2737,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "p4PrintsBothIntMaxSpellSlotCountersOnOneLineWithoutClippingOrFakeSpentBoxes; g3P4UniformRealSourceProfilesDoNotPrintContradictoryOverallNumbersAB; g3IlyraConfiguredCastingSourceKeepsMetricsVisibleWhenOverallBlankAB",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs (96 PDF / 877 pages, A/B): P4 level headers keep TOTAL and SPENT counters on one line and the top magical reference prints each source by its type label (one line or up to three 7pt lines), falling back to SEGUN FUENTE only when it cannot fit.",
+            "source_commit": "9e6cfda54a3927c562abb1c6140ce040821a60e4",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40401076028",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40401076028/artifacts/12689960020",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40401076028/artifacts/12689915217",
+            "independent_inspection": "PyMuPDF over the CI artifacts of C231 against the previous set (C230 + P115 test): 96 PDF / 877 pages, same pagination, 877/877 images identical, 816 pages identical in words and only 61 pages change (P1 spellcasting cells, P4 rows and reference); CI physical envelope audit 96 PDF errors 0, P4 slot meters failed_pdfs 0; raster crops of Ilyra P4 and Mara/Ilyra P1 inspected. Evidence: docs/pc-sheet-v11/qa/evidence/2026-10-26_V11_C231_SOURCE_TYPE_LABELS_CI.json",
+            "limitations": "Local Desktop PDFs only; G2 NOT_VERIFIED; four or more long sources keep the cue; unknown source metric prints a dash; no installed Android or owner approval; global P410 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2747,15 +2765,33 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SpellSourceLabelsTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "PcSheetV11SpellSourceLabelsTest.sourcesAreLabelledByOriginTypeAndOnlyClassKeepsItsName; PcSheetV11SpellSourceLabelsTest.perSourceReferenceListsEachRealSourceWithItsOwnValue",
+            "test_result": "PASS: class source keeps its class name (collision-free id prefix only between class names), every other origin prints only its type (Rasgo, Raza, Trasfondo, Dote, Objeto, Objeto magico, Don, Otro), two sources of the same type share the label, a missing source reads Otro.",
+            "source_commit": "9e6cfda54a3927c562abb1c6140ce040821a60e4",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40401076028",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40401076028/artifacts/12689960020",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40401076028/artifacts/12689915217",
+            "independent_inspection": "Shared unit tests in the CI Kotlin job (442 shared tests green).",
+            "limitations": "G1 semantic only; the type list and the Otro default for a missing source are Worker assumptions recorded in the contract; no owner approval; global P411 remains NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "realIlyraP4AlignsOnlyFittingSpellOriginsWithoutLosingLongSources; g3CustomMaraSourceAbilityUsesExistingTruthfulP1AndP4CueAB; g3P4MultipleRealSourceIdsNeverClaimUnknownDcAndAttackAsUniversalAB",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs: Ilyra P4 rows read Mago / Trasfondo / Raza right-aligned without the long names and without wrapped rows; the added OTHER source reads Otro; Mara P1 lists its single class source value (Cronomancia umbral ETE) instead of SEGUN FUENTE.",
+            "source_commit": "9e6cfda54a3927c562abb1c6140ce040821a60e4",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40401076028",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40401076028/artifacts/12689960020",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40401076028/artifacts/12689915217",
+            "independent_inspection": "PyMuPDF over the CI artifacts of C231 against the previous set (C230 + P115 test): 96 PDF / 877 pages, same pagination, 877/877 images identical, 816 pages identical in words and only 61 pages change (P1 spellcasting cells, P4 rows and reference); CI physical envelope audit 96 PDF errors 0, P4 slot meters failed_pdfs 0; raster crops of Ilyra P4 and Mara/Ilyra P1 inspected. Evidence: docs/pc-sheet-v11/qa/evidence/2026-10-26_V11_C231_SOURCE_TYPE_LABELS_CI.json",
+            "limitations": "Ilyra and Mara fixtures; P1 keeps SEGUN FUENTE when the listing does not fit 81pt and P4 beyond three long sources; G2 NOT_VERIFIED; no installed Android or owner approval; global P411 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },

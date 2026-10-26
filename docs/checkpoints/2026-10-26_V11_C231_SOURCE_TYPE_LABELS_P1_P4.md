@@ -1,6 +1,6 @@
 # C231 — Fuentes de conjuro rotuladas por tipo de origen en P1 y P4
 
-Fecha 2026-10-26 (Chile). PR #173 DRAFT/NO MERGE, rama `docs/pc-sheet-v11-approved-implementation-handoff`. **Estado: IN_PROGRESS. NO PASS hasta CI exacto y comparación de PDF reales.**
+Fecha 2026-10-26 (Chile). PR #173 DRAFT/NO MERGE, rama `docs/pc-sheet-v11-approved-implementation-handoff`. **Estado: PASS LOCAL FÍSICO acotado (NO G4, NO aprobación del propietario).**
 
 ## Decisión del propietario (documentada)
 
@@ -19,12 +19,30 @@ Antes de esta ronda, P4 imprimía nombres completos de fuente (`Sage — Magic I
 
 Pruebas de escritorio ajustadas a la regla: Mara P1 ya no dice `SEGÚN FUENTE` (imprime `Cronomancia umbral ETE`); P4 de Ilyra imprime `Mago`, `Trasfondo`, `Raza` y no los nombres largos; el fixture de cuatro fuentes imprime `[ ] Otro`; el número de filas manuscritas de Ilyra pasa de 87 a 91 porque las filas ya no se parten en dos líneas. 93 pruebas de PDF real pasan localmente. Revisión raster: P4 de Ilyra queda alineada como el diseño aprobado (rótulo corto a la derecha, sin líneas partidas); P1 de Mara cabe a 8 pt; P1 de Ilyra, con tres fuentes, conserva `SEGÚN FUENTE`.
 
+## Evidencia de CI
+
+[Scaffold #40401076028](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40401076028) y [QA #40401076024](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40401076024) SUCCESS en `9e6cfda5`. Comparación sobre los artefactos de CI (96 PDF / 877 páginas contra el lote anterior): misma paginación, 877/877 imágenes iguales, 816 páginas con las mismas palabras y 61 distintas (celdas de lanzamiento de P1, filas y referencia de P4); 25 páginas cambian en vectores porque las filas de P4 ya no se parten y caben más filas manuscritas. Auditoría física de CI: 96 PDF, 0 errores; medidores P4 sin PDF fallido. [Acta](../pc-sheet-v11/qa/evidence/2026-10-26_V11_C231_SOURCE_TYPE_LABELS_CI.json). La matriz registra G1 y G3 acotados de `P411` y G3 acotados de `P406` y `P410`.
 ## Efecto sobre registros anteriores
 
-Los G3 PASS acotados de `P406` y `P410` (C230) dependían de nombres impresos y **se devuelven a NOT_VERIFIED**. `P115` y `P113` no cambian.
+Los G3 PASS acotados de `P406` y `P410` (C230) dependían de nombres impresos; se devolvieron a NOT_VERIFIED y se volvieron a registrar arriba con la evidencia de esta ronda. `P115` y `P113` no cambian.
 
-## Hallazgo para la siguiente ronda (sin decisión)
+## Hallazgo para la siguiente ronda: P1 frente al golden (medido, sin cambios de código todavía)
 
-Comparación visual de P1 contra el golden: la P1 de la App sigue visiblemente por debajo del diseño aprobado (bandas de filas, cartelas y ornamentos, tipografías, etiqueta suelta `HABILIDADES BAJO ATRIBUTO`). Es la mayor brecha medible y será el siguiente bloque.
+Se renderizó la P1 de Aldren A e Ilyra B de la App y las P1 A/B del golden `v11_ordinario_6mas2`. La estructura y las geometrías clave ya coinciden (cartelas achaflanadas de identidad, tarjetas de combate 3+3+2, cuadrícula 3x3 de espacios, paneles de Rasgos y Municiones); el código ya fija estas coordenadas con pruebas. Diferencias medidas que quedan:
+
+1. **Jerarquía tipográfica invertida** en identidad y combate: etiqueta 12 pt Barlow en negrita y valor 9 pt, mientras el golden usa etiqueta pequeña y valor grande (CA, PV, Iniciativa...).
+2. **Filas sin bandas de tono** en Ataques, Rasgos y Habilidades (el golden alterna tonos azul niebla; D-0076 §3.12 punto 3).
+3. **Texto bajo el logo** `P1 - Personaje / combate / habilidades / 1` y etiqueta `PRUEBA INTERNA V11 - NO APROBADA` (el golden no las lleva; las de prueba son provisionales por diseño del QA previo).
+4. **Aprovechamiento vertical:** en variante B los seis bloques de atributo ocupan más alto que en el golden y dejan filas vacías en el panel de Habilidades; en variante A aparece la etiqueta suelta `HABILIDADES BAJO ATRIBUTO` al pie.
+5. **Panel de Rasgos:** texto de 7 pt partido en tres líneas por entrada; el golden alterna filas de una línea.
+6. Sin adornos de rombo en cartelas: el contrato pospone la ornamentación (PIN visual), no es defecto.
+
+Cada punto cambia flujos medidos (desbordes a C2) y pruebas de coordenadas, por lo que se tratará por separado y con comparación de PDF reales antes/después.
 
 **Gates sin promoción:** G0 parcial, G1 PASS semántico anterior, G2/G3 parciales, G4 BLOCKED 106 reglas NOT_VERIFIED con `active_candidate=null`, G5/G6 pendientes, C211 BLOCKED. PR #173 DRAFT NO MERGE.
+
+## C232 — Corrección de P1 frente al golden, paso 1: jerarquía etiqueta/valor
+
+En el golden las **etiquetas** de P1 son pequeñas (≈6-7 pt) y los **valores** llevan el peso visual; la App tenía etiquetas de 12 pt en identidad y de 9 pt en combate con valores de 9 pt. Cambio (Android y Desktop): etiquetas de identidad (`CLASE / NIVEL`, `JUGADOR`, `RAZA`, `ALINEAMIENTO`) y de las ocho tarjetas de combate a 7 pt; valores de combate a 11 pt centrados en la tipografía de etiquetas. No cambian cartelas, marcos, paginación ni flujos a C2.
+
+Comprobación local antes/después sobre los 96 PDF reales de escritorio: **96/96 paginaciones iguales, 877/877 páginas con vectores e imágenes idénticos; solo cambia la página 1 de cada PDF (palabras)**. 93 pruebas de PDF reales pasan. Revisión raster de Ilyra B. Pendiente: CI exacto y acta con artefactos de CI. Siguientes pasos: bandas de filas (Ataques, Rasgos, Habilidades), aprovechamiento vertical, panel de Rasgos.

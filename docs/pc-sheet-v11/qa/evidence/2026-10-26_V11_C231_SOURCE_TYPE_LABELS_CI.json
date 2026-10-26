@@ -1,0 +1,60 @@
+{
+    "schema_version":  1,
+    "date_chile":  "2026-10-26",
+    "repo":  "MrSimkin/dnd_custom_aid",
+    "pr":  173,
+    "scope":  "C231 spell sources labelled by origin type in P1 and P4 (owner decision): PASS LOCAL FISICO acotado, NO G4",
+    "code_commit":  "9e6cfda54a3927c562abb1c6140ce040821a60e4",
+    "ci":  {
+               "scaffold":  {
+                                "run":  40401076028,
+                                "status":  "SUCCESS"
+                            },
+               "qa":  {
+                          "run":  40401076024,
+                          "status":  "SUCCESS"
+                      }
+           },
+    "ci_artifacts":  {
+                         "new_pdfs":  12689960020,
+                         "previous_pdfs":  "12684609581 (run 40393168593)",
+                         "physical_audit":  12689915217,
+                         "pdfs":  96,
+                         "pages":  877
+                     },
+    "ci_comparison":  {
+                          "tool":  "PyMuPDF on the CI artifacts",
+                          "common_pdfs":  96,
+                          "pagination_identical":  96,
+                          "pages_same_images":  877,
+                          "pages_same_words_and_bboxes":  816,
+                          "pages_changed":  61,
+                          "vectors_changed_pages":  25,
+                          "reason_vectors":  "rows no longer wrap in P4, so more blank manuscript rows fit",
+                          "bytewise_pdf_identity":  "NOT_CLAIMED"
+                      },
+    "ci_audits":  {
+                      "physical_envelope":  "96 PDF / 877 pages / errors 0",
+                      "p4_slot_meters":  "failed_pdfs 0"
+                  },
+    "owner_decisions":  [
+                            "sources labelled by origin type, only class keeps its name",
+                            "SEGUN FUENTE lists each source value in P1 and P4",
+                            "same-type sources may share a label",
+                            "slot boxes per level depend on the sheet, 0 to 4"
+                        ],
+    "limits":  [
+                   "P1 keeps SEGUN FUENTE when the listing does not fit 81pt",
+                   "P4 keeps it beyond three long sources",
+                   "unknown source metric prints a dash"
+               ],
+    "gate":  "C231_PASS_LOCAL_ONLY",
+    "g4":  {
+               "rules":  106,
+               "not_verified":  106,
+               "active_candidate":  null
+           },
+    "owner_installed_android":  "NOT_VERIFIED",
+    "owner_approval":  "NOT_GRANTED",
+    "pr_merged":  false
+}
