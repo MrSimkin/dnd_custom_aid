@@ -76,6 +76,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.endText()
             }
 
+            // C232: in the approved golden the P1 field LABELS are small (about 6-7pt)
+            // and the VALUES carry the visual weight; the old 12pt labels inverted it.
+            fun drawP1Label(stream: PDPageContentStream, text: String, x: Float, y: Float, pt: Float = 7f) {
+                if (text.isEmpty()) return
+                stream.beginText()
+                stream.setFont(headerPdfFont, pt)
+                stream.newLineAtOffset(x, y)
+                stream.showText(pcSheetV11PrintableText(text))
+                stream.endText()
+            }
             // Owner's original D&D sheet includes its genuine logotype in its top-left.
             // Embed that real graphic from the already-versioned asset; clip to LOGO only,
             // so no original-sheet boxes or lettering leak into this V11 page.
@@ -1213,7 +1223,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 identityFields.forEach { (descriptor, _, placed) ->
                     val (label, _) = descriptor
                     val frame = identityFieldFrames.first { it.first == label }.third
-                    draw(stream, label, frame.leftPt + 6f, frame.topPt - 11f, true)
+                    drawP1Label(stream, label, frame.leftPt + 6f, frame.topPt - 9f)
                     placed?.cells?.filter { it.localPageIndex == 1 }?.forEach { cell ->
                         if (cell.drawableText.isNotEmpty()) {
                             draw(stream, cell.drawableText, cell.cellPt.leftPt,
@@ -1221,12 +1231,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         }
                     }
                 }
-                draw(stream, "JUGADOR", player.leftPt + 6f, player.topPt - 11f, true)
+                drawP1Label(stream, "JUGADOR", player.leftPt + 6f, player.topPt - 9f)
                 stream.moveTo(player.leftPt + 6f, player.bottomPt + 5f)
                 stream.lineTo(player.rightPt - 6f, player.bottomPt + 5f)
                 stream.stroke()
-                draw(stream, "ALINEAMIENTO", alignment.leftPt + 6f,
-                    alignment.topPt - 11f, true)
+                drawP1Label(stream, "ALINEAMIENTO", alignment.leftPt + 6f,
+                    alignment.topPt - 9f)
                 // No persisted alignment exists; a ruled entry is deliberately blank.
                 stream.moveTo(alignment.leftPt + 6f, alignment.bottomPt + 5f)
                 stream.lineTo(alignment.rightPt - 6f, alignment.bottomPt + 5f)
@@ -1315,7 +1325,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val width = if (narrow) 86f else 129f
                     val top = paperTop - row * 28f
                     val x = left + col * width
-                    val labelPt = 9f
+                    val labelPt = 7f
                     require(headerPdfFont.getStringWidth(label) *
                         labelPt / 1000f <= width - 12f) {
                         "P1 true source combat label exceeds its real card: " + label
@@ -1330,8 +1340,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         require(measured <= width - 12f) {
                             "P1 combat value must flow into source-backed C2: " + label
                         }
-                        draw(stream, value, x + (width - measured) / 2f,
-                            top - (if (narrow) 22f else 24f), false)
+                        // Golden stat values are large, centered Barlow figures (~11pt).
+                        val valuePt = 11f
+                        val printable = pcSheetV11PrintableText(value)
+                        val drawn = headerPdfFont.getStringWidth(printable) * valuePt / 1000f
+                        stream.beginText()
+                        stream.setFont(headerPdfFont, valuePt)
+                        stream.newLineAtOffset(x + (width - drawn) / 2f,
+                            top - (if (narrow) 22f else 24f))
+                        stream.showText(printable)
+                        stream.endText()
                     }
                 }
             }
