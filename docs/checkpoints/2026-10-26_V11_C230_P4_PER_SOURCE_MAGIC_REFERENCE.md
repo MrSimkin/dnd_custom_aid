@@ -24,6 +24,12 @@ Segunda decisión del propietario (2026-10-26): ningún personaje tiene más de 
 - Cinco pruebas de PDF real de escritorio ajustadas: P4 ya no espera `SEGÚN FUENTE` cuando caben los valores; verifican cada fuente por nombre y valor. Con cuatro fuentes (fixture C221) se verifica el aviso de reserva.
 - Primera ejecución local reveló dos defectos reales, ya corregidos: (1) nombres de fuente con CR/LF producían un glifo inexistente; (2) tres fuentes de nombre largo (Ilyra) no cabían en una línea, de donde nace el apilado.
 
+## Evidencia local (2026-10-26, entorno Windows con JDK 17 / Gradle 9.5.0 / plataforma 36)
+
+[Acta local](../pc-sheet-v11/qa/evidence/2026-10-26_V11_C230_P4_PER_SOURCE_MAGIC_REFERENCE_LOCAL.json). Se generaron con `DesktopPcSheetV11RuntimePdfProofTest` los 94 PDF del código anterior (`31d5c574`) y los 94 del nuevo, y se compararon con PyMuPDF: **94/94 paginaciones iguales; 859/859 páginas con los mismos vectores e imágenes; 823/859 con las mismas palabras y posiciones**. Las **36 páginas distintas** (18 PDF A/B) son todas la referencia P4: desaparece `SEGÚN FUENTE` y aparecen nombres y valores de las fuentes; ninguna otra diferencia. Inspección raster: Ilyra (tres fuentes, líneas apiladas de 7 pt) cabe en la tarjeta; Mara (una fuente) imprime una línea. Con una fuente sin dato (Sage, High Elf en Ilyra) la tarjeta muestra `—`.
+
+Es comparación **local**, no el artefacto de CI. Un PASS local acotado exige además Scaffold y QA SUCCESS del commit exacto.
+
 ## Qué NO demuestra
 
 No es G4 ni aprobación del propietario; no hay APK instalado. Android solo se compiló, no se ejecutó en dispositivo. Falta la comparación de PDF reales contra el lote C229 (94 PDF / 859 páginas) y el acta con hashes.
