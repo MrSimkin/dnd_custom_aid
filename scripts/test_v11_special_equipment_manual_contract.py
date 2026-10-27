@@ -17,7 +17,9 @@ class SpecialEquipmentPaperContractTest(unittest.TestCase):
             end = value.index("PDPage(PDRectangle.LETTER).also", start)
             body = value[start:end]
             self.assertIn('listOf("Cuello", "Cuerpo", "Mano izquierda", "Mano derecha")', body)
-            self.assertIn("repeat(specialCapacity) { rowIndex ->", body)
+            # D-0076 §3.21: one ACTIVO square per band (real entry or free row).
+            self.assertIn("repeat(specialBands.size) { rowIndex ->", body)
+            self.assertIn("specialBands[rowIndex] * specialRowHeight / 2f", body)
             self.assertIn("manualSpecialLocations.getOrNull(rowIndex)", body)
             self.assertIn("specialP2Rows.getOrNull(rowIndex)?.first?.active == true", body)
             self.assertIn("stream.addRect(activeX, activeY, 9f, 9f)", body)

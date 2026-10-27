@@ -1,6 +1,6 @@
 # C211 — RCR-1: candidato de recuperación (evidencia recuperada, SIN implementar)
 
-Fecha 2026-10-26 (Chile). PR #173 DRAFT/NO MERGE. **Estado: RECOVERY_ACTIVE — R1/2 implementado con autorización del propietario (2026-10-26); pendiente de CI exacto.**
+Fecha 2026-10-26 (Chile). PR #173 DRAFT/NO MERGE. **Estado: PASS LOCAL FÍSICO (no G4) — R1/2 `af7a1058` + R2/2 `3af77855` (solo tripwire), CI exacto SUCCESS.**
 
 ```text
 INCIDENTE: C211  Gate detectado: G3 (auditor físico C207)  Gate causante: G3 (dibujo de tablas pareadas en C2)
@@ -59,5 +59,7 @@ Los dos PDF reconstruidos y el informe del auditor se guardan en `docs/pc-sheet-
 **CI de `af7a1058`:** `Scaffold checks` (run 40413679203) SUCCESS, con compilación Shared/Android/Desktop y los auditores físicos sobre los PDF reales. `PC Sheet V11 owner QA traceability` (run 40413679233) FAILURE en un solo control textual: `test_v11_p2_empty_paper_rhythm_contract.py` buscaba `alternateP2Rows = !compactC2)` literal, y R1 añadió el argumento `stopRulesBelow` detrás.
 
 **Corrección:** solo el tripwire. Ahora exige `alternateP2Rows = !compactC2,` y `stopRulesBelow = sideNotes.map` en ambos renderizadores. El código de la app no cambia. Se cuenta como R2/2 (criterio conservador): si la CI de esta corrección falla, C211 queda en STOP definitivo.
+
+**Resultado:** Scaffold [#40423111021](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40423111021) y QA [#40423111088](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40423111088) SUCCESS en `3af77855`. La comparación de los PDF de la CI `8b57bd22` → `af7a1058` (96 PDF, 877 → 855 páginas) no pierde datos: solo desaparecen el nombre de cabecera y el título de las 22 páginas C2 eliminadas. **C211: PASS LOCAL FÍSICO, no G4.** Seguimiento en [C233](2026-10-26_V11_C233_P2_SPECIAL_EQUIPMENT_TALL_ROWS.md).
 
 **Local antes de subir:** las 60 pruebas Python pasan. `check_resume_route`, `generate_android_pc_sheet_renderer --check`, `check_android_pc_sheet_pdf_delivery` y `check_v11_qa_registry` pasan. `check_v11_qa_registry` requiere `PYTHONUTF8=1` en Windows: `git show` se decodifica en cp1252 y no es un defecto en Linux.

@@ -2975,16 +2975,24 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val traitsPlaced = body.place(PcSheetV11FlowSection.TRAITS, traitLines,
                 traitsArea, 2, 12f)
             // V11 golden P2: location / name / description / ACTIVO belong
-            // to ONE physical row per special item, not four paragraphs.
-            // A row is published on P2 ONLY when all of its REAL source text
-            // fits legibly in two measured lines per cell; the complete
-            // remaining source suffix goes to full-width C2 untruncated.
+            // to ONE logical row per special item, not four paragraphs.
+            // D-0076 §3.21 (owner): keep the 25 pt writing rhythm when the
+            // entry fits and give it more height when its name/description
+            // needs several lines. An entry spans whole pitches, so the free
+            // rows below stay on the same paper grid. Entries fill P2 in
+            // source order; from the first one that no longer fits, the
+            // complete source suffix goes to full-width C2 untruncated.
             val specialColumns = listOf(105f, 136f, 241f, 46f)
             require(specialColumns.sum() == specialArea.widthPt)
             val specialHeaderHeight = 18f
             val specialRowHeight = 25f
             val specialCapacity = ((specialArea.heightPt - specialHeaderHeight) /
                 specialRowHeight).toInt()
+            // One pitch keeps its approved two lines; taller bands keep the
+            // 10 pt first baseline and a 4 pt foot so ink never meets a rule.
+            fun specialLinesFor(pitches: Int): Int = maxOf(2,
+                1 + ((pitches * specialRowHeight - 14f) / body.metrics.lineHeightPt).toInt())
+            val specialMaxLines = specialLinesFor(specialCapacity)
             fun specialCellLines(raw: String?, widthPt: Float): List<String>? {
                 if (raw.isNullOrBlank()) return emptyList()
                 val text = raw
@@ -2995,21 +3003,22 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     listOf(PcSheetV11FlowItem("special-cell", text,
                         keepTogetherIfFits = true)),
                     1,
-                    PcSheetV11TextColumn(width, body.metrics.lineHeightPt * 2f,
+                    PcSheetV11TextColumn(width,
+                        body.metrics.lineHeightPt * specialMaxLines,
                         body.metrics.lineHeightPt),
                     body.width,
                 )
                 if (printable.localPageCount != 1) return null
                 val ranges = printable.fragments.flatMap { it.lineRanges }
-                if (ranges.size > 2) return null
+                if (ranges.size > specialMaxLines) return null
                 return ranges.map { text.substring(it.startOffset, it.endExclusive)
                     .trimEnd('\r', '\n') }
             }
             val specialP2Rows = mutableListOf<Pair<
                 io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Equipment,
                 List<List<String>>>>()
+            val specialP2Pitches = mutableListOf<Int>()
             for (item in data.specialEquipment) {
-                if (specialP2Rows.size >= specialCapacity) break
                 val details = listOfNotNull(
                     item.description?.takeIf { it.isNotBlank() },
                     item.notes?.takeIf { it.isNotBlank() }?.let { "NOTAS: " + it },
@@ -3019,11 +3028,22 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     specialCellLines(field, specialColumns[index])
                 }
                 if (lines.any { it == null }) break
+                val needed = lines.maxOf { requireNotNull(it).size }
+                val pitches = (1..specialCapacity).first { specialLinesFor(it) >= needed }
+                if (specialP2Pitches.sum() + pitches > specialCapacity) break
                 specialP2Rows += item to lines.map { requireNotNull(it) }
+                specialP2Pitches += pitches
             }
             val specialDeferredToC2 = data.specialEquipment.drop(specialP2Rows.size)
             require(specialP2Rows.size + specialDeferredToC2.size ==
                 data.specialEquipment.size)
+            // One band per real entry, then one-pitch free rows to the foot.
+            val specialBands = specialP2Pitches +
+                List(specialCapacity - specialP2Pitches.sum()) { 1 }
+            val specialBandTops = specialBands.runningFold(
+                specialArea.topPt - specialHeaderHeight) { top, pitches ->
+                top - pitches * specialRowHeight
+            }
 
             fun grid(
                 stream: PDPageContentStream,
@@ -3368,10 +3388,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // behind genuine location/name/description/ACTIVO values
                 // and their original vector marks; no new digital rows.
                 stream.setNonStrokingColor(Color(231, 242, 247))
-                for (row in 0 until specialCapacity step 2) {
-                    val top = specialArea.topPt - specialHeaderHeight -
-                        row * specialRowHeight
-                    val bottom = maxOf(specialArea.bottomPt, top - specialRowHeight)
+                for (band in specialBands.indices step 2) {
+                    val top = specialBandTops[band]
+                    val bottom = maxOf(specialArea.bottomPt, specialBandTops[band + 1])
                     if (top > bottom) {
                         stream.addRect(specialArea.leftPt, bottom,
                             specialArea.widthPt, top-bottom)
@@ -3388,9 +3407,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.lineTo(boundary, specialArea.topPt)
                     stream.stroke()
                 }
-                for (index in 0..specialCapacity) {
-                    val lineY = specialArea.topPt - specialHeaderHeight -
-                        index * specialRowHeight
+                for (lineY in specialBandTops) {
                     stream.moveTo(specialArea.leftPt, lineY)
                     stream.lineTo(specialArea.rightPt, lineY)
                     stream.stroke()
@@ -3409,8 +3426,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 )
                 val activeX = specialArea.rightPt - specialColumns.last() / 2f - 4.5f
                 specialP2Rows.forEachIndexed { rowIndex, (_, columns) ->
-                    val rowTop = specialArea.topPt - specialHeaderHeight -
-                        rowIndex * specialRowHeight
+                    val rowTop = specialBandTops[rowIndex]
                     columns.forEachIndexed { column, values ->
                         values.forEachIndexed { line, value ->
                             if (value.isNotEmpty()) {
@@ -3428,16 +3444,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     listOf("Cuello", "Cuerpo", "Mano izquierda", "Mano derecha")
                 } else emptyList()
                 require(manualSpecialLocations.size < specialCapacity)
-                repeat(specialCapacity) { rowIndex ->
-                    val rowTop = specialArea.topPt - specialHeaderHeight -
-                        rowIndex * specialRowHeight
+                repeat(specialBands.size) { rowIndex ->
+                    val rowTop = specialBandTops[rowIndex]
                     if (data.specialEquipment.isEmpty()) {
                         manualSpecialLocations.getOrNull(rowIndex)?.let { location ->
                             draw(stream, location, fieldX[0] + 5f, rowTop - 10f, false)
                         }
                     }
                     // Each writable row requires a genuine unmarked ACTIVO square.
-                    val activeY = rowTop - specialRowHeight / 2f - 4.5f
+                    val activeY = rowTop -
+                        specialBands[rowIndex] * specialRowHeight / 2f - 4.5f
                     stream.addRect(activeX, activeY, 9f, 9f)
                     stream.stroke()
                     if (specialP2Rows.getOrNull(rowIndex)?.first?.active == true) {

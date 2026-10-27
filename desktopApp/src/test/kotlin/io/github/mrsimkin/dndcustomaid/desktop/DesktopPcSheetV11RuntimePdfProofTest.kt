@@ -1093,9 +1093,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 it.contains("NOMBRE") && it.contains("DESCRIPCIÓN") &&
                 it.contains("ACTIVO") },
                 "Every physical special C2 must preserve the approved four columns.")
-            assertTrue(specialContinuation.joinToString("\n")
+            // D-0076 §3.21: P2 shows the first real entries in taller rows;
+            // only the remaining source suffix continues on C2, never twice.
+            assertTrue(physicalP2.replace(Regex("\\s+"), " ")
                 .contains("Astrolabio de cobre"),
-                "Mara's deferred original special equipment must be present.")
+                "Mara's first special entry must be printed on P2.")
+            assertFalse(specialContinuation.joinToString("\n")
+                .contains("Astrolabio de cobre"),
+                "An entry printed on P2 must not be repeated on C2.")
             assertTrue(printed.contains("RASGOS"))
             assertTrue(printed.contains("Cobre"))
             assertTrue(printed.contains("Oro"))
@@ -1409,18 +1414,19 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(vectorSquares >= 20,
                 "P4 paper-only checkbox marks must be real 7pt PDF rectangles.")
             assertTrue(printed.contains("Libro de conjuros"))
-            val c2SpecialText = (1..pdf.numberOfPages).map { physical ->
+            val pageTexts = (1..pdf.numberOfPages).map { physical ->
                 PDFTextStripper().apply {
                     startPage = physical
                     endPage = physical
                 }.getText(pdf)
-            }.filter { it.contains("EQUIPO ESPECIAL") &&
-                it.contains("C2 - Equipo") }
-            assertTrue(c2SpecialText.isNotEmpty())
-            assertTrue(c2SpecialText.all { it.contains("UBICACIÓN") &&
-                it.contains("DESCRIPCIÓN") && it.contains("ACTIVO") })
-            assertTrue(c2SpecialText.joinToString("\n").contains("Spellbook"),
-                "Ilyra's long persisted special object must survive C2 table layout.")
+            }
+            // D-0076 §3.21: the long persisted special object now gets a
+            // taller P2 row instead of a dedicated C2 page.
+            assertTrue(pageTexts[1].contains("EQUIPO ESPECIAL") &&
+                pageTexts[1].contains("Spellbook"),
+                "Ilyra's long persisted special object must be printed on P2.")
+            assertFalse(pageTexts.any { it.contains("C2 - Equipo especial") },
+                "A special object that fits P2 must not get a C2 page.")
             assertTrue(printed.contains("Índice del Libro de Conjuros"))
             assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })
             assertTrue(printed.contains("LANZAMIENTO DE CONJUROS"),
@@ -1961,25 +1967,26 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "C211: P2 is filled before C2, long names wrap on P2.")
                 assertFalse(pages.any { it.contains("C2 - Equipo y tesoro / EQUIPO") },
                     "No ordinary object is left for C2.")
-                val c2 = pages.filter {
-                    it.contains("C2 - Equipo especial / continuación")
-                }
-                assertEquals(1, c2.size, "The single deferred special item uses one C2 page.")
-                val text = c2.single()
+                // D-0076 §3.21: the Spellbook (location, notes, ACTIVO) now gets a
+                // taller P2 row, so Ilyra needs no equipment C2 at all.
+                assertFalse(pages.any { it.contains("C2 - Equipo especial / continuación") },
+                    "A special item that fits P2 in a taller row has no C2 page.")
+                val p2 = flat(pages[1])
                 for (required in listOf(
                     "EQUIPO ESPECIAL", "UBICACIÓN", "NOMBRE", "DESCRIPCIÓN",
-                    "ACTIVO", "Spellbook", "Mochila", "Evocation Savant",
-                    "NOTAS", "VIENE DE P2 PÁG. 2",
+                    "ACTIVO", "Spellbook", "Mochila", "Evocation Savant", "NOTAS",
                 )) {
-                    assertTrue(text.contains(required),
-                        "Missing real C2 special source/column/footer: $required")
+                    assertTrue(p2.contains(required),
+                        "Missing real P2 special source/column: $required")
                 }
                 assertEquals(1, Regex("Suministros de calígrafo")
                     .findAll(flat(pages.joinToString("\n"))).count())
-                assertEquals(1, Regex("Evocation Savant")
-                    .findAll(text).count())
-                val c2Pos = pages.indexOf(text) + 1
-                assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " + c2Pos))
+                // Once as the class trait identity in RASGOS, once in the
+                // Spellbook notes: the special entry is never duplicated.
+                assertEquals(2, Regex("Evocation Savant")
+                    .findAll(flat(pages.joinToString("\n"))).count())
+                assertFalse(pages[1].contains("CONTINÚA EN C2"),
+                    "P2 must not point to a C2 that no longer exists.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
             }
         }

@@ -97,4 +97,16 @@ El propietario aprobó P1/P3/P4, P2, C2, final y variante B tras revisión V11. 
 - Cuando un objeto ocupa varias líneas, **las líneas siguientes a la primera llevan una pequeña sangría**, para que se note que ese bloque es un mismo texto. La cantidad se escribe una sola vez, en la primera línea.
 - Se aplica a las tablas pareadas de Equipo y Tesoro en P2 y en C2.
 
-**Detalles técnicos del Worker (no dichos por el propietario):** sangría de 8 pt; las líneas se cortan a la anchura con sangría para que ninguna invada la columna de cantidad; siguen yendo a C2 solo los nombres con saltos de línea guardados o las cantidades más anchas que su casilla. Equipo Especial no cambia en esta aclaración (sigue con su límite de dos líneas por celda; es un defecto aparte pendiente).
+**Detalles técnicos del Worker (no dichos por el propietario):** sangría de 8 pt; las líneas se cortan a la anchura con sangría para que ninguna invada la columna de cantidad; siguen yendo a C2 solo los nombres con saltos de línea guardados o las cantidades más anchas que su casilla. Equipo Especial no cambia en esta aclaración (sigue con su límite de dos líneas por celda; es un defecto aparte pendiente). *Resuelto en C233; ver la sección siguiente.*
+
+### Aplicación de D-0076 §3.21 — Equipo Especial con filas de mayor altura (2026-10-26)
+
+**Fuente (propietario, D-0076 §3.21, 2026-10-08):** mostrar primero las entradas reales; «seguir el ritmo general de filas… cuando la entrada quepa, y admitir mayor altura cuando el nombre/descripción requiera varias líneas»; no truncar. No es una decisión nueva: corrige una implementación que mandaba todo a C2 cuando un objeto necesitaba más de dos líneas.
+
+**Regla:** en P2, cada objeto especial real ocupa la altura que necesita, en orden de origen. Desde el primero que ya no cabe en P2, ese objeto y los siguientes continúan completos en C2. Bajo los objetos quedan filas libres de altura normal. Cada fila (objeto o libre) tiene su casilla ACTIVO.
+
+**Detalles técnicos del Worker (no dichos por el propietario):**
+- Pauta de 25 pt: un objeto ocupa pautas completas (1 pauta = 2 líneas; las bandas más altas dejan 4 pt al pie) para que las filas libres sigan alineadas.
+- Casilla ACTIVO centrada en la banda.
+- Sombreado alterno por banda.
+- Sin objetos especiales, la página no cambia.

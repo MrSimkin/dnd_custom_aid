@@ -22,7 +22,8 @@ P2_MODULES = (
     ("Equipo", 42.0, 108.0, 258.0, (12.42, 16.5)),
     ("Tesoro", 42.0, 344.0, 258.0, (12.42, 19.5)),
     ("Rasgos", 312.0, 108.0, 258.0, (12.42,)),
-    ("Equipo especial", 42.0, 497.0, 528.0, (25.0,)),
+    # D-0076 §3.21: a multi-line special entry spans whole 25 pt pitches.
+    ("Equipo especial", 42.0, 497.0, 528.0, tuple(25.0 * n for n in range(1, 9))),
 )
 
 
@@ -41,6 +42,33 @@ def p2_alternating_writing_rows(page: fitz.Page) -> list[str]:
                    for r in tinted):
             errors.append(f"P2 missing golden row shade in {name} at ({x},{y})")
     return errors
+SPECIAL_TABLE = (42.0, 497.0, 570.0, 697.0)  # P2 special rows, top-origin
+
+
+def p2_special_rows(page: fitz.Page) -> list[str]:
+    """D-0076 §3.21: taller special rows keep their ink between rules and one ACTIVO box each."""
+    x0, top, x1, bottom = SPECIAL_TABLE
+    rules = sorted({round(item[1].y, 1) for d in page.get_drawings() for item in d["items"]
+                    if item[0] == "l" and abs(item[1].y - item[2].y) < .05
+                    and item[1].x <= x0 + .5 and item[2].x >= x1 - .5
+                    and top - .5 <= item[1].y <= bottom + .5})
+    boxes = [d["rect"] for d in page.get_drawings()
+             if abs(d["rect"].width - 9) < .2 and abs(d["rect"].height - 9) < .2
+             and top <= d["rect"].y0 <= bottom]
+    errors = []
+    if len(rules) < 2:
+        return ["P2 special table rules not found"]
+    bands = [(a, b) for a, b in zip(rules, rules[1:]) if b - a > 20]
+    for a, b in bands:
+        if sum(1 for r in boxes if a < r.y0 and r.y1 < b) != 1:
+            errors.append(f"P2 special band {a}-{b} lacks exactly one ACTIVO box")
+    for w in page.get_text("words"):
+        if x0 < w[0] < x1 and top < w[1] < bottom:
+            if any(w[1] + .5 < y < w[3] - .5 for y in rules):
+                errors.append(f"P2 special word crosses a row rule: {w[4]!r}")
+    return errors
+
+
 FOOTER = re.compile(r"\bHOJA\s+(\d+)\s*/\s*(\d+)\b")
 
 
@@ -59,6 +87,7 @@ def inspect_one(path: Path) -> dict:
         roles.append(role)
         if index == 2:
             errors.extend(p2_alternating_writing_rows(page))
+            errors.extend(p2_special_rows(page))
         fonts = " ".join(item[3] for item in page.get_fonts(full=True))
         if "BarlowCondensed" not in fonts or (index < total and "FiraSans" not in fonts):
             errors.append(f"p{index}: expected embedded text font missing")
