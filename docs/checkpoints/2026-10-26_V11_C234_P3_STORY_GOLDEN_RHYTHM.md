@@ -1,6 +1,6 @@
 # C234 — P3 Historia con el ritmo del golden (opción B del propietario)
 
-Fecha 2026-10-26 (Chile). PR #173 DRAFT/NO MERGE. **Estado: IMPLEMENTADO LOCAL; CI exacto pendiente. No es G4.**
+Fecha 2026-10-26 (Chile). PR #173 DRAFT/NO MERGE. **Estado: PASS LOCAL FÍSICO (no G4).** Código `815a8bfd`: Scaffold [#40428255698](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40428255698) y QA [#40428255742](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40428255742) SUCCESS (incluye el nuevo control de paridad). Los PDF de la CI son idénticos a los locales (96 PDF / 828 páginas). Contra la CI de `2d806db8` no se pierde ninguna palabra; solo 4 PDF de historias extremas tienen una página más.
 
 Anterior: [C233](2026-10-26_V11_C233_P2_SPECIAL_EQUIPMENT_TALL_ROWS.md) (Equipo Especial P2, cierre C211 y comparación medida con el golden).
 
@@ -33,6 +33,10 @@ Tras ver tres vistas previas (`docs/pc-sheet-v11/qa/evidence/golden_gap_2026-10-
 
 ## Pendiente
 
-- CI exacto de este commit.
 - Pendiente menor: las celdas de continuación de P3 empiezan en el borde de la banda (x=42), sin el pequeño margen interior del golden. Viene de antes y se corregirá junto con los márgenes de P3.
-- Siguiente trabajo: C2 «Habilidades, acciones y recursos» como módulos (ver C233, comparación medida con el golden).
+- **C2 «Habilidades, acciones y recursos» — PROPUESTA ESPERANDO DECISIÓN DEL PROPIETARIO.**
+  - Hallazgo: la mayor parte de esta C2 en Mara son **acciones** (tipos ACTION / BONUS_ACTION / REACTION) y **recursos personalizados**. Ninguno de los dos existe en el golden, así que su disposición es una decisión de diseño y no un error medido.
+  - Vista previa con datos reales de Mara y fuentes reales: `docs/pc-sheet-v11/qa/evidence/golden_gap_2026-10-26/C2_propuesta_acciones_recursos_R1_R2.png` (script en `tools/c2_preview.py`).
+  - Propuesta: tabla ACCIONES con la gramática de la tabla de Ataques de P1 (acción | tipo | alcance/efecto, notas en una línea de 7 pt bajo la fila) y RECURSOS con casillas agrupadas de cinco, reutilizando la gramática aprobada de Municiones.
+  - Pregunta al propietario: R1 (todas las casillas vacías y el texto «Quedan x de y») o R2 (las casillas gastadas marcadas con X según el valor guardado).
+  - Los ataques que no caben en P1 ya existen en el golden (tabla ATAQUES) y se pasarán a esa tabla junto con este cambio.

@@ -1,4 +1,4 @@
-**2026-10-26 — C234 V11 Historia P3 en 7/17 pt (opción B del propietario), IMPLEMENTADO LOCAL, CI pendiente.** [Checkpoint](checkpoints/2026-10-26_V11_C234_P3_STORY_GOLDEN_RHYTHM.md).
+**2026-10-26 — C234 V11 Historia P3 en 7/17 pt (opción B del propietario), PASS LOCAL físico** (Scaffold #40428255698 y QA #40428255742 SUCCESS en `815a8bfd`); propuesta C2 a la espera de decisión R1/R2. [Checkpoint](checkpoints/2026-10-26_V11_C234_P3_STORY_GOLDEN_RHYTHM.md).
 
 **2026-10-26 — C233 V11 Equipo Especial en filas altas (D-0076 §3.21), PASS LOCAL físico (Scaffold #40424922755 y QA #40424922744 SUCCESS en `2d806db8`; P208 G3 PASS acotado); C211 PASS LOCAL físico** (Scaffold #40423111021 y QA #40423111088 SUCCESS en `3af77855`). P2 muestra primero los objetos especiales reales en la altura que necesitan; solo el resto va a C2. Ningún dato perdido. [Checkpoint](checkpoints/2026-10-26_V11_C233_P2_SPECIAL_EQUIPMENT_TALL_ROWS.md).
 
