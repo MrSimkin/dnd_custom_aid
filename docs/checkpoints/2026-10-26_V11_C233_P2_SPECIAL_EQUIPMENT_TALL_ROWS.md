@@ -1,6 +1,6 @@
 # C233 — P2 Equipo Especial: filas de mayor altura (D-0076 §3.21)
 
-Fecha 2026-10-26 (Chile). PR #173 DRAFT/NO MERGE. **Estado: IMPLEMENTADO LOCAL; CI exacto pendiente. No es G4.**
+Fecha 2026-10-26 (Chile). PR #173 DRAFT/NO MERGE. **Estado: PASS LOCAL FÍSICO (no G4).** Código `2d806db8`: Scaffold [#40424922755](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40424922755) y QA #40424922744 SUCCESS. Auditoría de envoltura de la CI: 96 PDF / 824 páginas, 0 errores, incluido `p2_special_rows`. Los PDF de la CI coinciden con los locales (824/824 páginas). Contra `af7a1058`, las únicas palabras que desaparecen son el nombre de cabecera de las 31 páginas C2 eliminadas. Matriz: P208 G3 PASS acotado; P208 global y G4 siguen NOT_VERIFIED.
 
 Historial anterior: [C231](2026-10-26_V11_C231_SOURCE_TYPE_LABELS_P1_P4.md) (fuentes de conjuro por tipo, lista P1 C232) y [C211 RCR-1](2026-10-26_V11_C211_RCR1_RECOVERY_CANDIDATE.md).
 
@@ -44,6 +44,5 @@ Contradice D-0076 §3.21 (decisión expresa del propietario, 2026-10-08): «Most
 
 ## Pendiente
 
-- CI exacto de este commit y la evidencia G3 de P208 en la matriz, solo con esa CI.
-- Seguir comparando visualmente con el golden P3/C2 y las demás páginas.
+- **Siguiente (P3, medido contra el golden `v11_extremo_variante_A.pdf` p3):** en Historia y Crónica, la app escribe Fira de 9 pt sobre renglones de 12,4 pt. El golden usa 7 pt sobre renglones de 6 mm (~17 pt), con la línea base cerca del pie de cada renglón (aspecto de cuaderno). Cambiarlo afecta la paginación de P3/C2 y el aspecto, así que se mostrará una vista previa al propietario antes de implementarlo. Sigue la comparación de C2 y las demás páginas.
 - G4 106 reglas NOT_VERIFIED; G5/G6 (APK en teléfono y QA del propietario) pendientes.

@@ -1,3 +1,5 @@
+**2026-10-26 — C233 PASS LOCAL FÍSICO (no G4):** Scaffold #40424922755 y QA #40424922744 SUCCESS en `2d806db8`. Auditoría de la CI con 0 errores en 96 PDF / 824 páginas, y PDF de la CI idénticos a los locales. Matriz P208 G3 PASS acotado. Siguiente: ritmo de renglones de Historia en P3 contra el golden (vista previa al propietario primero).
+
 **2026-10-26 — C233 EQUIPO ESPECIAL EN FILAS MÁS ALTAS EN P2 (D-0076 §3.21): IMPLEMENTADO LOCAL, CI PENDIENTE.** Antes, un objeto especial largo mandaba todo el Equipo Especial a C2 (Mara P2 vacía). Ahora cada objeto ocupa las pautas de 25 pt que necesita, en orden de origen, y solo el resto va a C2. Pasan las 681 pruebas locales y los 11 auditores en 96 PDF, más el nuevo control de filas y casillas ACTIVO. Ningún dato perdido; 31 PDF tienen una página C2 menos. [Checkpoint C233](2026-10-26_V11_C233_P2_SPECIAL_EQUIPMENT_TALL_ROWS.md).
 
 **2026-10-26 — C211 PASS LOCAL FÍSICO (no G4).** R2/2 `3af77855`: Scaffold #40423111021 y QA #40423111088 SUCCESS. La comparación de los PDF de la CI no muestra datos perdidos. Presupuesto RCR-1: 1/2.

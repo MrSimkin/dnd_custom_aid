@@ -2055,8 +2055,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "realMaraApplicationServiceWritesMultiPageLetterPdfFromOwnRenderer; g3IlyraGenuineSingleOrdinaryAndSpecialC2ShareOnePhysicalPageAB; realIlyraSpellcasterProducesP4AndHandwrittenGridAsLastPage; g3RealP2NoSpecialEquipmentHasRecognizedLocationsFreeRowsAndBlankActivoBoxes",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: P2 Equipo Especial is full width with real UBICACION / NOMBRE / DESCRIPCION / ACTIVO columns; real entries come first in source order in rows that grow by whole 25pt pitches (D-0076 3.21), so Mara prints its first two long objects and Ilyra its Baston and Spellbook on P2; only the remaining suffix continues on full-width C2, never duplicated; free rows follow, one ACTIVO box per band.",
+            "source_commit": "2d806db8a9e6ae88510f9f0f14725461bc6840cb",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40424922755",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40424922755/artifacts/12699691317",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40424922755/artifacts/12699835587",
+            "independent_inspection": "PyMuPDF audit_v11_pdf_physical_envelope.p2_special_rows in the same CI run: no word crosses a special row rule and every band has exactly one 9pt ACTIVO box (negative control detected a word placed over a rule); word-multiset comparison with the CI PDFs of af7a1058: 855 -> 824 pages, the only missing words are the character name in the header of each removed C2 special page; raster before/after of Ilyra-B and Mara-A P2 in docs/pc-sheet-v11/qa/evidence/c233/.",
+            "limitations": "Desktop PDFs only; ACTIVO marking itself is P209; G2 NOT_VERIFIED; the shared C2 page EQUIPO + EQUIPO ESPECIAL is no longer reached by a real fixture; no installed Android or owner approval; global P208 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
