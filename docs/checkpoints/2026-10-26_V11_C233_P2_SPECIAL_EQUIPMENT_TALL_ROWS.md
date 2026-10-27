@@ -42,6 +42,26 @@ Contradice D-0076 §3.21 (decisión expresa del propietario, 2026-10-08): «Most
 - Mara A/B: dos objetos reales en P2, de 4 pautas cada uno. El resto sigue en C2.
 - Ilyra: Bastón (1 pauta) y Spellbook (3 pautas) en P2, más 4 filas libres.
 
+## Comparación medida con el golden (2026-10-26, sin código)
+
+Imágenes en `docs/pc-sheet-v11/qa/evidence/golden_gap_2026-10-26/`. Golden: `v11_extremo_variante_A.pdf`. App: `V11-INTERNAL-PROOF-Mara-A.pdf` de `2d806db8`.
+
+1. **P3 Historia — DECISIÓN DEL PROPIETARIO PENDIENTE.** La app escribe Fira de 9 pt en renglones de 12,42 pt. El golden usa 7 pt en renglones de 17 pt, con la línea base cerca del pie. La vista previa `P3_historia_opciones_A_B_C.png` usa la fuente real y la historia real de Mara:
+   - A, actual: 27 renglones por columna, ~3.138 caracteres por P3.
+   - B, golden: 20 renglones por columna, ~2.917 caracteres.
+   - C, 9 pt en renglón de 17 pt: 20 renglones por columna, ~2.325 caracteres.
+   - El tamaño de letra no está fijado en el contrato; D-0076 prioriza la legibilidad impresa. Por eso no se cambia sin elección del propietario. Si se elige B, la misma pregunta aplica al resto del cuerpo de texto, que hoy usa 9 pt en toda la hoja.
+2. **C2 «Habilidades, acciones y recursos» — mayor distancia estructural.** El golden C2 está hecho de módulos con cartela «VIENE P.1»:
+   - tabla de Ataques;
+   - Atributos/Habilidades con cajas;
+   - Municiones con pistas de casillas;
+   - Equipo en parejas;
+   - Tesoro y Equipo Especial compartiendo página (D-0076 permite que excedentes de varios módulos compartan página);
+   - cuadrículas NOTAS.
+
+   En la app, la columna derecha (recursos) y las acciones se imprimen como texto corrido con separadores «|» (`RECURSO … | RESTANTE … | RECUPERA … | FUENTE … | NOTAS …`). Es un error medido frente al golden aprobado (contrato §73): se puede corregir sin rediseñar, conservando los datos y las referencias C207/C208.
+3. C2 Equipo: tabla de dos parejas correcta. El golden agrupa Tesoro y Equipo Especial en una página, y la app da página propia a cada módulo; se revisará con el punto 2.
+
 ## Pendiente
 
 - **Siguiente (P3, medido contra el golden `v11_extremo_variante_A.pdf` p3):** en Historia y Crónica, la app escribe Fira de 9 pt sobre renglones de 12,4 pt. El golden usa 7 pt sobre renglones de 6 mm (~17 pt), con la línea base cerca del pie de cada renglón (aspecto de cuaderno). Cambiarlo afecta la paginación de P3/C2 y el aspecto, así que se mostrará una vista previa al propietario antes de implementarlo. Sigue la comparación de C2 y las demás páginas.
