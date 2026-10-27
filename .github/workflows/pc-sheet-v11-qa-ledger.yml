@@ -31,6 +31,7 @@ on:
       - "scripts/test_v11_p2_rasgos_heading_contract.py"
       - "scripts/test_v11_p2_empty_paper_rhythm_contract.py"
       - "scripts/test_v11_p2_paired_column_legend_contract.py"
+      - "scripts/test_v11_p3_story_rhythm_contract.py"
       - "scripts/test_v11_c2_source_navigation_contract.py"
       - "scripts/test_v11_spellbook_essential_card_contract.py"
       - "scripts/test_v11_spellbook_continuation_label_contract.py"
@@ -64,6 +65,7 @@ on:
       - "scripts/test_v11_p2_rasgos_heading_contract.py"
       - "scripts/test_v11_p2_empty_paper_rhythm_contract.py"
       - "scripts/test_v11_p2_paired_column_legend_contract.py"
+      - "scripts/test_v11_p3_story_rhythm_contract.py"
       - "scripts/test_v11_c2_source_navigation_contract.py"
       - "scripts/test_v11_spellbook_essential_card_contract.py"
       - "scripts/test_v11_spellbook_continuation_label_contract.py"
@@ -109,6 +111,8 @@ jobs:
         run: python3 -m unittest discover -s scripts -p 'test_v11_p2_empty_paper_rhythm_contract.py' -v
       - name: V11 P2 Equipment and Treasure column legends parity
         run: python3 -m unittest discover -s scripts -p 'test_v11_p2_paired_column_legend_contract.py' -v
+      - name: V11 P3 story owner-approved 7/17 pt rhythm parity
+        run: python3 -m unittest discover -s scripts -p 'test_v11_p3_story_rhythm_contract.py' -v
       - name: V11 C2 physical source navigation contract parity
         run: python3 -m unittest discover -s scripts -p 'test_v11_c2_source_navigation_contract.py' -v
       - name: V11 BK06 essential spellbook cards and Android/Desktop parity

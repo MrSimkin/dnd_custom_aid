@@ -93,9 +93,9 @@ def p3_golden_row_grammar(page: fitz.Page, first_page: bool) -> tuple[int,int,li
         return any(close(r.x0,x,xy_tol) and close(r.y0,y,xy_tol)
                    and close(r.width,w,xy_tol) and close(r.height,h,height_tol)
                    for r in color_fills)
-    def stripe(x,y,w):
+    def stripe(x,y,w,low=9,high=15):
         return any(close(r.x0,x,.42) and close(r.y0,y,.42)
-                   and close(r.width,w,.42) and 9 < r.height < 15
+                   and close(r.width,w,.42) and low < r.height < high
                    for r in color_fills)
     errors=[]
     headings=0
@@ -110,14 +110,16 @@ def p3_golden_row_grammar(page: fitz.Page, first_page: bool) -> tuple[int,int,li
             for x in (43.,313.):
                 if stripe(x,y,256.): stripes+=1
                 else: errors.append(f"P3 alternating field row missing at {x},{y}")
+        # Owner option B (2026-10-26): story rows follow the golden 17 pt rhythm.
         for x in (47.,312.):
-            if stripe(x,343.,253.): stripes+=1
+            if stripe(x,343.,253.,16.5,17.5): stripes+=1
             else: errors.append(f"P3 alternating story row missing at x={x}")
     else:
-        # Long true-source P3 continuation: both columns must retain style.
+        # Long true-source P3 continuation: both columns must retain style
+        # (12.42 pt profile-field rows or 17 pt story rows).
         for x in (42.,312.):
             if any(close(r.x0,x,.42) and r.width>230
-                   and 110<r.y0<150 and 9<r.height<15
+                   and 110<r.y0<150 and (9<r.height<15 or 16.5<r.height<17.5)
                    for r in color_fills): stripes+=1
             else: errors.append(f"P3 continuation missing alternating rows x={x}")
     return headings,stripes,errors

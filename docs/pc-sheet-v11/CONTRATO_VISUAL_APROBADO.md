@@ -99,6 +99,18 @@ El propietario aprobó P1/P3/P4, P2, C2, final y variante B tras revisión V11. 
 
 **Detalles técnicos del Worker (no dichos por el propietario):** sangría de 8 pt; las líneas se cortan a la anchura con sangría para que ninguna invada la columna de cantidad; siguen yendo a C2 solo los nombres con saltos de línea guardados o las cantidades más anchas que su casilla. Equipo Especial no cambia en esta aclaración (sigue con su límite de dos líneas por celda; es un defecto aparte pendiente). *Resuelto en C233; ver la sección siguiente.*
 
+### Aclaración del propietario — Historia de P3 con el ritmo del golden (2026-10-26)
+
+**Fuente:** el propietario vio tres vistas previas con la fuente real y la historia real de Mara (A actual 9/12,4 pt; B golden 7/17 pt; C 9/17 pt) y respondió: «Opción B: usa 7 pt sobre renglones de 17 pt como el diseño aprobado en Historia».
+
+**Regla:** «HISTORIA Y CRÓNICA» en P3, y su continuación, se escriben en letra de 7 pt sobre renglones de 17 pt, como el golden aprobado. Los campos de perfil (Trasfondo, Religión/Fe, Rasgos de personalidad, Ideales, Vínculos, Defectos) no cambian en esta aclaración.
+
+**Detalles técnicos del Worker (no dichos por el propietario):**
+- Fira Sans Regular; línea base 4 pt sobre la regla al pie de cada renglón (medido en el golden: el texto queda justo sobre la regla).
+- La continuación de Historia va en páginas propias con el mismo ritmo, después de cualquier continuación de campos de perfil.
+- Una historia muy larga ocupa una página más que antes (capacidad de P3 ~3.100 → ~2.900 caracteres).
+- Si el resto del cuerpo de texto debe pasar también a 7 pt, se decidirá aparte.
+
 ### Aplicación de D-0076 §3.21 — Equipo Especial con filas de mayor altura (2026-10-26)
 
 **Fuente (propietario, D-0076 §3.21, 2026-10-08):** mostrar primero las entradas reales; «seguir el ritmo general de filas… cuando la entrada quepa, y admitir mayor altura cuando el nombre/descripción requiera varias líneas»; no truncar. No es una decisión nueva: corrige una implementación que mandaba todo a C2 cuando un objeto necesitaba más de dos líneas.

@@ -208,6 +208,55 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+    @Test
+    fun g3P3StoryUsesOwnerApprovedGoldenRhythmSevenPointOnSeventeenPointRowsAB() {
+        // Owner decision 2026-10-26 (option B): HISTORIA Y CRÓNICA prints Fira
+        // 7 pt on 17 pt rows, baseline 4 pt above each row foot, like the golden.
+        val original = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), original,
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val story = mutableListOf<Pair<Float, Float>>() // (font size, baseline)
+                val fields = mutableListOf<Float>()
+                val stripper = object : PDFTextStripper() {
+                    override fun writeString(
+                        text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                    ) {
+                        val first = textPositions.firstOrNull() ?: return
+                        val baseline = 792f - first.yDirAdj
+                        if (baseline in 88f..449f) story += first.fontSizeInPt to baseline
+                        else if (baseline in 450f..670f && first.fontSizeInPt < 10f) {
+                            fields += first.fontSizeInPt
+                        }
+                    }
+                }
+                stripper.startPage = 3
+                stripper.endPage = 3
+                stripper.getText(pdf)
+                val p3 = PDFTextStripper().apply { startPage = 3; endPage = 3 }.getText(pdf)
+                assertTrue(p3.replace(Regex("\\s+"), " ").contains("Mara creció entre dos calendarios"))
+                assertTrue(story.size >= 5, "Mara's real story must print on P3 ($variant).")
+                assertTrue(story.all { kotlin.math.abs(it.first - 7f) < 0.01f },
+                    "Every P3 story line must use the approved 7 pt size ($variant).")
+                val baselines = story.map { it.second }.distinct().sortedDescending()
+                baselines.zipWithNext().forEach { (upper, lower) ->
+                    assertEquals(17f, upper - lower, 0.05f,
+                        "P3 story lines must sit on consecutive 17 pt rows ($variant).")
+                }
+                // Row foot rules start at the 449 pt area top: 449 - 17k; baseline is 4 pt above.
+                baselines.forEach { baseline ->
+                    val foot = baseline - 4f
+                    assertEquals(0f, ((449f - foot) % 17f).let { minOf(it, 17f - it) }, 0.05f,
+                        "P3 story baseline must be 4 pt above its own row foot ($variant).")
+                }
+                assertTrue(fields.isNotEmpty() && fields.all { kotlin.math.abs(it - 9f) < 0.01f },
+                    "Profile fields keep their 9 pt text; option B applies to Historia only.")
+            }
+        }
+    }
+
     /** Words of page 1 as (text, x, baseline y in PDF coordinates). */
     private fun page1Words(pdf: org.apache.pdfbox.pdmodel.PDDocument):
         List<Triple<String, Float, Float>> {

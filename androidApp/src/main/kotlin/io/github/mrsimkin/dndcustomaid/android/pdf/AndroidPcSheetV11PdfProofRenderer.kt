@@ -13,6 +13,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowSourceMapp
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ColumnGrid
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11CompactFieldRouter
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11RectPt
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ResolvedFont
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticData
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Typeface
 import io.github.mrsimkin.dndcustomaid.shared.character.SpellcastingAbility
@@ -1680,7 +1681,25 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
             val p3StoryItems = listOfNotNull(p3Narrative["narrative:story"])
             val p3StoryArea = PcSheetV11RectPt(47f, 88f, 518f, 361f)
-            val p3Story = body.place(
+            // Owner decision 2026-10-26 (option B): HISTORIA Y CRÓNICA and its
+            // continuation follow the approved golden rhythm, Fira 7 pt on
+            // 17 pt rows with the baseline 4 pt above each row's foot rule.
+            val storyRowPt = 17f
+            val storyFont = measurer.resolve(PcSheetV11Typeface.BODY, 7f).let { font ->
+                font.copy(metrics = font.metrics.copy(leadingPt =
+                    storyRowPt - font.metrics.ascentPt - font.metrics.descentPt))
+            }
+            require(storyFont.metrics.lineHeightPt == storyRowPt)
+            fun storyBaseline(cell: PcSheetV11RectPt): Float = cell.bottomPt + 4f
+            fun drawStory(stream: PDPageContentStream, text: String, x: Float, y: Float) {
+                if (text.isEmpty()) return
+                stream.beginText()
+                stream.setFont(bodyPdfFont, 7f)
+                stream.newLineAtOffset(x, y)
+                stream.showText(pcSheetV11PrintableText(text))
+                stream.endText()
+            }
+            val p3Story = storyFont.place(
                 PcSheetV11FlowSection.NARRATIVE, p3StoryItems, p3StoryArea, 2, 12f,
             )
             fun remainingNarrative(
@@ -1694,7 +1713,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 if (consumed == item.text.length) null
                 else item.copy(text = item.text.substring(consumed))
             }
-            val p3Overflow = buildList {
+            val p3FieldOverflow = buildList {
                 p3FieldLayouts.forEachIndexed { index, (heading, _, flow) ->
                     val keys = p3FieldSpecs[index].second
                     val originals = keys.mapNotNull { p3Narrative["narrative:" + it] }
@@ -1707,6 +1726,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         addAll(remaining)
                     }
                 }
+            }
+            // The story continuation keeps its own 7/17 pt rhythm, so it is a
+            // separate measured flow after any profile-field continuation.
+            val p3StoryOverflow = buildList {
                 val remainingStory = remainingNarrative(p3StoryItems, p3Story)
                 if (remainingStory.isNotEmpty()) {
                     add(PcSheetV11FlowItem(
@@ -1819,20 +1842,18 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
                 drawP3Band(stream, "HISTORIA Y CRÓNICA", 461f)
                 val columns = PcSheetV11ColumnGrid.split(p3StoryArea, 2, 12f)
-                columns.forEach { p3RuledCells(stream, it, body.metrics.lineHeightPt) }
+                columns.forEach { p3RuledCells(stream, it, storyRowPt) }
                 p3Story.cells.filter { it.localPageIndex == 1 }.forEach { cell ->
-                    if (cell.drawableText.isNotEmpty()) {
-                        draw(stream, cell.drawableText, cell.cellPt.leftPt,
-                            body.metrics.baselineIn(cell.cellPt), false)
-                    }
+                    drawStory(stream, cell.drawableText, cell.cellPt.leftPt,
+                        storyBaseline(cell.cellPt))
                 }
             }
-            fun drawP3ContinuationPaper(stream: PDPageContentStream) {
+            fun drawP3ContinuationPaper(stream: PDPageContentStream, rowPt: Float) {
                 drawP3Band(stream, "TRASFONDO, PERFIL E HISTORIA / CONTINUACIÓN", 680f)
                 val columns = PcSheetV11ColumnGrid.split(
                     PcSheetV11RectPt(42f, 76f, 528f, 597f), 2, 12f,
                 )
-                columns.forEach { p3RuledCells(stream, it, body.metrics.lineHeightPt) }
+                columns.forEach { p3RuledCells(stream, it, rowPt) }
             }
 
             // The approved P4 golden places a short, genuine spell origin at
@@ -1912,10 +1933,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 specialMarks: Map<String, Boolean?> = emptyMap(),
                 ammunitionTracks: Map<String, Int> = emptyMap(),
                 maxPhysicalPages: Int? = null,
+                font: PcSheetV11ResolvedFont = body,
+                firstPageNumber: Int = 1,
             ) {
                 require(maxPhysicalPages == null || maxPhysicalPages > 0)
                 if (!alwaysPage && entries.isEmpty()) return
-                val flow = body.place(section, entries, area, columns, if (columns == 1) 0f else 12f)
+                val flow = font.place(section, entries, area, columns, if (columns == 1) 0f else 12f)
                 val pageCount = maxOf(if (alwaysPage) 1 else 0, flow.sourceFlow.localPageCount)
                 repeat(minOf(pageCount, maxPhysicalPages ?: pageCount)) { index ->
                     val pageCells = flow.cells.filter {
@@ -1925,14 +1948,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     // persisted title (or stable source ID) visible on its
                     // NEXT page, instead of leaving owner-visible paragraphs
                     // without a note identity. No source text is duplicated.
-                    val basicTitle = title + " / " + (index + 1)
+                    val basicTitle = title + " / " + (index + firstPageNumber)
                     // P3 stories and profile fields can span multiple C2-style
                     // flow pages. The first page carries its original heading;
                     // later physical pages must retain that SAME source-backed
                     // narrative identity in the free header, not merely say P3.
                     // No paragraph, cell, source offset or page boundary changes.
                     val pageTitle = if (title == "P3 - Narrativa / continuación" &&
-                        index > 0
+                        index + firstPageNumber > 1
                     ) {
                         val firstCell = pageCells.minWithOrNull(
                             compareBy({ it.columnIndex }, { it.rowIndex })
@@ -1989,7 +2012,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         drawFrameAndHeader(stream, pageTitle)
                         if (title.startsWith("P4 - ")) drawP4MagicReference(stream)
                         if (title.startsWith("P3 - Narrativa / continuación")) {
-                            drawP3ContinuationPaper(stream)
+                            drawP3ContinuationPaper(stream, font.metrics.lineHeightPt)
                         }
                         if (title.startsWith("P1 - ") && index == 0) {
                             drawP1Attributes(stream)
@@ -2575,6 +2598,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             stream.restoreGraphicsState()
                         }
                         pageCells.forEach { cell ->
+                            if (font !== body) {
+                                // Owner option B: the story continuation keeps 7/17 pt.
+                                drawStory(stream, cell.drawableText, cell.cellPt.leftPt,
+                                    storyBaseline(cell.cellPt))
+                                return@forEach
+                            }
                             // C219: repeat genuinely persisted P1 total/spent
                             // spell slots on P4's physical SAME-LINE level
                             // meter, as approved D-0076 §§3.25–3.26.
@@ -3473,8 +3502,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     drawP3FirstPage(stream)
                 }
             }
+            val p3PagesBefore = physicalSectionKeys.size
             addSection("P3 - Narrativa / continuación", PcSheetV11FlowSection.NARRATIVE,
-                p3Overflow, 2, area = PcSheetV11RectPt(42f, 76f, 528f, 597f))
+                p3FieldOverflow, 2, area = PcSheetV11RectPt(42f, 76f, 528f, 597f))
+            addSection("P3 - Narrativa / continuación", PcSheetV11FlowSection.NARRATIVE,
+                p3StoryOverflow, 2, area = PcSheetV11RectPt(42f, 76f, 528f, 597f),
+                font = storyFont,
+                firstPageNumber = physicalSectionKeys.size - p3PagesBefore + 1)
 
 
             // Resource balances and ammunition are drawn only from persisted source
