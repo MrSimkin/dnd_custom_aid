@@ -3966,6 +3966,101 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3DeferredFittingAttacksUseGoldenC2AttackTableRowsAB() {
+        // Golden C2 ATAQUES: attacks 7 and 8 fit the approved three-column row, so
+        // they print as table rows (attack / bonus / damage) instead of a "|" record.
+        val source = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val template = source.permanent.sheet.combatEntries.first {
+            it.type == io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK
+        }
+        val attacks = (1..8).map { number ->
+            template.copy(
+                id = Uuid.parse("a7100000-0000-4000-8000-" + number.toString().padStart(12, '0')),
+                name = "QAROW" + number,
+                attackModifier = number,
+                rangeText = null,
+                damageEffect = "QADMG" + number,
+                notes = if (number == 8) "QANOTA8" else null,
+                sortOrder = number,
+                pinned = false,
+            )
+        }
+        val stressed = source.copy(permanent = source.permanent.copy(
+            sheet = source.permanent.sheet.copy(combatEntries = attacks),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = false), stressed,
+            ).bytes
+            preserveRealApplicationPdf(bytes,
+                "V11-INTERNAL-PROOF-C2-attack-table-rows-" + variant.name + ".pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val pageTexts = (1..pdf.numberOfPages).map { number ->
+                    PDFTextStripper().apply { startPage = number; endPage = number }.getText(pdf)
+                }
+                val c2Index = pageTexts.indexOfFirst {
+                    it.contains("C2 - Habilidades, acciones y recursos")
+                }
+                assertTrue(c2Index > 0, "Attacks 7 and 8 must continue on C2 ($variant).")
+                val words = mutableListOf<Triple<String, Float, Float>>()
+                val stripper = object : PDFTextStripper() {
+                    override fun writeString(
+                        text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                    ) {
+                        // Split on real spaces and on column gaps between separate glyph runs.
+                        val word = StringBuilder()
+                        var x = 0f
+                        var y = 0f
+                        var lastEnd = Float.NEGATIVE_INFINITY
+                        fun flush() {
+                            if (word.isNotEmpty()) words += Triple(word.toString(), x, y)
+                            word.clear()
+                        }
+                        for (position in textPositions) {
+                            if (position.unicode.isBlank() || position.xDirAdj - lastEnd > 2f) flush()
+                            if (!position.unicode.isBlank()) {
+                                if (word.isEmpty()) {
+                                    x = position.xDirAdj
+                                    y = 792f - position.yDirAdj
+                                }
+                                word.append(position.unicode)
+                            }
+                            lastEnd = position.xDirAdj + position.widthDirAdj
+                        }
+                        flush()
+                    }
+                }
+                stripper.startPage = c2Index + 1
+                stripper.endPage = c2Index + 1
+                stripper.getText(pdf)
+                for (number in 7..8) {
+                    val name = words.single { it.first == "QAROW$number" }
+                    val bonus = words.single {
+                        it.first == "+$number" && kotlin.math.abs(it.third - name.third) < 0.1f
+                    }
+                    val damage = words.single { it.first == "QADMG$number" }
+                    assertEquals(name.third, damage.third, 0.1f,
+                        "A C2 attack row keeps name, bonus and damage on one line ($variant).")
+                    assertEquals(121f, bonus.second - name.second + 4f - 3f, 0.6f,
+                        "The bonus sits in the golden bonus column ($variant).")
+                    assertEquals(157f, damage.second - name.second + 4f - 3f, 0.6f,
+                        "The damage sits in the golden damage column ($variant).")
+                }
+                val all = pageTexts.joinToString("\n")
+                assertFalse(Regex("(?<!DEL )ATAQUE QAROW").containsMatchIn(all) || all.contains("| DAÑO QADMG"),
+                    "Fitting deferred attacks are not '|' records.")
+                assertTrue(all.contains("NOTAS DEL ATAQUE QAROW8: QANOTA8"),
+                    "A table row keeps its real notes on its own line ($variant).")
+                (1..8).forEach { number ->
+                    assertEquals(1, Regex("QAROW$number\\b").findAll(all).count() -
+                        (if (number == 8) 1 else 0), "Each attack prints once: QAROW$number")
+                }
+            }
+        }
+    }
+
+    @Test
     fun g3SourceOrderP1AttackSelectionUsesAllSixFittingRowsWithoutLosingDeferredAttacks() {
         val source = sources("01_aldren_vale_srd5_1_champion_fighter.json")
         val template = source.permanent.sheet.combatEntries.first {

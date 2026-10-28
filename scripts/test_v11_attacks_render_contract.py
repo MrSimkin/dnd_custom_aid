@@ -35,6 +35,19 @@ class P1AttacksStageTripwire(unittest.TestCase):
                 self.assertIn('draw(stream, "BONO", b1 + 3f, top - 10f, false)', body)
                 self.assertIn('draw(stream, "DAÑO / EFECTO", b2 + 3f, top - 10f, false)', body)
 
+    def test_c2_attack_table_rows_agree_between_platforms(self):
+        # Golden C2 ATAQUES: fitting deferred attacks reuse the P1 row grammar.
+        regions = []
+        for platform in (DESKTOP, ANDROID):
+            text = platform.read_text(encoding="utf-8")
+            self.assertIn("val p1Attacks=attackRows.filter{ attackFitsTableRow(it) }.take(6)", text)
+            self.assertIn("it.id !in p1AttackIds && attackFitsTableRow(it)", text)
+            regions.append(text.split("c2AttackTableRows[cell.sourceKey]?.let { attack ->", 1)[1]
+                           .split("// C219:", 1)[0])
+        self.assertEqual(regions[0], regions[1])
+        self.assertIn("g3DeferredFittingAttacksUseGoldenC2AttackTableRowsAB",
+                      PDF_TEST.read_text(encoding="utf-8"))
+
     def test_real_app_pdf_test_exists_for_both_variants_and_four_cases(self):
         suite = PDF_TEST.read_text(encoding="utf-8")
         target = suite.split(

@@ -608,7 +608,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // Fill the six genuine P1 attack rows with the first SIX source-order
             // entries which physically FIT, not only matches among the first
             // six source entries. All other UUIDs remain deferred to C2.
-            val p1Attacks=attackRows.filter{entry->
+            fun attackBonus(entry:io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry):String =
+                entry.attackModifier?.let{if(it>=0)"+"+it else it.toString()}?:""
+            // One physical three-column attack row (P1 and the golden C2 ATAQUES table).
+            fun attackFitsTableRow(entry:io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry):Boolean {
                 // P1 cells are single physical rows. A measured "width" cannot
                 // prove that a source with CR/LF/TAB is safe to print there.
                 // Defer the COMPLETE UUID-backed attack to measured C2 rather
@@ -618,12 +621,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 ).any { field -> field.any { ch ->
                     ch == '\r' || ch == '\n' || ch == '\t'
                 } }
-                val bonus=entry.attackModifier?.let{if(it>=0)"+"+it else it.toString()}?:""
-                !hasPhysicalBreak &&
+                return !hasPhysicalBreak &&
                     body.width.measurePt(p1AttackLabel(entry))<=attackLabelWidth-10f &&
-                    body.width.measurePt(bonus)<=attackBonusWidth-8f &&
+                    body.width.measurePt(attackBonus(entry))<=attackBonusWidth-8f &&
                     body.width.measurePt(entry.damageEffect)<=attackDamageWidth-10f
-            }.take(6)
+            }
+            val p1Attacks=attackRows.filter{ attackFitsTableRow(it) }.take(6)
             val p1AttackIds = p1Attacks.map { it.id }.toSet()
 
             fun drawP1Attacks(stream: PDPageContentStream) {
@@ -865,10 +868,21 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     cardWidth - 12f, body.width,
                 )
             }
+            // Golden C2 ATAQUES: deferred attacks that fit the approved
+            // three-column row print as table rows (attack / bonus / damage),
+            // in source order, before their range/notes lines. The rest keep
+            // the lossless text record.
+            val c2AttackTableRows = attackRows.filter {
+                it.id !in p1AttackIds && attackFitsTableRow(it)
+            }.associateBy { "combat:row:" + it.id }
             val extraCombatData = buildList {
                 addAll(p1CombatRoutes.mapNotNull { it.continuation })
+                c2AttackTableRows.forEach { (key, attack) ->
+                    add(PcSheetV11FlowItem(key, p1AttackLabel(attack), keepTogetherIfFits = true))
+                }
                 attackRows.forEach { attack ->
-                    if (attack.id !in p1AttackIds) {
+                    if (attack.id !in p1AttackIds &&
+                        "combat:row:" + attack.id !in c2AttackTableRows) {
                         add(PcSheetV11FlowItem(
                             "combat:deferred:" + attack.id,
                             "ATAQUE " + attack.name +
@@ -2608,6 +2622,30 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 // Owner option B: the story continuation keeps 7/17 pt.
                                 drawStory(stream, cell.drawableText, cell.cellPt.leftPt,
                                     storyBaseline(cell.cellPt))
+                                return@forEach
+                            }
+                            c2AttackTableRows[cell.sourceKey]?.let { attack ->
+                                // Golden C2 ATAQUES row: banded, two inner rules,
+                                // the same label / bonus / damage columns as P1.
+                                val left = cell.cellPt.leftPt
+                                val b1 = left + attackLabelWidth
+                                val b2 = b1 + attackBonusWidth
+                                val rowIndex = c2AttackTableRows.keys.indexOf(cell.sourceKey)
+                                fillBand(stream, left, cell.cellPt.bottomPt,
+                                    cell.cellPt.widthPt, cell.cellPt.heightPt, rowIndex)
+                                stream.saveGraphicsState()
+                                stream.setStrokingColor(Color(148, 176, 193))
+                                stream.setLineWidth(0.32f)
+                                for (x in listOf(b1, b2)) {
+                                    stream.moveTo(x, cell.cellPt.bottomPt)
+                                    stream.lineTo(x, cell.cellPt.topPt)
+                                    stream.stroke()
+                                }
+                                stream.restoreGraphicsState()
+                                val baseline = body.metrics.baselineIn(cell.cellPt)
+                                draw(stream, cell.drawableText, left + 4f, baseline, false)
+                                draw(stream, attackBonus(attack), b1 + 3f, baseline, false)
+                                draw(stream, attack.damageEffect, b2 + 3f, baseline, false)
                                 return@forEach
                             }
                             // C219: repeat genuinely persisted P1 total/spent
