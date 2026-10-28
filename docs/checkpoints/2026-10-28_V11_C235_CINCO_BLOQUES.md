@@ -52,3 +52,18 @@ PR #173 DRAFT/NO MERGE. Anterior: [C234](2026-10-26_V11_C234_P3_STORY_GOLDEN_RHY
   - Control de paridad `test_v11_cn3_cards_contract.py`, registrado en el workflow.
 - **Local:** pasan todas las pruebas, Android compila y pasan los 11 auditores (98 PDF / 840 páginas). Contra la CI de C234, los 96 PDF comparables mantienen sus 828 páginas y no pierden ninguna palabra.
 - **Pregunta guardada:** Q2 (letra del golden en P4 / resto del cuerpo de texto) en `DECISIONES_PENDIENTES_PROPIETARIO.md`.
+- **CI:** código `5727265b`, Scaffold [#40730632923](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923) y QA [#40730632968](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632968) SUCCESS. Auditoría de envoltura de la CI: 98 PDF / 840 páginas, 0 errores (incluido `cn3_cards`). **B4: PASS LOCAL FÍSICO (no G4).**
+
+## B5 / C239 — Evidencia de la matriz para reglas ya demostradas
+
+Solo reglas con demostración real en la CI exacta de `5727265b` (Scaffold #40730632923, artefactos PDF 12834864175 y auditoría 12835067012). Etapa G3, alcance acotado:
+
+| Regla | Qué se demuestra |
+|---|---|
+| P111 | ATAQUES de P1 en tres columnas (121 / 36 / 101 pt), bono estrecho, rótulos del golden; posiciones medidas en las filas 1–6 de P1 y 7–8 de C2 (B1/B3). |
+| FIN01 | La última página física es siempre la hoja NOTAS manuscrita, sin datos digitales (auditor de envoltura en los 98 PDF + prueba Ilyra). |
+| FIN02 | Un único título NOTAS con cabecera de logo/nombre (envoltura + visibilidad del logo). |
+| FIN03 | Dos columnas de renglones y cuadrícula completa, con vectores idénticos al golden (`audit_v11_final_notes_golden`: 98/98 PASS). |
+| FIN04 | Nada sigue a la hoja NOTAS final. |
+
+Matriz: de 28 a **33 de 242** comprobaciones por etapa en PASS. Reglas globales en PASS: 0 de 106 (G4 sigue bloqueado). `check_v11_pre_qa_gate.py` pasa. No se marcó CN302 ni ninguna otra regla cuya prueba no demuestre exactamente su obligación.

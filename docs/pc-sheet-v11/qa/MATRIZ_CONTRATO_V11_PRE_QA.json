@@ -1276,8 +1276,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3DeferredFittingAttacksUseGoldenC2AttackTableRowsAB; g3SourceOrderP1AttackSelectionUsesAllSixFittingRowsWithoutLosingDeferredAttacks",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: P1 ATAQUES is a three-column table (ATAQUE / RANGO 121 pt, narrow BONO 36 pt, DAÑO / EFECTO 101 pt) with golden 7 pt Barlow labels; rows 1-6 measured with the bonus right edge at row+153 pt and the damage right edge at row+254 pt; attacks 7-8 continue as the same golden table rows on C2; six fitting attacks fill P1 in source order.",
+            "source_commit": "5727265b30a4e7ca6f0b4d78a66c1b055f4831e9",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923/artifacts/12834864175",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923/artifacts/12835067012",
+            "independent_inspection": "PyMuPDF raster of P1 and C2 attack tables (docs/pc-sheet-v11/qa/evidence/c235_c239/B1_*, B3_*); physical envelope audit 0 errors in the same CI run.",
+            "limitations": "Desktop PDFs; G2 NOT_VERIFIED; no installed Android or owner approval; global P111 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -3452,8 +3461,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "realIlyraSpellcasterProducesP4AndHandwrittenGridAsLastPage; audit_v11_final_notes_golden.py; audit_v11_pdf_physical_envelope.py",
+            "test_result": "SCOPED G3 PASS on every real Desktop App PDF of the CI run: last physical page is always the manuscript NOTAS sheet and carries no digital data.",
+            "source_commit": "5727265b30a4e7ca6f0b4d78a66c1b055f4831e9",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923/artifacts/12834864175",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923/artifacts/12835067012",
+            "independent_inspection": "Same CI run: audit_v11_final_notes_golden.py compares the final page manuscript vectors (two-column ruled fills/lines, complete 34x20 grid frame and inner lines) with the approved golden v11_ordinario_6mas3_variante_B.pdf for every real App PDF; audit_v11_pdf_physical_envelope.py requires the last physical page to be NOTAS with no digital text beyond header name and title, and a consistent footer on every earlier page; audit_v11_header_logo_visibility.py checks the logo on every page.",
+            "limitations": "Desktop PDFs; G2 NOT_VERIFIED; no installed Android or owner approval; global FIN01 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -3478,8 +3496,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "realIlyraSpellcasterProducesP4AndHandwrittenGridAsLastPage; audit_v11_final_notes_golden.py; audit_v11_pdf_physical_envelope.py",
+            "test_result": "SCOPED G3 PASS on every real Desktop App PDF of the CI run: the final sheet has a single NOTAS title with the logo/name header only.",
+            "source_commit": "5727265b30a4e7ca6f0b4d78a66c1b055f4831e9",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923/artifacts/12834864175",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923/artifacts/12835067012",
+            "independent_inspection": "Same CI run: audit_v11_final_notes_golden.py compares the final page manuscript vectors (two-column ruled fills/lines, complete 34x20 grid frame and inner lines) with the approved golden v11_ordinario_6mas3_variante_B.pdf for every real App PDF; audit_v11_pdf_physical_envelope.py requires the last physical page to be NOTAS with no digital text beyond header name and title, and a consistent footer on every earlier page; audit_v11_header_logo_visibility.py checks the logo on every page.",
+            "limitations": "Desktop PDFs; G2 NOT_VERIFIED; no installed Android or owner approval; global FIN02 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -3504,8 +3531,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "realIlyraSpellcasterProducesP4AndHandwrittenGridAsLastPage; audit_v11_final_notes_golden.py; audit_v11_pdf_physical_envelope.py",
+            "test_result": "SCOPED G3 PASS on every real Desktop App PDF of the CI run: two ruled columns above a complete grid, vector-identical to the approved golden.",
+            "source_commit": "5727265b30a4e7ca6f0b4d78a66c1b055f4831e9",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923/artifacts/12834864175",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923/artifacts/12835067012",
+            "independent_inspection": "Same CI run: audit_v11_final_notes_golden.py compares the final page manuscript vectors (two-column ruled fills/lines, complete 34x20 grid frame and inner lines) with the approved golden v11_ordinario_6mas3_variante_B.pdf for every real App PDF; audit_v11_pdf_physical_envelope.py requires the last physical page to be NOTAS with no digital text beyond header name and title, and a consistent footer on every earlier page; audit_v11_header_logo_visibility.py checks the logo on every page.",
+            "limitations": "Desktop PDFs; G2 NOT_VERIFIED; no installed Android or owner approval; global FIN03 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -3530,8 +3566,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "realIlyraSpellcasterProducesP4AndHandwrittenGridAsLastPage; audit_v11_final_notes_golden.py; audit_v11_pdf_physical_envelope.py",
+            "test_result": "SCOPED G3 PASS on every real Desktop App PDF of the CI run: no continuation or annex follows the final NOTAS sheet.",
+            "source_commit": "5727265b30a4e7ca6f0b4d78a66c1b055f4831e9",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923/artifacts/12834864175",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40730632923/artifacts/12835067012",
+            "independent_inspection": "Same CI run: audit_v11_final_notes_golden.py compares the final page manuscript vectors (two-column ruled fills/lines, complete 34x20 grid frame and inner lines) with the approved golden v11_ordinario_6mas3_variante_B.pdf for every real App PDF; audit_v11_pdf_physical_envelope.py requires the last physical page to be NOTAS with no digital text beyond header name and title, and a consistent footer on every earlier page; audit_v11_header_logo_visibility.py checks the logo on every page.",
+            "limitations": "Desktop PDFs; G2 NOT_VERIFIED; no installed Android or owner approval; global FIN04 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
