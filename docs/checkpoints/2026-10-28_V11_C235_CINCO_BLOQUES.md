@@ -19,3 +19,11 @@ PR #173 DRAFT/NO MERGE. Anterior: [C234](2026-10-26_V11_C234_P3_STORY_GOLDEN_RHY
   - Pasan todas las pruebas Shared/Desktop/Python y Android compila.
   - Los 11 auditores pasan sobre los PDF.
   - Los 96 PDF anteriores no cambian: ningún personaje de prueba tenía ataques diferidos que cupieran. El cambio solo se ve en los 2 PDF nuevos.
+- **CI:** código `432f3712`, Scaffold [#40725893896](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40725893896) y QA [#40725893911](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40725893911) SUCCESS. **B1: PASS LOCAL FÍSICO (no G4).**
+
+## B2 / C236 — Margen interior de 4 pt del golden en la Historia de P3
+
+- **Defecto medido:** en el golden (`v11_extremo_variante_A.pdf` p3), el texto de Historia empieza 4,0 pt dentro de la banda azul (banda x=39,7, texto x=43,7). En la app empezaba en el mismo borde (banda x=47, texto x=47), y lo mismo ocurría en las páginas de continuación (x=42).
+- **Cambio (Desktop + Android):** solo el área de texto se reduce 4 pt por lado dentro de cada columna (`p3TextInsetPt`, con canal de 12+8 pt). Las bandas, renglones y páginas no se mueven. Se aplica a la Historia de P3 y a las dos continuaciones (campos e Historia). `addSection` acepta `gutterPt`.
+- **Pruebas:** la prueba PDF de Historia exige ahora que cada línea empiece en x=51 (banda 47 + 4). El control de paridad de P3 exige el margen en ambos renderizadores.
+- **Local:** pasan todas las pruebas Desktop y Python, Android compila y pasan los 11 auditores. Contra la CI de C234: las mismas 828 páginas, ninguna palabra perdida; solo cambian posiciones de texto.

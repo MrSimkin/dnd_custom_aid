@@ -21,7 +21,10 @@ class P3StoryRhythmParityTest(unittest.TestCase):
             self.assertIn("fun storyBaseline(cell: PcSheetV11RectPt): Float = cell.bottomPt + 4f", data)
             self.assertIn("val p3Story = storyFont.place(", data)
             self.assertIn("columns.forEach { p3RuledCells(stream, it, storyRowPt) }", data)
-            self.assertIn("p3StoryOverflow, 2, area = PcSheetV11RectPt(42f, 76f, 528f, 597f),", data)
+            self.assertIn("p3StoryOverflow, 2, area = p3ContinuationTextArea,", data)
+            # C236: golden 4 pt inner text margin inside the P3 bands.
+            self.assertIn("val p3TextInsetPt = 4f", data)
+            self.assertIn("gutterPt = 12f + 2 * p3TextInsetPt)", data)
             self.assertIn("font = storyFont,", data)
             part = data.split("val storyRowPt = 17f", 1)[1].split("fun remainingNarrative(", 1)[0]
             pieces.append(re.sub(r"\s+", " ", part))

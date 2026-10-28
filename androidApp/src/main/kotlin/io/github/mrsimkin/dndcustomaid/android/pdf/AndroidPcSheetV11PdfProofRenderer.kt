@@ -1713,8 +1713,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.showText(pcSheetV11PrintableText(text))
                 stream.endText()
             }
+            // Golden P3: text sits 4 pt inside each banded column (measured on
+            // v11_extremo p3). Bands keep p3StoryArea; text uses the inset area.
+            val p3TextInsetPt = 4f
+            val p3StoryTextArea = PcSheetV11RectPt(p3StoryArea.leftPt + p3TextInsetPt,
+                p3StoryArea.bottomPt, p3StoryArea.widthPt - 2 * p3TextInsetPt, p3StoryArea.heightPt)
             val p3Story = storyFont.place(
-                PcSheetV11FlowSection.NARRATIVE, p3StoryItems, p3StoryArea, 2, 12f,
+                PcSheetV11FlowSection.NARRATIVE, p3StoryItems, p3StoryTextArea, 2,
+                12f + 2 * p3TextInsetPt,
             )
             fun remainingNarrative(
                 original: List<PcSheetV11FlowItem>,
@@ -1949,10 +1955,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 maxPhysicalPages: Int? = null,
                 font: PcSheetV11ResolvedFont = body,
                 firstPageNumber: Int = 1,
+                gutterPt: Float = if (columns == 1) 0f else 12f,
             ) {
                 require(maxPhysicalPages == null || maxPhysicalPages > 0)
                 if (!alwaysPage && entries.isEmpty()) return
-                val flow = font.place(section, entries, area, columns, if (columns == 1) 0f else 12f)
+                val flow = font.place(section, entries, area, columns, gutterPt)
                 val pageCount = maxOf(if (alwaysPage) 1 else 0, flow.sourceFlow.localPageCount)
                 repeat(minOf(pageCount, maxPhysicalPages ?: pageCount)) { index ->
                     val pageCells = flow.cells.filter {
@@ -3541,12 +3548,17 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
             }
             val p3PagesBefore = physicalSectionKeys.size
+            // Text 4 pt inside the continuation paper bands (42..300 / 312..570).
+            val p3ContinuationTextArea = PcSheetV11RectPt(42f + p3TextInsetPt, 76f,
+                528f - 2 * p3TextInsetPt, 597f)
             addSection("P3 - Narrativa / continuación", PcSheetV11FlowSection.NARRATIVE,
-                p3FieldOverflow, 2, area = PcSheetV11RectPt(42f, 76f, 528f, 597f))
+                p3FieldOverflow, 2, area = p3ContinuationTextArea,
+                gutterPt = 12f + 2 * p3TextInsetPt)
             addSection("P3 - Narrativa / continuación", PcSheetV11FlowSection.NARRATIVE,
-                p3StoryOverflow, 2, area = PcSheetV11RectPt(42f, 76f, 528f, 597f),
+                p3StoryOverflow, 2, area = p3ContinuationTextArea,
                 font = storyFont,
-                firstPageNumber = physicalSectionKeys.size - p3PagesBefore + 1)
+                firstPageNumber = physicalSectionKeys.size - p3PagesBefore + 1,
+                gutterPt = 12f + 2 * p3TextInsetPt)
 
 
             // Resource balances and ammunition are drawn only from persisted source

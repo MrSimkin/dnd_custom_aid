@@ -219,6 +219,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             )
             Loader.loadPDF(proof.bytes).use { pdf ->
                 val story = mutableListOf<Pair<Float, Float>>() // (font size, baseline)
+                val storyStarts = mutableListOf<Float>()
                 val fields = mutableListOf<Float>()
                 val stripper = object : PDFTextStripper() {
                     override fun writeString(
@@ -226,7 +227,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     ) {
                         val first = textPositions.firstOrNull() ?: return
                         val baseline = 792f - first.yDirAdj
-                        if (baseline in 88f..449f) story += first.fontSizeInPt to baseline
+                        if (baseline in 88f..449f) {
+                            story += first.fontSizeInPt to baseline
+                            storyStarts += first.xDirAdj
+                        }
                         else if (baseline in 450f..670f && first.fontSizeInPt < 10f) {
                             fields += first.fontSizeInPt
                         }
@@ -251,6 +255,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertEquals(0f, ((449f - foot) % 17f).let { minOf(it, 17f - it) }, 0.05f,
                         "P3 story baseline must be 4 pt above its own row foot ($variant).")
                 }
+                // Golden inner margin: every story line starts 4 pt inside its band
+                // (left band 47..300; Mara's story fits the left column).
+                assertTrue(storyStarts.all { kotlin.math.abs(it - 51f) < 0.3f },
+                    "P3 story text keeps the golden 4 pt inner margin ($variant): $storyStarts")
                 assertTrue(fields.isNotEmpty() && fields.all { kotlin.math.abs(it - 9f) < 0.01f },
                     "Profile fields keep their 9 pt text; option B applies to Historia only.")
             }
