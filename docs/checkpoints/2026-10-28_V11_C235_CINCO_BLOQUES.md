@@ -27,6 +27,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C234](2026-10-26_V11_C234_P3_STORY_GOLDEN_RHY
 - **Cambio (Desktop + Android):** solo el área de texto se reduce 4 pt por lado dentro de cada columna (`p3TextInsetPt`, con canal de 12+8 pt). Las bandas, renglones y páginas no se mueven. Se aplica a la Historia de P3 y a las dos continuaciones (campos e Historia). `addSection` acepta `gutterPt`.
 - **Pruebas:** la prueba PDF de Historia exige ahora que cada línea empiece en x=51 (banda 47 + 4). El control de paridad de P3 exige el margen en ambos renderizadores.
 - **Local:** pasan todas las pruebas Desktop y Python, Android compila y pasan los 11 auditores. Contra la CI de C234: las mismas 828 páginas, ninguna palabra perdida; solo cambian posiciones de texto.
+- **CI:** código `db2a8f71`, Scaffold [#40727033232](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40727033232) y QA [#40727032738](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40727032738) SUCCESS. **B2: PASS LOCAL FÍSICO (no G4).**
 
 ## B3 / C237 — Tabla ATAQUES de P1 con la tipografía del golden
 
@@ -34,3 +35,20 @@ PR #173 DRAFT/NO MERGE. Anterior: [C234](2026-10-26_V11_C234_P3_STORY_GOLDEN_RHY
 - **Cambio (Desktop + Android):** rótulos con `drawP1Label` (Barlow 7 pt, el mismo de los demás rótulos de P1 desde C232), BONO y DAÑO / EFECTO alineados a la derecha. `drawAttackValues` coloca el bono a 4 pt del borde de su columna y el daño a 4 pt del borde de la fila, en P1 y en las filas C2 de B1. No cambian la geometría, las filas ni los textos.
 - **Pruebas:** la prueba PDF de B1 verifica ahora las filas 1–6 de P1 y 7–8 de C2: fin del bono en x+153 y fin del daño en x+254, con 0,6 pt de tolerancia. El control de paridad cubre `drawAttackValues` y los nuevos rótulos.
 - **Local:** pasan todas las pruebas, Android compila y pasan los 11 auditores. Contra la CI de C234: las mismas 828 páginas y ninguna palabra perdida.
+- **CI:** código `f42302d3`, Scaffold [#40728393331](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40728393331) y QA [#40728393313](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40728393313) SUCCESS. **B3: PASS LOCAL FÍSICO (no G4).**
+
+## B4 / C238 — C-N3 Notas digitales con la gramática del golden
+
+- **Comparación medida:** en el golden (`v11_extremo_variante_A.pdf` p9) hay cartela «NOTAS · solo notas digitales», cada nota va en su propia tarjeta (título, regla fina, texto con margen interior) con un espacio entre tarjetas, y hay cartela «NOTAS MANUSCRITAS» sobre los renglones a mano. En la app era una lista continua con bandas en los títulos, sin cartelas ni tarjetas.
+- **Cambio (Desktop + Android):**
+  - Cartela NOTAS con «SOLO NOTAS DIGITALES» en la banda libre 703–716 pt bajo la cabecera (la misma de las cartelas C2).
+  - Cada nota en una tarjeta de 528 pt, con el texto 6 pt hacia dentro y la banda del título a todo el ancho.
+  - Una línea en blanco entre tarjetas (`leadingSeparationLines = 1`; es papel, no datos).
+  - Cartela «NOTAS MANUSCRITAS» dentro del hueco de 24 pt ya reservado sobre los renglones a mano.
+  - El tamaño de letra no cambia (ver Q2).
+- **Pruebas:**
+  - Nueva prueba PDF `g3DigitalNotesUseGoldenNotasCartelaAndInsetCardsAB`: cartela en cada página C-N3 y texto en x=48.
+  - Nuevo control físico independiente `cn3_cards` en el auditor de envoltura: cartela presente y todo texto Fira de nota dentro de una tarjeta. Control negativo: sobre los PDF de la CI de C234 detecta 208 errores (106 páginas sin cartela ni tarjetas).
+  - Control de paridad `test_v11_cn3_cards_contract.py`, registrado en el workflow.
+- **Local:** pasan todas las pruebas, Android compila y pasan los 11 auditores (98 PDF / 840 páginas). Contra la CI de C234, los 96 PDF comparables mantienen sus 828 páginas y no pierden ninguna palabra.
+- **Pregunta guardada:** Q2 (letra del golden en P4 / resto del cuerpo de texto) en `DECISIONES_PENDIENTES_PROPIETARIO.md`.

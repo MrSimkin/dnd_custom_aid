@@ -69,6 +69,28 @@ def p2_special_rows(page: fitz.Page) -> list[str]:
     return errors
 
 
+def cn3_cards(page: fitz.Page) -> list[str]:
+    """C238: golden C-N3 — NOTAS cartela and every digital-note word inside a 528 pt card."""
+    errors = []
+    if "SOLO NOTAS DIGITALES" not in page.get_text():
+        errors.append("C-N3 page lacks the golden NOTAS cartela")
+    cards = [d["rect"] for d in page.get_drawings()
+             if d["type"] == "s" and abs(d["rect"].x0 - 42) < .5 and abs(d["rect"].width - 528) < .5
+             and d["rect"].height > 10]
+    if not cards:
+        return errors + ["C-N3 page has no note cards"]
+    # Digital note text is Fira; Barlow is cartela/header paper text.
+    spans = [s for b in page.get_text("dict")["blocks"] for line in b.get("lines", [])
+             for s in line["spans"] if "Fira" in s["font"] and s["text"].strip()]
+    for s in spans:
+        x0, y0, x1, y1 = s["bbox"]
+        if 92 < y0 < 688 and not any(c.x0 + 4 < x0 and x1 < c.x1 - 4 and c.y0 - .5 <= y0 and y1 <= c.y1 + .5
+                                     for c in cards):
+            errors.append(f"C-N3 note text outside its card: {s['text'][:30]!r}")
+            break
+    return errors
+
+
 FOOTER = re.compile(r"\bHOJA\s+(\d+)\s*/\s*(\d+)\b")
 
 
@@ -85,6 +107,8 @@ def inspect_one(path: Path) -> dict:
         lines = [line.strip() for line in page.get_text().splitlines() if line.strip()]
         role = lines[1] if len(lines) >= 2 else ""
         roles.append(role)
+        if role.startswith("C-N3"):
+            errors.extend(f"p{index}: {e}" for e in cn3_cards(page))
         if index == 2:
             errors.extend(p2_alternating_writing_rows(page))
             errors.extend(p2_special_rows(page))

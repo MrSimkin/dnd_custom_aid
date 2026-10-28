@@ -2320,6 +2320,32 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         // A continued record has no new start band: its real
                         // source identity is instead in this page's header.
                         if (title == "C-N3 - Notas digitales") {
+                            // C238: golden C-N3 — a NOTAS cartela in the free band
+                            // below the header rule (703..716) and each persisted
+                            // note framed as its own card (one blank line apart).
+                            drawC2ContinuationCartela(stream, pageArea)
+                            stream.beginText()
+                            stream.setFont(headerPdfFont, 9f)
+                            stream.newLineAtOffset(pageArea.leftPt + 6f, 706.5f)
+                            stream.showText("NOTAS")
+                            stream.endText()
+                            val scope = "SOLO NOTAS DIGITALES"
+                            drawP1Label(stream, scope, pageArea.rightPt - 6f -
+                                headerPdfFont.getStringWidth(scope) * 7f / 1000f, 707f)
+                            stream.saveGraphicsState()
+                            stream.setStrokingColor(Color(80, 122, 151))
+                            stream.setLineWidth(0.55f)
+                            pageCells.filter { it.sourceKey.startsWith("digital-note:") }
+                                .groupBy { it.sourceKey }.values.forEach { cells ->
+                                    // Top edge shares the title band's rule; it stays
+                                    // below the 703 pt NOTAS cartela.
+                                    val top = cells.maxOf { it.cellPt.topPt }
+                                    val bottom = cells.minOf { it.cellPt.bottomPt } - 3f
+                                    stream.addRect(pageArea.leftPt, bottom,
+                                        pageArea.widthPt, top - bottom)
+                                    stream.stroke()
+                                }
+                            stream.restoreGraphicsState()
                             val starts = pageCells.filter {
                                 it.sourceKey.startsWith("digital-note:") &&
                                     it.sourceStartOffset == 0
@@ -2329,12 +2355,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             stream.setStrokingColor(Color(130, 165, 186))
                             stream.setLineWidth(0.45f)
                             starts.forEach { cell ->
+                                // The title band spans the whole card; text stays inset.
                                 val rect = cell.cellPt
-                                stream.addRect(rect.leftPt, rect.bottomPt,
-                                    rect.widthPt, rect.heightPt)
+                                stream.addRect(pageArea.leftPt, rect.bottomPt,
+                                    pageArea.widthPt, rect.heightPt)
                                 stream.fill()
-                                stream.moveTo(rect.leftPt, rect.topPt)
-                                stream.lineTo(rect.rightPt, rect.topPt)
+                                stream.moveTo(pageArea.leftPt, rect.topPt)
+                                stream.lineTo(pageArea.rightPt, rect.topPt)
                                 stream.stroke()
                             }
                             stream.restoreGraphicsState()
@@ -2364,6 +2391,23 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     stream.stroke()
                                 }
                                 stream.restoreGraphicsState()
+                                // C238: golden "NOTAS MANUSCRITAS" cartela just above
+                                // the handwriting rules, inside the reserved 24 pt gap.
+                                val topRule = ruleBottom + (fullRules - 1) * rulePitch
+                                val band = PcSheetV11RectPt(42f, topRule + 3f, 528f, 13f)
+                                require(band.topPt <= lastSourceBottom - 6f)
+                                stream.saveGraphicsState()
+                                stream.setNonStrokingColor(Color(217, 236, 245))
+                                stream.setStrokingColor(Color(80, 122, 151))
+                                stream.setLineWidth(0.45f)
+                                stream.addRect(band.leftPt, band.bottomPt, band.widthPt, band.heightPt)
+                                stream.fillAndStroke()
+                                stream.restoreGraphicsState()
+                                stream.beginText()
+                                stream.setFont(headerPdfFont, 9f)
+                                stream.newLineAtOffset(band.leftPt + 6f, band.bottomPt + 3.5f)
+                                stream.showText("NOTAS MANUSCRITAS")
+                                stream.endText()
                             }
                         }
                         // Mixed C2 must preserve the approved blue interior
@@ -4230,8 +4274,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     quick, 3, area = p4WritingArea)
             }
 
+            // C238: golden note cards are one blank line apart (paper only).
             addSection("C-N3 - Notas digitales", PcSheetV11FlowSection.DIGITAL_NOTES,
-                texts.digitalNotes, 1)
+                texts.digitalNotes.map { it.copy(leadingSeparationLines = 1) }, 1,
+                area = PcSheetV11RectPt(pageArea.leftPt + 6f, pageArea.bottomPt,
+                    pageArea.widthPt - 12f, pageArea.heightPt))
             data.spellbookEntries?.takeIf { it.isNotEmpty() }?.let { spells ->
                 // The only optional annex, with real two-column cards. All spell
                 // content remains source-backed; no fabricated school or rules.

@@ -3974,6 +3974,47 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3DigitalNotesUseGoldenNotasCartelaAndInsetCardsAB() {
+        // C238: golden C-N3 has a NOTAS cartela ("solo notas digitales") and each
+        // note in its own card; text starts 6 pt inside the 42 pt card edge.
+        val original = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), original,
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).filter { number ->
+                    PDFTextStripper().apply { startPage = number; endPage = number }
+                        .getText(pdf).contains("C-N3 - Notas digitales")
+                }
+                assertTrue(pages.isNotEmpty(), "Mara has real digital notes ($variant).")
+                pages.forEach { number ->
+                    val starts = mutableListOf<Float>()
+                    var text = ""
+                    val stripper = object : PDFTextStripper() {
+                        override fun writeString(
+                            value: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                        ) {
+                            text += value + "\n"
+                            val first = textPositions.firstOrNull() ?: return
+                            val y = 792f - first.yDirAdj
+                            if (y in 80f..700f && first.fontSizeInPt == 9f &&
+                                first.font.name.contains("Fira")) starts += first.xDirAdj
+                        }
+                    }
+                    stripper.startPage = number
+                    stripper.endPage = number
+                    stripper.getText(pdf)
+                    assertTrue(text.contains("NOTAS") && text.contains("SOLO NOTAS DIGITALES"),
+                        "C-N3 page $number keeps the golden NOTAS cartela ($variant).")
+                    assertTrue(starts.isNotEmpty() && starts.all { kotlin.math.abs(it - 48f) < 0.3f },
+                        "Note text starts 6 pt inside its card on page $number ($variant): $starts")
+                }
+            }
+        }
+    }
+
+    @Test
     fun g3DeferredFittingAttacksUseGoldenC2AttackTableRowsAB() {
         // Golden C2 ATAQUES: attacks 7 and 8 fit the approved three-column row, so
         // they print as table rows (attack / bonus / damage) instead of a "|" record.
