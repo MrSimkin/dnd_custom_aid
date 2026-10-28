@@ -1624,11 +1624,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     val actualC2 = pages.filter { it.contains(
                         "C2 - Habilidades, acciones y recursos",
                     ) }.joinToString("\n")
-                    assertTrue(actualC2.contains("mod +1 / salvación +0"),
-                        "C2 Cordura must show the real modifier and save with a plus.")
-                    assertTrue(actualC2.contains("mod +4 / salvación +8"),
+                    // C247: golden C2 attribute row — score box, modifier oval,
+                    // name, SALVACIÓN and the real save value, in reading order.
+                    val flat = actualC2.replace(Regex("\\s+"), " ")
+                    assertTrue(flat.contains("13 +1 Cordura SALVACIÓN +0"),
+                        "C2 Cordura must show the real score, modifier and save with a plus.")
+                    assertTrue(flat.contains("18 +4 Éter SALVACIÓN +8"),
                         "C2 Éter must keep both real nonnegative signed values.")
-                    assertTrue(actualC2.contains("salvación sin valor"),
+                    assertTrue(flat.contains("11 +0 Renombre SALVACIÓN sin valor"),
                         "A missing source save must remain explicitly unresolved.")
                     assertTrue(actualC2.contains("+9") && actualC2.contains("+8"),
                         "C2 linked true skill totals must retain golden plus signs.")
@@ -1771,9 +1774,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 assertTrue(active.size >= 3,
                     "Oversized group must span at least three physical C2 columns.")
+                // C247: the golden attribute row prints the name once; continuation
+                // columns carry it only in their context band.
                 val originalScoreRows = c2.sumOf { (_, body, _) ->
-                    Regex("QAMEGAATRIBUTO\\s+16\\s+/\\s+mod").findAll(body).count()
+                    Regex("QAMEGAATRIBUTO").findAll(body).count()
                 }
+                assertTrue(c2.any { (_, body, _) ->
+                    Regex("16\\s+\\+3\\s+QAMEGAATRIBUTO\\s+SALVACIÓN").containsMatchIn(body)
+                }, "The source attribute row keeps its real score and modifier.")
                 assertEquals(1, originalScoreRows,
                     "Original custom attribute score must be printed only once.")
                 val first = c2.indexOfFirst { it.second.contains("QAMEGAATRIBUTO") }

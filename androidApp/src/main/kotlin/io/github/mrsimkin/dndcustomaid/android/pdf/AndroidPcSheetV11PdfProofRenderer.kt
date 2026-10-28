@@ -69,6 +69,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val mixedC2P1Pages = mutableSetOf<Int>()
             // C246: first physical page of each mixed-C2 module heading.
             val mixedC2HeadingPages = mutableMapOf<String, Int>()
+            // C247: custom attributes drawn as the golden C2 attribute row.
+            val c2AttributeCards = mutableSetOf<String>()
             // C240: spellbook card heading length and inline NIVEL label per card.
             val bookHeadingEnds = mutableMapOf<String, Int>()
             val bookInlineLevels = mutableMapOf<String, String>()
@@ -1997,6 +1999,71 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.restoreGraphicsState()
                 }
 
+            // C247: golden C2 "ATRIBUTOS Y HABILIDADES" row inside the item's two
+            // measured rows: chamfered score box, modifier oval, Barlow name,
+            // SALVACIÓN label + paper box and the real save value on the right.
+            fun drawC2AttributeRow(
+                stream: PDPageContentStream,
+                cell: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PlacedLineCell,
+            ) {
+                val index = requireNotNull(cell.sourceKey.removePrefix("attribute:").toIntOrNull())
+                val attribute = requireNotNull(data.attributes.drop(6).getOrNull(index)) {
+                    "C2 custom ability row has no persisted source."
+                }
+                val left = cell.cellPt.leftPt
+                val right = cell.cellPt.rightPt
+                val top = cell.cellPt.topPt
+                val bottom = top - 2f * body.metrics.lineHeightPt
+                fillBand(stream, left, bottom, right - left, top - bottom, 0)
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(80, 122, 151))
+                stream.setNonStrokingColor(Color.WHITE)
+                stream.setLineWidth(0.55f)
+                val boxLeft = left + 3f
+                val boxRight = left + 37f
+                val boxBottom = bottom + 2.5f
+                val boxTop = top - 2.5f
+                val cut = 3f
+                stream.moveTo(boxLeft + cut, boxBottom)
+                stream.lineTo(boxRight - cut, boxBottom)
+                stream.lineTo(boxRight, boxBottom + cut)
+                stream.lineTo(boxRight, boxTop - cut)
+                stream.lineTo(boxRight - cut, boxTop)
+                stream.lineTo(boxLeft + cut, boxTop)
+                stream.lineTo(boxLeft, boxTop - cut)
+                stream.lineTo(boxLeft, boxBottom + cut)
+                stream.closePath()
+                stream.fillAndStroke()
+                val ovalCx = left + 56f
+                val ovalCy = (boxTop + boxBottom) / 2f
+                val rx = 16f
+                val ry = 7f
+                val k = 0.5523f
+                stream.moveTo(ovalCx + rx, ovalCy)
+                stream.curveTo(ovalCx + rx, ovalCy + k * ry, ovalCx + k * rx, ovalCy + ry, ovalCx, ovalCy + ry)
+                stream.curveTo(ovalCx - k * rx, ovalCy + ry, ovalCx - rx, ovalCy + k * ry, ovalCx - rx, ovalCy)
+                stream.curveTo(ovalCx - rx, ovalCy - k * ry, ovalCx - k * rx, ovalCy - ry, ovalCx, ovalCy - ry)
+                stream.curveTo(ovalCx + k * rx, ovalCy - ry, ovalCx + rx, ovalCy - k * ry, ovalCx + rx, ovalCy)
+                stream.closePath()
+                stream.fillAndStroke()
+                val saving = attribute.savingThrowTotal?.let { signedC2(it) } ?: "sin valor"
+                // The paper save box always sits 6 pt left of the real value.
+                val saveBox = minOf(right - 34f, right - 3f - body.width.measurePt(saving) - 13f)
+                stream.addRect(saveBox, ovalCy - 3.5f, 7f, 7f)
+                stream.stroke()
+                stream.restoreGraphicsState()
+                val score = attribute.score.toString()
+                val modifier = signedC2(attribute.modifier)
+                val valueBaseline = ovalCy - 3f
+                draw(stream, score, (boxLeft + boxRight) / 2f - body.width.measurePt(score) / 2f,
+                    valueBaseline, false)
+                draw(stream, modifier, ovalCx - body.width.measurePt(modifier) / 2f, valueBaseline, false)
+                drawP1Label(stream, attribute.name, left + 78f, top - 10f, 9f)
+                drawP1Label(stream, "SALVACIÓN", saveBox - 6f -
+                    headerPdfFont.getStringWidth("SALVACIÓN") * 6f / 1000f, bottom + 4f, 6f)
+                draw(stream, saving, right - 3f - body.width.measurePt(saving), valueBaseline, false)
+            }
+
             fun addSection(
                 title: String,
                 section: PcSheetV11FlowSection,
@@ -2553,7 +2620,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         // same as the immutable source text renderer below.
                         if (title == "C2 - Habilidades, acciones y recursos") {
                             pageCells.filter {
-                                it.sourceKey.startsWith("attribute:")
+                                it.sourceKey.startsWith("attribute:") &&
+                                    it.sourceKey !in c2AttributeCards
                             }.forEach { cell ->
                                 val index = cell.sourceKey.removePrefix("attribute:").toIntOrNull()
                                 val ability = index?.let { data.attributes.drop(6).getOrNull(it) }
@@ -2735,6 +2803,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 // Owner option B: the story continuation keeps 7/17 pt.
                                 drawStory(stream, cell.drawableText, cell.cellPt.leftPt,
                                     storyBaseline(cell.cellPt))
+                                return@forEach
+                            }
+                            if (cell.sourceKey in c2AttributeCards) {
+                                if (cell.sourceStartOffset == 0) drawC2AttributeRow(stream, cell)
                                 return@forEach
                             }
                             c2AttackTableRows[cell.sourceKey]?.let { attack ->
@@ -3032,8 +3104,17 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     val customC2Group = if (alreadyPrintedOnP1) null else
                         "custom-attribute-group:" + index
                     if (!alreadyPrintedOnP1) {
+                        // C247: golden C2 attribute row (score box, modifier oval,
+                        // name, SALVACIÓN box and value) when the name fits; the
+                        // flow reserves its two measured rows. Otherwise keep the
+                        // previous text card.
+                        val goldenRow = attribute.name.none { it == '\r' || it == '\n' || it == '\t' } &&
+                            headerPdfFont.getStringWidth(pcSheetV11PrintableText(attribute.name)) *
+                            9f / 1000f <= 100f
+                        if (goldenRow) c2AttributeCards += "attribute:" + index
                         add(PcSheetV11FlowItem(
                             "attribute:" + index,
+                            if (goldenRow) attribute.name + "\n " else
                             attribute.name + "\n\n" + attribute.score +
                                 " / mod " + signedC2(attribute.modifier) +
                                 " / salvación " +
