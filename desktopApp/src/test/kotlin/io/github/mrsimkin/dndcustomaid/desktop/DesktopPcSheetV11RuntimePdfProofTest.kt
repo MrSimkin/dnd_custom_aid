@@ -4715,6 +4715,57 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3DigitalNotesNeverMixWithC2SpellbookOrFinalSheetWhenBothExistAB() {
+        // CN303: a character with real digital notes AND the optional Spellbook.
+        // Note text must live only on C-N3 pages: never on C2, the book index,
+        // the book cards or the final manuscript NOTAS sheet.
+        val ilyra = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val template = sources("03_mara_siete_umbrales_custom_extended.json")
+            .permanent.sheet.noteCards.first()
+        val notes = (1..2).map { n ->
+            template.copy(
+                id = Uuid.parse("c3030000-0000-4000-8000-00000000000$n"),
+                title = "CN303TITULO$n",
+                content = "CN303INICIO$n " + "contenido real de la nota ".repeat(30) + "CN303FIN$n",
+                sortOrder = n,
+            )
+        }
+        val both = ilyra.copy(permanent = ilyra.permanent.copy(
+            sheet = ilyra.permanent.sheet.copy(noteCards = notes),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = true), both,
+            )
+            preserveRealApplicationPdf(proof.bytes,
+                "V11-INTERNAL-PROOF-CN3-with-spellbook-" + variant.name + ".pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                val cn3 = pages.indices.filter { pages[it].contains("C-N3 - Notas digitales") }
+                val book = pages.indices.filter {
+                    pages[it].contains("Libro de conjuros /") ||
+                        pages[it].contains("Índice del Libro de Conjuros")
+                }
+                assertTrue(cn3.isNotEmpty() && book.isNotEmpty(),
+                    "Fixture must carry both C-N3 and the Spellbook ($variant).")
+                assertTrue(cn3.intersect(book.toSet()).isEmpty(), "C-N3 and Libro are distinct pages.")
+                val markers = listOf("CN303TITULO1", "CN303INICIO1", "CN303FIN1",
+                    "CN303TITULO2", "CN303INICIO2", "CN303FIN2")
+                markers.forEach { marker ->
+                    val where = pages.indices.filter { pages[it].contains(marker) }
+                    assertEquals(1, where.size, "$marker prints exactly once ($variant).")
+                    assertTrue(where.single() in cn3, "$marker only on a C-N3 page ($variant).")
+                }
+                assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+                assertFalse(pages.last().contains("CN303"), "The final sheet has no digital note.")
+            }
+        }
+    }
+
+    @Test
     fun g3VeryLongSourceNoteTitleKeepsStableContinuationIdInRealPdfAB() {
         val fixture = sources("03_mara_siete_umbrales_custom_extended.json")
         val original = fixture.permanent.sheet.noteCards.first()
