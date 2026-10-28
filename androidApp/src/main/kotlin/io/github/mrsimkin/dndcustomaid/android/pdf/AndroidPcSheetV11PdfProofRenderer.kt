@@ -3476,7 +3476,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 placed.quantities.filter {
                     it.localPageIndex == localPage && it.sourceKey !in suppressAmounts
                 }.forEach { cell ->
-                    draw(stream, cell.printableText, cell.rectPt.leftPt + 2f,
+                    // C242: golden paired tables right-align each amount 3 pt
+                    // inside its quantity cell (P2 and C2).
+                    draw(stream, cell.printableText, cell.rectPt.rightPt - 3f -
+                        body.width.measurePt(cell.printableText),
                         body.metrics.baselineIn(cell.rectPt), false)
                 }
                 // C207: on a FULL-HEIGHT C2 paired-table page, one real
@@ -3573,7 +3576,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 val headings = listOf("UBICACIÓN", "NOMBRE", "DESCRIPCIÓN", "ACTIVO")
                 var headerX = specialArea.leftPt
                 headings.forEachIndexed { index, label ->
-                    draw(stream, label, headerX + 5f, specialArea.topPt - 13f, false)
+                    // C242: golden small 7 pt Barlow column labels.
+                    drawP1Label(stream, label, headerX + 5f, specialArea.topPt - 12f)
                     headerX += specialColumns[index]
                 }
                 val fieldX = listOf(
@@ -4137,8 +4141,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     var headerX = 42f
                     listOf("UBICACIÓN", "NOMBRE", "DESCRIPCIÓN", "ACTIVO")
                         .forEachIndexed { index, label ->
-                            draw(stream, label, headerX + 5f,
-                                drawingArea.topPt - 13f, false)
+                            // C242: golden small 7 pt Barlow column labels.
+                            drawP1Label(stream, label, headerX + 5f, drawingArea.topPt - 12f)
                             headerX += specialColumns[index]
                         }
                     val positions = listOf(42f, 42f + specialColumns[0],

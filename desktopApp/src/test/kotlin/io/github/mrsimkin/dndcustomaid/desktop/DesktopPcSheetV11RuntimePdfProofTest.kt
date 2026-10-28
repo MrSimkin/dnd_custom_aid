@@ -3998,6 +3998,50 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3P2PairedAmountsAreRightAlignedLikeTheGoldenAB() {
+        // C242: golden Equipo/Tesoro amounts end 3 pt inside their 36 pt quantity
+        // cells (left pair 129..165, right pair 264..300 on P2).
+        val original = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), original,
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val amounts = mutableListOf<Pair<Float, Float>>() // (x, end)
+                object : PDFTextStripper() {
+                    override fun writeString(
+                        text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                    ) {
+                        var start = 0
+                        for (i in 1..textPositions.size) {
+                            val split = i == textPositions.size ||
+                                textPositions[i].unicode.isBlank() ||
+                                textPositions[i].xDirAdj - (textPositions[i - 1].xDirAdj +
+                                    textPositions[i - 1].widthDirAdj) > 2f
+                            if (!split) continue
+                            val part = textPositions.subList(start, i).filter { !it.unicode.isBlank() }
+                            start = i
+                            if (part.isEmpty()) continue
+                            val word = part.joinToString("") { it.unicode }
+                            val x = part.first().xDirAdj
+                            val y = 792f - part.first().yDirAdj
+                            if (word.all { it.isDigit() } && y in 330f..684f &&
+                                (x in 129f..165f || x in 264f..300f)) {
+                                amounts += x to part.last().xDirAdj + part.last().widthDirAdj
+                            }
+                        }
+                    }
+                }.apply { startPage = 2; endPage = 2 }.getText(pdf)
+                assertTrue(amounts.size >= 8, "Mara P2 prints real amounts ($variant): $amounts")
+                amounts.forEach { (x, end) ->
+                    val edge = if (x < 200f) 162f else 297f
+                    assertEquals(edge, end, 0.6f, "P2 amount at $x is right-aligned ($variant).")
+                }
+            }
+        }
+    }
+
+    @Test
     fun g3VariantBSkillValuesAreRightAlignedInTheirGoldenSubcolumns() {
         // C241: golden variant B HABILIDADES prints each value at the right of its
         // subcolumn band (bands 47..167 and 176..295; value ends 3 pt inside).
