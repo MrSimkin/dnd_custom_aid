@@ -67,6 +67,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // P1 must link to mixed C2 ONLY when that physical section
             // actually contains P1-owned source lines, not P2-only traits.
             val mixedC2P1Pages = mutableSetOf<Int>()
+            // C240: spellbook card heading length and inline NIVEL label per card.
+            val bookHeadingEnds = mutableMapOf<String, Int>()
+            val bookInlineLevels = mutableMapOf<String, String>()
 
             fun draw(stream: PDPageContentStream, text: String, x: Float, y: Float, label: Boolean) {
                 if (text.isEmpty()) return
@@ -2660,9 +2663,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 // those EXISTING measured lines; no duplicate
                                 // text and no invented per-card header row.
                                 val raw = originals.getValue(identity.second)
-                                val descriptionStart = raw.indexOf("DESCRIPCIÓN:")
-                                require(descriptionStart >= 0) {
-                                    "V11 essential book card lost its source section label."
+                                val descriptionStart = bookHeadingEnds.getValue(identity.second)
+                                require(descriptionStart in 1..raw.length) {
+                                    "V11 essential book card lost its source heading."
                                 }
                                 stream.setNonStrokingColor(Color(231, 242, 247))
                                 partCells.filter {
@@ -2674,6 +2677,15 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 }
                             }
                             stream.restoreGraphicsState()
+                            // C240: golden NIVEL label, right-aligned on the name line.
+                            pageCells.filter {
+                                it.sourceStartOffset == 0 && it.sourceKey in bookInlineLevels
+                            }.forEach { cell ->
+                                val label = bookInlineLevels.getValue(cell.sourceKey)
+                                drawP1Label(stream, label, cell.cellPt.rightPt - 2f -
+                                    headerPdfFont.getStringWidth(label) * 7f / 1000f,
+                                    body.metrics.baselineIn(cell.cellPt))
+                            }
                         }
                         pageCells.forEach { cell ->
                             if (font !== body) {
@@ -4287,12 +4299,18 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     // Keep time/range/components/duration/preparation/notes
                     // in the App source and other independently contracted
                     // views; they are NOT printed in this optional card.
-                    val lines = buildList {
-                        add(spell.name)
-                        add("NIVEL " + spell.level)
-                        add("DESCRIPCIÓN:")
-                        add(spell.description)
-                    }
+                    // C240 (golden V11 book card): NIVEL sits right-aligned on the
+                    // name line and the description follows without a label. A
+                    // name that cannot share its line keeps the previous layout.
+                    val levelLabel = "NIVEL " + spell.level
+                    val inlineLevel = spell.name.none { it == '\r' || it == '\n' || it == '\t' } &&
+                        body.width.measurePt(spell.name) +
+                        headerPdfFont.getStringWidth(levelLabel) * 7f / 1000f + 10f <= 258f
+                    val heading = if (inlineLevel) listOf(spell.name)
+                        else listOf(spell.name, levelLabel, "DESCRIPCIÓN:")
+                    if (inlineLevel) bookInlineLevels["book:" + spell.id] = levelLabel
+                    bookHeadingEnds["book:" + spell.id] = heading.sumOf { it.length + 1 }
+                    val lines = heading + spell.description
                     PcSheetV11FlowItem(
                         sourceKey = "book:" + spell.id,
                         text = lines.joinToString("\n"),

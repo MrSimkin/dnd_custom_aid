@@ -19,10 +19,12 @@ class EssentialSpellbookCardParityTest(unittest.TestCase):
             stop = source.index("val contentFlow = body.place(", start)
             section = source[start:stop]
             self.assertIn("D-0076 §3.47 / BK06", section)
-            self.assertIn("add(spell.name)", section)
-            self.assertIn('add("NIVEL " + spell.level)', section)
-            self.assertIn('add("DESCRIPCIÓN:")', section)
-            self.assertIn("add(spell.description)", section)
+            # C240: golden card — name with right-aligned NIVEL, then the whole
+            # description; the old labelled layout only for names that cannot share.
+            self.assertIn('val levelLabel = "NIVEL " + spell.level', section)
+            self.assertIn("val heading = if (inlineLevel) listOf(spell.name)", section)
+            self.assertIn('else listOf(spell.name, levelLabel, "DESCRIPCIÓN:")', section)
+            self.assertIn("val lines = heading + spell.description", section)
             for forbidden in ("spell.castingTime", "spell.rangeText",
                               "spell.materialText", "spell.duration",
                               "spell.notes", "entry.sources", "spell.sourceAssociations"):

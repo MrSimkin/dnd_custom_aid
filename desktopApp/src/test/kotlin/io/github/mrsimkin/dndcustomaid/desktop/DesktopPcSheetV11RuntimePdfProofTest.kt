@@ -1488,7 +1488,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })
             assertTrue(printed.contains("LANZAMIENTO DE CONJUROS"),
                 "P1 casting and its separate spell references remain intact.")
-            assertTrue(printed.contains("DESCRIPCIÓN:"),
+            // C240: golden card without a DESCRIPCIÓN label; the real text stays.
+            assertTrue(printed.replace(Regex("\\s+"), " ")
+                .contains("Cantrip de evocación; ataque de conjuro de frío"),
                 "Essential spellbook cards keep their complete descriptions.")
             // Index page references must point at the REAL physical PDF page,
             // not local section offsets or guesses.
@@ -1507,7 +1509,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 endPage = targetPhysicalPage
             }.getText(pdf)
             assertTrue(targetContent.contains("Fire Bolt"))
-            assertTrue(targetContent.contains("DESCRIPCIÓN:"))
+            assertTrue(targetContent.contains("NIVEL 0"))
             val notesOnly = PDFTextStripper().apply {
                 startPage = pdf.numberOfPages
                 endPage = pdf.numberOfPages
@@ -3758,7 +3760,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 (contentHeight / resolved.metrics.lineHeightPt).toInt()
             }
             assertTrue(font > 22, "A real Letter book column must have usable rows.")
-            val firstDescription = (1..(font - 12)).joinToString("\n") { n ->
+            // C240: the golden card puts NIVEL on the name line and drops the
+            // DESCRIPCIÓN label, so the first card needs two more real lines to
+            // leave a remainder (8 lines) too small for the 9-line second card.
+            val firstDescription = (1..(font - 9)).joinToString("\n") { n ->
                 "BK04_PREVIA_" + n.toString().padStart(3, '0')
             }
             val secondDescription = (1..8).joinToString("\n") { n ->
@@ -3791,8 +3796,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     val spell = entry.spell
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowItem(
                         "book:" + spell.id,
-                        spell.name + "\nNIVEL " + spell.level +
-                            "\nDESCRIPCIÓN:\n" + spell.description,
+                        spell.name + "\n" + spell.description,
                         keepTogetherIfFits = true,
                     )
                 }
@@ -3920,8 +3924,28 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     it.contains("Libro de conjuros /") &&
                         !it.contains("Índice del Libro de Conjuros")
                 }.joinToString("\n")
-                assertTrue(book.contains("DESCRIPCIÓN:"))
+                // C240: the golden card has no DESCRIPCIÓN label; NIVEL shares the
+                // name line, right-aligned (checked by position below).
+                assertFalse(book.contains("DESCRIPCIÓN:"), "Golden book cards have no label line.")
                 assertTrue(book.contains(marker))
+                val levels = mutableListOf<Pair<Float, Float>>() // (x, baseline) of NIVEL labels
+                val names = mutableMapOf<String, Float>() // first word baseline of each card
+                val firstBookPage = pages.indexOfFirst {
+                    it.contains("Libro de conjuros /") && !it.contains("Índice del Libro de Conjuros")
+                } + 1
+                object : PDFTextStripper() {
+                    override fun writeString(
+                        text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                    ) {
+                        val first = textPositions.firstOrNull() ?: return
+                        val y = 792f - first.yDirAdj
+                        if (text.trim().startsWith("NIVEL ")) levels += first.xDirAdj to y
+                        if (text.trim() == "Fire Bolt") names["Fire Bolt"] = y
+                    }
+                }.apply { startPage = firstBookPage; endPage = firstBookPage }.getText(pdf)
+                val fireBolt = requireNotNull(names["Fire Bolt"]) { "Fire Bolt card name line ($variant)." }
+                assertTrue(levels.any { (x, y) -> kotlin.math.abs(y - fireBolt) < 0.1f && x > 200f },
+                    "NIVEL is right-aligned on the Fire Bolt name line ($variant): $levels")
                 assertTrue(book.contains("BK06_DESCRIPCION_FIN"),
                     "The whole real spell description must survive the book reflow.")
                 assertTrue(book.contains("Fire Bolt"), "Each card still shows its real name.")
