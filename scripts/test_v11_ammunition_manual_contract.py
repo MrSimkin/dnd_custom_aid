@@ -27,6 +27,9 @@ class EmptyAmmoParity(unittest.TestCase):
             self.assertIn("val y = if (index < 10) 119f else 103f",section)
             self.assertIn("val x = 392f + column * 8f + (column / 5) * 4f",section)
             self.assertIn("p1AmmoItems.forEachIndexed",section)
+            # C243: golden MUNICIONES cartela and banded rows in the same box.
+            self.assertIn('drawP1Label(stream, "MUNICIONES / MARCAS:", 318f, 136.5f, 9f)',section)
+            self.assertIn("fillBand(stream, 312f, 115f, 258f, 16f, 0)",section)
             parts.append(section)
         self.assertEqual(parts[0],parts[1])
 

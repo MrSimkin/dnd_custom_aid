@@ -69,6 +69,20 @@ def p2_special_rows(page: fitz.Page) -> list[str]:
     return errors
 
 
+AMMO_CARTELA = tuple(v / 255 for v in (217, 236, 245))
+
+
+def p1_ammo_cartela(page: fitz.Page) -> list[str]:
+    """C243: golden P1 MUNICIONES cartela — a 258x17 blue band at x=312, top y=644."""
+    for d in page.get_drawings():
+        r, fill = d["rect"], d.get("fill")
+        if (fill is not None and all(abs(fill[i] - AMMO_CARTELA[i]) < .012 for i in range(3))
+                and abs(r.x0 - 312) < .6 and abs(r.width - 258) < .6
+                and abs(r.y0 - 644) < .6 and abs(r.height - 17) < .6):
+            return []
+    return ["P1 lacks the golden MUNICIONES cartela"]
+
+
 def cn3_cards(page: fitz.Page) -> list[str]:
     """C238: golden C-N3 — NOTAS cartela and every digital-note word inside a 528 pt card."""
     errors = []
@@ -109,6 +123,8 @@ def inspect_one(path: Path) -> dict:
         roles.append(role)
         if role.startswith("C-N3"):
             errors.extend(f"p{index}: {e}" for e in cn3_cards(page))
+        if index == 1:
+            errors.extend(f"p1: {e}" for e in p1_ammo_cartela(page))
         if index == 2:
             errors.extend(p2_alternating_writing_rows(page))
             errors.extend(p2_special_rows(page))

@@ -1096,18 +1096,33 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }.thenBy { it.id.toString() }).take(2)
             val p1AmmoIds = p1AmmoItems.map { it.id }.toSet()
             fun drawP1Ammunition(stream: PDPageContentStream) {
+                // C243: golden MUNICIONES — banded entry rows and a clipped blue
+                // cartela inside the existing 17 pt header row (131..148).
                 stream.saveGraphicsState()
-                stream.setStrokingColor(Color(130, 165, 186))
+                fillBand(stream, 312f, 115f, 258f, 16f, 0)
+                fillBand(stream, 312f, 102f, 258f, 13f, 1)
+                stream.setNonStrokingColor(Color(217, 236, 245))
+                stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.55f)
+                val cut = 3f
+                stream.moveTo(312f + cut, 131f)
+                stream.lineTo(570f - cut, 131f)
+                stream.lineTo(570f, 131f + cut)
+                stream.lineTo(570f, 148f - cut)
+                stream.lineTo(570f - cut, 148f)
+                stream.lineTo(312f + cut, 148f)
+                stream.lineTo(312f, 148f - cut)
+                stream.lineTo(312f, 131f + cut)
+                stream.closePath()
+                stream.fillAndStroke()
+                stream.setStrokingColor(Color(130, 165, 186))
                 stream.addRect(312f, 102f, 258f, 46f)
                 stream.stroke()
-                for (y in listOf(131f, 115f)) {
-                    stream.moveTo(312f, y)
-                    stream.lineTo(570f, y)
-                    stream.stroke()
-                }
+                stream.moveTo(312f, 115f)
+                stream.lineTo(570f, 115f)
+                stream.stroke()
                 stream.restoreGraphicsState()
-                p1DrawSmall(stream, "MUNICIONES / MARCAS:", 316f, 137f)
+                drawP1Label(stream, "MUNICIONES / MARCAS:", 318f, 136.5f, 9f)
                 // D-0076 §3.39: no recorded/displayable ammunition still
                 // reserves ONE logical paper entry with a blank name and
                 // exactly 20 unmarked squares, grouped 5+5 in two subrows.
