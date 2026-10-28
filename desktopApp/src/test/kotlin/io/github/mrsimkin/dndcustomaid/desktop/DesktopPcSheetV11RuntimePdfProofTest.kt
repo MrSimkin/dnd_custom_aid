@@ -4723,6 +4723,62 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3C2ModuleCartelasShowTheirRealBasePageAB() {
+        // C248: golden C2 cartelas carry "VIENE P. n" with the module's real base
+        // page: P1 for character/skills/attacks/resources, P2 for traits.
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), mara,
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                val c2Pages = pages.indices.filter {
+                    pages[it].contains("C2 - Habilidades, acciones y recursos")
+                }
+                val c2 = c2Pages.joinToString("\n") { pages[it] }
+                // Text runs (text, x, baseline) of the C2 pages, split at column gaps.
+                val runs = mutableListOf<Triple<String, Float, Float>>()
+                c2Pages.forEach { index ->
+                    object : PDFTextStripper() {
+                        override fun writeString(
+                            text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                        ) {
+                            var start = 0
+                            for (i in 1..textPositions.size) {
+                                val split = i == textPositions.size ||
+                                    textPositions[i].xDirAdj - (textPositions[i - 1].xDirAdj +
+                                        textPositions[i - 1].widthDirAdj) > 6f
+                                if (!split) continue
+                                val part = textPositions.subList(start, i)
+                                runs += Triple(part.joinToString("") { it.unicode }.trim(),
+                                    part.first().xDirAdj, 792f - part.first().yDirAdj)
+                                start = i
+                            }
+                        }
+                    }.apply { startPage = index + 1; endPage = index + 1 }.getText(pdf)
+                }
+                // The label shares its heading baseline, at the right of the same column.
+                fun originOf(heading: String): String? {
+                    val head = runs.firstOrNull { it.first.startsWith(heading) } ?: return null
+                    return runs.firstOrNull {
+                        it.first.startsWith("VIENE P. ") && kotlin.math.abs(it.third - head.third) < 0.6f &&
+                            it.second > head.second && it.second < head.second + 258f
+                    }?.first
+                }
+                assertTrue(c2.contains("RECURSOS Y MUNICIONES"), "Mara C2 has resources ($variant).")
+                listOf("ATAQUES, NOTAS Y ESPACIOS REALES", "RECURSOS Y MUNICIONES").forEach {
+                    assertEquals("VIENE P. 1", originOf(it), "$it comes from P1 ($variant).")
+                }
+                assertEquals("VIENE P. 2", originOf("RASGOS / CONTINUACIÓN P2"),
+                    "P2 traits continuation comes from P2 ($variant).")
+            }
+        }
+    }
+
+    @Test
     fun g3P1FooterNamesEachContinuedModuleWithItsRealC2PageAB() {
         // C246: golden P1 footer "ATRIBUTOS Y HABILIDADES A P. 4 · ATAQUES A P. 4 ·
         // MUNICIONES A P. 4" — every continued module with its real physical page.

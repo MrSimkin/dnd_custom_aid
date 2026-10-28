@@ -2551,6 +2551,24 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 stream.fillAndStroke()
                             }
                             stream.restoreGraphicsState()
+                            // C248: golden C2 cartelas carry a small "VIENE P. n"
+                            // with the real base page of the module, when it fits.
+                            groupHeadings.filter { it.sourceStartOffset == 0 }.forEach { heading ->
+                                val base = if (heading.sourceKey == "c2-heading:traits")
+                                    physicalSectionKeys.indexOf("P2 - Equipo y tesoro") + 1
+                                else physicalSectionKeys.indexOfFirst { it.startsWith("P1 - ") } + 1
+                                if (base > 0) {
+                                    val origin = "VIENE P. " + base
+                                    val originWidth = headerPdfFont.getStringWidth(origin) * 6f / 1000f
+                                    val inkWidth = headerPdfFont.getStringWidth(
+                                        pcSheetV11PrintableText(heading.drawableText)) * 9f / 1000f
+                                    if (5f + inkWidth + 8f + originWidth + 5f <= heading.cellPt.widthPt) {
+                                        drawP1Label(stream, origin,
+                                            heading.cellPt.rightPt - 5f - originWidth,
+                                            body.metrics.baselineIn(heading.cellPt), 6f)
+                                    }
+                                }
+                            }
                         }
                         // C213: actual persisted custom attribute/skill grouping.
                         // Paint only inside measured source cells; never alter
