@@ -1,4 +1,4 @@
-**2026-10-28 — TERCERA TANDA DE CINCO BLOQUES EN CURSO (C245–C249).** B11/C245: prueba con notas y Libro a la vez (CN303). [Checkpoint](2026-10-28_V11_C245_CINCO_BLOQUES_3.md).
+**2026-10-28 — TERCERA TANDA DE CINCO BLOQUES EN CURSO (C245–C249).** B11/C245: prueba con notas y Libro a la vez (CN303). B12/C246: pie de P1 con el destino de cada módulo, como el golden. [Checkpoint](2026-10-28_V11_C245_CINCO_BLOQUES_3.md).
 
 **2026-10-28 — SEGUNDA TANDA DE CINCO BLOQUES COMPLETADA (C240–C244), todos con CI exacta SUCCESS, PASS LOCAL FÍSICO, no G4.** B6: ficha del Libro con NIVEL en la línea del nombre. B7: valores de habilidades B a la derecha. B8: cantidades de P2/C2 a la derecha y rótulos pequeños en Equipo Especial. B9: cartela y bandas en MUNICIONES de P1. B10: matriz de 33 a 36/242 (P118, CN302, CN304). Siguen abiertas Q1/Q2. [Checkpoint](2026-10-28_V11_C240_CINCO_BLOQUES_2.md).
 

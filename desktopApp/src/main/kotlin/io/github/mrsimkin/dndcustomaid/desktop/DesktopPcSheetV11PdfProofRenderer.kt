@@ -67,6 +67,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // P1 must link to mixed C2 ONLY when that physical section
             // actually contains P1-owned source lines, not P2-only traits.
             val mixedC2P1Pages = mutableSetOf<Int>()
+            // C246: first physical page of each mixed-C2 module heading.
+            val mixedC2HeadingPages = mutableMapOf<String, Int>()
             // C240: spellbook card heading length and inline NIVEL label per card.
             val bookHeadingEnds = mutableMapOf<String, Int>()
             val bookInlineLevels = mutableMapOf<String, String>()
@@ -2087,6 +2089,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val page = PDPage(PDRectangle.LETTER)
                     pdf.addPage(page)
                     physicalSectionKeys += title
+                    if (title == "C2 - Habilidades, acciones y recursos") {
+                        pageCells.filter { it.sourceKey.startsWith("c2-heading:") }.forEach {
+                            mixedC2HeadingPages.putIfAbsent(it.sourceKey, pdf.numberOfPages)
+                        }
+                    }
                     PDPageContentStream(pdf, page).use { stream ->
                         drawFrameAndHeader(stream, pageTitle)
                         if (title.startsWith("P4 - ")) drawP4MagicReference(stream)
@@ -4532,6 +4539,22 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     "All genuine P2 module destinations must fit the reserved footer."
                 }
             }
+            // C246: golden P1 footer names every continued module and its real
+            // physical C2 page (golden "ATRIBUTOS Y HABILIDADES A P. 4 · ATAQUES
+            // A P. 4 · MUNICIONES A P. 4"), in the same free band P2 uses.
+            val p1ModuleLinks = listOf(
+                "c2-heading:p1-overflow" to "PERSONAJE",
+                "c2-heading:skills" to "HABILIDADES",
+                "c2-heading:combat" to "ATAQUES",
+                "c2-heading:resources" to "RECURSOS Y MUNICIONES",
+            ).mapNotNull { (key, module) ->
+                mixedC2HeadingPages[key]?.let { module + " A P. " + it }
+            }.joinToString(" · ").takeIf { it.isNotEmpty() }
+            if (p1ModuleLinks != null) {
+                require(body.width.measurePt(p1ModuleLinks) <= 528f) {
+                    "All genuine P1 module destinations must fit the reserved footer."
+                }
+            }
             // A C2 page never points at P2 merely because it happens to be a
             // continuation: derive the correct base-page role from its module.
             for (index in 0 until totalPages - 1) {
@@ -4590,6 +4613,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         // watermark y=46 and navigation y=35. No page/layout
                         // mutation; never replace the first legacy cue.
                         draw(stream, otherP2C2Links, 42f, 63f, false)
+                    }
+                    if (key.startsWith("P1 - ") && p1ModuleLinks != null) {
+                        draw(stream, p1ModuleLinks, 42f, 63f, false)
                     }
                     val label = "HOJA " + physicalPage + " / " + totalPages
                     val x = 570f - body.width.measurePt(label)

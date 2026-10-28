@@ -4715,6 +4715,46 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3P1FooterNamesEachContinuedModuleWithItsRealC2PageAB() {
+        // C246: golden P1 footer "ATRIBUTOS Y HABILIDADES A P. 4 · ATAQUES A P. 4 ·
+        // MUNICIONES A P. 4" — every continued module with its real physical page.
+        val headings = mapOf(
+            "PERSONAJE" to "PERSONAJE, HABILIDADES Y ACCIONES / CONTINUACIÓN",
+            "HABILIDADES" to "HABILIDADES Y REFERENCIAS",
+            "ATAQUES" to "ATAQUES, NOTAS Y ESPACIOS REALES",
+            "RECURSOS Y MUNICIONES" to "RECURSOS Y MUNICIONES",
+        )
+        for (fixture in listOf("03_mara_siete_umbrales_custom_extended.json",
+            "01_aldren_vale_srd5_1_champion_fighter.json")) {
+            for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+                val proof = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                    sources(fixture),
+                )
+                Loader.loadPDF(proof.bytes).use { pdf ->
+                    val pages = (1..pdf.numberOfPages).map { n ->
+                        PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                    }
+                    val footer = pages.first().lineSequence().firstOrNull { it.contains(" A P. ") }
+                    assertTrue(footer != null, "P1 footer lists continued modules ($fixture $variant).")
+                    val links = Regex("""([A-ZÁÉÍÓÚ ]+?) A P\. (\d+)""").findAll(footer!!)
+                        .map { it.groupValues[1].trim().removePrefix("· ").trim() to it.groupValues[2].toInt() }
+                        .toList()
+                    assertTrue(links.isNotEmpty())
+                    links.forEach { (module, page) ->
+                        val heading = requireNotNull(headings[module]) { "Unknown P1 module $module" }
+                        val first = pages.indexOfFirst {
+                            it.contains("C2 - Habilidades, acciones y recursos") && it.contains(heading)
+                        } + 1
+                        assertEquals(first, page,
+                            "$module must point to its first real C2 page ($fixture $variant).")
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun g3DigitalNotesNeverMixWithC2SpellbookOrFinalSheetWhenBothExistAB() {
         // CN303: a character with real digital notes AND the optional Spellbook.
         // Note text must live only on C-N3 pages: never on C2, the book index,
