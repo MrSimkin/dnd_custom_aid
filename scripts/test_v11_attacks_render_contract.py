@@ -30,10 +30,11 @@ class P1AttacksStageTripwire(unittest.TestCase):
                 self.assertIn("stream.addRect(left, bottom, 258f, top - bottom)", body)
                 self.assertIn("val top = 491f", body)
                 self.assertIn("val bottom = 392f", body)
-                self.assertIn("draw(stream, entry.damageEffect, b2 + 3f, y, false)", body)
-                self.assertIn('draw(stream, "ATAQUE / RANGO", left + 4f, top - 10f, false)', body)
-                self.assertIn('draw(stream, "BONO", b1 + 3f, top - 10f, false)', body)
-                self.assertIn('draw(stream, "DAÑO / EFECTO", b2 + 3f, top - 10f, false)', body)
+                # C237: golden 7 pt Barlow labels; bonus/damage right-aligned.
+                self.assertIn("drawAttackValues(stream, entry, left, y)", body)
+                self.assertIn('drawP1Label(stream, "ATAQUE / RANGO", left + 4f, top - 9f)', body)
+                self.assertIn('drawP1Label(stream, "BONO", b2 - 4f - labelWidth("BONO"), top - 9f)', body)
+                self.assertIn('left + 254f - labelWidth("DAÑO / EFECTO"), top - 9f)', body)
 
     def test_c2_attack_table_rows_agree_between_platforms(self):
         # Golden C2 ATAQUES: fitting deferred attacks reuse the P1 row grammar.
@@ -45,6 +46,9 @@ class P1AttacksStageTripwire(unittest.TestCase):
             regions.append(text.split("c2AttackTableRows[cell.sourceKey]?.let { attack ->", 1)[1]
                            .split("// C219:", 1)[0])
         self.assertEqual(regions[0], regions[1])
+        values = [p.read_text(encoding="utf-8").split("fun drawAttackValues(", 1)[1]
+                  .split("fun drawP1Attacks(", 1)[0] for p in (DESKTOP, ANDROID)]
+        self.assertEqual(values[0], values[1], "C237 right-aligned attack values drifted")
         self.assertIn("g3DeferredFittingAttacksUseGoldenC2AttackTableRowsAB",
                       PDF_TEST.read_text(encoding="utf-8"))
 

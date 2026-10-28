@@ -4011,50 +4011,62 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     it.contains("C2 - Habilidades, acciones y recursos")
                 }
                 assertTrue(c2Index > 0, "Attacks 7 and 8 must continue on C2 ($variant).")
-                val words = mutableListOf<Triple<String, Float, Float>>()
-                val stripper = object : PDFTextStripper() {
-                    override fun writeString(
-                        text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
-                    ) {
-                        // Split on real spaces and on column gaps between separate glyph runs.
-                        val word = StringBuilder()
-                        var x = 0f
-                        var y = 0f
-                        var lastEnd = Float.NEGATIVE_INFINITY
-                        fun flush() {
-                            if (word.isNotEmpty()) words += Triple(word.toString(), x, y)
-                            word.clear()
-                        }
-                        for (position in textPositions) {
-                            if (position.unicode.isBlank() || position.xDirAdj - lastEnd > 2f) flush()
-                            if (!position.unicode.isBlank()) {
-                                if (word.isEmpty()) {
-                                    x = position.xDirAdj
-                                    y = 792f - position.yDirAdj
-                                }
-                                word.append(position.unicode)
+                data class Word(val text: String, val x: Float, val y: Float, val end: Float)
+                fun pageWords(page: Int): List<Word> {
+                    val words = mutableListOf<Word>()
+                    val stripper = object : PDFTextStripper() {
+                        override fun writeString(
+                            text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                        ) {
+                            // Split on real spaces and on column gaps between separate glyph runs.
+                            val word = StringBuilder()
+                            var x = 0f
+                            var y = 0f
+                            var lastEnd = Float.NEGATIVE_INFINITY
+                            fun flush() {
+                                if (word.isNotEmpty()) words += Word(word.toString(), x, y, lastEnd)
+                                word.clear()
                             }
-                            lastEnd = position.xDirAdj + position.widthDirAdj
+                            for (position in textPositions) {
+                                if (position.unicode.isBlank() || position.xDirAdj - lastEnd > 2f) flush()
+                                if (!position.unicode.isBlank()) {
+                                    if (word.isEmpty()) {
+                                        x = position.xDirAdj
+                                        y = 792f - position.yDirAdj
+                                    }
+                                    word.append(position.unicode)
+                                    lastEnd = position.xDirAdj + position.widthDirAdj
+                                }
+                            }
+                            flush()
                         }
-                        flush()
                     }
+                    stripper.startPage = page
+                    stripper.endPage = page
+                    stripper.getText(pdf)
+                    return words
                 }
-                stripper.startPage = c2Index + 1
-                stripper.endPage = c2Index + 1
-                stripper.getText(pdf)
-                for (number in 7..8) {
-                    val name = words.single { it.first == "QAROW$number" }
+                // C237: in both tables the label starts 4 pt inside the row, the bonus
+                // ends 4 pt before the bonus column edge (121 + 36) and the damage
+                // ends 4 pt before the row edge (258), as in the golden.
+                fun assertGoldenRow(words: List<Word>, number: Int, where: String) {
+                    val name = words.single { it.text == "QAROW$number" }
                     val bonus = words.single {
-                        it.first == "+$number" && kotlin.math.abs(it.third - name.third) < 0.1f
+                        it.text == "+$number" && kotlin.math.abs(it.y - name.y) < 0.1f &&
+                            it.x > name.x && it.x < name.x + 160f
                     }
-                    val damage = words.single { it.first == "QADMG$number" }
-                    assertEquals(name.third, damage.third, 0.1f,
-                        "A C2 attack row keeps name, bonus and damage on one line ($variant).")
-                    assertEquals(121f, bonus.second - name.second + 4f - 3f, 0.6f,
-                        "The bonus sits in the golden bonus column ($variant).")
-                    assertEquals(157f, damage.second - name.second + 4f - 3f, 0.6f,
-                        "The damage sits in the golden damage column ($variant).")
+                    val damage = words.single { it.text == "QADMG$number" }
+                    val rowLeft = name.x - 4f
+                    assertEquals(name.y, damage.y, 0.1f, "$where row $number stays on one line ($variant).")
+                    assertEquals(rowLeft + 153f, bonus.end, 0.6f,
+                        "$where bonus is right-aligned in the golden bonus column ($variant).")
+                    assertEquals(rowLeft + 254f, damage.end, 0.6f,
+                        "$where damage is right-aligned in the golden damage column ($variant).")
                 }
+                val p1Words = pageWords(1)
+                (1..6).forEach { assertGoldenRow(p1Words, it, "P1") }
+                val c2Words = pageWords(c2Index + 1)
+                (7..8).forEach { assertGoldenRow(c2Words, it, "C2") }
                 val all = pageTexts.joinToString("\n")
                 assertFalse(Regex("(?<!DEL )ATAQUE QAROW").containsMatchIn(all) || all.contains("| DAÑO QADMG"),
                     "Fitting deferred attacks are not '|' records.")

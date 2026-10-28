@@ -627,6 +627,19 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     body.width.measurePt(entry.damageEffect)<=attackDamageWidth-10f
             }
             val p1Attacks=attackRows.filter{ attackFitsTableRow(it) }.take(6)
+            // Golden ATAQUES row values: bonus and damage right-aligned 4 pt
+            // inside their columns (P1 table and C2 continuation rows).
+            fun drawAttackValues(
+                stream: PDPageContentStream,
+                entry: io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry,
+                left: Float, y: Float,
+            ) {
+                val bonus = attackBonus(entry)
+                val bonusRight = left + attackLabelWidth + attackBonusWidth - 4f
+                draw(stream, bonus, bonusRight - body.width.measurePt(bonus), y, false)
+                draw(stream, entry.damageEffect,
+                    left + 254f - body.width.measurePt(entry.damageEffect), y, false)
+            }
             val p1AttackIds = p1Attacks.map { it.id }.toSet()
 
             fun drawP1Attacks(stream: PDPageContentStream) {
@@ -684,17 +697,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.stroke()
                 }
                 stream.restoreGraphicsState()
-                draw(stream, "ATAQUE / RANGO", left + 4f, top - 10f, false)
-                draw(stream, "BONO", b1 + 3f, top - 10f, false)
-                draw(stream, "DAÑO / EFECTO", b2 + 3f, top - 10f, false)
+                // C237: golden P1 ATAQUES uses small 7 pt Barlow column labels and
+                // right-aligns bonus and damage inside their columns.
+                fun labelWidth(text: String) = headerPdfFont.getStringWidth(text) * 7f / 1000f
+                drawP1Label(stream, "ATAQUE / RANGO", left + 4f, top - 9f)
+                drawP1Label(stream, "BONO", b2 - 4f - labelWidth("BONO"), top - 9f)
+                drawP1Label(stream, "DAÑO / EFECTO",
+                    left + 254f - labelWidth("DAÑO / EFECTO"), top - 9f)
                 p1Attacks.forEachIndexed { index, entry ->
                     val y = top - 22f - index * 12f
                     draw(stream,p1AttackLabel(entry),left+4f,y,false)
-                    entry.attackModifier?.let { value ->
-                        draw(stream, if (value >= 0) "+" + value else value.toString(),
-                            b1 + 3f, y, false)
-                    }
-                    draw(stream, entry.damageEffect, b2 + 3f, y, false)
+                    drawAttackValues(stream, entry, left, y)
                 }
                 if (attackRows.isEmpty()) {
                     draw(stream, "________________", left + 5f, top - 25f, false)
@@ -2651,8 +2664,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 stream.restoreGraphicsState()
                                 val baseline = body.metrics.baselineIn(cell.cellPt)
                                 draw(stream, cell.drawableText, left + 4f, baseline, false)
-                                draw(stream, attackBonus(attack), b1 + 3f, baseline, false)
-                                draw(stream, attack.damageEffect, b2 + 3f, baseline, false)
+                                drawAttackValues(stream, attack, left, baseline)
                                 return@forEach
                             }
                             // C219: repeat genuinely persisted P1 total/spent

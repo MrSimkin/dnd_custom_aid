@@ -27,3 +27,10 @@ PR #173 DRAFT/NO MERGE. Anterior: [C234](2026-10-26_V11_C234_P3_STORY_GOLDEN_RHY
 - **Cambio (Desktop + Android):** solo el área de texto se reduce 4 pt por lado dentro de cada columna (`p3TextInsetPt`, con canal de 12+8 pt). Las bandas, renglones y páginas no se mueven. Se aplica a la Historia de P3 y a las dos continuaciones (campos e Historia). `addSection` acepta `gutterPt`.
 - **Pruebas:** la prueba PDF de Historia exige ahora que cada línea empiece en x=51 (banda 47 + 4). El control de paridad de P3 exige el margen en ambos renderizadores.
 - **Local:** pasan todas las pruebas Desktop y Python, Android compila y pasan los 11 auditores. Contra la CI de C234: las mismas 828 páginas, ninguna palabra perdida; solo cambian posiciones de texto.
+
+## B3 / C237 — Tabla ATAQUES de P1 con la tipografía del golden
+
+- **Defecto medido:** en el golden (`v11_extremo_variante_A.pdf` p1), los rótulos de columna de ATAQUES son pequeños (Barlow ~7 pt) y el bono y el daño están alineados a la derecha de su columna. En la app los rótulos eran de Fira 9 pt y los valores estaban alineados a la izquierda.
+- **Cambio (Desktop + Android):** rótulos con `drawP1Label` (Barlow 7 pt, el mismo de los demás rótulos de P1 desde C232), BONO y DAÑO / EFECTO alineados a la derecha. `drawAttackValues` coloca el bono a 4 pt del borde de su columna y el daño a 4 pt del borde de la fila, en P1 y en las filas C2 de B1. No cambian la geometría, las filas ni los textos.
+- **Pruebas:** la prueba PDF de B1 verifica ahora las filas 1–6 de P1 y 7–8 de C2: fin del bono en x+153 y fin del daño en x+254, con 0,6 pt de tolerancia. El control de paridad cubre `drawAttackValues` y los nuevos rótulos.
+- **Local:** pasan todas las pruebas, Android compila y pasan los 11 auditores. Contra la CI de C234: las mismas 828 páginas y ninguna palabra perdida.
