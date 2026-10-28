@@ -445,6 +445,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // Variant B has a physically separate skills area, never a prose
             // list inside the identity field. Source offsets stay attached to
             // their original skills so any measured overflow survives in C2.
+            // C241: label and value suffix of each B skill, so a one-line skill
+            // can print its value right-aligned in its subcolumn like the golden.
+            val bSkillParts = mutableMapOf<String, Pair<String, String>>()
             val bSkillEntries = if (!variantA) data.skills.withIndex()
                 .filter { it.value.builtInKey != null }
                 .map { (index, skill) ->
@@ -456,11 +459,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> " P"
                         io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.EXPERTISE -> " E"
                     }
+                    val label = approvedSkillName(skill) + (abbreviation?.let { " (" + it + ")" } ?: "")
+                    val value = (skill.total?.let { " " + (if (it >= 0) "+" else "") + it } ?: "") +
+                        training
+                    bSkillParts["skill:" + index] = label to value
                     PcSheetV11FlowItem(
                         "skill:" + index,
-                        approvedSkillName(skill) + (abbreviation?.let { " (" + it + ")" } ?: "") +
-                            (skill.total?.let { " " + (if (it >= 0) "+" else "") + it } ?: "") +
-                            training,
+                        label + value,
                         keepTogetherIfFits = true,
                     )
                 }
@@ -549,11 +554,27 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             stream.stroke()
                             stream.restoreGraphicsState()
                         }
-                        stream.beginText()
-                        stream.setFont(bodyPdfFont,7f)
-                        stream.newLineAtOffset(cell.cellPt.leftPt, baseline)
-                        stream.showText(pcSheetV11PrintableText(cell.drawableText))
-                        stream.endText()
+                        fun ink(text: String, x: Float) {
+                            stream.beginText()
+                            stream.setFont(bodyPdfFont,7f)
+                            stream.newLineAtOffset(x, baseline)
+                            stream.showText(pcSheetV11PrintableText(text))
+                            stream.endText()
+                        }
+                        // C241: golden B — value right-aligned 3 pt inside the band.
+                        val parts = bSkillParts[cell.sourceKey]
+                        val value = parts?.second?.trim().orEmpty()
+                        val valueRight = bandLeft + bandWidth - 3f
+                        val oneLine = parts != null && value.isNotEmpty() &&
+                            cell.sourceStartOffset == 0 &&
+                            cell.sourceEndExclusive == parts.first.length + parts.second.length
+                        if (oneLine && cell.cellPt.leftPt + skillFont.width.measurePt(parts!!.first) +
+                            4f <= valueRight - skillFont.width.measurePt(value)) {
+                            ink(parts.first, cell.cellPt.leftPt)
+                            ink(value, valueRight - skillFont.width.measurePt(value))
+                        } else {
+                            ink(cell.drawableText, cell.cellPt.leftPt)
+                        }
                     }
                 }
             }

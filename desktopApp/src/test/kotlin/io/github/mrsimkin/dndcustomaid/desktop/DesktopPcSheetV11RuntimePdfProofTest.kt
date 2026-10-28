@@ -3998,6 +3998,46 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
+    fun g3VariantBSkillValuesAreRightAlignedInTheirGoldenSubcolumns() {
+        // C241: golden variant B HABILIDADES prints each value at the right of its
+        // subcolumn band (bands 47..167 and 176..295; value ends 3 pt inside).
+        val original = sources("03_mara_siete_umbrales_custom_extended.json")
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.B, PcSheetExportStateSelection.PERMANENT),
+            original,
+        )
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val runs = mutableListOf<Triple<String, Float, Float>>() // text, x, end
+            object : PDFTextStripper() {
+                override fun writeString(
+                    text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                ) {
+                    var start = 0
+                    for (i in 1..textPositions.size) {
+                        val split = i == textPositions.size ||
+                            textPositions[i].xDirAdj - (textPositions[i - 1].xDirAdj +
+                                textPositions[i - 1].widthDirAdj) > 2f
+                        if (!split) continue
+                        val part = textPositions.subList(start, i)
+                        val y = 792f - part.first().yDirAdj
+                        if (y in 220f..316f && part.first().fontSizeInPt == 7f) {
+                            runs += Triple(part.joinToString("") { it.unicode }.trim(),
+                                part.first().xDirAdj, part.last().xDirAdj + part.last().widthDirAdj)
+                        }
+                        start = i
+                    }
+                }
+            }.apply { startPage = 1; endPage = 1 }.getText(pdf)
+            val values = runs.filter { Regex("^[+-]\\d+( [PE])?$").matches(it.first) }
+            assertTrue(values.size >= 10, "Mara B prints real skill values on P1: $runs")
+            values.forEach { (text, _, end) ->
+                assertTrue(kotlin.math.abs(end - 164f) < 0.6f || kotlin.math.abs(end - 292f) < 0.6f,
+                    "B skill value '$text' ends at the golden subcolumn edge, not at $end.")
+            }
+        }
+    }
+
+    @Test
     fun g3DigitalNotesUseGoldenNotasCartelaAndInsetCardsAB() {
         // C238: golden C-N3 has a NOTAS cartela ("solo notas digitales") and each
         // note in its own card; text starts 6 pt inside the 42 pt card edge.
