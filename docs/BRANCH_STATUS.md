@@ -1,3 +1,5 @@
+**2026-10-28 — C245–C249 V11, tercera tanda de cinco bloques PASS LOCAL físico (CI exacta SUCCESS en cada uno):** notas+Libro, pie de P1 por módulo, fila de atributo C2, «VIENE P. n» y matriz 38/242. Q1/Q2 pendientes del propietario. [Checkpoint](checkpoints/2026-10-28_V11_C245_CINCO_BLOQUES_3.md).
+
 **2026-10-28 — C240–C244 V11, segunda tanda de cinco bloques PASS LOCAL físico (CI exacta SUCCESS en cada uno):** Libro, habilidades B, cantidades P2/C2, MUNICIONES y matriz 36/242. Q1/Q2 pendientes del propietario. [Checkpoint](checkpoints/2026-10-28_V11_C240_CINCO_BLOQUES_2.md).
 
 **2026-10-28 — C235–C239 V11, cinco bloques autónomos PASS LOCAL físico (CI exacta SUCCESS en cada uno):** ataques C2 en tabla, margen de Historia, tipografía de ATAQUES en P1, tarjetas C-N3 y matriz 33/242. Q1/Q2 pendientes del propietario. [Checkpoint](checkpoints/2026-10-28_V11_C235_CINCO_BLOQUES.md).
