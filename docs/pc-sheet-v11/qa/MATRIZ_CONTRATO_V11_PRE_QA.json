@@ -1529,8 +1529,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null,
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3RealP1WithoutAmmunitionHasOnePaperEntryWithTwentyEmptyBoxes",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs: with no recorded ammunition, P1 MUNICIONES keeps one paper entry with a ruled blank name and exactly 20 empty vector squares grouped 5+5 in two subrows, never underscore glyphs, never an invented 'MARCAS: ____ / 20' counter.",
+            "source_commit": "a0c50a65fc196fadab1ef36434bb3b011da11167",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40748836010",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40748836010/artifacts/12843591580",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40748836010/artifacts/12842158605",
+            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py p1_ammo_cartela finds the golden MUNICIONES cartela on every P1; raster docs/pc-sheet-v11/qa/evidence/c240_c244/B9_*.",
+            "limitations": "Desktop PDFs; G1/G2 NOT_VERIFIED; no installed Android or owner approval; global P118 and G4 remain NOT_VERIFIED."
+          },
           "test_name": "g3RealP1WithoutAmmunitionHasOnePaperEntryWithTwentyEmptyBoxes",
           "source_parity_test": "scripts/test_v11_ammunition_manual_contract.py"
         }
@@ -3138,8 +3147,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3RealMaraC_N3SourceAnchorsAndLongNoteContinuationKeepIdentityAB; g3ShortDigitalNoteReservesHandwritingOnlyBelowMeasuredSourceAB; g3DigitalNotesUseGoldenNotasCartelaAndInsetCardsAB",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: Mara's general note and all titled notes (Nota 1..9) print complete on dedicated C-N3 pages, each as its own golden card; a long note keeps its first, middle and last real words exactly once.",
+            "source_commit": "a0c50a65fc196fadab1ef36434bb3b011da11167",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40748836010",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40748836010/artifacts/12843591580",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40748836010/artifacts/12842158605",
+            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py cn3_cards requires the NOTAS cartela and every Fira note line inside a 528 pt card on every C-N3 page (negative control: 208 errors on the pre-C238 PDFs); the last page carries no digital text; audit_v11_module_topology.py 0 errors.",
+            "limitations": "Desktop PDFs; G1/G2 NOT_VERIFIED; no installed Android or owner approval; global CN302 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -3197,8 +3215,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3RealMaraC_N3SourceAnchorsAndLongNoteContinuationKeepIdentityAB; g3ShortDigitalNoteReservesHandwritingOnlyBelowMeasuredSourceAB; g3DigitalNotesUseGoldenNotasCartelaAndInsetCardsAB",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: an extensive real note continues over two or more C-N3 pages without loss (start, middle and finish markers once each) and a short note gets secondary handwriting rules only below its last measured line.",
+            "source_commit": "a0c50a65fc196fadab1ef36434bb3b011da11167",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40748836010",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40748836010/artifacts/12843591580",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40748836010/artifacts/12842158605",
+            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py cn3_cards requires the NOTAS cartela and every Fira note line inside a 528 pt card on every C-N3 page (negative control: 208 errors on the pre-C238 PDFs); the last page carries no digital text; audit_v11_module_topology.py 0 errors.",
+            "limitations": "Desktop PDFs; G1/G2 NOT_VERIFIED; no installed Android or owner approval; global CN304 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
