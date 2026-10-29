@@ -5080,6 +5080,56 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3PhysicalModuleOrderAndLetterSizeHoldOnEveryPageAB() {
+        // BK02 / GLB01: with real digital notes AND the optional Spellbook, the
+        // physical order is P1, P2, P3, C2, P4, C-N3, book index, book, and the
+        // manuscript NOTAS sheet last; every physical page is US Letter.
+        val ilyra = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val template = sources("03_mara_siete_umbrales_custom_extended.json")
+            .permanent.sheet.noteCards.first()
+        val withNotes = ilyra.copy(permanent = ilyra.permanent.copy(
+            sheet = ilyra.permanent.sheet.copy(noteCards = listOf(
+                template.copy(title = "ORDENQA", content = "ORDENQA " + "nota real ".repeat(40)),
+            )),
+        ))
+        for (fixture in listOf(withNotes, sources("03_mara_siete_umbrales_custom_extended.json"),
+            sources("01_aldren_vale_srd5_1_champion_fighter.json"))) {
+            for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+                val proof = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT,
+                        includeSpellDescriptions = fixture === withNotes), fixture,
+                )
+                Loader.loadPDF(proof.bytes).use { pdf ->
+                    (0 until pdf.numberOfPages).forEach { index ->
+                        val box = pdf.getPage(index).mediaBox
+                        assertEquals(612f, box.width, "Page ${index + 1} width ($variant).")
+                        assertEquals(792f, box.height, "Page ${index + 1} height ($variant).")
+                    }
+                    val pages = (1..pdf.numberOfPages).map { n ->
+                        PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                    }
+                    fun first(title: String) = pages.indexOfFirst { it.contains(title) }
+                    fun last(title: String) = pages.indexOfLast { it.contains(title) }
+                    val order = listOf("P1 - ", "P2 - Equipo y tesoro", "P3 - Trasfondo", "C2 - ",
+                        "P4 - Conjuros", "C-N3 - Notas digitales", "Índice del Libro de Conjuros",
+                        "Libro de conjuros /").filter { first(it) >= 0 }
+                    order.zipWithNext().forEach { (a, b) ->
+                        assertTrue(last(a) < first(b), "$a must come before $b ($variant).")
+                    }
+                    if (fixture === withNotes) {
+                        assertTrue(listOf("C-N3 - Notas digitales", "Índice del Libro de Conjuros",
+                            "Libro de conjuros /").all { first(it) >= 0 },
+                            "Fixture carries C-N3 and the Spellbook ($variant).")
+                    }
+                    assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" } &&
+                        order.none { pages.last().contains(it) },
+                        "The manuscript NOTAS sheet is the last page ($variant).")
+                }
+            }
+        }
+    }
+
+    @Test
     fun g3DigitalNotesNeverMixWithC2SpellbookOrFinalSheetWhenBothExistAB() {
         // CN303: a character with real digital notes AND the optional Spellbook.
         // Note text must live only on C-N3 pages: never on C2, the book index,
