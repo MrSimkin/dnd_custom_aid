@@ -427,8 +427,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "letterBoundsAndPhysicalTwoAndThreeColumnGridNeverCrossPageEdges",
+            "test_result": "PASS — shared G2 geometry: the paper is 612 x 792 pt and every physical two- and three-column cell grid lies inside the available area and the Letter bounds.",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run (:shared:desktopTest in scaffold-check); G3 real-PDF page size verified separately (C276).",
+            "limitations": "Disclosed fixture-only synthetic font; genuine PDFBox font validated in G3. Global GLB01 and G4 remain NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -556,8 +565,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "adjacentItemsUseSeparatePhysicalRowsWithoutOverlaps; illegalCoordinatesAndUnrenderableInputStopRatherThanClipping",
+            "test_result": "PASS — shared G2 composition: adjacent items occupy separate physical rows with no overlap, and illegal coordinates or unrenderable input stop with an error instead of clipping.",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run (:shared:desktopTest).",
+            "limitations": "Disclosed fixture-only synthetic font; physical printable-margin ink not asserted at G2. Global GLB06 and G4 remain NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -582,8 +600,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "explicitBlankLinesReserveCellsWithoutPrintingLineBreakControlCharacters",
+            "test_result": "PASS — shared G2 composition: explicit blank source lines reserve their own writable row cells, rows stay ordered, and no line-break control character is ever drawn.",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run (:shared:desktopTest).",
+            "limitations": "Disclosed fixture-only synthetic font. Global GLB07 and G4 remain NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -2455,8 +2482,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "narrativeCrossesColumnsAndPagesWithContiguousSourceOffsets",
+            "test_result": "PASS — shared G2 composition: a long narrative crosses columns and physical pages deterministically, every cell stays inside the area, and the fragments rejoin to the exact original text (contiguous source offsets).",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run (:shared:desktopTest); G3 real-PDF continuation verified separately (P304 G3 PASS).",
+            "limitations": "Disclosed fixture-only synthetic font. Global P304 and G4 remain NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -2611,8 +2647,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "spellThreeColumnsAreMeasuredNotAssumedAndDoNotOverlap",
+            "test_result": "PASS — shared G2 composition: the quick spell list uses three measured columns of real width, fills more than one column, never overlaps or leaves the area, and is lossless.",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run (:shared:desktopTest).",
+            "limitations": "Dynamic distribution without large blank areas is not asserted here. Disclosed fixture-only synthetic font. Global P402 and G4 remain NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
