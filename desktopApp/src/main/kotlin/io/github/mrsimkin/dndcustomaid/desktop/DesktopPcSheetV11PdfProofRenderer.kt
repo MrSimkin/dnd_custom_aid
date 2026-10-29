@@ -1926,6 +1926,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // C262: golden C2 lists, 7.2 pt on 15.7 pt rows; the linked-skill
             // paper box keeps >= 11 pt of measured clearance in that size.
             val c2Font = goldenRhythm(7.2f, 15.7f)
+            // C263: golden P2 Equipo / Tesoro / Rasgos, 7.1 pt on 16 pt rows.
+            val p2Font = goldenRhythm(7.1f, 16f)
             val c2Inset = " ".repeat((1..16).first {
                 c2Font.width.measurePt(" ".repeat(it)) >= 11f
             })
@@ -3547,14 +3549,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 input: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData,
                 area: PcSheetV11RectPt,
             ): io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData =
-                PcSheetV11PairedAmountRouting.p2Eligible(input, area, 12f, body.width)
+                PcSheetV11PairedAmountRouting.p2Eligible(input, area, 12f, p2Font.width)
             val inventoryPlaced = PcSheetV11PairedTableComposer.place(
                 rowsForP2(completeEquipment, equipmentArea),
-                equipmentArea, 12f, 36f, 6f, body.metrics.lineHeightPt, body.width,
+                equipmentArea, 12f, 36f, 6f, p2Font.metrics.lineHeightPt, p2Font.width,
             )
             val treasurePlaced = PcSheetV11PairedTableComposer.place(
                 rowsForP2(completeTreasure, treasureArea),
-                treasureArea, 12f, 36f, 6f, body.metrics.lineHeightPt, body.width,
+                treasureArea, 12f, 36f, 6f, p2Font.metrics.lineHeightPt, p2Font.width,
             )
             // P2 contains ONLY source IDs not already printed on P1.
             // G2 flow and mixed C2 extend these summary records losslessly;
@@ -3567,7 +3569,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TraitSummary.text(trait),
                         keepTogetherIfFits = true)
                 }
-            val traitsPlaced = body.place(PcSheetV11FlowSection.TRAITS, traitLines,
+            val traitsPlaced = p2Font.place(PcSheetV11FlowSection.TRAITS, traitLines,
                 traitsArea, 2, 12f)
             // V11 golden P2: location / name / description / ACTIVO belong
             // to ONE logical row per special item, not four paragraphs.
@@ -3774,7 +3776,19 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 suppressAmounts: Set<String> = emptySet(),
                 compactC2: Boolean = false,
                 writeC2Notes: Boolean = true,
+                tableFont: PcSheetV11ResolvedFont = body,
             ) {
+                // C263: a paired table measures and draws in its own font.
+                val body = tableFont
+                fun draw(stream: PDPageContentStream, text: String, x: Float, y: Float, label: Boolean) {
+                    if (text.isEmpty()) return
+                    stream.beginText()
+                    stream.setFont(if (label) headerPdfFont else bodyPdfFont,
+                        if (label) 12f else tableFont.metrics.fontSizePt)
+                    stream.newLineAtOffset(x, y)
+                    stream.showText(pcSheetV11PrintableText(text))
+                    stream.endText()
+                }
                 if (!compactC2) {
                     val ordinary = placed.data.kind ==
                         io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableKind.EQUIPMENT
@@ -3957,14 +3971,20 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
 
             fun drawP2Modules(stream: PDPageContentStream, localPage: Int) {
-                drawPaired(stream, "EQUIPO   /   CANTIDAD", equipmentArea, inventoryPlaced, localPage)
-                drawPaired(stream, "TESORO   /   CANTIDAD", treasureArea, treasurePlaced, localPage)
+                drawPaired(stream, "EQUIPO   /   CANTIDAD", equipmentArea, inventoryPlaced, localPage,
+                    tableFont = p2Font)
+                drawPaired(stream, "TESORO   /   CANTIDAD", treasureArea, treasurePlaced, localPage,
+                    tableFont = p2Font)
                 drawP2Cartela(stream, "RASGOS Y ATRIBUTOS", traitsArea)
-                grid(stream, traitsArea, true, alternateP2Rows = true)
+                grid(stream, traitsArea, true, p2Font.metrics.lineHeightPt, alternateP2Rows = true)
                 traitsPlaced.cells.filter { it.localPageIndex == localPage }.forEach { cell ->
                     if (cell.drawableText.isNotEmpty()) {
-                        draw(stream, cell.drawableText, cell.cellPt.leftPt + 2f,
-                            body.metrics.baselineIn(cell.cellPt), false)
+                        stream.beginText()
+                        stream.setFont(bodyPdfFont, p2Font.metrics.fontSizePt)
+                        stream.newLineAtOffset(cell.cellPt.leftPt + 2f,
+                            p2Font.metrics.baselineIn(cell.cellPt))
+                        stream.showText(pcSheetV11PrintableText(cell.drawableText))
+                        stream.endText()
                     }
                 }
                 drawP2Cartela(stream, "EQUIPO ESPECIAL", specialArea)

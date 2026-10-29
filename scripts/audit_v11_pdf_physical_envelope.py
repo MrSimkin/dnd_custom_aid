@@ -18,10 +18,10 @@ TEXT_BOUNDS = (34.0, 30.0, 578.0, 767.0)
 P2_SHADE = tuple(v / 255 for v in (231, 242, 247))
 P2_MODULES = (
     # REAL golden source-free P2 rows expand to manuscript rhythm;
-    # source-populated tables use the measured Fira baseline height.
-    ("Equipo", 42.0, 108.0, 258.0, (12.42, 16.5)),
-    ("Tesoro", 42.0, 344.0, 258.0, (12.42, 19.5)),
-    ("Rasgos", 312.0, 108.0, 258.0, (12.42,)),
+    # source-populated tables use the golden 16 pt row (C263, 7.1 pt text).
+    ("Equipo", 42.0, 108.0, 258.0, (16.0, 16.5)),
+    ("Tesoro", 42.0, 344.0, 258.0, (16.0, 19.5)),
+    ("Rasgos", 312.0, 108.0, 258.0, (16.0,)),
     # D-0076 §3.21: a multi-line special entry spans whole 25 pt pitches.
     ("Equipo especial", 42.0, 497.0, 528.0, tuple(25.0 * n for n in range(1, 9))),
 )
