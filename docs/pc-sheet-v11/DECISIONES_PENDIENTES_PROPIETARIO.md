@@ -4,6 +4,10 @@ Lista viva. El Worker anota aquí cada decisión que corresponde al propietario 
 
 ## Abiertas
 
+Ninguna. Las preguntas Q1–Q13 fueron respondidas una a una el 2026-10-28 (ver «Resueltas»); su detalle original queda abajo como historial.
+
+## Historial — detalle de Q1–Q13 tal como se plantearon
+
 ### Q1 — C2: cómo mostrar los Recursos (2026-10-26)
 
 - **Contexto:** la C2 «Habilidades, acciones y recursos» imprime acciones y recursos personalizados como texto con «|». El golden no muestra ninguno de los dos.
@@ -140,4 +144,14 @@ Lista viva. El Worker anota aquí cada decisión que corresponde al propietario 
 
 ## Resueltas
 
+- 2026-10-28 — Q1 Recursos en C2: «A casillas vacias y gastados/total como espacios de conjuro». Una casilla vacía por unidad del total, nada premarcado, y el número pequeño «gastados/total» (Éter: 2/3); debajo, en letra pequeña, recuperación, fuente y notas. La tabla ACCIONES de la vista previa (gramática de Ataques del golden) se aplica salvo objeción. Pendiente de implementar.
+- 2026-10-28 — P4 preparación por fuente: «B, pero el hechizo aparece dos veces, una para cada fuente como: Fire bolt Mago / Fire bolt Otro». Una fila por cada par conjuro-fuente, juntas y en orden dentro de su nivel; casilla vacía para lápiz; solo el tipo de fuente, sin [X] ni [ ]; la preparación no se imprime. Reemplaza la regla anterior «cada fila conserva su marca de preparación». Pendiente de implementar.
+- 2026-10-28 — Q6 Fuente de conjuro borrada: «A» (se rotula «Otro»). El propietario añade: «no necesita nunca el [X]»; se replantea aparte porque choca con la regla anterior «cada fila conserva su marca de preparación».
+- 2026-10-28 — Q5 Tipos de fuente de conjuro: «Confirmo la lista». Clase (con su nombre, sin subclase), Rasgo, Raza, Trasfondo, Dote, Objeto, Objeto mágico, Don, Otro. El supuesto del contrato pasa a regla confirmada.
+- 2026-10-28 — Q4 Aviso de P3: el propietario sigue la recomendación del Worker «mientras respetes el contrato gráfico». Opción C: el nombre de cada campo que continúa («IDEALES A P. 4 · HISTORIA A P. 5»), en la franja, letra y color del golden. Pendiente de implementar.
+- 2026-10-28 — Q11 Velocidad en P1: «D 35 pies y 10,5 m». La tarjeta muestra pies y metros (5 pies = 1,5 m) a partir del valor guardado en pies; si no cabe, el criterio de Q7 (letra menor, luego dos renglones). Pendiente de implementar.
+- 2026-10-28 — Q10 Inspiración y PV TEMP en P1: «A». Tarjeta INSPIRACIÓN como el golden, con casilla marcada según el valor real de la ficha; PV temporales en pequeño dentro de la tarjeta PV ACTUALES («TEMP 7»). Pendiente de implementar.
+- 2026-10-28 — Q7 Valores por fuente en P1: «B y C en ese orden y mezclando». Primero una línea bajando la letra hasta 6 pt; si no cabe, dos renglones (también con letra menor si hace falta); si aun así no cabe, aviso «SEGÚN FUENTE» (P4 conserva siempre el detalle). Pendiente de implementar.
+- 2026-10-28 — Regla del propietario: «diseño debe llegar a ser igual (fuente, color, distribución, maquetación) al original … está en el contrato». Resuelve por el golden: Q2 tamaño de letra del golden en toda la hoja; Q8 dos filas de 10 por munición; Q9 rótulos de ataques del golden; Q12 español con la gramática del golden (casilla con P/E; Acción, Acción adicional, Reacción); Q13 detalles técnicos ajustados al golden donde el golden los muestra. Pendientes de implementar.
+- 2026-10-28 — Q3 Espacios de conjuro en P1: «B, pero sin marcas». Casillas vacías (sin X premarcadas) y, al lado, un número pequeño «gastados/total» (Mara N1: 2/4), con la tipografía y el color del golden. Pendiente de implementar.
 - 2026-10-26 — P3 Historia: «Opción B: usa 7 pt sobre renglones de 17 pt como el diseño aprobado en Historia.» Contrato y C234.

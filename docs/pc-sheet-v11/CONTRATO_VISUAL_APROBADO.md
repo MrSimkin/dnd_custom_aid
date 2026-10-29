@@ -80,14 +80,27 @@ El propietario aprobó P1/P3/P4, P2, C2, final y variante B tras revisión V11. 
 
 - La fuente de lanzamiento de cada fila de la Lista rápida de Conjuros se rotula por su **TIPO DE ORIGEN, sin nombres específicos**, salvo la **Clase**, que se rotula con el nombre de la clase **sin subclase** (por ejemplo `Mago`, `Clérigo`). Los demás tipos son, por ejemplo, `Rasgo`, `Dote`, `Raza`, `Otro`. El propietario no recordaba la lista completa. Esta regla reemplaza la impresión de nombres completos como `Sage — Magic Initiate (Wizard)` (regla `P411`).
 - **«SEGÚN FUENTE» significa mostrar el valor de cada fuente**, por ejemplo CD = `Mago 15 / Hechicero 17`; lo mismo para Aptitud y Ataque mágico. Se aplica en P1 y P4.
-- Dos fuentes del mismo tipo pueden verse con el mismo rótulo (respuesta afirmativa del propietario); cada fila conserva su marca de preparación.
+- Dos fuentes del mismo tipo pueden verse con el mismo rótulo (respuesta afirmativa del propietario); cada fila conserva su marca de preparación. *Reemplazado el 2026-10-28: ver la aclaración de esa fecha (una fila por fuente, sin marca impresa).*
 - Cantidad de casillas de espacios por nivel en P1: **depende de la hoja del PJ, mínimo 0, máximo 4**. No hay personajes con 7 o más espacios por nivel.
 
-**Supuestos del Worker, NO dichos por el propietario (confirmar o corregir):**
+**Supuestos del Worker (respondidos por el propietario el 2026-10-28):** lista de tipos CONFIRMADA; fuente borrada = `Otro` CONFIRMADO; el aviso `SEGÚN FUENTE` pasa a ser el último recurso (ver aclaración 2026-10-28).
 
 - La lista completa de tipos se toma del editor de fuentes de la App (D-0058, «Tipo de origen»): Clase, Rasgo, Raza, Trasfondo, Dote, Objeto, Objeto mágico, Don, Otro.
 - Una asociación cuya fuente ya no existe (sin tipo guardado) se rotula `Otro`.
 - Si el texto por fuente no cabe en la tarjeta (más de tres fuentes en P4 o 81 pt en P1) se conserva el aviso `SEGÚN FUENTE` en lugar de truncar.
+
+## Aclaraciones del propietario — respuestas una a una (2026-10-28)
+
+**Regla general (dicho por el propietario):** «diseño debe llegar a ser igual (fuente, color, distribución, maquetación) al original … está en el contrato». Todo lo añadido usa la tipografía y los colores del golden. Por esta regla quedan resueltos: el tamaño de letra del golden en toda la hoja, dos filas de 10 casillas por munición, los rótulos de ATAQUES del golden, el español con la gramática del golden en C2 (casilla con P/E; Acción, Acción adicional, Reacción) y los detalles técnicos del Worker ajustados al golden donde este los muestra.
+
+- **P1 espacios de conjuro:** «B, pero sin marcas». Casillas vacías, una por espacio real, sin X; al lado, un número pequeño «gastados/total» (Mara N1: `2/4`).
+- **P1 tarjetas de magia por fuente:** «B y C en ese orden y mezclando». Primero una línea con letra hasta 6 pt; si no cabe, dos renglones (también con letra menor); solo si aun así no cabe, `SEGÚN FUENTE`. P4 conserva siempre el detalle.
+- **P1 INSPIRACIÓN:** «A». Tarjeta INSPIRACIÓN como el golden, con casilla marcada según el valor real de la ficha; los PV temporales van en pequeño dentro de PV ACTUALES (`TEMP 7`).
+- **P1 VELOCIDAD:** «D». Pies y metros a partir del valor guardado en pies, 5 pies = 1,5 m (`35 pies · 10,5 m`).
+- **P3 aviso de continuación:** recomendación del Worker aceptada «mientras respetes el contrato gráfico»: el nombre de cada campo que continúa (`IDEALES A P. 4 · HISTORIA A P. 5`).
+- **P4 tipos de fuente:** lista confirmada (Clase con su nombre sin subclase, Rasgo, Raza, Trasfondo, Dote, Objeto, Objeto mágico, Don, Otro). Fuente borrada: `Otro`.
+- **P4 preparación por fuente:** «el hechizo aparece dos veces, una para cada fuente como: Fire bolt Mago / Fire bolt Otro», y «no necesita nunca el [X]». Una fila por cada par conjuro-fuente, juntas dentro de su nivel, con casilla vacía para lápiz y solo el tipo de fuente; la preparación no se imprime. Reemplaza «cada fila conserva su marca de preparación».
+- **C2 recursos:** «A». Casillas vacías, una por unidad del total, y el número pequeño «gastados/total» (Éter: `2/3`); debajo, recuperación, fuente y notas en letra pequeña. La tabla ACCIONES usa la gramática de ATAQUES del golden.
 
 ## Aclaración del propietario — Equipo y Tesoro con nombres largos (2026-10-26)
 
