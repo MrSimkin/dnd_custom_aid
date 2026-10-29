@@ -3823,11 +3823,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             addSection("P3 - Narrativa / continuación", PcSheetV11FlowSection.NARRATIVE,
                 p3FieldOverflow, 2, area = p3ContinuationTextArea,
                 gutterPt = 12f + 2 * p3TextInsetPt)
+            val p3StoryPagesBefore = physicalSectionKeys.size
             addSection("P3 - Narrativa / continuación", PcSheetV11FlowSection.NARRATIVE,
                 p3StoryOverflow, 2, area = p3ContinuationTextArea,
                 font = storyFont,
                 firstPageNumber = physicalSectionKeys.size - p3PagesBefore + 1,
                 gutterPt = 12f + 2 * p3TextInsetPt)
+            // C253: golden P3 footer "HISTORIA A P. 6": each continued P3 flow
+            // with its first real physical page, on the module-link band.
+            val p3ModuleLinks = listOfNotNull(
+                if (p3FieldOverflow.isNotEmpty()) "TRASFONDO Y PERFIL A P. " + (p3PagesBefore + 1)
+                else null,
+                if (p3StoryOverflow.isNotEmpty()) "HISTORIA A P. " + (p3StoryPagesBefore + 1)
+                else null,
+            ).joinToString(" · ").takeIf { it.isNotEmpty() }
 
 
             // Resource balances and ammunition are drawn only from persisted source
@@ -4782,6 +4791,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     }
                     if (key.startsWith("P1 - ") && p1ModuleLinks != null) {
                         drawModuleLinks(stream, p1ModuleLinks)
+                    }
+                    if (key == "P3 - Trasfondo / Perfil / Historia" && p3ModuleLinks != null) {
+                        drawModuleLinks(stream, p3ModuleLinks)
                     }
                     val label = "HOJA " + physicalPage + " / " + totalPages
                     val x = 570f - body.width.measurePt(label)

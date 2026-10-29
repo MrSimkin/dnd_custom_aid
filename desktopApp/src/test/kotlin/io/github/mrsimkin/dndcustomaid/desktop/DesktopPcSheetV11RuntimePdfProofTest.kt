@@ -4933,6 +4933,63 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3P3FooterNamesEachContinuedFlowWithItsRealPageAB() {
+        // C253: golden P3 footer "HISTORIA A P. 6" on the module-link band. Real
+        // Aldren with a long persisted story, then also a long persisted ideal.
+        val actual = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val story = "C253STORY " + "Viaje registrado con fechas y testigos verificables. ".repeat(300)
+        val longStory = actual.copy(permanent = actual.permanent.copy(
+            sheet = actual.permanent.sheet.copy(
+                background = actual.permanent.sheet.background.copy(story = story),
+            ),
+        ))
+        val both = longStory.copy(permanent = longStory.permanent.copy(
+            sheet = longStory.permanent.sheet.copy(
+                background = longStory.permanent.sheet.background.copy(
+                    ideals = "C253IDEAL " + "Proteger a quien no puede defenderse. ".repeat(40),
+                ),
+            ),
+        ))
+        for ((fixture, expected) in listOf(
+            actual to emptyList(), longStory to listOf("HISTORIA"),
+            both to listOf("TRASFONDO Y PERFIL", "HISTORIA"),
+        )) {
+            for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+                val proof = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), fixture,
+                )
+                Loader.loadPDF(proof.bytes).use { pdf ->
+                    val pages = (1..pdf.numberOfPages).map { n ->
+                        PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                    }
+                    val p3 = pages.indexOfFirst { it.contains("P3 - Trasfondo") }
+                    assertTrue(p3 >= 0)
+                    val footer = pages[p3].lineSequence().firstOrNull { it.contains(" A P. ") }
+                    val links = footer?.let { line ->
+                        Regex("""([A-ZÁÉÍÓÚ ]+?) A P\. (\d+)""").findAll(line)
+                            .map { it.groupValues[1].trim() to it.groupValues[2].toInt() }.toList()
+                    }.orEmpty()
+                    assertEquals(expected, links.map { it.first }, "P3 links ($variant): $footer")
+                    links.forEach { (module, page) ->
+                        val first = pages.indexOfFirst { text ->
+                            text.contains("P3 - Narrativa / continuación") && when (module) {
+                                "HISTORIA" -> text.contains("HISTORIA Y CRÓNICA / CONTINUACIÓN")
+                                else -> text.contains("IDEALES / CONTINUACIÓN")
+                            }
+                        } + 1
+                        assertEquals(first, page, "$module must point to its first real page ($variant).")
+                    }
+                    if (links.isNotEmpty()) {
+                        val native = pdf.getPage(p3).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                        assertTrue(Regex("""(?m)(?:^|\s)40(?:\.0)?\s+59(?:\.0)?\s+532(?:\.0)?\s+13(?:\.0)?\s+re(?:\s|$)""")
+                            .containsMatchIn(native), "P3 golden footer band ($variant).")
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun g3ModuleLinksUseGoldenShadedFooterBandOnP1AndP2AB() {
         // C252: golden P1/P2 module links sit on a shaded 13pt band across the page
         // area, in small Barlow ink (6.1pt), not in body-size Fira.
