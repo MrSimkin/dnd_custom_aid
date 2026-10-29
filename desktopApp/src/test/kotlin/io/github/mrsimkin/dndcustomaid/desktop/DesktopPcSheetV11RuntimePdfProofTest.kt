@@ -321,8 +321,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 fun near(word: Triple<String, Float, Float>, x: Float, y: Float) =
                     kotlin.math.abs(word.second - x) <= 2.5f &&
                         kotlin.math.abs(word.third - y) <= 2.5f
-                // C250: golden cells; the paper boxes ARE the real totals and
-                // spent slots are pre-marked X (spent zero = no X, absent = no box).
+                // C250/C255: golden cells; the paper boxes ARE the real totals, never
+                // pre-marked, with the real "gastados/total" count (absent = no box).
                 val native = pdf.getPage(0).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
                 val boxes = Regex(
                     """(?m)(?:^|\s)([\d.]+)\s+([\d.]+)\s+8(?:\.0)?\s+8(?:\.0)?\s+re(?:\s|$)""",
@@ -346,8 +346,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     } else {
                         assertEquals(slot.totalSlots, cellBoxes,
                             "P1 N$level must draw the real total ${slot.totalSlots}")
-                        assertEquals(slot.spentSlots, inCell.sumOf { w -> w.first.count { it == 'X' } },
-                            "P1 N$level must pre-mark the real spent ${slot.spentSlots}")
+                        assertTrue(inCell.none { w -> 'X' in w.first },
+                            "C255: P1 N$level boxes are never pre-marked: $inCell")
+                        assertTrue(inCell.any {
+                            it.first == "${slot.spentSlots}/${slot.totalSlots}" && it.second > cellX + 60f
+                        }, "P1 N$level must print the real gastados/total: $inCell")
                     }
                 }
                 assertTrue(words.none { it.first == "N10" || it.first == "N11" ||
@@ -2244,13 +2247,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 fun actualSquare(x: Int): Int = Regex(
                     """(?m)(?:^|\s)\Q$x\E(?:\.0)?\s+230(?:\.0)?\s+8(?:\.0)?\s+8(?:\.0)?\s+re(?:\s|$)""",
                 ).findAll(content).count()
-                // N1=4: 334,346,358,370; N2=5: 419..467; same y=230pt (C250).
-                for (x in listOf(334, 346, 358, 370, 419, 431, 443, 455, 467)) {
+                // N1=4: 334,346,358,370; N2=5: 419..459 step 10 (C255); y=230pt.
+                for (x in listOf(334, 346, 358, 370, 419, 429, 439, 449, 459)) {
                     assertEquals(1, actualSquare(x),
                         "P1 must draw one true usable square for source x=$x.")
                 }
                 assertEquals(0, actualSquare(382), "Do not invent fifth box for N1=4.")
-                assertEquals(0, actualSquare(479), "Do not invent sixth box for N2=5.")
+                assertEquals(0, actualSquare(469), "Do not invent sixth box for N2=5.")
                 val pageText = PDFTextStripper().apply {
                     startPage = 1; endPage = 1
                 }.getText(pdf)
@@ -2291,13 +2294,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 fun squareAt(x: Int, y: Int): Int = Regex(
                     """(?m)(?:^|\s)\Q$x\E(?:\.0)?\s+\Q$y\E(?:\.0)?\s+8(?:\.0)?\s+8(?:\.0)?\s+re(?:\s|$)""",
                 ).findAll(native).count()
-                // N1: six real 8pt squares with 2pt gap (C250); no seventh.
-                for (x in listOf(334, 344, 354, 364, 374, 384)) {
-                    assertEquals(1, squareAt(x, 230),
-                        "A genuine N1 six-slot square must be present at x=$x.")
+                // N1: six real 6.5pt squares, step 8.3 (C255), so the real
+                // "4/6" count fits the cell; no seventh.
+                val small = Regex(
+                    """(?m)(?:^|\s)([\d.]+)\s+([\d.]+)\s+6\.5\s+6\.5\s+re(?:\s|$)""",
+                ).findAll(native).map { it.groupValues[1].toFloat() to it.groupValues[2].toFloat() }.toList()
+                assertEquals(6, small.size, "Six genuine N1 squares and no seventh.")
+                small.sortedBy { it.first }.forEachIndexed { n, (x, y) ->
+                    assertTrue(kotlin.math.abs(x - (334f + n * 8.3f)) < 0.05f &&
+                        kotlin.math.abs(y - 230.75f) < 0.05f, "N1 square $n at ($x, $y).")
                 }
-                assertEquals(0, squareAt(394, 230),
-                    "Do not invent a seventh source slot or cross the cell boundary.")
                 // Unchanged real N2=3: five-point gaps are preserved.
                 for (x in listOf(419, 431, 443)) {
                     assertEquals(1, squareAt(x, 230))
@@ -4789,7 +4795,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     fun g3P1SpellcastingUsesGoldenReferenceCardsAndShadedSlotGridAB() {
         // C250: golden P1 LANZAMIENTO: three clipped reference cards with small
         // labels and centered values, then a 3x3 grid of shaded level cells whose
-        // paper boxes are the real totals with spent slots pre-marked X.
+        // paper boxes are the real totals, never pre-marked, with gastados/total (C255).
         val ilyra = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
         val slots = ilyra.permanent.sheet.spellSlots.filter { it.level in 1..9 }
         assertTrue(slots.any { it.spentSlots > 0 }, "Ilyra must really have spent slots.")
@@ -4819,7 +4825,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         x >= cx + 20f && x + 8f <= cx + 84f && y == cy + 8f
                     }, "N${s.level} boxes inside their cell ($variant).")
                 }
-                // X marks: exactly the real spent slots, each inside the grid.
+                // C255: no pre-marked X; each level shows its real gastados/total
+                // count at the right of its cell. Runs are split at column gaps.
                 val marks = mutableListOf<Pair<Float, Float>>()
                 val labels = mutableListOf<Triple<String, Float, Float>>()
                 object : PDFTextStripper() {
@@ -4832,12 +4839,28 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                                 marks += it.xDirAdj to y
                             }
                         }
-                        labels += Triple(text.trim(), textPositions.first().xDirAdj,
-                            792f - textPositions.first().yDirAdj)
+                        var start = 0
+                        for (i in 1..textPositions.size) {
+                            val split = i == textPositions.size ||
+                                textPositions[i].xDirAdj - (textPositions[i - 1].xDirAdj +
+                                    textPositions[i - 1].widthDirAdj) > 6f
+                            if (!split) continue
+                            val part = textPositions.subList(start, i)
+                            labels += Triple(part.joinToString("") { it.unicode }.trim(),
+                                part.first().xDirAdj, 792f - part.first().yDirAdj)
+                            start = i
+                        }
                     }
                 }.apply { startPage = 1; endPage = 1 }.getText(pdf)
-                assertEquals(slots.filter { it.totalSlots in 1..6 }.sumOf { it.spentSlots }, marks.size,
-                    "One pre-marked X per real spent slot ($variant).")
+                assertEquals(0, marks.size, "C255: slot boxes are never pre-marked ($variant).")
+                slots.filter { it.totalSlots in 1..6 }.forEach { s ->
+                    val cx = 314f + ((s.level - 1) % 3) * 85f
+                    val cy = 222f - ((s.level - 1) / 3) * 24f
+                    assertTrue(labels.any {
+                        it.first == "${s.spentSlots}/${s.totalSlots}" &&
+                            it.second in cx + 60f..cx + 84f && it.third in cy..cy + 24f
+                    }, "N${s.level} real gastados/total at the right of its cell ($variant).")
+                }
                 // Card labels in the golden order and small, values centered below.
                 val cardLabels = listOf("APTITUD MÁGICA", "CD SALVACIÓN", "ATAQUE MÁGICO")
                 cardLabels.forEachIndexed { i, label ->

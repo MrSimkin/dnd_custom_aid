@@ -20,7 +20,10 @@ class P1SpellcastingGridParityTest(unittest.TestCase):
                 "// Eight real combat cells", 1)[0]
             self.assertIn('"APTITUD MÁGICA"', part)
             self.assertIn("stream.addRect(p1MagicColumn(col),222f-row*24f,84f,24f)", part)
-            self.assertIn("stream.addRect(x+20f+n*markStep,b+8f,8f,8f)", part)
+            self.assertIn("stream.addRect(x+20f+n*markStep,b+8f+(8f-box)/2f,box,box)", part)
+            # C255: never pre-marked; the real gastados/total count is printed.
+            self.assertIn('val count = v.spentSlots.toString() + "/" + v.totalSlots', part)
+            self.assertNotIn('showText("X")', part)
             # Counts that boxes cannot show keep their real numbers.
             self.assertIn("draw(stream,v.totalSlots.toString(),x+20f,b+8f,false)", part)
             self.assertNotIn('draw(stream,"GASTADOS"', part)

@@ -777,9 +777,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // C250: golden P1 LANZAMIENTO grammar. Three white clipped
                 // reference cards (APTITUD MÁGICA / CD SALVACIÓN / ATAQUE
                 // MÁGICO) over a 3x3 grid of alternately shaded level cells.
-                // The paper boxes ARE the real totals and spent slots are
-                // pre-marked X, as in golden MUNICIONES; counts that boxes
-                // cannot show keep their numbers. Panel bounds are unchanged.
+                // The paper boxes ARE the real totals, never pre-marked, with a
+                // small gastados/total count (C255); counts that boxes cannot
+                // show keep their numbers. Panel bounds are unchanged.
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130,165,186))
                 stream.setLineWidth(0.55f)
@@ -893,32 +893,34 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         if (level in overflowP1SpellLevels) {
                             draw(stream,"VER C2",x+20f,b+8f,false)
                         } else if(v.totalSlots in 1..6 && v.spentSlots in 0..v.totalSlots) {
-                            // C227: six actual slots also fit the unchanged
-                            // cell with SIX paper boxes; 1..5 keep 4pt gaps.
-                            // Never invent a tracking grammar for 7+ slots.
-                            val markStep = if(v.totalSlots == 6) 10f else 12f
-                            require(20f+(v.totalSlots-1)*markStep+8f <= 82f) {
-                                "P1 spell-slot marks overflow the native cell"
+                            // C255 (owner 2026-10-28, «B, pero sin marcas»): empty
+                            // paper boxes, never pre-marked, and a small golden
+                            // "gastados/total" count right-aligned in the cell
+                            // (Mara N1: 2/4). Six slots use 6.5pt boxes so the
+                            // count still fits; never invent a grammar for 7+.
+                            val count = v.spentSlots.toString() + "/" + v.totalSlots
+                            val countPt = 7f
+                            val countX = x + 81f -
+                                headerPdfFont.getStringWidth(count) * countPt / 1000f
+                            val box = if (v.totalSlots == 6) 6.5f else 8f
+                            val markStep = when (v.totalSlots) {
+                                6 -> 8.3f
+                                5 -> 10f
+                                else -> 12f
                             }
-                            // Golden spent mark: shaded box with a small blue X.
+                            require(x+20f+(v.totalSlots-1)*markStep+box <= countX-2f) {
+                                "P1 spell-slot boxes overlap their real count"
+                            }
                             stream.saveGraphicsState()
                             stream.setStrokingColor(Color(82,124,150))
+                            stream.setNonStrokingColor(Color.WHITE)
                             stream.setLineWidth(0.48f)
                             repeat(v.totalSlots){n->
-                                stream.setNonStrokingColor(if(n<v.spentSlots)
-                                    Color(191,211,222) else Color.WHITE)
-                                stream.addRect(x+20f+n*markStep,b+8f,8f,8f)
+                                stream.addRect(x+20f+n*markStep,b+8f+(8f-box)/2f,box,box)
                                 stream.fillAndStroke()
                             }
-                            stream.setNonStrokingColor(Color(101,125,144))
-                            val markWidth = bodyPdfFont.getStringWidth("X") * 7f / 1000f
-                            repeat(v.spentSlots){n->
-                                stream.beginText()
-                                stream.setFont(bodyPdfFont,7f)
-                                stream.newLineAtOffset(x+20f+n*markStep+(8f-markWidth)/2f,b+9.6f)
-                                stream.showText("X")
-                                stream.endText()
-                            }
+                            stream.setNonStrokingColor(Color(38,75,104))
+                            drawP1Label(stream,count,countX,b+9f,countPt)
                             stream.restoreGraphicsState()
                         } else {
                             draw(stream,v.totalSlots.toString(),x+20f,b+8f,false)
