@@ -72,7 +72,7 @@ class C2PhysicalOriginParityTest(unittest.TestCase):
             self.assertIn("stream.addRect(left - 1.25f, bottom,", source)
             self.assertIn("stream.addRect(x, baseline - 1.5f, 7f, 7f)", source)
             self.assertIn("Color(231, 242, 247)", source)
-            self.assertIn("Color(217, 236, 245)", source)
+            self.assertIn("Color(231, 242, 247)", source)  # C293 golden cartela fill
             self.assertIn('origins.takeIf { it.isNotEmpty() }', source)
             self.assertIn('physicalPage == mixedC2TraitPages.minOrNull()', source)
             part = source.split('val mixedC2Key = "C2 - Habilidades, acciones y recursos"', 1)[1]

@@ -69,7 +69,7 @@ def p2_special_rows(page: fitz.Page) -> list[str]:
     return errors
 
 
-AMMO_CARTELA = tuple(v / 255 for v in (217, 236, 245))
+AMMO_CARTELA = tuple(v / 255 for v in (231, 242, 247))  # C293 golden
 
 
 def p1_ammo_cartela(page: fitz.Page) -> list[str]:

@@ -22,7 +22,7 @@ LEVEL = re.compile(r"\bNIVEL\s+(\d+)\b")
 
 # Golden P4 continuation panels are REAL vector clipped blue cartelas
 # in an existing 10pt free paper strip, never duplicate source headings.
-CONTINUATION_FILL = tuple(c / 255 for c in (217, 236, 245))
+CONTINUATION_FILL = tuple(c / 255 for c in (231, 242, 247))  # C293 golden
 CONTINUATION_INK = tuple(c / 255 for c in (80, 122, 151))
 
 

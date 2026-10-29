@@ -901,7 +901,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // There is no 23pt clearance for a separate title cartela;
                 // never move real attacks or the P1 traits to fake one.
                 stream.saveGraphicsState()
-                stream.setNonStrokingColor(Color(217, 236, 245))
+                stream.setNonStrokingColor(Color(231, 242, 247))
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.55f)
                 val headerBottom = top - 12f
@@ -1429,7 +1429,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // of five (owner 2026-10-28, «dos filas de 10 como el golden»).
                 stream.saveGraphicsState()
                 fillBand(stream, 312f, 102f, 258f, 29f, 0)
-                stream.setNonStrokingColor(Color(217, 236, 245))
+                stream.setNonStrokingColor(Color(231, 242, 247))
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.55f)
                 val cut = 3f
@@ -1698,9 +1698,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val title = "COMBATE Y SUPERVIVENCIA"
                 require(headerPdfFont.getStringWidth(title) * 11f / 1000f <= 240f)
                 stream.saveGraphicsState()
-                stream.setNonStrokingColor(Color(217, 236, 245))
-                stream.setStrokingColor(Color(80, 122, 151))
-                stream.setLineWidth(0.6f)
+                stream.setNonStrokingColor(Color(231, 242, 247))
+                stream.setStrokingColor(Color(38, 75, 104))
+                stream.setLineWidth(0.65f) // C293: golden cartela edge
                 stream.moveTo(317f, 594f)
                 stream.lineTo(565f, 594f)
                 stream.lineTo(570f, 599f)
@@ -1976,7 +1976,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val top = gridTop + 17f
                 val cut = 4f
                 stream.saveGraphicsState()
-                stream.setNonStrokingColor(Color(217, 236, 245))
+                stream.setNonStrokingColor(Color(231, 242, 247))
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.55f)
                 stream.moveTo(x + cut, bottom)
@@ -2240,7 +2240,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.65f)
-                stream.setNonStrokingColor(Color(217, 236, 245))
+                stream.setNonStrokingColor(Color(231, 242, 247))
                 // Frozen P3 golden: clipped blue narrative cartela
                 // within the SAME 528×20pt physical reservation.
                 stream.moveTo(48f, y)
@@ -2412,7 +2412,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val left = column.leftPt
                     val right = column.rightPt
                     stream.saveGraphicsState()
-                    stream.setNonStrokingColor(Color(217, 236, 245))
+                    stream.setNonStrokingColor(Color(231, 242, 247))
                     stream.setStrokingColor(Color(80, 122, 151))
                     stream.setLineWidth(0.45f)
                     stream.moveTo(left + cut, bottom)
@@ -2668,7 +2668,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         require(column.topPt == 607f &&
                                             bottom > column.topPt && top < 617f)
                                         stream.saveGraphicsState()
-                                        stream.setNonStrokingColor(Color(217, 236, 245))
+                                        stream.setNonStrokingColor(Color(231, 242, 247))
                                         stream.setStrokingColor(Color(80, 122, 151))
                                         stream.setLineWidth(0.45f)
                                         stream.moveTo(left + cut, bottom)
@@ -2856,7 +2856,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     cell.sourceKey.startsWith("spell-handwritten:") ||
                                     cell.sourceKey.startsWith("quick-spell:")) {
                                     val fill = if (cell.sourceKey.startsWith("spell-level:"))
-                                        Color(217, 236, 245)
+                                        Color(231, 242, 247)
                                     else Color(238, 247, 251)
                                     stream.setNonStrokingColor(fill)
                                     stream.addRect(cell.cellPt.leftPt, cell.cellPt.bottomPt,
@@ -2909,7 +2909,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     it.sourceStartOffset == 0
                             }
                             stream.saveGraphicsState()
-                            stream.setNonStrokingColor(Color(217, 236, 245))
+                            stream.setNonStrokingColor(Color(231, 242, 247))
                             stream.setStrokingColor(Color(130, 165, 186))
                             stream.setLineWidth(0.45f)
                             starts.forEach { cell ->
@@ -2955,7 +2955,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 val band = PcSheetV11RectPt(42f, topRule + 3f, 528f, 13f)
                                 require(band.topPt <= lastSourceBottom - 6f)
                                 stream.saveGraphicsState()
-                                stream.setNonStrokingColor(Color(217, 236, 245))
+                                stream.setNonStrokingColor(Color(231, 242, 247))
                                 stream.setStrokingColor(Color(80, 122, 151))
                                 stream.setLineWidth(0.45f)
                                 stream.addRect(band.leftPt, band.bottomPt, band.widthPt, band.heightPt)
@@ -2978,7 +2978,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 it.sourceKey.startsWith("c2-heading:")
                             }
                             stream.saveGraphicsState()
-                            stream.setNonStrokingColor(Color(217, 236, 245))
+                            stream.setNonStrokingColor(Color(231, 242, 247))
                             stream.setStrokingColor(Color(80, 122, 151))
                             stream.setLineWidth(0.55f)
                             groupHeadings.forEach { heading ->
@@ -3057,7 +3057,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     val left = column.leftPt
                                     val right = column.rightPt
                                     val cut = minOf(2.5f, (top - bottom) / 4f)
-                                    stream.setNonStrokingColor(Color(217, 236, 245))
+                                    stream.setNonStrokingColor(Color(231, 242, 247))
                                     stream.setStrokingColor(Color(80, 122, 151))
                                     stream.setLineWidth(0.55f)
                                     stream.moveTo(left + cut, bottom)
@@ -3598,7 +3598,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     "C2 action table measured for a different column width"
                                 }
                                 stream.saveGraphicsState()
-                                stream.setNonStrokingColor(Color(217, 236, 245))
+                                stream.setNonStrokingColor(Color(231, 242, 247))
                                 stream.addRect(cell.cellPt.leftPt, cell.cellPt.bottomPt,
                                     cell.cellPt.widthPt, cell.cellPt.heightPt)
                                 stream.fill()
@@ -4032,9 +4032,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     "P2 title cannot fit inside its approved source-free cartela: " + title
                 }
                 stream.saveGraphicsState()
-                stream.setNonStrokingColor(Color(217, 236, 245))
-                stream.setStrokingColor(Color(80, 122, 151))
-                stream.setLineWidth(0.6f)
+                stream.setNonStrokingColor(Color(231, 242, 247))
+                stream.setStrokingColor(Color(38, 75, 104))
+                stream.setLineWidth(0.65f) // C293: golden cartela edge
                 stream.moveTo(left + corner, bottom)
                 stream.lineTo(right - corner, bottom)
                 stream.lineTo(right, bottom + corner)
@@ -4207,9 +4207,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         "C2 cartela cannot cross the fixed physical header rule."
                     }
                     stream.saveGraphicsState()
-                    stream.setNonStrokingColor(Color(217, 236, 245))
-                    stream.setStrokingColor(Color(80, 122, 151))
-                    stream.setLineWidth(0.6f)
+                    stream.setNonStrokingColor(Color(231, 242, 247))
+                    stream.setStrokingColor(Color(38, 75, 104))
+                    stream.setLineWidth(0.65f) // C293: golden cartela edge
                     stream.moveTo(left + corner, bottom)
                     stream.lineTo(right - corner, bottom)
                     stream.lineTo(right, bottom + corner)
@@ -4327,7 +4327,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130, 165, 186))
                 stream.setLineWidth(0.55f)
-                stream.setNonStrokingColor(Color(217, 236, 245))
+                stream.setNonStrokingColor(Color(231, 242, 247))
                 stream.addRect(specialArea.leftPt,
                     specialArea.topPt - specialHeaderHeight,
                     specialArea.widthPt, specialHeaderHeight)
@@ -4955,7 +4955,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.saveGraphicsState()
                     stream.setStrokingColor(Color(130, 165, 186))
                     stream.setLineWidth(0.55f)
-                    stream.setNonStrokingColor(Color(217, 236, 245))
+                    stream.setNonStrokingColor(Color(231, 242, 247))
                     stream.addRect(42f, drawingArea.topPt -
                         specialHeaderHeight, 528f, specialHeaderHeight)
                     stream.fill()

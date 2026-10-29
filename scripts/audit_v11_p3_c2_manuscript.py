@@ -244,7 +244,7 @@ def c2_context_result(page: fitz.Page) -> tuple[int, int, list[str]]:
         if w[4].startswith("CONTINÚA") and 76.3 <= w[1] <= 79.0
         and w[3] < 88
     ]
-    color = (217 / 255, 236 / 255, 245 / 255)
+    color = (231 / 255, 242 / 255, 247 / 255)  # C293 golden cartela fill
     bands = [
         dr for dr in page.get_drawings()
         if dr.get("fill") is not None
