@@ -481,7 +481,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     endPage = 1
                 }.getText(pdf)
                 for (label in listOf(
-                    "ATAQUE / RANGO", "BONO", "DAÑO / EFECTO",
+                    "ARMA / ATAQUE / CONJURO", "BON.", "DAÑO / TIPO",
                     "COMBATE Y SUPERVIVENCIA",
                 )) {
                     assertTrue(text.contains(label),
@@ -508,11 +508,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     endPage = 1
                 }.getText(pdf)
                 listOf("CA", "INICIATIVA", "VELOCIDAD", "COMPETENCIA",
-                    "PV ACTUALES", "PV MÁXIMOS", "PV TEMP", "DADOS").forEach {
+                    "PV ACTUALES", "PV MÁXIMOS", "INSPIRACIÓN", "DADOS DE GOLPE").forEach {
                     assertTrue(p1.contains(it), "Lost real P1 combat source: " + it)
                 }
-                assertFalse(p1.contains("INSPIRACIÓN"),
-                    "Unpersisted golden INSPIRACIÓN must stay absent.")
+                // C256 (owner 2026-10-28): golden INSPIRACIÓN with the real sheet
+                // state; the real temporary hit points ride inside PV ACTUALES.
+                val sheet = sources(fixture).permanent.sheet
+                assertTrue(p1.contains("TEMP " + sheet.tempHp),
+                    "Real temporary hit points must stay on P1 inside PV ACTUALES.")
+                assertFalse(p1.contains("PV TEMP"), "PV TEMP no longer replaces INSPIRACIÓN.")
             }
         }
     }
@@ -555,11 +559,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.getText(pdf)
                 assertTrue(text.contains("COMBATE Y SUPERVIVENCIA"))
                 for (sourceLabel in listOf("CA", "INICIATIVA", "VELOCIDAD",
-                    "COMPETENCIA", "PV ACTUALES", "PV MÁXIMOS", "PV TEMP", "DADOS")) {
+                    "COMPETENCIA", "PV ACTUALES", "PV MÁXIMOS", "INSPIRACIÓN", "DADOS DE GOLPE")) {
                     assertTrue(text.contains(sourceLabel),
                         "Source combat field lost after title repair: $sourceLabel")
                 }
-                assertTrue(text.contains("ATAQUE / RANGO"),
+                assertTrue(text.contains("ARMA / ATAQUE / CONJURO"),
                     "Original P1 attack module must retain its source records.")
             }
         }
@@ -1291,11 +1295,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         "Persisted standard attribute must carry its golden P1 label: " + approved)
                 }
                 for (field in listOf("COMBATE Y SUPERVIVENCIA", "CA", "INICIATIVA",
-                    "VELOCIDAD", "COMPETENCIA", "PV ACTUALES", "PV MÁXIMOS", "PV TEMP", "DADOS")) {
+                    "VELOCIDAD", "COMPETENCIA", "PV ACTUALES", "PV MÁXIMOS", "INSPIRACIÓN", "DADOS DE GOLPE")) {
                     assertTrue(combat.contains(field),
                         "Persisted combat field outside dedicated physical panel: " + field)
                 }
-                assertFalse(combat.contains("ATAQUE / RANGO"),
+                assertFalse(combat.contains("ARMA / ATAQUE / CONJURO"),
                     "The combat card panel may not overlap the attack table below.")
                 val split = PDFTextStripperByArea()
                 split.addRegion("left",Rectangle2D.Float(40f,185f,261f,510f))
@@ -1303,8 +1307,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 split.addRegion("spells",Rectangle2D.Float(309f,499f,264f,142f))
                 split.extractRegions(page)
                 assertTrue(split.getTextForRegion("left").contains("FUERZA"))
-                assertFalse(split.getTextForRegion("left").contains("ATAQUE / RANGO"))
-                assertTrue(split.getTextForRegion("attacks").contains("ATAQUE / RANGO"))
+                assertFalse(split.getTextForRegion("left").contains("ARMA / ATAQUE / CONJURO"))
+                assertTrue(split.getTextForRegion("attacks").contains("ARMA / ATAQUE / CONJURO"))
                 assertTrue(split.getTextForRegion("spells").contains("LANZAMIENTO DE CONJUROS"))
                 val p1MechanicalRegions = PDFTextStripperByArea().apply {
                     addRegion("traits", Rectangle2D.Float(309f, 408f, 264f, 87f))
@@ -1316,7 +1320,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(p1MechanicalRegions.getTextForRegion("ammo")
                     .contains("MUNICIONES / MARCAS"), "P1 ammunition paper band absent.")
                 assertFalse(p1MechanicalRegions.getTextForRegion("traits")
-                    .contains("ATAQUE / RANGO"), "P1 traits overlap attacks.")
+                    .contains("ARMA / ATAQUE / CONJURO"), "P1 traits overlap attacks.")
                 assertFalse(p1MechanicalRegions.getTextForRegion("ammo")
                     .contains("N7"), "P1 ammunition overlaps spell slots.")
                 if(variant==PcSheetV11Variant.B){
@@ -1366,9 +1370,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 "The item's real physical location must appear in the same table.")
             assertTrue(p2.contains("CA base 16."),
                 "The real description must remain visible, not vanish into layout.")
-            assertTrue(p1.contains("ATAQUE / RANGO"))
+            assertTrue(p1.contains("ARMA / ATAQUE / CONJURO"))
             assertTrue(p1.contains("COMBATE Y SUPERVIVENCIA"))
-            assertTrue(p1.contains("PV TEMP"))
+            assertTrue(p1.contains("INSPIRACIÓN"))
             assertTrue(p1.contains("INICIATIVA"))
             assertTrue(p1.contains("COMPETENCIA"))
             assertTrue(p1.contains("JUGADOR"))
@@ -2423,7 +2427,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 assertTrue(c2Pages.isNotEmpty(), "Real source must continue in C2.")
                 val c2Text = c2Pages.joinToString("\n")
-                assertTrue(c2Text.contains("DADOS: 1d101"))
+                assertTrue(c2Text.contains("DADOS DE GOLPE: 1d101"))
                 classes.forEach { row ->
                     val label = row.hitDiceRemaining.toString() + "d" + row.hitDieSides
                     assertEquals(1, Regex(Regex.escape(label)).findAll(c2Text).count(),
@@ -3111,7 +3115,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     PDFTextStripper().apply { startPage = page; endPage = page }.getText(pdf)
                 }
                 val p1 = pages.first()
-                assertEquals(2, Regex("SEGÚN FUENTE").findAll(p1).count(),
+                // C256: both missing global metrics list their genuine sources.
+                assertEquals(0, Regex("SEGÚN FUENTE").findAll(p1).count(),
+                    "P1 must list real sources when they fit its golden card.")
+                assertTrue(showsPerSource(p1, result, "CD SALVACIÓN") &&
+                    showsPerSource(p1, result, "ATAQUE MÁGICO"),
                     "Both missing global metrics must refer to genuine source.")
                 assertTrue(p1.contains("INT"))
                 val p4 = pages.filter { it.contains("P4 - Conjuros") }
@@ -3188,7 +3196,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val p4 = pages.filter { it.contains("P4 - Conjuros") }
                 assertTrue(p4.isNotEmpty())
                 val p1 = pages.first()
-                assertEquals(1, Regex("SEGÚN FUENTE").findAll(p1).count(),
+                // C256: the contradictory aptitude lists each real source on P1.
+                assertEquals(0, Regex("SEGÚN FUENTE").findAll(p1).count(),
+                    "P1 must list real sources when they fit its golden card.")
+                assertTrue(showsPerSource(p1, result, "APTITUD"),
                     "P1 must guard contradictory aptitude without masking DC/attack.")
                 assertTrue(p1.contains("15"))
                 assertTrue(p1.contains("+7"))
@@ -3261,7 +3272,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     startPage = 1
                     endPage = 1
                 }.getText(pdf)
-                assertEquals(2, Regex("SEGÚN FUENTE").findAll(p1).count(),
+                // C256 (owner 2026-10-28): the guarded DC and attack now list each
+                // real source on P1 (smaller line or two lines) instead of the cue.
+                assertEquals(0, Regex("SEGÚN FUENTE").findAll(p1).count(),
+                    "P1 must list real sources when they fit its golden card.")
+                assertTrue(showsPerSource(p1, result, "CD SALVACIÓN") &&
+                    showsPerSource(p1, result, "ATAQUE MÁGICO"),
                     "P1 must guard DC and attack independently of true INT aptitude.")
                 assertTrue(p1.contains("INT"))
                 val reference = p4.first().substringAfter("REFERENCIA MÁGICA")
@@ -5819,9 +5835,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     startPage = 1
                     endPage = 1
                 }.getText(pdf)
-                assertTrue(p1.contains("ATAQUE / RANGO"))
-                assertTrue(p1.contains("BONO"))
-                assertTrue(p1.contains("DAÑO / EFECTO"))
+                assertTrue(p1.contains("ARMA / ATAQUE / CONJURO"))
+                assertTrue(p1.contains("BON."))
+                assertTrue(p1.contains("DAÑO / TIPO"))
             }
         }
     }

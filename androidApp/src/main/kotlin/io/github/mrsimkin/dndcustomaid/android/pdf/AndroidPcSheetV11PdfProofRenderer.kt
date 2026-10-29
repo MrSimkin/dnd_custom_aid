@@ -722,10 +722,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // C237: golden P1 ATAQUES uses small 7 pt Barlow column labels and
                 // right-aligns bonus and damage inside their columns.
                 fun labelWidth(text: String) = headerPdfFont.getStringWidth(text) * 7f / 1000f
-                drawP1Label(stream, "ATAQUE / RANGO", left + 4f, top - 9f)
-                drawP1Label(stream, "BONO", b2 - 4f - labelWidth("BONO"), top - 9f)
-                drawP1Label(stream, "DAÑO / EFECTO",
-                    left + 254f - labelWidth("DAÑO / EFECTO"), top - 9f)
+                // C256: golden ATAQUES column labels.
+                drawP1Label(stream, "ARMA / ATAQUE / CONJURO", left + 4f, top - 9f)
+                drawP1Label(stream, "BON.", b2 - 4f - labelWidth("BON."), top - 9f)
+                drawP1Label(stream, "DAÑO / TIPO",
+                    left + 254f - labelWidth("DAÑO / TIPO"), top - 9f)
                 p1Attacks.forEachIndexed { index, entry ->
                     val y = top - 22f - index * 12f
                     draw(stream,p1AttackLabel(entry),left+4f,y,false)
@@ -839,51 +840,67 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         if(it>=0)"+"+it else it.toString()
                     }?:"")).forEachIndexed{idx,(label,value)->
                         val x=p1MagicColumn(idx)
+                        // C256: golden card ink (labels #657d90, values #1d384f).
+                        stream.setNonStrokingColor(Color(101,125,144))
                         drawP1Label(stream,if(label=="APTITUD")"APTITUD MÁGICA" else label,
                             x+5f,270f,6.5f)
-                        // C231: P1 also lists each real source with its own value
-                        // (owner decision) when it fits the 81pt native card at a
-                        // legible size; otherwise the truthful cue remains.
-                        val perSourceP1 = if (label in varyingP1)
+                        stream.setNonStrokingColor(Color(29,56,79))
+                        // C231/C256 (owner 2026-10-28, «B y C en ese orden y
+                        // mezclando»): each real source with its own value, first
+                        // on one line down to 6pt, then on two lines down to 6pt;
+                        // only when neither fits, the truthful SEGÚN FUENTE cue.
+                        val perSourceParts = if (label in varyingP1)
                             io.github.mrsimkin.dndcustomaid.shared.character
-                                .PcSheetV11SpellSourceLabels.perSourceReference(
+                                .PcSheetV11SpellSourceLabels.perSourceParts(
                                     data.spells, label,
                                 ) { id -> data.attributes.firstOrNull {
                                     it.reference.customAttributeId == id
                                 }?.abbreviation }
                         else null
-                        val ink = if (label in varyingP1) "SEGÚN FUENTE" else value
-                        val perSourcePt = perSourceP1?.let { text ->
-                            listOf(9f, 8f, 7f).firstOrNull {
-                                body.width.measurePt(text) * it / 9f <= 81f
-                            }
-                        }
-                        if (perSourceP1 != null && perSourcePt != null) {
-                            val shown = pcSheetV11PrintableText(perSourceP1)
-                            val w = body.width.measurePt(perSourceP1) * perSourcePt / 9f
+                        fun cardInkWidth(text: String, pt: Float): Float =
+                            headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * pt / 1000f
+                        fun cardInk(text: String, pt: Float, baseline: Float) {
                             stream.beginText()
-                            stream.setFont(bodyPdfFont, perSourcePt)
-                            stream.newLineAtOffset(x+(84f-w)/2f, 257f)
-                            stream.showText(shown)
+                            stream.setFont(headerPdfFont, pt)
+                            stream.newLineAtOffset(x+(84f-cardInkWidth(text, pt))/2f, baseline)
+                            stream.showText(pcSheetV11PrintableText(text))
                             stream.endText()
-                        } else if(ink.isNotEmpty()){
-                            require(body.width.measurePt(ink) <= 81f) {
-                                "P1 real magic reference must fit its native source card"
+                        }
+                        val oneLine = perSourceParts?.joinToString(" / ")
+                        val onePt = oneLine?.let { text ->
+                            listOf(9f, 8f, 7f, 6.5f, 6f).firstOrNull { cardInkWidth(text, it) <= 81f }
+                        }
+                        val twoLines = if (perSourceParts != null && onePt == null &&
+                            perSourceParts.size >= 2) {
+                            listOf(7f, 6.5f, 6f).firstNotNullOfOrNull { pt ->
+                                (1 until perSourceParts.size).map { k ->
+                                    perSourceParts.take(k).joinToString(" / ") + " /" to
+                                        perSourceParts.drop(k).joinToString(" / ")
+                                }.filter { (first, second) ->
+                                    cardInkWidth(first, pt) <= 81f && cardInkWidth(second, pt) <= 81f
+                                }.minByOrNull { (first, second) ->
+                                    maxOf(cardInkWidth(first, pt), cardInkWidth(second, pt))
+                                }?.let { Triple(it.first, it.second, pt) }
                             }
-                            if (label in varyingP1) {
-                                draw(stream,ink,x+(84f-body.width.measurePt(ink))/2f,257f,false)
-                            } else {
+                        } else null
+                        when {
+                            oneLine != null && onePt != null -> cardInk(oneLine, onePt, 257f)
+                            twoLines != null -> {
+                                cardInk(twoLines.first, twoLines.third, 261.5f)
+                                cardInk(twoLines.second, twoLines.third,
+                                    261.5f - twoLines.third - 0.5f)
+                            }
+                            label in varyingP1 -> cardInk("SEGÚN FUENTE", 9f, 257f)
+                            value.isNotEmpty() -> {
+                                require(cardInkWidth(value, 11f) <= 81f) {
+                                    "P1 real magic reference must fit its native source card"
+                                }
                                 // Golden reference values are large centered
                                 // Barlow figures, as in the combat cards.
-                                val printable = pcSheetV11PrintableText(ink)
-                                val drawn = headerPdfFont.getStringWidth(printable) * 11f / 1000f
-                                stream.beginText()
-                                stream.setFont(headerPdfFont, 11f)
-                                stream.newLineAtOffset(x+(84f-drawn)/2f, 257f)
-                                stream.showText(printable)
-                                stream.endText()
+                                cardInk(value, 11f, 257f)
                             }
                         }
+                        stream.setNonStrokingColor(Color(0,0,0))
                     }
                 (1..9).forEach{level->
                     val x=p1MagicColumn((level-1)%3)
@@ -941,23 +958,34 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val p1HitDice = source.classes.joinToString(" / ") {
                 it.hitDiceRemaining.toString() + "d" + it.hitDieSides
             }
+            // C256 (owner 2026-10-28, «D 35 pies y 10,5 m»): the saved speed is
+            // in feet; print feet and metres (5 pies = 1,5 m).
+            val speedTenthsMetres = source.speed * 3
+            val p1Speed = source.speed.toString() + " pies · " + speedTenthsMetres / 10 +
+                (if (speedTenthsMetres % 10 != 0)
+                    "," + kotlin.math.abs(speedTenthsMetres % 10) else "") + " m"
+            // C256 (owner 2026-10-28): golden INSPIRACIÓN card (real sheet state,
+            // drawn as a paper box) in place of PV TEMP; the real temporary hit
+            // points ride inside PV ACTUALES. Golden label DADOS DE GOLPE.
             val p1CombatSourceFields = listOf(
                 "CA" to source.armorClass.toString(),
                 "INICIATIVA" to signedCombat(source.initiativeModifier),
-                "VELOCIDAD" to source.speed.toString(),
+                "VELOCIDAD" to p1Speed,
                 "COMPETENCIA" to signedCombat(source.finalProficiencyBonus),
                 "PV ACTUALES" to source.currentHp.toString(),
                 "PV MÁXIMOS" to source.maxHp.toString(),
-                "PV TEMP" to source.tempHp.toString(),
-                "DADOS" to p1HitDice,
+                "INSPIRACIÓN" to "",
+                "DADOS DE GOLPE" to p1HitDice,
             )
             val p1CombatRoutes = p1CombatSourceFields.mapIndexed { index, (label, value) ->
                 // Six narrow genuine source cards and two wider hit-point
-                // cards. Oversized values retain their real source in C2.
+                // cards. Oversized values retain their real source in C2;
+                // the speed steps its golden figure down to 6pt first.
                 val cardWidth = if (index == 4 || index == 5) 129f else 86f
                 PcSheetV11CompactFieldRouter.route(
                     "p1-combat:" + label, label, value,
-                    cardWidth - 12f, body.width,
+                    if (label == "VELOCIDAD") (cardWidth - 12f) * 9f / 6f else cardWidth - 12f,
+                    body.width,
                 )
             }
             // Golden C2 ATAQUES: deferred attacks that fit the approved
@@ -1486,27 +1514,58 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         labelPt / 1000f <= width - 12f) {
                         "P1 true source combat label exceeds its real card: " + label
                     }
+                    // C256: golden card ink (labels #657d90, values #1d384f).
+                    stream.setNonStrokingColor(Color(101, 125, 144))
                     stream.beginText()
                     stream.setFont(headerPdfFont, labelPt)
                     stream.newLineAtOffset(x + 5f, top - 10f)
-                    stream.showText(label)
+                    stream.showText(pcSheetV11PrintableText(label))
                     stream.endText()
-                    if (value.isNotEmpty()) {
-                        val measured = body.width.measurePt(value)
-                        require(measured <= width - 12f) {
-                            "P1 combat value must flow into source-backed C2: " + label
+                    stream.setNonStrokingColor(Color(29, 56, 79))
+                    val valueBaseline = top - (if (narrow) 22f else 24f)
+                    if (label == "INSPIRACIÓN") {
+                        // Paper box, marked only when the sheet really has it.
+                        val bx = x + width / 2f - 4.5f
+                        val by = valueBaseline - 1f
+                        stream.saveGraphicsState()
+                        stream.setStrokingColor(Color(82, 124, 150))
+                        stream.setLineWidth(0.48f)
+                        stream.setNonStrokingColor(
+                            if (source.inspiration) Color(191, 211, 222) else Color.WHITE)
+                        stream.addRect(bx, by, 9f, 9f)
+                        stream.fillAndStroke()
+                        if (source.inspiration) {
+                            stream.moveTo(bx + 1.5f, by + 1.5f)
+                            stream.lineTo(bx + 7.5f, by + 7.5f)
+                            stream.moveTo(bx + 7.5f, by + 1.5f)
+                            stream.lineTo(bx + 1.5f, by + 7.5f)
+                            stream.stroke()
                         }
-                        // Golden stat values are large, centered Barlow figures (~11pt).
-                        val valuePt = 11f
+                        stream.restoreGraphicsState()
+                    } else if (value.isNotEmpty()) {
+                        // Golden stat values are large, centered Barlow figures
+                        // (~11pt); a longer real value steps down to 6pt.
                         val printable = pcSheetV11PrintableText(value)
+                        val valuePt = requireNotNull(listOf(11f, 10f, 9f, 8f, 7f, 6f).firstOrNull {
+                            headerPdfFont.getStringWidth(printable) * it / 1000f <= width - 12f
+                        }) { "P1 combat value must flow into source-backed C2: " + label }
                         val drawn = headerPdfFont.getStringWidth(printable) * valuePt / 1000f
                         stream.beginText()
                         stream.setFont(headerPdfFont, valuePt)
-                        stream.newLineAtOffset(x + (width - drawn) / 2f,
-                            top - (if (narrow) 22f else 24f))
+                        stream.newLineAtOffset(x + (width - drawn) / 2f, valueBaseline)
                         stream.showText(printable)
                         stream.endText()
+                        if (label == "PV ACTUALES") {
+                            val temp = "TEMP " + source.tempHp
+                            val tempWidth = headerPdfFont.getStringWidth(temp) * 7f / 1000f
+                            require(x + (width + drawn) / 2f + 4f <= x + width - 6f - tempWidth) {
+                                "P1 real temporary hit points must fit inside PV ACTUALES"
+                            }
+                            stream.setNonStrokingColor(Color(101, 125, 144))
+                            drawP1Label(stream, temp, x + width - 6f - tempWidth, valueBaseline, 7f)
+                        }
                     }
+                    stream.setNonStrokingColor(Color(0, 0, 0))
                 }
             }
 

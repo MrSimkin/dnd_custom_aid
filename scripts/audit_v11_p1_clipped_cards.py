@@ -20,7 +20,7 @@ COMBAT = [
 ]
 LABELS = [
     ("CA", 0, 0), ("INICIATIVA", 1, 0), ("VELOCIDAD", 2, 0),
-    ("COMPETENCIA", 0, 1), ("PV", 1, 1), ("DADOS", 2, 1),
+    ("COMPETENCIA", 0, 1), ("INSPIRACIÓN", 1, 1), ("DADOS", 2, 1),
     ("PV", 0, 2), ("PV", 1, 2),
 ]
 
