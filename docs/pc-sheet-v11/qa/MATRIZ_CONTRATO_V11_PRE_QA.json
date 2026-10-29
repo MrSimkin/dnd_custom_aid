@@ -854,8 +854,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "portraitModesEmbedLocallyLoadedImageAndNoImageStillReservesSilhouette",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs: without a locally available portrait no image is embedded and P1 keeps its RETRATO frame; with one, the local image is embedded.",
+            "source_commit": "2a8281bdf5c5695642b51cbb21d28da94cc49de8",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920531850",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920077464",
+            "independent_inspection": "Same CI run: audit_v11_portrait_placeholder_golden.py 100/100 (neutral golden silhouette in every absent-image case).",
+            "limitations": "Desktop PDFs; Fit/Crop geometry (IN04) is not asserted here; global IN05 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -1972,8 +1981,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null,
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3RealP2EmptyEquipmentAndTreasureUseGoldenWritingRhythmWithoutSyntheticRows",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs: with no ordinary equipment, P2 keeps 12 writable Equipo rows at the golden 16.5 pt manuscript rhythm and prints no synthetic item.",
+            "source_commit": "2a8281bdf5c5695642b51cbb21d28da94cc49de8",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920531850",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920077464",
+            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py 0 errors (P2 golden row shades).",
+            "limitations": "Desktop PDFs; global P203 and G4 remain NOT_VERIFIED."
+          },
           "test_name": "g3RealP2EmptyEquipmentAndTreasureUseGoldenWritingRhythmWithoutSyntheticRows",
           "source_parity_test": "scripts/test_v11_p2_empty_paper_rhythm_contract.py"
         }
@@ -2062,8 +2080,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null,
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3RealP2EmptyEquipmentAndTreasureUseGoldenWritingRhythmWithoutSyntheticRows",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs: with no currency, P2 Tesoro keeps 5 writable rows at the golden 19.5 pt manuscript rhythm and prints no invented coin.",
+            "source_commit": "2a8281bdf5c5695642b51cbb21d28da94cc49de8",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920531850",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920077464",
+            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py 0 errors.",
+            "limitations": "Desktop PDFs; global P206 and G4 remain NOT_VERIFIED."
+          },
           "test_name": "g3RealP2EmptyEquipmentAndTreasureUseGoldenWritingRhythmWithoutSyntheticRows",
           "source_parity_test": "scripts/test_v11_p2_empty_paper_rhythm_contract.py"
         }
@@ -2193,8 +2220,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null,
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3RealP2NoSpecialEquipmentHasRecognizedLocationsFreeRowsAndBlankActivoBoxes",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs: with no special equipment, P2 preprints the recognized locations, leaves the other rows free and draws 8 blank ACTIVO paper boxes; no ordinary item is moved into it.",
+            "source_commit": "2a8281bdf5c5695642b51cbb21d28da94cc49de8",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920531850",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920077464",
+            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py 0 errors (special rows).",
+            "limitations": "Desktop PDFs; global P210 and G4 remain NOT_VERIFIED."
+          },
           "test_name": "g3RealP2NoSpecialEquipmentHasRecognizedLocationsFreeRowsAndBlankActivoBoxes",
           "source_parity_test": "scripts/test_v11_special_equipment_manual_contract.py"
         }
@@ -3177,8 +3213,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "digitalNotesHaveDedicatedPagesAndDisappearWhenSourceNotesAreAbsent",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs: with real notes, C-N3 pages exist and hold them; with the same character's notes removed, no C-N3 page is generated and the last page stays the manuscript NOTAS sheet.",
+            "source_commit": "2a8281bdf5c5695642b51cbb21d28da94cc49de8",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920531850",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920077464",
+            "independent_inspection": "Same CI run: audit_v11_final_notes_golden.py 100/100 and audit_v11_module_topology.py 0 errors.",
+            "limitations": "Desktop PDFs; global CN301 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -3329,8 +3374,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "disabledOptionalSpellbookNeverEmitsBookOrPhysicalIndex; realAldrenProducesPdfWithNoInventedQuickSpellPageOrSpellbook; g3DigitalNotesNeverMixWithC2SpellbookOrFinalSheetWhenBothExistAB",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs: a caster with the Spellbook option OFF has P4 but no book index or book; a character without real spells has neither P4 nor book; the same caster with the option ON prints the index and the book.",
+            "source_commit": "2a8281bdf5c5695642b51cbb21d28da94cc49de8",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920531850",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920077464",
+            "independent_inspection": "Same CI run: audit_v11_spellbook_cards.py PASS (book card frames) and audit_v11_module_topology.py 0 errors.",
+            "limitations": "Desktop PDFs; option toggled through the export request, not the installed UI; global BK01 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
