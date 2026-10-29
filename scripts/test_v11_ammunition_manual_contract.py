@@ -28,7 +28,7 @@ class EmptyAmmoParity(unittest.TestCase):
             self.assertIn("val x = 419.8f + column * 13.75f + (column / 5) * 2.83f",section)
             self.assertIn("p1AmmoItems.forEach { item ->",section)
             # C243: golden MUNICIONES cartela and banded rows in the same box.
-            self.assertIn('drawP1Label(stream, "MUNICIONES", 318f, 136.5f, 9f)',section)
+            self.assertIn('drawP1Label(stream, "MUNICIONES", 328f, 136.5f, 9.1f)',section)
             self.assertIn("fillBand(stream, 312f, 102f, 258f, 29f, 0)",section)
             parts.append(section)
         self.assertEqual(parts[0],parts[1])

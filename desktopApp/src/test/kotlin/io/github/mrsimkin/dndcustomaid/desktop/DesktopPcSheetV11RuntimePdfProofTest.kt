@@ -414,10 +414,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertEquals(1, titleOrigins.size,
                     "Exactly one P1 casting heading required.")
                 val title = titleOrigins.single()
-                assertTrue(kotlin.math.abs(title.first - 321f) < 0.3f &&
+                // C265: golden inset 16 pt, clear of the left cartela diamond.
+                assertTrue(kotlin.math.abs(title.first - 328f) < 0.3f &&
                     kotlin.math.abs(title.second - 506f) < 0.3f,
                     "Title must clear the clipped left/top frame with " +
-                        "9pt left inset and 2pt upper ink clearance.")
+                        "16pt left inset and 2pt upper ink clearance.")
                 val text = PDFTextStripper().apply {
                     startPage = 1
                     endPage = 1
@@ -788,9 +789,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         "Real P2 must contain a clipped filled/stroked blue " +
                             "cartela outside measured source cells: " + x + "," + y)
                 }
-                assertTrue(Regex("""(?m)/F1\s+11\s+Tf""")
+                // C265: golden P2 cartela titles are 9.1 pt.
+                assertTrue(Regex("""(?m)/F1\s+9\.1\d*\s+Tf""")
                     .findAll(stream).count() >= 4,
-                    "P2 headings must all use genuine embedded BarlowCondensed 11pt.")
+                    "P2 headings must all use genuine embedded BarlowCondensed 9.1pt.")
                 val all = PDFTextStripper().getText(pdf)
                 assertTrue(all.contains("NOTAS"))
                 assertTrue(all.contains("P3 - Trasfondo"))
@@ -5807,8 +5809,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     """(?:^|\s)312\s+301\s+258\s+81\s+re(?:\s|$)"""
                 ).containsMatchIn(ops),
                     "Original source-backed two-column Rasgos panel must not move.")
-                assertTrue(Regex("""(?m)/F1\s+9\s+Tf""").containsMatchIn(ops),
-                    "Rasgos title must use genuine embedded 9pt Barlow heading font.")
+                // C265: golden cartela title size 9.1 pt.
+                assertTrue(Regex("""(?m)/F1\s+9\.1\d*\s+Tf""").containsMatchIn(ops),
+                    "Rasgos title must use genuine embedded 9.1pt Barlow heading font.")
                 val page1 = PDFTextStripper().apply {
                     startPage = 1
                     endPage = 1

@@ -133,6 +133,27 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
             fun p1InkWidth(text: String, pt: Float): Float =
                 headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * pt / 1000f
+            // C265: golden cartela diamonds, one at each end of a title band;
+            // titles start 16 pt inside the band, clear of the left diamond.
+            fun drawCartelaDiamonds(stream: PDPageContentStream, left: Float, right: Float,
+                                    bottom: Float, top: Float) {
+                val h = minOf(6.2f, top - bottom - 4f)
+                val w = h * 0.57f
+                val mid = (bottom + top) / 2f
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(82, 124, 150))
+                stream.setNonStrokingColor(Color.WHITE)
+                stream.setLineWidth(0.48f)
+                listOf(left + 6f, right - 6f).forEach { cx ->
+                    stream.moveTo(cx, mid + h / 2f)
+                    stream.lineTo(cx + w / 2f, mid)
+                    stream.lineTo(cx, mid - h / 2f)
+                    stream.lineTo(cx - w / 2f, mid)
+                    stream.closePath()
+                    stream.fillAndStroke()
+                }
+                stream.restoreGraphicsState()
+            }
             // Owner's original D&D sheet includes its genuine logotype in its top-left.
             // Embed that real graphic from the already-versioned asset; clip to LOGO only,
             // so no original-sheet boxes or lettering leak into this V11 page.
@@ -332,9 +353,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
                 // C264: golden cartela titles are 9.1 pt.
+                drawCartelaDiamonds(stream, 42f, 300f, 579f, 602f)
                 drawP1Label(stream,if(data.request.variant ==
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A)
-                    "ATRIBUTOS · A" else "ATRIBUTOS · B",51f,586f,9.1f)
+                    "ATRIBUTOS · A" else "ATRIBUTOS · B",58f,586f,9.1f)
                 val k=0.5522848f
                 standards.forEachIndexed { i,ability ->
                     val top=p1AttributeTop(i)
@@ -828,7 +850,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // Real rendered P1 review found the first letter touching the
                 // left/top stroke. Inset the title 9pt and lower its ink
                 // 2pt within the 18pt strip, no change to spell data.
-                drawP1Label(stream,"LANZAMIENTO DE CONJUROS",321f,286f,9.1f)
+                drawCartelaDiamonds(stream, 312f, 570f, 282f, 300f)
+                drawP1Label(stream,"LANZAMIENTO DE CONJUROS",328f,286f,9.1f)
                 val actual=data.spellSlots.associateBy{it.level}
                 // C250: golden P1 LANZAMIENTO grammar. Three white clipped
                 // reference cards (APTITUD MÁGICA / CD SALVACIÓN / ATAQUE
@@ -1203,9 +1226,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.restoreGraphicsState()
                 // Golden heading font role: authentic embedded Barlow Condensed,
                 // distinct from 7pt Fira source-value rows below.
+                drawCartelaDiamonds(stream, 312f, 570f, 368f, 382f)
                 stream.beginText()
-                stream.setFont(headerPdfFont,9f)
-                stream.newLineAtOffset(left + 6f,top - 11f)
+                stream.setFont(headerPdfFont,9.1f)
+                stream.newLineAtOffset(left + 16f,top - 11f)
                 stream.showText("RASGOS Y ATRIBUTOS")
                 stream.endText()
                 p1TraitEntries.forEach { (_, lines, firstSlot) ->
@@ -1266,8 +1290,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.addRect(312f, 102f, 258f, 46f)
                 stream.stroke()
                 stream.restoreGraphicsState()
-                // C257: golden cartela title.
-                drawP1Label(stream, "MUNICIONES", 318f, 136.5f, 9f)
+                // C257/C265: golden cartela title and diamonds.
+                drawCartelaDiamonds(stream, 312f, 570f, 131f, 148f)
+                drawP1Label(stream, "MUNICIONES", 328f, 136.5f, 9.1f)
                 // Golden mark geometry (7.94 pt boxes, 13.75 pt step, 2.83 pt
                 // extra gap between groups), at the golden distance from the
                 // right edge of the column.
@@ -1528,9 +1553,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
+                drawCartelaDiamonds(stream, 312f, 570f, 594f, 616f)
                 stream.beginText()
                 stream.setFont(headerPdfFont, 9.1f)
-                stream.newLineAtOffset(321f, 600f)
+                stream.newLineAtOffset(328f, 600f)
                 stream.showText(title)
                 stream.endText()
                 stream.saveGraphicsState()
@@ -3763,9 +3789,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
+                // C265: golden P2 cartela, 9.1 pt title inside two diamonds.
+                drawCartelaDiamonds(stream, left, right, bottom, top)
                 stream.beginText()
-                stream.setFont(headerPdfFont, 11f)
-                stream.newLineAtOffset(left + 9f, bottom + 3f)
+                stream.setFont(headerPdfFont, 9.1f)
+                stream.newLineAtOffset(left + 16f, bottom + 4f)
                 stream.showText(title)
                 stream.endText()
                 // Golden P2 requires an explicit meaning for BOTH small
@@ -3776,9 +3804,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val width = headerPdfFont.getStringWidth(legend) *
                         legendSize / 1000f
                     val titleWidth = headerPdfFont.getStringWidth(title) *
-                        11f / 1000f
-                    val x = right - 9f - width
-                    require(x > left + 9f + titleWidth + 8f) {
+                        9.1f / 1000f
+                    val x = right - 16f - width
+                    require(x > left + 16f + titleWidth + 8f) {
                         "P2 paired-table legend overlaps its approved heading."
                     }
                     stream.beginText()

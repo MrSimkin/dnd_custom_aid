@@ -54,8 +54,8 @@ class RasgosStageTripwire(unittest.TestCase):
                 self.assertIn("stream.moveTo(315f,368f)", region)
                 self.assertIn("stream.lineTo(312f,371f)", region)
                 self.assertIn("stream.fillAndStroke()", region)
-                self.assertIn("stream.setFont(headerPdfFont,9f)", region)
-                self.assertIn("stream.newLineAtOffset(left + 6f,top - 11f)", region)
+                self.assertIn("stream.setFont(headerPdfFont,9.1f)", region)
+                self.assertIn("stream.newLineAtOffset(left + 16f,top - 11f)", region)
                 self.assertIn('stream.showText("RASGOS Y ATRIBUTOS")', region)
                 self.assertIn("top - 21f - (slot % 6) * 10f", region)
 
