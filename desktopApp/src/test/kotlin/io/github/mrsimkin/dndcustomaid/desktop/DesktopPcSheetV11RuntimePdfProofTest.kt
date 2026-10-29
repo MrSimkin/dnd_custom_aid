@@ -1072,9 +1072,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.contains("RECURSOS Y MUNICIONES"))
             assertFalse(printed.contains("C2 - Recursos y municiones"),
                 "Mixed C2 must not spend a dedicated physical page per module.")
-            assertTrue(printed.contains("RESTANTE 0/7"),
+            // C259: a real balance of zero prints all seven boxes and "7/7" spent.
+            assertTrue(printed.contains("Reserva 5: Sello") && printed.contains("7/7"),
                 "Source resource balance zero is a real value, not absence.")
-            assertTrue(printed.contains("RECUPERA"),
+            assertTrue(printed.contains("Recupera:"),
                 "Mara's persisted resource recovery must survive PDF generation.")
             assertTrue(printed.contains("P2 - Equipo y tesoro"))
             val pagesByPhysicalNumber = (1..pdf.numberOfPages).map { number ->
@@ -6241,7 +6242,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "All real C2 overflow belongs before optional P4.")
                 assertEquals(c2.last() + 1, spells.first(),
                     "No unrelated or fabricated page between C2 and P4.")
-                assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " + c2.first()),
+                // C259: P2 points to the first C2 page that really holds its traits.
+                val p2TraitsPage = pages.indexOfFirst { it.contains("RASGOS / CONTINUACIÓN P2") } + 1
+                assertTrue(p2TraitsPage in c2 &&
+                    pages[1].contains("CONTINÚA EN C2 PÁG. " + p2TraitsPage),
                     "P2 must use the NEW final physical C2 destination.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
                 assertFalse(pages.last().contains("P4 - Conjuros") ||
@@ -6273,24 +6277,33 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         endPage = number
                     }.getText(pdf)
                 }
-                assertEquals(9, pages.size,
+                // C259: Mara's golden resource boxes and action table take one
+                // more real C2 page (10); the header itself adds none.
+                assertEquals(10, pages.size,
                     "A source-only C2 header must not create or remove pages.")
-                val c2Index = pages.indexOfFirst {
-                    it.contains("C2 - Habilidades, acciones y recursos")
+                val c2Indices = pages.indices.filter {
+                    pages[it].contains("C2 - Habilidades, acciones y recursos")
                 }
-                assertTrue(c2Index >= 0, "Mara's real mixed C2 was lost.")
-                val physicalRightHeader = PDFTextStripperByArea().apply {
-                    addRegion("right-band",
-                        Rectangle2D.Float(310f, 73f, 260f, 34f))
-                    extractRegions(pdf.getPage(c2Index))
-                }.getTextForRegion("right-band")
+                assertTrue(c2Indices.isNotEmpty(), "Mara's real mixed C2 was lost.")
+                // C259: the continued resource group may now open a column on the
+                // next C2 page; it must still carry its label in that column's
+                // RESERVED header band, never as an anonymous paragraph.
+                val reservedHeaders = c2Indices.flatMap { index ->
+                    listOf(Rectangle2D.Float(40f, 73f, 262f, 34f),
+                        Rectangle2D.Float(310f, 73f, 260f, 34f)).map { band ->
+                        PDFTextStripperByArea().apply {
+                            addRegion("band", band)
+                            extractRegions(pdf.getPage(index))
+                        }.getTextForRegion("band")
+                    }
+                }
                 assertTrue(
-                    physicalRightHeader.contains("CONTINÚA: RECURSOS Y MUNICIONES"),
+                    reservedHeaders.any { it.contains("CONTINÚA: RECURSOS Y MUNICIONES") },
                     "A continued real resource group requires its label in " +
                         "the RESERVED right C2 header, not an anonymous paragraph.",
                 )
-                val c2Text = pages[c2Index]
-                assertTrue(c2Text.contains("RECURSO Reserva 3"),
+                val c2Text = c2Indices.joinToString("\n") { pages[it] }
+                assertTrue(c2Text.contains("Reserva 3"),
                     "Group context may not remove real Mara resource records.")
                 assertEquals(1,
                     Regex(Regex.escape("CONTINÚA: RECURSOS Y MUNICIONES"))
@@ -6328,8 +6341,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(pages[0].contains("CONTINÚA EN C2 PÁG. " + mixedPhysical))
                 assertTrue(pages[mixedPhysical - 1].contains("VIENE DE P1 PÁG. 1"))
                 if (fixture.contains("mara")) {
-                    assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " + mixedPhysical))
-                    assertTrue(pages[mixedPhysical - 1].contains("P2 PÁG. 2"))
+                    // C259: P2 points to the first mixed C2 page with its traits.
+                    val p2Physical = pages.indexOfFirst { it.contains("RASGOS / CONTINUACIÓN P2") } + 1
+                    assertTrue(p2Physical >= mixedPhysical)
+                    assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " + p2Physical))
+                    assertTrue(pages[p2Physical - 1].contains("P2 PÁG. 2"))
                     val ordinaryC2 = pages.indexOfFirst {
                         it.contains("C2 - Equipo y tesoro / EQUIPO")
                     } + 1

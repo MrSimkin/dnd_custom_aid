@@ -73,6 +73,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val p3FieldHeadingPages = mutableMapOf<String, Int>()
             // C247: custom attributes drawn as the golden C2 attribute row.
             val c2AttributeCards = mutableSetOf<String>()
+            // C259: C2 action table rows (per reserved line: three column texts),
+            // resource paper tracks (track line offset, spent, total) and the
+            // real P/E training letter of each linked custom skill box.
+            val c2ActionRows = mutableMapOf<String, List<List<String>>>()
+            // Golden ATAQUES-grammar columns inside a mixed C2 column (258 pt).
+            val c2ActionColumn = (528f - 12f) / 2f
+            val c2ActionX = listOf(0f, 104f, 158f)
+            val c2ActionWidths = listOf(100f, 50f, c2ActionColumn - 158f - 4f)
+            val c2ResourceTracks = mutableMapOf<String, Triple<Int, Int, Int>>()
+            val c2SkillTraining = mutableMapOf<String, String>()
             // C240: spellbook card heading length and inline NIVEL label per card.
             val bookHeadingEnds = mutableMapOf<String, Int>()
             val bookInlineLevels = mutableMapOf<String, String>()
@@ -604,6 +614,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // retain their conventional three-letter reference.
             val customAttributeReferences = data.attributes.drop(6)
                 .map { it.reference }.toSet()
+            // C259 (owner 2026-10-28): the sheet is Spanish; internal enum
+            // names (PROFICIENT, ACTION...) are never printed.
+            fun spanishTraining(training: io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining) =
+                when (training) {
+                    io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.NONE -> "Sin competencia"
+                    io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> "Competencia"
+                    io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.EXPERTISE -> "Pericia"
+                }
             val detachedSkills = if (variantA) data.skills.withIndex()
                 .filter { it.index !in printedSkillIndices &&
                     it.value.ability !in customAttributeReferences }
@@ -615,7 +633,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         "detached-skill:" + index,
                         approvedSkillName(skill) + (abbreviation?.let { " (" + it + ")" } ?: "") +
                             " / " + (skill.total?.toString() ?: "sin resolver") +
-                            " / " + skill.training.name,
+                            " / " + spanishTraining(skill.training),
                     )
                 }
             else emptyList()
@@ -3175,8 +3193,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     val realTotal = wholeSource.substring(
                                         valueSep + 2, trainingSep)
                                     val realTraining = wholeSource.substring(trainingSep + 3)
-                                    val leftInk = wholeSource.substring(0, valueSep) +
-                                        " (" + realTraining + ")"
+                                    // C259: training is the P/E letter in the box.
+                                    val leftInk = wholeSource.substring(0, valueSep)
                                     val rightX = cell.cellPt.rightPt -
                                         body.width.measurePt(realTotal) - 4f
                                     val labelEnd = cell.cellPt.leftPt +
@@ -3222,6 +3240,74 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 stream.addRect(cell.cellPt.leftPt + 2f, base - 1f, 7f, 7f)
                                 stream.stroke()
                                 stream.restoreGraphicsState()
+                                c2SkillTraining[cell.sourceKey]?.takeIf { it.isNotEmpty() }?.let { letter ->
+                                    drawP1Label(stream, letter, cell.cellPt.leftPt + 3.4f, base, 6.5f)
+                                }
+                            }
+                            // C259: golden ACCIONES table header and rows.
+                            if (title == "C2 - Habilidades, acciones y recursos" &&
+                                cell.sourceKey == "action-head") {
+                                val base = body.metrics.baselineIn(cell.cellPt)
+                                require(kotlin.math.abs(cell.cellPt.widthPt - c2ActionColumn) < 1f) {
+                                    "C2 action table measured for a different column width"
+                                }
+                                stream.saveGraphicsState()
+                                stream.setNonStrokingColor(Color(217, 236, 245))
+                                stream.addRect(cell.cellPt.leftPt, cell.cellPt.bottomPt,
+                                    cell.cellPt.widthPt, cell.cellPt.heightPt)
+                                stream.fill()
+                                stream.setNonStrokingColor(Color(38, 75, 104))
+                                listOf("ACCIÓN", "TIPO", "ALCANCE / EFECTO").forEachIndexed { i, label ->
+                                    drawP1Label(stream, label, cell.cellPt.leftPt + c2ActionX[i] + 2f, base, 6.5f)
+                                }
+                                stream.restoreGraphicsState()
+                            }
+                            c2ActionRows[cell.sourceKey]?.let { rows ->
+                                val line = cell.sourceStartOffset / 2
+                                if (title == "C2 - Habilidades, acciones y recursos" &&
+                                    cell.sourceStartOffset % 2 == 0 && line < rows.size) {
+                                    val base = body.metrics.baselineIn(cell.cellPt)
+                                    rows[line].forEachIndexed { i, text ->
+                                        if (text.isNotEmpty()) {
+                                            draw(stream, text, cell.cellPt.leftPt + c2ActionX[i] + 2f, base, false)
+                                        }
+                                    }
+                                    if (line == rows.size - 1) {
+                                        stream.saveGraphicsState()
+                                        stream.setStrokingColor(Color(176, 204, 220))
+                                        stream.setLineWidth(0.35f)
+                                        stream.moveTo(cell.cellPt.leftPt, cell.cellPt.bottomPt)
+                                        stream.lineTo(cell.cellPt.rightPt, cell.cellPt.bottomPt)
+                                        stream.stroke()
+                                        stream.restoreGraphicsState()
+                                    }
+                                }
+                            }
+                            // C259: resource paper track — empty boxes and the real
+                            // small golden gastados/total count.
+                            c2ResourceTracks[cell.sourceKey]?.let { (offset, spent, total) ->
+                                if (title == "C2 - Habilidades, acciones y recursos" &&
+                                    cell.sourceStartOffset == offset) {
+                                    val base = body.metrics.baselineIn(cell.cellPt)
+                                    val count = spent.toString() + "/" + total
+                                    val countX = cell.cellPt.rightPt - 4f -
+                                        headerPdfFont.getStringWidth(count) * 7f / 1000f
+                                    stream.saveGraphicsState()
+                                    stream.setStrokingColor(Color(82, 124, 150))
+                                    stream.setNonStrokingColor(Color.WHITE)
+                                    stream.setLineWidth(0.48f)
+                                    repeat(total) { n ->
+                                        val px = cell.cellPt.leftPt + 4f + n * 11f + (n / 5) * 3f
+                                        require(px + 8f <= countX - 3f) {
+                                            "C2 resource boxes overlap their real count"
+                                        }
+                                        stream.addRect(px, base - 1f, 8f, 8f)
+                                        stream.fillAndStroke()
+                                    }
+                                    stream.setNonStrokingColor(Color(38, 75, 104))
+                                    drawP1Label(stream, count, countX, base, 7f)
+                                    stream.restoreGraphicsState()
+                                }
                             }
                             if (cell.sourceKey in ammunitionTracks &&
                                 cell.sourceStartOffset == 0) {
@@ -3289,6 +3375,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             skill.ability == attribute.reference &&
                             skillIndex !in printedSkillIndices }
                         .forEach { (_, skill) ->
+                            c2SkillTraining["attribute-skill:" + skill.customSkillId] = when (skill.training) {
+                                io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> "P"
+                                io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.EXPERTISE -> "E"
+                                io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.NONE -> ""
+                            }
                             add(PcSheetV11FlowItem(
                                 "attribute-skill:" + skill.customSkillId,
                                 // Six spaces are measurable handwriting
@@ -3303,7 +3394,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     ": " + (skill.total?.let {
                                         signedC2(it)
                                     } ?: "sin resolver") +
-                                    " / " + skill.training.name,
+                                    " / " + spanishTraining(skill.training),
                                 keepTogetherIfFits = true,
                                 groupKey = customC2Group,
                             ))
@@ -3322,21 +3413,67 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     ": " + (skill.total?.let {
                                         signedC2(it)
                                     } ?: "sin resolver") +
-                                    " / " + skill.training.name))
+                                    " / " + spanishTraining(skill.training)))
                         }
                     }
                 }
-                data.combatEntries
+                // C259 (owner 2026-10-28): actions as a table with the golden
+                // ATAQUES grammar (ACCIÓN · TIPO · ALCANCE / EFECTO). Each row
+                // reserves one measured line per wrapped cell line; the drawer
+                // prints the three columns on those lines. Notes follow in full
+                // width. Nothing is truncated.
+                val actionEntries = data.combatEntries
                     .filter { it.id !in p1AttackIds && it.type !=
                         io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK }
-                    .forEach { entry ->
-                        add(PcSheetV11FlowItem("action:" + entry.id,
-                            entry.name + " | " + entry.type +
-                                (entry.rangeText?.let { " | ALCANCE " + it } ?: "") +
-                                (entry.attackModifier?.let { " | BONO " + it } ?: "") +
-                                " | " + entry.damageEffect +
-                                (entry.notes?.let { " | NOTAS " + it } ?: "")))
+                fun wrapCell(text: String, width: Float): List<String> {
+                    val lines = mutableListOf<String>()
+                    var current = ""
+                    text.split(" ").filter { it.isNotEmpty() }.forEach { word ->
+                        var rest = word
+                        while (body.width.measurePt(rest) > width) {
+                            val cut = (1..rest.length).last { body.width.measurePt(rest.take(it)) <= width }
+                            if (current.isNotEmpty()) { lines += current; current = "" }
+                            lines += rest.take(cut)
+                            rest = rest.drop(cut)
+                        }
+                        val joined = if (current.isEmpty()) rest else current + " " + rest
+                        if (body.width.measurePt(joined) <= width) current = joined
+                        else { lines += current; current = rest }
                     }
+                    if (current.isNotEmpty()) lines += current
+                    return lines.ifEmpty { listOf("") }
+                }
+                if (actionEntries.isNotEmpty()) {
+                    add(PcSheetV11FlowItem("action-head", " ", keepTogetherIfFits = true))
+                }
+                actionEntries.forEach { entry ->
+                    val type = when (entry.type) {
+                        io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ACTION -> "Acción"
+                        io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.BONUS_ACTION -> "Acción adicional"
+                        io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.REACTION -> "Reacción"
+                        io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK -> "Ataque"
+                        io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.OTHER -> "Otra"
+                    }
+                    val effect = listOfNotNull(
+                        entry.rangeText?.takeIf { it.isNotBlank() },
+                        entry.attackModifier?.let { "Bono " + signedC2(it) },
+                        entry.damageEffect.takeIf { it.isNotBlank() },
+                    ).joinToString(" · ")
+                    val columns = listOf(
+                        wrapCell(pcSheetV11PrintableText(entry.name), c2ActionWidths[0]),
+                        wrapCell(type, c2ActionWidths[1]),
+                        wrapCell(pcSheetV11PrintableText(effect), c2ActionWidths[2]),
+                    )
+                    val rowLines = columns.maxOf { it.size }
+                    val key = "action:" + entry.id
+                    c2ActionRows[key] = (0 until rowLines).map { line ->
+                        columns.map { it.getOrElse(line) { "" } }
+                    }
+                    add(PcSheetV11FlowItem(key,
+                        List(rowLines) { " " }.joinToString("\n") +
+                            (entry.notes?.takeIf { it.isNotBlank() }?.let { "\nNotas: " + it } ?: ""),
+                        keepTogetherIfFits = true))
+                }
             }
             // P1 is one physical sheet, not a repeating P1 sub-document.
             // Measure the complete source first and put EVERY unprinted source
@@ -3958,24 +4095,30 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
                 .associate { item -> "ammo-track:" + item.id to item.quantity }
             val resourceLines = buildList {
+                // C259 (owner 2026-10-28, «A casillas vacias y gastados/total
+                // como espacios de conjuro»): name, one empty paper box per unit
+                // of the real total with the small golden gastados/total count,
+                // then recovery, source and notes. Totals the boxes cannot show
+                // keep the truthful "Quedan x de y" text.
                 allResources.forEach { resource ->
-                    val maximum = resource.maxValue?.let { "/" + it } ?: ""
                     val extras = buildList {
-                        resource.recovery?.takeIf { it.isNotBlank() }?.let {
-                            add("RECUPERA " + it)
-                        }
-                        resource.source?.takeIf { it.isNotBlank() }?.let {
-                            add("FUENTE " + it)
-                        }
-                        resource.notes?.takeIf { it.isNotBlank() }?.let {
-                            add("NOTAS " + it)
-                        }
+                        resource.recovery?.takeIf { it.isNotBlank() }?.let { add("Recupera: " + it) }
+                        resource.source?.takeIf { it.isNotBlank() }?.let { add("Fuente: " + it) }
+                        resource.notes?.takeIf { it.isNotBlank() }?.let { add("Notas: " + it) }
+                    }
+                    val total = resource.maxValue
+                    val boxed = total != null && total in 1..20 && resource.currentValue in 0..total
+                    val key = "resource:" + resource.id
+                    val name = resource.name
+                    if (boxed) {
+                        c2ResourceTracks[key] = Triple(name.length + 1,
+                            total!! - resource.currentValue, total)
                     }
                     add(PcSheetV11FlowItem(
-                        sourceKey = "resource:" + resource.id,
-                        text = "RECURSO " + resource.name + " | RESTANTE " +
-                            resource.currentValue + maximum +
-                            (if (extras.isEmpty()) "" else " | " + extras.joinToString(" | ")),
+                        sourceKey = key,
+                        text = name + "\n" + (if (boxed) " " else
+                            "Quedan " + resource.currentValue + (total?.let { " de " + it } ?: "")) +
+                            (if (extras.isEmpty()) "" else "\n" + extras.joinToString(" · ")),
                         keepTogetherIfFits = true,
                     ))
                 }

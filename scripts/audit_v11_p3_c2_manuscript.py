@@ -275,7 +275,10 @@ def c2_skill_checkbox_result(page: fitz.Page) -> tuple[int, int, list[str]]:
                 and w[1] - 8 <= r.y0 <= w[3]]
         if len(near) == 1:
             matched += 1
-            if any(not (other is w) and other[0] < near[0].x1
+            # C259 (owner 2026-10-28): the real training letter P/E sits
+            # inside the box, as on P1; any OTHER ink there is a collision.
+            if any(not (other is w) and other[4] not in ("P", "E")
+                   and other[0] < near[0].x1
                    and other[2] > near[0].x0 and other[1] < near[0].y1
                    and other[3] > near[0].y0
                    for other in page.get_text("words")):
