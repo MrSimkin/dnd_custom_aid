@@ -434,8 +434,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3PhysicalModuleOrderAndLetterSizeHoldOnEveryPageAB",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B (Ilyra with notes and Spellbook, Mara, Aldren): every physical page has a 612 x 792 pt media box.",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py checks every page of all 100 PDFs is Letter (0 errors); audit_v11_header_logo_visibility.py refuses any non-Letter page.",
+            "limitations": "Desktop PDFs; no installed Android; global GLB01 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -788,8 +797,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3RealTabbedTraitsCustomSkillsAndSpellSourcesRenderWithoutMutatingSavedText; g3RealTabbedNarrativeAndDigitalNotesRenderOnBothVariantsWithoutSourceMutation; g2G3ApprovedRasgosAreIdentityOnlyOnceAcrossP1P2AndC2",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: after export the character snapshot keeps its exact trait names and origins, custom skill names, spell source names, story and notes (including tabs) and its trait count; the PDF projection never writes back.",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run: the eleven V11 audits PASS (100 PDF).",
+            "limitations": "Snapshot-level non-mutation through the export service; the installed apps' save flows are not exercised. Global IN03 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -3454,8 +3472,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3PhysicalModuleOrderAndLetterSizeHoldOnEveryPageAB",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: with real notes and the requested Spellbook, the physical order is P1, P2, P3, C2, P4, C-N3, book index, book, and the manuscript NOTAS sheet last (the book never precedes C-N3 or follows the final sheet).",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run: audit_v11_module_topology.py 0 errors; audit_v11_final_notes_golden.py 100/100.",
+            "limitations": "Desktop PDFs; global BK02 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
