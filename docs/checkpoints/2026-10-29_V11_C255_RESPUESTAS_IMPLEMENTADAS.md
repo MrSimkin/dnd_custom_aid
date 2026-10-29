@@ -38,3 +38,23 @@ Evidencia gráfica: [`qa/evidence/c255_c266/`](../pc-sheet-v11/qa/evidence/c255_
 - **Sin el ritmo del golden todavía:** Equipo Especial (P2 y C2, 27 pt), las tablas pareadas de C2 (18,4 pt), los títulos de C2, la franja REFERENCIA MÁGICA de P4 y la cabecera del Libro.
 - **Páginas de Mara:** pasa de 9 a 10, porque C2 ocupa una página más con la gramática de Recursos y Acciones. No se pierde nada.
 - **Matriz:** sin evidencia nueva en esta tanda. Las reglas P115/P116 fueron renovadas con C250 y su geometría cambió de nuevo en C255; hay que renovarlas con la CI exacta. G4: 106 reglas NOT_VERIFIED.
+
+## Ronda siguiente (cinco bloques, C267–C271)
+
+**Instrucción del propietario:** «haz 5 rondas más».
+
+| Bloque | Commit | Qué cambió |
+|---|---|---|
+| B34 / C267 | `5fe5bd59` | Equipo Especial de P2: texto de 7 pt (paso de 9 pt) dentro de la pauta de 25 pt del propietario (D-0076 §3.21). En la P2 de Mara caben 4 objetos reales en lugar de 2. |
+| B35 / C268 | `5035e02c` | C2: Equipo Especial a 7 pt; las tablas de Equipo y Tesoro con el ritmo del golden (7,2 pt sobre 18,4 pt). C207: una columna sin ningún registro en su página recibe su propia cuadrícula NOTAS, también cuando ya está en uso la cuadrícula inferior. |
+| B36 / C269 | `9ffad734` | Franja REFERENCIA MÁGICA de P4 como el golden: rombos, título de 9,1 pt, rótulos de 6,65 pt en gris y valores centrados de 10,7 pt. Títulos de cartela de C2 en 9,1 pt con la tinta del golden. |
+| B37 / C270 | `b149f23b` | Nombre de cada ficha del Libro como título en negrita con la tinta del golden (Barlow 8,2 pt, la fuente incorporada más cercana a la EB Garamond 11,3 pt del golden) y NIVEL de 6,3 pt en la misma línea base. |
+| B38 / C271 | este commit | Matriz: evidencia G3 renovada de P114, P115 y P116 con la CI exacta de `b149f23b`: Scaffold [#40922931592](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40922931592), PDF 12920415449 y auditoría 12918564450. Los 11 auditores, vueltos a ejecutar sobre esos PDF, dan PASS; sin pérdida de palabras frente a los locales. |
+
+- **Verificación:** igual que en la ronda anterior, en cada bloque (Gradle, Python, 11 auditores, palabras, CI exacta SUCCESS).
+- **Matriz:** sigue en 39 de 242 comprobaciones por etapa en PASS, ahora con evidencia vigente para P114–P116. G4 sigue bloqueado.
+- **Pendiente:**
+  - Fuentes Noto Sans y EB Garamond: requieren incorporar sus archivos.
+  - Alto de las tarjetas de P4.
+  - Escuela de magia en la ficha del Libro (el golden la muestra; la ficha esencial BK06 aprobada no la incluye; se pregunta al propietario si corresponde).
+  - Evidencia de la matriz para el resto de las reglas.

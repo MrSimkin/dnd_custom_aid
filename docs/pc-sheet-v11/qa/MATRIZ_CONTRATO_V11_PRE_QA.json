@@ -1381,13 +1381,13 @@
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "PASS",
           "evidence": {
-            "test_name": "g3P1SpellcastingUsesGoldenReferenceCardsAndShadedSlotGridAB; g3CustomMaraSourceAbilityUsesExistingTruthfulP1AndP4CueAB",
-            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: P1 LANZAMIENTO prints its three real magic fields in ONE row of three golden clipped cards (APTITUD MAGICA / CD SALVACION / ATAQUE MAGICO, labels at x 319/404/489 on one baseline) with centered values; contradictory per-source values show each source or the truthful SEGUN FUENTE cue.",
-            "source_commit": "6bad7544057709c4665837beedb5791d9fbf0f50",
-            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40797444333",
-            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40797444333/artifacts/12864647687",
-            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40797444333/artifacts/12864931800",
-            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py 0 errors and the other ten V11 audits PASS (100 PDF / 852 pages); raster docs/pc-sheet-v11/qa/evidence/c250_c254/B16_P1_lanzamiento_golden_vs_app_Mara_A.png compared with golden v11_extremo_variante_A p1.",
+            "test_name": "g3P1SpellcastingUsesGoldenReferenceCardsAndShadedSlotGridAB; g3P4UniformRealSourceProfilesDoNotPrintContradictoryOverallNumbersAB; g3P4UniformPersistedCastingAbilitiesCannotClaimGlobalIntAB",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: P1 LANZAMIENTO prints its three real magic fields in ONE row of three golden cards (labels at x 319/404/489); per the owner's 2026-10-28 rule, contradictory per-source values print each real source on one line down to 6 pt, then on two lines, and SEGUN FUENTE only when neither fits (none in the fixtures). Supersedes the C250 evidence of 6bad7544.",
+            "source_commit": "b149f23b95664b43885cbfa1ca709d76679d062c",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40922931592",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40922931592/artifacts/12920415449",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40922931592/artifacts/12918564450",
+            "independent_inspection": "Same CI run: the eleven V11 audits PASS (100 PDF); raster docs/pc-sheet-v11/qa/evidence/c255_c266/B21_P1_espacios_casillas_gastados_total.png and B22_P1_tarjetas_inspiracion_velocidad.png compared with golden v11_extremo_variante_A p1.",
             "limitations": "Desktop PDFs; G1/G2 NOT_VERIFIED; no installed Android or owner approval; global P114 and G4 remain NOT_VERIFIED."
           }
         }
@@ -1424,13 +1424,13 @@
           "status": "PASS",
           "evidence": {
             "test_name": "g3P1SpellSlotsUse3x3GridWithRealTotalsAndSpentAndNeverInventAbsentLevelsAB; g3P1SpellcastingUsesGoldenReferenceCardsAndShadedSlotGridAB",
-            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B (Mara, Ilyra): C250 golden grid, nine shaded 84x24 level cells N1..N9 in three columns (x 314/399/484) and rows (y 222/198/174); N10..N12 never printed. Owner decision 2026-10-26: no character has 7+ slots, so epic levels do not apply. Supersedes the pre-C250 evidence of 9aea7031.",
-            "source_commit": "6bad7544057709c4665837beedb5791d9fbf0f50",
-            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40797444333",
-            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40797444333/artifacts/12864647687",
-            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40797444333/artifacts/12864931800",
-            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py 0 errors and the other ten V11 audits PASS (100 PDF / 852 pages); raster docs/pc-sheet-v11/qa/evidence/c250_c254/B16_P1_lanzamiento_golden_vs_app_Mara_A.png compared with golden v11_extremo_variante_A p1.",
-            "limitations": "Mara/Ilyra fixtures; no fixture with real epic rules because the owner declared that case not applicable; Desktop PDFs; G1/G2 NOT_VERIFIED; no installed Android or owner approval; global P115 and G4 remain NOT_VERIFIED."
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B (Mara, Ilyra): nine golden 84x24 level cells N1..N9 in three columns and rows; N10..N12 never printed (owner 2026-10-26: no 7+ slots). Supersedes the C250 evidence of 6bad7544 (slot grammar changed in C255).",
+            "source_commit": "b149f23b95664b43885cbfa1ca709d76679d062c",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40922931592",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40922931592/artifacts/12920415449",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40922931592/artifacts/12918564450",
+            "independent_inspection": "Same CI run: the eleven V11 audits PASS (100 PDF); raster docs/pc-sheet-v11/qa/evidence/c255_c266/B21_P1_espacios_casillas_gastados_total.png and B22_P1_tarjetas_inspiracion_velocidad.png compared with golden v11_extremo_variante_A p1.",
+            "limitations": "Mara/Ilyra fixtures; no real epic-rules fixture (owner: not applicable); Desktop PDFs; G1/G2 NOT_VERIFIED; no installed Android or owner approval; global P115 and G4 remain NOT_VERIFIED."
           }
         }
       ]
@@ -1466,12 +1466,12 @@
           "status": "PASS",
           "evidence": {
             "test_name": "g3P1SpellSlotsUse3x3GridWithRealTotalsAndSpentAndNeverInventAbsentLevelsAB; g3P1RealFourFiveSlotPaperMarksAreTrueBoxesAB; g3P1SixPersistedSpellSlotsFitWithoutShrinkingPaperBoxesAB; p4UsesRealPerLevelTotalAndSpentSlotsWithoutMakingUpHigherLevelCounts",
-            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: in each persisted P1 level the number of 8pt paper boxes equals the real total and exactly the real spent ones are pre-marked (shaded box with X, golden MUNICIONES grammar); a real spent 0 (Mara N4) has no X; absent levels N6..N9 have no box and no number, only the manuscript line; counts boxes cannot show keep their numbers. P4 repeats the counters without synthesizing absent levels. Supersedes the pre-C250 evidence of 9aea7031.",
-            "source_commit": "6bad7544057709c4665837beedb5791d9fbf0f50",
-            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40797444333",
-            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40797444333/artifacts/12864647687",
-            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40797444333/artifacts/12864931800",
-            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py 0 errors and the other ten V11 audits PASS (100 PDF / 852 pages); raster docs/pc-sheet-v11/qa/evidence/c250_c254/B16_P1_lanzamiento_golden_vs_app_Mara_A.png compared with golden v11_extremo_variante_A p1.",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: owner 2026-10-28 (B, pero sin marcas) - in each persisted P1 level the number of empty paper boxes equals the real total, none is pre-marked, and the real gastados/total count is printed at the right of the cell (Mara N1 2/4, N4 0/3); absent levels have no box and no number. P4 repeats the counters without synthesizing absent levels. Supersedes the C250 evidence of 6bad7544.",
+            "source_commit": "b149f23b95664b43885cbfa1ca709d76679d062c",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40922931592",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40922931592/artifacts/12920415449",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40922931592/artifacts/12918564450",
+            "independent_inspection": "Same CI run: the eleven V11 audits PASS (100 PDF); raster docs/pc-sheet-v11/qa/evidence/c255_c266/B21_P1_espacios_casillas_gastados_total.png and B22_P1_tarjetas_inspiracion_velocidad.png compared with golden v11_extremo_variante_A p1.",
             "limitations": "Desktop PDFs; G1/G2 NOT_VERIFIED; no installed Android or owner approval; global P116 and G4 remain NOT_VERIFIED."
           }
         }
