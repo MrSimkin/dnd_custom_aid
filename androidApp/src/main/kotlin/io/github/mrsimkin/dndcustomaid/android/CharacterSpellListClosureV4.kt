@@ -109,6 +109,7 @@ internal fun CharacterSpellListClosureV4(
     var editorRitual by rememberSaveable("spell-g2-ritual") { mutableStateOf(false) }
     var editorDescription by rememberSaveable("spell-g2-description") { mutableStateOf("") }
     var editorNotes by rememberSaveable("spell-g2-notes") { mutableStateOf("") }
+    var editorSchool by rememberSaveable("spell-g2-school") { mutableStateOf("") }
     var editorAssociatedSourceIds by rememberSaveable("spell-g2-sources") { mutableStateOf("") }
     var editorPreparedSourceIds by rememberSaveable("spell-g2-prepared") { mutableStateOf("") }
     var deleteSpellId by rememberSaveable("spell-g2-delete") { mutableStateOf<String?>(null) }
@@ -164,6 +165,7 @@ internal fun CharacterSpellListClosureV4(
         editorRitual = false
         editorDescription = ""
         editorNotes = ""
+        editorSchool = ""
         val initialSource = selectedSourceId?.toString().orEmpty()
         editorAssociatedSourceIds = initialSource
         editorPreparedSourceIds = ""
@@ -189,6 +191,7 @@ internal fun CharacterSpellListClosureV4(
         editorRitual = spell.ritual
         editorDescription = spell.description
         editorNotes = spell.notes.orEmpty()
+        editorSchool = spell.school.orEmpty()
         editorAssociatedSourceIds = spell.sourceAssociations
             .map { it.sourceId.toString() }
             .sorted()
@@ -266,6 +269,7 @@ internal fun CharacterSpellListClosureV4(
             ritual = editorRitual,
             description = editorDescription.trim(),
             notes = editorNotes.trim().takeIf { it.isNotEmpty() },
+            school = editorSchool.trim().takeIf { it.isNotEmpty() },
             sortOrder = sortOrder,
             sourceAssociations = associations,
             pinned = existing?.pinned ?: false,
@@ -383,6 +387,7 @@ internal fun CharacterSpellListClosureV4(
                         SpellEditorFieldsG2(
                             sources = draft.sources,
                             name = editorName,
+                            school = editorSchool,
                             level = editorLevel,
                             castingTime = editorCastingTime,
                             rangeText = editorRangeText,
@@ -399,6 +404,7 @@ internal fun CharacterSpellListClosureV4(
                             preparedSourceIds = editorPrepared,
                             validationMessage = spellEditorValidationG2(editorName, parsedEditorLevel, editorAssociated),
                             onNameChange = { editorName = it },
+                            onSchoolChange = { editorSchool = it },
                             onLevelChange = { editorLevel = normalizeCharacterUnsignedIntegerInput(it, maxDigits = 1) },
                             onCastingTimeChange = { editorCastingTime = it },
                             onRangeTextChange = { editorRangeText = it },
@@ -467,6 +473,7 @@ internal fun CharacterSpellListClosureV4(
                 SpellEditorFieldsG2(
                     sources = draft.sources,
                     name = editorName,
+                    school = editorSchool,
                     level = editorLevel,
                     castingTime = editorCastingTime,
                     rangeText = editorRangeText,
@@ -483,6 +490,7 @@ internal fun CharacterSpellListClosureV4(
                     preparedSourceIds = editorPrepared,
                     validationMessage = spellEditorValidationG2(editorName, parsedEditorLevel, editorAssociated),
                     onNameChange = { editorName = it },
+                    onSchoolChange = { editorSchool = it },
                     onLevelChange = { editorLevel = normalizeCharacterUnsignedIntegerInput(it, maxDigits = 1) },
                     onCastingTimeChange = { editorCastingTime = it },
                     onRangeTextChange = { editorRangeText = it },
@@ -953,6 +961,7 @@ private fun SpellBadgeG2(label: String, state: Boolean = false) {
 private fun SpellEditorFieldsG2(
     sources: List<CharacterSpellcastingSource>,
     name: String,
+    school: String,
     level: String,
     castingTime: String,
     rangeText: String,
@@ -969,6 +978,7 @@ private fun SpellEditorFieldsG2(
     preparedSourceIds: Set<String>,
     validationMessage: String?,
     onNameChange: (String) -> Unit,
+    onSchoolChange: (String) -> Unit,
     onLevelChange: (String) -> Unit,
     onCastingTimeChange: (String) -> Unit,
     onRangeTextChange: (String) -> Unit,
@@ -988,6 +998,13 @@ private fun SpellEditorFieldsG2(
         value = name,
         onValueChange = onNameChange,
         label = { Text("Nombre") },
+        modifier = Modifier.fillMaxWidth().heightIn(min = characterCompactSingleLineFieldHeightV4()),
+        singleLine = true,
+    )
+    CharacterCompactOutlinedTextFieldV4(
+        value = school,
+        onValueChange = onSchoolChange,
+        label = { Text("Escuela (opcional)") },
         modifier = Modifier.fillMaxWidth().heightIn(min = characterCompactSingleLineFieldHeightV4()),
         singleLine = true,
     )

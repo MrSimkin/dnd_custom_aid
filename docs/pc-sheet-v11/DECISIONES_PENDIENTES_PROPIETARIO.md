@@ -4,22 +4,7 @@ Lista viva. El Worker anota aquí cada decisión que corresponde al propietario 
 
 ## Abiertas
 
-### Q14 — Libro: ¿mostrar la escuela de magia? (2026-10-29)
-
-- **Contexto:** la ficha del Libro del golden muestra, bajo el nombre, la escuela del conjuro en letra pequeña gris («ABJURACIÓN»). La ficha esencial que el propietario aprobó (BK06) es nombre, nivel y descripción íntegra, sin escuela.
-- **Vista previa:** `qa/evidence/c255_c266/B26_Libro_golden_vs_app.png`.
-- **Opciones:**
-  - **A:** agregar la escuela bajo el nombre, como el golden.
-  - **B:** dejar la ficha esencial sin escuela.
-- **Pospuesto:** la línea de escuela en las fichas del Libro.
-- **Respuesta del propietario (2026-10-29):** «Sí, con escuela».
-- **Hallazgo del Worker (2026-10-29):** la App **no guarda la escuela** de ningún conjuro. No está en `CharacterSpell`, en la base local (`character_spell`) ni en el catálogo SRD incorporado. Sin ese dato, el PDF no puede imprimir una escuela real (regla: no inventar).
-- **Q14b — cómo obtener la escuela (pendiente):**
-  - **A:** agregar el campo «Escuela» a la App (editor de conjuros Android/Escritorio, base local, copias de seguridad y sincronización con el servidor). El PDF la imprime cuando está cargada.
-  - **B:** solo en el PDF, una línea pequeña «ESCUELA ____» en cada ficha para escribir a lápiz, sin dato digital.
-  - **C:** B ahora y A más adelante.
-
-Q14 abierta. Las preguntas Q1–Q13 fueron respondidas una a una el 2026-10-28 (ver «Resueltas»); su detalle original queda abajo como historial.
+Ninguna. Q14 se resolvió el 2026-10-29 (ver «Resueltas»). Las preguntas Q1–Q13 fueron respondidas una a una el 2026-10-28 (ver «Resueltas»); su detalle original queda abajo como historial.
 
 ## Historial — detalle de Q1–Q13 tal como se plantearon
 
@@ -158,6 +143,26 @@ Q14 abierta. Las preguntas Q1–Q13 fueron respondidas una a una el 2026-10-28 (
 - Corregir el comentario erróneo del código sobre la inspiración; qué se imprime lo decide Q10.
 
 ## Resueltas
+
+### Q14 — Libro: ¿mostrar la escuela de magia? (2026-10-29)
+
+- **Contexto:** la ficha del Libro del golden muestra, bajo el nombre, la escuela del conjuro en letra pequeña gris («ABJURACIÓN»). La ficha esencial que el propietario aprobó (BK06) es nombre, nivel y descripción íntegra, sin escuela.
+- **Vista previa:** `qa/evidence/c255_c266/B26_Libro_golden_vs_app.png`.
+- **Opciones:**
+  - **A:** agregar la escuela bajo el nombre, como el golden.
+  - **B:** dejar la ficha esencial sin escuela.
+- **Pospuesto:** la línea de escuela en las fichas del Libro.
+- **Respuesta del propietario (2026-10-29):** «Sí, con escuela».
+- **Hallazgo del Worker (2026-10-29):** la App **no guardaba la escuela** de ningún conjuro: no estaba en `CharacterSpell` ni en la base local (`character_spell`). Sin ese dato, el PDF no puede imprimir una escuela real (regla: no inventar).
+- **Corrección del propietario (2026-10-29):** el SRD **todavía no se ha importado**; hasta ahora solo hay datos de prueba. Por eso no corresponde decir que la escuela «no está en el SRD»: estará cuando se importe.
+- **Q14b — cómo obtener la escuela:**
+  - **A:** agregar el campo «Escuela» a la App (editor de conjuros Android/Escritorio, base local, copias de seguridad y sincronización con el servidor). El PDF la imprime cuando está cargada.
+  - **B:** solo en el PDF, una línea pequeña «ESCUELA ____» en cada ficha para escribir a lápiz, sin dato digital.
+  - **C:** B ahora y A más adelante.
+- **Respuesta del propietario a Q14b (2026-10-29):** «debe usar A».
+- **Implementado (C282):** campo `CharacterSpell.school` (texto libre opcional, sirve también para homebrew), columna `character_spell.school` con migración `26.sqm`, editor de conjuros de Android («Escuela (opcional)»), búsqueda de conjuros, copias de seguridad y sincronización (viajan solas porque guardan la ficha completa en JSON; el servidor no interpreta los conjuros, así que no hace falta ningún paso en el proveedor). El escritorio no tiene editor de conjuros. En el PDF, la ficha del Libro imprime la escuela real bajo el nombre como el golden: mayúsculas, condensada negrita 7 pt, gris #657d90, dentro de la franja del encabezado. Sin escuela guardada, no se imprime ninguna línea.
+- **Pendiente técnico:** cuando se importe el SRD, el importador debe llenar `school`.
+
 
 - 2026-10-28 — Q1 Recursos en C2: «A casillas vacias y gastados/total como espacios de conjuro». Una casilla vacía por unidad del total, nada premarcado, y el número pequeño «gastados/total» (Éter: 2/3); debajo, en letra pequeña, recuperación, fuente y notas. La tabla ACCIONES de la vista previa (gramática de Ataques del golden) se aplica salvo objeción. Implementado en C255–C266 ([checkpoint](../checkpoints/2026-10-29_V11_C255_RESPUESTAS_IMPLEMENTADAS.md)).
 - 2026-10-28 — P4 preparación por fuente: «B, pero el hechizo aparece dos veces, una para cada fuente como: Fire bolt Mago / Fire bolt Otro». Una fila por cada par conjuro-fuente, juntas y en orden dentro de su nivel; casilla vacía para lápiz; solo el tipo de fuente, sin [X] ni [ ]; la preparación no se imprime. Reemplaza la regla anterior «cada fila conserva su marca de preparación». Implementado en C255–C266 ([checkpoint](../checkpoints/2026-10-29_V11_C255_RESPUESTAS_IMPLEMENTADAS.md)).

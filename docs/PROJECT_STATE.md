@@ -1,3 +1,5 @@
+**2026-10-29 — C282 V11, escuela de magia como campo real de la App y en las fichas del Libro (Q14b = A).** [Checkpoint](checkpoints/2026-10-29_V11_C272_MATRIZ_DIEZ_BLOQUES.md).
+
 **2026-10-29 — C272–C281 V11, diez bloques de evidencia de la matriz (39 → 73/242), CI exacta SUCCESS.** [Checkpoint](checkpoints/2026-10-29_V11_C272_MATRIZ_DIEZ_BLOQUES.md).
 
 **2026-10-29 — C255–C266 V11, respuestas del propietario implementadas, PASS LOCAL físico (CI exacta SUCCESS):** P1/P3/P4/C2 según Q1–Q13 y ritmo de letra del golden en Libro, Notas, P4, C2 y P2. [Checkpoint](checkpoints/2026-10-29_V11_C255_RESPUESTAS_IMPLEMENTADAS.md).

@@ -86,6 +86,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // C240: spellbook card heading length and inline NIVEL label per card.
             val bookHeadingEnds = mutableMapOf<String, Int>()
             val bookInlineLevels = mutableMapOf<String, String>()
+            // Q14b: source offset and uppercase text of each card's real school line.
+            val bookSchools = mutableMapOf<String, Pair<Int, String>>()
 
             fun draw(stream: PDPageContentStream, text: String, x: Float, y: Float, label: Boolean) {
                 if (text.isEmpty()) return
@@ -3094,6 +3096,26 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     storyBaseline(cell.cellPt))
                                 return@forEach
                             }
+                            // Q14b: golden school line — 7 pt condensed bold in the
+                            // label grey #657d90, on the card's heading band.
+                            if (title == "Libro de conjuros") bookSchools[cell.sourceKey]?.let { (offset, school) ->
+                                val printable = pcSheetV11PrintableText(school)
+                                if (cell.sourceStartOffset == offset &&
+                                    cell.drawableText.trimEnd() == school &&
+                                    headerPdfFont.getStringWidth(printable) * 7f / 1000f <=
+                                    cell.cellPt.widthPt - 2f) {
+                                    stream.saveGraphicsState()
+                                    stream.setNonStrokingColor(Color(101, 125, 144))
+                                    stream.beginText()
+                                    stream.setFont(headerPdfFont, 7f)
+                                    stream.newLineAtOffset(cell.cellPt.leftPt,
+                                        body.metrics.baselineIn(cell.cellPt) - 0.8f)
+                                    stream.showText(printable)
+                                    stream.endText()
+                                    stream.restoreGraphicsState()
+                                    return@forEach
+                                }
+                            }
                             // C270: golden Libro card name — a larger bold heading
                             // in golden ink (golden: EB Garamond 11.3 pt; the app's
                             // nearest embedded face is Barlow 8.2 pt, which fits the
@@ -4935,7 +4957,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     // spellbook card, not the expanded technical alternative.
                     // A card contains source-backed NAME, LEVEL, SCHOOL (only
                     // when actually available) and the ENTIRE DESCRIPTION.
-                    // CharacterSpell currently has no school field. Never
+                    // Q14b: the school comes only from CharacterSpell.school. Never
                     // guess it from class, source, names or description.
                     // Keep time/range/components/duration/preparation/notes
                     // in the App source and other independently contracted
@@ -4947,8 +4969,16 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     val inlineLevel = spell.name.none { it == '\r' || it == '\n' || it == '\t' } &&
                         bookFont.width.measurePt(spell.name) +
                         headerPdfFont.getStringWidth(levelLabel) * 7f / 1000f + 10f <= 258f
-                    val heading = if (inlineLevel) listOf(spell.name)
-                        else listOf(spell.name, levelLabel, "DESCRIPCIÓN:")
+                    // Q14b (golden): the real school, uppercase, on its own line under
+                    // the name; a spell without a school gets no line at all.
+                    val school = spell.school?.trim()?.takeIf { it.isNotEmpty() }?.uppercase()
+                    val heading = if (inlineLevel) listOfNotNull(spell.name, school)
+                        else listOfNotNull(spell.name, levelLabel, school, "DESCRIPCIÓN:")
+                    if (school != null) {
+                        val schoolIndex = if (inlineLevel) 1 else 2
+                        bookSchools["book:" + spell.id] =
+                            heading.take(schoolIndex).sumOf { it.length + 1 } to school
+                    }
                     if (inlineLevel) bookInlineLevels["book:" + spell.id] = levelLabel
                     bookHeadingEnds["book:" + spell.id] = heading.sumOf { it.length + 1 }
                     val lines = heading + spell.description

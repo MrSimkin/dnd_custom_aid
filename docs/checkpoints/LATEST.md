@@ -1,3 +1,5 @@
+**2026-10-29 — C282 V11: escuela de magia en el Libro (Q14b = A).** Campo nuevo `CharacterSpell.school` en App, base (migración 26), editor Android, copias y sincronización; el PDF la imprime como el golden. [Checkpoint](2026-10-29_V11_C272_MATRIZ_DIEZ_BLOQUES.md).
+
 **2026-10-29 — DIEZ BLOQUES C272–C281 COMPLETADOS (matriz), CI exacta SUCCESS.** Evidencia demostrada G1/G2/G3: matriz de 39 a 73/242; tres pruebas nuevas (orden y tamaño de página, municiones 0–35, cabecera). Pendiente Q14 (escuela en el Libro) y fuentes del golden. [Checkpoint](2026-10-29_V11_C272_MATRIZ_DIEZ_BLOQUES.md).
 
 **2026-10-29 — RONDA C267–C271 COMPLETADA, CI exacta SUCCESS, PASS LOCAL FÍSICO, no G4.** Equipo Especial a 7 pt (P2 y C2), tablas de C2 con el ritmo del golden y NOTAS en columnas vacías, REFERENCIA MÁGICA de P4 y títulos de C2 como el golden, nombre de ficha del Libro como título, matriz P114–P116 renovada. [Checkpoint](2026-10-29_V11_C255_RESPUESTAS_IMPLEMENTADAS.md).

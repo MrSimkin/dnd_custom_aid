@@ -22,8 +22,10 @@ class EssentialSpellbookCardParityTest(unittest.TestCase):
             # C240: golden card — name with right-aligned NIVEL, then the whole
             # description; the old labelled layout only for names that cannot share.
             self.assertIn('val levelLabel = "NIVEL " + spell.level', section)
-            self.assertIn("val heading = if (inlineLevel) listOf(spell.name)", section)
-            self.assertIn('else listOf(spell.name, levelLabel, "DESCRIPCIÓN:")', section)
+            # Q14b: the real App school, uppercase, on its own line under the name.
+            self.assertIn("val school = spell.school?.trim()?.takeIf { it.isNotEmpty() }?.uppercase()", section)
+            self.assertIn("val heading = if (inlineLevel) listOfNotNull(spell.name, school)", section)
+            self.assertIn('else listOfNotNull(spell.name, levelLabel, school, "DESCRIPCIÓN:")', section)
             self.assertIn("val lines = heading + spell.description", section)
             for forbidden in ("spell.castingTime", "spell.rangeText",
                               "spell.materialText", "spell.duration",
@@ -36,6 +38,23 @@ class EssentialSpellbookCardParityTest(unittest.TestCase):
         self.assertIn(
             "g3Bk06EssentialSpellbookCardsNeverPrintUnapprovedTechnicalMetadata", tests
         )
+        self.assertIn(
+            "g3Bk06LibroCardPrintsTheRealSchoolUnderTheNameOnlyWhenTheAppHasOneAB", tests
+        )
+
+    def test_golden_school_line_is_drawn_the_same_in_both_native_pdf_writers(self):
+        bodies = []
+        for file in WRITERS:
+            source = file.read_text(encoding="utf-8")
+            start = source.index("// Q14b: golden school line")
+            stop = source.index("// C270: golden Libro card name", start)
+            section = source[start:stop]
+            self.assertIn("Color(101, 125, 144)", section)
+            self.assertIn("stream.setFont(headerPdfFont, 7f)", section)
+            self.assertIn("cell.drawableText.trimEnd() == school", section)
+            bodies.append(re.sub(r"\s+", " ", section))
+        self.assertEqual(bodies[0], bodies[1],
+                         "Desktop and Android must draw the same golden school line.")
 
 if __name__ == "__main__":
     unittest.main()

@@ -332,6 +332,7 @@ class CharacterRepository(
                     has_somatic = if (spell.somatic) 1 else 0, has_material = if (spell.material) 1 else 0, material_text = spell.materialText,
                     duration = spell.duration, concentration = if (spell.concentration) 1 else 0, ritual = if (spell.ritual) 1 else 0,
                     description = spell.description, notes = spell.notes, sort_order = levelOrder.toLong(), pinned = if (spell.pinned) 1 else 0,
+                    school = spell.school?.trim()?.takeIf { it.isNotEmpty() },
                 )
                 spellOrderByLevel[spell.level] = levelOrder + 1
                 spell.sourceAssociations.forEach { association ->
@@ -466,13 +467,14 @@ class CharacterRepository(
 
         val spells = database.characterQueries.selectCharacterSpells(core.id.toString()) {
                 id, _, name, spellLevel, castingTime, rangeText, hasVerbal, hasSomatic, hasMaterial, materialText,
-                duration, concentration, ritual, description, notes, sortOrder, pinned ->
+                duration, concentration, ritual, description, notes, sortOrder, pinned, school ->
             val spellId = Uuid.parse(id)
             CharacterSpell(
                 id = spellId, name = name, level = spellLevel.toInt(), castingTime = castingTime, rangeText = rangeText,
                 verbal = hasVerbal != 0L, somatic = hasSomatic != 0L, material = hasMaterial != 0L, materialText = materialText,
                 duration = duration, concentration = concentration != 0L, ritual = ritual != 0L, description = description,
                 notes = notes, sortOrder = sortOrder.toInt(), sourceAssociations = spellAssociations[spellId].orEmpty(), pinned = pinned != 0L,
+                school = school,
             )
         }.executeAsList()
 

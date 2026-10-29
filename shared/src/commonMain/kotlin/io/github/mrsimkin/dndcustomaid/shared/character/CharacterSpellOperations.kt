@@ -30,6 +30,7 @@ fun presentCharacterSpellLevel(
     searchableText = { spell ->
         buildList {
             add(spell.name)
+            add(spell.school)
             add(spell.castingTime)
             add(spell.rangeText)
             add(spell.materialText)

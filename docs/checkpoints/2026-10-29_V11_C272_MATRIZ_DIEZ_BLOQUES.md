@@ -29,7 +29,16 @@ PR #173 DRAFT/NO MERGE. Anterior: [C255–C271](2026-10-29_V11_C255_RESPUESTAS_I
   - GLB06 en G3: no hay un control de recorte de tinta.
 - **Verificación:** las pruebas nuevas pasan en local y en la CI exacta; `check_v11_pre_qa_gate.py` y `check_v11_qa_registry.py` pasan.
 
+## C282 — Escuela de magia en el Libro (Q14 / Q14b, 2026-10-29)
+
+- **Propietario:** «Sí, con escuela»; luego, «aun no hemos importado el SRD … estará en el SRD, debe usar A». Corrige la afirmación del Worker de que la escuela «no estaba en el SRD»: el SRD aún no se importa.
+- **App:** campo nuevo `CharacterSpell.school` (texto libre opcional), columna `character_spell.school` (migración `26.sqm`), editor de conjuros de Android («Escuela (opcional)»), búsqueda, borrador del editor, copias de seguridad y sincronización. Las copias y la sincronización guardan la ficha completa en JSON y el servidor no interpreta los conjuros: **no hay paso del propietario en el proveedor**. El escritorio no tiene editor de conjuros.
+- **PDF (ambos renderizadores):** la escuela real va bajo el nombre como el golden (mayúsculas, Barlow Condensed Bold 7 pt, #657d90, en la franja del encabezado). Sin escuela, no hay línea.
+- **Pruebas:** `CharacterSpellSchoolTest` (persistencia, migración desde la versión 26, JSON antiguo sin escuela), `CharacterBackupTest` (la escuela viaja en la copia), `g3Bk06LibroCardPrintsTheRealSchoolUnderTheNameOnlyWhenTheAppHasOneAB` (A/B: posición, tamaño y fuente; sin escuela no se imprime) y el tripwire `test_v11_spellbook_essential_card_contract.py` (paridad Android/Escritorio).
+- **Inspección visual:** `qa/evidence/c282_escuela/Libro_escuela_golden_vs_app.png`.
+- **Pendiente técnico:** el importador del SRD, cuando exista, debe llenar `school`.
+
 ## Pendiente del propietario
 
-- **Q14 (2026-10-29):** ¿las fichas del Libro deben mostrar la escuela de magia, como el golden, aunque la ficha esencial aprobada (BK06) no la incluya? Ver [`DECISIONES_PENDIENTES_PROPIETARIO.md`](../pc-sheet-v11/DECISIONES_PENDIENTES_PROPIETARIO.md).
+- **Q14:** resuelta (ver arriba).
 - **Fuentes del golden (Noto Sans, EB Garamond):** incorporarlas requiere agregar sus archivos de fuente a la app.

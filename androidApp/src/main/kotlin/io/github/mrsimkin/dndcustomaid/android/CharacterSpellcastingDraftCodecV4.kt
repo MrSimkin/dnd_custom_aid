@@ -56,6 +56,7 @@ internal fun characterSpellcastingDraftToJsonV4(draft: CharacterSpellcastingDraf
                 .put("ritual", spell.ritual)
                 .put("description", spell.description)
                 .put("notes", spell.notes ?: JSONObject.NULL)
+                .put("school", spell.school ?: JSONObject.NULL)
                 .put("sortOrder", spell.sortOrder)
                 .put("sourceAssociations", associations),
         )
@@ -137,6 +138,7 @@ internal fun characterSpellcastingDraftFromJsonV4(raw: String): CharacterSpellca
                     notes = if (item.isNull("notes")) null else item.optString("notes", ""),
                     sortOrder = item.optInt("sortOrder", index),
                     sourceAssociations = associations,
+                    school = if (item.isNull("school")) null else item.optString("school", "").takeIf { it.isNotBlank() },
                 ),
             )
         }

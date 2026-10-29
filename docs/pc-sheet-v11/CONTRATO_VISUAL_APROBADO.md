@@ -102,6 +102,11 @@ El propietario aprobó P1/P3/P4, P2, C2, final y variante B tras revisión V11. 
 - **P4 preparación por fuente:** «el hechizo aparece dos veces, una para cada fuente como: Fire bolt Mago / Fire bolt Otro», y «no necesita nunca el [X]». Una fila por cada par conjuro-fuente, juntas dentro de su nivel, con casilla vacía para lápiz y solo el tipo de fuente; la preparación no se imprime. Reemplaza «cada fila conserva su marca de preparación».
 - **C2 recursos:** «A». Casillas vacías, una por unidad del total, y el número pequeño «gastados/total» (Éter: `2/3`); debajo, recuperación, fuente y notas en letra pequeña. La tabla ACCIONES usa la gramática de ATAQUES del golden.
 
+## Aclaración del propietario — escuela en las fichas del Libro (2026-10-29)
+
+- **Q14:** «Sí, con escuela». **Q14b:** «aun no hemos importado el SRD … estará en el SRD, debe usar A».
+- **Regla:** la ficha del Libro muestra, bajo el nombre, la escuela real que guarda la App (`CharacterSpell.school`), como el golden: mayúsculas, condensada negrita 7 pt, gris #657d90, en la franja del encabezado. Si el conjuro no tiene escuela, no se imprime ninguna línea, ni se deduce de la clase, la fuente, el nombre o la descripción. Esto amplía la ficha esencial BK06 (nombre, nivel, escuela si existe, descripción íntegra).
+
 ## Aclaración del propietario — Equipo y Tesoro con nombres largos (2026-10-26)
 
 **Dicho por el propietario (2026-10-26),** tras ver la página 2 de Mara vacía y una vista previa del arreglo:

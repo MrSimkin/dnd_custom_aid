@@ -20,6 +20,7 @@ class CharacterBackupTest {
         assertTrue(encoded.contains("\"version\""))
         assertTrue(encoded.contains("Mesa de prueba"))
         assertTrue(encoded.contains("Recuperación arcana"))
+        assertTrue(encoded.contains("\"school\": \"Evocación\""), "Q14b: the spell school travels in the backup.")
     }
 
     @Test
@@ -186,7 +187,7 @@ class CharacterBackupTest {
             background = CharacterBackground("Erudito", "Investigador", "Humano", "Onatar", "Curioso", "Conocimiento", "Taller", "Obsesivo", "Historia larga"),
             traits = listOf(CharacterTrait(traitId, "Destello", "Clase", CharacterTraitType.CLASS, "Efecto", "Nota", 3, 1, "Largo", CharacterActivationType.REACTION, 0, true)),
             spellcastingSources = listOf(CharacterSpellcastingSource(spellSourceId, "Artífice", classId, 0)),
-            spells = listOf(CharacterSpell(spellId, "Ayuda", 2, "1 acción", "30 pies", true, true, true, "perla", "8 horas", false, false, "Descripción", "Notas", 0, listOf(CharacterSpellSourceAssociation(spellSourceId, true)), true)),
+            spells = listOf(CharacterSpell(spellId, "Ayuda", 2, "1 acción", "30 pies", true, true, true, "perla", "8 horas", false, false, "Descripción", "Notas", 0, listOf(CharacterSpellSourceAssociation(spellSourceId, true)), true, "Evocación")),
             generalNotes = "Notas generales",
             noteCards = listOf(CharacterNote(noteId, "Plan", "Contenido", 0)),
             inspiration = true,

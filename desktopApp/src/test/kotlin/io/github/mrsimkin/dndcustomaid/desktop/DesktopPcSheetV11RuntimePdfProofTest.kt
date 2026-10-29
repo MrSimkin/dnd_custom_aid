@@ -3929,7 +3929,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     fun g3Bk06EssentialSpellbookCardsNeverPrintUnapprovedTechnicalMetadata() {
         // D-0076 §3.47 chose essential cards (name, level, real school if
         // available, full description), expressly rejecting technical fields.
-        // CharacterSpell does NOT persist a school; do not invent one.
+        // The school is printed only from CharacterSpell.school (Q14b).
         val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
         val marker = "BK06_DESCRIPCION_REAL_INTEGRA_V11"
         val modified = original.copy(
@@ -4014,12 +4014,93 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertFalse(book.contains("DURACIÓN "),
                     "The owner rejected the duration row in spellbook cards.")
                 assertFalse(book.contains("ESCUELA "),
-                    "No backed school field exists; it may not be fabricated.")
+                    "The golden school line has no ESCUELA label.")
                 val p4 = pages.filter { it.contains("P4 - Conjuros /") }
                     .joinToString("\n")
                 assertTrue(p4.contains("Fire Bolt"),
                     "Removing extra book metadata must not change the quick list.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
+            }
+        }
+    }
+
+    @Test
+    fun g3Bk06LibroCardPrintsTheRealSchoolUnderTheNameOnlyWhenTheAppHasOneAB() {
+        // Q14b (owner, 2026-10-29): the golden book card shows the school on its
+        // own line under the name, uppercase, 7 pt condensed in label grey. Only
+        // a school stored in the App is printed; no school, no line.
+        val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val withSchool = original.copy(
+            permanent = original.permanent.copy(
+                sheet = original.permanent.sheet.copy(
+                    spells = original.permanent.sheet.spells.map { spell ->
+                        if (spell.name == "Fire Bolt") spell.copy(school = " Evocación ")
+                        else spell.copy(school = null)
+                    },
+                ),
+            ),
+        )
+        val schools = listOf("ABJURACIÓN", "ADIVINACIÓN", "CONJURACIÓN", "ENCANTAMIENTO",
+            "EVOCACIÓN", "ILUSIÓN", "NIGROMANCIA", "TRANSMUTACIÓN")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            for ((label, source) in listOf("with-school" to withSchool, "without-school" to original)) {
+                val proof = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(
+                        variant, PcSheetExportStateSelection.PERMANENT,
+                        includeSpellDescriptions = true),
+                    source,
+                )
+                preserveRealApplicationPdf(proof.bytes,
+                    "V11-INTERNAL-PROOF-BK06-school-" + label + "-" + variant.name + ".pdf")
+                Loader.loadPDF(proof.bytes).use { pdf ->
+                    val pages = (1..pdf.numberOfPages).map { physical ->
+                        PDFTextStripper().apply {
+                            startPage = physical
+                            endPage = physical
+                        }.getText(pdf)
+                    }
+                    val bookPages = pages.indices.filter {
+                        pages[it].contains("Libro de conjuros /") &&
+                            !pages[it].contains("Índice del Libro de Conjuros")
+                    }
+                    assertTrue(bookPages.isNotEmpty(), "Ilyra prints the Libro ($variant, $label).")
+                    val book = bookPages.joinToString("\n") { pages[it] }
+                    if (source === original) {
+                        schools.forEach { school ->
+                            assertFalse(book.contains(school),
+                                "No App school, no school line ($variant): $school")
+                        }
+                        return@use
+                    }
+                    schools.filter { it != "EVOCACIÓN" }.forEach { school ->
+                        assertFalse(book.contains(school), "Only real schools print ($variant): $school")
+                    }
+                    assertEquals(1, Regex("EVOCACIÓN").findAll(book).count(),
+                        "Fire Bolt's real school prints once, uppercase ($variant).")
+                    var name: Pair<Float, Float>? = null
+                    var school: Triple<Float, Float, org.apache.pdfbox.text.TextPosition>? = null
+                    val bookPage = bookPages.first { pages[it].contains("Fire Bolt") } + 1
+                    object : PDFTextStripper() {
+                        override fun writeString(
+                            text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                        ) {
+                            val first = textPositions.firstOrNull() ?: return
+                            val y = 792f - first.yDirAdj
+                            if (text.trim() == "Fire Bolt") name = first.xDirAdj to y
+                            if (text.trim() == "EVOCACIÓN") school = Triple(first.xDirAdj, y, first)
+                        }
+                    }.apply { startPage = bookPage; endPage = bookPage }.getText(pdf)
+                    val (nameX, nameY) = requireNotNull(name) { "Fire Bolt name line ($variant)." }
+                    val (schoolX, schoolY, glyph) = requireNotNull(school) { "School line ($variant)." }
+                    assertTrue(kotlin.math.abs(schoolX - nameX) < 0.5f,
+                        "The school starts under the name ($variant): $schoolX vs $nameX")
+                    assertTrue(kotlin.math.abs(nameY - schoolY - 10.5f) < 0.6f,
+                        "The school is the next 10.5 pt row under the name ($variant): $nameY / $schoolY")
+                    assertTrue(kotlin.math.abs(glyph.fontSizeInPt - 7f) < 0.05f,
+                        "Golden school size 7 pt ($variant): " + glyph.fontSizeInPt)
+                    assertTrue(glyph.font.name.contains("Barlow"),
+                        "Golden condensed bold face ($variant): " + glyph.font.name)
+                }
             }
         }
     }

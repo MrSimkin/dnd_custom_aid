@@ -192,6 +192,7 @@ CREATE TABLE character_spell (
     notes TEXT,
     sort_order INTEGER NOT NULL,
     pinned INTEGER NOT NULL DEFAULT 0,
+    school TEXT,
     UNIQUE(character_id, spell_level, sort_order)
 );
 
@@ -512,14 +513,14 @@ insertCharacterSpell:
 INSERT INTO character_spell(
     id, character_id, name, spell_level, casting_time, range_text,
     has_verbal, has_somatic, has_material, material_text, duration,
-    concentration, ritual, description, notes, sort_order, pinned
+    concentration, ritual, description, notes, sort_order, pinned, school
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectCharacterSpells:
 SELECT id, character_id, name, spell_level, casting_time, range_text,
        has_verbal, has_somatic, has_material, material_text, duration,
-       concentration, ritual, description, notes, sort_order, pinned
+       concentration, ritual, description, notes, sort_order, pinned, school
 FROM character_spell
 WHERE character_id = ?
 ORDER BY spell_level, sort_order, id;

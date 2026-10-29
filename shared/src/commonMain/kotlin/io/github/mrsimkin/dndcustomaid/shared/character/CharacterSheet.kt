@@ -286,6 +286,9 @@ data class CharacterSpell(
     val sortOrder: Int,
     val sourceAssociations: List<CharacterSpellSourceAssociation> = emptyList(),
     val pinned: Boolean = false,
+    // Q14b (owner, 2026-10-29): the spell school is a real App field. It is
+    // free text so homebrew schools fit; the SRD import fills it later.
+    val school: String? = null,
 )
 
 @Serializable
