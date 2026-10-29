@@ -12,6 +12,7 @@ Lista viva. El Worker anota aquí cada decisión que corresponde al propietario 
   - **R1:** casillas vacías y el texto «Quedan x de y».
   - **R2:** las casillas gastadas salen marcadas con X según el valor guardado.
 - **Pospuesto:** tabla ACCIONES y módulo RECURSOS en C2.
+- **Dato para decidir (C250, 2026-10-28):** en P1, los espacios de conjuro ya siguen la gramática del golden, igual que MUNICIONES: una casilla por espacio real y las gastadas sombreadas con X. Esto no decide Q1; solo muestra cómo se ve R2 en otra parte de la hoja (`qa/evidence/c250_c254/B16_P1_lanzamiento_golden_vs_app_Mara_A.png`).
 
 ### Q2 — ¿Letra del golden (≈7 pt) también en la Lista rápida de conjuros (P4)? (2026-10-28)
 
