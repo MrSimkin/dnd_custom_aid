@@ -3501,12 +3501,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             // Keep the physical square count exact; do not weaken this
             // assertion or conflate empty writing with a digital spell.
             Triple("02_ilyra_quill_srd5_2_1_evoker_wizard.json",
-                PcSheetV11Variant.B, 89),
+                PcSheetV11Variant.B, 62),
             // C258: Ilyra's two-source spells take two rows (91 -> 89 blank rows);
             // Mara's source label now fits beside each spell without the [X]
             // mark, so her rows are single-line and leave 89 blank rows (was 68).
+            // C261: the golden P4 rhythm (6.8 pt on 15.7 pt rows) leaves 62 / 65.
             Triple("03_mara_siete_umbrales_custom_extended.json",
-                PcSheetV11Variant.B, 89),
+                PcSheetV11Variant.B, 65),
         )) {
             val generated = DesktopPcSheetExportService().generateV11Proof(
                 PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),

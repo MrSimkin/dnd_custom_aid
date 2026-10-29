@@ -1909,6 +1909,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
             val bookFont = goldenRhythm(6.7f, 10.5f)
             val notesFont = goldenRhythm(7f, 11.6f)
+            val quickFont = goldenRhythm(6.8f, 15.7f)
+            // The spell glyph keeps >= 11 pt of measured clearance from its 7 pt
+            // paper box in the golden P4 size (five spaces sufficed at 9 pt).
+            val quickInset = " ".repeat((1..16).first {
+                quickFont.width.measurePt(" ".repeat(it)) >= 11f
+            })
             fun storyBaseline(cell: PcSheetV11RectPt): Float = cell.bottomPt + 4f
             fun drawStory(stream: PDPageContentStream, text: String, x: Float, y: Float) {
                 if (text.isEmpty()) return
@@ -2105,7 +2111,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     Triple(entry, key, sourceInfo)
                 }
             }.mapNotNull { (entry, key, sourceInfo) ->
-                val fullName = "     " + entry.spell.name
+                val fullName = quickInset + entry.spell.name
                 // 168pt true 3-column text band with a 12pt glyph gutter;
                 // no fake slots and no shrinking long spell/source records.
                 if (sourceInfo.isNotBlank() &&
@@ -2121,7 +2127,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     // one-line PDFBox width call (CR/LF have no font glyph).
                     fullName.none { it == '\r' || it == '\n' || it == '\t' } &&
                     sourceInfo.none { it == '\r' || it == '\n' || it == '\t' } &&
-                    body.width.measurePt(fullName) +
+                    quickFont.width.measurePt(fullName) +
                     p4SourceFont.width.measurePt(sourceInfo) + 12f <= 168f
                 ) key to sourceInfo else null
             }.toMap()
@@ -4651,7 +4657,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     // spell glyph from the 7pt vector box (verified original
                                     // 3-space result overlapped its border by ~1.8pt).
                                     // No source name is abbreviated or trimmed.
-                                    "     " + entry.spell.name +
+                                    quickInset + entry.spell.name +
                                         (if (sourceInfo.isBlank() || key in p4RightSources) ""
                                         else " | " + sourceInfo),
                                     keepTogetherIfFits = true))
@@ -4678,7 +4684,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // one physical page permits. Never create a second filler page.
                 val p4WritingArea = PcSheetV11RectPt(42f, 76f, 528f, 531f)
                 val minimalQuick = quickRows(1)
-                val minimalPlacement = body.place(
+                val minimalPlacement = quickFont.place(
                     PcSheetV11FlowSection.QUICK_SPELLS,
                     minimalQuick, p4WritingArea, 3, 12f,
                 )
@@ -4687,7 +4693,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     var highest = 20
                     while (lowest < highest) {
                         val candidateRows = (lowest + highest + 1) / 2
-                        val candidate = body.place(
+                        val candidate = quickFont.place(
                             PcSheetV11FlowSection.QUICK_SPELLS,
                             quickRows(candidateRows), p4WritingArea, 3, 12f,
                         )
@@ -4698,7 +4704,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         }
                     }
                     val baseRows = quickRows(lowest)
-                    val basePlacement = body.place(
+                    val basePlacement = quickFont.place(
                         PcSheetV11FlowSection.QUICK_SPELLS,
                         baseRows, p4WritingArea, 3, 12f,
                     )
@@ -4720,7 +4726,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         var extraHigh = 42
                         while (extraLow < extraHigh) {
                             val extraCandidate = (extraLow + extraHigh + 1) / 2
-                            val candidate = body.place(
+                            val candidate = quickFont.place(
                                 PcSheetV11FlowSection.QUICK_SPELLS,
                                 quickRows(lowest, extraCandidate),
                                 p4WritingArea, 3, 12f,
@@ -4737,8 +4743,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         quickRows(lowest, extraLow)
                     } else baseRows
                 } else minimalQuick
+                // C261: golden P4 rhythm, Fira 6.8 pt on 15.7 pt rows.
                 addSection("P4 - Conjuros", PcSheetV11FlowSection.QUICK_SPELLS,
-                    quick, 3, area = p4WritingArea)
+                    quick, 3, area = p4WritingArea, font = quickFont)
             }
 
             // C238: golden note cards are one blank line apart (paper only).
