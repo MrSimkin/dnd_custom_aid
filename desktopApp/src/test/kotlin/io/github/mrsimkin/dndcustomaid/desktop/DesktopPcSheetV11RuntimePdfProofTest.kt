@@ -2215,7 +2215,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
-    fun g3P1RealFourFiveSlotPaperMarksAreSevenPointBoxesAB() {
+    fun g3P1RealFourFiveSlotPaperMarksAreTrueBoxesAB() {
         // Ilyra has FOUR real persisted level-one slots. Exercise also a
         // genuine persisted FIVE-slot value at level two, altering only its
         // counts in an otherwise untouched source backup.
@@ -2264,8 +2264,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
 
     @Test
-    fun g3P1SixPersistedSpellSlotsFitWithoutShrinkingSevenPointPaperBoxesAB() {
-        // C227: real Ilyra backup, with its first-level total explicitly
+    fun g3P1SixPersistedSpellSlotsFitWithoutShrinkingPaperBoxesAB() {
+        // C227/C250: real Ilyra backup, with its first-level total explicitly
         // increased from four to six and spent count to four. This exercises
         // the real PDF renderer, not a visual mock or fabricated source ID.
         val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
@@ -2291,7 +2291,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 fun squareAt(x: Int, y: Int): Int = Regex(
                     """(?m)(?:^|\s)\Q$x\E(?:\.0)?\s+\Q$y\E(?:\.0)?\s+8(?:\.0)?\s+8(?:\.0)?\s+re(?:\s|$)""",
                 ).findAll(native).count()
-                // N1: six real 7pt squares with 3pt gap; no seventh.
+                // N1: six real 8pt squares with 2pt gap (C250); no seventh.
                 for (x in listOf(334, 344, 354, 364, 374, 384)) {
                     assertEquals(1, squareAt(x, 230),
                         "A genuine N1 six-slot square must be present at x=$x.")
