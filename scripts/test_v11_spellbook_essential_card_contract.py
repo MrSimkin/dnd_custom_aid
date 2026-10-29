@@ -16,7 +16,7 @@ class EssentialSpellbookCardParityTest(unittest.TestCase):
         for file in WRITERS:
             source = file.read_text(encoding="utf-8")
             start = source.index("data.spellbookEntries?.takeIf")
-            stop = source.index("val contentFlow = body.place(", start)
+            stop = source.index("val contentFlow = bookFont.place(", start)
             section = source[start:stop]
             self.assertIn("D-0076 §3.47 / BK06", section)
             # C240: golden card — name with right-aligned NIVEL, then the whole

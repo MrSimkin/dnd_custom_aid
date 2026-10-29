@@ -3803,13 +3803,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val firstId = firstTwo[0].spell.id
             val secondId = firstTwo[1].spell.id
             val contentHeight = 626f
-            val font = org.apache.pdfbox.pdmodel.PDDocument().use { temporary ->
-                val resolved = DesktopPcSheetV11FontMeasurer(temporary).resolve(
-                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Typeface.BODY,
-                    9f,
-                )
-                (contentHeight / resolved.metrics.lineHeightPt).toInt()
-            }
+            // C260: the book uses the golden Libro rhythm (Fira 6.7 pt on 10.5 pt rows).
+            val font = (contentHeight / 10.5f).toInt()
             assertTrue(font > 22, "A real Letter book column must have usable rows.")
             // C240: the golden card puts NIVEL on the name line and drops the
             // DESCRIPCIÓN label, so the first card needs two more real lines to
@@ -3841,7 +3836,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             org.apache.pdfbox.pdmodel.PDDocument().use { temporary ->
                 val body = DesktopPcSheetV11FontMeasurer(temporary).resolve(
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Typeface.BODY,
-                    9f,
+                    6.7f, // C260: golden Libro rhythm 6.7 / 10.5 pt.
                 )
                 val cards = semantic.spells.map { entry ->
                     val spell = entry.spell
@@ -3859,7 +3854,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11RectPt(
                             42f, 76f, 528f, contentHeight,
                         ),
-                        2, 12f, body.metrics.lineHeightPt, body.width,
+                        2, 12f, 10.5f, body.width,
                     )
                 val before = measured.sourceFlow.fragments.filter {
                     it.sourceKey == "book:" + firstId
@@ -4157,7 +4152,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                             text += value + "\n"
                             val first = textPositions.firstOrNull() ?: return
                             val y = 792f - first.yDirAdj
-                            if (y in 80f..700f && first.fontSizeInPt == 9f &&
+                            // C260: golden C-N3 body text is 7 pt.
+                            if (y in 80f..700f && first.fontSizeInPt == 7f &&
                                 first.font.name.contains("Fira")) starts += first.xDirAdj
                         }
                     }
@@ -5209,7 +5205,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
                 val startBandRects = Regex(
-                    """(?m)(?:^|\s)42(?:\.0)?\s+[-\d.]+\s+528(?:\.0)?\s+12\.\d+\s+re(?:\s|$)"""
+                    // C260: the start band is one golden C-N3 row (11.6 pt).
+                    """(?m)(?:^|\s)42(?:\.0)?\s+[-\d.]+\s+528(?:\.0)?\s+11\.\d+\s+re(?:\s|$)"""
                 ).findAll(raw).count()
                 assertEquals(fixture.permanent.sheet.noteCards.size + 1,
                     startBandRects, "One source-backed blue band per genuine note start.")

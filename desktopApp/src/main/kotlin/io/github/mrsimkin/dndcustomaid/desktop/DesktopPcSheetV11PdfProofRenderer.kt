@@ -1906,6 +1906,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     storyRowPt - font.metrics.ascentPt - font.metrics.descentPt))
             }
             require(storyFont.metrics.lineHeightPt == storyRowPt)
+            // C260 (owner 2026-10-28: «diseño debe llegar a ser igual … al
+            // original»): measured golden body sizes and row pitches per module.
+            fun goldenRhythm(sizePt: Float, pitchPt: Float): PcSheetV11ResolvedFont =
+                measurer.resolve(PcSheetV11Typeface.BODY, sizePt).let { font ->
+                    font.copy(metrics = font.metrics.copy(leadingPt =
+                        pitchPt - font.metrics.ascentPt - font.metrics.descentPt))
+                }
+            val bookFont = goldenRhythm(6.7f, 10.5f)
+            val notesFont = goldenRhythm(7f, 11.6f)
             fun storyBaseline(cell: PcSheetV11RectPt): Float = cell.bottomPt + 4f
             fun drawStory(stream: PDPageContentStream, text: String, x: Float, y: Float) {
                 if (text.isEmpty()) return
@@ -2235,6 +2244,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             ) {
                 require(maxPhysicalPages == null || maxPhysicalPages > 0)
                 if (!alwaysPage && entries.isEmpty()) return
+                // C260: a measured section measures AND draws in its own font.
+                val body = font
+                fun draw(stream: PDPageContentStream, text: String, x: Float, y: Float, label: Boolean) {
+                    if (text.isEmpty()) return
+                    stream.beginText()
+                    stream.setFont(if (label) headerPdfFont else bodyPdfFont,
+                        if (label) 12f else font.metrics.fontSizePt)
+                    stream.newLineAtOffset(x, y)
+                    stream.showText(pcSheetV11PrintableText(text))
+                    stream.endText()
+                }
                 val flow = font.place(section, entries, area, columns, gutterPt)
                 val pageCount = maxOf(if (alwaysPage) 1 else 0, flow.sourceFlow.localPageCount)
                 repeat(minOf(pageCount, maxPhysicalPages ?: pageCount)) { index ->
@@ -2977,7 +2997,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             }
                         }
                         pageCells.forEach { cell ->
-                            if (font !== body) {
+                            if (font === storyFont) {
                                 // Owner option B: the story continuation keeps 7/17 pt.
                                 drawStory(stream, cell.drawableText, cell.cellPt.leftPt,
                                     storyBaseline(cell.cellPt))
@@ -4731,7 +4751,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             addSection("C-N3 - Notas digitales", PcSheetV11FlowSection.DIGITAL_NOTES,
                 texts.digitalNotes.map { it.copy(leadingSeparationLines = 1) }, 1,
                 area = PcSheetV11RectPt(pageArea.leftPt + 6f, pageArea.bottomPt,
-                    pageArea.widthPt - 12f, pageArea.heightPt))
+                    pageArea.widthPt - 12f, pageArea.heightPt),
+                font = notesFont)
             data.spellbookEntries?.takeIf { it.isNotEmpty() }?.let { spells ->
                 // The only optional annex, with real two-column cards. All spell
                 // content remains source-backed; no fabricated school or rules.
@@ -4751,7 +4772,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     // name that cannot share its line keeps the previous layout.
                     val levelLabel = "NIVEL " + spell.level
                     val inlineLevel = spell.name.none { it == '\r' || it == '\n' || it == '\t' } &&
-                        body.width.measurePt(spell.name) +
+                        bookFont.width.measurePt(spell.name) +
                         headerPdfFont.getStringWidth(levelLabel) * 7f / 1000f + 10f <= 258f
                     val heading = if (inlineLevel) listOf(spell.name)
                         else listOf(spell.name, levelLabel, "DESCRIPCIÓN:")
@@ -4765,7 +4786,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         leadingSeparationLines = 1, // BK08: one REAL measured blank row between cards.
                     )
                 }
-                val contentFlow = body.place(
+                val contentFlow = bookFont.place(
                     PcSheetV11FlowSection.SPELLBOOK, cards, pageArea, 2, 12f,
                 )
                 require(contentFlow.sourceFlow.localPageCount > 0)
@@ -4793,7 +4814,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // guess the next physical page from a fixed section number.
                 var indexPageCount = 1
                 repeat(8) {
-                    val measured = body.place(
+                    val measured = bookFont.place(
                         PcSheetV11FlowSection.SPELLBOOK,
                         buildIndex(indexPageCount),
                         pageArea, 2, 12f,
@@ -4803,7 +4824,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     indexPageCount = measured
                 }
                 val indexEntries = buildIndex(indexPageCount)
-                val finalIndexFlow = body.place(
+                val finalIndexFlow = bookFont.place(
                     PcSheetV11FlowSection.SPELLBOOK, indexEntries, pageArea, 2, 12f,
                 )
                 require(finalIndexFlow.sourceFlow.localPageCount == indexPageCount) {
@@ -4811,10 +4832,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
                 require(indexEntries.size == spells.size)
                 addSection("Índice del Libro de Conjuros",
-                    PcSheetV11FlowSection.SPELLBOOK, indexEntries, 2)
+                    PcSheetV11FlowSection.SPELLBOOK, indexEntries, 2, font = bookFont)
                 require(pdf.numberOfPages == pagesBeforeIndex + indexPageCount)
                 addSection("Libro de conjuros",
-                    PcSheetV11FlowSection.SPELLBOOK, cards, 2)
+                    PcSheetV11FlowSection.SPELLBOOK, cards, 2, font = bookFont)
                 require(pdf.numberOfPages ==
                     pagesBeforeIndex + indexPageCount + contentFlow.sourceFlow.localPageCount)
             }
