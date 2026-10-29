@@ -69,6 +69,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val mixedC2P1Pages = mutableSetOf<Int>()
             // C246: first physical page of each mixed-C2 module heading.
             val mixedC2HeadingPages = mutableMapOf<String, Int>()
+            // C258: first physical page of each continued P3 profile field.
+            val p3FieldHeadingPages = mutableMapOf<String, Int>()
             // C247: custom attributes drawn as the golden C2 attribute row.
             val c2AttributeCards = mutableSetOf<String>()
             // C240: spellbook card heading length and inline NIVEL label per card.
@@ -2065,14 +2067,23 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val sourceNames =
                 io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSourceLabels
                     .forSpells(data.spells)
-            val p4SourceLabels = data.spells.associate { entry ->
-                "quick-spell:" + entry.spell.id to
-                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSourceLabels
-                        .perSpell(entry, sourceNames)
+            // C258 (owner 2026-10-28): one P4 row per spell-source association
+            // ("Fire Bolt  Mago", "Fire Bolt  Otro"), adjacent in source order,
+            // with the source TYPE label only. No [X]/[ ] mark: the sheet does
+            // not print preparation; each row keeps its pencil box.
+            val p4SpellRows = data.spells.associate { entry ->
+                entry.spell.id to (if (entry.sources.isEmpty())
+                    listOf("quick-spell:" + entry.spell.id to "")
+                else entry.sources.distinctBy { it.sourceId }.map { association ->
+                    "quick-spell:" + entry.spell.id + ":" + association.sourceId to
+                        sourceNames.getValue(association.sourceId)
+                })
             }
-            val p4RightSources = data.spells.mapNotNull { entry ->
-                val key = "quick-spell:" + entry.spell.id
-                val sourceInfo = p4SourceLabels.getValue(key)
+            val p4RightSources = data.spells.flatMap { entry ->
+                p4SpellRows.getValue(entry.spell.id).map { (key, sourceInfo) ->
+                    Triple(entry, key, sourceInfo)
+                }
+            }.mapNotNull { (entry, key, sourceInfo) ->
                 val fullName = "     " + entry.spell.name
                 // 168pt true 3-column text band with a 12pt glyph gutter;
                 // no fake slots and no shrinking long spell/source records.
@@ -2279,6 +2290,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     if (title == "C2 - Habilidades, acciones y recursos") {
                         pageCells.filter { it.sourceKey.startsWith("c2-heading:") }.forEach {
                             mixedC2HeadingPages.putIfAbsent(it.sourceKey, pdf.numberOfPages)
+                        }
+                    }
+                    if (title == "P3 - Narrativa / continuación") {
+                        pageCells.filter { it.sourceKey.startsWith("p3-field-heading:") }.forEach {
+                            p3FieldHeadingPages.putIfAbsent(it.sourceKey, pdf.numberOfPages)
                         }
                     }
                     PDPageContentStream(pdf, page).use { stream ->
@@ -3088,10 +3104,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             } else if (title.startsWith("P4 - ") &&
                                 cell.sourceKey.startsWith("quick-spell:") &&
                                 cell.sourceStartOffset == 0) {
-                                // Every real spell row reserves its own 7pt PAPER
-                                // preparation box. Text still contains the exact
-                                // persisted per-source prepared status; a paper
-                                // square NEVER asserts a digital prepared value.
+                                // Every real spell-source row reserves its own 7pt
+                                // PAPER preparation box for pencil (C258: the sheet
+                                // never prints a digital prepared value).
                                 val baseline = body.metrics.baselineIn(cell.cellPt)
                                 stream.saveGraphicsState()
                                 stream.setStrokingColor(Color(130, 165, 186))
@@ -3900,14 +3915,22 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 font = storyFont,
                 firstPageNumber = physicalSectionKeys.size - p3PagesBefore + 1,
                 gutterPt = 12f + 2 * p3TextInsetPt)
-            // C253: golden P3 footer "HISTORIA A P. 6": each continued P3 flow
-            // with its first real physical page, on the module-link band.
-            val p3ModuleLinks = listOfNotNull(
-                if (p3FieldOverflow.isNotEmpty()) "TRASFONDO Y PERFIL A P. " + (p3PagesBefore + 1)
-                else null,
+            // C253/C258: golden P3 footer "HISTORIA A P. 6": each continued P3
+            // field by its own name (owner 2026-10-28) and the story, with the
+            // first real physical page of each, on the module-link band.
+            val p3ModuleLinks = (p3FieldSpecs.indices.mapNotNull { index ->
+                p3FieldHeadingPages["p3-field-heading:" + index]?.let {
+                    p3FieldSpecs[index].first + " A P. " + it
+                }
+            } + listOfNotNull(
                 if (p3StoryOverflow.isNotEmpty()) "HISTORIA A P. " + (p3StoryPagesBefore + 1)
                 else null,
-            ).joinToString(" · ").takeIf { it.isNotEmpty() }
+            )).joinToString(" · ").takeIf { it.isNotEmpty() }
+            if (p3ModuleLinks != null) {
+                require(headerPdfFont.getStringWidth(p3ModuleLinks) * 6.1f / 1000f <= 528f) {
+                    "All genuine P3 continuation destinations must fit the footer band."
+                }
+            }
 
 
             // Resource balances and ammunition are drawn only from persisted source
@@ -4465,17 +4488,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             keepTogetherIfFits = true))
                         val spellsHere = data.spells.filter { it.spell.level == level }
                         spellsHere.forEach { entry ->
-                            val key = "quick-spell:" + entry.spell.id
-                            val sourceInfo = p4SourceLabels.getValue(key)
-                            add(PcSheetV11FlowItem(key,
-                                // Five measured spaces separate the actual first
-                                // spell glyph from the 7pt vector box (verified original
-                                // 3-space result overlapped its border by ~1.8pt).
-                                // No source name or status is abbreviated or trimmed.
-                                "     " + entry.spell.name +
-                                    (if (sourceInfo.isBlank() || key in p4RightSources) ""
-                                    else " | " + sourceInfo),
-                                keepTogetherIfFits = true))
+                            p4SpellRows.getValue(entry.spell.id).forEach { (key, sourceInfo) ->
+                                add(PcSheetV11FlowItem(key,
+                                    // Five measured spaces separate the actual first
+                                    // spell glyph from the 7pt vector box (verified original
+                                    // 3-space result overlapped its border by ~1.8pt).
+                                    // No source name is abbreviated or trimmed.
+                                    "     " + entry.spell.name +
+                                        (if (sourceInfo.isBlank() || key in p4RightSources) ""
+                                        else " | " + sourceInfo),
+                                    keepTogetherIfFits = true))
+                            }
                         }
                         // Rows are PAPER-ONLY: no fabricated spell, source, preparation
                         // or spell slot. Every level is writable, even when populated.

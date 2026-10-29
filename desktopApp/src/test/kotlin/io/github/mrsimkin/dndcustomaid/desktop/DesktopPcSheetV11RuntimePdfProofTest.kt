@@ -2903,10 +2903,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.filter { it.contains("P4 - Conjuros") }
                     .joinToString(" ").replace(Regex("\\s+"), " ")
                 assertTrue(p4Text.contains("QA CONJURO DE DOS ORÍGENES"))
-                assertTrue(p4Text.contains("[X] " + label1),
-                    "True prepared status must remain tied to the first source UUID.")
-                assertTrue(p4Text.contains("[ ] " + label2),
-                    "Unprepared status must remain tied to the second source UUID.")
+                // C258 (owner 2026-10-28): one row per source, each with its own
+                // label and no printed preparation mark.
+                assertEquals(2, Regex("QA CONJURO DE DOS ORÍGENES").findAll(p4Text).count(),
+                    "The spell must print one row per real source UUID.")
+                assertTrue(p4Text.contains(label1) && p4Text.contains(label2),
+                    "Each real source keeps its own label on its own row.")
+                assertFalse(p4Text.contains("[X]") || p4Text.contains("[ ] "),
+                    "C258: preparation is never printed as a mark.")
                 assertTrue(PDFTextStripper().getText(pdf).contains("NOTAS"))
                 assertEquals(PDRectangle.LETTER.width, pdf.getPage(0).mediaBox.width)
                 assertEquals(PDRectangle.LETTER.height, pdf.getPage(0).mediaBox.height)
@@ -2987,14 +2991,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     .distinctBy { it.sourceId }.size)
                 assertFalse(p4.contains("QAORIGENSINPERFIL"),
                     "C231: only the class keeps its name; other sources show their type.")
-                assertTrue(p4.contains("[ ] Otro"),
-                    "The additional persisted source must survive with its own unprepared mark.")
+                assertTrue(p4.contains("Otro"),
+                    "The additional persisted source must survive on its own row.")
                 assertTrue(showsPerSource(
                     p4.substringAfter("REFERENCIA MÁGICA").substringBefore("NIVEL"),
                     proof, "CD SALVACIÓN"),
                     "C231: the CD card lists every source by its type label.")
-                assertTrue(p4.contains("[ ]"),
-                    "An unprepared source cannot acquire a false preparation mark.")
+                assertFalse(p4.contains("[X]") || p4.contains("[ ] "),
+                    "C258: no source acquires a printed preparation mark.")
                 assertTrue(content.contains("NOTAS"))
             }
         }
@@ -3212,8 +3216,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertFalse(reference.contains("\nINT\n"))
                 assertTrue(reference.contains("CD SALVACIÓN"))
                 assertTrue(reference.contains("ATAQUE MÁGICO"))
-                assertTrue(p4.joinToString("\n").contains("[X] Mago"),
-                    "Source/preparation identity cannot disappear.")
+                assertTrue(p4.joinToString("\n").contains("Mago") &&
+                    !p4.joinToString("\n").contains("[X]"),
+                    "Source identity cannot disappear (C258: no printed mark).")
                 assertTrue(pages.last().contains("NOTAS"))
             }
         }
@@ -3292,8 +3297,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "The unaffected casting-ability card must be preserved.")
                 assertFalse(reference.contains("\n15\n"))
                 assertFalse(reference.contains("\n+7\n"))
-                assertTrue(p4.joinToString("\n").contains("[X] Mago"),
-                    "A truthful reference may not remove source-specific preparation.")
+                assertTrue(p4.joinToString("\n").contains("Mago") &&
+                    !p4.joinToString("\n").contains("[X]"),
+                    "A truthful reference keeps the source row (C258: no printed mark).")
                 assertTrue(PDFTextStripper().getText(pdf).contains("NOTAS"))
             }
         }
@@ -3362,8 +3368,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 assertTrue(p4.contains(spell.name),
                     "The original UUID-backed spell cannot be dropped.")
-                assertTrue(p4.contains("[X]"),
-                    "The real prepared-by-source marker must survive.")
+                assertFalse(p4.contains("[X]") || p4.contains("[ ] "),
+                    "C258: preparation is never printed as a mark.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" },
                     "Physical final handwritten page must remain last.")
             }
@@ -3467,7 +3473,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             }
             assertTrue(region.getTextForRegion("spell-names").contains("Fire Bolt"),
                 "Persisted real spell name must remain on the left.")
-            assertTrue(region.getTextForRegion("real-right-origins").contains("[X] Mago"),
+            assertTrue(region.getTextForRegion("real-right-origins").contains("Mago"),
                 "A short real casting source must be printed in the golden right lane.")
             val p4Text = PDFTextStripper().apply {
                 startPage = firstP4; endPage = firstP4
@@ -3494,9 +3500,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             // Keep the physical square count exact; do not weaken this
             // assertion or conflate empty writing with a digital spell.
             Triple("02_ilyra_quill_srd5_2_1_evoker_wizard.json",
-                PcSheetV11Variant.B, 91),
+                PcSheetV11Variant.B, 89),
+            // C258: Ilyra's two-source spells take two rows (91 -> 89 blank rows);
+            // Mara's source label now fits beside each spell without the [X]
+            // mark, so her rows are single-line and leave 89 blank rows (was 68).
             Triple("03_mara_siete_umbrales_custom_extended.json",
-                PcSheetV11Variant.B, 68),
+                PcSheetV11Variant.B, 89),
         )) {
             val generated = DesktopPcSheetExportService().generateV11Proof(
                 PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
@@ -3524,8 +3533,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // Preparation marks remain one per real spell/manuscript
                 // row. The approved handwritten spend tracker contributes
                 // exactly three DISTINCT blank squares for levels 1..9.
+                // C258: one paper box per spell-source row.
                 val preparationAndPaper = expectedBlankRows +
-                    generated.semantic.spells.size
+                    generated.semantic.spells.sumOf { spell ->
+                        maxOf(1, spell.sources.distinctBy { it.sourceId }.size)
+                    }
                 val blankLevelMeters = 9 * 3
                 assertEquals(preparationAndPaper + blankLevelMeters, marks,
                     "One 7pt preparation square per source/blank row AND " +
@@ -3557,8 +3569,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(p4.contains("NIVEL 9"))
             assertFalse(p4.contains("___"),
                 "No fake underscore glyphs: all P4 empty writing uses real vector rules.")
-            assertTrue(p4.contains("[X] Mago"),
-                "Source-backed real spell preparation state must be preserved.")
+            assertTrue(p4.contains("Mago") && !p4.contains("[X]"),
+                "Source-backed spell rows keep their source (C258: no printed mark).")
         }
     }
 
@@ -4992,7 +5004,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         ))
         for ((fixture, expected) in listOf(
             actual to emptyList(), longStory to listOf("HISTORIA"),
-            both to listOf("TRASFONDO Y PERFIL", "HISTORIA"),
+            both to listOf("IDEALES", "HISTORIA"),
         )) {
             for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
                 val proof = DesktopPcSheetExportService().generateV11Proof(
