@@ -981,8 +981,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "realAldrenProducesPdfWithNoInventedQuickSpellPageOrSpellbook; portraitModesEmbedLocallyLoadedImageAndNoImageStillReservesSilhouette",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDF (Aldren A): P1 holds identity (JUGADOR), portrait frame (RETRATO), attributes with grouped skills, COMBATE Y SUPERVIVENCIA with INSPIRACIÓN/INICIATIVA/COMPETENCIA, the ATAQUES table with real attacks, RASGOS Y ATRIBUTOS, LANZAMIENTO DE CONJUROS (APTITUD MÁGICA, N1..N9) and MUNICIONES with the real Virotes entry.",
+            "source_commit": "2a8281bdf5c5695642b51cbb21d28da94cc49de8",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920531850",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920077464",
+            "independent_inspection": "Same CI run: audit_v11_p1_clipped_cards.py 100/100 (identity and 3+3+2 combat cards) and audit_v11_portrait_placeholder_golden.py 100/100.",
+            "limitations": "Variant A Aldren asserted; B covered by other tests, not this rule's evidence. Desktop PDFs; global P101 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -1259,8 +1268,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "p1GoldenThreeThreeTwoCombatKeepsAllEightRealSourcesWithoutInventingInspiration; g3ExtremeRealMulticlassHitDiceContinueInC2WithoutP1CrashOrDataLoss",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: all eight golden combat cards print (CA, INICIATIVA, VELOCIDAD, COMPETENCIA, PV ACTUALES, PV MÁXIMOS, INSPIRACIÓN, DADOS DE GOLPE), the real temporary hit points as TEMP n, and 16 oversized multiclass hit dice continue whole in C2, each exactly once (P1 shows VER C2).",
+            "source_commit": "2a8281bdf5c5695642b51cbb21d28da94cc49de8",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920531850",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920077464",
+            "independent_inspection": "Same CI run: audit_v11_p1_clipped_cards.py 100/100 (combat=800 card cells).",
+            "limitations": "Individual card values asserted for TEMP and hit dice only. Desktop PDFs; global P110 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2391,8 +2409,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "actualP3UsesPairedRuledNarrativeFieldsAndTwoStoryColumns",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDF: P3 prints the golden left/right field labels (TRASFONDO, RELIGIÓN / FE, RASGOS DE PERSONALIDAD, IDEALES, VÍNCULOS, DEFECTOS), the real background name and HISTORIA Y CRÓNICA, with no mechanical traits.",
+            "source_commit": "2a8281bdf5c5695642b51cbb21d28da94cc49de8",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920531850",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920077464",
+            "independent_inspection": "Same CI run: audit_v11_p3_c2_manuscript.py PASS (field title bands and aligned words on 124 P3 pages).",
+            "limitations": "Field values other than the background name are not asserted by this test. Desktop PDFs; global P303 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2933,8 +2960,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3IlyraGenuineSingleOrdinaryAndSpecialC2ShareOnePhysicalPageAB",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: when Ilyra's ordinary and special equipment fit P2, no C2 Equipo or Equipo especial page is generated and P2 has no CONTINÚA EN C2 cue; each real item prints exactly once.",
+            "source_commit": "2a8281bdf5c5695642b51cbb21d28da94cc49de8",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920531850",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920077464",
+            "independent_inspection": "Same CI run: audit_v11_module_topology.py 0 errors and audit_v11_c207_vacancy.py PASS_SCOPED.",
+            "limitations": "Equipment modules in this fixture; other modules covered elsewhere. Desktop PDFs; global C201 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2985,8 +3021,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "actualIlyraTraitsShareMeasuredC2WithResourcesInsteadOfWastePage; g3DigitalNotesNeverMixWithC2SpellbookOrFinalSheetWhenBothExistAB",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs: Ilyra's P2 trait continuation shares the mixed C2 with RECURSOS Y MUNICIONES (no dedicated traits page), with its P2 origin; and real digital notes never print on C2 (only on C-N3).",
+            "source_commit": "2a8281bdf5c5695642b51cbb21d28da94cc49de8",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920531850",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40924595257/artifacts/12920077464",
+            "independent_inspection": "Same CI run: audit_v11_module_topology.py 0 errors.",
+            "limitations": "Desktop PDFs; global C203 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
