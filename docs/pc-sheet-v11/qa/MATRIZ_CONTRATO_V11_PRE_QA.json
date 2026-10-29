@@ -508,8 +508,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3EveryPageCarriesTheLogoAndCharacterNameHeaderWithoutP1DuplicateAB",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B (Mara, Ilyra): every physical page carries the owner's logo image and the character name in its header band, and P1 prints the name exactly once.",
+            "source_commit": "8da92dc0d50e16b3488c59950cb0fbc7c818c54e",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40928367211",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40928367211/artifacts/12921767076",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40928367211/artifacts/12921263763",
+            "independent_inspection": "Same CI run: audit_v11_header_logo_visibility.py confirms visible logo ink on every page of the 100 PDFs.",
+            "limitations": "Same-line placement is asserted through the header band (top 80 pt) and the logo audit, not by pixel comparison. Desktop PDFs; global GLB03 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -1613,8 +1622,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3P1AmmunitionMarksFollowTheRealQuantityForZeroOneFiveTwentyAndMoreAB; g3RealP1WithoutAmmunitionHasOnePaperEntryWithTwentyEmptyBoxes",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B for the contract scenarios 0, 1, 5, 20, 21 and 35: up to 20 real rounds draw exactly that many golden paper boxes (two rows of ten in groups of five), more than 20 print the MARCAS: ____ / n counter and no box, a real 0 prints 0 and no box.",
+            "source_commit": "8da92dc0d50e16b3488c59950cb0fbc7c818c54e",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40928367211",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40928367211/artifacts/12921767076",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40928367211/artifacts/12921263763",
+            "independent_inspection": "Same CI run: audit_v11_p1_clipped_cards.py 100/100 (empty-ammunition grid of 20 boxes still detected on 70 PDFs); audit_v11_pdf_physical_envelope.py 0 errors.",
+            "limitations": "Aldren's real Virotes with quantities set by the test. Desktop PDFs; global P117 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
