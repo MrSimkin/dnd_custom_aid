@@ -31,7 +31,7 @@ class P1AttacksStageTripwire(unittest.TestCase):
                 self.assertIn("val top = 491f", body)
                 self.assertIn("val bottom = 392f", body)
                 # C237: golden 7 pt Barlow labels; bonus/damage right-aligned.
-                self.assertIn("drawAttackValues(stream, entry, left, y)", body)
+                self.assertIn("drawAttackValues(stream, entry, left, y, 7.1f)", body)  # C264 golden size
                 self.assertIn('drawP1Label(stream, "ARMA / ATAQUE / CONJURO", left + 4f, top - 9f)', body)
                 self.assertIn('drawP1Label(stream, "BON.", b2 - 4f - labelWidth("BON."), top - 9f)', body)
                 self.assertIn('left + 254f - labelWidth("DAÑO / TIPO"), top - 9f)', body)

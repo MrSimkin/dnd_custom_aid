@@ -121,6 +121,18 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.showText(pcSheetV11PrintableText(text))
                 stream.endText()
             }
+            // C264: golden P1 figures and labels in Barlow at the measured golden
+            // size and ink (values #1d384f, labels #657d90).
+            fun p1Ink(stream: PDPageContentStream, text: String, x: Float, y: Float,
+                      pt: Float, label: Boolean = false) {
+                if (text.isEmpty()) return
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(if (label) Color(101, 125, 144) else Color(29, 56, 79))
+                drawP1Label(stream, text, x, y, pt)
+                stream.restoreGraphicsState()
+            }
+            fun p1InkWidth(text: String, pt: Float): Float =
+                headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * pt / 1000f
             // Owner's original D&D sheet includes its genuine logotype in its top-left.
             // Embed that real graphic from the already-versioned asset; clip to LOGO only,
             // so no original-sheet boxes or lettering leak into this V11 page.
@@ -319,9 +331,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
-                draw(stream,if(data.request.variant ==
+                // C264: golden cartela titles are 9.1 pt.
+                drawP1Label(stream,if(data.request.variant ==
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A)
-                    "ATRIBUTOS · A" else "ATRIBUTOS · B",51f,586f,true)
+                    "ATRIBUTOS · A" else "ATRIBUTOS · B",51f,586f,9.1f)
                 val k=0.5522848f
                 standards.forEachIndexed { i,ability ->
                     val top=p1AttributeTop(i)
@@ -352,12 +365,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val score=ability.score.toString()
                     val mod=if(ability.modifier>=0)"+"+ability.modifier else ability.modifier.toString()
                     val valueY=top-(if(compactBAttributes) 17f else 20f)
-                    draw(stream,score,69.5f-body.width.measurePt(score)/2f,valueY,false)
-                    draw(stream,mod,cx-body.width.measurePt(mod)/2f,valueY,false)
-                    draw(stream,approvedAbilityName(ability.name),145f,
-                        top-(if(compactBAttributes) 11f else 14f),false)
+                    // C264: golden score 11 pt, modifier 8.7 pt, name 7.7 pt.
+                    p1Ink(stream,score,69.5f-p1InkWidth(score,11f)/2f,valueY,11f)
+                    p1Ink(stream,mod,cx-p1InkWidth(mod,8.7f)/2f,valueY,8.7f)
+                    p1Ink(stream,approvedAbilityName(ability.name),145f,
+                        top-(if(compactBAttributes) 11f else 14f),7.7f)
+                    stream.saveGraphicsState()
+                    stream.setNonStrokingColor(Color(101,125,144))
                     stream.beginText()
-                    stream.setFont(bodyPdfFont,7f)
+                    stream.setFont(headerPdfFont,5.8f)
                     // Golden B: label-to-box gap 17.85pt; previous real App gap 20.18pt.
                     // Move the label only 2.3pt right and 2.1pt upward relative
                     // to its attribute name; leave the 7pt box, value and row intact.
@@ -368,6 +384,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.newLineAtOffset(217.3f,savingLabelY)
                     stream.showText("SALVACIÓN")
                     stream.endText()
+                    stream.restoreGraphicsState()
                     // Approved V11 paper saving-throw mark. Always blank:
                     // proficiency/state cannot be inferred from the save total.
                     // Genuine vector 7×7pt square stays between the label
@@ -380,7 +397,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.restoreGraphicsState()
                     ability.savingThrowTotal?.let {
                         val value=if(it>=0)"+"+it else it.toString()
-                        draw(stream,value,296f-body.width.measurePt(value),saveY,false)
+                        p1Ink(stream,value,296f-p1InkWidth(value,7.2f),saveY,7.2f)
                     }
                 }
             }
@@ -762,8 +779,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     left + 254f - labelWidth("DAÑO / TIPO"), top - 9f)
                 p1Attacks.forEachIndexed { index, entry ->
                     val y = top - 22f - index * 12f
-                    draw(stream,p1AttackLabel(entry),left+4f,y,false)
-                    drawAttackValues(stream, entry, left, y)
+                    // C264: golden P1 attack rows, name 7.4 pt and values 7.1 pt.
+                    stream.beginText()
+                    stream.setFont(bodyPdfFont, 7.4f)
+                    stream.newLineAtOffset(left + 4f, y)
+                    stream.showText(pcSheetV11PrintableText(p1AttackLabel(entry)))
+                    stream.endText()
+                    drawAttackValues(stream, entry, left, y, 7.1f)
                 }
                 if (attackRows.isEmpty()) {
                     draw(stream, "________________", left + 5f, top - 25f, false)
@@ -806,7 +828,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // Real rendered P1 review found the first letter touching the
                 // left/top stroke. Inset the title 9pt and lower its ink
                 // 2pt within the 18pt strip, no change to spell data.
-                draw(stream,"LANZAMIENTO DE CONJUROS",321f,286f,true)
+                drawP1Label(stream,"LANZAMIENTO DE CONJUROS",321f,286f,9.1f)
                 val actual=data.spellSlots.associateBy{it.level}
                 // C250: golden P1 LANZAMIENTO grammar. Three white clipped
                 // reference cards (APTITUD MÁGICA / CD SALVACIÓN / ATAQUE
@@ -1507,7 +1529,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
                 stream.beginText()
-                stream.setFont(headerPdfFont, 11f)
+                stream.setFont(headerPdfFont, 9.1f)
                 stream.newLineAtOffset(321f, 600f)
                 stream.showText(title)
                 stream.endText()
@@ -1546,7 +1568,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val width = if (narrow) 86f else 129f
                     val top = paperTop - row * 28f
                     val x = left + col * width
-                    val labelPt = 7f
+                    val labelPt = 6.7f
                     require(headerPdfFont.getStringWidth(label) *
                         labelPt / 1000f <= width - 12f) {
                         "P1 true source combat label exceeds its real card: " + label
@@ -1583,7 +1605,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         // Golden stat values are large, centered Barlow figures
                         // (~11pt); a longer real value steps down to 6pt.
                         val printable = pcSheetV11PrintableText(value)
-                        val valuePt = requireNotNull(listOf(11f, 10f, 9f, 8f, 7f, 6f).firstOrNull {
+                        val valuePt = requireNotNull(listOf(10.7f, 10f, 9f, 8f, 7f, 6f).firstOrNull {
                             headerPdfFont.getStringWidth(printable) * it / 1000f <= width - 12f
                         }) { "P1 combat value must flow into source-backed C2: " + label }
                         val drawn = headerPdfFont.getStringWidth(printable) * valuePt / 1000f

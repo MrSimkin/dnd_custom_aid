@@ -19,7 +19,7 @@ LINES = [
     "stream.lineTo(42f, 598f)",
     "stream.lineTo(42f, 583f)",
     "stream.fillAndStroke()",
-    '"ATRIBUTOS · A" else "ATRIBUTOS · B",51f,586f,true)',
+    '"ATRIBUTOS · A" else "ATRIBUTOS · B",51f,586f,9.1f)',  # C264 golden 9.1 pt
 ]
 
 
