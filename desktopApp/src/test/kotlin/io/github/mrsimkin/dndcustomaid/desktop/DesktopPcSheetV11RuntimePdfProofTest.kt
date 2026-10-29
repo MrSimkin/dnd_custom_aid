@@ -5080,6 +5080,92 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3P1AmmunitionMarksFollowTheRealQuantityForZeroOneFiveTwentyAndMoreAB() {
+        // P117: up to 20 rounds print exactly that many golden paper boxes
+        // (two rows of ten, groups of five); more than 20 print the
+        // "MARCAS: ____ / n" counter; a real 0 prints "0" and no box.
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val ammoId = aldren.permanent.closure.inventoryUsage.single {
+            it.kind == io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind.AMMUNITION
+        }.itemId
+        val boxes = Regex(
+            """(?:^|\s)(4[1-9]\d(?:\.\d+)?|5[0-5]\d(?:\.\d+)?)\s+(?:119|106)\s+7\.94\s+7\.94\s+re(?:\s|$)"""
+        )
+        for (quantity in listOf(0, 1, 5, 20, 21, 35)) {
+            val fixture = aldren.copy(permanent = aldren.permanent.copy(
+                sheet = aldren.permanent.sheet.copy(inventoryItems =
+                    aldren.permanent.sheet.inventoryItems.map {
+                        if (it.id == ammoId) it.copy(quantity = quantity) else it
+                    }),
+            ))
+            for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+                val proof = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), fixture,
+                )
+                Loader.loadPDF(proof.bytes).use { pdf ->
+                    val ops = pdf.getPage(0).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                    val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
+                    val printed = boxes.findAll(ops).count()
+                    assertTrue(p1.contains("Virotes"), "Real ammunition on P1 ($quantity, $variant).")
+                    when {
+                        quantity == 0 -> {
+                            assertEquals(0, printed, "A real 0 draws no box ($variant).")
+                            assertTrue(Regex("(?m)^Virotes 0\\b|Virotes\\s+0\\b").containsMatchIn(p1),
+                                "A real 0 prints 0 ($variant): $p1")
+                        }
+                        quantity <= 20 -> assertEquals(quantity, printed,
+                            "$quantity rounds draw $quantity boxes ($variant).")
+                        else -> {
+                            assertEquals(0, printed, "More than 20 never draws boxes ($variant).")
+                            assertTrue(p1.contains("MARCAS: ____ / $quantity"),
+                                "More than 20 prints the counter ($quantity, $variant).")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun g3EveryPageCarriesTheLogoAndCharacterNameHeaderWithoutP1DuplicateAB() {
+        // GLB03: every physical page has the owner's logo image and the
+        // character name in the same header line; P1 never repeats the name.
+        for (fixture in listOf("03_mara_siete_umbrales_custom_extended.json",
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json")) {
+            val source = sources(fixture)
+            val name = source.permanent.sheet.name
+            for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+                val proof = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source,
+                )
+                Loader.loadPDF(proof.bytes).use { pdf ->
+                    (1..pdf.numberOfPages).forEach { number ->
+                        val page = pdf.getPage(number - 1)
+                        val images = page.resources.xObjectNames.count {
+                            page.resources.isImageXObject(it)
+                        }
+                        assertTrue(images >= 1, "Page $number carries the logo image ($fixture $variant).")
+                        val headerLine = mutableListOf<Pair<String, Float>>()
+                        object : PDFTextStripper() {
+                            override fun writeString(
+                                text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                            ) {
+                                val first = textPositions.firstOrNull() ?: return
+                                if (first.yDirAdj < 80f) headerLine += text.trim() to first.yDirAdj
+                            }
+                        }.apply { startPage = number; endPage = number }.getText(pdf)
+                        assertTrue(headerLine.any { it.first == name },
+                            "Page $number header names the character ($fixture $variant): $headerLine")
+                    }
+                    val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
+                    assertEquals(1, Regex(Regex.escape(name)).findAll(p1).count(),
+                        "P1 never repeats the character name ($fixture $variant).")
+                }
+            }
+        }
+    }
+
+    @Test
     fun g3PhysicalModuleOrderAndLetterSizeHoldOnEveryPageAB() {
         // BK02 / GLB01: with real digital notes AND the optional Spellbook, the
         // physical order is P1, P2, P3, C2, P4, C-N3, book index, book, and the
