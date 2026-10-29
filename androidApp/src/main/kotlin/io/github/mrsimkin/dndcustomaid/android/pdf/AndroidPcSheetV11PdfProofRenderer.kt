@@ -2349,7 +2349,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // The approved P4 golden places a short, genuine spell origin at
             // the far right of its own row. Long associations MUST continue
             // through the existing measured text flow, never be abbreviated.
-            val p4SourceFont = measurer.resolve(PcSheetV11Typeface.BODY, 7f)
+            // C294: golden P4 source label, Noto Sans Display Condensed Bold 6 pt.
+            val p4SourceFont = measurer.resolve(PcSheetV11Typeface.LABEL, 6f)
             val sourceNames =
                 io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSourceLabels
                     .forSpells(data.spells)
@@ -3362,7 +3363,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     .toIntOrNull()
                                 if (level != null && level in 1..9) {
                                     val baseline = body.metrics.baselineIn(cell.cellPt)
-                                    val labelPt = 7f
+                                    val labelPt = 5.9f // C294: golden "ESP." size
                                     val regularX = cell.cellPt.rightPt - 83f
                                     val firstSquareX = cell.cellPt.rightPt - 33f
                                     val actualSlots = data.spellSlots.firstOrNull {
@@ -3434,6 +3435,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     }
                                     stream.restoreGraphicsState()
                                 }
+                                // C294: golden level heading, label 7.6 pt #264b68.
+                                stream.saveGraphicsState()
+                                stream.setNonStrokingColor(Color(38, 75, 104))
+                                drawP1Label(stream, cell.drawableText.trimEnd(), cell.cellPt.leftPt,
+                                    body.metrics.baselineIn(cell.cellPt), 7.6f)
+                                stream.restoreGraphicsState()
+                                return@forEach
                             }
                             // Golden P4 paper-only rows use REAL square marks.
                             // Persisted spell preparation still uses source-specific
@@ -3475,16 +3483,19 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 }
                                 p4RightSources[cell.sourceKey]?.let { realSource ->
                                     val width = p4SourceFont.width.measurePt(realSource)
-                                    val x = cell.cellPt.rightPt - width - 2f
+                                    val x = cell.cellPt.rightPt - width - 3.4f // golden inset
                                     require(x >= cell.cellPt.leftPt +
                                         body.width.measurePt(cell.drawableText) + 10f) {
                                         "Source-backed P4 right label overlaps the spell name."
                                     }
+                                    stream.saveGraphicsState()
+                                    stream.setNonStrokingColor(Color(38, 75, 104))
                                     stream.beginText()
-                                    stream.setFont(bodyPdfFont, 7f)
+                                    stream.setFont(headerPdfFont, 6f)
                                     stream.newLineAtOffset(x, baseline)
                                     stream.showText(pcSheetV11PrintableText(realSource))
                                     stream.endText()
+                                    stream.restoreGraphicsState()
                                 }
                             } else if (
                                 title == "C2 - Habilidades, acciones y recursos" &&

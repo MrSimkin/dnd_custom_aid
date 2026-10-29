@@ -19,6 +19,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C291 | Tinta y separadores del golden | Texto de valores en tinta #24394b (antes negro) en toda la hoja, incluida la Historia; enlaces del pie separados con «   ·   » como el golden. |
 | C292 | Cartelas y cantidades de P2 | Leyenda de la cartela en Noto Sans 6,2 pt gris #657d90 («OBJETO / CANTIDAD», «denominación / cantidad»); cantidades en Noto Sans Bold #264b68. |
 | C293 | Color de las cartelas del golden | Relleno #e7f2f7 en las 17 cartelas y franjas (antes #d9ecf5, que el golden no usa) y borde #264b68 de 0,65 pt en las cartelas de sección. Los marcos de tarjetas siguen en el azul #527c96 del golden. Pendiente: altura de 22,96 pt de la cartela del golden, que exige mover las tablas de P2. |
+| C294 | Tipografía de P4 | Encabezado de nivel en rótulo 7,6 pt #264b68; «ESP.» en 5,9 pt; fuente de cada conjuro en rótulo 6 pt #264b68 a 3,4 pt del borde derecho, como el golden. |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos

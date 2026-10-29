@@ -686,9 +686,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertEquals(27, paperSlots,
                     "Exactly three BLANK genuine vector slot boxes for each " +
                         "of nine spell levels. No 0-level or fabricated 10+.") 
-                assertTrue(Regex("""(?m)/F\d+\s+7\s+Tf""")
+                assertTrue(Regex("""(?m)/F\d+\s+5\.9\d*\s+Tf""")
                     .findAll(operators).count() >= 9,
-                    "P4 must use genuine embedded Noto Sans Display 7pt on blank meters.")
+                    "P4 must use genuine embedded Noto Sans Display 5.9 pt (golden ESP.) on blank meters.")
                 // C269: golden P4 card labels are 6.65 pt.
                 assertTrue(Regex("""(?m)/F\d+\s+6\.65\d*\s+Tf""")
                     .findAll(operators).count() >= 3,
