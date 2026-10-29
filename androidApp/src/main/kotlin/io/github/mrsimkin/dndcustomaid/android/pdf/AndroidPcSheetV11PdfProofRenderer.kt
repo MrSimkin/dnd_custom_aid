@@ -4677,13 +4677,19 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             require(p2C2Destinations.minOfOrNull { it.second } == c2FromP2) {
                 "The P2 C2 source modules must agree with the primary backlink."
             }
-            val otherP2C2Links = p2C2Destinations
-                .filter { it.second != c2FromP2 }
-                .joinToString(" | ") { (module, physical) ->
-                    module + " PÁG. " + physical
-                }.takeIf { it.isNotEmpty() }?.let { "OTROS C2: " + it }
-            if (otherP2C2Links != null) {
-                require(body.width.measurePt(otherP2C2Links) <= 528f) {
+            // C251: golden P2 footer names EVERY continued module with its real
+            // physical page ("EQUIPO A P. 4 · TESORO A P. 5 · EQUIPO ESPECIAL
+            // A P. 5"), the same grammar as the P1 footer (C246).
+            val p2ModuleLinks = p2C2Destinations
+                .joinToString(" · ") { (module, physical) ->
+                    when (module) {
+                        "EQUIPO/TESORO" -> "EQUIPO Y TESORO"
+                        "ESPECIAL" -> "EQUIPO ESPECIAL"
+                        else -> module
+                    } + " A P. " + physical
+                }.takeIf { it.isNotEmpty() }
+            if (p2ModuleLinks != null) {
+                require(body.width.measurePt(p2ModuleLinks) <= 528f) {
                     "All genuine P2 module destinations must fit the reserved footer."
                 }
             }
@@ -4755,12 +4761,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         draw(stream, link, 42f, 35f, false)
                     }
                     if (key == "P2 - Equipo y tesoro" &&
-                        otherP2C2Links != null
+                        p2ModuleLinks != null
                     ) {
                         // PDF y=63: below source body (>=76), above the original
                         // watermark y=46 and navigation y=35. No page/layout
                         // mutation; never replace the first legacy cue.
-                        draw(stream, otherP2C2Links, 42f, 63f, false)
+                        draw(stream, p2ModuleLinks, 42f, 63f, false)
                     }
                     if (key.startsWith("P1 - ") && p1ModuleLinks != null) {
                         draw(stream, p1ModuleLinks, 42f, 63f, false)

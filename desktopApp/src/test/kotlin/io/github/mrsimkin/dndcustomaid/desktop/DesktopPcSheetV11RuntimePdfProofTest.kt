@@ -4893,6 +4893,46 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3P2FooterNamesEachContinuedModuleWithItsRealC2PageAB() {
+        // C251: golden P2 footer "EQUIPO A P. 4 · TESORO A P. 5 · EQUIPO ESPECIAL
+        // A P. 5": every continued P2 module with its first real physical page.
+        val sections = mapOf(
+            "RASGOS" to listOf("C2 - Rasgos / continuación", "RASGOS / CONTINUACIÓN P2"),
+            "EQUIPO Y TESORO" to listOf("C2 - Equipo y tesoro / EQUIPO Y TESORO"),
+            "EQUIPO" to listOf("C2 - Equipo y tesoro / EQUIPO"),
+            "TESORO" to listOf("C2 - Equipo y tesoro / TESORO"),
+            "EQUIPO ESPECIAL" to listOf("C2 - Equipo especial / continuación"),
+        )
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), mara,
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                val footer = pages[1].lineSequence().firstOrNull { it.contains(" A P. ") }
+                assertTrue(footer != null, "P2 footer lists continued modules ($variant).")
+                assertFalse(pages[1].contains("OTROS C2"), "Old P2 footer grammar ($variant).")
+                val links = Regex("""([A-ZÁÉÍÓÚ ]+?) A P\. (\d+)""").findAll(footer!!)
+                    .map { it.groupValues[1].trim() to it.groupValues[2].toInt() }.toList()
+                assertEquals(listOf("RASGOS", "EQUIPO", "EQUIPO ESPECIAL"), links.map { it.first },
+                    "Mara P2 continues traits, equipment and special equipment ($variant).")
+                links.forEach { (module, page) ->
+                    val titles = requireNotNull(sections[module]) { "Unknown P2 module $module" }
+                    val first = pages.indexOfFirst { text ->
+                        titles.any { title ->
+                            text.lineSequence().any { it.trim() == title || it.trim().startsWith("$title ") }
+                        }
+                    } + 1
+                    assertEquals(first, page, "$module must point to its first real C2 page ($variant).")
+                }
+            }
+        }
+    }
+
+    @Test
     fun g3DigitalNotesNeverMixWithC2SpellbookOrFinalSheetWhenBothExistAB() {
         // CN303: a character with real digital notes AND the optional Spellbook.
         // Note text must live only on C-N3 pages: never on C2, the book index,
@@ -5890,7 +5930,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(equipmentPages.last() < treasurePages.first())
                 assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " +
                     equipmentPages.first()))
-                assertTrue(pages[1].contains("OTROS C2: TESORO PÁG. " +
+                assertTrue(pages[1].contains("TESORO A P. " +
                     treasurePages.first()),
                     "P2 must link independently to the physical TESORO start.")
                 val p2Footer = PDFTextStripperByArea().apply {
@@ -5898,7 +5938,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         Rectangle2D.Float(42f, 716f, 528f, 18f))
                     extractRegions(pdf.getPage(1))
                 }.getTextForRegion("module-forward-links")
-                assertTrue(p2Footer.contains("TESORO PÁG. " + treasurePages.first()),
+                assertTrue(p2Footer.contains("EQUIPO A P. " + equipmentPages.first() +
+                    " · TESORO A P. " + treasurePages.first()),
                     "Every distinct P2 module needs a visible source-backed forward cue.")
 
                 for (physical in equipmentPages) {
@@ -6145,9 +6186,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         it.contains("C2 - Equipo especial / continuación")
                     } + 1
                     assertTrue(ordinaryC2 > mixedPhysical && specialC2 > ordinaryC2)
-                    assertTrue(pages[1].contains("EQUIPO PÁG. " + ordinaryC2),
+                    assertTrue(pages[1].contains("EQUIPO A P. " + ordinaryC2),
                         "Mara P2 must lead to its separate ordinary-equipment C2.")
-                    assertTrue(pages[1].contains("ESPECIAL PÁG. " + specialC2),
+                    assertTrue(pages[1].contains("EQUIPO ESPECIAL A P. " + specialC2),
                         "Mara P2 must lead to its separate special-equipment C2.")
 
                 }
