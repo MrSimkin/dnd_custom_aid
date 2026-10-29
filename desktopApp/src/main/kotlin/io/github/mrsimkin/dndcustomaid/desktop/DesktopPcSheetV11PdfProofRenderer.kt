@@ -681,12 +681,19 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream: PDPageContentStream,
                 entry: io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry,
                 left: Float, y: Float,
+                pt: Float = 9f,
             ) {
-                val bonus = attackBonus(entry)
-                val bonusRight = left + attackLabelWidth + attackBonusWidth - 4f
-                draw(stream, bonus, bonusRight - body.width.measurePt(bonus), y, false)
-                draw(stream, entry.damageEffect,
-                    left + 254f - body.width.measurePt(entry.damageEffect), y, false)
+                // C262: values follow the size of their table (P1 or golden C2).
+                fun value(text: String, right: Float) {
+                    if (text.isEmpty()) return
+                    stream.beginText()
+                    stream.setFont(bodyPdfFont, pt)
+                    stream.newLineAtOffset(right - body.width.measurePt(text) * pt / 9f, y)
+                    stream.showText(pcSheetV11PrintableText(text))
+                    stream.endText()
+                }
+                value(attackBonus(entry), left + attackLabelWidth + attackBonusWidth - 4f)
+                value(entry.damageEffect, left + 254f)
             }
             val p1AttackIds = p1Attacks.map { it.id }.toSet()
 
@@ -1916,6 +1923,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val bookFont = goldenRhythm(6.7f, 10.5f)
             val notesFont = goldenRhythm(7f, 11.6f)
             val quickFont = goldenRhythm(6.8f, 15.7f)
+            // C262: golden C2 lists, 7.2 pt on 15.7 pt rows; the linked-skill
+            // paper box keeps >= 11 pt of measured clearance in that size.
+            val c2Font = goldenRhythm(7.2f, 15.7f)
+            val c2Inset = " ".repeat((1..16).first {
+                c2Font.width.measurePt(" ".repeat(it)) >= 11f
+            })
             // The spell glyph keeps >= 11 pt of measured clearance from its 7 pt
             // paper box in the golden P4 size (five spaces sufficed at 9 pt).
             val quickInset = " ".repeat((1..16).first {
@@ -3033,7 +3046,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 stream.restoreGraphicsState()
                                 val baseline = body.metrics.baselineIn(cell.cellPt)
                                 draw(stream, cell.drawableText, left + 4f, baseline, false)
-                                drawAttackValues(stream, attack, left, baseline)
+                                drawAttackValues(stream, attack, left, baseline, font.metrics.fontSizePt)
                                 return@forEach
                             }
                             // C219: repeat genuinely persisted P1 total/spent
@@ -3253,10 +3266,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             if (title == "C2 - Habilidades, acciones y recursos" &&
                                 cell.sourceKey.startsWith("attribute-skill:") &&
                                 cell.sourceStartOffset == 0) {
-                                require(cell.sourceText.startsWith("      Habilidad ")) {
+                                require(cell.sourceText.startsWith(c2Inset + "Habilidad ")) {
                                     "C2 linked skill square lacks its measured source inset."
                                 }
-                                require(body.width.measurePt("      ") >= 11f) {
+                                require(body.width.measurePt(c2Inset) >= 11f) {
                                     "C2 paper skill checkbox needs genuine font-measured clearance."
                                 }
                                 val base = body.metrics.baselineIn(cell.cellPt)
@@ -3410,7 +3423,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 "attribute-skill:" + skill.customSkillId,
                                 // Six spaces are measurable handwriting
                                 // clearance for the genuine 7pt paper box.
-                                "      Habilidad " + skill.name +
+                                c2Inset + "Habilidad " + skill.name +
                                     // The source ability is still explicit if
                                     // the full attribute was already placed P1.
                                     (if (alreadyPrintedOnP1) attribute.abbreviation
@@ -3456,14 +3469,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     var current = ""
                     text.split(" ").filter { it.isNotEmpty() }.forEach { word ->
                         var rest = word
-                        while (body.width.measurePt(rest) > width) {
-                            val cut = (1..rest.length).last { body.width.measurePt(rest.take(it)) <= width }
+                        while (c2Font.width.measurePt(rest) > width) {
+                            val cut = (1..rest.length).last { c2Font.width.measurePt(rest.take(it)) <= width }
                             if (current.isNotEmpty()) { lines += current; current = "" }
                             lines += rest.take(cut)
                             rest = rest.drop(cut)
                         }
                         val joined = if (current.isEmpty()) rest else current + " " + rest
-                        if (body.width.measurePt(joined) <= width) current = joined
+                        if (c2Font.width.measurePt(joined) <= width) current = joined
                         else { lines += current; current = rest }
                     }
                     if (current.isNotEmpty()) lines += current
@@ -4188,6 +4201,23 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // Compact MIXED C2: categories share the same measured two-column
             // page(s). Distinct headings are real rows, not dedicated blank pages.
             // UUID-backed records keep stable independent source keys and order.
+            // C262: a module heading keeps with its first real record, so a
+            // golden cartela never stands alone at the foot of a column. Only
+            // records without their own source group are joined to it.
+            fun MutableList<PcSheetV11FlowItem>.addHeaded(
+                heading: PcSheetV11FlowItem, items: List<PcSheetV11FlowItem>,
+            ) {
+                val first = items.firstOrNull()
+                if (first != null && first.groupKey == null) {
+                    val key = "c2-keep:" + heading.sourceKey
+                    add(heading.copy(groupKey = key))
+                    add(first.copy(groupKey = key))
+                    addAll(items.drop(1))
+                } else {
+                    add(heading)
+                    addAll(items)
+                }
+            }
             val mixedC2 = buildList {
                 if (p1Unprinted.isNotEmpty()) {
                     add(PcSheetV11FlowItem("c2-heading:p1-overflow",
@@ -4196,32 +4226,29 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     addAll(p1Unprinted)
                 }
                 if (detachedSkills.isNotEmpty()) {
-                    add(PcSheetV11FlowItem("c2-heading:skills",
-                        "HABILIDADES Y REFERENCIAS", keepTogetherIfFits = true))
-                    addAll(detachedSkills)
+                    addHeaded(PcSheetV11FlowItem("c2-heading:skills",
+                        "HABILIDADES Y REFERENCIAS", keepTogetherIfFits = true), detachedSkills)
                 }
                 if (extraCombatData.isNotEmpty()) {
-                    add(PcSheetV11FlowItem("c2-heading:combat",
-                        "ATAQUES, NOTAS Y ESPACIOS REALES", keepTogetherIfFits = true))
-                    addAll(extraCombatData)
+                    addHeaded(PcSheetV11FlowItem("c2-heading:combat",
+                        "ATAQUES, NOTAS Y ESPACIOS REALES", keepTogetherIfFits = true), extraCombatData)
                 }
                 if (resourceLines.isNotEmpty()) {
-                    add(PcSheetV11FlowItem("c2-heading:resources",
-                        "RECURSOS Y MUNICIONES", keepTogetherIfFits = true))
-                    addAll(resourceLines)
+                    addHeaded(PcSheetV11FlowItem("c2-heading:resources",
+                        "RECURSOS Y MUNICIONES", keepTogetherIfFits = true), resourceLines)
                 }
                 if (remainingTraits.isNotEmpty()) {
                     // Source-accurate P2 continuation follows the P1 streams
                     // inside the same TWO-column measured C2. Extra pages are
                     // generated only if actual text requires them.
-                    add(PcSheetV11FlowItem("c2-heading:traits",
-                        "RASGOS / CONTINUACIÓN P2", keepTogetherIfFits = true))
-                    addAll(remainingTraits)
+                    addHeaded(PcSheetV11FlowItem("c2-heading:traits",
+                        "RASGOS / CONTINUACIÓN P2", keepTogetherIfFits = true), remainingTraits)
                 }
             }
             addSection("C2 - Habilidades, acciones y recursos",
                 PcSheetV11FlowSection.TRAITS,
-                mixedC2, columns = 2, ammunitionTracks = ammunitionTracks)
+                mixedC2, columns = 2, ammunitionTracks = ammunitionTracks,
+                font = c2Font)
 
             // Reflow the exact P2-unprinted equipment/treasure suffixes into
             // FULL-HEIGHT C2 paired tables. Never redraw quantities already
