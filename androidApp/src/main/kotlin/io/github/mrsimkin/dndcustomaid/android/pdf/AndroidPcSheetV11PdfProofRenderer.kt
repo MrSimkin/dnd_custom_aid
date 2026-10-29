@@ -85,7 +85,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val headerNameRoute =
                 io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11HeaderNameRouter.route(
                     sourceName = source.name,
-                    availableWidthPt = 406f, // Header text x154..560, inside its 422pt band.
+                    availableWidthPt = 398.43f, // C286: golden name x161.57..560.
                     // C285: measured in the golden name face and size (Garamond 13.4 pt).
                     width = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TextWidth {
                         heroWidthPt(it, 13.4f)
@@ -228,9 +228,6 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.setLineWidth(0.38f)
                 stream.addRect(30.6142f, 28.9134f, 550.7716f, 734.1732f)
                 stream.stroke()
-                stream.setNonStrokingColor(Color(231, 241, 247))
-                stream.addRect(148f, 736f, 422f, 26f)
-                stream.fill()
                 stream.setStrokingColor(Color(130, 165, 186))
                 stream.setLineWidth(0.65f)
                 stream.moveTo(42f, 717f)
@@ -255,15 +252,89 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 )
                 stream.restoreGraphicsState()
 
-                // C285: golden character name, EB Garamond 12 Bold 13.4 pt in ink #1d384f.
+                // C286 (golden header, v11_extremo): white shield with its X and
+                // diamond, a pale rule after it, the name, and the module group label
+                // top right under a corner bracket. Exact golden vectors.
                 stream.saveGraphicsState()
+                fun goldenPath(points: List<Pair<Float, Float>>, close: Boolean) {
+                    stream.moveTo(points[0].first, points[0].second)
+                    points.drop(1).forEach { (x, y) -> stream.lineTo(x, y) }
+                    if (close) stream.closePath()
+                }
+                fun goldenDiamond(cx: Float, cy: Float, halfW: Float, halfH: Float) {
+                    stream.setNonStrokingColor(Color(255, 255, 255))
+                    stream.setStrokingColor(Color(82, 124, 150))
+                    stream.setLineWidth(0.48f)
+                    goldenPath(listOf(cx to cy + halfH, cx + halfW to cy, cx to cy - halfH,
+                        cx - halfW to cy), true)
+                    stream.fillAndStroke()
+                }
+                stream.setNonStrokingColor(Color(255, 255, 255))
+                stream.setStrokingColor(Color(82, 124, 150))
+                stream.setLineWidth(0.58f)
+                goldenPath(listOf(138.61f to 748.91f, 152.5f to 744.66f, 151.65f to 727.94f,
+                    145.42f to 720.57f, 139.18f to 727.94f), true)
+                stream.fillAndStroke()
+                stream.setStrokingColor(Color(38, 75, 104))
+                stream.setLineWidth(0.6f)
+                goldenPath(listOf(140.88f to 743.53f, 149.67f to 728.22f), false)
+                stream.stroke()
+                goldenPath(listOf(149.67f to 743.53f, 140.88f to 728.22f), false)
+                stream.stroke()
+                goldenDiamond(145.28f, 735.31f, 1.615f, 2.835f)
+                stream.setStrokingColor(Color(191, 211, 222))
+                stream.setLineWidth(0.4f)
+                goldenPath(listOf(153.07f to 750.33f, 153.07f to 715.46f), false)
+                stream.stroke()
+                stream.setLineWidth(0.55f)
+                goldenPath(listOf(559.84f to 753.73f, 574.02f to 753.73f, 574.02f to 739.56f), false)
+                stream.stroke()
+                goldenDiamond(558.145f, 753.45f, 1.375f, 2.41f)
+                // Golden character name: EB Garamond 12 Bold 13.4 pt, ink #1d384f.
                 stream.setNonStrokingColor(Color(29, 56, 79))
-                drawHero(stream, headerNameRoute.paperName, 154f, 745f, 13.4f)
+                drawHero(stream, headerNameRoute.paperName, 161.57f, 735.31f, 13.4f)
+                // Golden module group label: 7.3 pt #264b68, right edge x569.48.
+                val groupLabel = when {
+                    lastHandwrittenPage -> "NOTAS"
+                    title.startsWith("P1") -> "VARIANTE " + data.request.variant.name
+                    title.startsWith("P2") -> "EQUIPO Y TESORO"
+                    title.startsWith("P3") -> "TRASFONDO E HISTORIA"
+                    title.startsWith("C2") -> "CONTINUACIONES C2"
+                    title.startsWith("P4") -> "LISTA RÁPIDA DE CONJUROS"
+                    title.startsWith("C-N3") -> "NOTAS C-N3"
+                    title.startsWith("Libro") || title.startsWith("Índice del Libro") -> "LIBRO DE CONJUROS"
+                    else -> null
+                }
                 stream.restoreGraphicsState()
-                draw(stream, title, 42f, 724f, true)
+                // C286: the page title takes the golden secondary header line (5.9 pt
+                // #657d90, right edge x569.48). The last NOTAS sheet shows only its
+                // group label, as the golden.
+                if (!lastHandwrittenPage) {
+                    val printableTitle = pcSheetV11PrintableText(title)
+                    stream.saveGraphicsState()
+                    stream.setNonStrokingColor(Color(101, 125, 144))
+                    stream.beginText()
+                    stream.setFont(headerPdfFont, 5.9f)
+                    stream.newLineAtOffset(569.48f -
+                        headerPdfFont.getStringWidth(printableTitle) * 5.9f / 1000f, 724.5f)
+                    stream.showText(printableTitle)
+                    stream.endText()
+                    stream.restoreGraphicsState()
+                }
                 if (!lastHandwrittenPage) {
                     draw(stream, "PRUEBA INTERNA V11 - NO APROBADA", 42f, 46f, false)
                 }
+                // Drawn last so each page's text keeps name, title, ... order.
+                stream.saveGraphicsState()
+                groupLabel?.let { label ->
+                    stream.setNonStrokingColor(Color(38, 75, 104))
+                    stream.beginText()
+                    stream.setFont(headerPdfFont, 7.3f)
+                    stream.newLineAtOffset(569.48f - headerPdfFont.getStringWidth(label) * 7.3f / 1000f, 745.8f)
+                    stream.showText(label)
+                    stream.endText()
+                }
+                stream.restoreGraphicsState()
             }
 
             // For B only, the golden's 6+2/6+3 uses compact 25pt
@@ -3148,7 +3219,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 stream.setNonStrokingColor(Color(38, 75, 104))
                                 drawP1Label(stream, label, cell.cellPt.rightPt - 2f -
                                     headerPdfFont.getStringWidth(label) * 6.3f / 1000f,
-                                    body.metrics.baselineIn(cell.cellPt) - 0.8f, 6.3f)
+                                    cell.cellPt.topPt - 12.76f, 6.3f) // C288: golden name baseline
                                 stream.setNonStrokingColor(Color(0, 0, 0))
                             }
                         }
@@ -3171,8 +3242,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     stream.setNonStrokingColor(Color(101, 125, 144))
                                     stream.beginText()
                                     stream.setFont(headerPdfFont, 7f)
+                                    // C288: golden school baseline, 25.51 pt under the band top.
                                     stream.newLineAtOffset(cell.cellPt.leftPt,
-                                        body.metrics.baselineIn(cell.cellPt) - 0.8f)
+                                        if (cell.sourceKey in bookInlineLevels) cell.cellPt.topPt - 15.01f
+                                        else body.metrics.baselineIn(cell.cellPt) - 0.8f)
                                     stream.showText(printable)
                                     stream.endText()
                                     stream.restoreGraphicsState()
@@ -3186,21 +3259,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             if (title == "Libro de conjuros" && cell.sourceKey.startsWith("book:") &&
                                 cell.sourceStartOffset == 0 && cell.drawableText.isNotBlank() &&
                                 cell.sourceText.startsWith(cell.drawableText.trimEnd() + "\n")) {
-                                val namePt = 8.2f
+                                // C287: golden EB Garamond 12 Bold 11.3 pt (accents from
+                                // its fallback); a name too wide for its line keeps body text.
+                                val namePt = 11.3f
                                 val printable = pcSheetV11PrintableText(cell.drawableText.trimEnd())
                                 val reserved = bookInlineLevels[cell.sourceKey]?.let {
                                     headerPdfFont.getStringWidth(it) * 6.3f / 1000f + 8f
                                 } ?: 2f
-                                if (headerPdfFont.getStringWidth(printable) * namePt / 1000f <=
-                                    cell.cellPt.widthPt - reserved) {
+                                if (heroWidthPt(printable, namePt) <= cell.cellPt.widthPt - reserved) {
                                     stream.saveGraphicsState()
                                     stream.setNonStrokingColor(Color(29, 56, 79))
-                                    stream.beginText()
-                                    stream.setFont(headerPdfFont, namePt)
-                                    stream.newLineAtOffset(cell.cellPt.leftPt,
-                                        body.metrics.baselineIn(cell.cellPt) - 0.8f)
-                                    stream.showText(printable)
-                                    stream.endText()
+                                    // C288: golden name baseline, 12.76 pt under the band top.
+                                    drawHero(stream, printable, cell.cellPt.leftPt,
+                                        if (cell.sourceKey in bookInlineLevels) cell.cellPt.topPt - 12.76f
+                                        else body.metrics.baselineIn(cell.cellPt) - 0.8f, namePt)
                                     stream.restoreGraphicsState()
                                     return@forEach
                                 }
@@ -5035,7 +5107,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     // Q14b (golden): the real school, uppercase, on its own line under
                     // the name; a spell without a school gets no line at all.
                     val school = spell.school?.trim()?.takeIf { it.isNotEmpty() }?.uppercase()
-                    val heading = if (inlineLevel) listOfNotNull(spell.name, school)
+                    // C288: golden heading band (31.2 pt): name, school and one more
+                    // band row, 3 x 10.5 pt; the name and school sit at golden baselines.
+                    val heading = if (inlineLevel) listOfNotNull(spell.name, school, "")
                         else listOfNotNull(spell.name, levelLabel, school, "DESCRIPCIÓN:")
                     if (school != null) {
                         val schoolIndex = if (inlineLevel) 1 else 2

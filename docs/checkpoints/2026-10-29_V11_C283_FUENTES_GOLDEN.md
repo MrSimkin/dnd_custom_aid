@@ -10,6 +10,12 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C284 | Campos de P3 como el golden | Seis campos de cuatro franjas de 17 pt (rótulo + tres renglones), columnas de 263,48 pt; rótulos 7 pt #1d384f, valores 7,3 pt #24394b. Corrige el desborde de P3 que causaba la caja más alta de Noto y el corrimiento de páginas de C2. |
 | C285 | Nombre del encabezado en Garamond | EB Garamond 12 Bold 13,4 pt #1d384f en todas las páginas. Las letras que esa fuente no tiene (acentos, eñe, rayas) salen de la EB Garamond Bold actual del mismo proyecto. |
 
+| C286 | Encabezado de página del golden | Sin la franja celeste; escudo con su aspa y rombo, línea divisoria, nombre en x161,57 / 735,31, rótulo del grupo arriba a la derecha (7,3 pt #264b68: VARIANTE A/B, EQUIPO Y TESORO, TRASFONDO E HISTORIA, CONTINUACIONES C2, LISTA RÁPIDA DE CONJUROS, NOTAS C-N3, LIBRO DE CONJUROS, NOTAS) con su esquinero. El título de página de la app ocupa la segunda línea pequeña del golden (5,9 pt #657d90); la hoja NOTAS final lleva solo su rótulo, como el golden. |
+| C287 | Nombres del Libro en Garamond | EB Garamond 12 Bold 11,3 pt #1d384f (acentos desde la de respaldo). |
+| C288 | Franja de encabezado de la ficha del Libro | Tres renglones (31,5 pt; golden 31,2): nombre a 12,76 pt del borde, escuela 12,75 pt más abajo, como el golden. |
+
+Evidencia visual: `qa/evidence/c286_c287/`.
+
 ## Hallazgos
 
 - **Defecto del golden:** su EB Garamond 12 Bold no tiene letras acentuadas; el golden imprimió «[hueco]gico» y «Proyectil m». La app no pierde letras (prueba `g3HeaderNameUsesGoldenGaramondAndNeverDropsAccentedLettersAB`).
@@ -18,7 +24,6 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 
 ## Pendiente (siguiente)
 
-- Encabezado de página: posición del nombre (golden x161,6, línea base 735,3), rombo decorativo y rótulo del módulo arriba a la derecha (golden 7,3 pt).
-- Nombres de las fichas del Libro en Garamond 11,3 pt (golden), con su franja de encabezado más alta.
-- Títulos de módulo (app 12 pt bajo la franja; golden 9,1 pt).
+- Libro: margen interior del golden (texto 8,5 pt dentro del marco de la ficha).
+- La segunda línea del encabezado del golden muestra un descriptor de la ficha («EXTREMO FICTICIO»); la app pone ahí el título de página. Decidir si el propietario quiere otro dato ahí.
 - Matriz: registrar evidencia de G3 de estos bloques con la CI exacta.

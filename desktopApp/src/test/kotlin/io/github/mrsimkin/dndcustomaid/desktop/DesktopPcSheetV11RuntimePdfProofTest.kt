@@ -4095,8 +4095,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     val (schoolX, schoolY, glyph) = requireNotNull(school) { "School line ($variant)." }
                     assertTrue(kotlin.math.abs(schoolX - nameX) < 0.5f,
                         "The school starts under the name ($variant): $schoolX vs $nameX")
-                    assertTrue(kotlin.math.abs(nameY - schoolY - 10.5f) < 0.6f,
-                        "The school is the next 10.5 pt row under the name ($variant): $nameY / $schoolY")
+                    assertTrue(kotlin.math.abs(nameY - schoolY - 12.75f) < 0.3f,
+                        "Golden school baseline 12.75 pt under the name (C288, $variant): $nameY / $schoolY")
                     assertTrue(kotlin.math.abs(glyph.fontSizeInPt - 7f) < 0.05f,
                         "Golden school size 7 pt ($variant): " + glyph.fontSizeInPt)
                     assertTrue(glyph.font.name.contains("NotoSansDisplay"),
@@ -4129,7 +4129,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         override fun writeString(
                             text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
                         ) {
-                            runs += textPositions.filter { it.yDirAdj in 40f..52f && it.font.name.contains("Garamond") }
+                            runs += textPositions.filter { it.yDirAdj in 50f..62f && it.font.name.contains("Garamond") }
                         }
                     }.apply { startPage = 2; endPage = 2 }.getText(pdf)
                     val printed = runs.sortedBy { it.xDirAdj }.joinToString("") { it.unicode }

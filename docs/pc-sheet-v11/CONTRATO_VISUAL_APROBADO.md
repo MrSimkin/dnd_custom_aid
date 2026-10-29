@@ -8,7 +8,7 @@
 ## Decisiones globales congeladas
 
 - **Carta** 612 × 792 pt; apariencia de hoja física de fantasía, blanco/azul niebla, no beige; marco doble exterior C2 y cartelas interiores C2c; márgenes imprimibles; ningún elemento cortado.
-- Títulos/etiquetas: Barlow Condensed auténtica. Valores: Fira Sans como **elección técnica provisional**; medir y registrar el resultado sin inventar una aprobación estética no dada a la fuente de valores. Estados: Para Hoja de PJ Symbols v8 como prioridad, Font Awesome Free secundaria cuando corresponda. No distribuir archivos de fuentes fuera del programa.
+- Títulos/etiquetas: *reemplazado el 2026-10-29 por las fuentes exactas del golden (ver «fuentes del golden»); texto original:* Barlow Condensed auténtica. Valores: Fira Sans como **elección técnica provisional**; medir y registrar el resultado sin inventar una aprobación estética no dada a la fuente de valores. Estados: Para Hoja de PJ Symbols v8 como prioridad, Font Awesome Free secundaria cuando corresponda. No distribuir archivos de fuentes fuera del programa.
 - Logo D&D recuperado de la hoja propia del propietario; proyecto **100 % personal**. Cabecera **una misma línea con logo + nombre PJ** en toda página. No repetir nombre en P1.
 - **Dos variantes seleccionables A/B** al exportar. El usuario no debe elegir una nueva disposición cada vez que hay overflow; la composición es automática y determinista.
 - Deben existir renglones de escritura manual bajo texto impreso y en filas vacías; el texto se alinea al renglón, no lo pisa. Evitar huecos arbitrarios. Nunca descartar datos para ahorrar páginas.

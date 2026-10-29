@@ -24,7 +24,8 @@ class EssentialSpellbookCardParityTest(unittest.TestCase):
             self.assertIn('val levelLabel = "NIVEL " + spell.level', section)
             # Q14b: the real App school, uppercase, on its own line under the name.
             self.assertIn("val school = spell.school?.trim()?.takeIf { it.isNotEmpty() }?.uppercase()", section)
-            self.assertIn("val heading = if (inlineLevel) listOfNotNull(spell.name, school)", section)
+            # C288: a third golden band row after the name and school.
+            self.assertIn('val heading = if (inlineLevel) listOfNotNull(spell.name, school, "")', section)
             self.assertIn('else listOfNotNull(spell.name, levelLabel, school, "DESCRIPCIÓN:")', section)
             self.assertIn("val lines = heading + spell.description", section)
             for forbidden in ("spell.castingTime", "spell.rangeText",
