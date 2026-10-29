@@ -18,8 +18,9 @@ class ModuleLinksBandParityTest(unittest.TestCase):
             data = path.read_text(encoding="utf-8")
             part = data.split("// C252: golden P1/P2 module-link footer", 1)[1].split(
                 "// A C2 page never points", 1)[0]
-            self.assertIn("stream.addRect(40f, 59f, 532f, 13f)", part)
-            self.assertIn("drawP1Label(stream, links, 42.5f, 63f, 6.1f)", part)
+            # C290: golden band geometry (v11_extremo p1).
+            self.assertIn("stream.addRect(39.69f, 43.94f, 532.62f, 13.04f)", part)
+            self.assertIn("drawP1Label(stream, links, 42.52f, 47.34f, 6.1f)", part)
             self.assertIn("drawModuleLinks(stream, p1ModuleLinks)", data)
             self.assertIn("drawModuleLinks(stream, p2ModuleLinks)", data)
             pieces.append(re.sub(r"\s+", " ", part))

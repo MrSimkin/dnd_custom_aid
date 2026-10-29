@@ -1090,7 +1090,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.getText(pdf)
             }
             assertTrue(pagesByPhysicalNumber.first().contains(
-                "HOJA 1 / " + pdf.numberOfPages,
+                "01 / " + "%02d".format(pdf.numberOfPages), // C290: golden page number
             ), "The footer must resolve physical page count only after final pagination.")
             fun realHeading(page: String, heading: String) =
                 page.lineSequence().any { line -> line.trim().startsWith(heading) }
@@ -1143,7 +1143,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(pagesByPhysicalNumber[p2C2Physical - 1].contains(
                 "P2 PÁG. " + p2Physical,
             ), "The first P2-owned C2 (dedicated OR mixed) must link to physical P2.")
-            assertFalse(pagesByPhysicalNumber.last().contains("HOJA "),
+            assertFalse(Regex("""\d{2} / \d{2}""").containsMatchIn(pagesByPhysicalNumber.last()),
                 "The mandatory final handwritten page has no digital footer.")
             assertTrue(printed.contains("EQUIPO"))
             assertTrue(printed.contains("TESORO"))
@@ -5159,7 +5159,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }
                     if (links.isNotEmpty()) {
                         val native = pdf.getPage(p3).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
-                        assertTrue(Regex("""(?m)(?:^|\s)40(?:\.0)?\s+59(?:\.0)?\s+532(?:\.0)?\s+13(?:\.0)?\s+re(?:\s|$)""")
+                        assertTrue(Regex("""(?m)(?:^|\s)39\.69\s+43\.94\s+532\.62\s+13\.04\s+re(?:\s|$)""") /* C290 golden band */
                             .containsMatchIn(native), "P3 golden footer band ($variant).")
                     }
                 }
@@ -5181,7 +5181,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     val native = pdf.getPage(index).contents.use {
                         it.readBytes().toString(Charsets.ISO_8859_1)
                     }
-                    assertTrue(Regex("""(?m)(?:^|\s)40(?:\.0)?\s+59(?:\.0)?\s+532(?:\.0)?\s+13(?:\.0)?\s+re(?:\s|$)""")
+                    assertTrue(Regex("""(?m)(?:^|\s)39\.69\s+43\.94\s+532\.62\s+13\.04\s+re(?:\s|$)""") /* C290 golden band */
                         .containsMatchIn(native), "P${index + 1} golden footer band ($variant).")
                     val sizes = mutableListOf<Pair<Float, Float>>()
                     object : PDFTextStripper() {
@@ -5196,7 +5196,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertTrue(sizes.isNotEmpty(), "P${index + 1} module links ($variant).")
                     // PDFBox reports fontSizeInPt in whole points (6.1pt reads 6.0).
                     assertTrue(sizes.all { kotlin.math.abs(it.first - 6.1f) < 0.2f &&
-                        kotlin.math.abs(it.second - 63f) < 0.6f },
+                        kotlin.math.abs(it.second - 47.34f) < 0.6f }, // C290: golden band baseline
                         "P${index + 1} links in 6.1pt ink on the band baseline ($variant): ${sizes.distinct().take(4)}")
                 }
             }
@@ -6374,7 +6374,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "P2 must link independently to the physical TESORO start.")
                 val p2Footer = PDFTextStripperByArea().apply {
                     addRegion("module-forward-links",
-                        Rectangle2D.Float(42f, 716f, 528f, 18f))
+                        Rectangle2D.Float(42f, 734f, 528f, 16f)) // C290: golden band y43.94..56.98
                     extractRegions(pdf.getPage(1))
                 }.getTextForRegion("module-forward-links")
                 assertTrue(p2Footer.contains("EQUIPO A P. " + equipmentPages.first() +

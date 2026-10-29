@@ -14,8 +14,9 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C287 | Nombres del Libro en Garamond | EB Garamond 12 Bold 11,3 pt #1d384f (acentos desde la de respaldo). |
 | C288 | Franja de encabezado de la ficha del Libro | Tres renglones (31,5 pt; golden 31,2): nombre a 12,76 pt del borde, escuela 12,75 pt más abajo, como el golden. |
 | C289 | Columnas y márgenes del Libro | Texto 48,19–292,82 y 319,18–563,81 pt; marco 8,5 pt por fuera (39,69–301,32, como el golden) y 2,83 pt sobre la franja; franja 2,83 pt dentro del marco. Las fichas no cambian; el Libro de prueba pasa de 27 a 29 páginas por la columna más angosta del golden. |
+| C290 | Pie de página y esquinas del golden | Franja de enlaces en y43,94–56,98 con su regla; marca interna en la línea de nota del golden (6,1 pt #657d90); referencias §3.33 en 6,1 pt antes del número; número de página «01 / 11» (7,4 pt); regla del pie; esquineros con rombo en las cuatro esquinas y rombos del marco exterior. La hoja NOTAS final sigue sin pie digital. |
 
-Evidencia visual: `qa/evidence/c286_c287/`.
+Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos
 

@@ -287,9 +287,24 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 goldenPath(listOf(153.07f to 750.33f, 153.07f to 715.46f), false)
                 stream.stroke()
                 stream.setLineWidth(0.55f)
-                goldenPath(listOf(559.84f to 753.73f, 574.02f to 753.73f, 574.02f to 739.56f), false)
-                stream.stroke()
-                goldenDiamond(558.145f, 753.45f, 1.375f, 2.41f)
+                // C290: the golden corner brackets, each with its small diamond, at
+                // all four corners, and the four diamonds on the outer frame corners.
+                stream.setStrokingColor(Color(191, 211, 222))
+                stream.setLineWidth(0.55f)
+                for ((xEdge, xInner, yEdge, yInner) in listOf(
+                    listOf(574.02f, 559.84f, 753.73f, 739.56f), listOf(37.98f, 52.16f, 753.73f, 739.56f),
+                    listOf(574.02f, 559.84f, 38.27f, 52.44f), listOf(37.98f, 52.16f, 38.27f, 52.44f))) {
+                    stream.setStrokingColor(Color(191, 211, 222))
+                    stream.setLineWidth(0.55f)
+                    goldenPath(listOf(xInner to yEdge, xEdge to yEdge, xEdge to yInner), false)
+                    stream.stroke()
+                    goldenDiamond(if (xEdge > 300f) 558.145f else 53.855f,
+                        if (yEdge > 300f) 753.45f else 38.55f, 1.375f, 2.41f)
+                }
+                for ((cx, cy) in listOf(30.05f to 763.655f, 30.05f to 28.345f,
+                    581.95f to 763.655f, 581.95f to 28.345f)) {
+                    goldenDiamond(cx, cy, 2.02f, 3.545f)
+                }
                 // Golden character name: EB Garamond 12 Bold 13.4 pt, ink #1d384f.
                 stream.setNonStrokingColor(Color(29, 56, 79))
                 drawHero(stream, headerNameRoute.paperName, 161.57f, 735.31f, 13.4f)
@@ -322,7 +337,16 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.restoreGraphicsState()
                 }
                 if (!lastHandwrittenPage) {
-                    draw(stream, "PRUEBA INTERNA V11 - NO APROBADA", 42f, 46f, false)
+                    // C290: the internal-proof mark takes the golden footer note line
+                    // (Noto Sans 6.1 pt #657d90 at x42.52).
+                    stream.saveGraphicsState()
+                    stream.setNonStrokingColor(Color(101, 125, 144))
+                    stream.beginText()
+                    stream.setFont(bodyPdfFont, 6.1f)
+                    stream.newLineAtOffset(42.52f, 32.88f)
+                    stream.showText("PRUEBA INTERNA V11 - NO APROBADA")
+                    stream.endText()
+                    stream.restoreGraphicsState()
                 }
                 // Drawn last so each page's text keeps name, title, ... order.
                 stream.saveGraphicsState()
@@ -5328,11 +5352,17 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // between the body (>=76) and the internal watermark (y=46).
             fun drawModuleLinks(stream: PDPageContentStream, links: String) {
                 stream.saveGraphicsState()
+                // C290: golden band geometry (v11_extremo p1): fill, foot rule, text.
                 stream.setNonStrokingColor(Color(231, 242, 247))
-                stream.addRect(40f, 59f, 532f, 13f)
+                stream.addRect(39.69f, 43.94f, 532.62f, 13.04f)
                 stream.fill()
+                stream.setStrokingColor(Color(82, 124, 150))
+                stream.setLineWidth(0.55f)
+                stream.moveTo(39.69f, 45.07f)
+                stream.lineTo(572.32f, 45.07f)
+                stream.stroke()
                 stream.setNonStrokingColor(Color(38, 75, 104))
-                drawP1Label(stream, links, 42.5f, 63f, 6.1f)
+                drawP1Label(stream, links, 42.52f, 47.34f, 6.1f)
                 stream.restoreGraphicsState()
             }
             // A C2 page never points at P2 merely because it happens to be a
@@ -5383,9 +5413,25 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     pdf, pdf.getPage(index), PDPageContentStream.AppendMode.APPEND,
                     true, true,
                 ).use { stream ->
+                    // C290: golden footer line — a pale rule, the approved §3.33
+                    // references in 6.1 pt label ink before the page number, and the
+                    // golden "01 / 11" page number (7.4 pt, right edge x569.48).
+                    stream.saveGraphicsState()
+                    stream.setStrokingColor(Color(148, 176, 193))
+                    stream.setLineWidth(0.32f)
+                    stream.moveTo(270.43f, 37.28f)
+                    stream.lineTo(572.32f, 37.28f)
+                    stream.stroke()
+                    stream.setNonStrokingColor(Color(38, 75, 104))
                     if (link.isNotEmpty()) {
-                        draw(stream, link, 42f, 35f, false)
+                        val linkWidth = headerPdfFont.getStringWidth(
+                            pcSheetV11PrintableText(link)) * 6.1f / 1000f
+                        require(539.32f - linkWidth >= 160f) {
+                            "V11 footer references would cover the footer note."
+                        }
+                        drawP1Label(stream, link, 539.32f - linkWidth, 32.6f, 6.1f)
                     }
+                    stream.restoreGraphicsState()
                     if (key == "P2 - Equipo y tesoro" &&
                         p2ModuleLinks != null
                     ) {
@@ -5400,10 +5446,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     if (key == "P3 - Trasfondo / Perfil / Historia" && p3ModuleLinks != null) {
                         drawModuleLinks(stream, p3ModuleLinks)
                     }
-                    val label = "HOJA " + physicalPage + " / " + totalPages
-                    val x = 570f - body.width.measurePt(label)
-                    require(x >= 292f)
-                    draw(stream, label, x, 35f, false)
+                    val label = "%02d / %02d".format(physicalPage, totalPages)
+                    stream.saveGraphicsState()
+                    stream.setNonStrokingColor(Color(38, 75, 104))
+                    drawP1Label(stream, label, 569.48f -
+                        headerPdfFont.getStringWidth(label) * 7.4f / 1000f, 32.6f, 7.4f)
+                    stream.restoreGraphicsState()
                 }
             }
             pdf.save(target)

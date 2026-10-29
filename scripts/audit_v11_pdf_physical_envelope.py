@@ -105,7 +105,9 @@ def cn3_cards(page: fitz.Page) -> list[str]:
     return errors
 
 
-FOOTER = re.compile(r"\bHOJA\s+(\d+)\s*/\s*(\d+)\b")
+# C290: golden page number "01 / 11", right edge x569.48, baseline y32.6.
+FOOTER = re.compile(r"\b(\d{2})\s*/\s*(\d{2})\b")
+FOOTER_CLIP = fitz.Rect(500, 750, 575, 766)
 
 
 def inspect_one(path: Path) -> dict:
@@ -131,8 +133,8 @@ def inspect_one(path: Path) -> dict:
         fonts = " ".join(item[3] for item in page.get_fonts(full=True))
         if "NotoSansDisplay" not in fonts or (index < total and "NotoSans-Regular" not in fonts):
             errors.append(f"p{index}: expected embedded text font missing")
-        foot = FOOTER.findall(page.get_text())
-        if index < total and foot != [(str(index), str(total))]:
+        foot = FOOTER.findall(page.get_text(clip=FOOTER_CLIP))
+        if index < total and foot != [(f"{index:02d}", f"{total:02d}")]:
             errors.append(f"p{index}: missing or inconsistent physical footer {foot}")
         if index == total and foot:
             errors.append(f"p{index}: last manuscript-only NOTES has an unexpected footer")
