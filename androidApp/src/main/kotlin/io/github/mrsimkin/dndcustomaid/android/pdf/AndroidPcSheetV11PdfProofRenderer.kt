@@ -774,14 +774,48 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // 2pt within the 18pt strip, no change to spell data.
                 draw(stream,"LANZAMIENTO DE CONJUROS",321f,286f,true)
                 val actual=data.spellSlots.associateBy{it.level}
+                // C250: golden P1 LANZAMIENTO grammar. Three white clipped
+                // reference cards (APTITUD MÁGICA / CD SALVACIÓN / ATAQUE
+                // MÁGICO) over a 3x3 grid of alternately shaded level cells.
+                // The paper boxes ARE the real totals and spent slots are
+                // pre-marked X, as in golden MUNICIONES; counts that boxes
+                // cannot show keep their numbers. Panel bounds are unchanged.
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130,165,186))
                 stream.setLineWidth(0.55f)
-                stream.setNonStrokingColor(Color(238,247,251))
-                stream.addRect(312f,154f,258f,127f)
-                stream.fill()
                 stream.addRect(312f,154f,258f,127f)
                 stream.stroke()
+                stream.restoreGraphicsState()
+                fun p1MagicColumn(idx:Int)=314f+idx*85f
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(80,122,151))
+                stream.setLineWidth(0.55f)
+                stream.setNonStrokingColor(Color.WHITE)
+                (0..2).forEach{idx->
+                    val l=p1MagicColumn(idx)
+                    val r=l+84f
+                    val b=252f
+                    val t=278f
+                    val cut=3f
+                    stream.moveTo(l+cut,b)
+                    stream.lineTo(r-cut,b)
+                    stream.lineTo(r,b+cut)
+                    stream.lineTo(r,t-cut)
+                    stream.lineTo(r-cut,t)
+                    stream.lineTo(l+cut,t)
+                    stream.lineTo(l,t-cut)
+                    stream.lineTo(l,b+cut)
+                    stream.closePath()
+                    stream.fillAndStroke()
+                }
+                (1..9).forEach{level->
+                    val col=(level-1)%3
+                    val row=(level-1)/3
+                    stream.setNonStrokingColor(if((col+row)%2==0)
+                        Color(231,242,247) else Color(240,247,250))
+                    stream.addRect(p1MagicColumn(col),222f-row*24f,84f,24f)
+                    stream.fill()
+                }
                 stream.restoreGraphicsState()
                 val magical=when(source.spellcastingAbility){
                     SpellcastingAbility.STRENGTH->"FUE"
@@ -804,12 +838,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     "ATAQUE MÁGICO" to (source.spellAttackModifier?.let{
                         if(it>=0)"+"+it else it.toString()
                     }?:"")).forEachIndexed{idx,(label,value)->
-                        val x=314f+idx*85f
-                        stream.beginText()
-                        stream.setFont(bodyPdfFont,7f)
-                        stream.newLineAtOffset(x,270f)
-                        stream.showText(label)
-                        stream.endText()
+                        val x=p1MagicColumn(idx)
+                        drawP1Label(stream,if(label=="APTITUD")"APTITUD MÁGICA" else label,
+                            x+5f,270f,6.5f)
                         // C231: P1 also lists each real source with its own value
                         // (owner decision) when it fits the 81pt native card at a
                         // legible size; otherwise the truthful cue remains.
@@ -828,50 +859,74 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             }
                         }
                         if (perSourceP1 != null && perSourcePt != null) {
+                            val shown = pcSheetV11PrintableText(perSourceP1)
+                            val w = body.width.measurePt(perSourceP1) * perSourcePt / 9f
                             stream.beginText()
                             stream.setFont(bodyPdfFont, perSourcePt)
-                            stream.newLineAtOffset(x, 255f)
-                            stream.showText(pcSheetV11PrintableText(perSourceP1))
+                            stream.newLineAtOffset(x+(84f-w)/2f, 257f)
+                            stream.showText(shown)
                             stream.endText()
                         } else if(ink.isNotEmpty()){
                             require(body.width.measurePt(ink) <= 81f) {
                                 "P1 real magic reference must fit its native source card"
                             }
-                            draw(stream,ink,x,255f,false)
+                            if (label in varyingP1) {
+                                draw(stream,ink,x+(84f-body.width.measurePt(ink))/2f,257f,false)
+                            } else {
+                                // Golden reference values are large centered
+                                // Barlow figures, as in the combat cards.
+                                val printable = pcSheetV11PrintableText(ink)
+                                val drawn = headerPdfFont.getStringWidth(printable) * 11f / 1000f
+                                stream.beginText()
+                                stream.setFont(headerPdfFont, 11f)
+                                stream.newLineAtOffset(x+(84f-drawn)/2f, 257f)
+                                stream.showText(printable)
+                                stream.endText()
+                            }
                         }
                     }
-                draw(stream,"ESPACIOS",315f,243f,false)
-                draw(stream,"GASTADOS",407f,243f,false)
                 (1..9).forEach{level->
-                    val x=315f+((level-1)%3)*85f
-                    val y=222f-((level-1)/3)*23f
-                    draw(stream,"N"+level,x,y,false)
+                    val x=p1MagicColumn((level-1)%3)
+                    val b=222f-((level-1)/3)*24f
+                    drawP1Label(stream,"N"+level,x+5f,b+9f)
                     actual[level]?.let{v->
                         if (level in overflowP1SpellLevels) {
-                            draw(stream,"VER C2",x+19f,y,false)
-                        } else {
-                        draw(stream,v.totalSlots.toString(),x+19f,y,false)
-                        draw(stream,v.spentSlots.toString(),x+45f,y,false)
-                        // C227: six actual slots also fit the unchanged
-                        // 85pt cell with SIX full-size 7pt paper boxes
-                        // separated by 3pt; 1..5 retain C226's 5pt gaps.
-                        // Never invent a tracking grammar for 7+ slots.
-                        if(v.totalSlots in 1..6){
+                            draw(stream,"VER C2",x+20f,b+8f,false)
+                        } else if(v.totalSlots in 1..6 && v.spentSlots in 0..v.totalSlots) {
+                            // C227: six actual slots also fit the unchanged
+                            // cell with SIX paper boxes; 1..5 keep 4pt gaps.
+                            // Never invent a tracking grammar for 7+ slots.
                             val markStep = if(v.totalSlots == 6) 10f else 12f
-                            require(19f+(v.totalSlots-1)*markStep+7f <= 78f) {
+                            require(20f+(v.totalSlots-1)*markStep+8f <= 82f) {
                                 "P1 spell-slot marks overflow the native cell"
                             }
+                            // Golden spent mark: shaded box with a small blue X.
+                            stream.saveGraphicsState()
+                            stream.setStrokingColor(Color(82,124,150))
+                            stream.setLineWidth(0.48f)
                             repeat(v.totalSlots){n->
-                                val px=x+19f+n*markStep
-                                stream.addRect(px,y-12f,7f,7f)
-                                stream.stroke()
-                                if(n<v.spentSlots)draw(stream,"X",px+1f,y-10f,false)
+                                stream.setNonStrokingColor(if(n<v.spentSlots)
+                                    Color(191,211,222) else Color.WHITE)
+                                stream.addRect(x+20f+n*markStep,b+8f,8f,8f)
+                                stream.fillAndStroke()
                             }
-                        }
+                            stream.setNonStrokingColor(Color(101,125,144))
+                            val markWidth = bodyPdfFont.getStringWidth("X") * 7f / 1000f
+                            repeat(v.spentSlots){n->
+                                stream.beginText()
+                                stream.setFont(bodyPdfFont,7f)
+                                stream.newLineAtOffset(x+20f+n*markStep+(8f-markWidth)/2f,b+9.6f)
+                                stream.showText("X")
+                                stream.endText()
+                            }
+                            stream.restoreGraphicsState()
+                        } else {
+                            draw(stream,v.totalSlots.toString(),x+20f,b+8f,false)
+                            draw(stream,v.spentSlots.toString(),x+46f,b+8f,false)
                         }
                     }?:run{
-                        stream.moveTo(x+19f,y-7f)
-                        stream.lineTo(x+75f,y-7f)
+                        stream.moveTo(x+20f,b+7f)
+                        stream.lineTo(x+78f,b+7f)
                         stream.stroke()
                     }
                 }

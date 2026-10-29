@@ -38,6 +38,7 @@ on:
       - "scripts/test_v11_p1_module_links_contract.py"
       - "scripts/test_v11_c2_attribute_row_contract.py"
       - "scripts/test_v11_c2_cartela_origin_contract.py"
+      - "scripts/test_v11_p1_spellcasting_grid_contract.py"
       - "scripts/test_v11_c2_source_navigation_contract.py"
       - "scripts/test_v11_spellbook_essential_card_contract.py"
       - "scripts/test_v11_spellbook_continuation_label_contract.py"
@@ -78,6 +79,7 @@ on:
       - "scripts/test_v11_p1_module_links_contract.py"
       - "scripts/test_v11_c2_attribute_row_contract.py"
       - "scripts/test_v11_c2_cartela_origin_contract.py"
+      - "scripts/test_v11_p1_spellcasting_grid_contract.py"
       - "scripts/test_v11_c2_source_navigation_contract.py"
       - "scripts/test_v11_spellbook_essential_card_contract.py"
       - "scripts/test_v11_spellbook_continuation_label_contract.py"
@@ -137,6 +139,8 @@ jobs:
         run: python3 -m unittest discover -s scripts -p 'test_v11_c2_attribute_row_contract.py' -v
       - name: V11 C2 golden cartela origin labels parity
         run: python3 -m unittest discover -s scripts -p 'test_v11_c2_cartela_origin_contract.py' -v
+      - name: V11 C250 golden P1 spellcasting cards and slot grid parity
+        run: python3 -m unittest discover -s scripts -p 'test_v11_p1_spellcasting_grid_contract.py' -v
       - name: V11 C2 physical source navigation contract parity
         run: python3 -m unittest discover -s scripts -p 'test_v11_c2_source_navigation_contract.py' -v
       - name: V11 BK06 essential spellbook cards and Android/Desktop parity
