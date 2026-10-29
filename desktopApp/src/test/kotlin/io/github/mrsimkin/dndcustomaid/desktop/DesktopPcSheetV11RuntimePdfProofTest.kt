@@ -1318,7 +1318,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(p1MechanicalRegions.getTextForRegion("traits")
                     .contains("RASGOS Y ATRIBUTOS"), "P1 real two-column trait panel absent.")
                 assertTrue(p1MechanicalRegions.getTextForRegion("ammo")
-                    .contains("MUNICIONES / MARCAS"), "P1 ammunition paper band absent.")
+                    .contains("MUNICIONES"), "P1 ammunition paper band absent.")
                 assertFalse(p1MechanicalRegions.getTextForRegion("traits")
                     .contains("ARMA / ATAQUE / CONJURO"), "P1 traits overlap attacks.")
                 assertFalse(p1MechanicalRegions.getTextForRegion("ammo")
@@ -1388,7 +1388,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(p1.contains("Ballesta ligera"))
             assertTrue(p1.contains("LANZAMIENTO DE CONJUROS"),
                 "The P1 spellcasting area is mandatory even without real spells.")
-            assertTrue(p1.contains("MUNICIONES / MARCAS:"))
+            assertTrue(Regex("MUNICIONES(?! A P\\.)(?! /)").containsMatchIn(p1), "Golden MUNICIONES title.")
             assertTrue(p1.contains("Virotes"),
                 "Persisted classified ammunition must be present physically on Aldren P1.")
             assertTrue(p1.contains("RASGOS Y ATRIBUTOS"))
@@ -1400,7 +1400,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.contains("Action Surge"))
             assertTrue(printed.contains("MUNICIÓN Virotes"))
             assertTrue(printed.contains("CANTIDAD 20"))
-            assertTrue(printed.contains("MARCAS:"))
+            // C257: the golden title is MUNICIONES; the 20 marks are paper boxes.
+            assertTrue(Regex("MUNICIONES(?! A P\\.)(?! /)").containsMatchIn(printed))
             val resourcePageText = (1..pdf.numberOfPages).map { physicalPage ->
                 PDFTextStripper().apply {
                     startPage = physicalPage
@@ -5936,14 +5937,20 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val ops = pdf.getPage(0).contents.use {
                 it.readBytes().toString(Charsets.ISO_8859_1)
             }
-            // Two subrows of ten 6pt squares: each subrow groups 5 + 5,
+            // C257: two golden rows of ten 7.94pt squares (5 + 5 per row),
             // fully inside the original reserved P1 ammunition rectangle.
             val marks = Regex(
-                """(?:^|\s)(?:392|400|408|416|424|436|444|452|460|468)\s+""" +
-                    """(?:119|103)\s+6\s+6\s+re(?:\s|$)"""
+                """(?:^|\s)(4[1-9]\d(?:\.\d+)?|5[0-5]\d(?:\.\d+)?)\s+""" +
+                    """(?:119|106)\s+7\.94\s+7\.94\s+re(?:\s|$)"""
             )
             assertEquals(20, marks.findAll(ops).count(),
                 "Empty ammo must show 20 independent paper-only marks.")
+            val columns = marks.findAll(ops).map { it.groupValues[1].toFloat() }.distinct().sorted().toList()
+            assertEquals(10, columns.size, "Ten golden columns, shared by both rows.")
+            columns.forEachIndexed { c, x ->
+                assertTrue(kotlin.math.abs(x - (419.8f + c * 13.75f + (c / 5) * 2.83f)) < 0.05f,
+                    "Golden mark column $c at $x.")
+            }
             assertTrue(Regex(
                 """(?:^|\s)312\s+102\s+258\s+46\s+re(?:\s|$)"""
             ).containsMatchIn(ops), "Original P1 ammo panel must not move.")
@@ -5951,11 +5958,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 startPage = 1
                 endPage = 1
             }.getText(pdf)
-            assertTrue(page1.contains("MUNICIONES / MARCAS:"))
+            assertTrue(Regex("MUNICIONES(?! A P\\.)(?! /)").containsMatchIn(page1), "Golden MUNICIONES title.")
             assertFalse(page1.contains("____________"),
                 "Empty ammo name must be a real writable vector baseline, not fake printed underscores.")
             assertTrue(Regex(
-                """(?:^|\s)316\s+120\s+m\s+377\s+120\s+l\s+S(?:\s|$)"""
+                """(?:^|\s)316\s+120\s+m\s+410\s+120\s+l\s+S(?:\s|$)"""
             ).containsMatchIn(ops), "Exactly one measured blank ammo-name vector rule is required.")
             assertFalse(page1.contains("MARCAS: ____ / 20"),
                 "Paper-only marks do not imply 20 units of ammo.")

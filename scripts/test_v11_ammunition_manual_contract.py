@@ -17,19 +17,19 @@ class EmptyAmmoParity(unittest.TestCase):
             text=path.read_text(encoding="utf-8")
             section=text.split("fun drawP1Ammunition(",1)[1].split("fun drawP1Portrait(",1)[0]
             self.assertIn("if (p1AmmoItems.isEmpty())",section)
-            self.assertIn("repeat(20) { index ->",section)
+            self.assertIn("ammoBoxes(20)",section)
             # Approved empty ammunition uses a real blank name LINE,
             # never fake underscore glyphs. Both native renderers must
             # have identical paper geometry and 20 grouped source-free marks.
             self.assertNotIn('p1DrawSmall(stream, "____________", 316f, 122f)',section)
             self.assertIn('stream.moveTo(316f, 120f)',section)
-            self.assertIn('stream.lineTo(377f, 120f)',section)
-            self.assertIn("val y = if (index < 10) 119f else 103f",section)
-            self.assertIn("val x = 392f + column * 8f + (column / 5) * 4f",section)
-            self.assertIn("p1AmmoItems.forEachIndexed",section)
+            self.assertIn('stream.lineTo(410f, 120f)',section)
+            self.assertIn("val y = if (index < 10) 119f else 106f",section)
+            self.assertIn("val x = 419.8f + column * 13.75f + (column / 5) * 2.83f",section)
+            self.assertIn("p1AmmoItems.forEach { item ->",section)
             # C243: golden MUNICIONES cartela and banded rows in the same box.
-            self.assertIn('drawP1Label(stream, "MUNICIONES / MARCAS:", 318f, 136.5f, 9f)',section)
-            self.assertIn("fillBand(stream, 312f, 115f, 258f, 16f, 0)",section)
+            self.assertIn('drawP1Label(stream, "MUNICIONES", 318f, 136.5f, 9f)',section)
+            self.assertIn("fillBand(stream, 312f, 102f, 258f, 29f, 0)",section)
             parts.append(section)
         self.assertEqual(parts[0],parts[1])
 

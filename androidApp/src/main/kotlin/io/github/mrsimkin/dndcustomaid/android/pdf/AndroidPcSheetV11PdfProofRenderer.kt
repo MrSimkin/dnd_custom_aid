@@ -1182,14 +1182,17 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 .sortedWith(compareBy<
                     io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem> {
                     it.sortOrder
-                }.thenBy { it.id.toString() }).take(2)
+                }.thenBy { it.id.toString() }).take(1)
+            // C257: the golden two-row grammar fits ONE ammunition entry in the
+            // fixed P1 band; the next ones continue whole in C2 (owner choice).
             val p1AmmoIds = p1AmmoItems.map { it.id }.toSet()
             fun drawP1Ammunition(stream: PDPageContentStream) {
-                // C243: golden MUNICIONES — banded entry rows and a clipped blue
-                // cartela inside the existing 17 pt header row (131..148).
+                // C243/C257: golden MUNICIONES — a clipped blue cartela in the
+                // 17 pt header row (131..148) and ONE golden entry band (102..131):
+                // the name at the left and its marks as two rows of ten in groups
+                // of five (owner 2026-10-28, «dos filas de 10 como el golden»).
                 stream.saveGraphicsState()
-                fillBand(stream, 312f, 115f, 258f, 16f, 0)
-                fillBand(stream, 312f, 102f, 258f, 13f, 1)
+                fillBand(stream, 312f, 102f, 258f, 29f, 0)
                 stream.setNonStrokingColor(Color(217, 236, 245))
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.55f)
@@ -1207,49 +1210,50 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.setStrokingColor(Color(130, 165, 186))
                 stream.addRect(312f, 102f, 258f, 46f)
                 stream.stroke()
-                stream.moveTo(312f, 115f)
-                stream.lineTo(570f, 115f)
-                stream.stroke()
                 stream.restoreGraphicsState()
-                drawP1Label(stream, "MUNICIONES / MARCAS:", 318f, 136.5f, 9f)
+                // C257: golden cartela title.
+                drawP1Label(stream, "MUNICIONES", 318f, 136.5f, 9f)
+                // Golden mark geometry (7.94 pt boxes, 13.75 pt step, 2.83 pt
+                // extra gap between groups), at the golden distance from the
+                // right edge of the column.
+                fun ammoBoxes(count: Int) {
+                    stream.saveGraphicsState()
+                    stream.setStrokingColor(Color(82, 124, 150))
+                    stream.setNonStrokingColor(Color.WHITE)
+                    stream.setLineWidth(0.48f)
+                    repeat(count) { index ->
+                        val column = index % 10
+                        val x = 419.8f + column * 13.75f + (column / 5) * 2.83f
+                        val y = if (index < 10) 119f else 106f
+                        require(x + 7.94f <= 570f)
+                        stream.addRect(x, y, 7.94f, 7.94f)
+                        stream.fillAndStroke()
+                    }
+                    stream.restoreGraphicsState()
+                }
                 // D-0076 §3.39: no recorded/displayable ammunition still
                 // reserves ONE logical paper entry with a blank name and
-                // exactly 20 unmarked squares, grouped 5+5 in two subrows.
+                // exactly 20 unmarked squares, grouped 5+5 in two rows.
                 // Do not invent a type, a quantity or a second ammunition ID.
                 if (p1AmmoItems.isEmpty()) {
                     // Empty ammunition NAME is a writable PAPER baseline,
-                    // not 12 black underscore glyphs impersonating a source.
-                    // Draw it beside (never into) the 20 original grouped marks.
-                    // Real ammunition titles and the contract's "____ / X"
-                    // over-20 counter remain untouched.
+                    // not black underscore glyphs impersonating a source.
                     stream.saveGraphicsState()
                     stream.setStrokingColor(Color(130, 165, 186))
                     stream.setLineWidth(0.55f)
                     stream.moveTo(316f, 120f)
-                    stream.lineTo(377f, 120f)
+                    stream.lineTo(410f, 120f)
                     stream.stroke()
-                    repeat(20) { index ->
-                        val column = index % 10
-                        val x = 392f + column * 8f + (column / 5) * 4f
-                        val y = if (index < 10) 119f else 103f
-                        require(x + 6f <= 570f)
-                        stream.addRect(x, y, 6f, 6f)
-                        stream.stroke()
-                    }
                     stream.restoreGraphicsState()
+                    ammoBoxes(20)
                 }
-                p1AmmoItems.forEachIndexed { row, item ->
-                    val baseline = 122f - row * 16f
+                p1AmmoItems.forEach { item ->
+                    val baseline = 121f
                     p1DrawSmall(stream, item.name, 316f, baseline)
                     when {
-                        item.quantity == 0 -> p1DrawSmall(stream, "0", 392f, baseline)
-                        item.quantity <= 20 -> repeat(item.quantity) { index ->
-                            val x = 392f + index * 8f + (index / 5) * 4f
-                            require(x + 6f <= 570f)
-                            stream.addRect(x, baseline - 3f, 6f, 6f)
-                            stream.stroke()
-                        }
-                        else -> p1DrawSmall(stream, "MARCAS: ____ / " + item.quantity, 392f, baseline)
+                        item.quantity == 0 -> p1DrawSmall(stream, "0", 419.8f, baseline)
+                        item.quantity <= 20 -> ammoBoxes(item.quantity)
+                        else -> p1DrawSmall(stream, "MARCAS: ____ / " + item.quantity, 419.8f, baseline)
                     }
                 }
             }

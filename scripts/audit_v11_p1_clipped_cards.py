@@ -72,18 +72,20 @@ def physical_p1(pdf_bytes):
                        and top <= w[1] and w[3] <= top+(28 if row < 2 else 32)]
             if label not in in_card:
                 errors.append(f"P1 real {label} outside card row={row},col={col}")
-        # Genuine EMPTY ammunition receives twenty UNMARKED 6pt squares
-        # arranged as 10+10, and exactly one writable vector NAME baseline.
+        # Genuine EMPTY ammunition receives twenty UNMARKED golden 7.94pt
+        # squares arranged as 10+10 (C257), and exactly one writable NAME line.
         # The legacy internal proof printed a literal 12-underscore token;
         # this is paper, never a persisted ammunition label.
-        blank_square_y = (667., 683.)
-        blank_square_x = (392., 400., 408., 416., 424.,
-                          436., 444., 452., 460., 468.)
+        blank_square_y = (792. - 119. - 7.94, 792. - 106. - 7.94)
+        blank_square_x = tuple(419.8 + c*13.75 + (c//5)*2.83 for c in range(10))
         def has_square(x,y):
-            return any(d["type"] == "s" and
-                       near_rect(tuple(d["rect"]), (x,y,x+6.,y+6.), .25)
+            return any(d["type"] in ("s", "fs") and
+                       near_rect(tuple(d["rect"]), (x,y,x+7.94,y+7.94), .25)
                        for d in drawings)
-        empty_ammunition = all(
+        # A real ammunition entry of 20 draws the same 20 squares; only an
+        # entry WITHOUT a printed name in the name column is the empty one.
+        ammo_name_words = [w for w in words if 315 <= w[0] <= 412 and 661 <= w[1] <= 676]
+        empty_ammunition = not ammo_name_words and all(
             has_square(x,y) for y in blank_square_y for x in blank_square_x
         )
         if empty_ammunition:
@@ -92,7 +94,7 @@ def physical_p1(pdf_bytes):
                 errors.append("P1 empty ammunition printed fake underscore glyphs.")
             if not any(
                 d["type"] == "s" and near_rect(
-                    tuple(d["rect"]), (316.,672.,377.,672.), .35
+                    tuple(d["rect"]), (316.,672.,410.,672.), .35
                 ) and d.get("color") is not None
                 and all(abs(d["color"][i] - (130/255,165/255,186/255)[i]) < .025
                         for i in range(3))
