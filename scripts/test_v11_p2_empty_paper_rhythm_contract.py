@@ -26,7 +26,7 @@ class P2EmptyPaperRhythmParityTest(unittest.TestCase):
             self.assertIn("alternateP2Rows = !compactC2,", data)
             self.assertIn("stopRulesBelow = sideNotes.map", data)
             self.assertIn("alternateP2Rows: Boolean = false", data)
-            self.assertIn("grid(stream, traitsArea, true, alternateP2Rows = true)", data)
+            self.assertIn("grid(stream, traitsArea, true, p2Font.metrics.lineHeightPt, alternateP2Rows = true)", data)
             self.assertIn("val cells = (rect.heightPt / manuscriptRowHeightPt).toInt()", data)
             part = data.split("val manuscriptRowHeight = if (", 1)[1].split("if (compactC2)", 1)[0]
             pieces.append(re.sub(r"\s+", " ", part))
