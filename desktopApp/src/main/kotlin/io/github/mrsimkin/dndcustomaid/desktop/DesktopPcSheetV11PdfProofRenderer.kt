@@ -353,10 +353,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
                 // C264: golden cartela titles are 9.1 pt.
+                stream.setNonStrokingColor(Color(29, 56, 79)) // C266: golden title ink
                 drawCartelaDiamonds(stream, 42f, 300f, 579f, 602f)
                 drawP1Label(stream,if(data.request.variant ==
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A)
                     "ATRIBUTOS · A" else "ATRIBUTOS · B",58f,586f,9.1f)
+                stream.setNonStrokingColor(Color(0, 0, 0))
                 val k=0.5522848f
                 standards.forEachIndexed { i,ability ->
                     val top=p1AttributeTop(i)
@@ -850,8 +852,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // Real rendered P1 review found the first letter touching the
                 // left/top stroke. Inset the title 9pt and lower its ink
                 // 2pt within the 18pt strip, no change to spell data.
+                stream.setNonStrokingColor(Color(29, 56, 79)) // C266: golden title ink
                 drawCartelaDiamonds(stream, 312f, 570f, 282f, 300f)
                 drawP1Label(stream,"LANZAMIENTO DE CONJUROS",328f,286f,9.1f)
+                stream.setNonStrokingColor(Color(0, 0, 0))
                 val actual=data.spellSlots.associateBy{it.level}
                 // C250: golden P1 LANZAMIENTO grammar. Three white clipped
                 // reference cards (APTITUD MÁGICA / CD SALVACIÓN / ATAQUE
@@ -1226,12 +1230,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.restoreGraphicsState()
                 // Golden heading font role: authentic embedded Barlow Condensed,
                 // distinct from 7pt Fira source-value rows below.
+                stream.setNonStrokingColor(Color(29, 56, 79)) // C266: golden title ink
                 drawCartelaDiamonds(stream, 312f, 570f, 368f, 382f)
                 stream.beginText()
                 stream.setFont(headerPdfFont,9.1f)
                 stream.newLineAtOffset(left + 16f,top - 11f)
                 stream.showText("RASGOS Y ATRIBUTOS")
                 stream.endText()
+                stream.setNonStrokingColor(Color(0, 0, 0))
                 p1TraitEntries.forEach { (_, lines, firstSlot) ->
                     lines.forEachIndexed { offset, line ->
                         val slot = firstSlot + offset
@@ -1291,8 +1297,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.stroke()
                 stream.restoreGraphicsState()
                 // C257/C265: golden cartela title and diamonds.
+                stream.setNonStrokingColor(Color(29, 56, 79)) // C266: golden title ink
                 drawCartelaDiamonds(stream, 312f, 570f, 131f, 148f)
                 drawP1Label(stream, "MUNICIONES", 328f, 136.5f, 9.1f)
+                stream.setNonStrokingColor(Color(0, 0, 0))
                 // Golden mark geometry (7.94 pt boxes, 13.75 pt step, 2.83 pt
                 // extra gap between groups), at the golden distance from the
                 // right edge of the column.
@@ -1553,12 +1561,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
+                stream.setNonStrokingColor(Color(29, 56, 79)) // C266: golden title ink
                 drawCartelaDiamonds(stream, 312f, 570f, 594f, 616f)
                 stream.beginText()
                 stream.setFont(headerPdfFont, 9.1f)
                 stream.newLineAtOffset(328f, 600f)
                 stream.showText(title)
                 stream.endText()
+                stream.setNonStrokingColor(Color(0, 0, 0))
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.55f)
@@ -3790,12 +3800,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
                 // C265: golden P2 cartela, 9.1 pt title inside two diamonds.
+                stream.setNonStrokingColor(Color(29, 56, 79)) // C266: golden title ink
                 drawCartelaDiamonds(stream, left, right, bottom, top)
                 stream.beginText()
                 stream.setFont(headerPdfFont, 9.1f)
                 stream.newLineAtOffset(left + 16f, bottom + 4f)
                 stream.showText(title)
                 stream.endText()
+                stream.setNonStrokingColor(Color(0, 0, 0))
                 // Golden P2 requires an explicit meaning for BOTH small
                 // internal columns: OBJETO/CANTIDAD or DENOMINACIÓN/CANTIDAD.
                 // Occupy the existing blue source-free cartela, never the table.
