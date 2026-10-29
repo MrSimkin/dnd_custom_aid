@@ -1735,7 +1735,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
-                draw(stream, "REFERENCIA MÁGICA", 49f, 676f, true)
+                // C269: golden cartela: diamonds, 9.1 pt title in golden ink.
+                drawCartelaDiamonds(stream, x0, x1, y0, y1)
+                stream.setNonStrokingColor(Color(29, 56, 79))
+                drawP1Label(stream, "REFERENCIA MÁGICA", x0 + 16f, 677f, 9.1f)
+                stream.setNonStrokingColor(Color(0, 0, 0))
                 fields.forEachIndexed { index, (label, value) ->
                     val x = 42f + index * 180f
                     stream.saveGraphicsState()
@@ -1758,16 +1762,21 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.closePath()
                     stream.stroke()
                     stream.restoreGraphicsState()
-                    val fieldLabelPt = 9f
+                    // C269: golden card label 6.65 pt in golden grey.
+                    val fieldLabelPt = 6.65f
                     require(headerPdfFont.getStringWidth(label) *
                         fieldLabelPt / 1000f <= 154f) {
                         "P4 spellcasting card label overflows frozen width: " + label
                     }
+                    stream.setNonStrokingColor(Color(101, 125, 144))
                     stream.beginText()
                     stream.setFont(headerPdfFont, fieldLabelPt)
-                    stream.newLineAtOffset(x + 7f, 645f)
+                    stream.newLineAtOffset(x + 7f, 650f)
                     stream.showText(label)
                     stream.endText()
+                    stream.setNonStrokingColor(Color(29, 56, 79))
+                    fun centeredX(text: String, pt: Float) = x + (168f -
+                        headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * pt / 1000f) / 2f
                     if (value == null) {
                         stream.moveTo(x + 7f, 629f)
                         stream.lineTo(x + 160f, 629f)
@@ -1776,7 +1785,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         fun fits(text: String, pt: Float) =
                             headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) *
                                 pt / 1000f <= 152f
-                        val size = listOf(12f, 10f, 9f, 8f).firstOrNull { fits(value, it) }
+                        // C269: golden centered 10.7 pt value, stepping down to 7 pt.
+                        val size = listOf(10.7f, 10f, 9f, 8f, 7f).firstOrNull { fits(value, it) }
                         // Long source names: one source per line at 7pt (max 3
                         // lines inside the 44pt card) before giving up.
                         val stacked = if (size == null && label in varying)
@@ -1787,15 +1797,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             stacked.forEachIndexed { line, text ->
                                 stream.beginText()
                                 stream.setFont(headerPdfFont, 7f)
-                                stream.newLineAtOffset(x + 8f, 637f - line * 7.5f)
+                                stream.newLineAtOffset(centeredX(text, 7f), 639f - line * 7.5f)
                                 stream.showText(pcSheetV11PrintableText(text))
                                 stream.endText()
                             }
                         } else {
                             val ink = if (size == null) "SEGÚN FUENTE" else value
                             stream.beginText()
-                            stream.setFont(headerPdfFont, size ?: 12f)
-                            stream.newLineAtOffset(x + 8f, 625f)
+                            stream.setFont(headerPdfFont, size ?: 10.7f)
+                            stream.newLineAtOffset(centeredX(ink, size ?: 10.7f), 628f)
                             stream.showText(pcSheetV11PrintableText(ink))
                             stream.endText()
                         }
@@ -3263,8 +3273,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 // Their literal bytes and reserved cell remain
                                 // unchanged. Strict actual embedded-font width
                                 // verification prevents clipping or overflow.
-                                val fontSize = 9f
+                                // C269: golden C2 cartela title 9.1 pt, golden ink.
+                                val fontSize = 9.1f
                                 val inset = 5f
+                                stream.setNonStrokingColor(Color(29, 56, 79))
                                 val inkWidth = headerPdfFont.getStringWidth(
                                     cell.drawableText,
                                 ) * fontSize / 1000f
@@ -3279,6 +3291,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 )
                                 stream.showText(pcSheetV11PrintableText(cell.drawableText))
                                 stream.endText()
+                                stream.setNonStrokingColor(Color(0, 0, 0))
                             } else if (title == "C2 - Habilidades, acciones y recursos" &&
                                 cell.sourceKey.startsWith("attribute-skill:") &&
                                 cell.sourceStartOffset == 0) {

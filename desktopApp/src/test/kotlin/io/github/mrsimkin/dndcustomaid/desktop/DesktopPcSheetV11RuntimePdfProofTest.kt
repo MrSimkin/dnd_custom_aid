@@ -688,7 +688,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(Regex("""(?m)/F1\s+7\s+Tf""")
                     .findAll(operators).count() >= 9,
                     "P4 must use genuine embedded Barlow 7pt on blank meters.")
-                assertTrue(Regex("""(?m)/F1\s+9\s+Tf""")
+                // C269: golden P4 card labels are 6.65 pt.
+                assertTrue(Regex("""(?m)/F1\s+6\.65\d*\s+Tf""")
                     .findAll(operators).count() >= 3,
                     "P4 three source card labels use embedded Barlow typography.")
                 assertTrue(PDFTextStripper().getText(pdf).contains("NOTAS"),
@@ -883,7 +884,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(clippedGroupBands >= 2,
                 "All ACTUAL Ilyra mixed C2 source groups require " +
                     "separate clipped physical blue cartelas: found " + clippedGroupBands)
-            assertTrue(Regex("""(?m)/F1\s+9\s+Tf""").containsMatchIn(commands),
+            // C269: golden C2 cartela titles are 9.1 pt.
+            assertTrue(Regex("""(?m)/F1\s+9\.1\d*\s+Tf""").containsMatchIn(commands),
                 "C2 source cartela labels must use embedded 9pt Barlow Condensed " +
                     "rather than the Fira Sans value font.")
             assertTrue(Regex("""(?m)(?:^|\s)B(?:\s|$)""")
