@@ -1986,6 +1986,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val c2Font = goldenRhythm(7.2f, 15.7f)
             // C263: golden P2 Equipo / Tesoro / Rasgos, 7.1 pt on 16 pt rows.
             val p2Font = goldenRhythm(7.1f, 16f)
+            // C267: golden Equipo Especial text is ~7 pt; lines of a tall entry
+            // step 9 pt inside the owner's 25 pt rows (D-0076 §3.21).
+            val specialFont = goldenRhythm(7f, 9f)
             val c2Inset = " ".repeat((1..16).first {
                 c2Font.width.measurePt(" ".repeat(it)) >= 11f
             })
@@ -3646,7 +3649,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // One pitch keeps its approved two lines; taller bands keep the
             // 10 pt first baseline and a 4 pt foot so ink never meets a rule.
             fun specialLinesFor(pitches: Int): Int = maxOf(2,
-                1 + ((pitches * specialRowHeight - 14f) / body.metrics.lineHeightPt).toInt())
+                1 + ((pitches * specialRowHeight - 14f) / specialFont.metrics.lineHeightPt).toInt())
             val specialMaxLines = specialLinesFor(specialCapacity)
             fun specialCellLines(raw: String?, widthPt: Float): List<String>? {
                 if (raw.isNullOrBlank()) return emptyList()
@@ -3659,9 +3662,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         keepTogetherIfFits = true)),
                     1,
                     PcSheetV11TextColumn(width,
-                        body.metrics.lineHeightPt * specialMaxLines,
-                        body.metrics.lineHeightPt),
-                    body.width,
+                        specialFont.metrics.lineHeightPt * specialMaxLines,
+                        specialFont.metrics.lineHeightPt),
+                    specialFont.width,
                 )
                 if (printable.localPageCount != 1) return null
                 val ranges = printable.fragments.flatMap { it.lineRanges }
@@ -4111,9 +4114,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     columns.forEachIndexed { column, values ->
                         values.forEachIndexed { line, value ->
                             if (value.isNotEmpty()) {
-                                draw(stream, value, fieldX[column] + 5f,
-                                    rowTop - 10f - line * body.metrics.lineHeightPt,
-                                    false)
+                                stream.beginText()
+                                stream.setFont(bodyPdfFont, specialFont.metrics.fontSizePt)
+                                stream.newLineAtOffset(fieldX[column] + 5f,
+                                    rowTop - 10f - line * specialFont.metrics.lineHeightPt)
+                                stream.showText(pcSheetV11PrintableText(value))
+                                stream.endText()
                             }
                         }
                     }
@@ -4129,7 +4135,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val rowTop = specialBandTops[rowIndex]
                     if (data.specialEquipment.isEmpty()) {
                         manualSpecialLocations.getOrNull(rowIndex)?.let { location ->
-                            draw(stream, location, fieldX[0] + 5f, rowTop - 10f, false)
+                            stream.beginText()
+                            stream.setFont(bodyPdfFont, specialFont.metrics.fontSizePt)
+                            stream.newLineAtOffset(fieldX[0] + 5f, rowTop - 10f)
+                            stream.showText(location)
+                            stream.endText()
                         }
                     }
                     // Each writable row requires a genuine unmarked ACTIVO square.
