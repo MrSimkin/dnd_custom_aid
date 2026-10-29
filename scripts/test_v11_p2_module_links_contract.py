@@ -21,7 +21,7 @@ class P2ModuleLinksParityTest(unittest.TestCase):
             self.assertIn('"ESPECIAL" -> "EQUIPO ESPECIAL"', part)
             self.assertIn('} + " A P. " + physical', part)
             self.assertIn('.joinToString(" · ")', part)
-            self.assertIn("draw(stream, p2ModuleLinks, 42f, 63f, false)", data)
+            self.assertIn("drawModuleLinks(stream, p2ModuleLinks)", data)
             pieces.append(re.sub(r"\s+", " ", part))
         self.assertEqual(pieces[0], pieces[1])
         self.assertIn("g3P2FooterNamesEachContinuedModuleWithItsRealC2PageAB",

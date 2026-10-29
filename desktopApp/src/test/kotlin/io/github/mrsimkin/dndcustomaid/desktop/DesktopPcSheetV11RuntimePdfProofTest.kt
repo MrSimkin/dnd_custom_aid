@@ -4933,6 +4933,42 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun g3ModuleLinksUseGoldenShadedFooterBandOnP1AndP2AB() {
+        // C252: golden P1/P2 module links sit on a shaded 13pt band across the page
+        // area, in small Barlow ink (6.1pt), not in body-size Fira.
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), mara,
+            )
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                for (index in 0..1) {
+                    val native = pdf.getPage(index).contents.use {
+                        it.readBytes().toString(Charsets.ISO_8859_1)
+                    }
+                    assertTrue(Regex("""(?m)(?:^|\s)40(?:\.0)?\s+59(?:\.0)?\s+532(?:\.0)?\s+13(?:\.0)?\s+re(?:\s|$)""")
+                        .containsMatchIn(native), "P${index + 1} golden footer band ($variant).")
+                    val sizes = mutableListOf<Pair<Float, Float>>()
+                    object : PDFTextStripper() {
+                        override fun writeString(
+                            text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                        ) {
+                            if (text.contains(" A P. ")) {
+                                textPositions.forEach { sizes += it.fontSizeInPt to 792f - it.yDirAdj }
+                            }
+                        }
+                    }.apply { startPage = index + 1; endPage = index + 1 }.getText(pdf)
+                    assertTrue(sizes.isNotEmpty(), "P${index + 1} module links ($variant).")
+                    // PDFBox reports fontSizeInPt in whole points (6.1pt reads 6.0).
+                    assertTrue(sizes.all { kotlin.math.abs(it.first - 6.1f) < 0.2f &&
+                        kotlin.math.abs(it.second - 63f) < 0.6f },
+                        "P${index + 1} links in 6.1pt ink on the band baseline ($variant): ${sizes.distinct().take(4)}")
+                }
+            }
+        }
+    }
+
+    @Test
     fun g3DigitalNotesNeverMixWithC2SpellbookOrFinalSheetWhenBothExistAB() {
         // CN303: a character with real digital notes AND the optional Spellbook.
         // Note text must live only on C-N3 pages: never on C2, the book index,

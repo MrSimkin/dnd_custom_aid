@@ -4709,6 +4709,18 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     "All genuine P1 module destinations must fit the reserved footer."
                 }
             }
+            // C252: golden P1/P2 module-link footer: a shaded 13pt band across
+            // the page area with small Barlow ink (6.1pt), in the free strip
+            // between the body (>=76) and the internal watermark (y=46).
+            fun drawModuleLinks(stream: PDPageContentStream, links: String) {
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(Color(231, 242, 247))
+                stream.addRect(40f, 59f, 532f, 13f)
+                stream.fill()
+                stream.setNonStrokingColor(Color(38, 75, 104))
+                drawP1Label(stream, links, 42.5f, 63f, 6.1f)
+                stream.restoreGraphicsState()
+            }
             // A C2 page never points at P2 merely because it happens to be a
             // continuation: derive the correct base-page role from its module.
             for (index in 0 until totalPages - 1) {
@@ -4766,10 +4778,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         // PDF y=63: below source body (>=76), above the original
                         // watermark y=46 and navigation y=35. No page/layout
                         // mutation; never replace the first legacy cue.
-                        draw(stream, p2ModuleLinks, 42f, 63f, false)
+                        drawModuleLinks(stream, p2ModuleLinks)
                     }
                     if (key.startsWith("P1 - ") && p1ModuleLinks != null) {
-                        draw(stream, p1ModuleLinks, 42f, 63f, false)
+                        drawModuleLinks(stream, p1ModuleLinks)
                     }
                     val label = "HOJA " + physicalPage + " / " + totalPages
                     val x = 570f - body.width.measurePt(label)
