@@ -3079,9 +3079,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 it.sourceStartOffset == 0 && it.sourceKey in bookInlineLevels
                             }.forEach { cell ->
                                 val label = bookInlineLevels.getValue(cell.sourceKey)
+                                // C270: golden NIVEL label 6.3 pt, #264b68.
+                                stream.setNonStrokingColor(Color(38, 75, 104))
                                 drawP1Label(stream, label, cell.cellPt.rightPt - 2f -
-                                    headerPdfFont.getStringWidth(label) * 7f / 1000f,
-                                    body.metrics.baselineIn(cell.cellPt))
+                                    headerPdfFont.getStringWidth(label) * 6.3f / 1000f,
+                                    body.metrics.baselineIn(cell.cellPt) - 0.8f, 6.3f)
+                                stream.setNonStrokingColor(Color(0, 0, 0))
                             }
                         }
                         pageCells.forEach { cell ->
@@ -3090,6 +3093,32 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 drawStory(stream, cell.drawableText, cell.cellPt.leftPt,
                                     storyBaseline(cell.cellPt))
                                 return@forEach
+                            }
+                            // C270: golden Libro card name — a larger bold heading
+                            // in golden ink (golden: EB Garamond 11.3 pt; the app's
+                            // nearest embedded face is Barlow 8.2 pt, which fits the
+                            // 10.5 pt row). Only a name wholly on its first line.
+                            if (title == "Libro de conjuros" && cell.sourceKey.startsWith("book:") &&
+                                cell.sourceStartOffset == 0 && cell.drawableText.isNotBlank() &&
+                                cell.sourceText.startsWith(cell.drawableText.trimEnd() + "\n")) {
+                                val namePt = 8.2f
+                                val printable = pcSheetV11PrintableText(cell.drawableText.trimEnd())
+                                val reserved = bookInlineLevels[cell.sourceKey]?.let {
+                                    headerPdfFont.getStringWidth(it) * 6.3f / 1000f + 8f
+                                } ?: 2f
+                                if (headerPdfFont.getStringWidth(printable) * namePt / 1000f <=
+                                    cell.cellPt.widthPt - reserved) {
+                                    stream.saveGraphicsState()
+                                    stream.setNonStrokingColor(Color(29, 56, 79))
+                                    stream.beginText()
+                                    stream.setFont(headerPdfFont, namePt)
+                                    stream.newLineAtOffset(cell.cellPt.leftPt,
+                                        body.metrics.baselineIn(cell.cellPt) - 0.8f)
+                                    stream.showText(printable)
+                                    stream.endText()
+                                    stream.restoreGraphicsState()
+                                    return@forEach
+                                }
                             }
                             if (cell.sourceKey in c2AttributeCards) {
                                 if (cell.sourceStartOffset == 0) drawC2AttributeRow(stream, cell)
