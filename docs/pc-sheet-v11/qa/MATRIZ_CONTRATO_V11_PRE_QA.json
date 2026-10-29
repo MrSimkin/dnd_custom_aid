@@ -791,8 +791,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "permanentCurrentAndMissingCurrentAreDistinguishedWithNotices",
+            "test_result": "PASS — shared G1 semantics: CURRENT selects the real current snapshot (current HP 7) with no notice; a missing current snapshot falls back to PERMANENT (HP 30) with the explicit CURRENT_SNAPSHOT_UNAVAILABLE notice; no value is invented.",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run (:shared:desktopTest in scaffold-check).",
+            "limitations": "Semantic mapping only; the installed UI choice is not exercised. Global IN02 and G4 remain NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -953,8 +962,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "v11PageSequencePlacesExtensionsThenExclusiveDigitalNotesBookAndLastManualNotes; v11PageSequenceRejectsInventedBookAndMissingDigitalNotesPages",
+            "test_result": "PASS — shared G1 page sequence: the Spellbook is the only optional annex, placed after extensions and exclusive digital notes and before the last manual NOTAS page; an invented book page is rejected.",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run (:shared:desktopTest); G3 physical order verified by C275.",
+            "limitations": "Global IN07 and G4 remain NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -1240,8 +1258,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "customAttributeAndSkillUseStableRelationshipsAndMissingTargetIsNotFabricated",
+            "test_result": "PASS — shared G1 semantics: a custom attribute keeps its stable ID with its real score, modifier and save; its custom skill links by that ID with its real total; a skill whose target attribute is missing keeps the missing ID and gets no fabricated total.",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run (:shared:desktopTest).",
+            "limitations": "Training level (competencia/pericia) is not asserted here. Global P108 and G4 remain NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -1521,8 +1548,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "spellsAreRealOnlyAndPreparedStateBelongsToEachSource",
+            "test_result": "PASS — shared G1 semantics: persisted spell slots keep distinct real total (3) and spent (2) values.",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run (:shared:desktopTest); G3 paper boxes and gastados/total verified (C271).",
+            "limitations": "Global P116 and G4 remain NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -2074,8 +2110,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "inventoryZeroCurrencyDigitalNotesAndPortraitKeepTheirOriginalMeaning",
+            "test_result": "PASS — shared G1 semantics: a real currency amount of 0 is kept as 0, not treated as absent.",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run (:shared:desktopTest); G3 recorded-zero P2 row verified by g3RealP2RecordedZeroCurrencyIsNotTreatedAsAbsentPaperEntry.",
+            "limitations": "Custom currencies are not asserted here. Global P204 and G4 remain NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -2236,8 +2281,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "inventoryZeroCurrencyDigitalNotesAndPortraitKeepTheirOriginalMeaning",
+            "test_result": "PASS — shared G1 semantics: a special item with no stored active state maps to active = null (never inferred from equipped/attuned) while keeping its real location and description.",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run (:shared:desktopTest).",
+            "limitations": "Global P209 and G4 remain NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -3307,8 +3361,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "v11PageSequenceKeepsCorePagesAndFinalHandwrittenPageEvenWithNoMagic; v11PageSequenceRejectsInventedBookAndMissingDigitalNotesPages",
+            "test_result": "PASS — shared G1 page sequence: without digital notes the sequence is P1, P2, P3 and the final handwritten page only (no C-N3 role); a sequence that drops real digital notes pages is rejected.",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run (:shared:desktopTest); G3 verified (C273).",
+            "limitations": "Global CN301 and G4 remain NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -3468,8 +3531,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "spellsAreRealOnlyAndPreparedStateBelongsToEachSource",
+            "test_result": "PASS — shared G1 semantics: without the Spellbook request no book entries exist; with it, the real attached spell becomes the only entry; a request without attached spells creates no book and raises SPELLBOOK_REQUESTED_WITHOUT_ATTACHED_SPELLS.",
+            "source_commit": "58e5318e2aacdf96b2850907442bff6bfff9a816",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12921850771",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40926825057/artifacts/12920987298",
+            "independent_inspection": "Same CI run (:shared:desktopTest); G3 verified (C273).",
+            "limitations": "Global BK01 and G4 remain NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
