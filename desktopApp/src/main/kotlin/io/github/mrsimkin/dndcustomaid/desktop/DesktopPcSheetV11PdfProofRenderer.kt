@@ -3173,13 +3173,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             stream.saveGraphicsState()
                             bookParts.forEach { (identity, partCells) ->
                                 val column = flow.columnsPt[identity.first - 1]
-                                val left = column.leftPt - 4f
-                                val right = column.rightPt + 4f
-                                val top = partCells.maxOf { it.cellPt.topPt }
+                                // C289: golden card frame 8.5 pt outside its text and
+                                // 2.83 pt above the heading band (v11_extremo p10).
+                                val left = column.leftPt - 8.5f
+                                val right = column.rightPt + 8.5f
+                                val top = partCells.maxOf { it.cellPt.topPt } + 2.83f
                                 val bottom = partCells.minOf { it.cellPt.bottomPt }
                                 require(top - bottom >= body.metrics.lineHeightPt - 0.1f)
                                 require(left >= 35f && right <= 577f &&
-                                    top <= 703f && bottom >= 75.5f) {
+                                    top <= 706f && bottom >= 75.5f) {
                                     "V11 book card cannot escape the approved Letter paper area."
                                 }
                                 val cut = minOf(4f, (top - bottom) / 4f)
@@ -3210,8 +3212,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 partCells.filter {
                                     it.sourceStartOffset < descriptionStart
                                 }.forEach { headingCell ->
-                                    stream.addRect(left + 1f, headingCell.cellPt.bottomPt,
-                                        right - left - 2f, headingCell.cellPt.heightPt)
+                                    stream.addRect(left + 2.83f, headingCell.cellPt.bottomPt,
+                                        right - left - 5.66f, headingCell.cellPt.heightPt)
                                     stream.fill()
                                 }
                             }
@@ -5089,6 +5091,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 area = PcSheetV11RectPt(pageArea.leftPt + 6f, pageArea.bottomPt,
                     pageArea.widthPt - 12f, pageArea.heightPt),
                 font = notesFont)
+            // C289: golden Libro columns — text 48.19..292.82 and 319.18..563.81 pt.
+            val bookArea = PcSheetV11RectPt(48.19f, pageArea.bottomPt, 515.62f, pageArea.heightPt)
+            val bookGutter = 26.36f
+            val bookColumnPt = (515.62f - 26.36f) / 2f
             data.spellbookEntries?.takeIf { it.isNotEmpty() }?.let { spells ->
                 // The only optional annex, with real two-column cards. All spell
                 // content remains source-backed; no fabricated school or rules.
@@ -5109,7 +5115,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val levelLabel = "NIVEL " + spell.level
                     val inlineLevel = spell.name.none { it == '\r' || it == '\n' || it == '\t' } &&
                         bookFont.width.measurePt(spell.name) +
-                        headerPdfFont.getStringWidth(levelLabel) * 7f / 1000f + 10f <= 258f
+                        headerPdfFont.getStringWidth(levelLabel) * 7f / 1000f + 10f <= bookColumnPt
                     // Q14b (golden): the real school, uppercase, on its own line under
                     // the name; a spell without a school gets no line at all.
                     val school = spell.school?.trim()?.takeIf { it.isNotEmpty() }?.uppercase()
@@ -5133,7 +5139,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     )
                 }
                 val contentFlow = bookFont.place(
-                    PcSheetV11FlowSection.SPELLBOOK, cards, pageArea, 2, 12f,
+                    PcSheetV11FlowSection.SPELLBOOK, cards, bookArea, 2, bookGutter,
                 )
                 require(contentFlow.sourceFlow.localPageCount > 0)
                 val firstPagesByKey = contentFlow.cells.groupBy { it.sourceKey }
@@ -5181,7 +5187,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     PcSheetV11FlowSection.SPELLBOOK, indexEntries, 2, font = bookFont)
                 require(pdf.numberOfPages == pagesBeforeIndex + indexPageCount)
                 addSection("Libro de conjuros",
-                    PcSheetV11FlowSection.SPELLBOOK, cards, 2, font = bookFont)
+                    PcSheetV11FlowSection.SPELLBOOK, cards, 2, area = bookArea,
+                    gutterPt = bookGutter, font = bookFont)
                 require(pdf.numberOfPages ==
                     pagesBeforeIndex + indexPageCount + contentFlow.sourceFlow.localPageCount)
             }
