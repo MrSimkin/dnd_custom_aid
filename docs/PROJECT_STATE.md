@@ -1,3 +1,5 @@
+**2026-10-29 — C272–C281 V11, diez bloques de evidencia de la matriz (39 → 73/242), CI exacta SUCCESS.** [Checkpoint](checkpoints/2026-10-29_V11_C272_MATRIZ_DIEZ_BLOQUES.md).
+
 **2026-10-29 — C255–C266 V11, respuestas del propietario implementadas, PASS LOCAL físico (CI exacta SUCCESS):** P1/P3/P4/C2 según Q1–Q13 y ritmo de letra del golden en Libro, Notas, P4, C2 y P2. [Checkpoint](checkpoints/2026-10-29_V11_C255_RESPUESTAS_IMPLEMENTADAS.md).
 
 **2026-10-28 — C250–C254 V11, cuarta tanda de cinco bloques PASS LOCAL físico (CI exacta SUCCESS en cada uno):** LANZAMIENTO de P1 del golden, pies de P1/P2/P3 con la franja y los destinos del golden, y matriz 39/242. Q1/Q2 pendientes del propietario. [Checkpoint](checkpoints/2026-10-28_V11_C250_CINCO_BLOQUES_4.md).

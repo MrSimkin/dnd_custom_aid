@@ -4,7 +4,16 @@ Lista viva. El Worker anota aquí cada decisión que corresponde al propietario 
 
 ## Abiertas
 
-Ninguna. Las preguntas Q1–Q13 fueron respondidas una a una el 2026-10-28 (ver «Resueltas»); su detalle original queda abajo como historial.
+### Q14 — Libro: ¿mostrar la escuela de magia? (2026-10-29)
+
+- **Contexto:** la ficha del Libro del golden muestra, bajo el nombre, la escuela del conjuro en letra pequeña gris («ABJURACIÓN»). La ficha esencial que el propietario aprobó (BK06) es nombre, nivel y descripción íntegra, sin escuela.
+- **Vista previa:** `qa/evidence/c255_c266/B26_Libro_golden_vs_app.png`.
+- **Opciones:**
+  - **A:** agregar la escuela bajo el nombre, como el golden.
+  - **B:** dejar la ficha esencial sin escuela.
+- **Pospuesto:** la línea de escuela en las fichas del Libro.
+
+Q14 abierta. Las preguntas Q1–Q13 fueron respondidas una a una el 2026-10-28 (ver «Resueltas»); su detalle original queda abajo como historial.
 
 ## Historial — detalle de Q1–Q13 tal como se plantearon
 
