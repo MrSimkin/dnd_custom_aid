@@ -6055,7 +6055,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // labels/amounts still run to the printable floor. That
                 // reserved paper must carry a COMPLETE genuine NOTES grid,
                 // not dozens of visually misleading empty EQUIPO rows.
-                val secondEquipment = pdf.getPage(equipmentPages[1] - 1)
+                // C268: in the golden 18.4 pt rows the stress equipment spans
+                // three pages; the LAST one holds the empty right pair.
+                val secondEquipment = pdf.getPage(equipmentPages.last() - 1)
                 val manuscript = PDFTextStripperByArea().apply {
                     // C211 R1: wrapped P2 rows shift where the right pair ends, so
                     // inspect the WHOLE right/left pair height below the header.
@@ -6068,15 +6070,37 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(manuscript.getTextForRegion("unused-right-pair")
                     .contains("NOTAS"),
                     "Real C2 unused right table cells require a paper NOTES cartela.")
-                assertFalse(manuscript.getTextForRegion("occupied-left-pair")
-                    .contains("NOTAS"),
+                // C268: NOTES may sit BELOW the left equipment (bottom grid),
+                // never among its rows: inspect the left pair down to its last row.
+                var lastLeftRowTop = 120f
+                object : PDFTextStripper() {
+                    override fun writeString(
+                        text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                    ) {
+                        val first = textPositions.firstOrNull() ?: return
+                        if (first.xDirAdj < 300f && text.contains("EQUIPO-C206")) {
+                            lastLeftRowTop = maxOf(lastLeftRowTop, first.yDirAdj)
+                        }
+                    }
+                }.apply {
+                    startPage = equipmentPages.last(); endPage = equipmentPages.last()
+                }.getText(pdf)
+                val leftRows = PDFTextStripperByArea().apply {
+                    addRegion("left-rows",
+                        Rectangle2D.Float(42f, 120f, 258f, lastLeftRowTop - 120f + 4f))
+                    extractRegions(secondEquipment)
+                }.getTextForRegion("left-rows")
+                assertTrue(leftRows.contains("EQUIPO-C206"))
+                assertFalse(leftRows.contains("NOTAS"),
                     "Handwriting reserve must never replace LEFT persisted equipment.")
                 val secondContent = secondEquipment.contents.use {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
+                // C268: with the bottom NOTES grid in use, the right grid starts
+                // just above it; it still spans the whole free right pair.
                 assertTrue(Regex(
-                    """(?m)(?:^|\s)313(?:\.0)?\s+78(?:\.0)?\s+m\s+313(?:\.0)?\s+[-\d.]+\s+l"""
-                ).containsMatchIn(secondContent),
+                    """(?m)(?:^|\s)313(?:\.0)?\s+([\d.]+)\s+m\s+313(?:\.0)?\s+([\d.]+)\s+l"""
+                ).findAll(secondContent).any { it.groupValues[2].toFloat() - it.groupValues[1].toFloat() > 150f },
                     "Right C2 NOTES grid must contain real full-height PDF vectors.")
                 assertTrue(treasurePages.isNotEmpty(),
                     "The independent treasure stream must also overflow to C2.")

@@ -1989,6 +1989,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // C267: golden Equipo Especial text is ~7 pt; lines of a tall entry
             // step 9 pt inside the owner's 25 pt rows (D-0076 §3.21).
             val specialFont = goldenRhythm(7f, 9f)
+            // C268: golden C2 Equipo / Tesoro continuation tables, 7.2 pt on 18.4 pt.
+            val c2TableFont = goldenRhythm(7.2f, 18.4f)
             val c2Inset = " ".repeat((1..16).first {
                 c2Font.width.measurePt(" ".repeat(it)) >= 11f
             })
@@ -3894,21 +3896,27 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val pairZero: Int, val gridLeft: Float, val gridWidth: Float,
                     val gridBottom: Float, val gridTop: Float, val rows: Int, val columns: Int,
                 )
-                val sideNotes = if (compactC2 && !notesUsable) {
+                // C268: a wholly empty pair also gets NOTES when the bottom
+                // NOTES grid is in use; it then stops above that grid.
+                val sideNotes = if (compactC2) {
                     val printedBottoms = (1..2).map { pair ->
                         pageLabels.filter { it.pairIndex == pair }
                             .minOfOrNull { it.rectPt.bottomPt }
                     }
                     (0..1).mapNotNull { pairZero ->
-                        val availableFrom = printedBottoms[pairZero] ?: return@mapNotNull null
+                        if (notesUsable && printedBottoms[pairZero] != null) return@mapNotNull null
                         val longerSideBottom = printedBottoms[1 - pairZero]
                             ?: return@mapNotNull null
+                        // C268: a pair with NO source row on this page is wholly
+                        // unused paper below its column header; it gets NOTES too.
+                        val availableFrom = printedBottoms[pairZero] ?: (area.topPt - 18f)
                         // Require a genuine asymmetric source stream; never
                         // replace cells on the longer, still occupied side.
                         if (availableFrom - longerSideBottom < 128f) return@mapNotNull null
                         val pair = placed.pairs[pairZero]
                         val gridPitch = 16f
-                        val gridBottom = maxOf(area.bottomPt + 2f, 78f)
+                        val gridBottom = if (notesUsable) tableBottom + 8f
+                            else maxOf(area.bottomPt + 2f, 78f)
                         val completeRows =
                             ((availableFrom - 28f - gridBottom) / gridPitch).toInt()
                         if (completeRows < 4) return@mapNotNull null
@@ -4377,9 +4385,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 area: PcSheetV11RectPt,
             ): PcSheetV11PairedTablePlaced = PcSheetV11PairedTableComposer.place(
                 remaining, area, 12f,
-                PcSheetV11PairedAmountRouting.c2AmountWidth(remaining, body.width),
+                PcSheetV11PairedAmountRouting.c2AmountWidth(remaining, c2TableFont.width),
                 PcSheetV11PairedAmountRouting.AMOUNT_GAP_PT,
-                body.metrics.lineHeightPt, body.width,
+                c2TableFont.metrics.lineHeightPt, c2TableFont.width,
                 balanceSinglePageC2 = true,
             )
             data class CompactPairedC2(
@@ -4397,7 +4405,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // existing dedicated full-height C2 path without changes.
             val compactPaired = if (pairedRemainders.all { it.second.rows.isNotEmpty() } &&
                 pairedRemainders.all { (_, remaining, _) ->
-                    PcSheetV11PairedAmountRouting.c2AmountWidth(remaining, body.width) <=
+                    PcSheetV11PairedAmountRouting.c2AmountWidth(remaining, c2TableFont.width) <=
                         PcSheetV11PairedAmountRouting.BASE_AMOUNT_WIDTH_PT
                 }
             ) {
@@ -4408,7 +4416,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 if (fullEquipment.localPageCount == 1 && fullTreasure.localPageCount == 1) {
                     val occupiedEquipment = (fullEquipment.labels.maxOfOrNull {
                         it.rowIndex + 1
-                    } ?: 0) * body.metrics.lineHeightPt
+                    } ?: 0) * c2TableFont.metrics.lineHeightPt
                     // 14.5pt blue cartela ABOVE each module, plus a 5.5pt
                     // physical gap. The two content rectangles never overlap.
                     val upperHeight = maxOf(70f, occupiedEquipment + 12f)
@@ -4453,7 +4461,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             "C2 - Equipo y tesoro / " + label + " / " + localPage)
                         drawPaired(stream, label + " / CANTIDAD",
                             fullC2PairedArea, expanded, localPage, amountsAlreadyOnP2,
-                            compactC2 = true)
+                            compactC2 = true, tableFont = c2TableFont)
                     }
                 }
             }
@@ -4471,9 +4479,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         .map { it.sourceKey }.toSet()
                     drawPaired(stream, "EQUIPO / CANTIDAD", compactPaired.topArea,
                         compactPaired.equipment, 1, equipoAmounts,
-                        compactC2 = true, writeC2Notes = false)
+                        compactC2 = true, tableFont = c2TableFont, writeC2Notes = false)
                     drawPaired(stream, "TESORO / CANTIDAD", compactPaired.bottomArea,
-                        compactPaired.treasure, 1, tesoroAmounts, compactC2 = true)
+                        compactPaired.treasure, 1, tesoroAmounts, compactC2 = true, tableFont = c2TableFont)
                 }
             } else {
                 // Original independent page path remains authoritative when the
@@ -4482,7 +4490,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     if (remaining.rows.isEmpty()) continue
                     val expanded = placeC2Paired(remaining, fullC2PairedArea)
                     val occupied = (expanded.labels.maxOfOrNull { it.rowIndex + 1 }
-                        ?: 0) * body.metrics.lineHeightPt
+                        ?: 0) * c2TableFont.metrics.lineHeightPt
                     val upperHeight = maxOf(90f, occupied + 18f)
                     // Only ONE short, standard-width ordinary pair may join
                     // ONE deferred special record. The real full-width special
@@ -4492,7 +4500,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         pairedRemainders.count { it.second.rows.isNotEmpty() } == 1 &&
                         specialDeferredToC2.size == 1 &&
                         PcSheetV11PairedAmountRouting.c2AmountWidth(
-                            remaining, body.width,
+                            remaining, c2TableFont.width,
                         ) <= PcSheetV11PairedAmountRouting.BASE_AMOUNT_WIDTH_PT &&
                         expanded.localPageCount == 1 && upperHeight <= 180f
                     if (reserveForSpecial) {
@@ -4515,8 +4523,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     listOf(PcSheetV11FlowItem("c2-source", raw,
                         keepTogetherIfFits = true)),
                     1, PcSheetV11TextColumn(widthPt - 10f, 626f,
-                        body.metrics.lineHeightPt),
-                    body.width,
+                        specialFont.metrics.lineHeightPt),
+                    specialFont.width,
                 )
                 return measured.fragments.flatMap { it.lineRanges }.map { range ->
                     raw.substring(range.startOffset, range.endExclusive)
@@ -4552,13 +4560,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 var consumed = 0
                 while (consumed < totalLines) {
                     var lines = minOf(totalLines - consumed,
-                        ((availableC2 - 8f) / body.metrics.lineHeightPt).toInt())
+                        ((availableC2 - 8f) / specialFont.metrics.lineHeightPt).toInt())
                     var height = maxOf(specialRowHeight,
-                        lines * body.metrics.lineHeightPt + 6f)
+                        lines * specialFont.metrics.lineHeightPt + 6f)
                     while (lines > 1 && height > availableC2) {
                         lines--
                         height = maxOf(specialRowHeight,
-                            lines * body.metrics.lineHeightPt + 6f)
+                            lines * specialFont.metrics.lineHeightPt + 6f)
                     }
                     if (lines <= 0 || height > availableC2) {
                         require(currentC2.isNotEmpty()) {
@@ -4624,7 +4632,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             .filter { it.localPageIndex == 1 }
                             .map { it.sourceKey }.toSet()
                         drawPaired(stream, "EQUIPO / CANTIDAD", topArea,
-                            topPlaced, 1, alreadyP2, compactC2 = true,
+                            topPlaced, 1, alreadyP2, compactC2 = true, tableFont = c2TableFont,
                             writeC2Notes = false)
                     } else {
                         drawFrameAndHeader(stream,
@@ -4722,10 +4730,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 .take(part.endLine - part.startLine)
                             shown.forEachIndexed { index, line ->
                                 if (line.isNotEmpty()) {
-                                    draw(stream, line, positions[column] + 5f,
-                                        rowTop - 10f -
-                                            index * body.metrics.lineHeightPt,
-                                        false)
+                                    // C268: golden 7 pt special-equipment text.
+                                    stream.beginText()
+                                    stream.setFont(bodyPdfFont, specialFont.metrics.fontSizePt)
+                                    stream.newLineAtOffset(positions[column] + 5f, rowTop - 10f -
+                                        index * specialFont.metrics.lineHeightPt)
+                                    stream.showText(pcSheetV11PrintableText(line))
+                                    stream.endText()
                                 }
                             }
                         }
