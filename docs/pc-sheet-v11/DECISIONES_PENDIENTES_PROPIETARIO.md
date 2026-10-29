@@ -12,6 +12,12 @@ Lista viva. El Worker anota aquí cada decisión que corresponde al propietario 
   - **A:** agregar la escuela bajo el nombre, como el golden.
   - **B:** dejar la ficha esencial sin escuela.
 - **Pospuesto:** la línea de escuela en las fichas del Libro.
+- **Respuesta del propietario (2026-10-29):** «Sí, con escuela».
+- **Hallazgo del Worker (2026-10-29):** la App **no guarda la escuela** de ningún conjuro. No está en `CharacterSpell`, en la base local (`character_spell`) ni en el catálogo SRD incorporado. Sin ese dato, el PDF no puede imprimir una escuela real (regla: no inventar).
+- **Q14b — cómo obtener la escuela (pendiente):**
+  - **A:** agregar el campo «Escuela» a la App (editor de conjuros Android/Escritorio, base local, copias de seguridad y sincronización con el servidor). El PDF la imprime cuando está cargada.
+  - **B:** solo en el PDF, una línea pequeña «ESCUELA ____» en cada ficha para escribir a lápiz, sin dato digital.
+  - **C:** B ahora y A más adelante.
 
 Q14 abierta. Las preguntas Q1–Q13 fueron respondidas una a una el 2026-10-28 (ver «Resueltas»); su detalle original queda abajo como historial.
 
