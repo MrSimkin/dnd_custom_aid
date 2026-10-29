@@ -232,7 +232,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                             storyStarts += first.xDirAdj
                         }
                         else if (baseline in 450f..670f && first.fontSizeInPt < 10f) {
-                            fields += first.fontSizeInPt
+                            fields += first.fontSize // exact Tf size (fontSizeInPt is an integer)
                         }
                     }
                 }
@@ -259,8 +259,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // (left band 47..300; Mara's story fits the left column).
                 assertTrue(storyStarts.all { kotlin.math.abs(it - 51f) < 0.3f },
                     "P3 story text keeps the golden 4 pt inner margin ($variant): $storyStarts")
-                assertTrue(fields.isNotEmpty() && fields.all { kotlin.math.abs(it - 9f) < 0.01f },
-                    "Profile fields keep their 9 pt text; option B applies to Historia only.")
+                assertTrue(fields.any { kotlin.math.abs(it - 7.3f) < 0.01f } &&
+                    fields.all { kotlin.math.abs(it - 7.3f) < 0.01f || kotlin.math.abs(it - 7f) < 0.01f },
+                    "Profile fields use the golden 7.3 pt values (C284); Historia keeps 7 pt: " + fields.distinct())
             }
         }
     }
@@ -551,9 +552,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(clippedBand.containsMatchIn(operators),
                     "Real V11 P1 requires distinct clipped filled+stroked " +
                         "combat title within the original clear band ($fixture $variant).")
-                assertTrue(Regex("""(?m)/F1\s+11\s+Tf""")
+                assertTrue(Regex("""(?m)/F\d+\s+11\s+Tf""")
                     .containsMatchIn(operators),
-                    "Combat heading must use embedded Barlow Condensed 11pt.")
+                    "Combat heading must use embedded Noto Sans Display Condensed 11pt.")
                 val text = PDFTextStripper().apply {
                     startPage = 1
                     endPage = 1
@@ -685,13 +686,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertEquals(27, paperSlots,
                     "Exactly three BLANK genuine vector slot boxes for each " +
                         "of nine spell levels. No 0-level or fabricated 10+.") 
-                assertTrue(Regex("""(?m)/F1\s+7\s+Tf""")
+                assertTrue(Regex("""(?m)/F\d+\s+7\s+Tf""")
                     .findAll(operators).count() >= 9,
-                    "P4 must use genuine embedded Barlow 7pt on blank meters.")
+                    "P4 must use genuine embedded Noto Sans Display 7pt on blank meters.")
                 // C269: golden P4 card labels are 6.65 pt.
-                assertTrue(Regex("""(?m)/F1\s+6\.65\d*\s+Tf""")
+                assertTrue(Regex("""(?m)/F\d+\s+6\.65\d*\s+Tf""")
                     .findAll(operators).count() >= 3,
-                    "P4 three source card labels use embedded Barlow typography.")
+                    "P4 three source card labels use embedded Noto Sans Display typography.")
                 assertTrue(PDFTextStripper().getText(pdf).contains("NOTAS"),
                     "Golden P4 improvements must not erase trailing handwritten notes.")
             }
@@ -735,8 +736,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "Each original-height P3 narrative heading requires " +
                         "a clipped, filled-and-stroked blue physical cartela at y=" + y)
             }
-            assertTrue(Regex("""(?m)/F1\s+9\s+Tf""").containsMatchIn(operators),
-                "Actual P3 field labels must use embedded Barlow Condensed 9pt.")
+            assertTrue(Regex("""(?m)/F\d+\s+7\s+Tf""").containsMatchIn(operators),
+                "Actual P3 field labels must use embedded Noto Sans Display Condensed 7 pt (golden).")
         }
     }
 
@@ -791,9 +792,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                             "cartela outside measured source cells: " + x + "," + y)
                 }
                 // C265: golden P2 cartela titles are 9.1 pt.
-                assertTrue(Regex("""(?m)/F1\s+9\.1\d*\s+Tf""")
+                assertTrue(Regex("""(?m)/F\d+\s+9\.1\d*\s+Tf""")
                     .findAll(stream).count() >= 4,
-                    "P2 headings must all use genuine embedded BarlowCondensed 9.1pt.")
+                    "P2 headings must all use genuine embedded NotoSansDisplay 9.1pt.")
                 val all = PDFTextStripper().getText(pdf)
                 assertTrue(all.contains("NOTAS"))
                 assertTrue(all.contains("P3 - Trasfondo"))
@@ -885,9 +886,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 "All ACTUAL Ilyra mixed C2 source groups require " +
                     "separate clipped physical blue cartelas: found " + clippedGroupBands)
             // C269: golden C2 cartela titles are 9.1 pt.
-            assertTrue(Regex("""(?m)/F1\s+9\.1\d*\s+Tf""").containsMatchIn(commands),
-                "C2 source cartela labels must use embedded 9pt Barlow Condensed " +
-                    "rather than the Fira Sans value font.")
+            assertTrue(Regex("""(?m)/F\d+\s+9\.1\d*\s+Tf""").containsMatchIn(commands),
+                "C2 source cartela labels must use embedded 9pt Noto Sans Display Condensed " +
+                    "rather than the Noto Sans value font.")
             assertTrue(Regex("""(?m)(?:^|\s)B(?:\s|$)""")
                 .containsMatchIn(commands),
                 "Source-backed mixed C2 requires a distinct clipped blue " +
@@ -4098,8 +4099,50 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         "The school is the next 10.5 pt row under the name ($variant): $nameY / $schoolY")
                     assertTrue(kotlin.math.abs(glyph.fontSizeInPt - 7f) < 0.05f,
                         "Golden school size 7 pt ($variant): " + glyph.fontSizeInPt)
-                    assertTrue(glyph.font.name.contains("Barlow"),
+                    assertTrue(glyph.font.name.contains("NotoSansDisplay"),
                         "Golden condensed bold face ($variant): " + glyph.font.name)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun g3HeaderNameUsesGoldenGaramondAndNeverDropsAccentedLettersAB() {
+        // C285 (owner 2026-10-29 «se agregan las fuentes»): the golden header name is
+        // EB Garamond 12 Bold 13.4 pt in ink #1d384f. That font has no accented
+        // letters (the golden lost the «á» of «mágico»); those come from the later
+        // EB Garamond Bold, so the whole real name is printed.
+        val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val name = "Ñandú Élmira — Óscar"
+        val renamed = original.copy(permanent = original.permanent.copy(
+            sheet = original.permanent.sheet.copy(name = name)))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            for ((label, source, expected) in listOf(
+                Triple("accented", renamed, name), Triple("plain", original, original.permanent.sheet.name))) {
+                val proof = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source)
+                preserveRealApplicationPdf(proof.bytes,
+                    "V11-INTERNAL-PROOF-C285-header-name-" + label + "-" + variant.name + ".pdf")
+                Loader.loadPDF(proof.bytes).use { pdf ->
+                    val runs = mutableListOf<org.apache.pdfbox.text.TextPosition>()
+                    object : PDFTextStripper() {
+                        override fun writeString(
+                            text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                        ) {
+                            runs += textPositions.filter { it.yDirAdj in 40f..52f && it.font.name.contains("Garamond") }
+                        }
+                    }.apply { startPage = 2; endPage = 2 }.getText(pdf)
+                    val printed = runs.sortedBy { it.xDirAdj }.joinToString("") { it.unicode }
+                    assertEquals(expected.replace(" ", ""), printed.replace(" ", ""),
+                        "The whole real name prints in the header ($variant, $label).")
+                    assertTrue(runs.all { kotlin.math.abs(it.fontSize - 13.4f) < 0.05f },
+                        "Golden 13.4 pt name ($variant, $label): " + runs.map { it.fontSize }.distinct())
+                    val faces = runs.map { it.font.name.substringAfter('+') }.toSet()
+                    assertTrue("EBGaramond12-Bold" in faces, "Golden Garamond face ($variant): $faces")
+                    if (label == "plain") assertEquals(setOf("EBGaramond12-Bold"), faces,
+                        "A name the golden face can draw uses only it ($variant).")
+                    else assertEquals(setOf("EBGaramond12-Bold", "EBGaramond-Bold"), faces,
+                        "Only missing letters come from the fallback ($variant).")
                 }
             }
         }
@@ -4240,7 +4283,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                             val y = 792f - first.yDirAdj
                             // C260: golden C-N3 body text is 7 pt.
                             if (y in 80f..700f && first.fontSizeInPt == 7f &&
-                                first.font.name.contains("Fira")) starts += first.xDirAdj
+                                first.font.name.contains("NotoSans-Regular")) starts += first.xDirAdj
                         }
                     }
                     stripper.startPage = number
@@ -6029,8 +6072,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 ).containsMatchIn(ops),
                     "Original source-backed two-column Rasgos panel must not move.")
                 // C265: golden cartela title size 9.1 pt.
-                assertTrue(Regex("""(?m)/F1\s+9\.1\d*\s+Tf""").containsMatchIn(ops),
-                    "Rasgos title must use genuine embedded 9.1pt Barlow heading font.")
+                assertTrue(Regex("""(?m)/F\d+\s+9\.1\d*\s+Tf""").containsMatchIn(ops),
+                    "Rasgos title must use genuine embedded 9.1pt Noto Sans Display heading font.")
                 val page1 = PDFTextStripper().apply {
                     startPage = 1
                     endPage = 1

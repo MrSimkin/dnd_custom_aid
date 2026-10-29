@@ -22,13 +22,13 @@ import kotlin.test.assertTrue
 
 class DesktopPcSheetV11FontMeasurerTest {
     @Test
-    fun embeddedFiraAndBarlowProvideTruePdfMetrics() {
+    fun embeddedGoldenNotoFontsProvideTruePdfMetrics() {
         PDDocument().use { pdf ->
             val measurer = DesktopPcSheetV11FontMeasurer(pdf)
             val body = measurer.resolve(PcSheetV11Typeface.BODY, 9f)
             val label = measurer.resolve(PcSheetV11Typeface.LABEL, 9f)
-            assertEquals("fonts/pdf/text/FiraSans-Regular.ttf", body.typeface.assetPath)
-            assertEquals("fonts/pdf/text/BarlowCondensed-Bold.ttf", label.typeface.assetPath)
+            assertEquals("fonts/pdf/text/NotoSans-Regular.ttf", body.typeface.assetPath)
+            assertEquals("fonts/pdf/text/NotoSansDisplay-CondensedBold.ttf", label.typeface.assetPath)
             assertTrue(body.metrics.ascentPt > 0f && body.metrics.descentPt > 0f)
             assertTrue(body.metrics.lineHeightPt > body.metrics.ascentPt + body.metrics.descentPt)
             assertEquals(0f, body.width.measurePt(""))

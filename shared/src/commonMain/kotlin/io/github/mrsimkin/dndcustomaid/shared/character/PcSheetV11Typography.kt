@@ -6,8 +6,14 @@ package io.github.mrsimkin.dndcustomaid.shared.character
  * This is a technical typography selection; runtime visual acceptance is still required.
  */
 enum class PcSheetV11Typeface(val assetPath: String) {
-    LABEL("fonts/pdf/text/BarlowCondensed-Bold.ttf"),
-    BODY("fonts/pdf/text/FiraSans-Regular.ttf"),
+    // Owner 2026-10-29 «se agregan las fuentes»: the exact golden V11 files.
+    LABEL("fonts/pdf/text/NotoSansDisplay-CondensedBold.ttf"),
+    BODY("fonts/pdf/text/NotoSans-Regular.ttf"),
+    BODY_BOLD("fonts/pdf/text/NotoSans-Bold.ttf"),
+    /** Golden names and titles; it lacks accented letters, see [HERO_FALLBACK]. */
+    HERO("fonts/pdf/text/EBGaramond12-Bold.ttf"),
+    /** Same EB Garamond project, used only for characters [HERO] cannot draw. */
+    HERO_FALLBACK("fonts/pdf/text/EBGaramond-Bold.ttf"),
 }
 
 /**

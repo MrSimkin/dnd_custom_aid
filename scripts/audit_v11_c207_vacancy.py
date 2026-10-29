@@ -22,6 +22,12 @@ def role(page):
     lines = page.get_text().splitlines()
     return lines[1] if len(lines) > 1 else ""
 
+def notas_labels(page):
+    """(x0, y0, x1, baseline) of each 12 pt NOTAS cartela label."""
+    return [(s["bbox"][0], s["bbox"][1], s["bbox"][2], s["origin"][1])
+            for b in page.get_text("dict")["blocks"] for line in b.get("lines", [])
+            for s in line["spans"] if s["text"].strip() == "NOTAS" and abs(s["size"]-12)<.05]
+
 def grids(page):
     paths = page.get_drawings()
     h = [s["rect"] for s in paths if s["type"] == "s" and
@@ -31,10 +37,10 @@ def grids(page):
          s.get("width") is not None and abs(s["width"]-.5)<.08 and
          s["rect"].width < .05 and s["rect"].height > 46]
     out=[]
-    for w in page.get_text("words"):
-        if w[4] != "NOTAS" or abs(w[3]-w[1]-14.4)>.15:
-            continue
-        y=w[3]+4.6
+    # The NOTAS cartela is the 12 pt label span; its grid rule lies 7 pt below its
+    # baseline. Font-independent (C283: the golden Noto label face replaced Barlow).
+    for w in notas_labels(page):
+        y=w[3]+7.0
         for line in h:
             if abs(line.y0-y)<.4 and line.x0<w[0]+2 and line.x1>w[2]+50:
                 cols=[c for c in v if abs(c.y0-y)<.4 and
@@ -58,10 +64,12 @@ def missing_by_side(page):
                 "detected_grids":len(valid_grids)}
     sides={}
     missing=[]
+    labels=notas_labels(page)
     for left,right,name in ((42,300,"left"),(312,570,"right")):
         src=[w for w in words if 106<=w[1]<=720 and
              w[0]>=left and w[2]<=right and
-             not (w[4]=="NOTAS" and abs(w[3]-w[1]-14.4)<.15)]
+             not any(w[4]=="NOTAS" and abs(w[0]-n[0])<.5 and abs(w[1]-n[1])<2
+                     for n in labels)]
         bottom=max((w[3] for w in src),default=105.)
         gap=BOTTOM-bottom
         covered=any(x1>=left+100 and x0<=right-100 and

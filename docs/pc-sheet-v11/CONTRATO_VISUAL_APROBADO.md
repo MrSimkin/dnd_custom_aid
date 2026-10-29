@@ -107,6 +107,10 @@ El propietario aprobó P1/P3/P4, P2, C2, final y variante B tras revisión V11. 
 - **Q14:** «Sí, con escuela». **Q14b:** «aun no hemos importado el SRD … estará en el SRD, debe usar A».
 - **Regla:** la ficha del Libro muestra, bajo el nombre, la escuela real que guarda la App (`CharacterSpell.school`), como el golden: mayúsculas, condensada negrita 7 pt, gris #657d90, en la franja del encabezado. Si el conjuro no tiene escuela, no se imprime ninguna línea, ni se deduce de la clase, la fuente, el nombre o la descripción. Esto amplía la ficha esencial BK06 (nombre, nivel, escuela si existe, descripción íntegra).
 
+## Aclaración del propietario — fuentes del golden (2026-10-29)
+
+- «se agregan las fuentes». El PDF V11 usa las fuentes exactas del golden: Noto Sans Display Condensed Bold para rótulos, Noto Sans Regular/Bold para texto y EB Garamond 12 Bold para nombres y títulos (letras que le faltan: EB Garamond Bold del mismo proyecto). Reemplazan a Barlow Condensed y Fira Sans.
+
 ## Aclaración del propietario — Equipo y Tesoro con nombres largos (2026-10-26)
 
 **Dicho por el propietario (2026-10-26),** tras ver la página 2 de Mara vacía y una vista previa del arreglo:

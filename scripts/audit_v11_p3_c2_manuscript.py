@@ -17,6 +17,7 @@ import fitz
 
 PALE = (0.93333, 0.96863, 0.98431)
 GOLDEN_ROW = (231/255, 242/255, 247/255)
+GOLDEN_LIGHT_ROW = (240/255, 247/255, 250/255)
 
 
 def close(a: float, b: float, tolerance: float = 0.16) -> bool:
@@ -82,6 +83,20 @@ def p3_result(page: fitz.Page) -> tuple[int, int, list[str]]:
     return len(areas), matched, failures
 
 
+def notas_label_baselines(page: fitz.Page) -> list[tuple[float, float, float]]:
+    """(x0, y0, baseline) of each 12 pt NOTAS cartela label span."""
+    return [(s["bbox"][0], s["bbox"][1], s["origin"][1])
+            for b in page.get_text("dict")["blocks"] for line in b.get("lines", [])
+            for s in line["spans"] if s["text"].strip() == "NOTAS" and close(s["size"], 12., .05)]
+
+
+def cartela_baseline(word, labels) -> float | None:
+    for x0, y0, baseline in labels:
+        if close(word[0], x0, .5) and close(word[1], y0, 2.):
+            return baseline
+    return None
+
+
 def p3_golden_row_grammar(page: fitz.Page, first_page: bool) -> tuple[int,int,list[str]]:
     """Verify 6 real P3 golden title panels and alternating measured paper."""
     color_fills = [
@@ -101,15 +116,24 @@ def p3_golden_row_grammar(page: fitz.Page, first_page: bool) -> tuple[int,int,li
     headings=0
     stripes=0
     if first_page:
-        # PDF top-origin: golden-preserved first-page 3 paired fields.
-        for y in (121.,184.,247.):
-            for x in (43.,313.):
-                if found(x,y,256.,16.): headings+=1
+        # PDF top-origin. C284: the golden field paper (v11_extremo p3) — each of
+        # the 3x2 fields is four 17 pt bands, 263.48 pt wide, and the two columns
+        # start on opposite shades (left: dark label band, right: light).
+        light_fills = [
+            dr["rect"] for dr in page.get_drawings()
+            if dr["type"] == "f" and dr.get("fill") is not None
+            and all(close(dr["fill"][i], GOLDEN_LIGHT_ROW[i], .013) for i in range(3))
+        ]
+        def band(x,y,dark):
+            return any(close(r.x0,x,.42) and close(r.y0,y,.42)
+                       and close(r.width,263.48,.42) and close(r.height,17.,.42)
+                       for r in (color_fills if dark else light_fills))
+        for y in (121.34,189.34,257.34):
+            for column,x in enumerate((39.69,308.83)):
+                if band(x,y,column==0): headings+=1
                 else: errors.append(f"P3 golden title band missing at {x},{y}")
-        for y in (137.,200.,263.):
-            for x in (43.,313.):
-                if stripe(x,y,256.): stripes+=1
-                else: errors.append(f"P3 alternating field row missing at {x},{y}")
+                if band(x,y+17.,column==1): stripes+=1
+                else: errors.append(f"P3 alternating field row missing at {x},{y+17.}")
         # Owner option B (2026-10-26): story rows follow the golden 17 pt rhythm.
         for x in (47.,312.):
             if stripe(x,343.,253.,16.5,17.5): stripes+=1
@@ -138,14 +162,14 @@ def c2_result(page: fitz.Page) -> tuple[int, int, list[str]]:
         and dr["rect"].width < .05 and dr["rect"].height > 46
     ]
     words = page.get_text("words")
-    cartelas = [
-        word for word in words
-        if word[4] == "NOTAS" and close(word[3] - word[1], 14.4, .14)
-    ]
+    # C283: the renderer's NOTAS cartela is the 12 pt label span; its grid top
+    # rule lies 7 pt below the baseline (independent of the label face).
+    labels = notas_label_baselines(page)
+    cartelas = [word for word in words if word[4] == "NOTAS" and cartela_baseline(word, labels)]
     failures: list[str] = []
     complete = 0
     for word in cartelas:
-        grid_top = word[3] + 4.6
+        grid_top = cartela_baseline(word, labels) + 7.0
         tops = [
             rect for rect in horizontal
             if close(rect.y0, grid_top, .38)
@@ -197,11 +221,12 @@ def c2_result(page: fitz.Page) -> tuple[int, int, list[str]]:
         complete += 1
     # C208: a C2 page containing only a manuscript table is forbidden.
     # Words from genuine sources start at y >= 89.5 (C2 titles/cartelas
-    # above); NOTAS written by the renderer has exactly 14.4pt bounds.
+    # above); NOTAS written by the renderer is its 12 pt cartela label.
+    labels = notas_label_baselines(page)
     source_words = [
         word for word in words
         if 89.5 <= word[1] <= 720
-        and not (word[4] == "NOTAS" and close(word[3] - word[1], 14.4, .14))
+        and not (word[4] == "NOTAS" and cartela_baseline(word, labels))
     ]
     if not source_words:
         failures.append("C208 physical C2 page has no actual digital source content")

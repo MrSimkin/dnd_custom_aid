@@ -144,6 +144,13 @@ Ninguna. Q14 se resolvió el 2026-10-29 (ver «Resueltas»). Las preguntas Q1–
 
 ## Resueltas
 
+### Fuentes del golden (2026-10-29)
+
+- **Pregunta:** ¿se incorporan a la App las fuentes con que se generó el golden (Noto Sans y EB Garamond)?
+- **Respuesta del propietario (2026-10-29):** «se agregan las fuentes».
+- **Aplicado (C283):** los archivos exactos del golden (anchos idénticos, error 0,0 pt): Noto Sans Display Condensed Bold (rótulos), Noto Sans Regular y Bold (texto) y EB Garamond 12 Bold (nombres y títulos). Todas con licencia libre OFL 1.1; procedencia y SHA-256 en `assets/fonts/pdf/text/README.md`.
+- **Hallazgo del Worker:** la EB Garamond 12 Bold del golden no tiene letras acentuadas ni rayas; el propio golden perdió la «á» de «mágico». Para no perder letras, cada carácter que le falta se dibuja con la EB Garamond Bold actual del mismo proyecto.
+
 ### Q14 — Libro: ¿mostrar la escuela de magia? (2026-10-29)
 
 - **Contexto:** la ficha del Libro del golden muestra, bajo el nombre, la escuela del conjuro en letra pequeña gris («ABJURACIÓN»). La ficha esencial que el propietario aprobó (BK06) es nombre, nivel y descripción íntegra, sin escuela.

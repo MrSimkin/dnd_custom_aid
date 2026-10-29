@@ -47,12 +47,49 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             measurer.resolve(PcSheetV11Typeface.LABEL, 12f)
             val bodyPdfFont = measurer.font(PcSheetV11Typeface.BODY)
             val headerPdfFont = measurer.font(PcSheetV11Typeface.LABEL)
+            // C285 (golden): names in EB Garamond 12 Bold. A character that font has
+            // no glyph for (accents, dashes) is drawn from the later EB Garamond Bold
+            // of the same project, so no letter is ever dropped.
+            measurer.resolve(PcSheetV11Typeface.HERO, 12f)
+            measurer.resolve(PcSheetV11Typeface.HERO_FALLBACK, 12f)
+            val heroPdfFonts = listOf(measurer.font(PcSheetV11Typeface.HERO),
+                measurer.font(PcSheetV11Typeface.HERO_FALLBACK))
+            fun heroRuns(text: String): List<Pair<Int, String>> {
+                val runs = mutableListOf<Pair<Int, StringBuilder>>()
+                var i = 0
+                while (i < text.length) {
+                    val glyph = String(Character.toChars(text.codePointAt(i)))
+                    val fontIndex = if (runCatching { heroPdfFonts[0].encode(glyph) }.isSuccess) 0 else 1
+                    if (runs.isNotEmpty() && runs.last().first == fontIndex) runs.last().second.append(glyph)
+                    else runs += fontIndex to StringBuilder(glyph)
+                    i += glyph.length
+                }
+                return runs.map { it.first to it.second.toString() }
+            }
+            fun heroWidthPt(text: String, sizePt: Float): Float =
+                heroRuns(pcSheetV11PrintableText(text)).sumOf { (fontIndex, run) ->
+                    (heroPdfFonts[fontIndex].getStringWidth(run) * sizePt / 1000f).toDouble()
+                }.toFloat()
+            fun drawHero(stream: PDPageContentStream, text: String, x: Float, y: Float, sizePt: Float) {
+                var cursor = x
+                heroRuns(pcSheetV11PrintableText(text)).forEach { (fontIndex, run) ->
+                    stream.beginText()
+                    stream.setFont(heroPdfFonts[fontIndex], sizePt)
+                    stream.newLineAtOffset(cursor, y)
+                    stream.showText(run)
+                    stream.endText()
+                    cursor += heroPdfFonts[fontIndex].getStringWidth(run) * sizePt / 1000f
+                }
+            }
             val source = data.source.sheet
             val headerNameRoute =
                 io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11HeaderNameRouter.route(
                     sourceName = source.name,
                     availableWidthPt = 406f, // Header text x154..560, inside its 422pt band.
-                    width = measurer.resolve(PcSheetV11Typeface.LABEL, 12f).width,
+                    // C285: measured in the golden name face and size (Garamond 13.4 pt).
+                    width = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TextWidth {
+                        heroWidthPt(it, 13.4f)
+                    },
                 )
             val texts = PcSheetV11FlowSourceMapper.from(data)
             val pageArea = PcSheetV11RectPt(42f, 76f, 528f, 626f)
@@ -218,7 +255,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 )
                 stream.restoreGraphicsState()
 
-                draw(stream, headerNameRoute.paperName, 154f, 747f, true)
+                // C285: golden character name, EB Garamond 12 Bold 13.4 pt in ink #1d384f.
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(Color(29, 56, 79))
+                drawHero(stream, headerNameRoute.paperName, 154f, 745f, 13.4f)
+                stream.restoreGraphicsState()
                 draw(stream, title, 42f, 724f, true)
                 if (!lastHandwrittenPage) {
                     draw(stream, "PRUEBA INTERNA V11 - NO APROBADA", 42f, 46f, false)
@@ -433,7 +474,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // three-character ability suffix required outside its attribute.
             val variantA = data.request.variant ==
                 io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A
-            val skillFont = measurer.resolve(PcSheetV11Typeface.BODY, 7f)
+            val skillFont = measurer.resolve(PcSheetV11Typeface.BODY, 7f).let { font ->
+                // C283: Noto Sans' 7 pt box is taller than Fira's; B keeps nine skill
+                // rows per subcolumn in its 95 pt panel on a 10.5 pt pitch.
+                val box = font.metrics.ascentPt + font.metrics.descentPt
+                font.copy(metrics = font.metrics.copy(leadingPt = maxOf(0f, 10.5f - box)))
+            }
             val groupedSkills = mutableMapOf<Int, MutableList<Pair<Int, io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Skill>>>()
             val printedSkillIndices = mutableSetOf<Int>()
             if (variantA) {
@@ -1955,13 +2001,22 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 "VÍNCULOS" to listOf("bonds"),
                 "DEFECTOS" to listOf("flaws"),
             )
+            // C284 (golden P3): each field is four banded 17 pt rows (label + three
+            // value rows) in 263.5 pt columns; values Noto Sans 7.3 pt, 4.5 pt above
+            // each row foot, 4.5 pt inside the column (v11_extremo p3).
+            val p3FieldRowPt = 17f
+            val p3FieldFont = measurer.resolve(PcSheetV11Typeface.BODY, 7.3f).let { font ->
+                font.copy(metrics = font.metrics.copy(leadingPt = maxOf(0f,
+                    p3FieldRowPt - font.metrics.ascentPt - font.metrics.descentPt)))
+            }
             val p3FieldLayouts = p3FieldSpecs.mapIndexed { index, (heading, keys) ->
-                val x = if (index % 2 == 0) 42f else 312f
-                val top = 672f - (index / 2) * 63f
-                val bounds = PcSheetV11RectPt(x, top - 63f, 258f, 63f)
-                val bodyArea = PcSheetV11RectPt(x + 5f, top - 57f, 248f, 42f)
+                val x = if (index % 2 == 0) 39.685f else 308.835f
+                val top = 670.661f - (index / 2) * 4 * p3FieldRowPt
+                val bounds = PcSheetV11RectPt(x, top - 4 * p3FieldRowPt, 263.48f, 4 * p3FieldRowPt)
+                val bodyArea = PcSheetV11RectPt(x + 4.5f, bounds.bottomPt,
+                    263.48f - 9f, 3 * p3FieldRowPt)
                 val entries = keys.mapNotNull { p3Narrative["narrative:" + it] }
-                val measured = body.place(
+                val measured = p3FieldFont.place(
                     PcSheetV11FlowSection.NARRATIVE, entries, bodyArea, 1, 0f,
                 )
                 Triple(heading, bounds, measured)
@@ -1981,8 +2036,15 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // original»): measured golden body sizes and row pitches per module.
             fun goldenRhythm(sizePt: Float, pitchPt: Float): PcSheetV11ResolvedFont =
                 measurer.resolve(PcSheetV11Typeface.BODY, sizePt).let { font ->
-                    font.copy(metrics = font.metrics.copy(leadingPt =
-                        pitchPt - font.metrics.ascentPt - font.metrics.descentPt))
+                    // C283: a golden row tighter than Noto Sans' full ascent+descent
+                    // box (special equipment, 7 pt on 9 pt) keeps the golden pitch;
+                    // the box is scaled into the row, as the golden generator does.
+                    val box = font.metrics.ascentPt + font.metrics.descentPt
+                    val fit = minOf(1f, pitchPt / box)
+                    font.copy(metrics = font.metrics.copy(
+                        ascentPt = font.metrics.ascentPt * fit,
+                        descentPt = font.metrics.descentPt * fit,
+                        leadingPt = maxOf(0f, pitchPt - box * fit)))
                 }
             val bookFont = goldenRhythm(6.7f, 10.5f)
             val notesFont = goldenRhythm(7f, 11.6f)
@@ -2120,45 +2182,46 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             fun drawP3FirstPage(stream: PDPageContentStream) {
                 drawP3Band(stream, "TRASFONDO Y PERFIL NARRATIVO", 682f)
                 p3FieldLayouts.forEachIndexed { index, (heading, rect, placed) ->
-                    stream.saveGraphicsState()
-                    stream.setStrokingColor(Color(130, 165, 186))
-                    stream.setLineWidth(0.55f)
-                    stream.addRect(rect.leftPt, rect.bottomPt,
-                        rect.widthPt, rect.heightPt)
-                    stream.stroke()
-                    stream.restoreGraphicsState()
-                    p3RuledCells(stream,
-                        PcSheetV11RectPt(rect.leftPt + 1f, rect.bottomPt + 1f,
-                            rect.widthPt - 2f, rect.heightPt - 18f),
-                        body.metrics.lineHeightPt)
-                    // Restore the frozen golden blue field-title band
-                    // INSIDE the pre-existing 17pt label reservation.
-                    stream.saveGraphicsState()
-                    stream.setNonStrokingColor(Color(231, 242, 247))
-                    stream.addRect(rect.leftPt + 1f, rect.topPt - 17f,
-                        rect.widthPt - 2f, 16f)
-                    stream.fill()
-                    stream.restoreGraphicsState()
-                    // Section labels are genuine Barlow Condensed, not
-                    // Fira Sans values. Enforce width with the embedded
-                    // PDF font before changing their physical typography.
-                    val labelPt = 9f
-                    val labelWidth = headerPdfFont.getStringWidth(heading) *
-                        labelPt / 1000f
-                    require(labelWidth <= rect.widthPt - 10f) {
+                    // C284: golden field paper — alternating bands (the two columns
+                    // start on opposite shades) with a 0.32 pt rule 1 pt above each foot.
+                    for (row in 0 until 4) {
+                        val bottom = rect.topPt - (row + 1) * p3FieldRowPt
+                        stream.saveGraphicsState()
+                        stream.setNonStrokingColor(if ((row + index % 2) % 2 == 0)
+                            Color(231, 242, 247) else Color(240, 247, 250))
+                        stream.addRect(rect.leftPt, bottom, rect.widthPt, p3FieldRowPt)
+                        stream.fill()
+                        stream.setStrokingColor(Color(148, 176, 193))
+                        stream.setLineWidth(0.32f)
+                        stream.moveTo(rect.leftPt, bottom + 1f)
+                        stream.lineTo(rect.rightPt, bottom + 1f)
+                        stream.stroke()
+                        stream.restoreGraphicsState()
+                    }
+                    // Golden field label: Noto Sans Display Condensed Bold 7 pt, #1d384f.
+                    val labelPt = 7f
+                    require(headerPdfFont.getStringWidth(heading) * labelPt / 1000f <=
+                        rect.widthPt - 9f) {
                         "P3 narrative cartela label cannot fit without clipping."
                     }
+                    stream.saveGraphicsState()
+                    stream.setNonStrokingColor(Color(29, 56, 79))
                     stream.beginText()
                     stream.setFont(headerPdfFont, labelPt)
-                    stream.newLineAtOffset(rect.leftPt + 5f, rect.topPt - 11f)
+                    stream.newLineAtOffset(rect.leftPt + 4.5f, rect.topPt - p3FieldRowPt + 4.5f)
                     stream.showText(heading)
                     stream.endText()
+                    stream.setNonStrokingColor(Color(36, 57, 75))
                     placed.cells.filter { it.localPageIndex == 1 }.forEach { cell ->
                         if (cell.drawableText.isNotEmpty()) {
-                            draw(stream, cell.drawableText, cell.cellPt.leftPt,
-                                body.metrics.baselineIn(cell.cellPt), false)
+                            stream.beginText()
+                            stream.setFont(bodyPdfFont, 7.3f)
+                            stream.newLineAtOffset(cell.cellPt.leftPt, cell.cellPt.bottomPt + 4.5f)
+                            stream.showText(pcSheetV11PrintableText(cell.drawableText))
+                            stream.endText()
                         }
                     }
+                    stream.restoreGraphicsState()
                     require(p3FieldSpecs[index].first == heading)
                 }
                 drawP3Band(stream, "HISTORIA Y CRÓNICA", 461f)

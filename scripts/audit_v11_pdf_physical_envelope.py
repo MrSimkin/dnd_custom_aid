@@ -93,9 +93,9 @@ def cn3_cards(page: fitz.Page) -> list[str]:
              and d["rect"].height > 10]
     if not cards:
         return errors + ["C-N3 page has no note cards"]
-    # Digital note text is Fira; Barlow is cartela/header paper text.
+    # Digital note text is Noto Sans Regular; Noto Sans Display is cartela/header paper text.
     spans = [s for b in page.get_text("dict")["blocks"] for line in b.get("lines", [])
-             for s in line["spans"] if "Fira" in s["font"] and s["text"].strip()]
+             for s in line["spans"] if "NotoSans-Regular" in s["font"] and s["text"].strip()]
     for s in spans:
         x0, y0, x1, y1 = s["bbox"]
         if 92 < y0 < 688 and not any(c.x0 + 4 < x0 and x1 < c.x1 - 4 and c.y0 - .5 <= y0 and y1 <= c.y1 + .5
@@ -129,7 +129,7 @@ def inspect_one(path: Path) -> dict:
             errors.extend(p2_alternating_writing_rows(page))
             errors.extend(p2_special_rows(page))
         fonts = " ".join(item[3] for item in page.get_fonts(full=True))
-        if "BarlowCondensed" not in fonts or (index < total and "FiraSans" not in fonts):
+        if "NotoSansDisplay" not in fonts or (index < total and "NotoSans-Regular" not in fonts):
             errors.append(f"p{index}: expected embedded text font missing")
         foot = FOOTER.findall(page.get_text())
         if index < total and foot != [(str(index), str(total))]:
