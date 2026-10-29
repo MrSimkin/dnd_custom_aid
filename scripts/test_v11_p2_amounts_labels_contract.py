@@ -15,7 +15,9 @@ class P2AmountsLabelsParityTest(unittest.TestCase):
         for path in RENDERERS:
             data = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):
-                self.assertIn("draw(stream, cell.printableText, cell.rectPt.rightPt - 3f -", data)
+                # C292: golden amounts in Noto Sans Bold #264b68, right edge 3 pt inside.
+                self.assertIn("stream.setFont(boldPdfFont, amountPt)", data)
+                self.assertIn("stream.newLineAtOffset(cell.rectPt.rightPt - 3f -", data)
                 self.assertIn("drawP1Label(stream, label, headerX + 5f, specialArea.topPt - 12f)", data)
                 self.assertIn("drawP1Label(stream, label, headerX + 5f, drawingArea.topPt - 12f)", data)
                 self.assertNotIn("draw(stream, label, headerX + 5f, specialArea.topPt - 13f, false)", data)

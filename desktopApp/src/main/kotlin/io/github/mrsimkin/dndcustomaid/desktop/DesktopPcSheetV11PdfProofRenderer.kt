@@ -51,6 +51,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // no glyph for (accents, dashes) is drawn from the later EB Garamond Bold
             // of the same project, so no letter is ever dropped.
             measurer.resolve(PcSheetV11Typeface.HERO, 12f)
+            measurer.resolve(PcSheetV11Typeface.BODY_BOLD, 9f)
+            val boldPdfFont = measurer.font(PcSheetV11Typeface.BODY_BOLD)
             measurer.resolve(PcSheetV11Typeface.HERO_FALLBACK, 12f)
             val heroPdfFonts = listOf(measurer.font(PcSheetV11Typeface.HERO),
                 measurer.font(PcSheetV11Typeface.HERO_FALLBACK))
@@ -128,11 +130,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
 
             fun draw(stream: PDPageContentStream, text: String, x: Float, y: Float, label: Boolean) {
                 if (text.isEmpty()) return
+                // C291: golden value ink #24394b for body text; labels keep their ink.
+                if (!label) {
+                    stream.saveGraphicsState()
+                    stream.setNonStrokingColor(Color(36, 57, 75))
+                }
                 stream.beginText()
                 stream.setFont(if (label) headerPdfFont else bodyPdfFont, if (label) 12f else 9f)
                 stream.newLineAtOffset(x, y)
                 stream.showText(pcSheetV11PrintableText(text))
                 stream.endText()
+                if (!label) stream.restoreGraphicsState()
             }
 
             // C232 step 2: the approved golden alternates two blue-mist tones on every
@@ -2171,11 +2179,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             fun storyBaseline(cell: PcSheetV11RectPt): Float = cell.bottomPt + 4f
             fun drawStory(stream: PDPageContentStream, text: String, x: Float, y: Float) {
                 if (text.isEmpty()) return
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(Color(36, 57, 75)) // C291: golden value ink
                 stream.beginText()
                 stream.setFont(bodyPdfFont, 7f)
                 stream.newLineAtOffset(x, y)
                 stream.showText(pcSheetV11PrintableText(text))
                 stream.endText()
+                stream.restoreGraphicsState()
             }
             // Golden P3: text sits 4 pt inside each banded column (measured on
             // v11_extremo p3). Bands keep p3StoryArea; text uses the inset area.
@@ -2502,12 +2513,18 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val body = font
                 fun draw(stream: PDPageContentStream, text: String, x: Float, y: Float, label: Boolean) {
                     if (text.isEmpty()) return
+                    // C291: golden value ink #24394b for body text; labels keep their ink.
+                    if (!label) {
+                        stream.saveGraphicsState()
+                        stream.setNonStrokingColor(Color(36, 57, 75))
+                    }
                     stream.beginText()
                     stream.setFont(if (label) headerPdfFont else bodyPdfFont,
                         if (label) 12f else font.metrics.fontSizePt)
                     stream.newLineAtOffset(x, y)
                     stream.showText(pcSheetV11PrintableText(text))
                     stream.endText()
+                    if (!label) stream.restoreGraphicsState()
                 }
                 val flow = font.place(section, entries, area, columns, gutterPt)
                 val pageCount = maxOf(if (alwaysPage) 1 else 0, flow.sourceFlow.localPageCount)
@@ -4041,21 +4058,26 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // Golden P2 requires an explicit meaning for BOTH small
                 // internal columns: OBJETO/CANTIDAD or DENOMINACIÓN/CANTIDAD.
                 // Occupy the existing blue source-free cartela, never the table.
+                // C292 (golden): the legend is Noto Sans 6.2 pt in label grey
+                // #657d90, 1.2 pt above the title baseline, 18.4 pt from the right.
                 columnLegend?.let { legend ->
-                    val legendSize = 7f
-                    val width = headerPdfFont.getStringWidth(legend) *
+                    val legendSize = 6.2f
+                    val printable = pcSheetV11PrintableText(legend)
+                    val width = bodyPdfFont.getStringWidth(printable) *
                         legendSize / 1000f
                     val titleWidth = headerPdfFont.getStringWidth(title) *
                         9.1f / 1000f
-                    val x = right - 16f - width
+                    val x = right - 18.4f - width
                     require(x > left + 16f + titleWidth + 8f) {
                         "P2 paired-table legend overlaps its approved heading."
                     }
+                    stream.setNonStrokingColor(Color(101, 125, 144))
                     stream.beginText()
-                    stream.setFont(headerPdfFont, legendSize)
-                    stream.newLineAtOffset(x, bottom + 4f)
-                    stream.showText(legend)
+                    stream.setFont(bodyPdfFont, legendSize)
+                    stream.newLineAtOffset(x, bottom + 5.2f)
+                    stream.showText(printable)
                     stream.endText()
+                    stream.setNonStrokingColor(Color(0, 0, 0))
                 }
             }
 
@@ -4074,19 +4096,25 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val body = tableFont
                 fun draw(stream: PDPageContentStream, text: String, x: Float, y: Float, label: Boolean) {
                     if (text.isEmpty()) return
+                    // C291: golden value ink #24394b for body text; labels keep their ink.
+                    if (!label) {
+                        stream.saveGraphicsState()
+                        stream.setNonStrokingColor(Color(36, 57, 75))
+                    }
                     stream.beginText()
                     stream.setFont(if (label) headerPdfFont else bodyPdfFont,
                         if (label) 12f else tableFont.metrics.fontSizePt)
                     stream.newLineAtOffset(x, y)
                     stream.showText(pcSheetV11PrintableText(text))
                     stream.endText()
+                    if (!label) stream.restoreGraphicsState()
                 }
                 if (!compactC2) {
                     val ordinary = placed.data.kind ==
                         io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableKind.EQUIPMENT
                     drawP2Cartela(
                         stream, if (ordinary) "EQUIPO" else "TESORO", area,
-                        if (ordinary) "OBJETO / CANTIDAD" else "DENOMINACIÓN / CANTIDAD",
+                        if (ordinary) "OBJETO / CANTIDAD" else "denominación / cantidad", // golden case
                     )
                 }
                 val pageLabels = placed.labels.filter { it.localPageIndex == localPage }
@@ -4228,9 +4256,19 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }.forEach { cell ->
                     // C242: golden paired tables right-align each amount 3 pt
                     // inside its quantity cell (P2 and C2).
-                    draw(stream, cell.printableText, cell.rectPt.rightPt - 3f -
-                        body.width.measurePt(cell.printableText),
-                        body.metrics.baselineIn(cell.rectPt), false)
+                    // C292: golden amounts are Noto Sans Bold in ink #264b68.
+                    val amountPt = body.metrics.fontSizePt
+                    val amountText = pcSheetV11PrintableText(cell.printableText)
+                    stream.saveGraphicsState()
+                    stream.setNonStrokingColor(Color(38, 75, 104))
+                    stream.beginText()
+                    stream.setFont(boldPdfFont, amountPt)
+                    stream.newLineAtOffset(cell.rectPt.rightPt - 3f -
+                        boldPdfFont.getStringWidth(amountText) * amountPt / 1000f,
+                        body.metrics.baselineIn(cell.rectPt))
+                    stream.showText(amountText)
+                    stream.endText()
+                    stream.restoreGraphicsState()
                 }
                 // C207: on a FULL-HEIGHT C2 paired-table page, one real
                 // object/amount pair may end hundreds of points above the
@@ -4426,7 +4464,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             } + listOfNotNull(
                 if (p3StoryOverflow.isNotEmpty()) "HISTORIA A P. " + (p3StoryPagesBefore + 1)
                 else null,
-            )).joinToString(" · ").takeIf { it.isNotEmpty() }
+            )).joinToString("   ·   ").takeIf { it.isNotEmpty() } // C290: golden separator
             if (p3ModuleLinks != null) {
                 require(headerPdfFont.getStringWidth(p3ModuleLinks) * 6.1f / 1000f <= 528f) {
                     "All genuine P3 continuation destinations must fit the footer band."
@@ -5325,7 +5363,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // physical page ("EQUIPO A P. 4 · TESORO A P. 5 · EQUIPO ESPECIAL
             // A P. 5"), the same grammar as the P1 footer (C246).
             val p2ModuleLinks = p2C2Destinations
-                .joinToString(" · ") { (module, physical) ->
+                .joinToString("   ·   ") { (module, physical) -> // C290: golden separator
                     when (module) {
                         "EQUIPO/TESORO" -> "EQUIPO Y TESORO"
                         "ESPECIAL" -> "EQUIPO ESPECIAL"
@@ -5347,7 +5385,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 "c2-heading:resources" to "RECURSOS Y MUNICIONES",
             ).mapNotNull { (key, module) ->
                 mixedC2HeadingPages[key]?.let { module + " A P. " + it }
-            }.joinToString(" · ").takeIf { it.isNotEmpty() }
+            }.joinToString("   ·   ").takeIf { it.isNotEmpty() } // C290: golden separator
             if (p1ModuleLinks != null) {
                 require(body.width.measurePt(p1ModuleLinks) <= 528f) {
                     "All genuine P1 module destinations must fit the reserved footer."

@@ -16,7 +16,7 @@ class P2PairedLegendParityTest(unittest.TestCase):
         for source in SOURCES:
             body = source.read_text(encoding="utf-8")
             self.assertIn('if (ordinary) "EQUIPO" else "TESORO"', body)
-            self.assertIn('if (ordinary) "OBJETO / CANTIDAD" else "DENOMINACIÓN / CANTIDAD"', body)
+            self.assertIn('if (ordinary) "OBJETO / CANTIDAD" else "denominación / cantidad"', body)
             self.assertIn("columnLegend?.let { legend ->", body)
             self.assertIn("legend overlaps its approved heading", body)
             part = body.split("columnLegend?.let { legend ->", 1)[1].split("fun drawPaired(", 1)[0]

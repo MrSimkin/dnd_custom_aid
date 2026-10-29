@@ -6378,7 +6378,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     extractRegions(pdf.getPage(1))
                 }.getTextForRegion("module-forward-links")
                 assertTrue(p2Footer.contains("EQUIPO A P. " + equipmentPages.first() +
-                    " · TESORO A P. " + treasurePages.first()),
+                    "   ·   TESORO A P. " + treasurePages.first()),
                     "Every distinct P2 module needs a visible source-backed forward cue.")
 
                 for (physical in equipmentPages) {
@@ -6672,7 +6672,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     .getText(pdf)
                 assertTrue(p2.contains("OBJETO / CANTIDAD"),
                     "The real P2 object/quantity subcolumns must be identified.")
-                assertTrue(p2.contains("DENOMINACIÓN / CANTIDAD"),
+                assertTrue(p2.contains("denominación / cantidad"),
                     "The real P2 denomination/quantity subcolumns must be identified.")
                 assertTrue(p2.contains("RASGOS Y ATRIBUTOS"))
                 assertTrue(p2.contains("EQUIPO ESPECIAL"))
@@ -6684,7 +6684,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(headerAreas.getTextForRegion("equipment")
                     .contains("OBJETO / CANTIDAD"))
                 assertTrue(headerAreas.getTextForRegion("treasure")
-                    .contains("DENOMINACIÓN / CANTIDAD"))
+                    .contains("denominación / cantidad"))
             }
         }
     }
