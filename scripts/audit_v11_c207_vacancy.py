@@ -26,7 +26,7 @@ def notas_labels(page):
     """(x0, y0, x1, baseline) of each 12 pt NOTAS cartela label."""
     return [(s["bbox"][0], s["bbox"][1], s["bbox"][2], s["origin"][1])
             for b in page.get_text("dict")["blocks"] for line in b.get("lines", [])
-            for s in line["spans"] if s["text"].strip() == "NOTAS" and abs(s["size"]-12)<.05]
+            for s in line["spans"] if s["text"].strip() == "NOTAS" and abs(s["size"]-7.6)<.05]  # C307
 
 def grids(page):
     paths = page.get_drawings()

@@ -2033,7 +2033,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
-                draw(stream, "NOTAS", x + 8f, gridTop + 7f, true)
+                // C307: golden C2 NOTAS label, 7.6 pt #1d384f.
+                stream.setNonStrokingColor(Color(29, 56, 79))
+                drawP1Label(stream, "NOTAS", x + 8f, gridTop + 7f, 7.6f)
+                stream.setNonStrokingColor(Color(36, 57, 75))
             }
 
             // C2 leftover paper is handwriting space, not a new digital-notes section.
@@ -4332,11 +4335,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.closePath()
                     stream.fillAndStroke()
                     stream.restoreGraphicsState()
+                    // C307: golden C2 cartela title - 9.1 pt ink 16 pt inside, diamonds.
+                    drawCartelaDiamonds(stream, left, right, bottom, top)
+                    stream.saveGraphicsState()
+                    stream.setNonStrokingColor(Color(29, 56, 79))
                     stream.beginText()
-                    stream.setFont(headerPdfFont, 11f)
-                    stream.newLineAtOffset(left + 9f, bottom + 3f)
+                    stream.setFont(headerPdfFont, 9.1f)
+                    stream.newLineAtOffset(left + 16f, bottom + 4f)
                     stream.showText(title)
                     stream.endText()
+                    stream.restoreGraphicsState()
                 }
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130, 165, 186))
@@ -5016,8 +5024,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         drawFrameAndHeader(stream,
                             "C2 - Equipo especial / continuación / " + (pageIndex + 1))
                     }
-                    draw(stream, "EQUIPO ESPECIAL", 42f,
-                        drawingArea.topPt + 6f, true)
+                    // C307: golden 9.1 pt title ink.
+                    stream.setNonStrokingColor(Color(29, 56, 79))
+                    drawP1Label(stream, "EQUIPO ESPECIAL", 42f, drawingArea.topPt + 6f, 9.1f)
+                    stream.setNonStrokingColor(Color(36, 57, 75))
                     // An oversized source row can continue with ONLY its
                     // description: name/location were drawn on the prior
                     // physical page. Identify the SAME record in the free

@@ -32,6 +32,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C304 | Etiquetas de LANZAMIENTO DE CONJUROS | 6,65 pt como el golden (antes 6,5). |
 | C305 | Columnas de HISTORIA (P3) | Franjas 39,69–302,88 y 309,12–572,32 pt (6,24 pt de separación) y texto a 4 pt dentro (x 43,7), como el golden. |
 | C306 | Cartelas de P3 | Borde #264b68, ancho 39,69–572,32, rombos y título 9,1 pt #1d384f a 16 pt del borde (antes 12 pt tinta). |
+| C307 | Títulos de C2 | Cartela de tabla pareada con rombos y título 9,1 pt #1d384f a 16 pt (antes 11 pt); «EQUIPO ESPECIAL» de C2 9,1 pt; rótulo «NOTAS» de C2 7,6 pt #1d384f (antes 12 pt). Auditorías C207 y de manuscrito siguen el rótulo de 7,6 pt. |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos

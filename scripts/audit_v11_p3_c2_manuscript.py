@@ -87,7 +87,7 @@ def notas_label_baselines(page: fitz.Page) -> list[tuple[float, float, float]]:
     """(x0, y0, baseline) of each 12 pt NOTAS cartela label span."""
     return [(s["bbox"][0], s["bbox"][1], s["origin"][1])
             for b in page.get_text("dict")["blocks"] for line in b.get("lines", [])
-            for s in line["spans"] if s["text"].strip() == "NOTAS" and close(s["size"], 12., .05)]
+            for s in line["spans"] if s["text"].strip() == "NOTAS" and close(s["size"], 7.6, .05)]  # C307
 
 
 def cartela_baseline(word, labels) -> float | None:
