@@ -52,6 +52,8 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C325 | Estados con Para Hoja de PJ Symbols v8 | El propietario notó que V11 no usaba su fuente v8 (aprobada y congelada). Ahora los estados reales usan sus alias semánticos de `GUIDE.md`: competencia U+E108 (una marca), pericia U+E109 (dos marcas apiladas) en las casillas de habilidades de A y de C2, inspiración U+E10E (estrella llena) y ACTIVO U+E10F (rombo lleno). Cada marca se centra en su casilla con los límites reales de los contornos (empiezan en x=0; el xMin de la cabecera glyf está desfasado). Las casillas vacías siguen siendo vectoriales, como en el golden. ACTIVO no tiene campo en la App (active = null), así que el rombo nunca se imprime todavía. Prueba `c325RealStatesUseOwnerParaHojaDePjSymbolsV8GlyphsAB`; la auditoría de manuscrito acepta U+E108/U+E109 dentro de la casilla. |
 | C326 | Logo del propietario en la caja del golden | El propietario explicó que el texto «DUNGEONS & DRAGONS» del golden sustituía al logo y autorizó usar su logo, más pequeño si queda mejor. El logo subía hasta el marco exterior (y732–767); ahora ocupa la caja del logotipo del golden: x42–119, y721–751 (77 × 30 pt), bajo la esquina decorada y sobre la línea de cabecera. CI de C325: 41094207619 y 41094207395 (f437bcc4). |
 | C327 | Cabecera sin escudo, logo más grande | El propietario autorizó ajustar la cabecera a criterio técnico (con su control) y aclaró que el escudo del golden era parte del logo sustituto. Se quita el escudo; el logo pasa a x57–147 × y719,5–754,5 (90 × 35 pt), libre de la esquina decorada y su rombo. La línea pálida tras el logo, el nombre y los rótulos no cambian. CI de C326: 41095518975 y 41095518880 (77068466). |
+| C328 | Línea de la cabecera (decisión) | Con la autorización del propietario sobre la cabecera, la línea se queda en y717 y no baja a y709,8 como en el golden: en la App las franjas de continuación de C2, las tablas de C2 y el Libro empiezan en y703–716, y la línea las cruzaría. El logo (abajo en y719,5) y el título secundario (y724,5) quedan sobre ella. |
+| C329 | Habilidades de B con marcas v8 | Como en A, el entrenamiento de B es la marca v8 dentro de la casilla (U+E108 competencia, U+E109 pericia) y ya no el sufijo « P» / « E». La leyenda de la cartela muestra las mismas marcas: «✓ COMPETENCIA  ✓✓ PERICIA» en gris 6,2 pt. Si una habilidad de B se desborda a C2, el texto conserva el dato en palabras (« / Competencia», « / Pericia»). |
 Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c325_c326/`.
 
 ## Hallazgos
@@ -65,11 +67,9 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 - P1 con las columnas del golden: atributos 39,69–260,22 y combate 270,43–572,32 (la app usa dos de 258); cartelas a 588,19–611,15.
 - C2 de tablas y de equipo especial: el golden los mezcla en columnas con otros módulos; la app usa páginas a todo el ancho. Columnas de ESPECIAL del golden: 107 / 133,2 / 246 / 46,42.
 - P4: franja del encabezado de nivel de 20,7 pt del golden (la app usa un renglón de 15,73).
-- Línea del encabezado en y709,8 del golden: exige bajar la cartela NOTAS de C-N3.
 - C-N3: la tarjeta de notas generales (sin título) no tiene referencia en el golden; su primera línea queda junto al borde.
 - C2: renglones con franjas alternas en listas de acciones, recursos y habilidades, y el rótulo «MÓDULOS COMPARTIDOS · DOS COLUMNAS» del golden.
 
 - Libro: chaflán de las esquinas del golden y ~3 pt más de aire antes de la descripción.
 - La segunda línea del encabezado del golden muestra un descriptor de la ficha («EXTREMO FICTICIO»); la app pone ahí el título de página. Decidir si el propietario quiere otro dato ahí.
 - Matriz: registrar evidencia de G3 de estos bloques con la CI exacta.
-- Habilidades de B: el entrenamiento sigue como texto « P» / « E» con la leyenda «P=COMPETENCIA  E=PERICIA»; pasarlo a la marca v8 en la casilla exige que el desborde a C2 conserve el dato.

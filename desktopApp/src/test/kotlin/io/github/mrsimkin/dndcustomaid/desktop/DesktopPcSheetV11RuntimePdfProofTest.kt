@@ -242,6 +242,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 if (variant == PcSheetV11Variant.A) {
                     assertTrue(0xE108 in p1 && 0xE109 in p1,
                         "A skills print the v8 check / stacked double check ($fixture).")
+                } else {
+                    // C329: B boxes carry the same marks; the legend adds one of each.
+                    assertTrue(p1.count { it == 0xE108 } > 1 && p1.count { it == 0xE109 } >= 1,
+                        "B skills print the v8 check / stacked double check ($fixture).")
                 }
                 assertEquals(if (realStates) 1 else 0, p1.count { it == 0xE10E },
                     "INSPIRACIÓN star only when the sheet really has it ($fixture $variant).")
@@ -1511,7 +1515,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
             assertFalse(p1.contains("HABILIDADES BAJO ATRIBUTO"),
                 "Variant B must remain distinct from the attribute-grouped A layout.")
-            assertTrue(p1.contains("HABILIDADES") && p1.contains("P=COMPETENCIA  E=PERICIA"), // C310 golden cartela
+            assertTrue(p1.contains("HABILIDADES") && p1.contains("\uE109") && p1.contains("PERICIA"), // C310/C329 cartela
                 "B skills must occupy a named physical module, not identity prose.")
             assertTrue(p1.contains("Acrobacias (DES)"),
                 "Persisted B skills must appear with their actual ability abbreviation.")
@@ -6230,8 +6234,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     endPage = 1
                 }.getText(pdf)
                 assertTrue(page1.contains("HABILIDADES"))
-                assertTrue(page1.contains("P=COMPETENCIA"))
-                assertTrue(page1.contains("E=PERICIA"))
+                // C329: the B legend prints the v8 marks with their meaning.
+                assertTrue(page1.contains("\uE108") && page1.contains("PERICIA"))
+                assertTrue(page1.contains("\uE109"))
                 assertTrue(page1.contains("Acrobacias"))
             }
         }

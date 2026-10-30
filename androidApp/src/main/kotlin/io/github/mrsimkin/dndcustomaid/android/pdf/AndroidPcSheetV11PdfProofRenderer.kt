@@ -720,21 +720,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // C241: label and value suffix of each B skill, so a one-line skill
             // can print its value right-aligned in its subcolumn like the golden.
             val bSkillParts = mutableMapOf<String, Pair<String, String>>()
+            // C329: B training is the v8 mark in the skill's paper box (as in A),
+            // no longer a « P» / « E» suffix; an overflowing B skill keeps it in words.
+            val bSkillTraining = mutableMapOf<String,
+                io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining>()
             val bSkillEntries = if (!variantA) data.skills.withIndex()
                 .filter { it.value.builtInKey != null }
                 .map { (index, skill) ->
                     val abbreviation = data.attributes.firstOrNull {
                         it.reference == skill.ability
                     }?.abbreviation?.let { approvedAbilityAbbreviation(it) }
-                    val training = when (skill.training) {
-                        io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.NONE -> ""
-                        io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> " P"
-                        io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.EXPERTISE -> " E"
-                    }
                     val label = approvedSkillName(skill) + (abbreviation?.let { " (" + it + ")" } ?: "")
-                    val value = (skill.total?.let { " " + (if (it >= 0) "+" else "") + it } ?: "") +
-                        training
+                    val value = skill.total?.let { " " + (if (it >= 0) "+" else "") + it } ?: ""
                     bSkillParts["skill:" + index] = label to value
+                    bSkillTraining["skill:" + index] = skill.training
                     PcSheetV11FlowItem(
                         "skill:" + index,
                         label + value,
@@ -773,14 +772,22 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 drawCartelaDiamonds(stream, 42f, 300f, 330f, 348f)
                 stream.setNonStrokingColor(Color(29, 56, 79))
                 drawP1Label(stream, "HABILIDADES", 58f, 336f, 9.1f)
-                val skillsLegend = "P=COMPETENCIA  E=PERICIA"
+                // C329: the legend shows the v8 marks themselves.
+                val skillsLegend = listOf(0xE108 to "COMPETENCIA", 0xE109 to "PERICIA")
+                fun legendWidth(text: String) = bodyPdfFont.getStringWidth(text) * 6.2f / 1000f
+                var legendX = 300f - 18.4f - skillsLegend.sumOf { (_, text) ->
+                    (6f + 1.5f + legendWidth(text)).toDouble() }.toFloat() - 6f
                 stream.setNonStrokingColor(Color(101, 125, 144))
-                stream.beginText()
-                stream.setFont(bodyPdfFont, 6.2f)
-                stream.newLineAtOffset(300f - 18.4f -
-                    bodyPdfFont.getStringWidth(skillsLegend) * 6.2f / 1000f, 337.2f)
-                stream.showText(skillsLegend)
-                stream.endText()
+                skillsLegend.forEachIndexed { i, (glyph, text) ->
+                    drawStateGlyph(stream, glyph, legendX, 336.2f, 6.4f, Color(101, 125, 144))
+                    legendX += 7.5f
+                    stream.beginText()
+                    stream.setFont(bodyPdfFont, 6.2f)
+                    stream.newLineAtOffset(legendX, 337.2f)
+                    stream.showText(text)
+                    stream.endText()
+                    legendX += legendWidth(text) + if (i == 0) 6f else 0f
+                }
                 stream.setNonStrokingColor(Color(36, 57, 75))
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130,165,186))
@@ -838,6 +845,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 baseline - 2f, 7f, 7f)
                             stream.stroke()
                             stream.restoreGraphicsState()
+                            bSkillTraining[cell.sourceKey]?.let(::trainingGlyph)?.let {
+                                drawStateGlyph(stream, it, cell.cellPt.leftPt - 11f, baseline - 2f, 7f)
+                            }
                         }
                         fun ink(text: String, x: Float) {
                             stream.beginText()
@@ -871,7 +881,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     ?.maxOfOrNull { it.sourceEndExclusive } ?: 0
                 require(consumed in 0..item.text.length)
                 if (consumed == item.text.length) null
-                else item.copy(text = item.text.substring(consumed))
+                else item.copy(text = item.text.substring(consumed) +
+                    when (bSkillTraining[item.sourceKey]) {
+                        io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> " / Competencia"
+                        io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.EXPERTISE -> " / Pericia"
+                        else -> ""
+                    })
             }
 
             // Custom-attribute skills belong directly to their persisted

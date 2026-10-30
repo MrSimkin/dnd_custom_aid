@@ -20,7 +20,7 @@ class SkillsHeadingParity(unittest.TestCase):
             )[1].split("val blankPaperTop", 1)[0]
             self.assertIn("if (variantA) return", body)
             self.assertIn('drawP1Label(stream, "HABILIDADES", 58f, 336f, 9.1f)', body)  # C310
-            self.assertIn('val skillsLegend = "P=COMPETENCIA  E=PERICIA"', body)
+            self.assertIn('val skillsLegend = listOf(0xE108 to "COMPETENCIA", 0xE109 to "PERICIA")', body)  # C329
             for operator in (
                 "stream.moveTo(46f, 330f)",
                 "stream.lineTo(296f, 330f)",
