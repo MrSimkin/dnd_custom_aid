@@ -14,6 +14,11 @@ enum class PcSheetV11Typeface(val assetPath: String) {
     HERO("fonts/pdf/text/EBGaramond12-Bold.ttf"),
     /** Same EB Garamond project, used only for characters [HERO] cannot draw. */
     HERO_FALLBACK("fonts/pdf/text/EBGaramond-Bold.ttf"),
+    /**
+     * Owner font Para Hoja de PJ Symbols v8 (approved/frozen): contract «Estados: Para
+     * Hoja de PJ Symbols v8 como prioridad». Drawn only through its GUIDE.md PUA aliases.
+     */
+    SYMBOLS("fonts/owner/para-hoja-de-pj/v8/Para Hoja de PJ Symbols v8.ttf"),
 }
 
 /**

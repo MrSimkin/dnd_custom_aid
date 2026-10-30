@@ -56,6 +56,43 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             measurer.resolve(PcSheetV11Typeface.HERO_FALLBACK, 12f)
             val heroPdfFonts = listOf(measurer.font(PcSheetV11Typeface.HERO),
                 measurer.font(PcSheetV11Typeface.HERO_FALLBACK))
+            // C325: real sheet states use the owner's Para Hoja de PJ Symbols v8 through
+            // the semantic PUA aliases of its frozen GUIDE.md. Ink boxes are the frozen
+            // v8 outline bounds (2048 units/em; the outlines start at x=0, their glyf
+            // header xMin is stale) so each mark is centred in its paper box.
+            measurer.resolve(PcSheetV11Typeface.SYMBOLS, 7f)
+            val symbolPdfFont = measurer.font(PcSheetV11Typeface.SYMBOLS)
+            val v8InkBoxes = mapOf(
+                0xE108 to floatArrayOf(0f, 422f, 1042f, 1296f), // PROFICIENT_CHECK
+                0xE109 to floatArrayOf(0f, 299f, 829f, 1354f), // EXPERTISE_DOUBLE_CHECK
+                0xE10E to floatArrayOf(0f, 218f, 1370f, 1520f), // INSPIRATION_ACTIVE
+                0xE10F to floatArrayOf(0f, 80f, 1440f, 1520f), // ATTUNED_ACTIVE
+            )
+            fun drawStateGlyph(
+                stream: PDPageContentStream, codePoint: Int, boxX: Float, boxY: Float,
+                box: Float, ink: Color = Color(38, 75, 104),
+            ) {
+                val ink0 = requireNotNull(v8InkBoxes[codePoint]) { "Unmapped v8 state glyph" }
+                val inkW = ink0[2] - ink0[0]
+                val inkH = ink0[3] - ink0[1]
+                val pt = (box - 1.6f) * 2048f / maxOf(inkW, inkH)
+                val unit = pt / 2048f
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(ink)
+                stream.beginText()
+                stream.setFont(symbolPdfFont, pt)
+                stream.newLineAtOffset(boxX + (box - inkW * unit) / 2f - ink0[0] * unit,
+                    boxY + (box - inkH * unit) / 2f - ink0[1] * unit)
+                stream.showText(String(Character.toChars(codePoint)))
+                stream.endText()
+                stream.restoreGraphicsState()
+            }
+            fun trainingGlyph(training: io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining) =
+                when (training) {
+                    io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.NONE -> null
+                    io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> 0xE108
+                    io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.EXPERTISE -> 0xE109
+                }
             fun heroRuns(text: String): List<Pair<Int, String>> {
                 val runs = mutableListOf<Pair<Int, StringBuilder>>()
                 var i = 0
@@ -664,11 +701,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 stream.endText()
                             }
                         }
-                        put(when(skill.training) {
-                            io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.NONE -> ""
-                            io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> "P"
-                            io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.EXPERTISE -> "E"
-                        },48f)
+                        // C325: v8 training grammar - one check, or two stacked checks.
+                        trainingGlyph(skill.training)?.let { drawStateGlyph(stream, it, 47f, y - 2f, 7f) }
                         put(approvedSkillName(skill),60f)
                         skill.total?.let {
                             val v=if(it>=0)"+"+it else it.toString()
@@ -1844,14 +1878,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             if (source.inspiration) Color(191, 211, 222) else Color.WHITE)
                         stream.addRect(bx, by, 9f, 9f)
                         stream.fillAndStroke()
-                        if (source.inspiration) {
-                            stream.moveTo(bx + 1.5f, by + 1.5f)
-                            stream.lineTo(bx + 7.5f, by + 7.5f)
-                            stream.moveTo(bx + 7.5f, by + 1.5f)
-                            stream.lineTo(bx + 1.5f, by + 7.5f)
-                            stream.stroke()
-                        }
                         stream.restoreGraphicsState()
+                        // C325: v8 INSPIRATION_ACTIVE (filled star), only when real.
+                        if (source.inspiration) drawStateGlyph(stream, 0xE10E, bx, by, 9f)
                     } else if (value.isNotEmpty()) {
                         // Golden stat values are large, centered Barlow figures
                         // (~11pt); a longer real value steps down to 6pt.
@@ -3758,7 +3787,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 stream.stroke()
                                 stream.restoreGraphicsState()
                                 c2SkillTraining[cell.sourceKey]?.takeIf { it.isNotEmpty() }?.let { letter ->
-                                    drawP1Label(stream, letter, cell.cellPt.leftPt + 3.4f, base, 6.5f)
+                                    // C325: the v8 training glyph inside the same 7 pt square.
+                                    drawStateGlyph(stream, if (letter == "E") 0xE109 else 0xE108,
+                                        cell.cellPt.leftPt + 2f, base - 1f, 7f)
                                 }
                             }
                             // C259: golden ACCIONES table header and rows.
@@ -3846,8 +3877,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 stream.addRect(557f, cell.cellPt.bottomPt + 1f, 9f, 9f)
                                 stream.stroke()
                                 if (specialMarks[cell.sourceKey] == true) {
-                                    draw(stream, "X", 557f,
-                                        body.metrics.baselineIn(cell.cellPt), false)
+                                    // C325: v8 ATTUNED_ACTIVE (filled diamond).
+                                    drawStateGlyph(stream, 0xE10F, 557f, cell.cellPt.bottomPt + 1f, 9f)
                                 }
                             }
                         }
@@ -4604,7 +4635,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.addRect(activeX, activeY, 9f, 9f)
                     stream.stroke()
                     if (specialP2Rows.getOrNull(rowIndex)?.first?.active == true) {
-                        draw(stream, "X", activeX, activeY + 2f, false)
+                        // C325: v8 ATTUNED_ACTIVE (filled diamond).
+                        drawStateGlyph(stream, 0xE10F, activeX, activeY, 9f)
                     }
                 }
             }
@@ -5203,7 +5235,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             stream.addRect(markerX, markerY, 9f, 9f)
                             stream.stroke()
                             if (item.active == true) {
-                                draw(stream, "X", markerX, markerY + 2f, false)
+                                // C325: v8 ATTUNED_ACTIVE (filled diamond).
+                                drawStateGlyph(stream, 0xE10F, markerX, markerY, 9f)
                             }
                         }
                         rowTop -= part.heightPt

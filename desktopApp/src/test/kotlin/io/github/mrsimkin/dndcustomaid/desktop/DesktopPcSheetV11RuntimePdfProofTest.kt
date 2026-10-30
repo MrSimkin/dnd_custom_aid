@@ -209,6 +209,51 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c325RealStatesUseOwnerParaHojaDePjSymbolsV8GlyphsAB() {
+        // Contract «Estados: Para Hoja de PJ Symbols v8 como prioridad»: training,
+        // inspiration and ACTIVO are v8 PUA aliases, only where the source has them.
+        val v8 = setOf(0xE108, 0xE109, 0xE10E, 0xE10F)
+        for ((fixture, realStates) in listOf(
+            "03_mara_siete_umbrales_custom_extended.json" to true,
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to false,
+        )) for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources(fixture),
+            ).bytes
+            Loader.loadPDF(bytes).use { pdf ->
+                val glyphs = mutableListOf<Triple<Int, Int, String>>()
+                for (physical in 1..pdf.numberOfPages) {
+                    object : PDFTextStripper() {
+                        override fun writeString(
+                            text: String,
+                            textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                        ) {
+                            textPositions.forEach {
+                                val cp = it.unicode.codePointAt(0)
+                                if (cp in 0xE000..0xF8FF) glyphs += Triple(physical, cp, it.font.name)
+                            }
+                        }
+                    }.apply { startPage = physical; endPage = physical }.getText(pdf)
+                }
+                assertTrue(glyphs.all { it.second in v8 && it.third.endsWith("ParaHojadePJSymbolsV8-Regular") },
+                    "Only the four v8 state aliases, in the owner font ($fixture $variant).")
+                val p1 = glyphs.filter { it.first == 1 }.map { it.second }
+                if (variant == PcSheetV11Variant.A) {
+                    assertTrue(0xE108 in p1 && 0xE109 in p1,
+                        "A skills print the v8 check / stacked double check ($fixture).")
+                }
+                assertEquals(if (realStates) 1 else 0, p1.count { it == 0xE10E },
+                    "INSPIRACIÓN star only when the sheet really has it ($fixture $variant).")
+                // The App has no persisted ACTIVO field yet (semantic active = null), so
+                // the v8 diamond must never be invented; the squares stay for pencil.
+                assertFalse(glyphs.any { it.second == 0xE10F },
+                    "ACTIVO diamond without a real App field ($fixture $variant).")
+            }
+        }
+    }
+
+    @Test
     fun g3P3StoryUsesOwnerApprovedGoldenRhythmSevenPointOnSeventeenPointRowsAB() {
         // Owner decision 2026-10-26 (option B): HISTORIA Y CRÓNICA prints Fira
         // 7 pt on 17 pt rows, baseline 4 pt above each row foot, like the golden.
