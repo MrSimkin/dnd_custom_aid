@@ -260,9 +260,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
             // C295: golden C2 cartela — diamonds at both ends, title 16 pt in, and
             // "VIENE P. n" before the right diamond; a longer title keeps 5 pt.
+            // C334: a long title steps down (9.1 to 7.1 pt) to keep the golden
+            // cartela - diamonds, 16 pt inset and «VIENE P. n» - before falling back.
+            fun c2CartelaTitlePt(text: String, widthPt: Float): Float? =
+                listOf(9.1f, 8.6f, 8.1f, 7.6f, 7.1f).firstOrNull { pt ->
+                    16f + headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * pt / 1000f +
+                        8f + headerPdfFont.getStringWidth("VIENE P. 99") * 6f / 1000f + 13f <= widthPt
+                }
             fun c2CartelaGoldenFits(text: String, widthPt: Float): Boolean =
-                16f + headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * 9.1f / 1000f +
-                    8f + headerPdfFont.getStringWidth("VIENE P. 99") * 6f / 1000f + 13f <= widthPt
+                c2CartelaTitlePt(text, widthPt) != null
             // Owner's original D&D sheet includes its genuine logotype in its top-left.
             // Embed that real graphic from the already-versioned asset; clip to LOGO only,
             // so no original-sheet boxes or lettering leak into this V11 page.
@@ -3749,9 +3755,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 // unchanged. Strict actual embedded-font width
                                 // verification prevents clipping or overflow.
                                 // C269: golden C2 cartela title 9.1 pt, golden ink.
-                                val fontSize = 9.1f
-                                val inset = if (c2CartelaGoldenFits(cell.drawableText,
-                                        cell.cellPt.widthPt)) 16f else 5f
+                                val goldenPt = c2CartelaTitlePt(cell.drawableText, cell.cellPt.widthPt)
+                                val fontSize = goldenPt ?: 9.1f
+                                val inset = if (goldenPt != null) 16f else 5f
                                 stream.setNonStrokingColor(Color(29, 56, 79))
                                 val inkWidth = headerPdfFont.getStringWidth(
                                     cell.drawableText,
