@@ -50,7 +50,8 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C323 | Columnas del C2 mixto | 39,69–301,04 y 310,96–572,32 (9,92 pt de separación) como el golden; la tabla ACCIONES se mide con ese ancho; la barra lateral de grupo queda dentro del marco interior. Auditoría de manuscrito sigue las columnas del golden (505 habilidades vinculadas con casilla y total). Pendiente: cartelas de 22,96 pt y el rótulo «MÓDULOS COMPARTIDOS · DOS COLUMNAS». |
 | C324 | Arranque del C2 mixto | El contenido empieza en la altura de la primera cartela del golden (685,7) y lleva encima el rótulo «MÓDULOS COMPARTIDOS · DOS COLUMNAS» (7,5 pt #264b68 en x39,7, y691,9). Las páginas C2 de tablas y de equipo especial todavía empiezan en 702. |
 | C325 | Estados con Para Hoja de PJ Symbols v8 | El propietario notó que V11 no usaba su fuente v8 (aprobada y congelada). Ahora los estados reales usan sus alias semánticos de `GUIDE.md`: competencia U+E108 (una marca), pericia U+E109 (dos marcas apiladas) en las casillas de habilidades de A y de C2, inspiración U+E10E (estrella llena) y ACTIVO U+E10F (rombo lleno). Cada marca se centra en su casilla con los límites reales de los contornos (empiezan en x=0; el xMin de la cabecera glyf está desfasado). Las casillas vacías siguen siendo vectoriales, como en el golden. ACTIVO no tiene campo en la App (active = null), así que el rombo nunca se imprime todavía. Prueba `c325RealStatesUseOwnerParaHojaDePjSymbolsV8GlyphsAB`; la auditoría de manuscrito acepta U+E108/U+E109 dentro de la casilla. |
-Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
+| C326 | Logo del propietario en la caja del golden | El propietario explicó que el texto «DUNGEONS & DRAGONS» del golden sustituía al logo y autorizó usar su logo, más pequeño si queda mejor. El logo subía hasta el marco exterior (y732–767); ahora ocupa la caja del logotipo del golden: x42–119, y721–751 (77 × 30 pt), bajo la esquina decorada y sobre la línea de cabecera. CI de C325: 41094207619 y 41094207395 (f437bcc4). |
+Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c325_c326/`.
 
 ## Hallazgos
 
@@ -71,4 +72,3 @@ Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 - La segunda línea del encabezado del golden muestra un descriptor de la ficha («EXTREMO FICTICIO»); la app pone ahí el título de página. Decidir si el propietario quiere otro dato ahí.
 - Matriz: registrar evidencia de G3 de estos bloques con la CI exacta.
 - Habilidades de B: el entrenamiento sigue como texto « P» / « E» con la leyenda «P=COMPETENCIA  E=PERICIA»; pasarlo a la marca v8 en la casilla exige que el desborde a C2 conserve el dato.
-- Logo: el propietario autoriza usar su imagen o una más pequeña que quede mejor (el texto del golden era un sustituto del logo).

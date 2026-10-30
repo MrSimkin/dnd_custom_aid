@@ -308,17 +308,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.restoreGraphicsState()
 
                 stream.saveGraphicsState()
-                // Native template coordinates: logo x≈50–400, y≈52–181 in
+                // Native template coordinates: logo x≈54–398, y≈50–184 in
                 // the 1224×1584 pixel original. Clip only the logo region.
-                stream.addRect(42f, 732f, 99f, 35f)
+                // C326 (owner 2026-10-30, «puedes usar ese o uno más pequeño»): the
+                // logo fits the golden logotype box (x42..131, y721..751) instead of
+                // rising over the outer frame; 344×134 px at 0.2239 pt/px = 77×30 pt.
+                val scale = 0.2239f
+                stream.addRect(42f, 721f, 344f * scale, 134f * scale)
                 stream.clip()
                 // PDFBox exposes no endPath(); stroke closes the clipped path.
                 stream.stroke()
-                val scale = 0.28f
                 stream.drawImage(
                     ownerLogo,
-                    42f - 49f * scale,
-                    767f + 52f * scale - ownerLogo.height * scale,
+                    42f - 54f * scale,
+                    721f + 184f * scale - ownerLogo.height * scale,
                     ownerLogo.width * scale,
                     ownerLogo.height * scale,
                 )
