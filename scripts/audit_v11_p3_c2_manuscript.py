@@ -282,7 +282,7 @@ def c2_skill_checkbox_result(page: fitz.Page) -> tuple[int, int, list[str]]:
     words = [
         w for w in page.get_text("words")
         if w[4] == "Habilidad" and 90 <= w[1] <= 704
-        and (51 <= w[0] <= 70 or 321 <= w[0] <= 340)
+        and (48 <= w[0] <= 70 or 319 <= w[0] <= 340)  # C323 golden C2 columns
     ]
     boxes = [
         dr["rect"] for dr in page.get_drawings()
@@ -291,12 +291,12 @@ def c2_skill_checkbox_result(page: fitz.Page) -> tuple[int, int, list[str]]:
         and close(dr["width"], .65, .07)
         and close(dr["rect"].width, 7, .08)
         and close(dr["rect"].height, 7, .08)
-        and any(close(dr["rect"].x0, x, .22) for x in (44, 314))
+        and any(close(dr["rect"].x0, x, .22) for x in (41.69, 312.96))  # C323 golden C2 columns
     ]
     matched = 0
     errors: list[str] = []
     for w in words:
-        x = 44 if w[0] < 200 else 314
+        x = 41.69 if w[0] < 200 else 312.96
         near = [r for r in boxes if close(r.x0, x, .22)
                 and w[1] - 8 <= r.y0 <= w[3]]
         if len(near) == 1:
@@ -329,10 +329,10 @@ def c2_source_skill_right_value_result(page: fitz.Page) -> tuple[int, list[str]]
     failures: list[str] = []
     for w in words:
         if w[4] != "Habilidad" or not (
-            52 < w[0] < 70 or 322 < w[0] < 340
+            49 < w[0] < 70 or 320 < w[0] < 340
         ) or not (90 < w[1] < 704):
             continue
-        right_edge = 300 if w[0] < 200 else 570
+        right_edge = 301.04 if w[0] < 200 else 572.32
         same_row = [v for v in words if abs(v[1] - w[1]) <= .55 and v[0] > w[0]]
         totals = [v for v in same_row if
                   re.fullmatch(r"[+-]?[0-9]+", v[4]) and

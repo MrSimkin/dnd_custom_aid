@@ -893,9 +893,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             // Only a complete 258pt cartela in either measured C2 column
             // qualifies. The frame, manuscript grid, or a text glyph cannot
             // substitute for a physically FILLED interior heading band.
+            // C323: golden C2 columns 39.69..301.04 and 310.96..572.32 (3 pt corner cut).
             val clippedGroupBands = Regex(
-                """(?m)(?:^|\s)(?:45|315)\s+[0-9.]+\s+m\s+(?:297|567)\s+[0-9.]+\s+l\s+(?:300|570)\s+[0-9.]+\s+l"""
-            ).findAll(commands).count()
+                """(?m)(?:^|\s)([0-9.]+)\s+[0-9.]+\s+m\s+([0-9.]+)\s+[0-9.]+\s+l\s+([0-9.]+)\s+[0-9.]+\s+l"""
+            ).findAll(commands).count { m ->
+                val (a, b, c) = m.destructured
+                listOf(Triple(42.69f, 298.04f, 301.04f), Triple(313.96f, 569.32f, 572.32f)).any { (x0, x1, x2) ->
+                    kotlin.math.abs(a.toFloat() - x0) < 0.05f && kotlin.math.abs(b.toFloat() - x1) < 0.05f &&
+                        kotlin.math.abs(c.toFloat() - x2) < 0.05f
+                }
+            }
             assertTrue(clippedGroupBands >= 2,
                 "All ACTUAL Ilyra mixed C2 source groups require " +
                     "separate clipped physical blue cartelas: found " + clippedGroupBands)

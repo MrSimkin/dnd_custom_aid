@@ -121,8 +121,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // resource paper tracks (track line offset, spent, total) and the
             // real P/E training letter of each linked custom skill box.
             val c2ActionRows = mutableMapOf<String, List<List<String>>>()
-            // Golden ATAQUES-grammar columns inside a mixed C2 column (258 pt).
-            val c2ActionColumn = (528f - 12f) / 2f
+            // Golden ATAQUES-grammar columns inside a mixed C2 column (C323: golden 261.36 pt).
+            val c2ActionColumn = (532.63f - 9.92f) / 2f
             val c2ActionX = listOf(0f, 104f, 158f)
             val c2ActionWidths = listOf(100f, 50f, c2ActionColumn - 158f - 4f)
             val c2ResourceTracks = mutableMapOf<String, Triple<Int, Int, Int>>()
@@ -3211,7 +3211,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 // Narrow gutter rail persists when the header
                                 // was printed in a previous physical column.
                                 val railX = column.leftPt - 3f
-                                require(railX >= 38f && railX + 1.5f < column.leftPt)
+                                require(railX >= 31f && railX + 1.5f < column.leftPt) // C323: inside the inner frame (30.61)
                                 stream.setNonStrokingColor(Color(80, 122, 151))
                                 stream.addRect(railX, groupBottom + 1f, 1.5f,
                                     groupTop - groupBottom - 2f)
@@ -4792,10 +4792,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         "RASGOS / CONTINUACIÓN P2", keepTogetherIfFits = true), remainingTraits)
                 }
             }
+            // C323: golden C2 columns 39.69..301.04 and 310.96..572.32 (9.92 pt gutter).
             addSection("C2 - Habilidades, acciones y recursos",
                 PcSheetV11FlowSection.TRAITS,
                 mixedC2, columns = 2, ammunitionTracks = ammunitionTracks,
-                font = c2Font)
+                area = PcSheetV11RectPt(39.69f, pageArea.bottomPt, 532.63f, pageArea.heightPt),
+                gutterPt = 9.92f, font = c2Font)
 
             // Reflow the exact P2-unprinted equipment/treasure suffixes into
             // FULL-HEIGHT C2 paired tables. Never redraw quantities already
