@@ -45,6 +45,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C318 | Encabezado de nivel de P4 | 3,4 pt dentro de la columna, como el golden. |
 | C319 | Matriz | P201 (distribución de P2) en PASS G3 con la CI exacta 40996100845 (1b4245dc). Matriz: 76 de 242. |
 | C320 | P2 con la maqueta del golden | EQUIPO 39,69–298,49 × 460,63–670,68 (13 renglones de 16,15), TESORO 327,97–427,18 (5 de 19,84), RASGOS 309,26–572,32 × 318,33–670,68, ESPECIAL desde 291,4 hasta 60,94; cartelas de 22,96 pt 1,98 pt sobre su tabla, título y leyenda en sus líneas base del golden. Pruebas y auditoría física comparan la geometría del golden con tolerancia. |
+| C321 | P3 con la maqueta del golden | Franjas TRASFONDO (672,66–695,62) e HISTORIA (437,95–460,91) de 22,96 pt; los renglones de HISTORIA van de 435,97 a 61,8 (22 por columna). Corrige la franja HISTORIA de C284, que se montaba sobre el último renglón de VÍNCULOS/DEFECTOS. |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos

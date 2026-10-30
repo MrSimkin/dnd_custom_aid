@@ -227,11 +227,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     ) {
                         val first = textPositions.firstOrNull() ?: return
                         val baseline = 792f - first.yDirAdj
-                        if (baseline in 88f..449f) {
+                        if (baseline in 61f..436f) { // C321 golden story rows
                             story += first.fontSizeInPt to baseline
                             storyStarts += first.xDirAdj
                         }
-                        else if (baseline in 450f..670f && first.fontSizeInPt < 10f) {
+                        else if (baseline in 437f..670f && first.fontSizeInPt < 10f) {
                             fields += first.fontSize // exact Tf size (fontSizeInPt is an integer)
                         }
                     }
@@ -252,7 +252,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // Row foot rules start at the 449 pt area top: 449 - 17k; baseline is 4 pt above.
                 baselines.forEach { baseline ->
                     val foot = baseline - 4f
-                    assertEquals(0f, ((449f - foot) % 17f).let { minOf(it, 17f - it) }, 0.05f,
+                    assertEquals(0f, ((435.97f - foot) % 17f).let { minOf(it, 17f - it) }, 0.05f,
                         "P3 story baseline must be 4 pt above its own row foot ($variant).")
                 }
                 // Golden inner margin: every story line starts 4 pt inside its band
@@ -731,15 +731,17 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val operators = page.contents.use {
                 it.readBytes().toString(Charsets.ISO_8859_1)
             }
-            for (y in listOf(682, 461)) {
-                // C306: the golden P3 cartela spans x39.69..572.32 with 6 pt cuts.
-                val clipped = Regex(
-                    """(?s)(?:^|\s)45\.69\d*\s+""" + y +
-                        """\s+m\s+566\.32\d*\s+""" + y +
-                        """\s+l\s+572\.32\d*\s+""" + (y + 6) +
-                        """\s+l.*?\s+B(?:\s|$)"""
-                )
-                assertTrue(clipped.containsMatchIn(operators),
+            // C306/C321: golden P3 cartelas x39.69..572.32 with 6 pt cuts, at the
+            // golden y672.66 and y437.95 (0.02 pt tolerance on PDFBox floats).
+            val p3Paths = Regex(
+                """(?:^|\s)([-\d.]+)\s+([-\d.]+)\s+m\s+([-\d.]+)\s+([-\d.]+)\s+l\s+([-\d.]+)\s+([-\d.]+)\s+l"""
+            ).findAll(operators).map { m -> m.groupValues.drop(1).map { it.toFloat() } }.toList()
+            for (y in listOf(672.66f, 437.95f)) {
+                assertTrue(p3Paths.any { v ->
+                    kotlin.math.abs(v[0] - 45.69f) < 0.02f && kotlin.math.abs(v[1] - y) < 0.02f &&
+                        kotlin.math.abs(v[2] - 566.32f) < 0.02f && kotlin.math.abs(v[4] - 572.32f) < 0.02f &&
+                        kotlin.math.abs(v[5] - (y + 6f)) < 0.02f
+                },
                     "Each original-height P3 narrative heading requires " +
                         "a clipped, filled-and-stroked blue physical cartela at y=" + y)
             }

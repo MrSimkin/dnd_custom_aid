@@ -2194,7 +2194,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
             val p3StoryItems = listOfNotNull(p3Narrative["narrative:story"])
             // C305: golden HISTORIA columns 39.69..302.88 and 309.12..572.32 (6.24 pt gutter).
-            val p3StoryArea = PcSheetV11RectPt(39.69f, 88f, 532.63f, 361f)
+            // C321: golden HISTORIA rows 61.8..435.97 (22 rows of 17 pt per column).
+            val p3StoryArea = PcSheetV11RectPt(39.69f, 61.8f, 532.63f, 374.17f)
             val p3StoryGutterPt = 6.24f
             // Owner decision 2026-10-26 (option B): HISTORIA Y CRÓNICA and its
             // continuation follow the approved golden rhythm, Fira 7 pt on
@@ -2299,7 +2300,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
             }
             fun drawP3Band(
-                stream: PDPageContentStream, label: String, y: Float,
+                stream: PDPageContentStream, label: String, y: Float, height: Float = 20f,
             ) {
                 stream.saveGraphicsState()
                 // C306: golden P3 cartela - #264b68 0.65 pt edge, x39.69..572.32,
@@ -2310,18 +2311,19 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.moveTo(45.69f, y)
                 stream.lineTo(566.32f, y)
                 stream.lineTo(572.32f, y + 6f)
-                stream.lineTo(572.32f, y + 14f)
-                stream.lineTo(566.32f, y + 20f)
-                stream.lineTo(45.69f, y + 20f)
-                stream.lineTo(39.69f, y + 14f)
+                stream.lineTo(572.32f, y + height - 6f)
+                stream.lineTo(566.32f, y + height)
+                stream.lineTo(45.69f, y + height)
+                stream.lineTo(39.69f, y + height - 6f)
                 stream.lineTo(39.69f, y + 6f)
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
-                drawCartelaDiamonds(stream, 39.69f, 572.32f, y, y + 20f)
+                drawCartelaDiamonds(stream, 39.69f, 572.32f, y, y + height)
                 stream.saveGraphicsState()
                 stream.setNonStrokingColor(Color(29, 56, 79))
-                drawP1Label(stream, label, 55.69f, y + 6.4f, 9.1f)
+                // C321: golden title baseline 6.84 pt above a 22.96 pt band.
+                drawP1Label(stream, label, 55.69f, y + (if (height > 21f) 6.84f else 6.4f), 9.1f)
                 stream.restoreGraphicsState()
             }
             fun p3RuledCells(
@@ -2360,7 +2362,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.restoreGraphicsState()
             }
             fun drawP3FirstPage(stream: PDPageContentStream) {
-                drawP3Band(stream, "TRASFONDO Y PERFIL NARRATIVO", 682f)
+                drawP3Band(stream, "TRASFONDO Y PERFIL NARRATIVO", 672.66f, 22.96f) // C321 golden
                 p3FieldLayouts.forEachIndexed { index, (heading, rect, placed) ->
                     // C284: golden field paper — alternating bands (the two columns
                     // start on opposite shades) with a 0.32 pt rule 1 pt above each foot.
@@ -2404,7 +2406,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.restoreGraphicsState()
                     require(p3FieldSpecs[index].first == heading)
                 }
-                drawP3Band(stream, "HISTORIA Y CRÓNICA", 461f)
+                drawP3Band(stream, "HISTORIA Y CRÓNICA", 437.95f, 22.96f) // C321 golden
                 val columns = PcSheetV11ColumnGrid.split(p3StoryArea, 2, p3StoryGutterPt)
                 columns.forEach { p3RuledCells(stream, it, storyRowPt) }
                 p3Story.cells.filter { it.localPageIndex == 1 }.forEach { cell ->

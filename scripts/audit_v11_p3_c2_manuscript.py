@@ -45,7 +45,7 @@ def p3_result(page: fitz.Page) -> tuple[int, int, list[str]]:
         and all(close(dr["fill"][k], PALE[k], .012) for k in range(3))
         and dr["rect"].width >= 240
         and dr["rect"].height >= 40
-        and 110 < dr["rect"].y0 < dr["rect"].y1 < 718
+        and 110 < dr["rect"].y0 < dr["rect"].y1 < 732  # C321: golden story rows reach y730.2
     ]
     lines = [
         dr["rect"] for dr in drawings
@@ -137,7 +137,7 @@ def p3_golden_row_grammar(page: fitz.Page, first_page: bool) -> tuple[int,int,li
         # Owner option B (2026-10-26): story rows follow the golden 17 pt rhythm.
         # C305: golden story columns 39.69..302.88 and 309.12..572.32.
         for x in (39.69,309.12):
-            if stripe(x,343.,263.19,16.5,17.5): stripes+=1
+            if stripe(x,356.03,263.19,16.5,17.5): stripes+=1  # C321 golden first story row
             else: errors.append(f"P3 alternating story row missing at x={x}")
     else:
         # Long true-source P3 continuation: both columns must retain style
