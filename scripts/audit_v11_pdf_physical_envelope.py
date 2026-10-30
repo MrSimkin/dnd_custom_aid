@@ -136,11 +136,10 @@ def inspect_one(path: Path) -> dict:
         fonts = " ".join(item[3] for item in page.get_fonts(full=True))
         if "NotoSansDisplay" not in fonts or (index < total and "NotoSans-Regular" not in fonts):
             errors.append(f"p{index}: expected embedded text font missing")
+        # C339 (owner 2026-10-30): no page prints a page-number counter.
         foot = FOOTER.findall(page.get_text(clip=FOOTER_CLIP))
-        if index < total and foot != [(f"{index:02d}", f"{total:02d}")]:
-            errors.append(f"p{index}: missing or inconsistent physical footer {foot}")
-        if index == total and foot:
-            errors.append(f"p{index}: last manuscript-only NOTES has an unexpected footer")
+        if foot:
+            errors.append(f"p{index}: unexpected page-number counter {foot}")
         words = sorted(page.get_text("words"), key=lambda w: w[1])
         word_count += len(words)
         for w in words:

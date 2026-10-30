@@ -5792,12 +5792,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     if (key == "P3 - Trasfondo / Perfil / Historia" && p3ModuleLinks != null) {
                         drawModuleLinks(stream, p3ModuleLinks)
                     }
-                    val label = "%02d / %02d".format(physicalPage, totalPages)
-                    stream.saveGraphicsState()
-                    stream.setNonStrokingColor(Color(38, 75, 104))
-                    drawP1Label(stream, label, 569.48f -
-                        headerPdfFont.getStringWidth(label) * 7.4f / 1000f, 32.6f, 7.4f)
-                    stream.restoreGraphicsState()
+                    // C339 (owner 2026-10-30): «ninguna página debe tener número de
+                    // página» - the golden «01 / 11» footer counter is not printed.
                 }
             }
             pdf.save(target)

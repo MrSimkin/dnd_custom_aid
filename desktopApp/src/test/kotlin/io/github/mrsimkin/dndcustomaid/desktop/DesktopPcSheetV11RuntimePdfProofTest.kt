@@ -228,6 +228,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.getText(pdf)
                 assertFalse(Regex("""\d+\s*/\s*\d+""").containsMatchIn(last),
                     "The final NOTAS sheet prints no page number ($variant).")
+                // C339: no page carries the golden «NN / NN» counter.
+                for (page in 1..pdf.numberOfPages) {
+                    val text = PDFTextStripper().apply { startPage = page; endPage = page }.getText(pdf)
+                    assertFalse(Regex("""\b\d{2} / \d{2}\b""").containsMatchIn(text),
+                        "Page $page prints no page-number counter ($variant).")
+                }
             }
         }
     }
@@ -1183,9 +1189,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     endPage = number
                 }.getText(pdf)
             }
-            assertTrue(pagesByPhysicalNumber.first().contains(
-                "01 / " + "%02d".format(pdf.numberOfPages), // C290: golden page number
-            ), "The footer must resolve physical page count only after final pagination.")
+            // C339 (owner 2026-10-30): no page prints a page-number counter.
+            assertTrue(pagesByPhysicalNumber.none {
+                Regex("""\b\d{2} / \d{2}\b""").containsMatchIn(it)
+            }, "No physical page prints a page-number counter.")
             fun realHeading(page: String, heading: String) =
                 page.lineSequence().any { line -> line.trim().startsWith(heading) }
             val p1Physical = pagesByPhysicalNumber.indexOfFirst {

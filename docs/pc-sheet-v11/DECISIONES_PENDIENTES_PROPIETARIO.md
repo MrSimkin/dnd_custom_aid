@@ -152,6 +152,7 @@ Ninguna. Q14 se resolvió el 2026-10-29 (ver «Resueltas»). Las preguntas Q1–
   - la línea de cabecera queda en y717 (C328), porque en y709,8 cruzaría las franjas de continuación de C2 y del Libro;
   - la segunda línea de la derecha muestra el título de la página (p. ej. «P1 - Personaje / combate / habilidades / 1») y no un descriptor de ficha como «EXTREMO FICTICIO» del golden: la App no tiene ese dato, y el título orienta en hojas impresas sueltas. Queda sujeto al control del propietario.
 - **Última hoja NOTAS (respuesta del propietario):** «el golden no debería llevar número de página»; luego «permite la línea, evita/elimina el número de página, actualiza el contrato». La App no imprime número en esa hoja y sí la línea azul de pie que el golden tiene en todas las páginas (C337); contrato actualizado (C338).
+- **Número de página (respuesta del propietario):** «espera, aclaración: ninguna página debe tener número de página». Aplicado en C339: sin contador en ninguna página.
 - **Fuente de estados:** el propietario notó que V11 no usaba Para Hoja de PJ Symbols v8. Aplicado en C325 y C329 según el contrato («Estados: Para Hoja de PJ Symbols v8 como prioridad»): competencia ✓ (U+E108), pericia ✓✓ (U+E109), inspiración ★ (U+E10E) y ACTIVO ◆ (U+E10F, sin uso hasta que la App tenga ese campo).
 
 ### Fuentes del golden (2026-10-29)

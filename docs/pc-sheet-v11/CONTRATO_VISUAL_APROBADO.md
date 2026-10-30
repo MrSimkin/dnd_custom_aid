@@ -117,7 +117,8 @@ El propietario aprobó P1/P3/P4, P2, C2, final y variante B tras revisión V11. 
 - **Escudo:** «el "escudo" que aparece en el golden es parte del "logo" que el renderizador inventó como reemplazo, así que puede ser eliminado para dar espacio al logo». La cabecera no lleva escudo.
 - **Cabecera:** «Te autorizo a ajustar el encabezado de las hojas de PJ a tu criterio, con control mío para ajuste conservando el espíritu y concepto del golden». Criterio aplicado y sujeto al control del propietario: línea de cabecera en y717; segunda línea derecha con el título de la página.
 - **Estados:** las marcas de estado reales usan Para Hoja de PJ Symbols v8 por sus alias de `GUIDE.md`: competencia ✓ U+E108, pericia ✓✓ U+E109, inspiración ★ U+E10E, ACTIVO ◆ U+E10F (solo con un dato real de la App). Las casillas vacías siguen siendo vectores del golden.
-- **Última hoja NOTAS:** «permite la línea, evita/elimina el número de página». La hoja final lleva la línea azul de pie del golden (#527c96, 0,55 pt, x39,69–572,32, y45,07), igual que todas las páginas, y **no** lleva número de página ni ningún otro texto de pie. Esto precisa la regla «nunca usada para contenido digital» de esa hoja; el «11 / 11» del golden no se reproduce.
+- **Última hoja NOTAS:** «permite la línea, evita/elimina el número de página». La hoja final lleva la línea azul de pie del golden (#527c96, 0,55 pt, x39,69–572,32, y45,07), igual que todas las páginas, y **no** lleva número de página ni ningún otro texto de pie. Esto precisa la regla «nunca usada para contenido digital» de esa hoja.
+- **Ninguna página lleva número de página:** «espera, aclaración: ninguna página debe tener número de página». El contador de pie del golden («01 / 11» … «11 / 11») no se imprime en ninguna página. La línea de pie sí se conserva en todas.
 
 ## Aclaración del propietario — Equipo y Tesoro con nombres largos (2026-10-26)
 
