@@ -5553,8 +5553,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         """(?m)(?:^|\s)48\.19\d*\s+[-\d.]+\s+m\s+561\.26\d*\s+[-\d.]+\s+l(?:\s|$)"""
                     ).findAll(raw).count()
                 }
-                assertEquals(fixture.permanent.sheet.noteCards.size + 1,
-                    startBandRects, "One source-backed title rule per genuine note start.")
+                // C333: the untitled general note has no title, so no title rule.
+                assertEquals(fixture.permanent.sheet.noteCards.size,
+                    startBandRects, "One source-backed title rule per genuine titled note.")
                 assertTrue(texts.last().lineSequence().any { it.trim() == "NOTAS" })
             }
             val long = DesktopPcSheetExportService().generateV11Proof(

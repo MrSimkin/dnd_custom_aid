@@ -3085,8 +3085,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             stream.saveGraphicsState()
                             stream.setStrokingColor(Color(148, 176, 193))
                             stream.setLineWidth(0.32f)
-                            starts.forEach { cell ->
-                                val titleDrop = if (cell.sourceKey in titledNoteKeys) 6.47f else 0f
+                            // C333: only a real title gets the rule under it.
+                            starts.filter { it.sourceKey in titledNoteKeys }.forEach { cell ->
+                                val titleDrop = 6.47f
                                 val ruleY = body.metrics.baselineIn(cell.cellPt) - titleDrop - 6.24f
                                 stream.moveTo(pageArea.leftPt + 6.19f, ruleY)
                                 stream.lineTo(pageArea.rightPt - 8.74f, ruleY)
@@ -5429,8 +5430,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // C314: golden note spacing - one more paper row after a note title.
             addSection("C-N3 - Notas digitales", PcSheetV11FlowSection.DIGITAL_NOTES,
                 texts.digitalNotes.map { item ->
+                    // C333: an untitled note opens with one blank row (a real space
+                    // line) so its first line clears the card edge and inner rule.
                     val spaced = if (item.sourceKey in titledNoteKeys)
-                        item.text.replaceFirst("\n", "\n\n") else item.text
+                        item.text.replaceFirst("\n", "\n\n") else " \n" + item.text
                     item.copy(text = spaced, leadingSeparationLines = 1)
                 }, 1,
                 // C313: notes start under the golden NOTAS cartela (y670.68).

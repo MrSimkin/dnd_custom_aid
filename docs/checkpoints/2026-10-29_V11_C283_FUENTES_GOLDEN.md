@@ -57,6 +57,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C330 | Filas y títulos de nivel de P4 | Títulos del golden «TRUCOS 0» (antes «TRUCOS / NIVEL 0») y «NIVEL n»; todas las franjas en #e7f2f7 (antes #eef7fb en las filas) con la regla #94b0c1 de 0,32 pt 0,99 pt sobre el pie, como el golden. La auditoría de P4 reconoce «TRUCOS 0» y el color nuevo. La franja de nivel de 20,7 pt del golden sigue pendiente: el colocador compartido usa un paso único de 15,73 pt. |
 | C331 | Tarjetas del Libro | Chaflán del golden de 6,23 pt (antes 4) y borde de 0,65 pt (antes 0,55). Cada tarjeta lleva un renglón libre real bajo la descripción, como el golden (pie a ~20,5 pt de la última línea); es un renglón medido con un espacio, porque el flujo descarta el salto final. Pendiente: los ~3 pt más de aire antes de la descripción, que no caben en el paso único de 10,5 pt. |
 | C332 | Franjas en las listas del C2 mixto | Como en el golden, las listas de acciones, notas de ataque, recursos y municiones van en franjas alternas #e7f2f7 / #f0f7fa con la regla #94b0c1 de 0,32 pt al pie de cada registro. Un registro de varias líneas (incluida la línea de casillas de un recurso) es una sola franja. Las tarjetas de atributos y la tabla ATAQUES conservan sus franjas propias. Solo se pinta dentro de las celdas medidas. |
+| C333 | Nota general de C-N3 | La nota sin título empezaba pegada al borde de su tarjeta y la regla interior cruzaba su primera línea. Ahora abre con un renglón libre real (una línea con un espacio), y la regla bajo el título solo se dibuja en notas con título. Mara A: 9 reglas, una por nota titulada. |
 Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c325_c326/`.
 
 ## Hallazgos
@@ -70,7 +71,6 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 - P1 con las columnas del golden: atributos 39,69–260,22 y combate 270,43–572,32 (la app usa dos de 258); cartelas a 588,19–611,15.
 - C2 de tablas y de equipo especial: el golden los mezcla en columnas con otros módulos; la app usa páginas a todo el ancho. Columnas de ESPECIAL del golden: 107 / 133,2 / 246 / 46,42.
 - P4: franja del encabezado de nivel de 20,7 pt del golden (la app usa un renglón de 15,73); exige filas de alto variable en el colocador compartido.
-- C-N3: la tarjeta de notas generales (sin título) no tiene referencia en el golden; su primera línea queda junto al borde.
 
 - Libro: ~3 pt más de aire antes de la descripción (paso único de 10,5 pt).
 - La segunda línea del encabezado del golden muestra un descriptor de la ficha («EXTREMO FICTICIO»); la app pone ahí el título de página. Decidir si el propietario quiere otro dato ahí.
