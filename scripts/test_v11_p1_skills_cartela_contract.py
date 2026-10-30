@@ -19,7 +19,8 @@ class SkillsHeadingParity(unittest.TestCase):
                 "fun drawP1BIndependentSkills(", 1
             )[1].split("val blankPaperTop", 1)[0]
             self.assertIn("if (variantA) return", body)
-            self.assertIn('draw(stream,"HABILIDADES  P=COMPETENCIA  E=PERICIA",51f,335f,true)', body)
+            self.assertIn('drawP1Label(stream, "HABILIDADES", 58f, 336f, 9.1f)', body)  # C310
+            self.assertIn('val skillsLegend = "P=COMPETENCIA  E=PERICIA"', body)
             for operator in (
                 "stream.moveTo(46f, 330f)",
                 "stream.lineTo(296f, 330f)",
@@ -35,7 +36,7 @@ class SkillsHeadingParity(unittest.TestCase):
                 self.assertIn(operator, body, f"{path.name}: missing {operator}")
             declarations.append(tuple(line.strip() for line in body[
                 body.index("stream.moveTo(46f, 330f)"):
-                body.index('draw(stream,"HABILIDADES')
+                body.index('// C310: golden B cartela')
             ].splitlines() if line.strip().startswith(("stream.",))))
         self.assertEqual(declarations[0], declarations[1], "Android/Desktop Skills B title has diverged")
 

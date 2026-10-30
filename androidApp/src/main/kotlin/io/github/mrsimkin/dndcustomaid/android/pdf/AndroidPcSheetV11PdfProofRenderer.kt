@@ -256,10 +256,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.setLineWidth(0.38f)
                 stream.addRect(30.6142f, 28.9134f, 550.7716f, 734.1732f)
                 stream.stroke()
-                stream.setStrokingColor(Color(130, 165, 186))
-                stream.setLineWidth(0.65f)
-                stream.moveTo(42f, 717f)
-                stream.lineTo(570f, 717f)
+                // C311: golden header rule colour and width, x39.69..572.32 (the golden
+                // sits it at y709.8; the app keeps 717, above its C-N3 cartela strip).
+                stream.setStrokingColor(Color(82, 124, 150))
+                stream.setLineWidth(0.55f)
+                stream.moveTo(39.69f, 717f)
+                stream.lineTo(572.32f, 717f)
                 stream.stroke()
                 stream.restoreGraphicsState()
 
@@ -728,7 +730,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
-                draw(stream,"HABILIDADES  P=COMPETENCIA  E=PERICIA",51f,335f,true)
+                // C310: golden B cartela - diamonds, HABILIDADES 9.1 pt ink 16 pt in,
+                // and the P/E legend as the golden grey 6.2 pt note on the right.
+                drawCartelaDiamonds(stream, 42f, 300f, 330f, 348f)
+                stream.setNonStrokingColor(Color(29, 56, 79))
+                drawP1Label(stream, "HABILIDADES", 58f, 336f, 9.1f)
+                val skillsLegend = "P=COMPETENCIA  E=PERICIA"
+                stream.setNonStrokingColor(Color(101, 125, 144))
+                stream.beginText()
+                stream.setFont(bodyPdfFont, 6.2f)
+                stream.newLineAtOffset(300f - 18.4f -
+                    bodyPdfFont.getStringWidth(skillsLegend) * 6.2f / 1000f, 337.2f)
+                stream.showText(skillsLegend)
+                stream.endText()
+                stream.setNonStrokingColor(Color(36, 57, 75))
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130,165,186))
                 stream.setLineWidth(0.6f)

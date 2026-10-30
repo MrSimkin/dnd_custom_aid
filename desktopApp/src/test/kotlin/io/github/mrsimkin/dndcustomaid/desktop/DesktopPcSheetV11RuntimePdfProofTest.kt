@@ -1452,7 +1452,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
             assertFalse(p1.contains("HABILIDADES BAJO ATRIBUTO"),
                 "Variant B must remain distinct from the attribute-grouped A layout.")
-            assertTrue(p1.contains("HABILIDADES  P=COMPETENCIA  E=PERICIA"),
+            assertTrue(p1.contains("HABILIDADES") && p1.contains("P=COMPETENCIA  E=PERICIA"), // C310 golden cartela
                 "B skills must occupy a named physical module, not identity prose.")
             assertTrue(p1.contains("Acrobacias (DES)"),
                 "Persisted B skills must appear with their actual ability abbreviation.")
