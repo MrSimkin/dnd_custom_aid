@@ -564,8 +564,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c325RealStatesUseOwnerParaHojaDePjSymbolsV8GlyphsAB; g3HeaderNameUsesGoldenGaramondAndNeverDropsAccentedLettersAB",
+            "test_result": "PASS — real App PDFs (Mara and Ilyra, A/B): every state mark is a GUIDE.md PUA alias embedded from ParaHojadePJSymbolsV8-Regular (proficiency U+E108, expertise U+E109 in A, B and C2 skill boxes; inspiration U+E10E only when the sheet has it; no ACTIVO U+E10F without a real App field); accented names never lose a letter.",
+            "source_commit": "22adfb1728671c03f075f8732a29c7b3dff686ca",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41108066032",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41108066032/artifacts/13002683165",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41108066032/artifacts/13002133663",
+            "independent_inspection": "Same CI run; manuscript audit accepts only the v8 training glyphs inside C2 skill boxes; rendered evidence docs/pc-sheet-v11/qa/evidence/c325_c326/.",
+            "limitations": "Font Awesome is not used: no current state needs a secondary icon. Empty paper boxes stay golden vectors. ACTIVO has no App field yet, so its v8 diamond is unreachable. Desktop renderer tested; Android renderer is the identical port, built but not runtime-rendered here. G4 NOT_VERIFIED."
+          }
         }
       ]
     },

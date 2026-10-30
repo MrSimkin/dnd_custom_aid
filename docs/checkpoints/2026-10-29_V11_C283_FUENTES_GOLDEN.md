@@ -59,6 +59,8 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C332 | Franjas en las listas del C2 mixto | Como en el golden, las listas de acciones, notas de ataque, recursos y municiones van en franjas alternas #e7f2f7 / #f0f7fa con la regla #94b0c1 de 0,32 pt al pie de cada registro. Un registro de varias líneas (incluida la línea de casillas de un recurso) es una sola franja. Las tarjetas de atributos y la tabla ATAQUES conservan sus franjas propias. Solo se pinta dentro de las celdas medidas. |
 | C333 | Nota general de C-N3 | La nota sin título empezaba pegada al borde de su tarjeta y la regla interior cruzaba su primera línea. Ahora abre con un renglón libre real (una línea con un espacio), y la regla bajo el título solo se dibuja en notas con título. Mara A: 9 reglas, una por nota titulada. |
 | C334 | Títulos largos de cartelas C2 | Un título que no cabía a 9,1 pt perdía los rombos y el margen del golden (p. ej. «PERSONAJE, HABILIDADES Y ACCIONES / CONTINUACIÓN»). Ahora el título baja de 9,1 a 7,1 pt por pasos y conserva la cartela del golden: rombos, título a 16 pt y «VIENE P. n» a la derecha. Solo si ni a 7,1 pt cabe se usa la forma sencilla anterior. |
+| C335 | Decisiones de cabecera registradas | En `DECISIONES_PENDIENTES_PROPIETARIO.md` (Resueltas, 2026-10-30): logo, escudo, fuente de estados v8 y criterio de cabecera. La segunda línea sigue con el título de página (la App no tiene un descriptor de ficha como «EXTREMO FICTICIO»); queda sujeta al control del propietario. |
+| C336 | Matriz | GLB05 (estados con Symbols v8; letras acentuadas) en PASS G3 con la CI exacta 41108066032 (22adfb17), artefactos 13002683165 (PDF) y 13002133663 (auditoría). Font Awesome no se usa: ningún estado lo necesita. Matriz: 77 de 242. CI de C334: 41108066164 y 41108066032. |
 Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c325_c326/`.
 
 ## Hallazgos
@@ -74,5 +76,4 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 - P4: franja del encabezado de nivel de 20,7 pt del golden (la app usa un renglón de 15,73); exige filas de alto variable en el colocador compartido.
 
 - Libro: ~3 pt más de aire antes de la descripción (paso único de 10,5 pt).
-- La segunda línea del encabezado del golden muestra un descriptor de la ficha («EXTREMO FICTICIO»); la app pone ahí el título de página. Decidir si el propietario quiere otro dato ahí.
 - Matriz: registrar evidencia de G3 de estos bloques con la CI exacta.
