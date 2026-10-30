@@ -3589,7 +3589,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 // C294: golden level heading, label 7.6 pt #264b68.
                                 stream.saveGraphicsState()
                                 stream.setNonStrokingColor(Color(38, 75, 104))
-                                drawP1Label(stream, cell.drawableText.trimEnd(), cell.cellPt.leftPt,
+                                // C318: golden heading 3.4 pt inside the column.
+                                drawP1Label(stream, cell.drawableText.trimEnd(), cell.cellPt.leftPt + 3.4f,
                                     body.metrics.baselineIn(cell.cellPt), 7.6f)
                                 stream.restoreGraphicsState()
                                 return@forEach
