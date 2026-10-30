@@ -257,7 +257,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 // Golden inner margin: every story line starts 4 pt inside its band
                 // (left band 47..300; Mara's story fits the left column).
-                assertTrue(storyStarts.all { kotlin.math.abs(it - 51f) < 0.3f },
+                assertTrue(storyStarts.all { kotlin.math.abs(it - 43.69f) < 0.3f }, // C305 golden x43.7
                     "P3 story text keeps the golden 4 pt inner margin ($variant): $storyStarts")
                 assertTrue(fields.any { kotlin.math.abs(it - 7.3f) < 0.01f } &&
                     fields.all { kotlin.math.abs(it - 7.3f) < 0.01f || kotlin.math.abs(it - 7f) < 0.01f },

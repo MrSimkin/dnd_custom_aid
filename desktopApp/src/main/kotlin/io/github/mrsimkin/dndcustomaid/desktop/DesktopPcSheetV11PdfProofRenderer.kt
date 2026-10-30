@@ -2174,7 +2174,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 Triple(heading, bounds, measured)
             }
             val p3StoryItems = listOfNotNull(p3Narrative["narrative:story"])
-            val p3StoryArea = PcSheetV11RectPt(47f, 88f, 518f, 361f)
+            // C305: golden HISTORIA columns 39.69..302.88 and 309.12..572.32 (6.24 pt gutter).
+            val p3StoryArea = PcSheetV11RectPt(39.69f, 88f, 532.63f, 361f)
+            val p3StoryGutterPt = 6.24f
             // Owner decision 2026-10-26 (option B): HISTORIA Y CRÓNICA and its
             // continuation follow the approved golden rhythm, Fira 7 pt on
             // 17 pt rows with the baseline 4 pt above each row's foot rule.
@@ -2238,7 +2240,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 p3StoryArea.bottomPt, p3StoryArea.widthPt - 2 * p3TextInsetPt, p3StoryArea.heightPt)
             val p3Story = storyFont.place(
                 PcSheetV11FlowSection.NARRATIVE, p3StoryItems, p3StoryTextArea, 2,
-                12f + 2 * p3TextInsetPt,
+                p3StoryGutterPt + 2 * p3TextInsetPt,
             )
             fun remainingNarrative(
                 original: List<PcSheetV11FlowItem>,
@@ -2380,7 +2382,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     require(p3FieldSpecs[index].first == heading)
                 }
                 drawP3Band(stream, "HISTORIA Y CRÓNICA", 461f)
-                val columns = PcSheetV11ColumnGrid.split(p3StoryArea, 2, 12f)
+                val columns = PcSheetV11ColumnGrid.split(p3StoryArea, 2, p3StoryGutterPt)
                 columns.forEach { p3RuledCells(stream, it, storyRowPt) }
                 p3Story.cells.filter { it.localPageIndex == 1 }.forEach { cell ->
                     drawStory(stream, cell.drawableText, cell.cellPt.leftPt,

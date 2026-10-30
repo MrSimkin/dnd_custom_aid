@@ -135,8 +135,9 @@ def p3_golden_row_grammar(page: fitz.Page, first_page: bool) -> tuple[int,int,li
                 if band(x,y+17.,column==1): stripes+=1
                 else: errors.append(f"P3 alternating field row missing at {x},{y+17.}")
         # Owner option B (2026-10-26): story rows follow the golden 17 pt rhythm.
-        for x in (47.,312.):
-            if stripe(x,343.,253.,16.5,17.5): stripes+=1
+        # C305: golden story columns 39.69..302.88 and 309.12..572.32.
+        for x in (39.69,309.12):
+            if stripe(x,343.,263.19,16.5,17.5): stripes+=1
             else: errors.append(f"P3 alternating story row missing at x={x}")
     else:
         # Long true-source P3 continuation: both columns must retain style
