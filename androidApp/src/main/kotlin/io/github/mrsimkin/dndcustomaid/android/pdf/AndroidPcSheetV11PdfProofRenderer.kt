@@ -2277,23 +2277,27 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream: PDPageContentStream, label: String, y: Float,
             ) {
                 stream.saveGraphicsState()
-                stream.setStrokingColor(Color(80, 122, 151))
+                // C306: golden P3 cartela - #264b68 0.65 pt edge, x39.69..572.32,
+                // diamonds at both ends, 9.1 pt title in ink 16 pt inside.
+                stream.setStrokingColor(Color(38, 75, 104))
                 stream.setLineWidth(0.65f)
                 stream.setNonStrokingColor(Color(231, 242, 247))
-                // Frozen P3 golden: clipped blue narrative cartela
-                // within the SAME 528×20pt physical reservation.
-                stream.moveTo(48f, y)
-                stream.lineTo(564f, y)
-                stream.lineTo(570f, y + 6f)
-                stream.lineTo(570f, y + 14f)
-                stream.lineTo(564f, y + 20f)
-                stream.lineTo(48f, y + 20f)
-                stream.lineTo(42f, y + 14f)
-                stream.lineTo(42f, y + 6f)
+                stream.moveTo(45.69f, y)
+                stream.lineTo(566.32f, y)
+                stream.lineTo(572.32f, y + 6f)
+                stream.lineTo(572.32f, y + 14f)
+                stream.lineTo(566.32f, y + 20f)
+                stream.lineTo(45.69f, y + 20f)
+                stream.lineTo(39.69f, y + 14f)
+                stream.lineTo(39.69f, y + 6f)
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
-                draw(stream, label, 49f, y + 6f, true)
+                drawCartelaDiamonds(stream, 39.69f, 572.32f, y, y + 20f)
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(Color(29, 56, 79))
+                drawP1Label(stream, label, 55.69f, y + 6.4f, 9.1f)
+                stream.restoreGraphicsState()
             }
             fun p3RuledCells(
                 stream: PDPageContentStream,

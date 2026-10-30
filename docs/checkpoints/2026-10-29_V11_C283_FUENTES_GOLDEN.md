@@ -31,6 +31,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C303 | Equipo especial | Encabezados de columna en rótulo 6,8 pt #264b68 («ACTIVO» 5,5 pt) en P2 y C2; leyenda del golden «ACTIVO: marcar a lápiz» en la cartela. |
 | C304 | Etiquetas de LANZAMIENTO DE CONJUROS | 6,65 pt como el golden (antes 6,5). |
 | C305 | Columnas de HISTORIA (P3) | Franjas 39,69–302,88 y 309,12–572,32 pt (6,24 pt de separación) y texto a 4 pt dentro (x 43,7), como el golden. |
+| C306 | Cartelas de P3 | Borde #264b68, ancho 39,69–572,32, rombos y título 9,1 pt #1d384f a 16 pt del borde (antes 12 pt tinta). |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos

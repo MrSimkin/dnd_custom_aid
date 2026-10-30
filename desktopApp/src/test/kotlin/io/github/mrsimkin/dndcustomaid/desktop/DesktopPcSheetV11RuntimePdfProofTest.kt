@@ -260,7 +260,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(storyStarts.all { kotlin.math.abs(it - 43.69f) < 0.3f }, // C305 golden x43.7
                     "P3 story text keeps the golden 4 pt inner margin ($variant): $storyStarts")
                 assertTrue(fields.any { kotlin.math.abs(it - 7.3f) < 0.01f } &&
-                    fields.all { kotlin.math.abs(it - 7.3f) < 0.01f || kotlin.math.abs(it - 7f) < 0.01f },
+                    fields.all { kotlin.math.abs(it - 7.3f) < 0.01f || kotlin.math.abs(it - 7f) < 0.01f ||
+                        kotlin.math.abs(it - 9.1f) < 0.01f /* C306 golden band title */ },
                     "Profile fields use the golden 7.3 pt values (C284); Historia keeps 7 pt: " + fields.distinct())
             }
         }
@@ -726,10 +727,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 it.readBytes().toString(Charsets.ISO_8859_1)
             }
             for (y in listOf(682, 461)) {
+                // C306: the golden P3 cartela spans x39.69..572.32 with 6 pt cuts.
                 val clipped = Regex(
-                    """(?s)(?:^|\s)48\s+""" + y +
-                        """\s+m\s+564\s+""" + y +
-                        """\s+l\s+570\s+""" + (y + 6) +
+                    """(?s)(?:^|\s)45\.69\d*\s+""" + y +
+                        """\s+m\s+566\.32\d*\s+""" + y +
+                        """\s+l\s+572\.32\d*\s+""" + (y + 6) +
                         """\s+l.*?\s+B(?:\s|$)"""
                 )
                 assertTrue(clipped.containsMatchIn(operators),
