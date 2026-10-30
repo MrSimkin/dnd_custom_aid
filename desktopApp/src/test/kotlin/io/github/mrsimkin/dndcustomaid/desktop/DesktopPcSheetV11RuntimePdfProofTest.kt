@@ -3540,7 +3540,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     val stream = pdf.getPage(index).contents.use {
                         it.readBytes().toString(Charsets.ISO_8859_1)
                     }
-                    marks += Regex("""(?m)(?:^|\s)7 7 re(?:\s|$)""")
+                    // C317: golden 8.22 pt spell boxes plus the 7 pt level-meter squares.
+                    marks += Regex("""(?m)(?:^|\s)(?:7 7|8\.22\d* 8\.22\d*) re(?:\s|$)""")
                         .findAll(stream).count()
                 }
                 assertTrue(paperRows >= 1, "Actual spell P4 page must be present.")
@@ -3554,7 +3555,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }
                 val blankLevelMeters = 9 * 3
                 assertEquals(preparationAndPaper + blankLevelMeters, marks,
-                    "One 7pt preparation square per source/blank row AND " +
+                    "One golden 8.22 pt preparation square per source/blank row AND " +
                         "exactly 27 distinct unfilled level-meter squares.")
             }
         }

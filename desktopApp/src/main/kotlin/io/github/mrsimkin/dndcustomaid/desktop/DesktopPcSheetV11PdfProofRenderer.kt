@@ -3602,11 +3602,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 cell.sourceStartOffset == 0 &&
                                 cell.drawableText.startsWith("[ ] ")) {
                                 val baseline = body.metrics.baselineIn(cell.cellPt)
+                                // C317: golden P4 spell box - 8.22 pt, white, #527c96 0.48 pt.
                                 stream.saveGraphicsState()
-                                stream.setStrokingColor(Color(130, 165, 186))
-                                stream.setLineWidth(0.65f)
-                                stream.addRect(cell.cellPt.leftPt + 2f, baseline - 1f, 7f, 7f)
-                                stream.stroke()
+                                stream.setStrokingColor(Color(82, 124, 150))
+                                stream.setNonStrokingColor(Color(255, 255, 255))
+                                stream.setLineWidth(0.48f)
+                                stream.addRect(cell.cellPt.leftPt + 2f, baseline - 1.6f, 8.22f, 8.22f)
+                                stream.fillAndStroke()
                                 stream.restoreGraphicsState()
                                 // Approved V11 P4 uses *blank ruled paper*, not
                                 // dark printed underscore glyphs. The measured
@@ -3622,11 +3624,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 // PAPER preparation box for pencil (C258: the sheet
                                 // never prints a digital prepared value).
                                 val baseline = body.metrics.baselineIn(cell.cellPt)
+                                // C317: golden P4 spell box - 8.22 pt, white, #527c96 0.48 pt.
                                 stream.saveGraphicsState()
-                                stream.setStrokingColor(Color(130, 165, 186))
-                                stream.setLineWidth(0.65f)
-                                stream.addRect(cell.cellPt.leftPt + 2f, baseline - 1f, 7f, 7f)
-                                stream.stroke()
+                                stream.setStrokingColor(Color(82, 124, 150))
+                                stream.setNonStrokingColor(Color(255, 255, 255))
+                                stream.setLineWidth(0.48f)
+                                stream.addRect(cell.cellPt.leftPt + 2f, baseline - 1.6f, 8.22f, 8.22f)
+                                stream.fillAndStroke()
                                 stream.restoreGraphicsState()
                                 if (cell.drawableText.isNotEmpty()) {
                                     draw(stream, cell.drawableText, cell.cellPt.leftPt,

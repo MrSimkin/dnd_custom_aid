@@ -41,6 +41,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C313 | Cartela NOTAS de C-N3 en su lugar | La cartela pasa de la franja del encabezado (703–716) a la banda del golden (672,66–695,62, borde #264b68, rombos, título 9,1 pt); las notas empiezan debajo, en 670,68, como el golden. La auditoría física revisa las notas bajo la cartela. |
 | C314 | Aire de las notas con título | Un renglón más tras el título y el título 6,47 pt más abajo: del título al texto quedan los 16,73 pt del golden y la regla 6,24 pt bajo el título. Las nueve notas largas de Mara pasan a usar dos páginas de C-N3 (la ficha de prueba pasa de 10 a 11 páginas). |
 | C316 | Etiquetas de combate de P1 | 6,65 pt como el golden (antes 6,7). |
+| C317 | Casilla de cada conjuro (P4) | 8,22 pt con relleno blanco y borde #527c96 de 0,48 pt, como el golden (antes 7 pt). Las 27 casillas del medidor de espacios siguen en 7 pt. |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos
@@ -51,7 +52,6 @@ Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Pendiente (siguiente)
 
-- P4: casilla de cada conjuro de 8,22 pt con relleno blanco y borde #527c96 0,48 (la app usa 7 pt; varias pruebas cuentan casillas de 7×7).
 - P4: franja del encabezado de nivel de 20,7 pt y tarjetas de referencia de 29,77 pt del golden.
 - Línea del encabezado en y709,8 del golden: exige bajar la cartela NOTAS de C-N3.
 - C-N3: la tarjeta de notas generales (sin título) no tiene referencia en el golden; su primera línea queda junto al borde.
