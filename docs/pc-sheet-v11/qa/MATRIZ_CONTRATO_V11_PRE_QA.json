@@ -2046,8 +2046,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "genuineP2KeepsAllFourClippedBlueCartelasOutsideSourceTables",
+            "test_result": "SCOPED G3 PASS on the real Desktop App P2: EQUIPO cartela at the left upper table, TESORO at the left middle, RASGOS at the right upper and EQUIPO ESPECIAL full width at the bottom, each a clipped filled/stroked cartela outside its measured source table.",
+            "source_commit": "1b4245dc12dc676da82f8443a560dfdcd7f49845",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40996100845",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40996100845/artifacts/12952215386",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40996100845/artifacts/12951407134",
+            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py 0 errors and audit_v11_module_topology.py 0 topology errors on the 108 PDFs.",
+            "limitations": "P2 table heights still differ from the golden (C315 pending: golden EQUIPO 460.63..670.68, TESORO 327.97..427.18). Desktop PDFs; global P201 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },

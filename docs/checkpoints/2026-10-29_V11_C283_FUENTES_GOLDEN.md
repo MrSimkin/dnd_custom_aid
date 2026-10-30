@@ -43,6 +43,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C316 | Etiquetas de combate de P1 | 6,65 pt como el golden (antes 6,7). |
 | C317 | Casilla de cada conjuro (P4) | 8,22 pt con relleno blanco y borde #527c96 de 0,48 pt, como el golden (antes 7 pt). Las 27 casillas del medidor de espacios siguen en 7 pt. |
 | C318 | Encabezado de nivel de P4 | 3,4 pt dentro de la columna, como el golden. |
+| C319 | Matriz | P201 (distribución de P2) en PASS G3 con la CI exacta 40996100845 (1b4245dc). Matriz: 76 de 242. |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos
