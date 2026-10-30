@@ -17,7 +17,7 @@ def specimen(missing_level=None, missing_square=None, extra_meter=False,
             continue
         y = 210 + level * 37
         page.insert_text((45, y),
-                         "TRUCOS / NIVEL 0" if level == 0 else f"NIVEL {level}", fontsize=8)
+                         "TRUCOS 0" if level == 0 else f"NIVEL {level}", fontsize=8)
         if level:
             # A genuine expanded label stays in the original level row,
             # not a second synthetic meter elsewhere on the page.

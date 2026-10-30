@@ -54,6 +54,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C327 | Cabecera sin escudo, logo más grande | El propietario autorizó ajustar la cabecera a criterio técnico (con su control) y aclaró que el escudo del golden era parte del logo sustituto. Se quita el escudo; el logo pasa a x57–147 × y719,5–754,5 (90 × 35 pt), libre de la esquina decorada y su rombo. La línea pálida tras el logo, el nombre y los rótulos no cambian. CI de C326: 41095518975 y 41095518880 (77068466). |
 | C328 | Línea de la cabecera (decisión) | Con la autorización del propietario sobre la cabecera, la línea se queda en y717 y no baja a y709,8 como en el golden: en la App las franjas de continuación de C2, las tablas de C2 y el Libro empiezan en y703–716, y la línea las cruzaría. El logo (abajo en y719,5) y el título secundario (y724,5) quedan sobre ella. |
 | C329 | Habilidades de B con marcas v8 | Como en A, el entrenamiento de B es la marca v8 dentro de la casilla (U+E108 competencia, U+E109 pericia) y ya no el sufijo « P» / « E». La leyenda de la cartela muestra las mismas marcas: «✓ COMPETENCIA  ✓✓ PERICIA» en gris 6,2 pt. Si una habilidad de B se desborda a C2, el texto conserva el dato en palabras (« / Competencia», « / Pericia»). |
+| C330 | Filas y títulos de nivel de P4 | Títulos del golden «TRUCOS 0» (antes «TRUCOS / NIVEL 0») y «NIVEL n»; todas las franjas en #e7f2f7 (antes #eef7fb en las filas) con la regla #94b0c1 de 0,32 pt 0,99 pt sobre el pie, como el golden. La auditoría de P4 reconoce «TRUCOS 0» y el color nuevo. La franja de nivel de 20,7 pt del golden sigue pendiente: el colocador compartido usa un paso único de 15,73 pt. |
 Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c325_c326/`.
 
 ## Hallazgos
@@ -66,7 +67,7 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 
 - P1 con las columnas del golden: atributos 39,69–260,22 y combate 270,43–572,32 (la app usa dos de 258); cartelas a 588,19–611,15.
 - C2 de tablas y de equipo especial: el golden los mezcla en columnas con otros módulos; la app usa páginas a todo el ancho. Columnas de ESPECIAL del golden: 107 / 133,2 / 246 / 46,42.
-- P4: franja del encabezado de nivel de 20,7 pt del golden (la app usa un renglón de 15,73).
+- P4: franja del encabezado de nivel de 20,7 pt del golden (la app usa un renglón de 15,73); exige filas de alto variable en el colocador compartido.
 - C-N3: la tarjeta de notas generales (sin título) no tiene referencia en el golden; su primera línea queda junto al borde.
 - C2: renglones con franjas alternas en listas de acciones, recursos y habilidades, y el rótulo «MÓDULOS COMPARTIDOS · DOS COLUMNAS» del golden.
 

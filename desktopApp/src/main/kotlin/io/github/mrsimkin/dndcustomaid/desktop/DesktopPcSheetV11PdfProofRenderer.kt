@@ -2774,7 +2774,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         ?.toIntOrNull()
                                     if (level != null) {
                                         val context = if (level == 0)
-                                            "TRUCOS / NIVEL 0 / CONTINUACIÓN"
+                                            "TRUCOS 0 / CONTINUACIÓN" // C330 golden
                                         else "NIVEL " + level + " / CONTINUACIÓN"
                                         require(p4SourceFont.width.measurePt(context) <=
                                             column.widthPt - 4f) {
@@ -2976,21 +2976,20 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         // rows, not free-floating glyphs over a blank page.
                         if (title.startsWith("P4 - ")) {
                             stream.saveGraphicsState()
-                            stream.setStrokingColor(Color(176, 204, 220))
-                            stream.setLineWidth(0.35f)
+                            // C330: golden P4 rows - every band #e7f2f7 with a #94b0c1
+                            // 0.32 pt rule 0.99 pt above its foot.
+                            stream.setStrokingColor(Color(148, 176, 193))
+                            stream.setLineWidth(0.32f)
                             pageCells.forEach { cell ->
                                 if (cell.sourceKey.startsWith("spell-level:") ||
                                     cell.sourceKey.startsWith("spell-handwritten:") ||
                                     cell.sourceKey.startsWith("quick-spell:")) {
-                                    val fill = if (cell.sourceKey.startsWith("spell-level:"))
-                                        Color(231, 242, 247)
-                                    else Color(238, 247, 251)
-                                    stream.setNonStrokingColor(fill)
+                                    stream.setNonStrokingColor(Color(231, 242, 247))
                                     stream.addRect(cell.cellPt.leftPt, cell.cellPt.bottomPt,
                                         cell.cellPt.widthPt, cell.cellPt.heightPt)
                                     stream.fill()
-                                    stream.moveTo(cell.cellPt.leftPt, cell.cellPt.bottomPt)
-                                    stream.lineTo(cell.cellPt.rightPt, cell.cellPt.bottomPt)
+                                    stream.moveTo(cell.cellPt.leftPt, cell.cellPt.bottomPt + 0.99f)
+                                    stream.lineTo(cell.cellPt.rightPt, cell.cellPt.bottomPt + 0.99f)
                                     stream.stroke()
                                 }
                             }
@@ -5285,7 +5284,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         data.spells.map { it.spell.level }.filter { it >= 10 }.distinct().sorted()
                     levels.forEach { level ->
                         add(PcSheetV11FlowItem("spell-level:" + level,
-                            if (level == 0) "TRUCOS / NIVEL 0" else "NIVEL " + level,
+                            // C330: golden level titles «TRUCOS 0», «NIVEL 2».
+                            if (level == 0) "TRUCOS 0" else "NIVEL " + level,
                             keepTogetherIfFits = true))
                         val spellsHere = data.spells.filter { it.spell.level == level }
                         spellsHere.forEach { entry ->

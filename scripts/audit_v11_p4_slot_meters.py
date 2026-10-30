@@ -17,7 +17,7 @@ import fitz
 
 PDF_PATTERN = "V11-INTERNAL-PROOF-*.pdf"
 P4_HEADING = re.compile(r"\bP4\s*-\s*Conjuros\b", re.IGNORECASE)
-LEVEL = re.compile(r"\bNIVEL\s+(\d+)\b")
+LEVEL = re.compile(r"\b(?:NIVEL|TRUCOS)\s+(\d+)\b")  # C330: golden «TRUCOS 0»
 
 
 # Golden P4 continuation panels are REAL vector clipped blue cartelas
@@ -83,7 +83,7 @@ def final_level9_manuscript_paper(page):
         and abs(drawing["rect"].width - 167.81) < .45
         and 200 < drawing["rect"].y0 < 718
         and all(abs(drawing["fill"][i] - color) < .013
-                for i, color in enumerate((238/255, 247/255, 251/255)))
+                for i, color in enumerate((231/255, 242/255, 247/255)))  # C330 golden row fill
     ]
     if not ends:
         return True, 0.0, ["P4 final level 9 lacks real pale writing rows"]

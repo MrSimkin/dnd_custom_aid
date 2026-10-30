@@ -2792,7 +2792,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val p4Pages = pages.filter { it.contains("P4 - Conjuros /") }
                 assertTrue(p4Pages.size >= 2,
                     "175 cantrips must exercise physical P4 page continuation.")
-                assertTrue(p4Pages.first().contains("TRUCOS / NIVEL 0"),
+                assertTrue(p4Pages.first().contains("TRUCOS 0"),
                     "Source level 0 must retain the approved cantrip heading.")
                 val strips = PDFTextStripperByArea().apply {
                     // C322: the continuation band sits just above the golden column top (y630.43).
@@ -2803,12 +2803,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 for (region in listOf("column2", "column3")) {
                     assertTrue(
                         strips.getTextForRegion(region)
-                            .contains("TRUCOS / NIVEL 0 / CONTINUACIÓN"),
+                            .contains("TRUCOS 0 / CONTINUACIÓN"),
                         "Real P4 cantrips must retain level 0 in each physical column.")
                 }
                 assertTrue(p4Pages.drop(1).any {
                     it.contains("QAP4TRUCO") &&
-                        it.contains("TRUCOS / NIVEL 0 / CONTINUACIÓN")
+                        it.contains("TRUCOS 0 / CONTINUACIÓN")
                 }, "A later P4 page must identify continued level-zero spells.")
                 val allP4 = p4Pages.joinToString("\n")
                 stressSpells.forEach { spell ->
@@ -3646,7 +3646,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 startPage = firstP4
                 endPage = firstP4
             }.getText(pdf)
-            assertTrue(p4.contains("TRUCOS / NIVEL 0"))
+            assertTrue(p4.contains("TRUCOS 0"))
             assertTrue(p4.contains("NIVEL 9"))
             assertFalse(p4.contains("___"),
                 "No fake underscore glyphs: all P4 empty writing uses real vector rules.")
