@@ -685,7 +685,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         "Each real P4 magic-source card needs 6pt clipped corners.")
                 }
                 val paperSlots = Regex(
-                    """(?m)(?:^|\s)(?:177|188|199|357|368|379|537|548|559)""" +
+                    // C309: golden P4 columns move the three slot boxes (right - 33/22/11).
+                    """(?m)(?:^|\s)(?:174\.5\d*|185\.5\d*|196\.5\d*|356\.9\d*|367\.9\d*|378\.9\d*|539\.3\d*|550\.3\d*|561\.3\d*)""" +
                         """\s+[\d.]+\s+7\s+7\s+re(?:\s|$)"""
                 ).findAll(operators).count()
                 assertEquals(27, paperSlots,

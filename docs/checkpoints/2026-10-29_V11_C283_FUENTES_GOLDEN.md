@@ -34,6 +34,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C306 | Cartelas de P3 | Borde #264b68, ancho 39,69–572,32, rombos y título 9,1 pt #1d384f a 16 pt del borde (antes 12 pt tinta). |
 | C307 | Títulos de C2 | Cartela de tabla pareada con rombos y título 9,1 pt #1d384f a 16 pt (antes 11 pt); «EQUIPO ESPECIAL» de C2 9,1 pt; rótulo «NOTAS» de C2 7,6 pt #1d384f (antes 12 pt). Auditorías C207 y de manuscrito siguen el rótulo de 7,6 pt. |
 | C308 | Tarjetas de REFERENCIA MÁGICA (P4) | Cartela x39,69–572,32 y tres tarjetas en x 39,69 + 178,58·i, 174,33 pt de ancho, borde #264b68 de 0,65 pt, como el golden. La altura (44 pt) se mantiene por el caso apilado de varias fuentes; el golden mide 29,77 pt. |
+| C309 | Columnas de la lista rápida (P4) | 39,69–207,5, 222,09–389,91 y 404,5–572,31 pt (14,59 pt de separación), como el golden; casillas de espacios y auditoría siguen el borde real de cada columna. |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos

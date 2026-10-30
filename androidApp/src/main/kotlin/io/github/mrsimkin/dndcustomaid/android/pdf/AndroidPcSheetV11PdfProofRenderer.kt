@@ -2442,7 +2442,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     fullName.none { it == '\r' || it == '\n' || it == '\t' } &&
                     sourceInfo.none { it == '\r' || it == '\n' || it == '\t' } &&
                     quickFont.width.measurePt(fullName) +
-                    p4SourceFont.width.measurePt(sourceInfo) + 12f <= 168f
+                    p4SourceFont.width.measurePt(sourceInfo) + 12f <= 167.81f // C309 golden column
                 ) key to sourceInfo else null
             }.toMap()
 
@@ -5205,11 +5205,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // page area and stranded most of a Letter sheet as blank paper.
                 // Expand paper-only entries, not digital spell data, as far as
                 // one physical page permits. Never create a second filler page.
-                val p4WritingArea = PcSheetV11RectPt(42f, 76f, 528f, 531f)
+                // C309: golden P4 columns 39.69..207.5, 222.09..389.91, 404.5..572.31.
+                val p4WritingArea = PcSheetV11RectPt(39.69f, 76f, 532.62f, 531f)
+                val p4GutterPt = 14.59f
                 val minimalQuick = quickRows(1)
                 val minimalPlacement = quickFont.place(
                     PcSheetV11FlowSection.QUICK_SPELLS,
-                    minimalQuick, p4WritingArea, 3, 12f,
+                    minimalQuick, p4WritingArea, 3, p4GutterPt,
                 )
                 val quick = if (minimalPlacement.sourceFlow.localPageCount == 1) {
                     var lowest = 1
@@ -5218,7 +5220,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         val candidateRows = (lowest + highest + 1) / 2
                         val candidate = quickFont.place(
                             PcSheetV11FlowSection.QUICK_SPELLS,
-                            quickRows(candidateRows), p4WritingArea, 3, 12f,
+                            quickRows(candidateRows), p4WritingArea, 3, p4GutterPt,
                         )
                         if (candidate.sourceFlow.localPageCount == 1) {
                             lowest = candidateRows
@@ -5229,7 +5231,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     val baseRows = quickRows(lowest)
                     val basePlacement = quickFont.place(
                         PcSheetV11FlowSection.QUICK_SPELLS,
-                        baseRows, p4WritingArea, 3, 12f,
+                        baseRows, p4WritingArea, 3, p4GutterPt,
                     )
                     require(basePlacement.sourceFlow.localPageCount == 1)
                     // Original golden P4 fills each column with handwriting
@@ -5252,7 +5254,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             val candidate = quickFont.place(
                                 PcSheetV11FlowSection.QUICK_SPELLS,
                                 quickRows(lowest, extraCandidate),
-                                p4WritingArea, 3, 12f,
+                                p4WritingArea, 3, p4GutterPt,
                             )
                             if (candidate.sourceFlow.localPageCount == 1) {
                                 extraLow = extraCandidate
@@ -5268,7 +5270,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 } else minimalQuick
                 // C261: golden P4 rhythm, Fira 6.8 pt on 15.7 pt rows.
                 addSection("P4 - Conjuros", PcSheetV11FlowSection.QUICK_SPELLS,
-                    quick, 3, area = p4WritingArea, font = quickFont)
+                    quick, 3, area = p4WritingArea, gutterPt = p4GutterPt, font = quickFont)
             }
 
             // C238: golden note cards are one blank line apart (paper only).

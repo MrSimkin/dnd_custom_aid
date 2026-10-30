@@ -31,7 +31,7 @@ def continued_level_bands(page):
     words = page.get_text("words")
     continued = [
         word for word in words if word[4] == "CONTINUACIÓN"
-        and 174 < word[1] < 180 and word[0] >= 42
+        and 174 < word[1] < 180 and word[0] >= 39.69
     ]
     bands = [
         draw["rect"] for draw in page.get_drawings()
@@ -44,10 +44,11 @@ def continued_level_bands(page):
     ]
     failures = []
     for word in continued:
-        left = next((col for col in (42., 222., 402.)
-                     if col + 2 <= word[0] < col + 168), None)
+        # C309: golden P4 columns (39.69 / 222.09 / 404.5, 167.81 pt wide).
+        left = next((col for col in (39.69, 222.09, 404.5)
+                     if col + 2 <= word[0] < col + 167.81), None)
         if left is None or not any(
-            abs(band.x0 - left) < .5 and abs(band.width - 168) < .5
+            abs(band.x0 - left) < .5 and abs(band.width - 167.81) < .5
             for band in bands
         ):
             failures.append(
@@ -77,8 +78,8 @@ def final_level9_manuscript_paper(page):
         drawing["rect"].y1
         for drawing in page.get_drawings()
         if drawing["type"] == "f" and drawing.get("fill") is not None
-        and abs(drawing["rect"].x0 - 402.0) < .45
-        and abs(drawing["rect"].width - 168.0) < .45
+        and abs(drawing["rect"].x0 - 404.5) < .45
+        and abs(drawing["rect"].width - 167.81) < .45
         and 200 < drawing["rect"].y0 < 718
         and all(abs(drawing["fill"][i] - color) < .013
                 for i, color in enumerate((238/255, 247/255, 251/255)))
@@ -127,7 +128,7 @@ def audit_spell_page(page, page_number):
         # Locate the three boxes by the immutable PHYSICAL column
         # right edge, rather than the variable position of ESP.N G.M.
         column_right = next((edge for left, edge in
-                             ((42., 210.), (222., 390.), (402., 570.))
+                             ((39.69, 207.5), (222.09, 389.9), (404.5, 572.31))
                              if left <= x < edge - 2), None)
         expected_first_box_x = (column_right - 33
                                 if column_right is not None else None)
