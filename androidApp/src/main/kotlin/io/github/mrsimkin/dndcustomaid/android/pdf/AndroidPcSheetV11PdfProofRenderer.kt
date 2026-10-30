@@ -394,6 +394,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.endText()
                 }
                 stream.restoreGraphicsState()
+                // C324: golden C2 section label above the shared-module columns.
+                if (title.startsWith("C2 - Habilidades, acciones y recursos")) {
+                    stream.saveGraphicsState()
+                    stream.setNonStrokingColor(Color(38, 75, 104))
+                    drawP1Label(stream, "MÓDULOS COMPARTIDOS · DOS COLUMNAS", 39.69f, 691.9f, 7.5f)
+                    stream.restoreGraphicsState()
+                }
                 // C298: the golden has no black text; every page starts in its value ink.
                 stream.setNonStrokingColor(Color(36, 57, 75))
             }
@@ -4790,7 +4797,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             addSection("C2 - Habilidades, acciones y recursos",
                 PcSheetV11FlowSection.TRAITS,
                 mixedC2, columns = 2, ammunitionTracks = ammunitionTracks,
-                area = PcSheetV11RectPt(39.69f, pageArea.bottomPt, 532.63f, pageArea.heightPt),
+                // C324: content starts at the golden first-cartela top (y685.7).
+                area = PcSheetV11RectPt(39.69f, pageArea.bottomPt, 532.63f, 685.7f - pageArea.bottomPt),
                 gutterPt = 9.92f, font = c2Font)
 
             // Reflow the exact P2-unprinted equipment/treasure suffixes into

@@ -48,6 +48,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C321 | P3 con la maqueta del golden | Franjas TRASFONDO (672,66–695,62) e HISTORIA (437,95–460,91) de 22,96 pt; los renglones de HISTORIA van de 435,97 a 61,8 (22 por columna). Corrige la franja HISTORIA de C284, que se montaba sobre el último renglón de VÍNCULOS/DEFECTOS. |
 | C322 | P4 con la maqueta del golden | Cartela 672,66–695,62, tarjetas 640,91–670,68 (29,77 pt; etiqueta y valor en las líneas base del golden), columnas desde 630,43 hasta 64,92 con renglones de 15,73 pt. Varias fuentes en una tarjeta: máximo dos líneas y, si no, «SEGÚN FUENTE» (la regla aprobada en P1). La franja «continúa nivel» va en el hueco bajo las tarjetas. Ilyra y Mara ganan 6 renglones en blanco (68 y 71). |
 | C323 | Columnas del C2 mixto | 39,69–301,04 y 310,96–572,32 (9,92 pt de separación) como el golden; la tabla ACCIONES se mide con ese ancho; la barra lateral de grupo queda dentro del marco interior. Auditoría de manuscrito sigue las columnas del golden (505 habilidades vinculadas con casilla y total). Pendiente: cartelas de 22,96 pt y el rótulo «MÓDULOS COMPARTIDOS · DOS COLUMNAS». |
+| C324 | Arranque del C2 mixto | El contenido empieza en la altura de la primera cartela del golden (685,7) y lleva encima el rótulo «MÓDULOS COMPARTIDOS · DOS COLUMNAS» (7,5 pt #264b68 en x39,7, y691,9). Las páginas C2 de tablas y de equipo especial todavía empiezan en 702. |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos
@@ -58,6 +59,8 @@ Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Pendiente (siguiente)
 
+- P1 con las columnas del golden: atributos 39,69–260,22 y combate 270,43–572,32 (la app usa dos de 258); cartelas a 588,19–611,15.
+- C2 de tablas y de equipo especial: el golden los mezcla en columnas con otros módulos; la app usa páginas a todo el ancho. Columnas de ESPECIAL del golden: 107 / 133,2 / 246 / 46,42.
 - P4: franja del encabezado de nivel de 20,7 pt del golden (la app usa un renglón de 15,73).
 - Línea del encabezado en y709,8 del golden: exige bajar la cartela NOTAS de C-N3.
 - C-N3: la tarjeta de notas generales (sin título) no tiene referencia en el golden; su primera línea queda junto al borde.
