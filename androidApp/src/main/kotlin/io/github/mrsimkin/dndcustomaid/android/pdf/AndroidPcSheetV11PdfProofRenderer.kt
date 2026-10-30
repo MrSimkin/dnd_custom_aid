@@ -2882,25 +2882,50 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             // below the header rule (703..716) and each persisted
                             // note framed as its own card (one blank line apart).
                             drawC2ContinuationCartela(stream, pageArea)
+                            // C296: golden NOTAS cartela - diamonds, 9.1 pt title in
+                            // ink, and the legend in Noto Sans 6.2 pt #657d90.
+                            drawCartelaDiamonds(stream, pageArea.leftPt, pageArea.rightPt, 703f, 716f)
+                            stream.setNonStrokingColor(Color(29, 56, 79))
                             stream.beginText()
-                            stream.setFont(headerPdfFont, 9f)
-                            stream.newLineAtOffset(pageArea.leftPt + 6f, 706.5f)
+                            stream.setFont(headerPdfFont, 9.1f)
+                            stream.newLineAtOffset(pageArea.leftPt + 16f, 706.5f)
                             stream.showText("NOTAS")
                             stream.endText()
-                            val scope = "SOLO NOTAS DIGITALES"
-                            drawP1Label(stream, scope, pageArea.rightPt - 6f -
-                                headerPdfFont.getStringWidth(scope) * 7f / 1000f, 707f)
+                            val scope = "solo notas digitales"
+                            stream.setNonStrokingColor(Color(101, 125, 144))
+                            stream.beginText()
+                            stream.setFont(bodyPdfFont, 6.2f)
+                            stream.newLineAtOffset(pageArea.rightPt - 18.4f -
+                                bodyPdfFont.getStringWidth(scope) * 6.2f / 1000f, 707.7f)
+                            stream.showText(scope)
+                            stream.endText()
+                            stream.setNonStrokingColor(Color(0, 0, 0))
+                            // C296: golden note card - chamfered #264b68 0.65 pt frame
+                            // (x39.69..572.32) with a pale inner rule 3.4 pt under its top.
                             stream.saveGraphicsState()
-                            stream.setStrokingColor(Color(80, 122, 151))
-                            stream.setLineWidth(0.55f)
                             pageCells.filter { it.sourceKey.startsWith("digital-note:") }
                                 .groupBy { it.sourceKey }.values.forEach { cells ->
-                                    // Top edge shares the title band's rule; it stays
-                                    // below the 703 pt NOTAS cartela.
                                     val top = cells.maxOf { it.cellPt.topPt }
                                     val bottom = cells.minOf { it.cellPt.bottomPt } - 3f
-                                    stream.addRect(pageArea.leftPt, bottom,
-                                        pageArea.widthPt, top - bottom)
+                                    val left = 39.69f
+                                    val right = 572.32f
+                                    val cut = minOf(6.24f, (top - bottom) / 4f)
+                                    stream.setStrokingColor(Color(38, 75, 104))
+                                    stream.setLineWidth(0.65f)
+                                    stream.moveTo(left + cut, top)
+                                    stream.lineTo(right - cut, top)
+                                    stream.lineTo(right, top - cut)
+                                    stream.lineTo(right, bottom + cut)
+                                    stream.lineTo(right - cut, bottom)
+                                    stream.lineTo(left + cut, bottom)
+                                    stream.lineTo(left, bottom + cut)
+                                    stream.lineTo(left, top - cut)
+                                    stream.closePath()
+                                    stream.stroke()
+                                    stream.setStrokingColor(Color(191, 211, 222))
+                                    stream.setLineWidth(0.35f)
+                                    stream.moveTo(left + 9.07f, top - 3.4f)
+                                    stream.lineTo(right - 9.08f, top - 3.4f)
                                     stream.stroke()
                                 }
                             stream.restoreGraphicsState()
@@ -2908,18 +2933,15 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 it.sourceKey.startsWith("digital-note:") &&
                                     it.sourceStartOffset == 0
                             }
+                            // C296: no title band in the golden; a thin rule 6.24 pt
+                            // under each note title's baseline instead.
                             stream.saveGraphicsState()
-                            stream.setNonStrokingColor(Color(231, 242, 247))
-                            stream.setStrokingColor(Color(130, 165, 186))
-                            stream.setLineWidth(0.45f)
+                            stream.setStrokingColor(Color(148, 176, 193))
+                            stream.setLineWidth(0.32f)
                             starts.forEach { cell ->
-                                // The title band spans the whole card; text stays inset.
-                                val rect = cell.cellPt
-                                stream.addRect(pageArea.leftPt, rect.bottomPt,
-                                    pageArea.widthPt, rect.heightPt)
-                                stream.fill()
-                                stream.moveTo(pageArea.leftPt, rect.topPt)
-                                stream.lineTo(pageArea.rightPt, rect.topPt)
+                                val ruleY = body.metrics.baselineIn(cell.cellPt) - 6.24f
+                                stream.moveTo(pageArea.leftPt + 6.19f, ruleY)
+                                stream.lineTo(pageArea.rightPt - 8.74f, ruleY)
                                 stream.stroke()
                             }
                             stream.restoreGraphicsState()
@@ -3334,6 +3356,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     stream.restoreGraphicsState()
                                     return@forEach
                                 }
+                            }
+                            // C296: golden note title - label 8 pt #1d384f (first line only).
+                            if (title == "C-N3 - Notas digitales" &&
+                                cell.sourceKey.startsWith("digital-note:") &&
+                                cell.sourceStartOffset == 0 && cell.drawableText.isNotBlank() &&
+                                cell.sourceText.startsWith(cell.drawableText.trimEnd() + "\n") &&
+                                headerPdfFont.getStringWidth(pcSheetV11PrintableText(
+                                    cell.drawableText.trimEnd())) * 8f / 1000f <= cell.cellPt.widthPt) {
+                                stream.saveGraphicsState()
+                                stream.setNonStrokingColor(Color(29, 56, 79))
+                                drawP1Label(stream, cell.drawableText.trimEnd(), cell.cellPt.leftPt,
+                                    body.metrics.baselineIn(cell.cellPt), 8f)
+                                stream.restoreGraphicsState()
+                                return@forEach
                             }
                             if (cell.sourceKey in c2AttributeCards) {
                                 if (cell.sourceStartOffset == 0) drawC2AttributeRow(stream, cell)

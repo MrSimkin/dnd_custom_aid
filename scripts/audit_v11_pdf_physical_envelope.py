@@ -86,10 +86,11 @@ def p1_ammo_cartela(page: fitz.Page) -> list[str]:
 def cn3_cards(page: fitz.Page) -> list[str]:
     """C238: golden C-N3 — NOTAS cartela and every digital-note word inside a 528 pt card."""
     errors = []
-    if "SOLO NOTAS DIGITALES" not in page.get_text():
+    if "solo notas digitales" not in page.get_text():
         errors.append("C-N3 page lacks the golden NOTAS cartela")
     cards = [d["rect"] for d in page.get_drawings()
-             if d["type"] == "s" and abs(d["rect"].x0 - 42) < .5 and abs(d["rect"].width - 528) < .5
+             # C296: golden chamfered note card x39.69..572.32.
+             if d["type"] == "s" and abs(d["rect"].x0 - 39.69) < .5 and abs(d["rect"].width - 532.63) < .5
              and d["rect"].height > 10]
     if not cards:
         return errors + ["C-N3 page has no note cards"]

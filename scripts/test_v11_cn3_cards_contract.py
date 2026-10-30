@@ -16,7 +16,7 @@ class Cn3CardsParityTest(unittest.TestCase):
         pieces = []
         for path in RENDERERS:
             data = path.read_text(encoding="utf-8")
-            self.assertIn('val scope = "SOLO NOTAS DIGITALES"', data)
+            self.assertIn('val scope = "solo notas digitales"', data)
             self.assertIn('stream.showText("NOTAS MANUSCRITAS")', data)
             self.assertIn("texts.digitalNotes.map { it.copy(leadingSeparationLines = 1) }, 1,", data)
             part = data.split("// C238: golden C-N3", 1)[1].split("// Mixed C2 must preserve", 1)[0]

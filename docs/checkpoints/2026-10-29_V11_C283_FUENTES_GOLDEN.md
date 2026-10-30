@@ -21,6 +21,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C293 | Color de las cartelas del golden | Relleno #e7f2f7 en las 17 cartelas y franjas (antes #d9ecf5, que el golden no usa) y borde #264b68 de 0,65 pt en las cartelas de sección. Los marcos de tarjetas siguen en el azul #527c96 del golden. Pendiente: altura de 22,96 pt de la cartela del golden, que exige mover las tablas de P2. |
 | C294 | Tipografía de P4 | Encabezado de nivel en rótulo 7,6 pt #264b68; «ESP.» en 5,9 pt; fuente de cada conjuro en rótulo 6 pt #264b68 a 3,4 pt del borde derecho, como el golden. |
 | C295 | Cartelas de C2 | Rombos en ambos extremos, título a 16 pt del borde y «VIENE P. n» en 6,1 pt #264b68 antes del rombo derecho (x 270,5, como el golden). Un título demasiado largo conserva el margen de 5 pt sin rombos. |
+| C296 | Notas digitales (C-N3) | Cartela NOTAS con rombos, título 9,1 pt y leyenda «solo notas digitales» en gris 6,2 pt; cada nota en tarjeta con esquinas cortadas (#264b68 0,65 pt, x39,69–572,32) y línea interior clara; título de la nota en rótulo 8 pt #1d384f con una regla fina debajo, sin franja celeste. |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos
@@ -31,6 +32,7 @@ Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Pendiente (siguiente)
 
+- C-N3: el aire del golden entre título de nota, su regla y el texto (exige un renglón más por nota).
 - C2: renglones con franjas alternas en listas de acciones, recursos y habilidades, y el rótulo «MÓDULOS COMPARTIDOS · DOS COLUMNAS» del golden.
 - P2: altura de 22,96 pt de las cartelas (mueve las tablas).
 

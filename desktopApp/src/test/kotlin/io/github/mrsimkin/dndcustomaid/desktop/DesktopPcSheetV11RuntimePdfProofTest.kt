@@ -4289,7 +4289,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     stripper.startPage = number
                     stripper.endPage = number
                     stripper.getText(pdf)
-                    assertTrue(text.contains("NOTAS") && text.contains("SOLO NOTAS DIGITALES"),
+                    assertTrue(text.contains("NOTAS") && text.contains("solo notas digitales"),
                         "C-N3 page $number keeps the golden NOTAS cartela ($variant).")
                     assertTrue(starts.isNotEmpty() && starts.all { kotlin.math.abs(it - 48f) < 0.3f },
                         "Note text starts 6 pt inside its card on page $number ($variant): $starts")
@@ -5470,11 +5470,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
                 val startBandRects = Regex(
-                    // C260: the start band is one golden C-N3 row (11.6 pt).
-                    """(?m)(?:^|\s)42(?:\.0)?\s+[-\d.]+\s+528(?:\.0)?\s+11\.\d+\s+re(?:\s|$)"""
+                    // C296: the golden note start is the thin rule under its title
+                    // (x48.19..561.26), not a blue band.
+                    """(?m)(?:^|\s)48\.19\d*\s+[-\d.]+\s+m\s+561\.26\d*\s+[-\d.]+\s+l(?:\s|$)"""
                 ).findAll(raw).count()
                 assertEquals(fixture.permanent.sheet.noteCards.size + 1,
-                    startBandRects, "One source-backed blue band per genuine note start.")
+                    startBandRects, "One source-backed title rule per genuine note start.")
                 assertTrue(texts.last().lineSequence().any { it.trim() == "NOTAS" })
             }
             val long = DesktopPcSheetExportService().generateV11Proof(
