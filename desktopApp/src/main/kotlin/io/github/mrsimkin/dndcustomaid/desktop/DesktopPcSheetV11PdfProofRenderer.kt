@@ -1818,7 +1818,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val width = if (narrow) 86f else 129f
                     val top = paperTop - row * 28f
                     val x = left + col * width
-                    val labelPt = 6.7f
+                    val labelPt = 6.65f // C316: golden combat card label size
                     require(headerPdfFont.getStringWidth(label) *
                         labelPt / 1000f <= width - 12f) {
                         "P1 true source combat label exceeds its real card: " + label

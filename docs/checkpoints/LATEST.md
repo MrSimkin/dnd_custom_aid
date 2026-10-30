@@ -1,3 +1,5 @@
+**2026-10-30 — C286–C316 V11: encabezado, pie, cartelas, tinta, números en negrita, P3, P4, C2 y C-N3 como el golden; matriz 75/242.** [Checkpoint](2026-10-29_V11_C283_FUENTES_GOLDEN.md).
+
 **2026-10-29 — C283–C285 V11: fuentes exactas del golden, campos de P3 del golden y nombre en Garamond.** [Checkpoint](2026-10-29_V11_C283_FUENTES_GOLDEN.md).
 
 **2026-10-29 — C282 V11: escuela de magia en el Libro (Q14b = A).** Campo nuevo `CharacterSpell.school` en App, base (migración 26), editor Android, copias y sincronización; el PDF la imprime como el golden. [Checkpoint](2026-10-29_V11_C272_MATRIZ_DIEZ_BLOQUES.md).
