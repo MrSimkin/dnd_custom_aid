@@ -22,6 +22,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C294 | Tipografía de P4 | Encabezado de nivel en rótulo 7,6 pt #264b68; «ESP.» en 5,9 pt; fuente de cada conjuro en rótulo 6 pt #264b68 a 3,4 pt del borde derecho, como el golden. |
 | C295 | Cartelas de C2 | Rombos en ambos extremos, título a 16 pt del borde y «VIENE P. n» en 6,1 pt #264b68 antes del rombo derecho (x 270,5, como el golden). Un título demasiado largo conserva el margen de 5 pt sin rombos. |
 | C296 | Notas digitales (C-N3) | Cartela NOTAS con rombos, título 9,1 pt y leyenda «solo notas digitales» en gris 6,2 pt; cada nota en tarjeta con esquinas cortadas (#264b68 0,65 pt, x39,69–572,32) y línea interior clara; título de la nota en rótulo 8 pt #1d384f con una regla fina debajo, sin franja celeste. |
+| C297 | Rótulos de identidad de P1 | CLASE / NIVEL 6,2 pt y JUGADOR, RAZA, ALINEAMIENTO 5,9 pt en gris #657d90 (antes 7 pt negro). |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos

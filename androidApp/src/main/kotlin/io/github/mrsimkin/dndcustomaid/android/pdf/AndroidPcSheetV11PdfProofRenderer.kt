@@ -1649,7 +1649,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 identityFields.forEach { (descriptor, _, placed) ->
                     val (label, _) = descriptor
                     val frame = identityFieldFrames.first { it.first == label }.third
-                    drawP1Label(stream, label, frame.leftPt + 6f, frame.topPt - 9f)
+                    // C297: golden identity labels, grey #657d90 (CLASE / NIVEL 6.2 pt, others 5.9).
+                    stream.setNonStrokingColor(Color(101, 125, 144))
+                    drawP1Label(stream, label, frame.leftPt + 6f, frame.topPt - 9f,
+                        if (label == "CLASE / NIVEL") 6.2f else 5.9f)
+                    stream.setNonStrokingColor(Color(0, 0, 0))
                     placed?.cells?.filter { it.localPageIndex == 1 }?.forEach { cell ->
                         if (cell.drawableText.isNotEmpty()) {
                             draw(stream, cell.drawableText, cell.cellPt.leftPt,
@@ -1657,12 +1661,16 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         }
                     }
                 }
-                drawP1Label(stream, "JUGADOR", player.leftPt + 6f, player.topPt - 9f)
+                stream.setNonStrokingColor(Color(101, 125, 144))
+                drawP1Label(stream, "JUGADOR", player.leftPt + 6f, player.topPt - 9f, 5.9f)
+                stream.setNonStrokingColor(Color(0, 0, 0))
                 stream.moveTo(player.leftPt + 6f, player.bottomPt + 5f)
                 stream.lineTo(player.rightPt - 6f, player.bottomPt + 5f)
                 stream.stroke()
+                stream.setNonStrokingColor(Color(101, 125, 144))
                 drawP1Label(stream, "ALINEAMIENTO", alignment.leftPt + 6f,
-                    alignment.topPt - 9f)
+                    alignment.topPt - 9f, 5.9f)
+                stream.setNonStrokingColor(Color(0, 0, 0))
                 // No persisted alignment exists; a ruled entry is deliberately blank.
                 stream.moveTo(alignment.leftPt + 6f, alignment.bottomPt + 5f)
                 stream.lineTo(alignment.rightPt - 6f, alignment.bottomPt + 5f)
