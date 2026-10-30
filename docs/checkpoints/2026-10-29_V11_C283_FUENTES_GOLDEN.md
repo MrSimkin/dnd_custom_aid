@@ -25,6 +25,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C297 | Rótulos de identidad de P1 | CLASE / NIVEL 6,2 pt y JUGADOR, RAZA, ALINEAMIENTO 5,9 pt en gris #657d90 (antes 7 pt negro). |
 | C298 | Sin texto negro | Cada página empieza en la tinta #24394b y las 16 vueltas a negro pasan a esa tinta; en Mara A quedan 18 caracteres negros de ~16 400. |
 | C299 | Encabezado de ATAQUES de P1 | ARMA / ATAQUE / CONJURO 6,2 pt; BON. y DAÑO / TIPO 6 pt; #264b68 (antes 7 pt negro). |
+| C300 | Números de atributos de P1 | Noto Sans Bold como el golden: puntaje 11 pt #1d384f, modificador 8,7 pt, salvación 7,2 pt y bono de habilidad (A) 7 pt en #264b68. |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos

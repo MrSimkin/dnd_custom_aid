@@ -180,6 +180,21 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
             fun p1InkWidth(text: String, pt: Float): Float =
                 headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * pt / 1000f
+            // C300: the golden prints attribute numbers in Noto Sans Bold.
+            fun p1BoldWidth(text: String, pt: Float): Float =
+                boldPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * pt / 1000f
+            fun p1Bold(stream: PDPageContentStream, text: String, x: Float, y: Float,
+                       pt: Float, ink: Color) {
+                if (text.isEmpty()) return
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(ink)
+                stream.beginText()
+                stream.setFont(boldPdfFont, pt)
+                stream.newLineAtOffset(x, y)
+                stream.showText(pcSheetV11PrintableText(text))
+                stream.endText()
+                stream.restoreGraphicsState()
+            }
             // C265: golden cartela diamonds, one at each end of a title band;
             // titles start 16 pt inside the band, clear of the left diamond.
             fun drawCartelaDiamonds(stream: PDPageContentStream, left: Float, right: Float,
@@ -543,8 +558,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val mod=if(ability.modifier>=0)"+"+ability.modifier else ability.modifier.toString()
                     val valueY=top-(if(compactBAttributes) 17f else 20f)
                     // C264: golden score 11 pt, modifier 8.7 pt, name 7.7 pt.
-                    p1Ink(stream,score,69.5f-p1InkWidth(score,11f)/2f,valueY,11f)
-                    p1Ink(stream,mod,cx-p1InkWidth(mod,8.7f)/2f,valueY,8.7f)
+                    // C300: golden Noto Sans Bold - score #1d384f, modifier #264b68.
+                    p1Bold(stream,score,69.5f-p1BoldWidth(score,11f)/2f,valueY,11f,Color(29,56,79))
+                    p1Bold(stream,mod,cx-p1BoldWidth(mod,8.7f)/2f,valueY,8.7f,Color(38,75,104))
                     p1Ink(stream,approvedAbilityName(ability.name),145f,
                         top-(if(compactBAttributes) 11f else 14f),7.7f)
                     stream.saveGraphicsState()
@@ -574,7 +590,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.restoreGraphicsState()
                     ability.savingThrowTotal?.let {
                         val value=if(it>=0)"+"+it else it.toString()
-                        p1Ink(stream,value,296f-p1InkWidth(value,7.2f),saveY,7.2f)
+                        p1Bold(stream,value,296f-p1BoldWidth(value,7.2f),saveY,7.2f,Color(38,75,104))
                     }
                 }
             }
@@ -642,7 +658,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         put(approvedSkillName(skill),60f)
                         skill.total?.let {
                             val v=if(it>=0)"+"+it else it.toString()
-                            put(v,294f-skillFont.width.measurePt(v))
+                            // C300: golden skill bonus, Noto Sans Bold 7 pt #264b68.
+                            p1Bold(stream,v,294f-p1BoldWidth(v,7f),y,7f,Color(38,75,104))
                         }
                     }
                 }
