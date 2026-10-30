@@ -201,6 +201,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
                 stream.restoreGraphicsState()
             }
+            // C295: golden C2 cartela — diamonds at both ends, title 16 pt in, and
+            // "VIENE P. n" before the right diamond; a longer title keeps 5 pt.
+            fun c2CartelaGoldenFits(text: String, widthPt: Float): Boolean =
+                16f + headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * 9.1f / 1000f +
+                    8f + headerPdfFont.getStringWidth("VIENE P. 99") * 6f / 1000f + 13f <= widthPt
             // Owner's original D&D sheet includes its genuine logotype in its top-left.
             // Embed that real graphic from the already-versioned asset; clip to LOGO only,
             // so no original-sheet boxes or lettering leak into this V11 page.
@@ -3005,14 +3010,23 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 else physicalSectionKeys.indexOfFirst { it.startsWith("P1 - ") } + 1
                                 if (base > 0) {
                                     val origin = "VIENE P. " + base
-                                    val originWidth = headerPdfFont.getStringWidth(origin) * 6f / 1000f
+                                    val originWidth = headerPdfFont.getStringWidth(origin) * 6.1f / 1000f
+                                    stream.setNonStrokingColor(Color(38, 75, 104)) // C295: golden ink
                                     val inkWidth = headerPdfFont.getStringWidth(
                                         pcSheetV11PrintableText(heading.drawableText)) * 9f / 1000f
-                                    if (5f + inkWidth + 8f + originWidth + 5f <= heading.cellPt.widthPt) {
+                                    if (c2CartelaGoldenFits(heading.drawableText, heading.cellPt.widthPt)) {
+                                        drawCartelaDiamonds(stream, heading.cellPt.leftPt,
+                                            heading.cellPt.rightPt, heading.cellPt.bottomPt,
+                                            heading.cellPt.topPt)
+                                        drawP1Label(stream, origin,
+                                            heading.cellPt.rightPt - 13f - originWidth,
+                                            body.metrics.baselineIn(heading.cellPt), 6.1f)
+                                    } else if (5f + inkWidth + 8f + originWidth + 5f <= heading.cellPt.widthPt) {
                                         drawP1Label(stream, origin,
                                             heading.cellPt.rightPt - 5f - originWidth,
-                                            body.metrics.baselineIn(heading.cellPt), 6f)
+                                            body.metrics.baselineIn(heading.cellPt), 6.1f)
                                     }
+                                    stream.setNonStrokingColor(Color(0, 0, 0))
                                 }
                             }
                         }
@@ -3515,7 +3529,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 // verification prevents clipping or overflow.
                                 // C269: golden C2 cartela title 9.1 pt, golden ink.
                                 val fontSize = 9.1f
-                                val inset = 5f
+                                val inset = if (c2CartelaGoldenFits(cell.drawableText,
+                                        cell.cellPt.widthPt)) 16f else 5f
                                 stream.setNonStrokingColor(Color(29, 56, 79))
                                 val inkWidth = headerPdfFont.getStringWidth(
                                     cell.drawableText,
