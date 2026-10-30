@@ -894,16 +894,23 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 pt: Float = 9f,
             ) {
                 // C262: values follow the size of their table (P1 or golden C2).
-                fun value(text: String, right: Float) {
+                // C301: golden bonus in Noto Sans Bold #264b68; damage 0.4 pt smaller.
+                fun value(text: String, right: Float, bold: Boolean) {
                     if (text.isEmpty()) return
+                    val size = if (bold) pt else pt - 0.4f
+                    val font = if (bold) boldPdfFont else bodyPdfFont
+                    val printable = pcSheetV11PrintableText(text)
+                    stream.saveGraphicsState()
+                    if (bold) stream.setNonStrokingColor(Color(38, 75, 104))
                     stream.beginText()
-                    stream.setFont(bodyPdfFont, pt)
-                    stream.newLineAtOffset(right - body.width.measurePt(text) * pt / 9f, y)
-                    stream.showText(pcSheetV11PrintableText(text))
+                    stream.setFont(font, size)
+                    stream.newLineAtOffset(right - font.getStringWidth(printable) * size / 1000f, y)
+                    stream.showText(printable)
                     stream.endText()
+                    stream.restoreGraphicsState()
                 }
-                value(attackBonus(entry), left + attackLabelWidth + attackBonusWidth - 4f)
-                value(entry.damageEffect, left + 254f)
+                value(attackBonus(entry), left + attackLabelWidth + attackBonusWidth - 4f, true)
+                value(entry.damageEffect, left + 254f, false)
             }
             val p1AttackIds = p1Attacks.map { it.id }.toSet()
 
