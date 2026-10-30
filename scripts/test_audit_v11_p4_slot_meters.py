@@ -28,7 +28,8 @@ def specimen(missing_level=None, missing_square=None, extra_meter=False,
             for index in range(3):
                 if missing_square == (level, index):
                     continue
-                page.draw_rect(fitz.Rect(177 + index * 11, y - 6, 184 + index * 11, y + 1))
+                # C309: golden first column ends at x207.5; boxes start 33 pt before it.
+                page.draw_rect(fitz.Rect(174.5 + index * 11, y - 6, 181.5 + index * 11, y + 1))
     if extra_meter:
         page.insert_text((110, 615), "ESP.", fontsize=7)
     return doc
