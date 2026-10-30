@@ -3404,10 +3404,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     top <= 706f && bottom >= 75.5f) {
                                     "V11 book card cannot escape the approved Letter paper area."
                                 }
-                                val cut = minOf(4f, (top - bottom) / 4f)
+                                // C331: golden 6.23 pt chamfer and 0.65 pt edge.
+                                val cut = minOf(6.23f, (top - bottom) / 4f)
                                 stream.setNonStrokingColor(Color.WHITE)
                                 stream.setStrokingColor(Color(38, 75, 104))
-                                stream.setLineWidth(0.55f)
+                                stream.setLineWidth(0.65f)
                                 stream.moveTo(left + cut, bottom)
                                 stream.lineTo(right - cut, bottom)
                                 stream.lineTo(right, bottom + cut)
@@ -5440,7 +5441,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     }
                     if (inlineLevel) bookInlineLevels["book:" + spell.id] = levelLabel
                     bookHeadingEnds["book:" + spell.id] = heading.sumOf { it.length + 1 }
-                    val lines = heading + spell.description
+                    // C331: the golden card keeps one blank writing row under the
+                    // description (its foot sits ~20.5 pt below the last line top).
+                    // The flow drops a trailing newline, so the row is one real space.
+                    val lines = heading + spell.description + " "
                     PcSheetV11FlowItem(
                         sourceKey = "book:" + spell.id,
                         text = lines.joinToString("\n"),
