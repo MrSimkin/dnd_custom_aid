@@ -39,6 +39,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C311 | Línea del encabezado | Color #527c96 y 0,55 pt, de 39,69 a 572,32 como el golden; queda en y717 (el golden en 709,8) porque la cartela de C-N3 ocupa la franja 703–716. |
 | C312 | Matriz | GLB04 actualizada a la decisión de fuentes del propietario y en PASS G3; BK03 en PASS G3. CI exacta 40986651188 (b61c92cd). Matriz: 75 de 242. |
 | C313 | Cartela NOTAS de C-N3 en su lugar | La cartela pasa de la franja del encabezado (703–716) a la banda del golden (672,66–695,62, borde #264b68, rombos, título 9,1 pt); las notas empiezan debajo, en 670,68, como el golden. La auditoría física revisa las notas bajo la cartela. |
+| C314 | Aire de las notas con título | Un renglón más tras el título y el título 6,47 pt más abajo: del título al texto quedan los 16,73 pt del golden y la regla 6,24 pt bajo el título. Las nueve notas largas de Mara pasan a usar dos páginas de C-N3 (la ficha de prueba pasa de 10 a 11 páginas). |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos
@@ -50,7 +51,7 @@ Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 ## Pendiente (siguiente)
 
 - Línea del encabezado en y709,8 del golden: exige bajar la cartela NOTAS de C-N3.
-- C-N3: el aire del golden entre título de nota, su regla y el texto (exige un renglón más por nota).
+- C-N3: la tarjeta de notas generales (sin título) no tiene referencia en el golden; su primera línea queda junto al borde.
 - C2: renglones con franjas alternas en listas de acciones, recursos y habilidades, y el rótulo «MÓDULOS COMPARTIDOS · DOS COLUMNAS» del golden.
 - P2: altura de 22,96 pt de las cartelas: entre EQUIPO y TESORO quedan ~3,5 pt, así que exige rehacer las áreas de P2.
 

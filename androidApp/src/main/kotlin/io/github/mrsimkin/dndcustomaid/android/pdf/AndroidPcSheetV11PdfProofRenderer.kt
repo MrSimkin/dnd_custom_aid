@@ -94,6 +94,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     },
                 )
             val texts = PcSheetV11FlowSourceMapper.from(data)
+            // C314: titled notes get one more paper row after the title; the title is
+            // drawn 6.47 pt lower, so title-to-text is the golden 16.73 pt.
+            val titledNoteKeys = data.digitalNotes.filter {
+                it.sourceId != null && !it.title.isNullOrBlank() && it.content.isNotEmpty()
+            }.map { "digital-note:" + it.sourceId }.toSet()
             val pageArea = PcSheetV11RectPt(42f, 76f, 528f, 626f)
             // Physical page roles are registered exactly when a PDFBox page is
             // created. Footers and C2 backlinks are resolved only when the final
@@ -3027,7 +3032,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             stream.setStrokingColor(Color(148, 176, 193))
                             stream.setLineWidth(0.32f)
                             starts.forEach { cell ->
-                                val ruleY = body.metrics.baselineIn(cell.cellPt) - 6.24f
+                                val titleDrop = if (cell.sourceKey in titledNoteKeys) 6.47f else 0f
+                                val ruleY = body.metrics.baselineIn(cell.cellPt) - titleDrop - 6.24f
                                 stream.moveTo(pageArea.leftPt + 6.19f, ruleY)
                                 stream.lineTo(pageArea.rightPt - 8.74f, ruleY)
                                 stream.stroke()
@@ -3455,7 +3461,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 stream.saveGraphicsState()
                                 stream.setNonStrokingColor(Color(29, 56, 79))
                                 drawP1Label(stream, cell.drawableText.trimEnd(), cell.cellPt.leftPt,
-                                    body.metrics.baselineIn(cell.cellPt), 8f)
+                                    body.metrics.baselineIn(cell.cellPt) -
+                                        (if (cell.sourceKey in titledNoteKeys) 6.47f else 0f), 8f)
                                 stream.restoreGraphicsState()
                                 return@forEach
                             }
@@ -5310,8 +5317,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
 
             // C238: golden note cards are one blank line apart (paper only).
+            // C314: golden note spacing - one more paper row after a note title.
             addSection("C-N3 - Notas digitales", PcSheetV11FlowSection.DIGITAL_NOTES,
-                texts.digitalNotes.map { it.copy(leadingSeparationLines = 1) }, 1,
+                texts.digitalNotes.map { item ->
+                    val spaced = if (item.sourceKey in titledNoteKeys)
+                        item.text.replaceFirst("\n", "\n\n") else item.text
+                    item.copy(text = spaced, leadingSeparationLines = 1)
+                }, 1,
                 // C313: notes start under the golden NOTAS cartela (y670.68).
                 area = PcSheetV11RectPt(pageArea.leftPt + 6f, pageArea.bottomPt,
                     pageArea.widthPt - 12f, 670.68f - pageArea.bottomPt),

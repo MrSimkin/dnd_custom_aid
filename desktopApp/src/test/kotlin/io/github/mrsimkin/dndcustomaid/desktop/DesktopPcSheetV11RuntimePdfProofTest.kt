@@ -5467,20 +5467,24 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     PDFTextStripper().apply { startPage = n; endPage = n }
                         .getText(pdf)
                 }
-                val noteIndex = texts.indexOfFirst {
-                    it.contains("C-N3 - Notas digitales")
+                // C314: with the golden note spacing Mara's nine long cards may use
+                // more than one C-N3 page; every card start is still anchored once.
+                val noteIndices = texts.indices.filter {
+                    texts[it].contains("C-N3 - Notas digitales")
                 }
-                assertTrue(noteIndex > 0)
-                val noteText = texts[noteIndex]
+                assertTrue(noteIndices.isNotEmpty() && noteIndices.first() > 0)
+                val noteText = noteIndices.joinToString("\n") { texts[it] }
                 assertTrue(noteText.contains("Nota 1") && noteText.contains("Nota 9"))
-                val raw = pdf.getPage(noteIndex).contents.use {
-                    it.readBytes().toString(Charsets.ISO_8859_1)
+                val startBandRects = noteIndices.sumOf { index ->
+                    val raw = pdf.getPage(index).contents.use {
+                        it.readBytes().toString(Charsets.ISO_8859_1)
+                    }
+                    Regex(
+                        // C296: the golden note start is the thin rule under its title
+                        // (x48.19..561.26), not a blue band.
+                        """(?m)(?:^|\s)48\.19\d*\s+[-\d.]+\s+m\s+561\.26\d*\s+[-\d.]+\s+l(?:\s|$)"""
+                    ).findAll(raw).count()
                 }
-                val startBandRects = Regex(
-                    // C296: the golden note start is the thin rule under its title
-                    // (x48.19..561.26), not a blue band.
-                    """(?m)(?:^|\s)48\.19\d*\s+[-\d.]+\s+m\s+561\.26\d*\s+[-\d.]+\s+l(?:\s|$)"""
-                ).findAll(raw).count()
                 assertEquals(fixture.permanent.sheet.noteCards.size + 1,
                     startBandRects, "One source-backed title rule per genuine note start.")
                 assertTrue(texts.last().lineSequence().any { it.trim() == "NOTAS" })
@@ -6573,8 +6577,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 // C259: Mara's golden resource boxes and action table take one
-                // more real C2 page (10); the header itself adds none.
-                assertEquals(10, pages.size,
+                // more real C2 page; C314: the golden note spacing gives her nine
+                // long notes a second C-N3 page (11). The header itself adds none.
+                assertEquals(11, pages.size,
                     "A source-only C2 header must not create or remove pages.")
                 val c2Indices = pages.indices.filter {
                     pages[it].contains("C2 - Habilidades, acciones y recursos")
