@@ -3144,6 +3144,41 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         // cannot consume paper, move source text, or affect the
                         // two-column paginator and manuscript NOTAS geometry.
                         if (title == "C2 - Habilidades, acciones y recursos") {
+                            // C332: golden C2 lists are banded rows (#e7f2f7 / #f0f7fa with
+                            // a #94b0c1 0.32 pt rule): one colour per source record, so a
+                            // wrapped record reads as one row; its rule closes the record.
+                            // Attribute cards and the ATAQUES table keep their own bands.
+                            val inkedRecords = pageCells.filter { it.drawableText.isNotBlank() }
+                                .map { it.sourceKey }.toSet()
+                            val listCells = pageCells.filter { c ->
+                                // Blank lines of an inked record (resource tracks) stay in it.
+                                c.sourceKey in inkedRecords &&
+                                    !c.sourceKey.startsWith("c2-heading:") &&
+                                    !c.sourceKey.startsWith("attribute") &&
+                                    !c.sourceKey.startsWith("custom-attribute-group:") &&
+                                    c.sourceKey != "action-head" &&
+                                    c.sourceKey !in c2AttributeCards &&
+                                    c.sourceKey !in c2AttackTableRows
+                            }
+                            val records = listCells.map { it.sourceKey }.distinct()
+                            listCells.groupBy { it.sourceKey to it.columnIndex }.forEach { (key, cells) ->
+                                val index = records.indexOf(key.first)
+                                stream.saveGraphicsState()
+                                stream.setNonStrokingColor(
+                                    if (index % 2 == 0) Color(231, 242, 247) else Color(240, 247, 250))
+                                cells.forEach { c ->
+                                    stream.addRect(c.cellPt.leftPt, c.cellPt.bottomPt,
+                                        c.cellPt.widthPt, c.cellPt.heightPt)
+                                    stream.fill()
+                                }
+                                val foot = cells.minBy { it.cellPt.bottomPt }.cellPt
+                                stream.setStrokingColor(Color(148, 176, 193))
+                                stream.setLineWidth(0.32f)
+                                stream.moveTo(foot.leftPt, foot.bottomPt + 0.2f)
+                                stream.lineTo(foot.rightPt, foot.bottomPt + 0.2f)
+                                stream.stroke()
+                                stream.restoreGraphicsState()
+                            }
                             val groupHeadings = pageCells.filter {
                                 it.sourceKey.startsWith("c2-heading:")
                             }
