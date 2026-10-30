@@ -31,7 +31,7 @@ def continued_level_bands(page):
     words = page.get_text("words")
     continued = [
         word for word in words if word[4] == "CONTINUACIÓN"
-        and 174 < word[1] < 180 and word[0] >= 39.69
+        and 148 < word[1] < 160 and word[0] >= 39.69  # C322: band above the golden column top
     ]
     bands = [
         draw["rect"] for draw in page.get_drawings()
@@ -39,8 +39,9 @@ def continued_level_bands(page):
         and draw.get("fill") is not None and draw.get("color") is not None
         and all(abs(draw["fill"][i] - CONTINUATION_FILL[i]) < .013 for i in range(3))
         and all(abs(draw["color"][i] - CONTINUATION_INK[i]) < .013 for i in range(3))
-        and abs(draw["rect"].y0 - 175.7) < .5
-        and abs(draw["rect"].y1 - 184.7) < .5
+        # C322: band between the golden column top (y630.43) and the cards.
+        and abs(draw["rect"].y0 - 152.27) < .5
+        and abs(draw["rect"].y1 - 161.27) < .5
     ]
     failures = []
     for word in continued:
@@ -114,7 +115,7 @@ def audit_spell_page(page, page_number):
     for drawing in page.get_drawings():
         r = drawing["rect"]
         if (abs(r.width - 7) <= 0.6 and abs(r.height - 7) <= 0.6
-                and 41 <= r.x0 and r.x1 <= 571 and 180 <= r.y0 <= 717):
+                and 41 <= r.x0 and r.x1 <= 571 and 158 <= r.y0 <= 730):  # C322: golden columns from y161.6
             squares.append(r)
     continued, context_errors = continued_level_bands(page)
     errors.extend(context_errors)

@@ -1930,8 +1930,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // confined to the original source-free header strip.
                 val x0 = 39.69f
                 val x1 = 572.32f
-                val y0 = 667f
-                val y1 = 694f
+                // C322: golden REFERENCIA MÁGICA cartela band (y672.66..695.62).
+                val y0 = 672.66f
+                val y1 = 695.62f
                 val corner = 6f
                 stream.moveTo(x0 + corner, y0)
                 stream.lineTo(x1 - corner, y0)
@@ -1947,7 +1948,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // C269: golden cartela: diamonds, 9.1 pt title in golden ink.
                 drawCartelaDiamonds(stream, x0, x1, y0, y1)
                 stream.setNonStrokingColor(Color(29, 56, 79))
-                drawP1Label(stream, "REFERENCIA MÁGICA", x0 + 16f, 677f, 9.1f)
+                drawP1Label(stream, "REFERENCIA MÁGICA", x0 + 16f, 679.5f, 9.1f)
                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 fields.forEachIndexed { index, (label, value) ->
                     // C308: golden cards x39.69 + 178.58 i, 174.33 pt wide, #264b68 edge.
@@ -1959,8 +1960,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     // Golden uses clipped corners on each source-backed card.
                     val cardCut = 6f
                     val cardRight = x + cardWidth
-                    val cardBottom = 617f
-                    val cardTop = 661f
+                    // C322: golden cards y640.91..670.68 (29.77 pt).
+                    val cardBottom = 640.91f
+                    val cardTop = 670.68f
                     stream.moveTo(x + cardCut, cardBottom)
                     stream.lineTo(cardRight - cardCut, cardBottom)
                     stream.lineTo(cardRight, cardBottom + cardCut)
@@ -1981,15 +1983,15 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.setNonStrokingColor(Color(101, 125, 144))
                     stream.beginText()
                     stream.setFont(headerPdfFont, fieldLabelPt)
-                    stream.newLineAtOffset(x + 7f, 650f)
+                    stream.newLineAtOffset(x + 7f, 660.2f) // C322 golden label baseline
                     stream.showText(label)
                     stream.endText()
                     stream.setNonStrokingColor(Color(29, 56, 79))
                     fun centeredX(text: String, pt: Float) = x + (cardWidth -
                         headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * pt / 1000f) / 2f
                     if (value == null) {
-                        stream.moveTo(x + 7f, 629f)
-                        stream.lineTo(x + 160f, 629f)
+                        stream.moveTo(x + 7f, 645f)
+                        stream.lineTo(x + 160f, 645f)
                         stream.stroke()
                     } else {
                         fun fits(text: String, pt: Float) =
@@ -1997,17 +1999,18 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 pt / 1000f <= 152f
                         // C269: golden centered 10.7 pt value, stepping down to 7 pt.
                         val size = listOf(10.7f, 10f, 9f, 8f, 7f).firstOrNull { fits(value, it) }
-                        // Long source names: one source per line at 7pt (max 3
-                        // lines inside the 44pt card) before giving up.
+                        // Long source names: one source per line at 7pt. C322: the
+                        // golden 29.77 pt card holds two lines (the owner's P1 rule:
+                        // two lines, otherwise SEGÚN FUENTE).
                         val stacked = if (size == null && label in varying)
                             perSourceParts(label)?.takeIf { parts ->
-                                parts.size <= 3 && parts.all { fits(it, 7f) }
+                                parts.size <= 2 && parts.all { fits(it, 7f) }
                             } else null
                         if (stacked != null) {
                             stacked.forEachIndexed { line, text ->
                                 stream.beginText()
                                 stream.setFont(headerPdfFont, 7f)
-                                stream.newLineAtOffset(centeredX(text, 7f), 639f - line * 7.5f)
+                                stream.newLineAtOffset(centeredX(text, 7f), 651.5f - line * 7.5f)
                                 stream.showText(pcSheetV11PrintableText(text))
                                 stream.endText()
                             }
@@ -2015,7 +2018,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             val ink = if (size == null) "SEGÚN FUENTE" else value
                             stream.beginText()
                             stream.setFont(headerPdfFont, size ?: 10.7f)
-                            stream.newLineAtOffset(centeredX(ink, size ?: 10.7f), 628f)
+                            stream.newLineAtOffset(centeredX(ink, size ?: 10.7f), 646.6f) // C322 golden
                             stream.showText(pcSheetV11PrintableText(ink))
                             stream.endText()
                         }
@@ -2222,7 +2225,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
             val bookFont = goldenRhythm(6.7f, 10.5f)
             val notesFont = goldenRhythm(7f, 11.6f)
-            val quickFont = goldenRhythm(6.8f, 15.7f)
+            val quickFont = goldenRhythm(6.8f, 15.73f) // C322: golden P4 pitch
             // C262: golden C2 lists, 7.2 pt on 15.7 pt rows; the linked-skill
             // paper box keeps >= 11 pt of measured clearance in that size.
             val c2Font = goldenRhythm(7.2f, 15.7f)
@@ -2734,13 +2737,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                         // Reserve only the EXISTING empty 10pt
                                         // gap below cards and above printed ledger;
                                         // no source cell/row/page is relocated.
-                                        val bottom = 607.3f
-                                        val top = 616.3f
+                                        // C322: the gap between the golden column top
+                                        // (y630.43) and the card bottom (y640.91).
+                                        val bottom = column.topPt + 0.3f
+                                        val top = column.topPt + 9.3f
                                         val left = column.leftPt
                                         val right = left + column.widthPt
                                         val cut = 2f
-                                        require(column.topPt == 607f &&
-                                            bottom > column.topPt && top < 617f)
+                                        require(bottom > column.topPt && top < 640.91f)
                                         stream.saveGraphicsState()
                                         stream.setNonStrokingColor(Color(231, 242, 247))
                                         stream.setStrokingColor(Color(80, 122, 151))
@@ -2758,7 +2762,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                         stream.restoreGraphicsState()
                                         stream.beginText()
                                         stream.setFont(bodyPdfFont, 7f)
-                                        stream.newLineAtOffset(column.leftPt + 2f, 610f)
+                                        stream.newLineAtOffset(column.leftPt + 2f, column.topPt + 3f)
                                         stream.showText(pcSheetV11PrintableText(context))
                                         stream.endText()
                                     }
@@ -5261,7 +5265,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // Expand paper-only entries, not digital spell data, as far as
                 // one physical page permits. Never create a second filler page.
                 // C309: golden P4 columns 39.69..207.5, 222.09..389.91, 404.5..572.31.
-                val p4WritingArea = PcSheetV11RectPt(39.69f, 76f, 532.62f, 531f)
+                // C322: golden P4 rows from y630.43 down to 64.92.
+                val p4WritingArea = PcSheetV11RectPt(39.69f, 64.92f, 532.62f, 565.51f)
                 val p4GutterPt = 14.59f
                 val minimalQuick = quickRows(1)
                 val minimalPlacement = quickFont.place(

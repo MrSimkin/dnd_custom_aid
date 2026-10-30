@@ -668,20 +668,20 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 // C308: golden geometry - cartela x39.69..572.32, cards 39.69 + 178.58 i,
                 // 174.33 pt wide, all with 6 pt cuts. Compared with 0.02 pt tolerance.
-                fun clippedPath(y0: Int, y1: Int, a: Float, b: Float, c: Float) = Regex(
-                    """(?m)(?:^|\s)([-\d.]+)\s+""" + y0 + """\s+m\s+([-\d.]+)\s+""" + y0 +
-                        """\s+l\s+([-\d.]+)\s+""" + y1 + """\s+l"""
+                // C322: golden P4 cartela y672.66 and cards y640.91 (all values toleranced).
+                fun clippedPath(y0: Float, y1: Float, a: Float, b: Float, c: Float) = Regex(
+                    """(?m)(?:^|\s)([-\d.]+)\s+([-\d.]+)\s+m\s+([-\d.]+)\s+([-\d.]+)\s+l\s+([-\d.]+)\s+([-\d.]+)\s+l"""
                 ).findAll(operators).any { m ->
-                    val (x0, x1, x2) = m.destructured
-                    kotlin.math.abs(x0.toFloat() - a) < 0.02f &&
-                        kotlin.math.abs(x1.toFloat() - b) < 0.02f &&
-                        kotlin.math.abs(x2.toFloat() - c) < 0.02f
+                    val v = m.groupValues.drop(1).map { it.toFloat() }
+                    kotlin.math.abs(v[0] - a) < 0.02f && kotlin.math.abs(v[1] - y0) < 0.02f &&
+                        kotlin.math.abs(v[2] - b) < 0.02f && kotlin.math.abs(v[3] - y0) < 0.02f &&
+                        kotlin.math.abs(v[4] - c) < 0.02f && kotlin.math.abs(v[5] - y1) < 0.02f
                 }
-                assertTrue(clippedPath(667, 673, 45.69f, 566.32f, 572.32f),
+                assertTrue(clippedPath(672.66f, 678.66f, 45.69f, 566.32f, 572.32f),
                     "P4 magical-reference cartela must be physically clipped.")
                 for (index in 0..2) {
                     val x = 39.69f + index * 178.58f
-                    assertTrue(clippedPath(617, 623, x + 6f, x + 174.33f - 6f, x + 174.33f),
+                    assertTrue(clippedPath(640.91f, 646.91f, x + 6f, x + 174.33f - 6f, x + 174.33f),
                         "Each real P4 magic-source card needs 6pt clipped corners.")
                 }
                 val paperSlots = Regex(
@@ -2739,8 +2739,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(p4Pages.first().contains("TRUCOS / NIVEL 0"),
                     "Source level 0 must retain the approved cantrip heading.")
                 val strips = PDFTextStripperByArea().apply {
-                    addRegion("column2", Rectangle2D.Float(222f, 166f, 170f, 20f))
-                    addRegion("column3", Rectangle2D.Float(402f, 166f, 170f, 20f))
+                    // C322: the continuation band sits just above the golden column top (y630.43).
+                    addRegion("column2", Rectangle2D.Float(222f, 148f, 170f, 16f))
+                    addRegion("column3", Rectangle2D.Float(404f, 148f, 170f, 16f))
                     extractRegions(pdf.getPage(firstP4))
                 }
                 for (region in listOf("column2", "column3")) {
@@ -2824,10 +2825,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 assertTrue(firstP4Physical >= 0)
                 val area = PDFTextStripperByArea().apply {
+                    // C322: the continuation band sits just above the golden column top (y630.43).
                     addRegion("column2-context",
-                        Rectangle2D.Float(222f, 166f, 170f, 20f))
+                        Rectangle2D.Float(222f, 148f, 170f, 16f))
                     addRegion("column3-context",
-                        Rectangle2D.Float(402f, 166f, 170f, 20f))
+                        Rectangle2D.Float(404f, 148f, 170f, 16f))
                     extractRegions(pdf.getPage(firstP4Physical))
                 }
                 for (region in listOf("column2-context", "column3-context")) {
@@ -3520,13 +3522,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             // Keep the physical square count exact; do not weaken this
             // assertion or conflate empty writing with a digital spell.
             Triple("02_ilyra_quill_srd5_2_1_evoker_wizard.json",
-                PcSheetV11Variant.B, 62),
+                PcSheetV11Variant.B, 68),
             // C258: Ilyra's two-source spells take two rows (91 -> 89 blank rows);
             // Mara's source label now fits beside each spell without the [X]
             // mark, so her rows are single-line and leave 89 blank rows (was 68).
             // C261: the golden P4 rhythm (6.8 pt on 15.7 pt rows) leaves 62 / 65.
+            // C322: golden P4 columns (y630.43..64.92, 15.73 pt rows) leave 68 / 71.
             Triple("03_mara_siete_umbrales_custom_extended.json",
-                PcSheetV11Variant.B, 65),
+                PcSheetV11Variant.B, 71),
         )) {
             val generated = DesktopPcSheetExportService().generateV11Proof(
                 PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),

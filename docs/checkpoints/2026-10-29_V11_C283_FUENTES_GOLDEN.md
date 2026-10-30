@@ -46,6 +46,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C319 | Matriz | P201 (distribución de P2) en PASS G3 con la CI exacta 40996100845 (1b4245dc). Matriz: 76 de 242. |
 | C320 | P2 con la maqueta del golden | EQUIPO 39,69–298,49 × 460,63–670,68 (13 renglones de 16,15), TESORO 327,97–427,18 (5 de 19,84), RASGOS 309,26–572,32 × 318,33–670,68, ESPECIAL desde 291,4 hasta 60,94; cartelas de 22,96 pt 1,98 pt sobre su tabla, título y leyenda en sus líneas base del golden. Pruebas y auditoría física comparan la geometría del golden con tolerancia. |
 | C321 | P3 con la maqueta del golden | Franjas TRASFONDO (672,66–695,62) e HISTORIA (437,95–460,91) de 22,96 pt; los renglones de HISTORIA van de 435,97 a 61,8 (22 por columna). Corrige la franja HISTORIA de C284, que se montaba sobre el último renglón de VÍNCULOS/DEFECTOS. |
+| C322 | P4 con la maqueta del golden | Cartela 672,66–695,62, tarjetas 640,91–670,68 (29,77 pt; etiqueta y valor en las líneas base del golden), columnas desde 630,43 hasta 64,92 con renglones de 15,73 pt. Varias fuentes en una tarjeta: máximo dos líneas y, si no, «SEGÚN FUENTE» (la regla aprobada en P1). La franja «continúa nivel» va en el hueco bajo las tarjetas. Ilyra y Mara ganan 6 renglones en blanco (68 y 71). |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos
@@ -56,7 +57,7 @@ Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Pendiente (siguiente)
 
-- P4: franja del encabezado de nivel de 20,7 pt y tarjetas de referencia de 29,77 pt del golden.
+- P4: franja del encabezado de nivel de 20,7 pt del golden (la app usa un renglón de 15,73).
 - Línea del encabezado en y709,8 del golden: exige bajar la cartela NOTAS de C-N3.
 - C-N3: la tarjeta de notas generales (sin título) no tiene referencia en el golden; su primera línea queda junto al borde.
 - C2: renglones con franjas alternas en listas de acciones, recursos y habilidades, y el rótulo «MÓDULOS COMPARTIDOS · DOS COLUMNAS» del golden.
