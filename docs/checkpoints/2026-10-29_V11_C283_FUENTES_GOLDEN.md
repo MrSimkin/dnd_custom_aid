@@ -38,6 +38,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C310 | Cartela HABILIDADES de B | Rombos, «HABILIDADES» 9,1 pt #1d384f a 16 pt y la leyenda P/E como nota gris 6,2 pt a la derecha (antes un rótulo de 12 pt). |
 | C311 | Línea del encabezado | Color #527c96 y 0,55 pt, de 39,69 a 572,32 como el golden; queda en y717 (el golden en 709,8) porque la cartela de C-N3 ocupa la franja 703–716. |
 | C312 | Matriz | GLB04 actualizada a la decisión de fuentes del propietario y en PASS G3; BK03 en PASS G3. CI exacta 40986651188 (b61c92cd). Matriz: 75 de 242. |
+| C313 | Cartela NOTAS de C-N3 en su lugar | La cartela pasa de la franja del encabezado (703–716) a la banda del golden (672,66–695,62, borde #264b68, rombos, título 9,1 pt); las notas empiezan debajo, en 670,68, como el golden. La auditoría física revisa las notas bajo la cartela. |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos

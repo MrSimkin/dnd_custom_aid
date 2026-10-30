@@ -2954,22 +2954,43 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             // C238: golden C-N3 — a NOTAS cartela in the free band
                             // below the header rule (703..716) and each persisted
                             // note framed as its own card (one blank line apart).
-                            drawC2ContinuationCartela(stream, pageArea)
-                            // C296: golden NOTAS cartela - diamonds, 9.1 pt title in
-                            // ink, and the legend in Noto Sans 6.2 pt #657d90.
-                            drawCartelaDiamonds(stream, pageArea.leftPt, pageArea.rightPt, 703f, 716f)
+                            // C313: golden NOTAS cartela at the golden first-cartela band
+                            // (y672.66..695.62, x39.69..572.32); notes start under it at 670.68.
+                            run {
+                                val l = 39.69f
+                                val r = 572.32f
+                                val b = 672.66f
+                                val t = 695.62f
+                                val cut = 6f
+                                stream.saveGraphicsState()
+                                stream.setNonStrokingColor(Color(231, 242, 247))
+                                stream.setStrokingColor(Color(38, 75, 104))
+                                stream.setLineWidth(0.65f)
+                                stream.moveTo(l + cut, b)
+                                stream.lineTo(r - cut, b)
+                                stream.lineTo(r, b + cut)
+                                stream.lineTo(r, t - cut)
+                                stream.lineTo(r - cut, t)
+                                stream.lineTo(l + cut, t)
+                                stream.lineTo(l, t - cut)
+                                stream.lineTo(l, b + cut)
+                                stream.closePath()
+                                stream.fillAndStroke()
+                                stream.restoreGraphicsState()
+                                drawCartelaDiamonds(stream, l, r, b, t)
+                            }
                             stream.setNonStrokingColor(Color(29, 56, 79))
                             stream.beginText()
                             stream.setFont(headerPdfFont, 9.1f)
-                            stream.newLineAtOffset(pageArea.leftPt + 16f, 706.5f)
+                            stream.newLineAtOffset(55.69f, 679.5f)
                             stream.showText("NOTAS")
                             stream.endText()
                             val scope = "solo notas digitales"
                             stream.setNonStrokingColor(Color(101, 125, 144))
                             stream.beginText()
                             stream.setFont(bodyPdfFont, 6.2f)
-                            stream.newLineAtOffset(pageArea.rightPt - 18.4f -
-                                bodyPdfFont.getStringWidth(scope) * 6.2f / 1000f, 707.7f)
+                            stream.newLineAtOffset(572.32f - 18.4f -
+                                bodyPdfFont.getStringWidth(scope) * 6.2f / 1000f, 680.7f)
                             stream.showText(scope)
                             stream.endText()
                             stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
@@ -5297,8 +5318,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // C238: golden note cards are one blank line apart (paper only).
             addSection("C-N3 - Notas digitales", PcSheetV11FlowSection.DIGITAL_NOTES,
                 texts.digitalNotes.map { it.copy(leadingSeparationLines = 1) }, 1,
+                // C313: notes start under the golden NOTAS cartela (y670.68).
                 area = PcSheetV11RectPt(pageArea.leftPt + 6f, pageArea.bottomPt,
-                    pageArea.widthPt - 12f, pageArea.heightPt),
+                    pageArea.widthPt - 12f, 670.68f - pageArea.bottomPt),
                 font = notesFont)
             // C289: golden Libro columns — text 48.19..292.82 and 319.18..563.81 pt.
             val bookArea = PcSheetV11RectPt(48.19f, pageArea.bottomPt, 515.62f, pageArea.heightPt)

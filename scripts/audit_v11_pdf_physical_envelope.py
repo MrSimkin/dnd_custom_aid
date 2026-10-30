@@ -99,7 +99,8 @@ def cn3_cards(page: fitz.Page) -> list[str]:
              for s in line["spans"] if "NotoSans-Regular" in s["font"] and s["text"].strip()]
     for s in spans:
         x0, y0, x1, y1 = s["bbox"]
-        if 92 < y0 < 688 and not any(c.x0 + 4 < x0 and x1 < c.x1 - 4 and c.y0 - .5 <= y0 and y1 <= c.y1 + .5
+        # C313: digital notes start under the golden NOTAS cartela (top y119.34).
+        if 121 < y0 < 688 and not any(c.x0 + 4 < x0 and x1 < c.x1 - 4 and c.y0 - .5 <= y0 and y1 <= c.y1 + .5
                                      for c in cards):
             errors.append(f"C-N3 note text outside its card: {s['text'][:30]!r}")
             break
