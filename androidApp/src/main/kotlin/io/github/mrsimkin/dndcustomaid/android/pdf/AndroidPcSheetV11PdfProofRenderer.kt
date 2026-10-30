@@ -311,25 +311,27 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // Native template coordinates: logo x≈54–398, y≈50–184 in
                 // the 1224×1584 pixel original. Clip only the logo region.
                 // C326 (owner 2026-10-30, «puedes usar ese o uno más pequeño»): the
-                // logo fits the golden logotype box (x42..131, y721..751) instead of
-                // rising over the outer frame; 344×134 px at 0.2239 pt/px = 77×30 pt.
-                val scale = 0.2239f
-                stream.addRect(42f, 721f, 344f * scale, 134f * scale)
+                // logo stays inside the frames instead of rising over the outer frame.
+                // C327 (owner: the golden shield belonged to its stand-in logo and may
+                // go): the logo takes that space, x57..147 × y719.5..754.5 (90×35 pt,
+                // 344×134 px at 0.2616 pt/px), clear of the corner bracket and diamond.
+                val scale = 0.2616f
+                stream.addRect(57f, 719.5f, 344f * scale, 134f * scale)
                 stream.clip()
                 // PDFBox exposes no endPath(); stroke closes the clipped path.
                 stream.stroke()
                 stream.drawImage(
                     ownerLogo,
-                    42f - 54f * scale,
-                    721f + 184f * scale - ownerLogo.height * scale,
+                    57f - 54f * scale,
+                    719.5f + 184f * scale - ownerLogo.height * scale,
                     ownerLogo.width * scale,
                     ownerLogo.height * scale,
                 )
                 stream.restoreGraphicsState()
 
-                // C286 (golden header, v11_extremo): white shield with its X and
-                // diamond, a pale rule after it, the name, and the module group label
-                // top right under a corner bracket. Exact golden vectors.
+                // C286 (golden header, v11_extremo): a pale rule after the logo, the
+                // name, and the module group label top right under a corner bracket.
+                // Exact golden vectors. C327: the golden shield is not drawn.
                 stream.saveGraphicsState()
                 fun goldenPath(points: List<Pair<Float, Float>>, close: Boolean) {
                     stream.moveTo(points[0].first, points[0].second)
@@ -344,19 +346,6 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         cx - halfW to cy), true)
                     stream.fillAndStroke()
                 }
-                stream.setNonStrokingColor(Color(255, 255, 255))
-                stream.setStrokingColor(Color(82, 124, 150))
-                stream.setLineWidth(0.58f)
-                goldenPath(listOf(138.61f to 748.91f, 152.5f to 744.66f, 151.65f to 727.94f,
-                    145.42f to 720.57f, 139.18f to 727.94f), true)
-                stream.fillAndStroke()
-                stream.setStrokingColor(Color(38, 75, 104))
-                stream.setLineWidth(0.6f)
-                goldenPath(listOf(140.88f to 743.53f, 149.67f to 728.22f), false)
-                stream.stroke()
-                goldenPath(listOf(149.67f to 743.53f, 140.88f to 728.22f), false)
-                stream.stroke()
-                goldenDiamond(145.28f, 735.31f, 1.615f, 2.835f)
                 stream.setStrokingColor(Color(191, 211, 222))
                 stream.setLineWidth(0.4f)
                 goldenPath(listOf(153.07f to 750.33f, 153.07f to 715.46f), false)
