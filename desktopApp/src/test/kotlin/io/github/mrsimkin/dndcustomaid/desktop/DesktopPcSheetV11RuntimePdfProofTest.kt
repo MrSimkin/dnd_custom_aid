@@ -781,22 +781,22 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val stream = pdf.getPage(1).contents.use {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
+                // C320: golden P2 cartelas (v11_extremo p2), 5 pt corner cut, 0.02 pt tolerance.
                 val bands = listOf(
-                    Triple(47, 684, 295),  // equipment, left upper
-                    Triple(317, 684, 565), // traits, right upper
-                    Triple(47, 448, 295),  // treasure, left middle
-                    Triple(47, 313, 565),  // special equipment, full width
+                    Triple(44.69f, 672.66f, 293.49f),  // equipment, left upper
+                    Triple(314.26f, 672.66f, 567.32f), // traits, right upper
+                    Triple(44.69f, 429.16f, 293.49f),  // treasure, left middle
+                    Triple(44.69f, 293.38f, 567.32f),  // special equipment, full width
                 )
+                val polygonStarts = Regex(
+                    """(?:^|\s)([-\d.]+)\s+([-\d.]+)\s+m\s+([-\d.]+)\s+([-\d.]+)\s+l\s+([-\d.]+)\s+([-\d.]+)\s+l"""
+                ).findAll(stream).map { m -> m.groupValues.drop(1).map { it.toFloat() } }.toList()
                 for ((x, y, xr) in bands) {
-                    val clipped = Regex(
-                        """(?s)(?:^|\s)""" + x + """\s+""" + y +
-                            """\s+m\s+""" + xr + """\s+""" + y +
-                            """\s+l\s+""" + (xr + 5) +
-                            """\s+""" + (y + 5) + """\s+l.*?\s+B(?:\s|$)"""
-                    )
-                    assertTrue(clipped.containsMatchIn(stream),
-                        "Real P2 must contain a clipped filled/stroked blue " +
-                            "cartela outside measured source cells: " + x + "," + y)
+                    assertTrue(polygonStarts.any { v ->
+                        kotlin.math.abs(v[0] - x) < 0.02f && kotlin.math.abs(v[1] - y) < 0.02f &&
+                            kotlin.math.abs(v[2] - xr) < 0.02f && kotlin.math.abs(v[4] - (xr + 5f)) < 0.02f
+                    }, "Real P2 must contain a clipped filled/stroked blue " +
+                        "cartela outside measured source cells: " + x + "," + y)
                 }
                 // C265: golden P2 cartela titles are 9.1 pt.
                 assertTrue(Regex("""(?m)/F\d+\s+9\.1\d*\s+Tf""")
@@ -838,9 +838,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val ops = pdf.getPage(1).contents.use {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
+                // C320: golden RASGOS cartela x309.26..572.32 at y672.66 (5 pt cut).
                 assertTrue(Regex(
-                    """(?s)(?:^|\s)317\s+684\s+m\s+565\s+684\s+l.*?\s+B(?:\s|$)"""
-                ).containsMatchIn(ops),
+                    """(?:^|\s)([-\d.]+)\s+([-\d.]+)\s+m\s+([-\d.]+)\s+([-\d.]+)\s+l"""
+                ).findAll(ops).any { m ->
+                    val v = m.groupValues.drop(1).map { it.toFloat() }
+                    kotlin.math.abs(v[0] - 314.26f) < 0.02f && kotlin.math.abs(v[1] - 672.66f) < 0.02f &&
+                        kotlin.math.abs(v[2] - 567.32f) < 0.02f
+                },
                     "Retain the existing blue Rasgos C2c polygon, not a floating title.")
                 assertTrue(pdf.numberOfPages >= 4)
             }
@@ -4208,8 +4213,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                             val word = part.joinToString("") { it.unicode }
                             val x = part.first().xDirAdj
                             val y = 792f - part.first().yDirAdj
-                            if (word.all { it.isDigit() } && y in 330f..684f &&
-                                (x in 129f..165f || x in 264f..300f)) {
+                            if (word.all { it.isDigit() } && y in 318f..672f &&
+                                (x in 125f..163f || x in 260f..298f)) {
                                 amounts += x to part.last().xDirAdj + part.last().widthDirAdj
                             }
                         }
@@ -4217,7 +4222,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.apply { startPage = 2; endPage = 2 }.getText(pdf)
                 assertTrue(amounts.size >= 8, "Mara P2 prints real amounts ($variant): $amounts")
                 amounts.forEach { (x, end) ->
-                    val edge = if (x < 200f) 162f else 297f
+                    // C320: golden P2 table x39.69..298.49 (amount edges 3 pt inside).
+                    val edge = if (x < 200f) 160.09f else 295.49f
                     assertEquals(edge, end, 0.6f, "P2 amount at $x is right-aligned ($variant).")
                 }
             }
@@ -6691,8 +6697,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(p2.contains("RASGOS Y ATRIBUTOS"))
                 assertTrue(p2.contains("EQUIPO ESPECIAL"))
                 val headerAreas = PDFTextStripperByArea().apply {
-                    addRegion("equipment", Rectangle2D.Float(42f, 92f, 258f, 18f))
-                    addRegion("treasure", Rectangle2D.Float(42f, 326f, 258f, 18f))
+                    // C320: golden cartela legends (baselines y680.7 and y437.2).
+                    addRegion("equipment", Rectangle2D.Float(39f, 100f, 260f, 20f))
+                    addRegion("treasure", Rectangle2D.Float(39f, 344f, 260f, 20f))
                     extractRegions(pdf.getPage(1))
                 }
                 assertTrue(headerAreas.getTextForRegion("equipment")
@@ -6738,22 +6745,24 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             }
             // Look ONLY at the PDFBox full-width ruled lines of each left P2
             // table. Underlying digital labels are unaffected by this test.
+            // C320: golden P2 tables x39.69..298.49; EQUIPO 460.63..670.68, TESORO 327.97..427.18.
             val rules = Regex(
-                """(?:^|\s)42\s+([0-9]+(?:\.[0-9]+)?)\s+m\s+300\s+\1\s+l"""
+                """(?:^|\s)39\.69\d*\s+([0-9]+(?:\.[0-9]+)?)\s+m\s+298\.4\d*\s+\1\s+l"""
             ).findAll(ops).map { it.groupValues[1].toFloat() }.toList()
-            val equipment = rules.filter { it > 464f && it < 684f }.sortedDescending()
-            val treasure = rules.filter { it > 330f && it < 448f }.sortedDescending()
+            val equipment = rules.filter { it > 460.63f && it < 670.68f }.sortedDescending()
+            val treasure = rules.filter { it > 327.97f && it < 427.18f }.sortedDescending()
             assertEquals(12, equipment.size,
                 "Empty Equipo must reserve twelve generously spaced interior rules.")
-            assertEquals(5, treasure.size,
-                "Empty Tesoro must reserve five pencil-sized interior rules.")
+            // C320: the golden TESORO is five 19.84 pt rows, i.e. four interior rules.
+            assertEquals(4, treasure.size,
+                "Empty Tesoro must reserve the golden five pencil rows (four interior rules).")
             equipment.zipWithNext { before, after ->
-                assertTrue(kotlin.math.abs(before - after - 16.5f) < 0.02f,
-                    "Equipo handwritten rhythm must be 16.5pt.")
+                assertTrue(kotlin.math.abs(before - after - 16.15f) < 0.02f,
+                    "Equipo handwritten rhythm must be the golden 16.16 pt (C320).")
             }
             treasure.zipWithNext { before, after ->
-                assertTrue(kotlin.math.abs(before - after - 19.5f) < 0.02f,
-                    "Tesoro handwritten rhythm must be 19.5pt.")
+                assertTrue(kotlin.math.abs(before - after - 19.84f) < 0.02f,
+                    "Tesoro handwritten rhythm must be the golden 19.84 pt (C320).")
             }
             assertTrue(pdf.numberOfPages >= 4)
             val last = PDFTextStripper().apply {
@@ -6948,7 +6957,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertFalse(p2.contains("Electrum"))
             assertFalse(p2.contains("Platino"))
             val rowRegion = PDFTextStripperByArea().apply {
-                addRegion("recorded-zero", Rectangle2D.Float(42f, 340f, 130f, 24f))
+                // C320: golden TESORO first row (top y364.8).
+                addRegion("recorded-zero", Rectangle2D.Float(39f, 362f, 135f, 22f))
                 extractRegions(pdf.getPage(1))
             }.getTextForRegion("recorded-zero")
             assertTrue(rowRegion.contains("Cobre") && rowRegion.contains("0"),
@@ -6983,11 +6993,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val ops = pdf.getPage(1).contents.use {
                 it.readBytes().toString(Charsets.ISO_8859_1)
             }
-            val paperMarks = Regex(
-                """(?:^|\s)542\.5\s+(?:278|253|228|203|178|153|128|103)(?:\.0+)?""" +
-                    """\s+9(?:\.0+)?\s+9(?:\.0+)?\s+re(?:\s|$)"""
-            )
-            assertEquals(8, paperMarks.findAll(ops).count(),
+            // C320: golden ESPECIAL table from y291.4 moves the eight rows down 21.6 pt.
+            val activoRows = listOf(256.4f, 231.4f, 206.4f, 181.4f, 156.4f, 131.4f, 106.4f, 81.4f)
+            val paperMarks = Regex("""(?:^|\s)542\.5\s+([0-9.]+)\s+9(?:\.0+)?\s+9(?:\.0+)?\s+re(?:\s|$)""")
+                .findAll(ops).map { it.groupValues[1].toFloat() }
+                .count { y -> activoRows.any { kotlin.math.abs(it - y) < 0.02f } }
+            assertEquals(8, paperMarks,
                 "Eight genuine 9pt ACTIVO squares must be printed in P2.")
             assertTrue(p2.contains("UBICACIÓN") && p2.contains("NOMBRE") &&
                 p2.contains("DESCRIPCIÓN") && p2.contains("ACTIVO"))

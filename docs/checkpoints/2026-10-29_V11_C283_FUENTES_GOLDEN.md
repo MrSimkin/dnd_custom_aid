@@ -44,6 +44,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C317 | Casilla de cada conjuro (P4) | 8,22 pt con relleno blanco y borde #527c96 de 0,48 pt, como el golden (antes 7 pt). Las 27 casillas del medidor de espacios siguen en 7 pt. |
 | C318 | Encabezado de nivel de P4 | 3,4 pt dentro de la columna, como el golden. |
 | C319 | Matriz | P201 (distribución de P2) en PASS G3 con la CI exacta 40996100845 (1b4245dc). Matriz: 76 de 242. |
+| C320 | P2 con la maqueta del golden | EQUIPO 39,69–298,49 × 460,63–670,68 (13 renglones de 16,15), TESORO 327,97–427,18 (5 de 19,84), RASGOS 309,26–572,32 × 318,33–670,68, ESPECIAL desde 291,4 hasta 60,94; cartelas de 22,96 pt 1,98 pt sobre su tabla, título y leyenda en sus líneas base del golden. Pruebas y auditoría física comparan la geometría del golden con tolerancia. |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos
@@ -58,7 +59,6 @@ Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 - Línea del encabezado en y709,8 del golden: exige bajar la cartela NOTAS de C-N3.
 - C-N3: la tarjeta de notas generales (sin título) no tiene referencia en el golden; su primera línea queda junto al borde.
 - C2: renglones con franjas alternas en listas de acciones, recursos y habilidades, y el rótulo «MÓDULOS COMPARTIDOS · DOS COLUMNAS» del golden.
-- P2 al golden (medido): EQUIPO 39,69–298,49 × 460,63–670,68 (13 renglones de 16,16); TESORO 327,97–427,18 (renglones de 19,84); RASGOS 309,26–572,32 × 318,33–670,68 (16,02); ESPECIAL hasta ~60,94; cartelas de 22,96 pt, 1,98 pt sobre cada tabla. Un intento (C315) rompió 7 pruebas con coordenadas fijas de P2 y posiblemente el renglón del monto 0 de TESORO; se revirtió para hacerlo en un bloque propio.
 
 - Libro: chaflán de las esquinas del golden y ~3 pt más de aire antes de la descripción.
 - La segunda línea del encabezado del golden muestra un descriptor de la ficha («EXTREMO FICTICIO»); la app pone ahí el título de página. Decidir si el propietario quiere otro dato ahí.

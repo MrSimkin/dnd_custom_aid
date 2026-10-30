@@ -4000,11 +4000,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // mechanical RASGOS on the RIGHT, and full-width EQUIPO ESPECIAL
             // below them. The source-backed composers retain measured overflow
             // and forward it to C2, never to narrative P3.
-            val equipmentArea = PcSheetV11RectPt(42f, 464f, 258f, 220f)
-            val treasureArea = PcSheetV11RectPt(42f, 330f, 258f, 118f)
-            val traitsArea = PcSheetV11RectPt(312f, 330f, 258f, 354f)
-            val specialArea = PcSheetV11RectPt(42f, 88f, 528f, 225f)
-            require(equipmentArea.rightPt + 12f == traitsArea.leftPt)
+            // C315: golden P2 tables (v11_extremo p2) - EQUIPO 460.63..670.68 and
+            // TESORO 327.97..427.18 on the left (x39.69..298.49), RASGOS 318.33..670.68
+            // on the right (x309.26..572.32), ESPECIAL from 291.4 down to 60.94 (it
+            // keeps its shared 528 pt columns at x42).
+            val equipmentArea = PcSheetV11RectPt(39.69f, 460.63f, 258.8f, 210.05f)
+            val treasureArea = PcSheetV11RectPt(39.69f, 327.97f, 258.8f, 99.21f)
+            val traitsArea = PcSheetV11RectPt(309.26f, 318.33f, 263.06f, 352.35f)
+            val specialArea = PcSheetV11RectPt(42f, 60.94f, 528f, 230.46f)
+            require(equipmentArea.rightPt < traitsArea.leftPt)
             require(equipmentArea.bottomPt > treasureArea.topPt)
             require(traitsArea.bottomPt > specialArea.topPt)
             require(specialArea.widthPt == 528f)
@@ -4185,10 +4189,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 area: PcSheetV11RectPt,
                 columnLegend: String? = null,
             ) {
-                val left = area.leftPt
-                val right = area.rightPt
-                val bottom = area.topPt
-                val top = bottom + 14.5f
+                // C315: golden cartela, 22.96 pt tall, 1.98 pt above its table.
+                val left = if (area.leftPt == 42f && area.widthPt == 528f) 39.69f else area.leftPt
+                val right = if (area.leftPt == 42f && area.widthPt == 528f) 572.32f else area.rightPt
+                val bottom = area.topPt + 1.98f
+                val top = bottom + 22.96f
                 val corner = 5f
                 require(top < 717f) { "P2 cartela cannot hit the physical page header" }
                 require(headerPdfFont.getStringWidth(title) * 11f / 1000f <=
@@ -4215,7 +4220,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 drawCartelaDiamonds(stream, left, right, bottom, top)
                 stream.beginText()
                 stream.setFont(headerPdfFont, 9.1f)
-                stream.newLineAtOffset(left + 16f, bottom + 4f)
+                stream.newLineAtOffset(left + 16f, bottom + 6.84f) // C315 golden baseline
                 stream.showText(title)
                 stream.endText()
                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
@@ -4238,7 +4243,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.setNonStrokingColor(Color(101, 125, 144))
                     stream.beginText()
                     stream.setFont(bodyPdfFont, legendSize)
-                    stream.newLineAtOffset(x, bottom + 5.2f)
+                    stream.newLineAtOffset(x, bottom + 8.04f) // C315 golden baseline
                     stream.showText(printable)
                     stream.endText()
                     stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
@@ -4301,8 +4306,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // and never alter C2 pagination or original source identities.
                 val manuscriptRowHeight = if (!compactC2 && pageLabels.isEmpty()) {
                     when (placed.data.kind) {
-                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableKind.EQUIPMENT -> 16.5f
-                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableKind.TREASURE -> 19.5f
+                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableKind.EQUIPMENT -> 16.15f // C320 golden 16.16 (13 rows fit 210.05)
+                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableKind.TREASURE -> 19.84f // C320 golden
                     }
                 } else body.metrics.lineHeightPt
                 // C211 recovery R1: decide the C207 side NOTES grids BEFORE the table,

@@ -17,8 +17,8 @@ class P2EmptyPaperRhythmParityTest(unittest.TestCase):
             data = path.read_text(encoding="utf-8")
             self.assertIn("pageLabels.isEmpty()", data)
             self.assertIn("!compactC2 && pageLabels.isEmpty()", data)
-            self.assertIn("EQUIPMENT -> 16.5f", data)
-            self.assertIn("TREASURE -> 19.5f", data)
+            self.assertIn("EQUIPMENT -> 16.15f", data)  # C320 golden
+            self.assertIn("TREASURE -> 19.84f", data)  # C320 golden
             # P2 golden shading introduces an opt-in argument while keeping
             # the original empty-only measured writing rhythm unchanged.
             self.assertIn("grid(stream, visibleTable, true, manuscriptRowHeight,", data)

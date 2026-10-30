@@ -19,11 +19,12 @@ P2_SHADE = tuple(v / 255 for v in (231, 242, 247))
 P2_MODULES = (
     # REAL golden source-free P2 rows expand to manuscript rhythm;
     # source-populated tables use the golden 16 pt row (C263, 7.1 pt text).
-    ("Equipo", 42.0, 108.0, 258.0, (16.0, 16.5)),
-    ("Tesoro", 42.0, 344.0, 258.0, (16.0, 19.5)),
-    ("Rasgos", 312.0, 108.0, 258.0, (16.0,)),
+    # C320: golden P2 tables (v11_extremo p2).
+    ("Equipo", 39.69, 121.32, 258.8, (16.0, 16.15)),
+    ("Tesoro", 39.69, 364.82, 258.8, (16.0, 19.84)),
+    ("Rasgos", 309.26, 121.32, 263.06, (16.0,)),
     # D-0076 §3.21: a multi-line special entry spans whole 25 pt pitches.
-    ("Equipo especial", 42.0, 497.0, 528.0, tuple(25.0 * n for n in range(1, 9))),
+    ("Equipo especial", 42.0, 518.6, 528.0, tuple(25.0 * n for n in range(1, 9))),
 )
 
 
