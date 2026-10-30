@@ -666,18 +666,22 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val operators = pdf.getPage(p4 - 1).contents.use {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
-                assertTrue(Regex("""(?m)(?:^|\s)48\s+667\s+m\s+564\s+667\s+l\s+570\s+673\s+l""")
-                    .containsMatchIn(operators),
+                // C308: golden geometry - cartela x39.69..572.32, cards 39.69 + 178.58 i,
+                // 174.33 pt wide, all with 6 pt cuts. Compared with 0.02 pt tolerance.
+                fun clippedPath(y0: Int, y1: Int, a: Float, b: Float, c: Float) = Regex(
+                    """(?m)(?:^|\s)([-\d.]+)\s+""" + y0 + """\s+m\s+([-\d.]+)\s+""" + y0 +
+                        """\s+l\s+([-\d.]+)\s+""" + y1 + """\s+l"""
+                ).findAll(operators).any { m ->
+                    val (x0, x1, x2) = m.destructured
+                    kotlin.math.abs(x0.toFloat() - a) < 0.02f &&
+                        kotlin.math.abs(x1.toFloat() - b) < 0.02f &&
+                        kotlin.math.abs(x2.toFloat() - c) < 0.02f
+                }
+                assertTrue(clippedPath(667, 673, 45.69f, 566.32f, 572.32f),
                     "P4 magical-reference cartela must be physically clipped.")
-                for (startX in listOf(48, 228, 408)) {
-                    val endX = startX + 156
-                    val clippedCard = Regex(
-                        """(?m)(?:^|\s)""" + startX +
-                            """\s+617\s+m\s+""" + endX +
-                            """\s+617\s+l\s+""" + (endX + 6) +
-                            """\s+623\s+l"""
-                    )
-                    assertTrue(clippedCard.containsMatchIn(operators),
+                for (index in 0..2) {
+                    val x = 39.69f + index * 178.58f
+                    assertTrue(clippedPath(617, 623, x + 6f, x + 174.33f - 6f, x + 174.33f),
                         "Each real P4 magic-source card needs 6pt clipped corners.")
                 }
                 val paperSlots = Regex(

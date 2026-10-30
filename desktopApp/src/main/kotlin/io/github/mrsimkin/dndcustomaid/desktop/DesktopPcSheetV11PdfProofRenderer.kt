@@ -1908,13 +1908,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         perSource("ATAQUE MÁGICO") ?: "SEGÚN FUENTE" else attack,
                 )
                 stream.saveGraphicsState()
-                stream.setStrokingColor(Color(80, 122, 151))
-                stream.setLineWidth(0.7f)
+                // C308: golden cartela edge #264b68 0.65 pt across x39.69..572.32.
+                stream.setStrokingColor(Color(38, 75, 104))
+                stream.setLineWidth(0.65f)
                 stream.setNonStrokingColor(Color(231, 241, 247))
                 // Frozen V11 P4: a genuinely clipped, stroked blue cartela,
-                // confined to the original 528x27pt source-free header strip.
-                val x0 = 42f
-                val x1 = 570f
+                // confined to the original source-free header strip.
+                val x0 = 39.69f
+                val x1 = 572.32f
                 val y0 = 667f
                 val y1 = 694f
                 val corner = 6f
@@ -1935,14 +1936,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 drawP1Label(stream, "REFERENCIA MÁGICA", x0 + 16f, 677f, 9.1f)
                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 fields.forEachIndexed { index, (label, value) ->
-                    val x = 42f + index * 180f
+                    // C308: golden cards x39.69 + 178.58 i, 174.33 pt wide, #264b68 edge.
+                    val x = 39.69f + index * 178.58f
+                    val cardWidth = 174.33f
                     stream.saveGraphicsState()
-                    stream.setStrokingColor(Color(80, 122, 151))
-                    stream.setLineWidth(0.7f)
-                    // Golden uses clipped corners on each source-backed card,
-                    // with identical 168x44pt measured source rectangles.
+                    stream.setStrokingColor(Color(38, 75, 104))
+                    stream.setLineWidth(0.65f)
+                    // Golden uses clipped corners on each source-backed card.
                     val cardCut = 6f
-                    val cardRight = x + 168f
+                    val cardRight = x + cardWidth
                     val cardBottom = 617f
                     val cardTop = 661f
                     stream.moveTo(x + cardCut, cardBottom)
@@ -1969,7 +1971,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.showText(label)
                     stream.endText()
                     stream.setNonStrokingColor(Color(29, 56, 79))
-                    fun centeredX(text: String, pt: Float) = x + (168f -
+                    fun centeredX(text: String, pt: Float) = x + (cardWidth -
                         headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * pt / 1000f) / 2f
                     if (value == null) {
                         stream.moveTo(x + 7f, 629f)
