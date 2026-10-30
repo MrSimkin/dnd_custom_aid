@@ -525,8 +525,8 @@
     {
       "id": "GLB04",
       "area": "Global",
-      "obligation": "Barlow Condensed real en rótulos; Fira Sans valores medida y licencias; fuentes incrustadas",
-      "authority": "CONTRATO_VISUAL_APROBADO.md",
+      "obligation": "Fuentes exactas del golden incrustadas y con licencia: Noto Sans Display Condensed Bold en rótulos, Noto Sans en valores y EB Garamond 12 Bold en nombres (letras faltantes desde EB Garamond Bold); antes Barlow Condensed / Fira Sans",
+      "authority": "CONTRATO_VISUAL_APROBADO.md · Propietario 2026-10-29: «se agregan las fuentes» (CONTRATO_VISUAL_APROBADO.md)",
       "method": "Tablas de fuentes embebidas y PDF visual",
       "scenarios": "A/B Android Desktop",
       "status": "NOT_VERIFIED",
@@ -536,8 +536,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3HeaderNameUsesGoldenGaramondAndNeverDropsAccentedLettersAB; g3P3StoryUsesOwnerApprovedGoldenRhythmSevenPointOnSeventeenPointRowsAB",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: the header name prints in the embedded EBGaramond12-Bold at 13.4 pt, accented letters come only from the embedded EBGaramond-Bold fallback and no letter is lost; P3 field values use the embedded Noto Sans at the golden 7.3 pt.",
+            "source_commit": "b61c92cdd9330fa72ea81631e2bb387c7321d2e3",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40986651188",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40986651188/artifacts/12947223217",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40986651188/artifacts/12947467656",
+            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py 0 errors, which requires embedded NotoSansDisplay and NotoSans-Regular on every digital page of the 108 PDFs. Font files' widths match the golden spans with 0.0 pt error (assets/fonts/pdf/text/README.md, SHA-256 recorded).",
+            "limitations": "Desktop PDFs; Android renderer parity guarded by the Python tripwires. Global GLB04 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -3649,8 +3658,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3Bk06LibroCardPrintsTheRealSchoolUnderTheNameOnlyWhenTheAppHasOneAB; g3Bk06EssentialSpellbookCardsNeverPrintUnapprovedTechnicalMetadata",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: Libro cards in two columns print the real name (EB Garamond 11.3 pt), NIVEL, the real App school uppercase under the name only when stored, and the entire description; technical fields stay out.",
+            "source_commit": "b61c92cdd9330fa72ea81631e2bb387c7321d2e3",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40986651188",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40986651188/artifacts/12947223217",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/40986651188/artifacts/12947467656",
+            "independent_inspection": "Same CI run: audit_v11_spellbook_cards.py 18/18 physical card frames on 29 Libro pages.",
+            "limitations": "School is free text from CharacterSpell.school; the SRD import will fill it later. Global BK03 and G4 remain NOT_VERIFIED."
+          }
         }
       ]
     },
