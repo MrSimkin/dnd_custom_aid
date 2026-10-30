@@ -51,7 +51,7 @@
 
 - Páginas C-N3 exclusivas solo si existen Notas digitales generales o tituladas; nunca mezclarlas con C2.
 - Libro de Conjuros es **único anexo opcional**, en dos columnas, fichas de altura variable nombre/nivel/escuela/descripción íntegra. Ficha completa pasa a siguiente columna cuando allí cabe; ficha mayor que una columna se parte legiblemente con continuidad (el Python V11 *NO resuelve* este caso).
-- **Última página física obligatoria y enteramente manuscrita**: un solo título NOTAS, renglones en dos columnas arriba y cuadrícula entera abajo, sin última fila recortada; nunca usada para contenido digital.
+- **Última página física obligatoria y enteramente manuscrita**: un solo título NOTAS, renglones en dos columnas arriba y cuadrícula entera abajo, sin última fila recortada; nunca usada para contenido digital (2026-10-30: lleva la línea de pie del golden y ningún número de página; ver aclaración de esa fecha).
 
 
 ## Aclaración del propietario — presentación de Rasgos (2026-10-16)
@@ -110,6 +110,14 @@ El propietario aprobó P1/P3/P4, P2, C2, final y variante B tras revisión V11. 
 ## Aclaración del propietario — fuentes del golden (2026-10-29)
 
 - «se agregan las fuentes». El PDF V11 usa las fuentes exactas del golden: Noto Sans Display Condensed Bold para rótulos, Noto Sans Regular/Bold para texto y EB Garamond 12 Bold para nombres y títulos (letras que le faltan: EB Garamond Bold del mismo proyecto). Reemplazan a Barlow Condensed y Fira Sans.
+
+## Aclaraciones del propietario — cabecera, estados v8 y última hoja NOTAS (2026-10-30)
+
+- **Logo:** «El golden usa ese texto porque no pudo insertar un logo de D&D, y yo quería uno, puedes usar ese o uno más pequeño si quieres y que quede mejor». El texto «DUNGEONS & DRAGONS» del golden es un sustituto: la cabecera usa el logo del propietario, dentro de los marcos (x57–147 × y719,5–754,5).
+- **Escudo:** «el "escudo" que aparece en el golden es parte del "logo" que el renderizador inventó como reemplazo, así que puede ser eliminado para dar espacio al logo». La cabecera no lleva escudo.
+- **Cabecera:** «Te autorizo a ajustar el encabezado de las hojas de PJ a tu criterio, con control mío para ajuste conservando el espíritu y concepto del golden». Criterio aplicado y sujeto al control del propietario: línea de cabecera en y717; segunda línea derecha con el título de la página.
+- **Estados:** las marcas de estado reales usan Para Hoja de PJ Symbols v8 por sus alias de `GUIDE.md`: competencia ✓ U+E108, pericia ✓✓ U+E109, inspiración ★ U+E10E, ACTIVO ◆ U+E10F (solo con un dato real de la App). Las casillas vacías siguen siendo vectores del golden.
+- **Última hoja NOTAS:** «permite la línea, evita/elimina el número de página». La hoja final lleva la línea azul de pie del golden (#527c96, 0,55 pt, x39,69–572,32, y45,07), igual que todas las páginas, y **no** lleva número de página ni ningún otro texto de pie. Esto precisa la regla «nunca usada para contenido digital» de esa hoja; el «11 / 11» del golden no se reproduce.
 
 ## Aclaración del propietario — Equipo y Tesoro con nombres largos (2026-10-26)
 

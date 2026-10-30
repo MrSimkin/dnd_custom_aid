@@ -209,6 +209,30 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
+        // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources("03_mara_siete_umbrales_custom_extended.json"),
+            ).bytes
+            Loader.loadPDF(bytes).use { pdf ->
+                val footRule = Regex("""(?:^|\s)39\.69\d*\s+45\.07\d*\s+m\s+572\.32\d*\s+45\.07\d*\s+l""")
+                for (index in 0 until pdf.numberOfPages) {
+                    val ops = pdf.getPage(index).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                    assertTrue(footRule.containsMatchIn(ops), "Golden foot rule on page ${index + 1} ($variant).")
+                }
+                val last = PDFTextStripper().apply {
+                    startPage = pdf.numberOfPages
+                    endPage = pdf.numberOfPages
+                }.getText(pdf)
+                assertFalse(Regex("""\d+\s*/\s*\d+""").containsMatchIn(last),
+                    "The final NOTAS sheet prints no page number ($variant).")
+            }
+        }
+    }
+
+    @Test
     fun c325RealStatesUseOwnerParaHojaDePjSymbolsV8GlyphsAB() {
         // Contract «Estados: Para Hoja de PJ Symbols v8 como prioridad»: training,
         // inspiration and ACTIVO are v8 PUA aliases, only where the source has them.
