@@ -55,7 +55,8 @@ class C2PhysicalOriginParityTest(unittest.TestCase):
             self.assertIn('val realTraining = wholeSource.substring(trainingSep + 3)', source)
             self.assertIn('val rightX = cell.cellPt.rightPt -', source)
             self.assertIn('labelEnd + 9f <= rightX', source)
-            self.assertIn('draw(stream, realTotal, rightX, baseline, false)', source)
+            # C302: the real C2 skill total keeps its right edge, in golden bold ink.
+            self.assertIn('p1Bold(stream, realTotal, rightX, baseline,', source)
             self.assertIn('cell.sourceEndExclusive == wholeSource.length', source)
             self.assertIn('attribute.name + "\\n\\n" + attribute.score', source)
             self.assertIn('prior.rowIndex + 1 == cell.rowIndex', source)

@@ -801,9 +801,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             cell.sourceStartOffset == 0 &&
                             cell.sourceEndExclusive == parts.first.length + parts.second.length
                         if (oneLine && cell.cellPt.leftPt + skillFont.width.measurePt(parts!!.first) +
-                            4f <= valueRight - skillFont.width.measurePt(value)) {
+                            4f <= valueRight - p1BoldWidth(value, 7f)) {
                             ink(parts.first, cell.cellPt.leftPt)
-                            ink(value, valueRight - skillFont.width.measurePt(value))
+                            // C302: golden B skill bonus, Noto Sans Bold 7 pt #264b68.
+                            p1Bold(stream, value, valueRight - p1BoldWidth(value, 7f), baseline,
+                                7f, Color(38, 75, 104))
                         } else {
                             ink(cell.drawableText, cell.cellPt.leftPt)
                         }
@@ -2520,13 +2522,16 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 val score = attribute.score.toString()
                 val modifier = signedC2(attribute.modifier)
                 val valueBaseline = ovalCy - 3f
-                draw(stream, score, (boxLeft + boxRight) / 2f - body.width.measurePt(score) / 2f,
-                    valueBaseline, false)
-                draw(stream, modifier, ovalCx - body.width.measurePt(modifier) / 2f, valueBaseline, false)
+                // C302: golden C2 attribute numbers in Noto Sans Bold, as on P1.
+                p1Bold(stream, score, (boxLeft + boxRight) / 2f - p1BoldWidth(score, 11f) / 2f,
+                    valueBaseline, 11f, Color(29, 56, 79))
+                p1Bold(stream, modifier, ovalCx - p1BoldWidth(modifier, 8.7f) / 2f, valueBaseline,
+                    8.7f, Color(38, 75, 104))
                 drawP1Label(stream, attribute.name, left + 78f, top - 10f, 9f)
                 drawP1Label(stream, "SALVACIÓN", saveBox - 6f -
                     headerPdfFont.getStringWidth("SALVACIÓN") * 6f / 1000f, bottom + 4f, 6f)
-                draw(stream, saving, right - 3f - body.width.measurePt(saving), valueBaseline, false)
+                p1Bold(stream, saving, right - 3f - p1BoldWidth(saving, 7.2f), valueBaseline,
+                    7.2f, Color(38, 75, 104))
             }
 
             fun addSection(
@@ -3633,15 +3638,17 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     val realTraining = wholeSource.substring(trainingSep + 3)
                                     // C259: training is the P/E letter in the box.
                                     val leftInk = wholeSource.substring(0, valueSep)
+                                    // C302: golden C2 skill bonus in Noto Sans Bold #264b68.
                                     val rightX = cell.cellPt.rightPt -
-                                        body.width.measurePt(realTotal) - 4f
+                                        p1BoldWidth(realTotal, body.metrics.fontSizePt) - 4f
                                     val labelEnd = cell.cellPt.leftPt +
                                         body.width.measurePt(leftInk)
                                     if (realTotal.isNotBlank() && realTraining.isNotBlank() &&
                                         labelEnd + 9f <= rightX) {
                                         val baseline = body.metrics.baselineIn(cell.cellPt)
                                         draw(stream, leftInk, cell.cellPt.leftPt, baseline, false)
-                                        draw(stream, realTotal, rightX, baseline, false)
+                                        p1Bold(stream, realTotal, rightX, baseline,
+                                            body.metrics.fontSizePt, Color(38, 75, 104))
                                     } else {
                                         draw(stream, cell.drawableText, cell.cellPt.leftPt,
                                             body.metrics.baselineIn(cell.cellPt), false)

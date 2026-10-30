@@ -27,6 +27,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C299 | Encabezado de ATAQUES de P1 | ARMA / ATAQUE / CONJURO 6,2 pt; BON. y DAÑO / TIPO 6 pt; #264b68 (antes 7 pt negro). |
 | C300 | Números de atributos de P1 | Noto Sans Bold como el golden: puntaje 11 pt #1d384f, modificador 8,7 pt, salvación 7,2 pt y bono de habilidad (A) 7 pt en #264b68. |
 | C301 | Valores de ataques (P1 y C2) | Bono en Noto Sans Bold #264b68 y daño 0,4 pt más chico (P1: 7,1 / 6,7 pt), como el golden. |
+| C302 | Números de C2 y habilidades B | Tarjetas de atributo de C2 (puntaje, modificador, salvación), bonos de habilidad de C2 y de la variante B en Noto Sans Bold, como el golden. |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos
