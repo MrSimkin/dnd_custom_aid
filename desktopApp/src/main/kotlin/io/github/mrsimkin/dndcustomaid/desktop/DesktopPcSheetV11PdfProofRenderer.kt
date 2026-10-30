@@ -372,6 +372,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.endText()
                 }
                 stream.restoreGraphicsState()
+                // C298: the golden has no black text; every page starts in its value ink.
+                stream.setNonStrokingColor(Color(36, 57, 75))
             }
 
             // For B only, the golden's 6+2/6+3 uses compact 25pt
@@ -509,7 +511,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 drawP1Label(stream,if(data.request.variant ==
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A)
                     "ATRIBUTOS · A" else "ATRIBUTOS · B",58f,586f,9.1f)
-                stream.setNonStrokingColor(Color(0, 0, 0))
+                stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 val k=0.5522848f
                 standards.forEachIndexed { i,ability ->
                     val top=p1AttributeTop(i)
@@ -951,12 +953,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.restoreGraphicsState()
                 // C237: golden P1 ATAQUES uses small 7 pt Barlow column labels and
                 // right-aligns bonus and damage inside their columns.
-                fun labelWidth(text: String) = headerPdfFont.getStringWidth(text) * 7f / 1000f
-                // C256: golden ATAQUES column labels.
-                drawP1Label(stream, "ARMA / ATAQUE / CONJURO", left + 4f, top - 9f)
-                drawP1Label(stream, "BON.", b2 - 4f - labelWidth("BON."), top - 9f)
+                fun labelWidth(text: String) = headerPdfFont.getStringWidth(text) * 6f / 1000f
+                // C256: golden ATAQUES column labels; C299: golden 6.2 / 6 pt in #264b68.
+                stream.setNonStrokingColor(Color(38, 75, 104))
+                drawP1Label(stream, "ARMA / ATAQUE / CONJURO", left + 4f, top - 9f, 6.2f)
+                drawP1Label(stream, "BON.", b2 - 4f - labelWidth("BON."), top - 9f, 6f)
                 drawP1Label(stream, "DAÑO / TIPO",
-                    left + 254f - labelWidth("DAÑO / TIPO"), top - 9f)
+                    left + 254f - labelWidth("DAÑO / TIPO"), top - 9f, 6f)
+                stream.setNonStrokingColor(Color(36, 57, 75))
                 p1Attacks.forEachIndexed { index, entry ->
                     val y = top - 22f - index * 12f
                     // C264: golden P1 attack rows, name 7.4 pt and values 7.1 pt.
@@ -1011,7 +1015,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.setNonStrokingColor(Color(29, 56, 79)) // C266: golden title ink
                 drawCartelaDiamonds(stream, 312f, 570f, 282f, 300f)
                 drawP1Label(stream,"LANZAMIENTO DE CONJUROS",328f,286f,9.1f)
-                stream.setNonStrokingColor(Color(0, 0, 0))
+                stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 val actual=data.spellSlots.associateBy{it.level}
                 // C250: golden P1 LANZAMIENTO grammar. Three white clipped
                 // reference cards (APTITUD MÁGICA / CD SALVACIÓN / ATAQUE
@@ -1393,7 +1397,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.newLineAtOffset(left + 16f,top - 11f)
                 stream.showText("RASGOS Y ATRIBUTOS")
                 stream.endText()
-                stream.setNonStrokingColor(Color(0, 0, 0))
+                stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 p1TraitEntries.forEach { (_, lines, firstSlot) ->
                     lines.forEachIndexed { offset, line ->
                         val slot = firstSlot + offset
@@ -1456,7 +1460,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.setNonStrokingColor(Color(29, 56, 79)) // C266: golden title ink
                 drawCartelaDiamonds(stream, 312f, 570f, 131f, 148f)
                 drawP1Label(stream, "MUNICIONES", 328f, 136.5f, 9.1f)
-                stream.setNonStrokingColor(Color(0, 0, 0))
+                stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 // Golden mark geometry (7.94 pt boxes, 13.75 pt step, 2.83 pt
                 // extra gap between groups), at the golden distance from the
                 // right edge of the column.
@@ -1659,7 +1663,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.setNonStrokingColor(Color(101, 125, 144))
                     drawP1Label(stream, label, frame.leftPt + 6f, frame.topPt - 9f,
                         if (label == "CLASE / NIVEL") 6.2f else 5.9f)
-                    stream.setNonStrokingColor(Color(0, 0, 0))
+                    stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                     placed?.cells?.filter { it.localPageIndex == 1 }?.forEach { cell ->
                         if (cell.drawableText.isNotEmpty()) {
                             draw(stream, cell.drawableText, cell.cellPt.leftPt,
@@ -1669,14 +1673,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
                 stream.setNonStrokingColor(Color(101, 125, 144))
                 drawP1Label(stream, "JUGADOR", player.leftPt + 6f, player.topPt - 9f, 5.9f)
-                stream.setNonStrokingColor(Color(0, 0, 0))
+                stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 stream.moveTo(player.leftPt + 6f, player.bottomPt + 5f)
                 stream.lineTo(player.rightPt - 6f, player.bottomPt + 5f)
                 stream.stroke()
                 stream.setNonStrokingColor(Color(101, 125, 144))
                 drawP1Label(stream, "ALINEAMIENTO", alignment.leftPt + 6f,
                     alignment.topPt - 9f, 5.9f)
-                stream.setNonStrokingColor(Color(0, 0, 0))
+                stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 // No persisted alignment exists; a ruled entry is deliberately blank.
                 stream.moveTo(alignment.leftPt + 6f, alignment.bottomPt + 5f)
                 stream.lineTo(alignment.rightPt - 6f, alignment.bottomPt + 5f)
@@ -1732,7 +1736,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.newLineAtOffset(328f, 600f)
                 stream.showText(title)
                 stream.endText()
-                stream.setNonStrokingColor(Color(0, 0, 0))
+                stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.55f)
@@ -1824,7 +1828,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             drawP1Label(stream, temp, x + width - 6f - tempWidth, valueBaseline, 7f)
                         }
                     }
-                    stream.setNonStrokingColor(Color(0, 0, 0))
+                    stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 }
             }
 
@@ -1903,7 +1907,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 drawCartelaDiamonds(stream, x0, x1, y0, y1)
                 stream.setNonStrokingColor(Color(29, 56, 79))
                 drawP1Label(stream, "REFERENCIA MÁGICA", x0 + 16f, 677f, 9.1f)
-                stream.setNonStrokingColor(Color(0, 0, 0))
+                stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 fields.forEachIndexed { index, (label, value) ->
                     val x = 42f + index * 180f
                     stream.saveGraphicsState()
@@ -2913,7 +2917,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 bodyPdfFont.getStringWidth(scope) * 6.2f / 1000f, 707.7f)
                             stream.showText(scope)
                             stream.endText()
-                            stream.setNonStrokingColor(Color(0, 0, 0))
+                            stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                             // C296: golden note card - chamfered #264b68 0.65 pt frame
                             // (x39.69..572.32) with a pale inner rule 3.4 pt under its top.
                             stream.saveGraphicsState()
@@ -3056,7 +3060,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                             heading.cellPt.rightPt - 5f - originWidth,
                                             body.metrics.baselineIn(heading.cellPt), 6.1f)
                                     }
-                                    stream.setNonStrokingColor(Color(0, 0, 0))
+                                    stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                                 }
                             }
                         }
@@ -3314,7 +3318,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 drawP1Label(stream, label, cell.cellPt.rightPt - 2f -
                                     headerPdfFont.getStringWidth(label) * 6.3f / 1000f,
                                     cell.cellPt.topPt - 12.76f, 6.3f) // C288: golden name baseline
-                                stream.setNonStrokingColor(Color(0, 0, 0))
+                                stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                             }
                         }
                         pageCells.forEach { cell ->
@@ -3590,7 +3594,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 )
                                 stream.showText(pcSheetV11PrintableText(cell.drawableText))
                                 stream.endText()
-                                stream.setNonStrokingColor(Color(0, 0, 0))
+                                stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                             } else if (title == "C2 - Habilidades, acciones y recursos" &&
                                 cell.sourceKey.startsWith("attribute-skill:") &&
                                 cell.sourceStartOffset == 0) {
@@ -4124,7 +4128,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.newLineAtOffset(left + 16f, bottom + 4f)
                 stream.showText(title)
                 stream.endText()
-                stream.setNonStrokingColor(Color(0, 0, 0))
+                stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 // Golden P2 requires an explicit meaning for BOTH small
                 // internal columns: OBJETO/CANTIDAD or DENOMINACIÓN/CANTIDAD.
                 // Occupy the existing blue source-free cartela, never the table.
@@ -4147,7 +4151,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.newLineAtOffset(x, bottom + 5.2f)
                     stream.showText(printable)
                     stream.endText()
-                    stream.setNonStrokingColor(Color(0, 0, 0))
+                    stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 }
             }
 

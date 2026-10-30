@@ -32,9 +32,9 @@ class P1AttacksStageTripwire(unittest.TestCase):
                 self.assertIn("val bottom = 392f", body)
                 # C237: golden 7 pt Barlow labels; bonus/damage right-aligned.
                 self.assertIn("drawAttackValues(stream, entry, left, y, 7.1f)", body)  # C264 golden size
-                self.assertIn('drawP1Label(stream, "ARMA / ATAQUE / CONJURO", left + 4f, top - 9f)', body)
-                self.assertIn('drawP1Label(stream, "BON.", b2 - 4f - labelWidth("BON."), top - 9f)', body)
-                self.assertIn('left + 254f - labelWidth("DAÑO / TIPO"), top - 9f)', body)
+                self.assertIn('drawP1Label(stream, "ARMA / ATAQUE / CONJURO", left + 4f, top - 9f, 6.2f)', body)
+                self.assertIn('drawP1Label(stream, "BON.", b2 - 4f - labelWidth("BON."), top - 9f, 6f)', body)
+                self.assertIn('left + 254f - labelWidth("DAÑO / TIPO"), top - 9f, 6f)', body)
 
     def test_c2_attack_table_rows_agree_between_platforms(self):
         # Golden C2 ATAQUES: fitting deferred attacks reuse the P1 row grammar.
