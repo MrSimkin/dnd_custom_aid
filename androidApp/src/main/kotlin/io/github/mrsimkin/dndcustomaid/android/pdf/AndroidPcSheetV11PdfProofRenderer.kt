@@ -1105,7 +1105,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         // C256: golden card ink (labels #657d90, values #1d384f).
                         stream.setNonStrokingColor(Color(101,125,144))
                         drawP1Label(stream,if(label=="APTITUD")"APTITUD MÁGICA" else label,
-                            x+5f,270f,6.5f)
+                            x+5f,270f,6.65f) // C304: golden 6.65 pt
                         stream.setNonStrokingColor(Color(29,56,79))
                         // C231/C256 (owner 2026-10-28, «B y C en ese orden y
                         // mezclando»): each real source with its own value, first
@@ -4422,7 +4422,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         stream.endText()
                     }
                 }
-                drawP2Cartela(stream, "EQUIPO ESPECIAL", specialArea)
+                // C303: golden legend on the EQUIPO ESPECIAL cartela.
+                drawP2Cartela(stream, "EQUIPO ESPECIAL", specialArea, "ACTIVO: marcar a lápiz")
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130, 165, 186))
                 stream.setLineWidth(0.55f)
@@ -4469,8 +4470,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 val headings = listOf("UBICACIÓN", "NOMBRE", "DESCRIPCIÓN", "ACTIVO")
                 var headerX = specialArea.leftPt
                 headings.forEachIndexed { index, label ->
-                    // C242: golden small 7 pt Barlow column labels.
-                    drawP1Label(stream, label, headerX + 5f, specialArea.topPt - 12f)
+                    // C242: golden column labels; C303: 6.8 pt (ACTIVO 5.5) in #264b68.
+                    stream.setNonStrokingColor(Color(38, 75, 104))
+                    drawP1Label(stream, label, headerX + 5f, specialArea.topPt - 12f,
+                        if (label == "ACTIVO") 5.5f else 6.8f)
+                    stream.setNonStrokingColor(Color(36, 57, 75))
                     headerX += specialColumns[index]
                 }
                 val fieldX = listOf(
@@ -5078,8 +5082,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     var headerX = 42f
                     listOf("UBICACIÓN", "NOMBRE", "DESCRIPCIÓN", "ACTIVO")
                         .forEachIndexed { index, label ->
-                            // C242: golden small 7 pt Barlow column labels.
-                            drawP1Label(stream, label, headerX + 5f, drawingArea.topPt - 12f)
+                            // C242: golden column labels; C303: 6.8 pt (ACTIVO 5.5) in #264b68.
+                            stream.setNonStrokingColor(Color(38, 75, 104))
+                            drawP1Label(stream, label, headerX + 5f, drawingArea.topPt - 12f,
+                                if (label == "ACTIVO") 5.5f else 6.8f)
+                            stream.setNonStrokingColor(Color(36, 57, 75))
                             headerX += specialColumns[index]
                         }
                     val positions = listOf(42f, 42f + specialColumns[0],

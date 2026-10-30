@@ -28,6 +28,8 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C300 | Números de atributos de P1 | Noto Sans Bold como el golden: puntaje 11 pt #1d384f, modificador 8,7 pt, salvación 7,2 pt y bono de habilidad (A) 7 pt en #264b68. |
 | C301 | Valores de ataques (P1 y C2) | Bono en Noto Sans Bold #264b68 y daño 0,4 pt más chico (P1: 7,1 / 6,7 pt), como el golden. |
 | C302 | Números de C2 y habilidades B | Tarjetas de atributo de C2 (puntaje, modificador, salvación), bonos de habilidad de C2 y de la variante B en Noto Sans Bold, como el golden. |
+| C303 | Equipo especial | Encabezados de columna en rótulo 6,8 pt #264b68 («ACTIVO» 5,5 pt) en P2 y C2; leyenda del golden «ACTIVO: marcar a lápiz» en la cartela. |
+| C304 | Etiquetas de LANZAMIENTO DE CONJUROS | 6,65 pt como el golden (antes 6,5). |
 Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 ## Hallazgos
@@ -40,7 +42,7 @@ Evidencia visual: `qa/evidence/c286_c287/` y `qa/evidence/c290/`.
 
 - C-N3: el aire del golden entre título de nota, su regla y el texto (exige un renglón más por nota).
 - C2: renglones con franjas alternas en listas de acciones, recursos y habilidades, y el rótulo «MÓDULOS COMPARTIDOS · DOS COLUMNAS» del golden.
-- P2: altura de 22,96 pt de las cartelas (mueve las tablas).
+- P2: altura de 22,96 pt de las cartelas: entre EQUIPO y TESORO quedan ~3,5 pt, así que exige rehacer las áreas de P2.
 
 - Libro: chaflán de las esquinas del golden y ~3 pt más de aire antes de la descripción.
 - La segunda línea del encabezado del golden muestra un descriptor de la ficha («EXTREMO FICTICIO»); la app pone ahí el título de página. Decidir si el propietario quiere otro dato ahí.
