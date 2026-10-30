@@ -61,6 +61,7 @@ PR #173 DRAFT/NO MERGE. Anterior: [C272–C282](2026-10-29_V11_C272_MATRIZ_DIEZ_
 | C334 | Títulos largos de cartelas C2 | Un título que no cabía a 9,1 pt perdía los rombos y el margen del golden (p. ej. «PERSONAJE, HABILIDADES Y ACCIONES / CONTINUACIÓN»). Ahora el título baja de 9,1 a 7,1 pt por pasos y conserva la cartela del golden: rombos, título a 16 pt y «VIENE P. n» a la derecha. Solo si ni a 7,1 pt cabe se usa la forma sencilla anterior. |
 | C335 | Decisiones de cabecera registradas | En `DECISIONES_PENDIENTES_PROPIETARIO.md` (Resueltas, 2026-10-30): logo, escudo, fuente de estados v8 y criterio de cabecera. La segunda línea sigue con el título de página (la App no tiene un descriptor de ficha como «EXTREMO FICTICIO»); queda sujeta al control del propietario. |
 | C336 | Matriz | GLB05 (estados con Symbols v8; letras acentuadas) en PASS G3 con la CI exacta 41108066032 (22adfb17), artefactos 13002683165 (PDF) y 13002133663 (auditoría). Font Awesome no se usa: ningún estado lo necesita. Matriz: 77 de 242. CI de C334: 41108066164 y 41108066032. |
+| C337 | Línea de pie en todas las páginas | El golden cierra las 11 páginas con una línea azul #527c96 de 0,55 pt de ancho completo (x39,69–572,32, y45,07); la App solo la tenía bajo los enlaces de P1/P2. Ahora está en todas, también en la última hoja NOTAS. Propietario 2026-10-30: «el golden no debería llevar número de página» en esa hoja, así que la App sigue sin número allí. |
 Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c325_c326/`.
 
 ## Hallazgos

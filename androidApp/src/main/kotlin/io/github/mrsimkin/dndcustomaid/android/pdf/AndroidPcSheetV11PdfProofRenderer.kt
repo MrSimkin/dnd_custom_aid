@@ -311,6 +311,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.moveTo(39.69f, 717f)
                 stream.lineTo(572.32f, 717f)
                 stream.stroke()
+                // C337: the golden closes EVERY page (final NOTAS sheet included) with
+                // this #527c96 0.55 pt foot rule; it used to exist only under the
+                // P1/P2 module links. Owner 2026-10-30: no page number on the final sheet.
+                stream.moveTo(39.69f, 45.07f)
+                stream.lineTo(572.32f, 45.07f)
+                stream.stroke()
                 stream.restoreGraphicsState()
 
                 stream.saveGraphicsState()
