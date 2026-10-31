@@ -69,6 +69,8 @@ jobs:
           python3 scripts/audit_v11_p4_slot_meters.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --minimum-casters 2 --report desktopApp/build/v11-p4-physical-slot-meters.json
           python3 scripts/audit_v11_p1_clipped_cards.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-p1-clipped-cards.json
           python3 scripts/audit_v11_spellbook_cards.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --minimum-books 4 --report desktopApp/build/v11-spellbook-card-panels.json
+          python3 scripts/test_audit_v11_continuation_cues.py
+          python3 scripts/audit_v11_continuation_cues.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-continuation-cues.json
           python3 scripts/test_audit_v11_header_logo_visibility.py
           python3 scripts/audit_v11_header_logo_visibility.py --golden-zip docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 54 --report desktopApp/build/v11-header-logo-visibility.json
       - name: Upload independent V11 physical-envelope audit
@@ -88,6 +90,7 @@ jobs:
             desktopApp/build/v11-spellbook-card-panels.json
             desktopApp/build/v11-p1-clipped-cards.json
             desktopApp/build/v11-p4-physical-slot-meters.json
+            desktopApp/build/v11-continuation-cues.json
             docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip
           if-no-files-found: error
       - name: Upload Android debug APK
