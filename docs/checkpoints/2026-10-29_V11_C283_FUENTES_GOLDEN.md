@@ -86,12 +86,20 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 | C352 | Tarjetas de P1 con el estilo del golden | Las ocho tarjetas de COMBATE Y SUPERVIVENCIA y las tres de LANZAMIENTO DE CONJUROS pasan de celeste con borde #507a97 de 0,55 pt al estilo del golden: blancas, borde #264b68 de 0,65 pt y la línea fina interior (3,4 pt bajo el borde, 9,07 pt adentro, #bfd3de 0,35 pt); el rótulo queda a 5,66 pt del borde. La auditoría de marcos de P1 reconoce la gramática común de identidad y combate. Pendiente: alturas del golden (29,76 / 31,18 pt) y la cartela «ATAQUES» sobre la tabla, que dependen del ritmo vertical de P1. Pruebas, 12 auditorías y 78 tripwires en verde. Evidencia: qa/evidence/c352. |
 | C353 | Línea fina interior de las cartelas del golden | Las 23 cartelas azules del golden llevan una línea fina 3,4 pt bajo el borde superior, 9,07 pt adentro de cada lado (#bfd3de, 0,35 pt); la App no tenía ninguna. Ahora todas las cartelas con rombos la dibujan (P1, P2, C2, P3, P4, C-N3, Libro): en Mara A, 10 de 10 cartelas de 22,96 pt la llevan, como el golden. Pruebas, 12 auditorías y 78 tripwires en verde. CI de C351: 41166285624 / 41166285639 (también corrige la de C350). |
 | C354 | Matriz: GLB02 y P205 en G3 | Evidencia de la CI 41166285624 (commit 10b29e26; PDFs 13029033380, auditoría 13029555769): GLB02 (cartelas azules recortadas en C2, NOTAS con su cartela y doble marco exterior del golden en 971/971 páginas) y P205 (parejas denominación/cantidad del TESORO, cantidades alineadas como el golden, etiqueta larga en fila propia y cada cantidad una sola vez). Matriz: 98/242 controles de etapa en PASS. |
+| C355 | Pendientes medidos del golden | La lista «Pendiente» queda con las medidas exactas que faltan, tomadas del golden A/B: ritmo vertical de P1 (cartelas, filas de atributo 22,82 / habilidad 12,47 pt, B con 18 filas de 14,74 pt y etiquetas largas a 6,85 pt, tarjetas de combate 29,76 / 31,18 pt, cartela ATAQUES y filas de 14,74 pt, cartelas RASGOS, LANZAMIENTO y MUNICIONES), mezcla de tablas en C2 con cartelas de columna, franja de nivel de P4 y aire del Libro. |
 
 ## Pendiente (siguiente)
 
-- P1 con las columnas del golden: atributos 39,69–260,22 y combate 270,43–572,32 (la app usa dos de 258); cartelas a 588,19–611,15.
-- C2 de tablas y de equipo especial: el golden los mezcla en columnas con otros módulos; la app usa páginas a todo el ancho. Columnas de ESPECIAL del golden: 107 / 133,2 / 246 / 46,42.
-- P4: franja del encabezado de nivel de 20,7 pt del golden (la app usa un renglón de 15,73); exige filas de alto variable en el colocador compartido.
+Medidas tomadas de v11_extremo A/B (golden) el 2026-10-31; las x de P1 ya son las del golden (C350–C351).
 
-- Libro: ~3 pt más de aire antes de la descripción (paso único de 10,5 pt).
-- Matriz: registrar evidencia de G3 de estos bloques con la CI exacta.
+- **P1, ritmo vertical del golden** (siguiente bloque):
+  - cartelas ATRIBUTOS y COMBATE en y588,19–611,15 (hoy 579–602 y 594–616);
+  - A: fila de atributo de 22,82 pt y fila de habilidad de 12,47 pt (casilla de puntuación x42,24–85,32 de 18,14 pt de alto, óvalo de 14,45 pt);
+  - B: HABILIDADES en y334,35–357,31 y 18 filas de 14,74 pt por subcolumna hasta y67,04; las etiquetas largas bajan a 6,85 pt o menos para caber en una línea, como el golden;
+  - COMBATE: tarjetas de 29,76 pt (y556,44 y 524,98) y PV de 31,18 pt (y488,98);
+  - cartela ATAQUES en y462,9–485,86 y filas de 14,74 pt; cartelas RASGOS y 348,94, LANZAMIENTO y 219,68 y MUNICIONES y 106,30; tarjetas de magia de 26,08 pt (y191,62).
+  Cambia la capacidad de P1, así que exige revisar el reparto P1/C2 y las pruebas de presupuesto de atributos.
+- **C2**: el golden mezcla TESORO y EQUIPO en columnas con otros módulos, cada uno con su cartela de columna (x39,69–301,04, y662,74–685,7, «VIENE DE PÁG. n») y filas de 18,43 pt; la App les da páginas a todo el ancho con una franja de título.
+- **P4**: franja del encabezado de nivel de 20,7 pt (la App usa un renglón de 15,73); exige filas de alto variable en el colocador compartido.
+- **Libro**: ~3 pt más de aire antes de la descripción (paso único de 10,5 pt); mismo mecanismo que P4.
+- **Matriz**: 98/242 controles de etapa en PASS; G4 bloqueada hasta cerrar G1–G3.
