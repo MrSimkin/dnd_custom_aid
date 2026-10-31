@@ -7086,13 +7086,17 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val ops = pdf.getPage(1).contents.use {
                 it.readBytes().toString(Charsets.ISO_8859_1)
             }
-            // C320: golden ESPECIAL table from y291.4 moves the eight rows down 21.6 pt.
-            val activoRows = listOf(256.4f, 231.4f, 206.4f, 181.4f, 156.4f, 131.4f, 106.4f, 81.4f)
-            val paperMarks = Regex("""(?:^|\s)542\.5\s+([0-9.]+)\s+9(?:\.0+)?\s+9(?:\.0+)?\s+re(?:\s|$)""")
-                .findAll(ops).map { it.groupValues[1].toFloat() }
-                .count { y -> activoRows.any { kotlin.math.abs(it - y) < 0.02f } }
+            // C343: the golden v11_extremo p2 ACTIVO boxes - 8.79 pt at x545.28,
+            // centred in eight 26.93 pt rows under the 15.02 pt header.
+            val activoRows = listOf(258.52f, 231.59f, 204.66f, 177.73f, 150.80f, 123.87f, 96.94f, 70.02f)
+            val paperMarks = Regex("""(?:^|\s)([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+re(?:\s|$)""")
+                .findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }
+                .count { (x, y, w, h) ->
+                    kotlin.math.abs(x - 545.28f) < 0.02f && kotlin.math.abs(w - 8.79f) < 0.02f &&
+                        kotlin.math.abs(h - 8.79f) < 0.02f && activoRows.any { kotlin.math.abs(it - y) < 0.02f }
+                }
             assertEquals(8, paperMarks,
-                "Eight genuine 9pt ACTIVO squares must be printed in P2.")
+                "Eight genuine golden 8.79 pt ACTIVO squares must be printed in P2.")
             assertTrue(p2.contains("UBICACIÓN") && p2.contains("NOMBRE") &&
                 p2.contains("DESCRIPCIÓN") && p2.contains("ACTIVO"))
             assertTrue(pdf.numberOfPages >= 4)

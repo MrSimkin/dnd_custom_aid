@@ -4120,16 +4120,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // and forward it to C2, never to narrative P3.
             // C315: golden P2 tables (v11_extremo p2) - EQUIPO 460.63..670.68 and
             // TESORO 327.97..427.18 on the left (x39.69..298.49), RASGOS 318.33..670.68
-            // on the right (x309.26..572.32), ESPECIAL from 291.4 down to 60.94 (it
-            // keeps its shared 528 pt columns at x42).
+            // on the right (x309.26..572.32), ESPECIAL from 291.4 down to 60.94.
+            // C343: ESPECIAL takes the golden full width x39.69..572.31.
             val equipmentArea = PcSheetV11RectPt(39.69f, 460.63f, 258.8f, 210.05f)
             val treasureArea = PcSheetV11RectPt(39.69f, 327.97f, 258.8f, 99.21f)
             val traitsArea = PcSheetV11RectPt(309.26f, 318.33f, 263.06f, 352.35f)
-            val specialArea = PcSheetV11RectPt(42f, 60.94f, 528f, 230.46f)
+            val specialArea = PcSheetV11RectPt(39.69f, 60.94f, 532.62f, 230.46f)
             require(equipmentArea.rightPt < traitsArea.leftPt)
             require(equipmentArea.bottomPt > treasureArea.topPt)
             require(traitsArea.bottomPt > specialArea.topPt)
-            require(specialArea.widthPt == 528f)
+            require(kotlin.math.abs(specialArea.widthPt - 532.62f) < 0.01f)
             val completeEquipment = PcSheetV11PairedTableSources.equipment(data)
             val completeTreasure = PcSheetV11PairedTableSources.treasure(data)
             // P2 has narrow golden-approved paired subcolumns. A name whose
@@ -4170,21 +4170,34 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // rows below stay on the same paper grid. Entries fill P2 in
             // source order; from the first one that no longer fits, the
             // complete source suffix goes to full-width C2 untruncated.
-            val specialColumns = listOf(105f, 136f, 241f, 46f)
-            require(specialColumns.sum() == specialArea.widthPt)
-            val specialHeaderHeight = 18f
-            val specialRowHeight = 25f
+            // C343: golden v11_extremo p2 table - column rules at x146.21, 279.37
+            // and 527.04, a 15.02 pt header and eight 26.93 pt rows.
+            val specialColumns = listOf(106.52f, 133.16f, 247.67f, 45.27f)
+            require(kotlin.math.abs(specialColumns.sum() - specialArea.widthPt) < 0.01f)
+            val specialHeaderHeight = 15.02f
+            val specialRowHeight = 26.93f
             val specialCapacity = ((specialArea.heightPt - specialHeaderHeight) /
-                specialRowHeight).toInt()
+                specialRowHeight + 0.001f).toInt()
+            // C343: golden first baseline 11.77 pt under the row top; ubicación,
+            // nombre and descripción in 7.1 / 6.9 / 6.6 pt on the golden 9 pt pitch.
+            val specialFirstBaseline = 11.77f
+            val specialColumnFonts = listOf(
+                goldenRhythm(7.1f, 9f), goldenRhythm(6.9f, 9f), goldenRhythm(6.6f, 9f),
+            )
             // One pitch keeps its approved two lines; taller bands keep the
-            // 10 pt first baseline and a 4 pt foot so ink never meets a rule.
+            // golden first baseline and a 4 pt foot so ink never meets a rule.
             fun specialLinesFor(pitches: Int): Int = maxOf(2,
-                1 + ((pitches * specialRowHeight - 14f) / specialFont.metrics.lineHeightPt).toInt())
+                1 + ((pitches * specialRowHeight - specialFirstBaseline - 4f) /
+                    specialFont.metrics.lineHeightPt).toInt())
             val specialMaxLines = specialLinesFor(specialCapacity)
-            fun specialCellLines(raw: String?, widthPt: Float): List<String>? {
+            fun specialCellLines(
+                raw: String?,
+                widthPt: Float,
+                font: PcSheetV11ResolvedFont = specialFont,
+            ): List<String>? {
                 if (raw.isNullOrBlank()) return emptyList()
                 val text = raw
-                val width = widthPt - 10f
+                val width = widthPt - 6.8f // C343: golden 3.4 pt inset each side
                 // The verified text-flow uses the exact PDF's Fira font width.
                 val printable = PcSheetV11TextFlow.paginate(
                     PcSheetV11FlowSection.SPECIAL_EQUIPMENT,
@@ -4192,9 +4205,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         keepTogetherIfFits = true)),
                     1,
                     PcSheetV11TextColumn(width,
-                        specialFont.metrics.lineHeightPt * specialMaxLines,
-                        specialFont.metrics.lineHeightPt),
-                    specialFont.width,
+                        font.metrics.lineHeightPt * specialMaxLines,
+                        font.metrics.lineHeightPt),
+                    font.width,
                 )
                 if (printable.localPageCount != 1) return null
                 val ranges = printable.fragments.flatMap { it.lineRanges }
@@ -4213,7 +4226,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 ).joinToString(" / ")
                 val fields = listOf(item.location, item.name, details)
                 val lines = fields.mapIndexed { index, field ->
-                    specialCellLines(field, specialColumns[index])
+                    specialCellLines(field, specialColumns[index], specialColumnFonts[index])
                 }
                 if (lines.any { it == null }) break
                 val needed = lines.maxOf { requireNotNull(it).size }
@@ -4617,36 +4630,35 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
                 // C303: golden legend on the EQUIPO ESPECIAL cartela.
                 drawP2Cartela(stream, "EQUIPO ESPECIAL", specialArea, "ACTIVO: marcar a lápiz")
+                // C343: golden table grammar - a filled header, alternating
+                // full-width row fills, a 0.32 pt rule 0.99 pt above each row foot
+                // and 0.34 pt column rules, all #94b0c1; no outer frame. Paper-only
+                // fill is behind genuine values and marks; no new digital rows.
                 stream.saveGraphicsState()
-                stream.setStrokingColor(Color(130, 165, 186))
-                stream.setLineWidth(0.55f)
+                val headerBottom = specialArea.topPt - specialHeaderHeight
                 stream.setNonStrokingColor(Color(231, 242, 247))
-                stream.addRect(specialArea.leftPt,
-                    specialArea.topPt - specialHeaderHeight,
+                stream.addRect(specialArea.leftPt, headerBottom,
                     specialArea.widthPt, specialHeaderHeight)
                 stream.fill()
-                stream.setNonStrokingColor(Color(238, 247, 251))
-                stream.addRect(specialArea.leftPt, specialArea.bottomPt,
-                    specialArea.widthPt,
-                    specialArea.heightPt - specialHeaderHeight)
-                stream.fill()
-                // Source-backed EQUIPO ESPECIAL must share golden P2's
-                // alternating writing-row grammar. Paper-only fill is
-                // behind genuine location/name/description/ACTIVO values
-                // and their original vector marks; no new digital rows.
-                stream.setNonStrokingColor(Color(231, 242, 247))
-                for (band in specialBands.indices step 2) {
+                specialBands.indices.forEach { band ->
                     val top = specialBandTops[band]
                     val bottom = maxOf(specialArea.bottomPt, specialBandTops[band + 1])
                     if (top > bottom) {
+                        stream.setNonStrokingColor(
+                            if (band % 2 == 0) Color(231, 242, 247) else Color(240, 247, 250))
                         stream.addRect(specialArea.leftPt, bottom,
-                            specialArea.widthPt, top-bottom)
+                            specialArea.widthPt, top - bottom)
                         stream.fill()
                     }
                 }
-                stream.addRect(specialArea.leftPt, specialArea.bottomPt,
-                    specialArea.widthPt, specialArea.heightPt)
-                stream.stroke()
+                stream.setStrokingColor(Color(148, 176, 193))
+                stream.setLineWidth(0.32f)
+                for (lineY in listOf(headerBottom) + specialBandTops.drop(1)) {
+                    stream.moveTo(specialArea.leftPt, lineY + 0.99f)
+                    stream.lineTo(specialArea.rightPt, lineY + 0.99f)
+                    stream.stroke()
+                }
+                stream.setLineWidth(0.34f)
                 var boundary = specialArea.leftPt
                 specialColumns.dropLast(1).forEach { width ->
                     boundary += width
@@ -4654,18 +4666,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.lineTo(boundary, specialArea.topPt)
                     stream.stroke()
                 }
-                for (lineY in specialBandTops) {
-                    stream.moveTo(specialArea.leftPt, lineY)
-                    stream.lineTo(specialArea.rightPt, lineY)
-                    stream.stroke()
-                }
                 stream.restoreGraphicsState()
                 val headings = listOf("UBICACIÓN", "NOMBRE", "DESCRIPCIÓN", "ACTIVO")
+                val headingInsets = listOf(3.96f, 4.54f, 4.53f, 2.84f) // C343 golden
                 var headerX = specialArea.leftPt
                 headings.forEachIndexed { index, label ->
                     // C242: golden column labels; C303: 6.8 pt (ACTIVO 5.5) in #264b68.
                     stream.setNonStrokingColor(Color(38, 75, 104))
-                    drawP1Label(stream, label, headerX + 5f, specialArea.topPt - 12f,
+                    drawP1Label(stream, label, headerX + headingInsets[index], headerBottom + 4.25f,
                         if (label == "ACTIVO") 5.5f else 6.8f)
                     stream.setNonStrokingColor(Color(36, 57, 75))
                     headerX += specialColumns[index]
@@ -4675,22 +4683,28 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     specialArea.leftPt + specialColumns[0],
                     specialArea.leftPt + specialColumns[0] + specialColumns[1],
                 )
-                val activeX = specialArea.rightPt - specialColumns.last() / 2f - 4.5f
+                // C343: golden ACTIVO paper box - 8.79 pt, white, #527c96 0.48 pt.
+                val activeBox = 8.79f
+                val activeX = specialArea.rightPt - specialColumns.last() / 2f - activeBox / 2f
                 specialP2Rows.forEachIndexed { rowIndex, (_, columns) ->
                     val rowTop = specialBandTops[rowIndex]
                     columns.forEachIndexed { column, values ->
                         values.forEachIndexed { line, value ->
                             if (value.isNotEmpty()) {
+                                // C343: golden ink - ubicación #264b68, the rest #24394b.
+                                stream.setNonStrokingColor(
+                                    if (column == 0) Color(38, 75, 104) else Color(36, 57, 75))
                                 stream.beginText()
-                                stream.setFont(bodyPdfFont, specialFont.metrics.fontSizePt)
-                                stream.newLineAtOffset(fieldX[column] + 5f,
-                                    rowTop - 10f - line * specialFont.metrics.lineHeightPt)
+                                stream.setFont(bodyPdfFont, specialColumnFonts[column].metrics.fontSizePt)
+                                stream.newLineAtOffset(fieldX[column] + 3.4f,
+                                    rowTop - specialFirstBaseline - line * specialFont.metrics.lineHeightPt)
                                 stream.showText(pcSheetV11PrintableText(value))
                                 stream.endText()
                             }
                         }
                     }
                 }
+                stream.setNonStrokingColor(Color(36, 57, 75))
                 // D-0076 §3.42 / P210: only for zero recorded special items,
                 // preprint locations used by real QA character fixtures.
                 // Leave free rows for arbitrary locations; do not create objects.
@@ -4702,21 +4716,28 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val rowTop = specialBandTops[rowIndex]
                     if (data.specialEquipment.isEmpty()) {
                         manualSpecialLocations.getOrNull(rowIndex)?.let { location ->
+                            stream.setNonStrokingColor(Color(38, 75, 104)) // C343 golden ink
                             stream.beginText()
-                            stream.setFont(bodyPdfFont, specialFont.metrics.fontSizePt)
-                            stream.newLineAtOffset(fieldX[0] + 5f, rowTop - 10f)
+                            stream.setFont(bodyPdfFont, specialColumnFonts[0].metrics.fontSizePt)
+                            stream.newLineAtOffset(fieldX[0] + 3.4f, rowTop - specialFirstBaseline)
                             stream.showText(location)
                             stream.endText()
+                            stream.setNonStrokingColor(Color(36, 57, 75))
                         }
                     }
                     // Each writable row requires a genuine unmarked ACTIVO square.
                     val activeY = rowTop -
-                        specialBands[rowIndex] * specialRowHeight / 2f - 4.5f
-                    stream.addRect(activeX, activeY, 9f, 9f)
-                    stream.stroke()
+                        specialBands[rowIndex] * specialRowHeight / 2f - activeBox / 2f
+                    stream.saveGraphicsState()
+                    stream.setNonStrokingColor(Color(255, 255, 255))
+                    stream.setStrokingColor(Color(82, 124, 150))
+                    stream.setLineWidth(0.48f)
+                    stream.addRect(activeX, activeY, activeBox, activeBox)
+                    stream.fillAndStroke()
+                    stream.restoreGraphicsState()
                     if (specialP2Rows.getOrNull(rowIndex)?.first?.active == true) {
                         // C325: v8 ATTUNED_ACTIVE (filled diamond).
-                        drawStateGlyph(stream, 0xE10F, activeX, activeY, 9f)
+                        drawStateGlyph(stream, 0xE10F, activeX, activeY, activeBox)
                     }
                 }
             }
@@ -5082,15 +5103,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // P2. True source-backed rows may span physical pages or become
             // taller for long descriptions, never compress or truncate text.
             // The shared text flow independently verifies all source offsets.
-            fun specialC2Lines(raw: String?, widthPt: Float): List<String> {
+            fun specialC2Lines(raw: String?, widthPt: Float, font: PcSheetV11ResolvedFont): List<String> {
                 if (raw.isNullOrBlank()) return emptyList()
                 val measured = PcSheetV11TextFlow.paginate(
                     PcSheetV11FlowSection.SPECIAL_EQUIPMENT,
                     listOf(PcSheetV11FlowItem("c2-source", raw,
                         keepTogetherIfFits = true)),
-                    1, PcSheetV11TextColumn(widthPt - 10f, 626f,
-                        specialFont.metrics.lineHeightPt),
-                    specialFont.width,
+                    1, PcSheetV11TextColumn(widthPt - 6.8f, 626f, // C343 golden inset
+                        font.metrics.lineHeightPt),
+                    font.width,
                 )
                 return measured.fragments.flatMap { it.lineRanges }.map { range ->
                     raw.substring(range.startOffset, range.endExclusive)
@@ -5103,7 +5124,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     item.notes?.takeIf { it.isNotBlank() }?.let { "NOTAS: " + it },
                 ).joinToString(" / ")
                 item to listOf(item.location, item.name, description).mapIndexed {
-                    column, value -> specialC2Lines(value, specialColumns[column])
+                    column, value -> specialC2Lines(value, specialColumns[column], specialColumnFonts[column])
                 }
             }
             data class SpecialC2Fragment(
@@ -5112,7 +5133,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val endLine: Int,
                 val heightPt: Float,
             )
-            val c2SpecialArea = PcSheetV11RectPt(42f, 76f, 528f, 626f)
+            val c2SpecialArea = PcSheetV11RectPt(39.69f, 76f, 532.62f, 626f) // C343 golden width
             val c2SpecialPages = mutableListOf<List<SpecialC2Fragment>>()
             var currentC2 = mutableListOf<SpecialC2Fragment>()
             var availableC2 = c2SpecialArea.heightPt - specialHeaderHeight
@@ -5127,12 +5148,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 while (consumed < totalLines) {
                     var lines = minOf(totalLines - consumed,
                         ((availableC2 - 8f) / specialFont.metrics.lineHeightPt).toInt())
+                    // C343: golden 11.77 pt first baseline and a 4 pt foot.
                     var height = maxOf(specialRowHeight,
-                        lines * specialFont.metrics.lineHeightPt + 6f)
+                        lines * specialFont.metrics.lineHeightPt + specialFirstBaseline - 5f)
                     while (lines > 1 && height > availableC2) {
                         lines--
                         height = maxOf(specialRowHeight,
-                            lines * specialFont.metrics.lineHeightPt + 6f)
+                            lines * specialFont.metrics.lineHeightPt + specialFirstBaseline - 5f)
                     }
                     if (lines <= 0 || height > availableC2) {
                         require(currentC2.isNotEmpty()) {
@@ -5172,7 +5194,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             c2SpecialPages.forEachIndexed { pageIndex, fragments ->
                 val shared = sharedC2?.takeIf { pageIndex == 0 }
                 val drawingArea = if (shared != null) PcSheetV11RectPt(
-                    42f, c2SpecialArea.bottomPt, 528f,
+                    c2SpecialArea.leftPt, c2SpecialArea.bottomPt, c2SpecialArea.widthPt,
                     c2SpecialArea.heightPt - shared.upperHeight - 22f,
                 ) else c2SpecialArea
                 val page = PDPage(PDRectangle.LETTER)
@@ -5261,43 +5283,52 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         fragments.sumOf { it.heightPt.toDouble() }.toFloat()
                     val tableBottom = drawingArea.topPt - printedHeight
                     require(tableBottom >= drawingArea.bottomPt - 0.1f)
+                    // C343: the P2 golden table grammar on C2 - filled header,
+                    // alternating row fills, 0.32 pt row rules 0.99 pt above each
+                    // foot, 0.34 pt column rules (#94b0c1), no outer frame.
+                    val left = drawingArea.leftPt
+                    val right = drawingArea.rightPt
+                    val headerBottom = drawingArea.topPt - specialHeaderHeight
                     stream.saveGraphicsState()
-                    stream.setStrokingColor(Color(130, 165, 186))
-                    stream.setLineWidth(0.55f)
                     stream.setNonStrokingColor(Color(231, 242, 247))
-                    stream.addRect(42f, drawingArea.topPt -
-                        specialHeaderHeight, 528f, specialHeaderHeight)
+                    stream.addRect(left, headerBottom, right - left, specialHeaderHeight)
                     stream.fill()
-                    stream.setNonStrokingColor(Color(238, 247, 251))
-                    stream.addRect(42f, tableBottom, 528f,
-                        printedHeight - specialHeaderHeight)
-                    stream.fill()
-                    stream.addRect(42f, tableBottom, 528f, printedHeight)
+                    var fillTop = headerBottom
+                    fragments.forEachIndexed { index, part ->
+                        stream.setNonStrokingColor(
+                            if (index % 2 == 0) Color(231, 242, 247) else Color(240, 247, 250))
+                        stream.addRect(left, fillTop - part.heightPt, right - left, part.heightPt)
+                        stream.fill()
+                        fillTop -= part.heightPt
+                    }
+                    stream.setStrokingColor(Color(148, 176, 193))
+                    stream.setLineWidth(0.32f)
+                    stream.moveTo(left, headerBottom + 0.99f)
+                    stream.lineTo(right, headerBottom + 0.99f)
                     stream.stroke()
-                    var separator = 42f
+                    stream.setLineWidth(0.34f)
+                    var separator = left
                     specialColumns.dropLast(1).forEach { width ->
                         separator += width
                         stream.moveTo(separator, tableBottom)
                         stream.lineTo(separator, drawingArea.topPt)
                         stream.stroke()
                     }
-                    stream.moveTo(42f, drawingArea.topPt - specialHeaderHeight)
-                    stream.lineTo(570f, drawingArea.topPt - specialHeaderHeight)
-                    stream.stroke()
                     stream.restoreGraphicsState()
-                    var headerX = 42f
+                    val headingInsets = listOf(3.96f, 4.54f, 4.53f, 2.84f) // C343 golden
+                    var headerX = left
                     listOf("UBICACIÓN", "NOMBRE", "DESCRIPCIÓN", "ACTIVO")
                         .forEachIndexed { index, label ->
                             // C242: golden column labels; C303: 6.8 pt (ACTIVO 5.5) in #264b68.
                             stream.setNonStrokingColor(Color(38, 75, 104))
-                            drawP1Label(stream, label, headerX + 5f, drawingArea.topPt - 12f,
+                            drawP1Label(stream, label, headerX + headingInsets[index], headerBottom + 4.25f,
                                 if (label == "ACTIVO") 5.5f else 6.8f)
                             stream.setNonStrokingColor(Color(36, 57, 75))
                             headerX += specialColumns[index]
                         }
-                    val positions = listOf(42f, 42f + specialColumns[0],
-                        42f + specialColumns[0] + specialColumns[1])
-                    var rowTop = drawingArea.topPt - specialHeaderHeight
+                    val positions = listOf(left, left + specialColumns[0],
+                        left + specialColumns[0] + specialColumns[1])
+                    var rowTop = headerBottom
                     fragments.forEach { part ->
                         val (item, fields) = specialC2Rows[part.rowIndex]
                         fields.forEachIndexed { column, allLines ->
@@ -5305,33 +5336,42 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 .take(part.endLine - part.startLine)
                             shown.forEachIndexed { index, line ->
                                 if (line.isNotEmpty()) {
-                                    // C268: golden 7 pt special-equipment text.
+                                    // C343: golden sizes and ink per column.
+                                    stream.setNonStrokingColor(
+                                        if (column == 0) Color(38, 75, 104) else Color(36, 57, 75))
                                     stream.beginText()
-                                    stream.setFont(bodyPdfFont, specialFont.metrics.fontSizePt)
-                                    stream.newLineAtOffset(positions[column] + 5f, rowTop - 10f -
-                                        index * specialFont.metrics.lineHeightPt)
+                                    stream.setFont(bodyPdfFont, specialColumnFonts[column].metrics.fontSizePt)
+                                    stream.newLineAtOffset(positions[column] + 3.4f, rowTop -
+                                        specialFirstBaseline - index * specialFont.metrics.lineHeightPt)
                                     stream.showText(pcSheetV11PrintableText(line))
                                     stream.endText()
                                 }
                             }
                         }
+                        stream.setNonStrokingColor(Color(36, 57, 75))
                         if (part.startLine == 0) {
-                            val markerX = drawingArea.rightPt -
-                                specialColumns.last() / 2f - 4.5f
-                            val markerY = rowTop - 16f
-                            stream.addRect(markerX, markerY, 9f, 9f)
-                            stream.stroke()
+                            // C343: golden ACTIVO paper box, centred in the first pitch.
+                            val box = 8.79f
+                            val markerX = right - specialColumns.last() / 2f - box / 2f
+                            val markerY = rowTop - specialRowHeight / 2f - box / 2f
+                            stream.saveGraphicsState()
+                            stream.setNonStrokingColor(Color(255, 255, 255))
+                            stream.setStrokingColor(Color(82, 124, 150))
+                            stream.setLineWidth(0.48f)
+                            stream.addRect(markerX, markerY, box, box)
+                            stream.fillAndStroke()
+                            stream.restoreGraphicsState()
                             if (item.active == true) {
                                 // C325: v8 ATTUNED_ACTIVE (filled diamond).
-                                drawStateGlyph(stream, 0xE10F, markerX, markerY, 9f)
+                                drawStateGlyph(stream, 0xE10F, markerX, markerY, box)
                             }
                         }
                         rowTop -= part.heightPt
                         stream.saveGraphicsState()
-                        stream.setStrokingColor(Color(130, 165, 186))
-                        stream.setLineWidth(0.45f)
-                        stream.moveTo(42f, rowTop)
-                        stream.lineTo(570f, rowTop)
+                        stream.setStrokingColor(Color(148, 176, 193))
+                        stream.setLineWidth(0.32f)
+                        stream.moveTo(left, rowTop + 0.99f)
+                        stream.lineTo(right, rowTop + 0.99f)
                         stream.stroke()
                         stream.restoreGraphicsState()
                     }

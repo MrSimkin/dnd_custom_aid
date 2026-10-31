@@ -23,8 +23,9 @@ P2_MODULES = (
     ("Equipo", 39.69, 121.32, 258.8, (16.0, 16.15)),
     ("Tesoro", 39.69, 364.82, 258.8, (16.0, 19.84)),
     ("Rasgos", 309.26, 121.32, 263.06, (16.0,)),
-    # D-0076 §3.21: a multi-line special entry spans whole 25 pt pitches.
-    ("Equipo especial", 42.0, 518.6, 528.0, tuple(25.0 * n for n in range(1, 9))),
+    # D-0076 §3.21: a multi-line special entry spans whole pitches; C343: the
+    # golden 26.93 pt rows under a 15.02 pt header, full width x39.69..572.31.
+    ("Equipo especial", 39.69, 515.62, 532.62, tuple(26.93 * n for n in range(1, 9))),
 )
 
 
@@ -43,7 +44,7 @@ def p2_alternating_writing_rows(page: fitz.Page) -> list[str]:
                    for r in tinted):
             errors.append(f"P2 missing golden row shade in {name} at ({x},{y})")
     return errors
-SPECIAL_TABLE = (42.0, 497.0, 570.0, 697.0)  # P2 special rows, top-origin
+SPECIAL_TABLE = (39.69, 500.6, 572.31, 731.06)  # C343 golden P2 special table, top-origin
 
 
 def p2_special_rows(page: fitz.Page) -> list[str]:
@@ -54,7 +55,7 @@ def p2_special_rows(page: fitz.Page) -> list[str]:
                     and item[1].x <= x0 + .5 and item[2].x >= x1 - .5
                     and top - .5 <= item[1].y <= bottom + .5})
     boxes = [d["rect"] for d in page.get_drawings()
-             if abs(d["rect"].width - 9) < .2 and abs(d["rect"].height - 9) < .2
+             if abs(d["rect"].width - 8.79) < .2 and abs(d["rect"].height - 8.79) < .2  # C343 golden box
              and top <= d["rect"].y0 <= bottom]
     errors = []
     if len(rules) < 2:

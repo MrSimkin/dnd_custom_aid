@@ -22,7 +22,7 @@ class SpecialEquipmentPaperContractTest(unittest.TestCase):
             self.assertIn("specialBands[rowIndex] * specialRowHeight / 2f", body)
             self.assertIn("manualSpecialLocations.getOrNull(rowIndex)", body)
             self.assertIn("specialP2Rows.getOrNull(rowIndex)?.first?.active == true", body)
-            self.assertIn("stream.addRect(activeX, activeY, 9f, 9f)", body)
+            self.assertIn("stream.addRect(activeX, activeY, activeBox, activeBox)", body)  # C343
             sections.append(re.sub(r"\\s+", " ", body))
         self.assertEqual(sections[0], sections[1])
         self.assertIn("g3RealP2NoSpecialEquipmentHasRecognizedLocationsFreeRowsAndBlankActivoBoxes",
