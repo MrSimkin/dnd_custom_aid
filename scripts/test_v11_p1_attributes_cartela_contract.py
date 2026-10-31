@@ -10,16 +10,17 @@ RENDERERS = [
 ]
 NATIVE = ROOT / "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt"
 LINES = [
-    "stream.moveTo(46f, 579f)",
-    "stream.lineTo(296f, 579f)",
-    "stream.lineTo(300f, 583f)",
-    "stream.lineTo(300f, 598f)",
-    "stream.lineTo(296f, 602f)",
-    "stream.lineTo(46f, 602f)",
-    "stream.lineTo(42f, 598f)",
-    "stream.lineTo(42f, 583f)",
+    # C350: golden left column x39.69..260.22.
+    "stream.moveTo(43.69f, 579f)",
+    "stream.lineTo(256.22f, 579f)",
+    "stream.lineTo(260.22f, 583f)",
+    "stream.lineTo(260.22f, 598f)",
+    "stream.lineTo(256.22f, 602f)",
+    "stream.lineTo(43.69f, 602f)",
+    "stream.lineTo(39.69f, 598f)",
+    "stream.lineTo(39.69f, 583f)",
     "stream.fillAndStroke()",
-    '"ATRIBUTOS · A" else "ATRIBUTOS · B",58f,586f,9.1f)',  # C264 golden 9.1 pt
+    '"ATRIBUTOS · A" else "ATRIBUTOS · B",56.69f,586f,9.1f)',  # C264 golden 9.1 pt
 ]
 
 

@@ -51,8 +51,8 @@ class RasgosStageTripwire(unittest.TestCase):
             with self.subTest(renderer=renderer):
                 text = renderer.read_text(encoding="utf-8")
                 region = between(text, "fun drawP1Traits(", "// Explicit AMMUNITION usage")
-                self.assertIn("stream.moveTo(315f,368f)", region)
-                self.assertIn("stream.lineTo(312f,371f)", region)
+                self.assertIn("stream.moveTo(273.43f,368f) // C351 golden right column", region)
+                self.assertIn("stream.lineTo(270.43f,371f)", region)
                 self.assertIn("stream.fillAndStroke()", region)
                 self.assertIn("stream.setFont(headerPdfFont,9.1f)", region)
                 self.assertIn("stream.newLineAtOffset(left + 16f,top - 11f)", region)

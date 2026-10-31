@@ -19,23 +19,24 @@ class SkillsHeadingParity(unittest.TestCase):
                 "fun drawP1BIndependentSkills(", 1
             )[1].split("val blankPaperTop", 1)[0]
             self.assertIn("if (variantA) return", body)
-            self.assertIn('drawP1Label(stream, "HABILIDADES", 58f, 336f, 9.1f)', body)  # C310
+            self.assertIn('drawP1Label(stream, "HABILIDADES", 56.69f, 336f, 9.1f)', body)  # C310/C350
             self.assertIn('val skillsLegend = listOf(0xE108 to "COMPETENCIA", 0xE109 to "PERICIA")', body)  # C329
             for operator in (
-                "stream.moveTo(46f, 330f)",
-                "stream.lineTo(296f, 330f)",
-                "stream.lineTo(300f, 334f)",
-                "stream.lineTo(300f, 344f)",
-                "stream.lineTo(296f, 348f)",
-                "stream.lineTo(46f, 348f)",
-                "stream.lineTo(42f, 344f)",
-                "stream.lineTo(42f, 334f)",
+                # C350: golden left column x39.69..260.22.
+                "stream.moveTo(43.69f, 330f) // C350 golden left column",
+                "stream.lineTo(256.22f, 330f)",
+                "stream.lineTo(260.22f, 334f)",
+                "stream.lineTo(260.22f, 344f)",
+                "stream.lineTo(256.22f, 348f)",
+                "stream.lineTo(43.69f, 348f)",
+                "stream.lineTo(39.69f, 344f)",
+                "stream.lineTo(39.69f, 334f)",
                 "stream.fillAndStroke()",
-                "stream.addRect(42f,105f,258f,223f)",
+                "stream.addRect(39.69f,105f,220.53f,223f)",
             ):
                 self.assertIn(operator, body, f"{path.name}: missing {operator}")
             declarations.append(tuple(line.strip() for line in body[
-                body.index("stream.moveTo(46f, 330f)"):
+                body.index("stream.moveTo(43.69f, 330f)"):
                 body.index('// C310: golden B cartela')
             ].splitlines() if line.strip().startswith(("stream.",))))
         self.assertEqual(declarations[0], declarations[1], "Android/Desktop Skills B title has diverged")

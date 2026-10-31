@@ -19,7 +19,7 @@ class P1SpellcastingGridParityTest(unittest.TestCase):
             part = data.split("// C250: golden P1 LANZAMIENTO grammar", 1)[1].split(
                 "// Eight real combat cells", 1)[0]
             self.assertIn('"APTITUD MÁGICA"', part)
-            self.assertIn("stream.addRect(p1MagicColumn(col),222f-row*24f,84f,24f)", part)
+            self.assertIn("stream.addRect(p1MagicColumn(col),222f-row*24f,magicCard,24f)", part)  # C351
             self.assertIn("stream.addRect(x+20f+n*markStep,b+8f+(8f-box)/2f,box,box)", part)
             # C255: never pre-marked; the real gastados/total count is printed.
             self.assertIn('val count = v.spentSlots.toString() + "/" + v.totalSlots', part)

@@ -12,11 +12,12 @@ INK = (80/255, 122/255, 151/255)
 IDENTITY_INK = (38/255, 75/255, 104/255)
 IDENTITY = [(127.56, 93.54, 572.32, 127.56), (127.56, 133.23, 274.96, 170.08),
             (280.63, 133.23, 455.81, 170.08), (461.48, 133.23, 572.32, 170.08)]
-# Frozen P1 3+3+2 actual app positions, PDF top-origin.
+# P1 3+3+2 combat cards, PDF top-origin. C351: golden x - three 98.74 pt cards
+# (step 101.57) and two 147.83 pt PV cards (step 150.94) from x270.43.
 COMBAT = [
-    (312 + col*(86 if row < 2 else 129) + 1.2,
+    (270.43 + col*(101.57 if row < 2 else 150.94),
      201 + row*28 + 1.2,
-     312 + (col+1)*(86 if row < 2 else 129) - 1.2,
+     270.43 + col*(101.57 if row < 2 else 150.94) + (98.74 if row < 2 else 147.83),
      201 + row*28 + (28 if row < 2 else 32) - 1.2)
     for row in range(3) for col in range(3 if row < 2 else 2)
 ]
@@ -71,8 +72,9 @@ def physical_p1(pdf_bytes):
         # Numeric values may be deferred to measured C2 when too wide.
         words = page.get_text("words")
         for label, col, row in LABELS:
-            width = 86 if row < 2 else 129
-            left = 312 + col*width
+            # C351: golden cards - 98.74 pt (step 101.57) / 147.83 pt (step 150.94).
+            width = 98.74 if row < 2 else 147.83
+            left = 270.43 + col*(101.57 if row < 2 else 150.94)
             top = 201 + row*28
             in_card = [w[4] for w in words
                        if left <= w[0] and w[2] <= left+width
@@ -84,24 +86,24 @@ def physical_p1(pdf_bytes):
         # The legacy internal proof printed a literal 12-underscore token;
         # this is paper, never a persisted ammunition label.
         blank_square_y = (792. - 119. - 7.94, 792. - 106. - 7.94)
-        blank_square_x = tuple(419.8 + c*13.75 + (c//5)*2.83 for c in range(10))
+        blank_square_x = tuple(422.08 + c*13.75 + (c//5)*2.83 for c in range(10))  # C351 golden
         def has_square(x,y):
             return any(d["type"] in ("s", "fs") and
                        near_rect(tuple(d["rect"]), (x,y,x+7.94,y+7.94), .25)
                        for d in drawings)
         # A real ammunition entry of 20 draws the same 20 squares; only an
         # entry WITHOUT a printed name in the name column is the empty one.
-        ammo_name_words = [w for w in words if 315 <= w[0] <= 412 and 661 <= w[1] <= 676]
+        ammo_name_words = [w for w in words if 273 <= w[0] <= 414 and 661 <= w[1] <= 676]
         empty_ammunition = not ammo_name_words and all(
             has_square(x,y) for y in blank_square_y for x in blank_square_x
         )
         if empty_ammunition:
-            if any(w[4] == "____________" and 315 <= w[0] <= 380 and
+            if any(w[4] == "____________" and 273 <= w[0] <= 380 and
                    661 <= w[1] <= 674 for w in words):
                 errors.append("P1 empty ammunition printed fake underscore glyphs.")
             if not any(
                 d["type"] == "s" and near_rect(
-                    tuple(d["rect"]), (316.,672.,410.,672.), .35
+                    tuple(d["rect"]), (274.43,672.,412.28,672.), .35
                 ) and d.get("color") is not None
                 and all(abs(d["color"][i] - (130/255,165/255,186/255)[i]) < .025
                         for i in range(3))

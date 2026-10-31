@@ -968,14 +968,26 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val attackRows = data.combatEntries.filter {
                 it.type == io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK
             }
+            // Shared three-column grammar of the golden C2 ATAQUES table (C323).
             val attackLabelWidth = 121f
             val attackBonusWidth = 36f
             val attackDamageWidth = 258f - attackLabelWidth - attackBonusWidth
-            fun p1AttackLabel(entry:io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry):String {
+            // C351: golden v11_extremo p1 ATAQUES columns x270.43 | 454.58 | 490.80 | 572.32;
+            // a P1 row is measured at the sizes it is printed in (7.4 / 7.1 / 6.7 pt).
+            val p1AttackLabelWidth = 184.15f
+            val p1AttackBonusWidth = 36.22f
+            val p1AttackDamageWidth = 301.89f - p1AttackLabelWidth - p1AttackBonusWidth
+            fun printedPt(text: String, pt: Float): Float =
+                body.width.measurePt(text) * pt / body.metrics.fontSizePt
+            fun p1AttackLabel(
+                entry:io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry,
+                p1: Boolean = false,
+            ):String {
                 val complete=entry.name+(entry.rangeText?.takeIf{it.isNotBlank()}
                     ?.let{" / "+it}?:"")
-                return if(body.width.measurePt(complete)<=attackLabelWidth-10f)
-                    complete else entry.name
+                val fits = if (p1) printedPt(complete, 7.4f)<=p1AttackLabelWidth-10f
+                    else body.width.measurePt(complete)<=attackLabelWidth-10f
+                return if(fits) complete else entry.name
             }
             // Fill the six genuine P1 attack rows with the first SIX source-order
             // entries which physically FIT, not only matches among the first
@@ -983,7 +995,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             fun attackBonus(entry:io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry):String =
                 entry.attackModifier?.let{if(it>=0)"+"+it else it.toString()}?:""
             // One physical three-column attack row (P1 and the golden C2 ATAQUES table).
-            fun attackFitsTableRow(entry:io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry):Boolean {
+            fun attackFitsTableRow(
+                entry:io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry,
+                p1: Boolean = false,
+            ):Boolean {
                 // P1 cells are single physical rows. A measured "width" cannot
                 // prove that a source with CR/LF/TAB is safe to print there.
                 // Defer the COMPLETE UUID-backed attack to measured C2 rather
@@ -993,12 +1008,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 ).any { field -> field.any { ch ->
                     ch == '\r' || ch == '\n' || ch == '\t'
                 } }
-                return !hasPhysicalBreak &&
+                return !hasPhysicalBreak && if (p1) {
+                    printedPt(p1AttackLabel(entry, p1 = true), 7.4f)<=p1AttackLabelWidth-10f &&
+                        printedPt(attackBonus(entry), 7.1f)<=p1AttackBonusWidth-8f &&
+                        printedPt(entry.damageEffect, 6.7f)<=p1AttackDamageWidth-10f
+                } else {
                     body.width.measurePt(p1AttackLabel(entry))<=attackLabelWidth-10f &&
-                    body.width.measurePt(attackBonus(entry))<=attackBonusWidth-8f &&
-                    body.width.measurePt(entry.damageEffect)<=attackDamageWidth-10f
+                        body.width.measurePt(attackBonus(entry))<=attackBonusWidth-8f &&
+                        body.width.measurePt(entry.damageEffect)<=attackDamageWidth-10f
+                }
             }
-            val p1Attacks=attackRows.filter{ attackFitsTableRow(it) }.take(6)
+            val p1Attacks=attackRows.filter{ attackFitsTableRow(it, p1 = true) }.take(6)
             // Golden ATAQUES row values: bonus and damage right-aligned 4 pt
             // inside their columns (P1 table and C2 continuation rows).
             fun drawAttackValues(
@@ -1006,6 +1026,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 entry: io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry,
                 left: Float, y: Float,
                 pt: Float = 9f,
+                labelWidth: Float = attackLabelWidth,
+                bonusWidth: Float = attackBonusWidth,
+                tableWidth: Float = 258f,
             ) {
                 // C262: values follow the size of their table (P1 or golden C2).
                 // C301: golden bonus in Noto Sans Bold #264b68; damage 0.4 pt smaller.
@@ -1023,17 +1046,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.endText()
                     stream.restoreGraphicsState()
                 }
-                value(attackBonus(entry), left + attackLabelWidth + attackBonusWidth - 4f, true)
-                value(entry.damageEffect, left + 254f, false)
+                value(attackBonus(entry), left + labelWidth + bonusWidth - 4f, true)
+                value(entry.damageEffect, left + tableWidth - 4f, false)
             }
             val p1AttackIds = p1Attacks.map { it.id }.toSet()
 
             fun drawP1Attacks(stream: PDPageContentStream) {
-                val left = 312f
+                val left = 270.43f // C351: golden right column
                 val top = 491f
                 val bottom = 392f
-                val b1 = left + attackLabelWidth
-                val b2 = b1 + attackBonusWidth
+                val b1 = left + p1AttackLabelWidth // C351 golden P1 columns
+                val b2 = b1 + p1AttackBonusWidth
                 // Frozen V11 attacks use a clipped blue heading. This narrow
                 // source-neutral adaptation fills ONLY the existing 12pt
                 // three-column header row (x312..570, top-origin y301..313).
@@ -1046,10 +1069,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val headerBottom = top - 12f
                 val cut = 3f
                 stream.moveTo(left + cut, headerBottom)
-                stream.lineTo(left + 258f - cut, headerBottom)
-                stream.lineTo(left + 258f, headerBottom + cut)
-                stream.lineTo(left + 258f, top - cut)
-                stream.lineTo(left + 258f - cut, top)
+                stream.lineTo(left + 301.89f - cut, headerBottom)
+                stream.lineTo(left + 301.89f, headerBottom + cut)
+                stream.lineTo(left + 301.89f, top - cut)
+                stream.lineTo(left + 301.89f - cut, top)
                 stream.lineTo(left + cut, top)
                 stream.lineTo(left, top - cut)
                 stream.lineTo(left, headerBottom + cut)
@@ -1063,13 +1086,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.saveGraphicsState()
                 for (rowIndex in 0..6) {
                     val rowTop = headerBottom - rowIndex * 12f
-                    fillBand(stream, left + 1f, rowTop - 12f, 256f, 12f, rowIndex)
+                    fillBand(stream, left + 1f, rowTop - 12f, 299.89f, 12f, rowIndex)
                 }
                 stream.restoreGraphicsState()
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.7f)
-                stream.addRect(left, bottom, 258f, top - bottom)
+                stream.addRect(left, bottom, 301.89f, top - bottom)
                 stream.stroke()
                 for (x in listOf(b1, b2)) {
                     stream.moveTo(x, bottom)
@@ -1079,7 +1102,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 for (row in 1..7) {
                     val y = top - row * 12f
                     stream.moveTo(left, y)
-                    stream.lineTo(left + 258f, y)
+                    stream.lineTo(left + 301.89f, y)
                     stream.stroke()
                 }
                 stream.restoreGraphicsState()
@@ -1091,7 +1114,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 drawP1Label(stream, "ARMA / ATAQUE / CONJURO", left + 4f, top - 9f, 6.2f)
                 drawP1Label(stream, "BON.", b2 - 4f - labelWidth("BON."), top - 9f, 6f)
                 drawP1Label(stream, "DAÑO / TIPO",
-                    left + 254f - labelWidth("DAÑO / TIPO"), top - 9f, 6f)
+                    left + 297.89f - labelWidth("DAÑO / TIPO"), top - 9f, 6f)
                 stream.setNonStrokingColor(Color(36, 57, 75))
                 p1Attacks.forEachIndexed { index, entry ->
                     val y = top - 22f - index * 12f
@@ -1099,9 +1122,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.beginText()
                     stream.setFont(bodyPdfFont, 7.4f)
                     stream.newLineAtOffset(left + 4f, y)
-                    stream.showText(pcSheetV11PrintableText(p1AttackLabel(entry)))
+                    stream.showText(pcSheetV11PrintableText(p1AttackLabel(entry, p1 = true)))
                     stream.endText()
-                    drawAttackValues(stream, entry, left, y, 7.1f)
+                    drawAttackValues(stream, entry, left, y, 7.1f,
+                        p1AttackLabelWidth, p1AttackBonusWidth, 301.89f)
                 }
                 if (attackRows.isEmpty()) {
                     draw(stream, "________________", left + 5f, top - 25f, false)
@@ -1130,14 +1154,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.setNonStrokingColor(Color(231,242,247))
                 stream.setStrokingColor(Color(38,75,104))
                 stream.setLineWidth(0.55f)
-                stream.moveTo(316f,282f)
-                stream.lineTo(566f,282f)
-                stream.lineTo(570f,286f)
-                stream.lineTo(570f,296f)
-                stream.lineTo(566f,300f)
-                stream.lineTo(316f,300f)
-                stream.lineTo(312f,296f)
-                stream.lineTo(312f,286f)
+                stream.moveTo(274.43f,282f) // C351 golden right column
+                stream.lineTo(568.32f,282f)
+                stream.lineTo(572.32f,286f)
+                stream.lineTo(572.32f,296f)
+                stream.lineTo(568.32f,300f)
+                stream.lineTo(274.43f,300f)
+                stream.lineTo(270.43f,296f)
+                stream.lineTo(270.43f,286f)
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
@@ -1145,8 +1169,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // left/top stroke. Inset the title 9pt and lower its ink
                 // 2pt within the 18pt strip, no change to spell data.
                 stream.setNonStrokingColor(Color(29, 56, 79)) // C266: golden title ink
-                drawCartelaDiamonds(stream, 312f, 570f, 282f, 300f)
-                drawP1Label(stream,"LANZAMIENTO DE CONJUROS",328f,286f,9.1f)
+                drawCartelaDiamonds(stream, 270.43f, 572.32f, 282f, 300f)
+                drawP1Label(stream,"LANZAMIENTO DE CONJUROS",287.43f,286f,9.1f)
                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 val actual=data.spellSlots.associateBy{it.level}
                 // C250: golden P1 LANZAMIENTO grammar. Three white clipped
@@ -1158,17 +1182,19 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130,165,186))
                 stream.setLineWidth(0.55f)
-                stream.addRect(312f,154f,258f,127f)
+                stream.addRect(270.43f,154f,301.89f,127f)
                 stream.stroke()
                 stream.restoreGraphicsState()
-                fun p1MagicColumn(idx:Int)=314f+idx*85f
+                // C351: golden cards x270.43 / 372.00 / 473.57, 98.74 pt wide.
+                fun p1MagicColumn(idx:Int)=270.43f+idx*101.57f
+                val magicCard = 98.74f
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(80,122,151))
                 stream.setLineWidth(0.55f)
                 stream.setNonStrokingColor(Color.WHITE)
                 (0..2).forEach{idx->
                     val l=p1MagicColumn(idx)
-                    val r=l+84f
+                    val r=l+magicCard
                     val b=252f
                     val t=278f
                     val cut=3f
@@ -1188,7 +1214,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val row=(level-1)/3
                     stream.setNonStrokingColor(if((col+row)%2==0)
                         Color(231,242,247) else Color(240,247,250))
-                    stream.addRect(p1MagicColumn(col),222f-row*24f,84f,24f)
+                    stream.addRect(p1MagicColumn(col),222f-row*24f,magicCard,24f)
                     stream.fill()
                 }
                 stream.restoreGraphicsState()
@@ -1236,13 +1262,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         fun cardInk(text: String, pt: Float, baseline: Float) {
                             stream.beginText()
                             stream.setFont(headerPdfFont, pt)
-                            stream.newLineAtOffset(x+(84f-cardInkWidth(text, pt))/2f, baseline)
+                            stream.newLineAtOffset(x+(magicCard-cardInkWidth(text, pt))/2f, baseline)
                             stream.showText(pcSheetV11PrintableText(text))
                             stream.endText()
                         }
                         val oneLine = perSourceParts?.joinToString(" / ")
                         val onePt = oneLine?.let { text ->
-                            listOf(9f, 8f, 7f, 6.5f, 6f).firstOrNull { cardInkWidth(text, it) <= 81f }
+                            listOf(9f, 8f, 7f, 6.5f, 6f).firstOrNull { cardInkWidth(text, it) <= magicCard - 3f }
                         }
                         val twoLines = if (perSourceParts != null && onePt == null &&
                             perSourceParts.size >= 2) {
@@ -1251,7 +1277,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     perSourceParts.take(k).joinToString(" / ") + " /" to
                                         perSourceParts.drop(k).joinToString(" / ")
                                 }.filter { (first, second) ->
-                                    cardInkWidth(first, pt) <= 81f && cardInkWidth(second, pt) <= 81f
+                                    cardInkWidth(first, pt) <= magicCard - 3f && cardInkWidth(second, pt) <= magicCard - 3f
                                 }.minByOrNull { (first, second) ->
                                     maxOf(cardInkWidth(first, pt), cardInkWidth(second, pt))
                                 }?.let { Triple(it.first, it.second, pt) }
@@ -1266,7 +1292,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             }
                             label in varyingP1 -> cardInk("SEGÚN FUENTE", 9f, 257f)
                             value.isNotEmpty() -> {
-                                require(cardInkWidth(value, 11f) <= 81f) {
+                                require(cardInkWidth(value, 11f) <= magicCard - 3f) {
                                     "P1 real magic reference must fit its native source card"
                                 }
                                 // Golden reference values are large centered
@@ -1291,7 +1317,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             // count still fits; never invent a grammar for 7+.
                             val count = v.spentSlots.toString() + "/" + v.totalSlots
                             val countPt = 7f
-                            val countX = x + 81f -
+                            val countX = x + magicCard - 3f -
                                 headerPdfFont.getStringWidth(count) * countPt / 1000f
                             val box = if (v.totalSlots == 6) 6.5f else 8f
                             val markStep = when (v.totalSlots) {
@@ -1319,7 +1345,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         }
                     }?:run{
                         stream.moveTo(x+20f,b+7f)
-                        stream.lineTo(x+78f,b+7f)
+                        stream.lineTo(x+magicCard-6f,b+7f)
                         stream.stroke()
                     }
                 }
@@ -1446,9 +1472,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val lines = mutableListOf<String>()
                 var current = ""
                 for (word in label.split(' ').filter { it.isNotEmpty() }) {
-                    if (p1Font.width.measurePt(word) > 121f) return emptyList()
+                    // C351: the golden half column (150.95 pt) leaves 142.9 pt of text.
+                    if (p1Font.width.measurePt(word) > 142.9f) return emptyList()
                     val candidate = if (current.isEmpty()) word else "${current} $word"
-                    if (p1Font.width.measurePt(candidate) <= 121f) {
+                    if (p1Font.width.measurePt(candidate) <= 142.9f) {
                         current = candidate
                     } else {
                         if (current.isNotEmpty()) lines += current
@@ -1475,13 +1502,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
             val p1PrintedTraitIds = p1TraitEntries.map { it.first.id }.toSet()
             fun drawP1Traits(stream: PDPageContentStream) {
-                val left = 312f
-                val width = 258f
+                val left = 270.43f // C351: golden right column
+                val width = 301.89f
+                val traitColumn = width / 2f
                 val top = 382f
                 repeat(6) { row ->
                     val y = top - 21f - row * 10f
                     for (col in 0..1) {
-                        fillBand(stream, left + col * 129f + 1f, y - 3f, 127f, 10f, row)
+                        fillBand(stream, left + col * traitColumn + 1f, y - 3f, traitColumn - 2f, 10f, row)
                     }
                 }
                 stream.saveGraphicsState()
@@ -1489,15 +1517,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.setLineWidth(0.5f)
                 stream.addRect(left, 301f, width, top - 301f)
                 stream.stroke()
-                stream.moveTo(441f, 301f)
-                stream.lineTo(441f, top - 15f)
+                stream.moveTo(left + traitColumn, 301f)
+                stream.lineTo(left + traitColumn, top - 15f)
                 stream.stroke()
                 repeat(6) { row ->
                     val y = top - 21f - row * 10f
                     for (col in 0..1) {
-                        val x = left + col * 129f
+                        val x = left + col * traitColumn
                         stream.moveTo(x + 3f, y - 3f)
-                        stream.lineTo(x + 126f, y - 3f)
+                        stream.lineTo(x + traitColumn - 3f, y - 3f)
                         stream.stroke()
                     }
                 }
@@ -1509,21 +1537,21 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.setNonStrokingColor(Color(231,242,247))
                 stream.setStrokingColor(Color(38,75,104))
                 stream.setLineWidth(0.55f)
-                stream.moveTo(315f,368f)
-                stream.lineTo(567f,368f)
-                stream.lineTo(570f,371f)
-                stream.lineTo(570f,379f)
-                stream.lineTo(567f,382f)
-                stream.lineTo(315f,382f)
-                stream.lineTo(312f,379f)
-                stream.lineTo(312f,371f)
+                stream.moveTo(273.43f,368f) // C351 golden right column
+                stream.lineTo(569.32f,368f)
+                stream.lineTo(572.32f,371f)
+                stream.lineTo(572.32f,379f)
+                stream.lineTo(569.32f,382f)
+                stream.lineTo(273.43f,382f)
+                stream.lineTo(270.43f,379f)
+                stream.lineTo(270.43f,371f)
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
                 // Golden heading font role: authentic embedded Barlow Condensed,
                 // distinct from 7pt Fira source-value rows below.
                 stream.setNonStrokingColor(Color(29, 56, 79)) // C266: golden title ink
-                drawCartelaDiamonds(stream, 312f, 570f, 368f, 382f)
+                drawCartelaDiamonds(stream, 270.43f, 572.32f, 368f, 382f)
                 stream.beginText()
                 stream.setFont(headerPdfFont,9.1f)
                 stream.newLineAtOffset(left + 16f,top - 11f)
@@ -1533,7 +1561,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 p1TraitEntries.forEach { (_, lines, firstSlot) ->
                     lines.forEachIndexed { offset, line ->
                         val slot = firstSlot + offset
-                        p1DrawSmall(stream, line, left + 4f + (slot / 6) * 129f,
+                        p1DrawSmall(stream, line, left + 4f + (slot / 6) * traitColumn,
                             top - 21f - (slot % 6) * 10f)
                     }
                 }
@@ -1569,29 +1597,29 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // the name at the left and its marks as two rows of ten in groups
                 // of five (owner 2026-10-28, «dos filas de 10 como el golden»).
                 stream.saveGraphicsState()
-                fillBand(stream, 312f, 102f, 258f, 29f, 0)
+                fillBand(stream, 270.43f, 102f, 301.89f, 29f, 0) // C351 golden right column
                 stream.setNonStrokingColor(Color(231, 242, 247))
                 stream.setStrokingColor(Color(80, 122, 151))
                 stream.setLineWidth(0.55f)
                 val cut = 3f
-                stream.moveTo(312f + cut, 131f)
-                stream.lineTo(570f - cut, 131f)
-                stream.lineTo(570f, 131f + cut)
-                stream.lineTo(570f, 148f - cut)
-                stream.lineTo(570f - cut, 148f)
-                stream.lineTo(312f + cut, 148f)
-                stream.lineTo(312f, 148f - cut)
-                stream.lineTo(312f, 131f + cut)
+                stream.moveTo(270.43f + cut, 131f)
+                stream.lineTo(572.32f - cut, 131f)
+                stream.lineTo(572.32f, 131f + cut)
+                stream.lineTo(572.32f, 148f - cut)
+                stream.lineTo(572.32f - cut, 148f)
+                stream.lineTo(270.43f + cut, 148f)
+                stream.lineTo(270.43f, 148f - cut)
+                stream.lineTo(270.43f, 131f + cut)
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.setStrokingColor(Color(130, 165, 186))
-                stream.addRect(312f, 102f, 258f, 46f)
+                stream.addRect(270.43f, 102f, 301.89f, 46f)
                 stream.stroke()
                 stream.restoreGraphicsState()
                 // C257/C265: golden cartela title and diamonds.
                 stream.setNonStrokingColor(Color(29, 56, 79)) // C266: golden title ink
-                drawCartelaDiamonds(stream, 312f, 570f, 131f, 148f)
-                drawP1Label(stream, "MUNICIONES", 328f, 136.5f, 9.1f)
+                drawCartelaDiamonds(stream, 270.43f, 572.32f, 131f, 148f)
+                drawP1Label(stream, "MUNICIONES", 287.43f, 136.5f, 9.1f)
                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 // Golden mark geometry (7.94 pt boxes, 13.75 pt step, 2.83 pt
                 // extra gap between groups), at the golden distance from the
@@ -1603,9 +1631,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.setLineWidth(0.48f)
                     repeat(count) { index ->
                         val column = index % 10
-                        val x = 419.8f + column * 13.75f + (column / 5) * 2.83f
+                        val x = 422.08f + column * 13.75f + (column / 5) * 2.83f // C351 golden
                         val y = if (index < 10) 119f else 106f
-                        require(x + 7.94f <= 570f)
+                        require(x + 7.94f <= 572.32f)
                         stream.addRect(x, y, 7.94f, 7.94f)
                         stream.fillAndStroke()
                     }
@@ -1621,19 +1649,19 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.saveGraphicsState()
                     stream.setStrokingColor(Color(130, 165, 186))
                     stream.setLineWidth(0.55f)
-                    stream.moveTo(316f, 120f)
-                    stream.lineTo(410f, 120f)
+                    stream.moveTo(274.43f, 120f)
+                    stream.lineTo(412.28f, 120f)
                     stream.stroke()
                     stream.restoreGraphicsState()
                     ammoBoxes(20)
                 }
                 p1AmmoItems.forEach { item ->
                     val baseline = 121f
-                    p1DrawSmall(stream, item.name, 316f, baseline)
+                    p1DrawSmall(stream, item.name, 274.43f, baseline)
                     when {
-                        item.quantity == 0 -> p1DrawSmall(stream, "0", 419.8f, baseline)
+                        item.quantity == 0 -> p1DrawSmall(stream, "0", 422.08f, baseline)
                         item.quantity <= 20 -> ammoBoxes(item.quantity)
-                        else -> p1DrawSmall(stream, "MARCAS: ____ / " + item.quantity, 419.8f, baseline)
+                        else -> p1DrawSmall(stream, "MARCAS: ____ / " + item.quantity, 422.08f, baseline)
                     }
                 }
             }
@@ -1870,7 +1898,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val values = p1CombatSourceFields.mapIndexed { index, field ->
                     field.first to p1CombatRoutes[index].paperValue
                 }
-                val left = 312f
+                val left = 270.43f // C351: golden right column
                 val paperTop = 591f
                 // Golden P1 has 3+3+2 real cards. This App persists PV TEMP,
                 // not INSPIRACIÓN: never invent an absent golden state.
@@ -1886,22 +1914,22 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.setNonStrokingColor(Color(231, 242, 247))
                 stream.setStrokingColor(Color(38, 75, 104))
                 stream.setLineWidth(0.65f) // C293: golden cartela edge
-                stream.moveTo(317f, 594f)
-                stream.lineTo(565f, 594f)
-                stream.lineTo(570f, 599f)
-                stream.lineTo(570f, 611f)
-                stream.lineTo(565f, 616f)
-                stream.lineTo(317f, 616f)
-                stream.lineTo(312f, 611f)
-                stream.lineTo(312f, 599f)
+                stream.moveTo(275.43f, 594f)
+                stream.lineTo(567.32f, 594f)
+                stream.lineTo(572.32f, 599f)
+                stream.lineTo(572.32f, 611f)
+                stream.lineTo(567.32f, 616f)
+                stream.lineTo(275.43f, 616f)
+                stream.lineTo(270.43f, 611f)
+                stream.lineTo(270.43f, 599f)
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
                 stream.setNonStrokingColor(Color(29, 56, 79)) // C266: golden title ink
-                drawCartelaDiamonds(stream, 312f, 570f, 594f, 616f)
+                drawCartelaDiamonds(stream, 270.43f, 572.32f, 594f, 616f)
                 stream.beginText()
                 stream.setFont(headerPdfFont, 9.1f)
-                stream.newLineAtOffset(328f, 600f)
+                stream.newLineAtOffset(287.43f, 600f)
                 stream.showText(title)
                 stream.endText()
                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
@@ -1910,15 +1938,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.setLineWidth(0.55f)
                 slots.forEach { (_, col, row) ->
                     val narrow = row < 2
-                    val rawWidth = if (narrow) 86f else 129f
+                    // C351: golden cards - three of 98.74 pt (step 101.57) and two
+                    // PV cards of 147.83 pt (step 150.94) across x270.43..572.32.
+                    val step = if (narrow) 101.57f else 150.94f
+                    val cardWidth = if (narrow) 98.74f else 147.83f
                     val rawHeight = if (narrow) 28f else 32f
-                    // 2.4pt gutters, all inside the OLD source paper bounds
-                    // x312..570 and y503..591: do not touch attack tables.
-                    val l = left + col * rawWidth + 1.2f
-                    val r = left + (col + 1) * rawWidth - 1.2f
+                    val l = left + col * step
+                    val r = l + cardWidth
                     val t = paperTop - row * 28f - 1.2f
                     val b = paperTop - row * 28f - rawHeight + 1.2f
-                    require(l >= 312f && r <= 570f && b >= 503f && t <= 591f)
+                    require(l >= 270.42f && r <= 572.33f && b >= 503f && t <= 591f)
                     val cut = 3f
                     stream.setNonStrokingColor(if (row == 1)
                         Color(244, 250, 253) else Color(238, 247, 251))
@@ -1937,9 +1966,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 slots.forEach { (sourceIndex, col, row) ->
                     val (label, value) = values[sourceIndex]
                     val narrow = row < 2
-                    val width = if (narrow) 86f else 129f
+                    val width = if (narrow) 98.74f else 147.83f
                     val top = paperTop - row * 28f
-                    val x = left + col * width
+                    val x = left + col * (if (narrow) 101.57f else 150.94f)
                     val labelPt = 6.65f // C316: golden combat card label size
                     require(headerPdfFont.getStringWidth(label) *
                         labelPt / 1000f <= width - 12f) {

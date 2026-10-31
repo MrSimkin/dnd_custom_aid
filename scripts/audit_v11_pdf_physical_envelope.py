@@ -75,11 +75,12 @@ AMMO_CARTELA = tuple(v / 255 for v in (231, 242, 247))  # C293 golden
 
 
 def p1_ammo_cartela(page: fitz.Page) -> list[str]:
-    """C243: golden P1 MUNICIONES cartela — a 258x17 blue band at x=312, top y=644."""
+    """C243: golden P1 MUNICIONES cartela — a 17 pt blue band, top y=644; C351: it spans
+    the golden right column x270.43..572.32 (301.89 pt)."""
     for d in page.get_drawings():
         r, fill = d["rect"], d.get("fill")
         if (fill is not None and all(abs(fill[i] - AMMO_CARTELA[i]) < .012 for i in range(3))
-                and abs(r.x0 - 312) < .6 and abs(r.width - 258) < .6
+                and abs(r.x0 - 270.43) < .6 and abs(r.width - 301.89) < .6
                 and abs(r.y0 - 644) < .6 and abs(r.height - 17) < .6):
             return []
     return ["P1 lacks the golden MUNICIONES cartela"]

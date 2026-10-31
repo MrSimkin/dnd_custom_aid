@@ -17,7 +17,7 @@ class P1BSkillValuesParityTest(unittest.TestCase):
         for path in RENDERERS:
             data = path.read_text(encoding="utf-8")
             self.assertIn('bSkillParts["skill:" + index] = label to value', data)
-            self.assertIn("val valueRight = bandLeft + bandWidth - 3f", data)
+            self.assertIn("val valueRight = bandLeft + bandWidth - 3.97f // C350 golden", data)
             part = data.split("// C241: golden B", 1)[1].split("val bSkillOverflow", 1)[0]
             pieces.append(re.sub(r"\s+", " ", part))
         self.assertEqual(pieces[0], pieces[1])

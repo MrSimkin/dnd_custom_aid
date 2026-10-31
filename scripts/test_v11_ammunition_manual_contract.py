@@ -22,14 +22,14 @@ class EmptyAmmoParity(unittest.TestCase):
             # never fake underscore glyphs. Both native renderers must
             # have identical paper geometry and 20 grouped source-free marks.
             self.assertNotIn('p1DrawSmall(stream, "____________", 316f, 122f)',section)
-            self.assertIn('stream.moveTo(316f, 120f)',section)
-            self.assertIn('stream.lineTo(410f, 120f)',section)
+            self.assertIn('stream.moveTo(274.43f, 120f)',section)  # C351 golden
+            self.assertIn('stream.lineTo(412.28f, 120f)',section)
             self.assertIn("val y = if (index < 10) 119f else 106f",section)
-            self.assertIn("val x = 419.8f + column * 13.75f + (column / 5) * 2.83f",section)
+            self.assertIn("val x = 422.08f + column * 13.75f + (column / 5) * 2.83f // C351 golden",section)
             self.assertIn("p1AmmoItems.forEach { item ->",section)
             # C243: golden MUNICIONES cartela and banded rows in the same box.
-            self.assertIn('drawP1Label(stream, "MUNICIONES", 328f, 136.5f, 9.1f)',section)
-            self.assertIn("fillBand(stream, 312f, 102f, 258f, 29f, 0)",section)
+            self.assertIn('drawP1Label(stream, "MUNICIONES", 287.43f, 136.5f, 9.1f)',section)
+            self.assertIn("fillBand(stream, 270.43f, 102f, 301.89f, 29f, 0) // C351 golden right column",section)
             parts.append(section)
         self.assertEqual(parts[0],parts[1])
 
