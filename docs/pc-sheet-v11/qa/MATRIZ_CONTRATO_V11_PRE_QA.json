@@ -1012,8 +1012,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "disabledOptionalSpellbookNeverEmitsBookOrPhysicalIndex; g3PhysicalModuleOrderAndLetterSizeHoldOnEveryPageAB",
+            "test_result": "PASS on real App PDFs: with the option off no Libro or index page is emitted (P4 still depends only on real spells); with it on, the Libro is the single optional annex, after C-N3 and before the final NOTAS, on Letter pages.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: audit_v11_module_topology.py 0 errors and audit_v11_spellbook_cards.py PASS.",
+            "limitations": "Desktop renderer PDFs; the UI toggle itself belongs to G4. G2 and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -3468,8 +3477,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3C209RealMaraABPrintsC2BeforeOptionalQuickSpellsAsFrozenGolden",
+            "test_result": "PASS on the real Mara A/B snapshot: all real C2 continuation pages follow P1/P2/P3 immediately and come before the optional P4, with no unrelated page between them, as in the frozen approved golden; this is also the D-0076 §3.30 preference for C2 next to its base modules, so no difference remains to resolve.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: audit_v11_module_topology.py 0 topology errors on the 108 PDFs.",
+            "limitations": "Desktop renderer PDFs; G2 and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
