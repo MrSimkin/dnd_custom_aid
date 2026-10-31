@@ -1051,6 +1051,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
             val p1AttackIds = p1Attacks.map { it.id }.toSet()
 
+            // C352: the golden card hairline - 3.4 pt under the top, 9.07 pt in, #bfd3de 0.35 pt.
+            fun drawGoldenCardHairline(stream: PDPageContentStream, left: Float, right: Float, top: Float) {
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(191, 211, 222))
+                stream.setLineWidth(0.35f)
+                stream.moveTo(left + 9.07f, top - 3.4f)
+                stream.lineTo(right - 9.07f, top - 3.4f)
+                stream.stroke()
+                stream.restoreGraphicsState()
+            }
             fun drawP1Attacks(stream: PDPageContentStream) {
                 val left = 270.43f // C351: golden right column
                 val top = 491f
@@ -1188,9 +1198,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // C351: golden cards x270.43 / 372.00 / 473.57, 98.74 pt wide.
                 fun p1MagicColumn(idx:Int)=270.43f+idx*101.57f
                 val magicCard = 98.74f
+                // C352: golden P1 cards - white, #264b68 0.65 pt edge, inner hairline.
                 stream.saveGraphicsState()
-                stream.setStrokingColor(Color(80,122,151))
-                stream.setLineWidth(0.55f)
+                stream.setStrokingColor(Color(38,75,104))
+                stream.setLineWidth(0.65f)
                 stream.setNonStrokingColor(Color.WHITE)
                 (0..2).forEach{idx->
                     val l=p1MagicColumn(idx)
@@ -1208,6 +1219,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.lineTo(l,b+cut)
                     stream.closePath()
                     stream.fillAndStroke()
+                    drawGoldenCardHairline(stream, l, r, t)
                 }
                 (1..9).forEach{level->
                     val col=(level-1)%3
@@ -1933,9 +1945,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.showText(title)
                 stream.endText()
                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
+                // C352: golden P1 cards - white, #264b68 0.65 pt edge, inner hairline.
                 stream.saveGraphicsState()
-                stream.setStrokingColor(Color(80, 122, 151))
-                stream.setLineWidth(0.55f)
+                stream.setStrokingColor(Color(38, 75, 104))
+                stream.setLineWidth(0.65f)
                 slots.forEach { (_, col, row) ->
                     val narrow = row < 2
                     // C351: golden cards - three of 98.74 pt (step 101.57) and two
@@ -1949,8 +1962,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val b = paperTop - row * 28f - rawHeight + 1.2f
                     require(l >= 270.42f && r <= 572.33f && b >= 503f && t <= 591f)
                     val cut = 3f
-                    stream.setNonStrokingColor(if (row == 1)
-                        Color(244, 250, 253) else Color(238, 247, 251))
+                    stream.setNonStrokingColor(Color(255, 255, 255))
                     stream.moveTo(l + cut, b)
                     stream.lineTo(r - cut, b)
                     stream.lineTo(r, b + cut)
@@ -1961,6 +1973,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.lineTo(l, b + cut)
                     stream.closePath()
                     stream.fillAndStroke()
+                    drawGoldenCardHairline(stream, l, r, t)
                 }
                 stream.restoreGraphicsState()
                 slots.forEach { (sourceIndex, col, row) ->
@@ -1978,7 +1991,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.setNonStrokingColor(Color(101, 125, 144))
                     stream.beginText()
                     stream.setFont(headerPdfFont, labelPt)
-                    stream.newLineAtOffset(x + 5f, top - 10f)
+                    stream.newLineAtOffset(x + 5.66f, top - 10f) // C352 golden inset
                     stream.showText(pcSheetV11PrintableText(label))
                     stream.endText()
                     stream.setNonStrokingColor(Color(29, 56, 79))

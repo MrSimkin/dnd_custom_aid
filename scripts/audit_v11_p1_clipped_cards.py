@@ -55,7 +55,10 @@ def physical_p1(pdf_bytes):
                     and all(abs(c - 1) < .01 for c in draw["fill"])
                     and draw["color"] is not None
                     and all(abs(x - y) < .028 for x, y in zip(draw["color"], IDENTITY_INK))):
+                # C352: golden combat cards share the identity grammar (white,
+                # #264b68 0.65 pt); expected positions tell the two apart.
                 observed_identity.append(rect)
+                observed_combat.append(rect)
             elif not near_ink(draw["color"]):
                 continue
             elif draw["type"] == "fs" and draw["fill"] is not None:
