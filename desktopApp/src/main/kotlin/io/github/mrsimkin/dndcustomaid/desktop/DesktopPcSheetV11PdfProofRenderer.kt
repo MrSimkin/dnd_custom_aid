@@ -1617,21 +1617,22 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
 
             fun drawP1Portrait(stream: PDPageContentStream) {
-                val frameX = 42f
-                val frameY = 605f
-                val frameWidth = 104f
-                val frameHeight = 100f
-                val imageX = frameX + 7f
-                val imageY = frameY + 7f
-                val imageWidth = frameWidth - 14f
-                val imageHeight = frameHeight - 28f
+                // C349: golden v11_extremo p1 portrait x39.69..119.06, y621.92..698.46.
+                val frameX = 39.69f
+                val frameY = 621.92f
+                val frameWidth = 79.37f
+                val frameHeight = 76.54f
+                val imageX = frameX + 5f
+                val imageY = frameY + 10f
+                val imageWidth = frameWidth - 10f
+                val imageHeight = frameHeight - 15f
                 // Frozen V11 golden uses a chamfered portrait frame, not
                 // the provisional rectangular proof. Preserve image viewport.
                 stream.saveGraphicsState()
                 stream.setNonStrokingColor(Color.WHITE)
                 stream.setStrokingColor(Color(38, 75, 104))
                 stream.setLineWidth(0.65f)
-                val corner = 7f
+                val corner = 5f
                 stream.moveTo(frameX + corner, frameY)
                 stream.lineTo(frameX + frameWidth - corner, frameY)
                 stream.lineTo(frameX + frameWidth, frameY + corner)
@@ -1642,10 +1643,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.lineTo(frameX, frameY + corner)
                 stream.closePath()
                 stream.fillAndStroke()
+                // C349: golden inner hairline 3.4 pt under the top, 9.07 pt in, #bfd3de 0.35 pt.
                 stream.setStrokingColor(Color(191, 211, 222))
                 stream.setLineWidth(0.35f)
-                stream.moveTo(frameX + 12f, frameY + frameHeight - 4.5f)
-                stream.lineTo(frameX + frameWidth - 12f, frameY + frameHeight - 4.5f)
+                stream.moveTo(frameX + 9.07f, frameY + frameHeight - 3.4f)
+                stream.lineTo(frameX + frameWidth - 9.07f, frameY + frameHeight - 3.4f)
                 stream.stroke()
                 stream.restoreGraphicsState()
 
@@ -1691,21 +1693,22 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         stream.fillAndStroke()
                     }
                     val cx = frameX + frameWidth / 2f
-                    filledOval(cx, frameY + 73f, 14.85f, 14.85f)
-                    filledOval(cx, frameY + 32.3f, 27.85f, 19.65f)
+                    // C349: golden silhouette - head 11.34 pt, body 21.26 x 15.03 pt.
+                    filledOval(cx, frameY + 55.85f, 11.34f, 11.34f)
+                    filledOval(cx, frameY + 24.67f, 21.26f, 15.03f)
                     stream.restoreGraphicsState()
                 }
                 // Golden's caption is beneath the figure and never covers its head.
                 // Keep the label when a real local image is shown as well.
                 val portraitCaption = "RETRATO"
-                val captionSize = 7f
+                val captionSize = 5.5f // C349: golden 5.5 pt #657d90, 2.84 pt above the foot
                 val captionWidth = headerPdfFont.getStringWidth(portraitCaption) /
                     1000f * captionSize
                 stream.saveGraphicsState()
                 stream.beginText()
                 stream.setFont(headerPdfFont, captionSize)
-                stream.setNonStrokingColor(Color(80, 122, 151))
-                stream.newLineAtOffset(frameX + (frameWidth - captionWidth) / 2f, frameY + 6f)
+                stream.setNonStrokingColor(Color(101, 125, 144))
+                stream.newLineAtOffset(frameX + (frameWidth - captionWidth) / 2f, frameY + 2.84f)
                 stream.showText(portraitCaption)
                 stream.endText()
                 stream.restoreGraphicsState()
@@ -1714,35 +1717,46 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // V11 P1 uses genuine physical identity fields. Alignment is not a
             // persisted CharacterSheet property, so its box stays manuscript-only.
             // The same measured body font decides which source suffix must flow to C2.
-            val identityTop = 705f
+            val identityTop = 698.46f // C349: golden identity block top
             val classIdentity = PcSheetV11FlowItem(
                 "identity:classes",
                 source.classes.joinToString(", ") { it.name + " " + it.level },
             )
             val raceIdentity = PcSheetV11FlowItem("identity:race", source.background.race)
             val identityFieldFrames = listOf(
+                // C349: golden v11_extremo p1 boxes - CLASE / NIVEL x127.56..572.32,
+                // y664.44..698.46; JUGADOR, RAZA and ALINEAMIENTO y621.92..658.77.
                 Triple("CLASE / NIVEL", classIdentity,
-                    PcSheetV11RectPt(158f, identityTop - 28f, 412f, 28f)),
+                    PcSheetV11RectPt(127.56f, 664.44f, 444.76f, 34.02f)),
                 Triple("RAZA", raceIdentity,
-                    PcSheetV11RectPt(295f, identityTop - 58f, 126f, 28f)),
+                    PcSheetV11RectPt(280.63f, 621.92f, 175.18f, 36.85f)),
             )
+            // C349: golden values - CLASE / NIVEL 9.3 pt, the others 7.4 pt.
+            val identityFonts = mapOf(
+                "CLASE / NIVEL" to measurer.resolve(PcSheetV11Typeface.BODY, 9.3f),
+                "RAZA" to measurer.resolve(PcSheetV11Typeface.BODY, 7.4f),
+            )
+            val identityBaselineLift = mapOf("CLASE / NIVEL" to 8.22f, "RAZA" to 9.92f)
             val identityFields = identityFieldFrames.map { (label, item, frame) ->
+                val font = identityFonts.getValue(label)
                 val writingArea = PcSheetV11RectPt(
-                    frame.leftPt + 6f, frame.bottomPt + 1f,
-                    frame.widthPt - 12f, body.metrics.lineHeightPt + 2f,
+                    frame.leftPt + 5.67f, frame.bottomPt + 1f,
+                    frame.widthPt - 11.34f, font.metrics.lineHeightPt + 2f,
                 )
                 val placed = item.text.takeIf { it.isNotBlank() }?.let {
-                    body.place(PcSheetV11FlowSection.TRAITS, listOf(item),
+                    font.place(PcSheetV11FlowSection.TRAITS, listOf(item),
                         writingArea, 1, 0f)
                 }
                 Triple(label to item, frame, placed)
             }
             fun drawP1IdentityFields(stream: PDPageContentStream) {
-                val alignment = PcSheetV11RectPt(432f, identityTop - 58f, 138f, 28f)
-                val player = PcSheetV11RectPt(158f, identityTop - 58f, 126f, 28f)
+                val alignment = PcSheetV11RectPt(461.48f, 621.92f, 110.84f, 36.85f) // C349 golden
+                val player = PcSheetV11RectPt(127.56f, 621.92f, 147.4f, 36.85f) // C349 golden
+                // C349: golden identity boxes - white, #264b68 0.65 pt edge.
                 stream.saveGraphicsState()
-                stream.setStrokingColor(Color(80, 122, 151))
-                stream.setLineWidth(0.7f)
+                stream.setNonStrokingColor(Color(255, 255, 255))
+                stream.setStrokingColor(Color(38, 75, 104))
+                stream.setLineWidth(0.65f)
                 (identityFieldFrames.map { it.third } + listOf(player, alignment)).forEach { frame ->
                     // P1 C2c golden uses four INDIVIDUAL chamfered identity
                     // outlines. Stay strictly inside the old 28pt rectangles;
@@ -1763,7 +1777,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.lineTo(l, t - cut)
                     stream.lineTo(l, b + cut)
                     stream.closePath()
+                    stream.fillAndStroke()
+                    // C349: golden inner hairline 3.4 pt under the top, 9.07 pt in.
+                    stream.saveGraphicsState()
+                    stream.setStrokingColor(Color(191, 211, 222))
+                    stream.setLineWidth(0.35f)
+                    stream.moveTo(l + 9.07f, t - 3.4f)
+                    stream.lineTo(r - 9.07f, t - 3.4f)
                     stream.stroke()
+                    stream.restoreGraphicsState()
                 }
                 stream.restoreGraphicsState()
                 identityFields.forEach { (descriptor, _, placed) ->
@@ -1771,30 +1793,44 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val frame = identityFieldFrames.first { it.first == label }.third
                     // C297: golden identity labels, grey #657d90 (CLASE / NIVEL 6.2 pt, others 5.9).
                     stream.setNonStrokingColor(Color(101, 125, 144))
-                    drawP1Label(stream, label, frame.leftPt + 6f, frame.topPt - 9f,
+                    // C349: golden label 5.67 pt in and 11.34 pt under the top.
+                    drawP1Label(stream, label, frame.leftPt + 5.67f, frame.topPt - 11.34f,
                         if (label == "CLASE / NIVEL") 6.2f else 5.9f)
                     stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
+                    val font = identityFonts.getValue(label)
                     placed?.cells?.filter { it.localPageIndex == 1 }?.forEach { cell ->
                         if (cell.drawableText.isNotEmpty()) {
-                            draw(stream, cell.drawableText, cell.cellPt.leftPt,
-                                body.metrics.baselineIn(cell.cellPt), false)
+                            stream.beginText()
+                            stream.setFont(bodyPdfFont, font.metrics.fontSizePt)
+                            stream.newLineAtOffset(cell.cellPt.leftPt,
+                                frame.bottomPt + identityBaselineLift.getValue(label))
+                            stream.showText(pcSheetV11PrintableText(cell.drawableText))
+                            stream.endText()
                         }
                     }
                 }
                 stream.setNonStrokingColor(Color(101, 125, 144))
-                drawP1Label(stream, "JUGADOR", player.leftPt + 6f, player.topPt - 9f, 5.9f)
+                drawP1Label(stream, "JUGADOR", player.leftPt + 5.67f, player.topPt - 11.34f, 5.9f)
                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
-                stream.moveTo(player.leftPt + 6f, player.bottomPt + 5f)
-                stream.lineTo(player.rightPt - 6f, player.bottomPt + 5f)
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(148, 176, 193))
+                stream.setLineWidth(0.32f)
+                stream.moveTo(player.leftPt + 5.67f, player.bottomPt + 7f)
+                stream.lineTo(player.rightPt - 5.67f, player.bottomPt + 7f)
                 stream.stroke()
+                stream.restoreGraphicsState()
                 stream.setNonStrokingColor(Color(101, 125, 144))
-                drawP1Label(stream, "ALINEAMIENTO", alignment.leftPt + 6f,
-                    alignment.topPt - 9f, 5.9f)
+                drawP1Label(stream, "ALINEAMIENTO", alignment.leftPt + 5.1f, // C349 golden inset
+                    alignment.topPt - 11.34f, 5.7f)
                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 // No persisted alignment exists; a ruled entry is deliberately blank.
-                stream.moveTo(alignment.leftPt + 6f, alignment.bottomPt + 5f)
-                stream.lineTo(alignment.rightPt - 6f, alignment.bottomPt + 5f)
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(148, 176, 193))
+                stream.setLineWidth(0.32f)
+                stream.moveTo(alignment.leftPt + 5.67f, alignment.bottomPt + 7f)
+                stream.lineTo(alignment.rightPt - 5.67f, alignment.bottomPt + 7f)
                 stream.stroke()
+                stream.restoreGraphicsState()
             }
             val identityFieldOverflow = identityFields.mapNotNull { (descriptor, _, placed) ->
                 val (_, item) = descriptor

@@ -8,8 +8,10 @@ from pathlib import Path
 import fitz
 
 INK = (80/255, 122/255, 151/255)
-IDENTITY = [(158, 87, 570, 115), (158, 117, 284, 145),
-            (295, 117, 421, 145), (432, 117, 570, 145)]
+# C349: golden v11_extremo p1 identity boxes (white, #264b68 0.65 pt), top-origin.
+IDENTITY_INK = (38/255, 75/255, 104/255)
+IDENTITY = [(127.56, 93.54, 572.32, 127.56), (127.56, 133.23, 274.96, 170.08),
+            (280.63, 133.23, 455.81, 170.08), (461.48, 133.23, 572.32, 170.08)]
 # Frozen P1 3+3+2 actual app positions, PDF top-origin.
 COMBAT = [
     (312 + col*(86 if row < 2 else 129) + 1.2,
@@ -46,10 +48,15 @@ def physical_p1(pdf_bytes):
         observed_combat = []
         for draw in drawings:
             rect = tuple(float(v) for v in draw["rect"])
-            if len(draw["items"]) != 8 or not near_ink(draw["color"]):
+            if len(draw["items"]) != 8:
                 continue
-            if draw["type"] == "s":
+            if (draw["type"] == "fs" and draw["fill"] is not None
+                    and all(abs(c - 1) < .01 for c in draw["fill"])
+                    and draw["color"] is not None
+                    and all(abs(x - y) < .028 for x, y in zip(draw["color"], IDENTITY_INK))):
                 observed_identity.append(rect)
+            elif not near_ink(draw["color"]):
+                continue
             elif draw["type"] == "fs" and draw["fill"] is not None:
                 observed_combat.append(rect)
         missing_id = [expected for expected in IDENTITY if not any(
