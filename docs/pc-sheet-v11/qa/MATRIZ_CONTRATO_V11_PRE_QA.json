@@ -1113,8 +1113,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "physicalP1IdentityFieldsUsePersistedClassAndRaceWithBlankAlignment; g3EveryPageCarriesTheLogoAndCharacterNameHeaderWithoutP1DuplicateAB",
+            "test_result": "PASS on real App PDFs: P1 prints the persisted class/level and race in their own labelled physical fields, leaves alignment blank for handwriting and keeps export diagnostics and the A/B choice out of character fields; every page carries the logo and the character name once in the compact header, never repeated on P1.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: audit_v11_header_logo_visibility.py (logo on 971/971 pages) and audit_v11_pdf_physical_envelope.py 0 errors on the 108 PDFs.",
+            "limitations": "Desktop renderer PDFs (Android shares the identical renderer source, checked by tripwires). P1 column widths still differ from the golden (pending P1 column work); global P102 and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -1198,8 +1207,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "realP1SavingLabelUsesMeasuredGoldenMicroOffsetWithoutMovingBoxes",
+            "test_result": "PASS on the real Mara P1: every printed SALVACIÓN label sits at the approved golden micro offset (2.1 pt up and to the right) while the saving boxes keep their place.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py 0 errors (no clipping or overlap on 971 pages).",
+            "limitations": "Desktop renderer PDFs; G2 and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -1264,8 +1282,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null,
+          "status": "PASS",
+          "evidence": {
+            "test_name": "realMaraBPhysicallyPrintsThreeFittingCustomAttributesAndDefersTheFourth; realIlyraSpellcasterProducesP4AndHandwrittenGridAsLastPage; g3RealP1VariantBSkillsHeaderHasApprovedBlueClippedCartelaWithoutMovingSkillRows",
+            "test_result": "PASS on real App PDFs: variant B prints an independent named HABILIDADES panel with its golden clipped cartela, distinct from A's skills-under-attribute layout; each skill carries its real three-letter ability suffix (e.g. «Acrobacias (DES)», «Sincronía (COR)», «Contratos arcanos (FOR)»).",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: audit_v11_p3_c2_manuscript.py (C216 skill boxes) and audit_v11_pdf_physical_envelope.py 0 errors.",
+            "limitations": "Desktop renderer PDFs; G1/G2 and G4 stay NOT_VERIFIED."
+          },
           "test_name": "g3RealP1VariantBSkillsHeaderHasApprovedBlueClippedCartelaWithoutMovingSkillRows",
           "source_parity_test": "scripts/test_v11_p1_skills_cartela_contract.py"
         }
@@ -1334,8 +1361,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "measuredVariantAPlacesOnlyCompleteCustomAttributeAndSkillGroupsOnP1; realMaraBPhysicallyPrintsThreeFittingCustomAttributesAndDefersTheFourth; g3RealSixMandatoryAttributesSurviveDenseCustomSkillsWithLosslessC2Continuation",
+            "test_result": "PASS on real App PDFs: A prints the 6+2 attributes with their linked skills only when the measured groups fit; B prints three fitting custom attributes and defers the fourth to C2 instead of compressing; with dense custom skills the six mandatory attributes stay on P1 and every source skill prints exactly once, continuing in two-column C2.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py 0 errors and audit_v11_continuation_cues.py 0 errors (the C2 continuation is announced and answered).",
+            "limitations": "Desktop renderer PDFs; G2 and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -1747,8 +1783,17 @@
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "test_name": "g3RealP1AttacksHaveSubtleAlternatingBandsWithoutLosingPrintedAttackFields",
           "source_parity_test": "scripts/test_v11_attacks_render_contract.py",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3RealP1AttacksHaveSubtleAlternatingBandsWithoutLosingPrintedAttackFields",
+            "test_result": "PASS on Aldren A, Ilyra B and Mara A/B: the P1 ATAQUES table carries exactly four light alternating body bands under its cartela, and the ARMA / ATAQUE / CONJURO, BON. and DAÑO / TIPO fields are still printed.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py 0 errors.",
+            "limitations": "Band geometry still uses the app P1 column (x313, 256 pt), not the golden 301.89 pt combat column; G2 and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
