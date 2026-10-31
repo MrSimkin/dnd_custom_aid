@@ -91,9 +91,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         val operators = pdf.getPage(0).contents.use {
             it.readBytes().toString(Charsets.ISO_8859_1)
         }
-        // Must be genuine 7pt VECTOR squares in the P1 left saving band,
-        // not plain "[ ]" glyphs or unrelated equipment/P4 marks.
-        val boxes = Regex("""(?m)(?:^|\s)270\s+[0-9.]+\s+7\s+7\s+re(?:\s|$)""")
+        // Must be genuine VECTOR squares in the P1 left saving band, not plain
+        // "[ ]" glyphs or unrelated marks. C350: the golden 8.78 pt box at x220.54.
+        val boxes = Regex("""(?m)(?:^|\s)220\.5[34]\d*\s+[0-9.]+\s+8\.78\d*\s+8\.78\d*\s+re(?:\s|$)""")
             .findAll(operators).count()
         assertEquals(expectedRows, boxes,
             "Each actually printed P1 standard/custom saving row must get " +
@@ -705,10 +705,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     else -> 9 // Mara B: all three custom attributes fit P1.
                 }
                 assertEquals(expectedRows, savingLabels.count {
-                    kotlin.math.abs(it.first - 217.3f) < 0.3f
+                    kotlin.math.abs(it.first - 175.18f) < 0.3f /* C350 golden x */
                 }, "Every printed P1 saving label must be physically at " +
                     "the approved checkbox-relative x position ($fixture, $variant).")
-                val first = savingLabels.first { kotlin.math.abs(it.first - 217.3f) < 0.3f }
+                val first = savingLabels.first { kotlin.math.abs(it.first - 175.18f) < 0.3f /* C350 golden x */ }
                 assertTrue(kotlin.math.abs(first.second - expectedBaselineY) < 0.35f,
                     "Saving label baseline must move 2.1pt upward " +
                     "relative to the original attribute row ($fixture, $variant).")
@@ -1030,32 +1030,40 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val commands = first.contents.use {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
-                for (y in listOf(205, 189, 173, 157, 141, 125)) {
-                    for ((left,right) in listOf(47 to 167,176 to 295)) {
+                // C350: the golden subcolumns; the B skills area now ends at y199.
+                for (y in listOf(184, 168, 152, 136)) {
+                    for ((left,right) in listOf("39.69" to "148.25","151.65" to "260.22")) {
+                        // PDFBox prints 151.65 as 151.64999: compare the numbers, not the text.
                         val line = Regex(
-                            """(?m)(?:^|\s)""" + left + """\s+""" + y +
-                                """\s+m\s+""" + right + """\s+""" + y +
+                            """(?m)(?:^|\s)(\d+(?:\.\d+)?)\s+""" + y +
+                                """\s+m\s+(\d+(?:\.\d+)?)\s+""" + y +
                                 """\s+l(?:\s|$)"""
                         )
-                        assertEquals(1, line.findAll(commands).count(),
+                        val matchesHere = line.findAll(commands).count { m ->
+                            kotlin.math.abs(m.groupValues[1].toFloat() - left.toFloat()) < 0.02f &&
+                                kotlin.math.abs(m.groupValues[2].toFloat() - right.toFloat()) < 0.02f
+                        }
+                        assertEquals(1, matchesHere,
                             "Real B skills paper row y=$y x=$left..$right " +
                                 "must be whole, unique and inside its own column.")
-                        val bandWidth = right - left
                         val filledBand = Regex(
-                            """(?m)(?:^|\s)""" + left + """\s+""" + (y-1) +
-                                """\s+""" + bandWidth +
-                                """\s+14\s+re(?:\s|$)"""
+                            """(?m)(?:^|\s)(\d+(?:\.\d+)?)\s+""" + (y-1) +
+                                """\s+(\d+(?:\.\d+)?)\s+14\s+re(?:\s|$)"""
                         )
-                        assertEquals(1, filledBand.findAll(commands).count(),
+                        assertEquals(1, filledBand.findAll(commands).count { m ->
+                            kotlin.math.abs(m.groupValues[1].toFloat() - left.toFloat()) < 0.02f &&
+                                kotlin.math.abs(m.groupValues[2].toFloat() -
+                                    (right.toFloat() - left.toFloat())) < 0.02f
+                        },
                             "Each writable B row must retain its complete " +
                                 "inside-border pale-blue band without clipping.")
                     }
                 }
                 val blankText = PDFTextStripperByArea().apply {
                     // PDFBox uses top-origin region coordinates. The
-                    // manuscript rows run PDF y=125..218.
+                    // manuscript rows run PDF y=125..197 (C350).
                     addRegion("unused-B-paper",
-                        Rectangle2D.Float(43f, 574f, 255f, 92f))
+                        Rectangle2D.Float(40f, 595f, 220f, 71f))
                     extractRegions(first)
                 }.getTextForRegion("unused-B-paper")
                 assertTrue(blankText.isBlank(),
@@ -1089,10 +1097,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
                 val firstColumnMarks = Regex(
-                    """(?m)(?:^|\s)49(?:\.0+)?\s+[-0-9.]+\s+7\s+7\s+re(?:\s|$)"""
+                    """(?m)(?:^|\s)43\.2[23]\d*\s+[-0-9.]+\s+8\.5\s+8\.5\s+re(?:\s|$)""" // C350 golden
                 ).findAll(commands).count()
                 val secondColumnMarks = Regex(
-                    """(?m)(?:^|\s)175(?:\.0+)?\s+[-0-9.]+\s+7\s+7\s+re(?:\s|$)"""
+                    """(?m)(?:^|\s)155\.(?:19|2)\d*\s+[-0-9.]+\s+8\.5\s+8\.5\s+re(?:\s|$)""" // C350 golden
                 ).findAll(commands).count()
                 val standardNames = generated.semantic.skills.filter {
                     it.builtInKey != null
@@ -1438,8 +1446,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     .contains("N7"), "P1 ammunition overlaps spell slots.")
                 if(variant==PcSheetV11Variant.B){
                     val skillsByColumn=PDFTextStripperByArea().apply{
-                        addRegion("first",Rectangle2D.Float(47f,471f,121f,118f))
-                        addRegion("second",Rectangle2D.Float(173f,471f,123f,118f))
+                        addRegion("first",Rectangle2D.Float(39f,471f,111f,140f)) // C350 golden
+                        addRegion("second",Rectangle2D.Float(150f,471f,112f,140f))
                         extractRegions(page)
                     }
                     assertTrue(skillsByColumn.getTextForRegion("first").contains("Acrobacias"),
@@ -4351,7 +4359,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         if (!split) continue
                         val part = textPositions.subList(start, i)
                         val y = 792f - part.first().yDirAdj
-                        if (y in 220f..316f && part.first().fontSizeInPt == 7f) {
+                        if (y in 199f..316f && part.first().fontSizeInPt == 7f) {
                             runs += Triple(part.joinToString("") { it.unicode }.trim(),
                                 part.first().xDirAdj, part.last().xDirAdj + part.last().widthDirAdj)
                         }
@@ -4362,7 +4370,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val values = runs.filter { Regex("^[+-]\\d+( [PE])?$").matches(it.first) }
             assertTrue(values.size >= 10, "Mara B prints real skill values on P1: $runs")
             values.forEach { (text, _, end) ->
-                assertTrue(kotlin.math.abs(end - 164f) < 0.6f || kotlin.math.abs(end - 292f) < 0.6f,
+                assertTrue(kotlin.math.abs(end - 144.28f) < 0.6f || kotlin.math.abs(end - 256.25f) < 0.6f, // C350 golden
                     "B skill value '$text' ends at the golden subcolumn edge, not at $end.")
             }
         }
@@ -6252,13 +6260,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
                 val clippedHeader = Regex(
-                    """(?s)(?:^|\s)46\s+330\s+m\s+296\s+330\s+l\s+""" +
-                        """300\s+334\s+l.*?42\s+334\s+l\s+h\s+B(?:\s|$)"""
+                    // C350: golden left column x39.69..260.22.
+                    """(?s)(?:^|\s)43\.6[89]\d*\s+330\s+m\s+256\.2[12]\d*\s+330\s+l\s+""" +
+                        """260\.2[12]\d*\s+334\s+l.*?39\.69\d*\s+334\s+l\s+h\s+B(?:\s|$)"""
                 )
                 assertEquals(1, clippedHeader.findAll(ops).count(),
                     "Golden C2c HABILIDADES header missing ($fixture).")
                 assertTrue(Regex(
-                    """(?:^|\s)42\s+105\s+258\s+223\s+re(?:\s|$)"""
+                    """(?:^|\s)39\.69\d*\s+105\s+220\.5[23]\d*\s+223\s+re(?:\s|$)""" // C350 golden
                 ).containsMatchIn(ops),
                     "Original B skills frame must not move.")
                 val page1 = PDFTextStripper().apply {
@@ -6294,8 +6303,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
                 val titlePolygon = Regex(
-                    """(?s)(?:^|\s)46\s+579\s+m\s+296\s+579\s+l\s+""" +
-                        """300\s+583\s+l.*?42\s+583\s+l\s+h\s+B(?:\s|$)"""
+                    // C350: golden left column x39.69..260.22.
+                    """(?s)(?:^|\s)43\.6[89]\d*\s+579\s+m\s+256\.2[12]\d*\s+579\s+l\s+""" +
+                        """260\.2[12]\d*\s+583\s+l.*?39\.69\d*\s+583\s+l\s+h\s+B(?:\s|$)"""
                 )
                 assertEquals(1, titlePolygon.findAll(ops).count(),
                     "Genuine P1 missing 8-sided ATRIBUTOS cartela ($fixture $variant).")

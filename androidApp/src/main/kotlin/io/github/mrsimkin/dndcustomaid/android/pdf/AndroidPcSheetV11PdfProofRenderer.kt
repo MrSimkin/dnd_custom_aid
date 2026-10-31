@@ -568,23 +568,24 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.setNonStrokingColor(Color(231, 242, 247))
                 stream.setStrokingColor(Color(38, 75, 104))
                 stream.setLineWidth(0.55f)
-                stream.moveTo(46f, 579f)
-                stream.lineTo(296f, 579f)
-                stream.lineTo(300f, 583f)
-                stream.lineTo(300f, 598f)
-                stream.lineTo(296f, 602f)
-                stream.lineTo(46f, 602f)
-                stream.lineTo(42f, 598f)
-                stream.lineTo(42f, 583f)
+                // C350: golden v11_extremo p1 left column x39.69..260.22.
+                stream.moveTo(43.69f, 579f)
+                stream.lineTo(256.22f, 579f)
+                stream.lineTo(260.22f, 583f)
+                stream.lineTo(260.22f, 598f)
+                stream.lineTo(256.22f, 602f)
+                stream.lineTo(43.69f, 602f)
+                stream.lineTo(39.69f, 598f)
+                stream.lineTo(39.69f, 583f)
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
                 // C264: golden cartela titles are 9.1 pt.
                 stream.setNonStrokingColor(Color(29, 56, 79)) // C266: golden title ink
-                drawCartelaDiamonds(stream, 42f, 300f, 579f, 602f)
+                drawCartelaDiamonds(stream, 39.69f, 260.22f, 579f, 602f)
                 drawP1Label(stream,if(data.request.variant ==
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A)
-                    "ATRIBUTOS · A" else "ATRIBUTOS · B",58f,586f,9.1f)
+                    "ATRIBUTOS · A" else "ATRIBUTOS · B",56.69f,586f,9.1f)
                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 val k=0.5522848f
                 standards.forEachIndexed { i,ability ->
@@ -594,16 +595,17 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.setStrokingColor(Color(130,165,186))
                     stream.setLineWidth(0.6f)
                     stream.setNonStrokingColor(if (i % 2 == 0) Color(231,242,247) else Color(240,247,250))
-                    stream.addRect(42f,bottom,258f,top-bottom)
+                    stream.addRect(39.69f,bottom,220.53f,top-bottom)
                     stream.fill()
-                    stream.addRect(42f,bottom,258f,top-bottom)
+                    stream.addRect(39.69f,bottom,220.53f,top-bottom)
                     stream.stroke()
-                    stream.addRect(46f,top-(if(compactBAttributes) 22f else 27f),
-                        47f,if(compactBAttributes) 18f else 22f)
+                    // C350: golden score box x42.24..85.32 and modifier oval x88.72..124.16.
+                    stream.addRect(42.24f,top-(if(compactBAttributes) 22f else 27f),
+                        43.08f,if(compactBAttributes) 18f else 22f)
                     stream.stroke()
-                    val cx=116f
+                    val cx=106.44f
                     val cy=top-(if(compactBAttributes) 13f else 16f)
-                    val rx=23f
+                    val rx=17.72f
                     val ry=if(compactBAttributes) 9f else 11f
                     stream.moveTo(cx+rx,cy)
                     stream.curveTo(cx+rx,cy+ry*k,cx+rx*k,cy+ry,cx,cy+ry)
@@ -618,9 +620,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     val valueY=top-(if(compactBAttributes) 17f else 20f)
                     // C264: golden score 11 pt, modifier 8.7 pt, name 7.7 pt.
                     // C300: golden Noto Sans Bold - score #1d384f, modifier #264b68.
-                    p1Bold(stream,score,69.5f-p1BoldWidth(score,11f)/2f,valueY,11f,Color(29,56,79))
+                    p1Bold(stream,score,63.78f-p1BoldWidth(score,11f)/2f,valueY,11f,Color(29,56,79))
                     p1Bold(stream,mod,cx-p1BoldWidth(mod,8.7f)/2f,valueY,8.7f,Color(38,75,104))
-                    p1Ink(stream,approvedAbilityName(ability.name),145f,
+                    p1Ink(stream,approvedAbilityName(ability.name),128.41f,
                         top-(if(compactBAttributes) 11f else 14f),7.7f)
                     stream.saveGraphicsState()
                     stream.setNonStrokingColor(Color(101,125,144))
@@ -633,7 +635,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     // Position only the label; saveY remains the untouched
                     // checkbox/value baseline from the verified App PDF.
                     val savingLabelY=saveY+2.1f
-                    stream.newLineAtOffset(217.3f,savingLabelY)
+                    stream.newLineAtOffset(175.18f,savingLabelY) // C350 golden x
                     stream.showText("SALVACIÓN")
                     stream.endText()
                     stream.restoreGraphicsState()
@@ -641,15 +643,18 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     // proficiency/state cannot be inferred from the save total.
                     // Genuine vector 7×7pt square stays between the label
                     // (ending before x250) and its actual value (starts x287+).
+                    // C350: golden saving box - 8.78 pt at x220.54, white, #527c96 0.48 pt,
+                    // centred where the old 7 pt box was; value right-aligned at x256.62.
                     stream.saveGraphicsState()
-                    stream.setStrokingColor(Color(80, 122, 151))
-                    stream.setLineWidth(0.6f)
-                    stream.addRect(270f, saveY - 1f, 7f, 7f)
-                    stream.stroke()
+                    stream.setNonStrokingColor(Color(255, 255, 255))
+                    stream.setStrokingColor(Color(82, 124, 150))
+                    stream.setLineWidth(0.48f)
+                    stream.addRect(220.54f, saveY - 1.89f, 8.78f, 8.78f)
+                    stream.fillAndStroke()
                     stream.restoreGraphicsState()
                     ability.savingThrowTotal?.let {
                         val value=if(it>=0)"+"+it else it.toString()
-                        p1Bold(stream,value,296f-p1BoldWidth(value,7.2f),saveY,7.2f,Color(38,75,104))
+                        p1Bold(stream,value,256.62f-p1BoldWidth(value,7.2f),saveY,7.2f,Color(38,75,104))
                     }
                 }
             }
@@ -676,7 +681,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             skill.name.isNotBlank()
                         ) {
                             val total = skill.total?.let { if (it >= 0) "+" + it else it.toString() } ?: ""
-                            val remaining = 258f - 34f - skillFont.width.measurePt(total) - 9f
+                            // C350: golden name x54.99 and value edge x256.62 in 220.53 pt.
+                            val remaining = 220.53f - 30.9f - skillFont.width.measurePt(total) - 9f
                             if (skillFont.width.measurePt(approvedSkillName(skill)) <= remaining) {
                                 fitsHere += skillIndex to skill
                                 printedSkillIndices += skillIndex
@@ -694,11 +700,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     rows.forEachIndexed { idx,(_,skill) ->
                         val y=top-36f-idx*10.5f
                         require(y>p1AttributeTop(attrIndex+1)+1f)
-                        fillBand(stream, 43f, y - 3f, 256f, 10.5f, idx + 1)
+                        fillBand(stream, 39.69f, y - 3f, 220.53f, 10.5f, idx + 1)
+                        // C350: golden skill box - 8.5 pt at x43.23, white, #527c96 0.48 pt.
                         stream.saveGraphicsState()
-                        stream.setStrokingColor(Color(130,165,186))
-                        stream.addRect(47f,y-2f,7f,7f)
-                        stream.stroke()
+                        stream.setNonStrokingColor(Color(255, 255, 255))
+                        stream.setStrokingColor(Color(82, 124, 150))
+                        stream.setLineWidth(0.48f)
+                        stream.addRect(43.23f, y - 2.75f, 8.5f, 8.5f)
+                        stream.fillAndStroke()
                         stream.restoreGraphicsState()
                         fun put(value:String,x:Float){
                             if(value.isNotEmpty()){
@@ -710,12 +719,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             }
                         }
                         // C325: v8 training grammar - one check, or two stacked checks.
-                        trainingGlyph(skill.training)?.let { drawStateGlyph(stream, it, 47f, y - 2f, 7f) }
-                        put(approvedSkillName(skill),60f)
+                        // C350: the v8 mark keeps its 7 pt size, centred in the 8.5 pt box.
+                        trainingGlyph(skill.training)?.let { drawStateGlyph(stream, it, 43.98f, y - 2f, 7f) }
+                        put(approvedSkillName(skill),54.99f)
                         skill.total?.let {
                             val v=if(it>=0)"+"+it else it.toString()
                             // C300: golden skill bonus, Noto Sans Bold 7 pt #264b68.
-                            p1Bold(stream,v,294f-p1BoldWidth(v,7f),y,7f,Color(38,75,104))
+                            p1Bold(stream,v,256.62f-p1BoldWidth(v,7f),y,7f,Color(38,75,104))
                         }
                     }
                 }
@@ -724,7 +734,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 var blankRowTop = p1AttributeTop(p1PrintedAttributeCount) - 3f
                 var blankRowIndex = 0
                 while (blankRowTop - 13f >= 105f) {
-                    fillBand(stream, 42f, blankRowTop - 13f, 258f, 13f, blankRowIndex)
+                    fillBand(stream, 39.69f, blankRowTop - 13f, 220.53f, 13f, blankRowIndex)
                     blankRowTop -= 13f
                     blankRowIndex += 1
                 }
@@ -761,9 +771,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // physical columns are genuinely measured: x60..167 and x186..293
             // (19pt between them houses the separator and second checkbox).
             // This never adds a fake skill or clips an overlong source label.
-            val bSkillsArea = PcSheetV11RectPt(60f,220f,233f,95f)
+            // C350: golden B text x54.99..144.28 and x166.96..256.25 (89.29 pt each).
+            // The narrower golden subcolumns take two more rows (11 on the 10.5 pt
+            // pitch) from the blank paper below, so all 18 standard skills stay on P1.
+            val bSkillsArea = PcSheetV11RectPt(54.99f,199f,201.26f,116f)
             val bSkillsPlaced = if(!variantA) PcSheetV11MeasuredFlowPlacer.place(
-                PcSheetV11FlowSection.TRAITS,bSkillEntries,bSkillsArea,2,19f,
+                PcSheetV11FlowSection.TRAITS,bSkillEntries,bSkillsArea,2,22.68f,
                 skillFont.metrics.lineHeightPt,skillFont.width,
             ) else null
             fun drawP1BIndependentSkills(stream: PDPageContentStream) {
@@ -772,26 +785,26 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.setNonStrokingColor(Color(231, 242, 247))
                 stream.setStrokingColor(Color(38, 75, 104))
                 stream.setLineWidth(0.55f)
-                stream.moveTo(46f, 330f)
-                stream.lineTo(296f, 330f)
-                stream.lineTo(300f, 334f)
-                stream.lineTo(300f, 344f)
-                stream.lineTo(296f, 348f)
-                stream.lineTo(46f, 348f)
-                stream.lineTo(42f, 344f)
-                stream.lineTo(42f, 334f)
+                stream.moveTo(43.69f, 330f) // C350 golden left column
+                stream.lineTo(256.22f, 330f)
+                stream.lineTo(260.22f, 334f)
+                stream.lineTo(260.22f, 344f)
+                stream.lineTo(256.22f, 348f)
+                stream.lineTo(43.69f, 348f)
+                stream.lineTo(39.69f, 344f)
+                stream.lineTo(39.69f, 334f)
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
                 // C310: golden B cartela - diamonds, HABILIDADES 9.1 pt ink 16 pt in,
                 // and the P/E legend as the golden grey 6.2 pt note on the right.
-                drawCartelaDiamonds(stream, 42f, 300f, 330f, 348f)
+                drawCartelaDiamonds(stream, 39.69f, 260.22f, 330f, 348f)
                 stream.setNonStrokingColor(Color(29, 56, 79))
-                drawP1Label(stream, "HABILIDADES", 58f, 336f, 9.1f)
+                drawP1Label(stream, "HABILIDADES", 56.69f, 336f, 9.1f)
                 // C329: the legend shows the v8 marks themselves.
                 val skillsLegend = listOf(0xE108 to "COMPETENCIA", 0xE109 to "PERICIA")
                 fun legendWidth(text: String) = bodyPdfFont.getStringWidth(text) * 6.2f / 1000f
-                var legendX = 300f - 18.4f - skillsLegend.sumOf { (_, text) ->
+                var legendX = 260.22f - 18.4f - skillsLegend.sumOf { (_, text) ->
                     (6f + 1.5f + legendWidth(text)).toDouble() }.toFloat() - 6f
                 stream.setNonStrokingColor(Color(101, 125, 144))
                 skillsLegend.forEachIndexed { i, (glyph, text) ->
@@ -808,10 +821,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130,165,186))
                 stream.setLineWidth(0.6f)
-                stream.addRect(42f,105f,258f,223f)
+                stream.addRect(39.69f,105f,220.53f,223f)
                 stream.stroke()
-                stream.moveTo(171f,105f)
-                stream.lineTo(171f,319f)
+                stream.moveTo(149.95f,105f)
+                stream.lineTo(149.95f,319f)
                 stream.stroke()
                 stream.restoreGraphicsState()
                 // The approved B skills cartela remains useful on paper
@@ -829,7 +842,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.setLineWidth(0.45f)
                 stream.setNonStrokingColor(Color(238,247,251))
                 while (ruleY >= blankPaperFloor) {
-                    for ((xStart,xEnd) in listOf(47f to 167f,176f to 295f)) {
+                    for ((xStart,xEnd) in listOf(39.69f to 148.25f,151.65f to 260.22f)) {
                         // Alternate pale-blue usable handwriting bands, never
                         // outside the skills frame or across its divider.
                         stream.addRect(xStart,ruleY-1f,xEnd-xStart,14f)
@@ -846,23 +859,25 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         val baseline = skillFont.metrics.baselineIn(cell.cellPt)
                         val bandRow = Math.round((bSkillsArea.topPt - cell.cellPt.topPt) /
                             skillFont.metrics.lineHeightPt)
-                        val bandLeft = if (cell.cellPt.leftPt < 170f) 47f else 176f
-                        val bandWidth = if (cell.cellPt.leftPt < 170f) 120f else 119f
+                        val bandLeft = if (cell.cellPt.leftPt < 150f) 39.69f else 151.65f
+                        val bandWidth = if (cell.cellPt.leftPt < 150f) 108.56f else 108.57f
                         fillBand(stream, bandLeft, cell.cellPt.bottomPt, bandWidth,
                             cell.cellPt.heightPt, bandRow)
                         if (cell.sourceStartOffset == 0) {
                             // One genuine blank 7×7pt square per SOURCE skill,
                             // never one per wrapped fragment. P/E text is only
                             // a source-backed training label, not a checked state.
+                            // C350: golden B box - 8.5 pt, 11.76 pt before the name.
                             stream.saveGraphicsState()
-                            stream.setStrokingColor(Color(130,165,186))
-                            stream.setLineWidth(0.6f)
-                            stream.addRect(cell.cellPt.leftPt - 11f,
-                                baseline - 2f, 7f, 7f)
-                            stream.stroke()
+                            stream.setNonStrokingColor(Color(255, 255, 255))
+                            stream.setStrokingColor(Color(82, 124, 150))
+                            stream.setLineWidth(0.48f)
+                            stream.addRect(cell.cellPt.leftPt - 11.76f,
+                                baseline - 2.75f, 8.5f, 8.5f)
+                            stream.fillAndStroke()
                             stream.restoreGraphicsState()
                             bSkillTraining[cell.sourceKey]?.let(::trainingGlyph)?.let {
-                                drawStateGlyph(stream, it, cell.cellPt.leftPt - 11f, baseline - 2f, 7f)
+                                drawStateGlyph(stream, it, cell.cellPt.leftPt - 11.01f, baseline - 2f, 7f)
                             }
                         }
                         fun ink(text: String, x: Float) {
@@ -875,7 +890,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         // C241: golden B — value right-aligned 3 pt inside the band.
                         val parts = bSkillParts[cell.sourceKey]
                         val value = parts?.second?.trim().orEmpty()
-                        val valueRight = bandLeft + bandWidth - 3f
+                        val valueRight = bandLeft + bandWidth - 3.97f // C350 golden
                         val oneLine = parts != null && value.isNotEmpty() &&
                             cell.sourceStartOffset == 0 &&
                             cell.sourceEndExclusive == parts.first.length + parts.second.length
@@ -884,6 +899,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             ink(parts.first, cell.cellPt.leftPt)
                             // C302: golden B skill bonus, Noto Sans Bold 7 pt #264b68.
                             p1Bold(stream, value, valueRight - p1BoldWidth(value, 7f), baseline,
+                                7f, Color(38, 75, 104))
+                        } else if (cell.sourceStartOffset > 0 &&
+                            Regex("""^\s*[+-]\d+\s*$""").matches(cell.drawableText)) {
+                            // C350: a value that wrapped alone onto its own row keeps
+                            // the golden right edge of its subcolumn.
+                            val wrapped = cell.drawableText.trim()
+                            p1Bold(stream, wrapped, valueRight - p1BoldWidth(wrapped, 7f), baseline,
                                 7f, Color(38, 75, 104))
                         } else {
                             ink(cell.drawableText, cell.cellPt.leftPt)
