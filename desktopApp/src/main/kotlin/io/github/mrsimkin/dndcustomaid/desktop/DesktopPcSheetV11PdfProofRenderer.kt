@@ -245,6 +245,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val h = minOf(6.2f, top - bottom - 4f)
                 val w = h * 0.57f
                 val mid = (bottom + top) / 2f
+                // C353: every golden cartela carries the inner hairline - 3.4 pt
+                // under its top edge, 9.07 pt in from each side, #bfd3de 0.35 pt.
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(191, 211, 222))
+                stream.setLineWidth(0.35f)
+                stream.moveTo(left + 9.07f, top - 3.4f)
+                stream.lineTo(right - 9.07f, top - 3.4f)
+                stream.stroke()
+                stream.restoreGraphicsState()
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(82, 124, 150))
                 stream.setNonStrokingColor(Color.WHITE)
