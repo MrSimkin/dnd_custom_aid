@@ -2223,8 +2223,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null,
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3RealP2CustomCurrenciesWithPhysicalBreaksPreserveZeroOrderAndWholeC2AmountsAB; g3RealP2RecordedZeroCurrencyIsNotTreatedAsAbsentPaperEntry",
+            "test_result": "PASS on real App PDFs (A/B): every persisted custom currency prints in source order with its untouched label and amount, a recorded amount 0 prints in its own P2 row, and the currencies that do not fit continue whole in C2.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py 0 errors and audit_v11_continuation_cues.py 0 errors.",
+            "limitations": "Desktop renderer PDFs; G2 and G4 stay NOT_VERIFIED."
+          },
           "test_name": "g3RealP2RecordedZeroCurrencyIsNotTreatedAsAbsentPaperEntry"
         }
       ]
@@ -2394,8 +2403,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "g3RealP2NoSpecialEquipmentHasRecognizedLocationsFreeRowsAndBlankActivoBoxes; c325RealStatesUseOwnerParaHojaDePjSymbolsV8GlyphsAB",
+            "test_result": "PASS on real App PDFs: the eight golden ACTIVO boxes (8.79 pt, C343) are printed blank, and no ACTIVO mark (v8 U+E10F) is ever drawn without a real App state; equipped or attuned flags do not mark ACTIVO.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py (P2 special rows: exactly one ACTIVO box per row) 0 errors.",
+            "limitations": "The App has no ACTIVO field yet, so the marked state is unreachable and only its absence is proven; G2 and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -3202,8 +3220,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "mixedC2FillsUsableRightColumnEvenWhenLeftSourceColumnIsLong; g3CustomAttributesKeepLinkedSkillsWithinFittingPhysicalC2ColumnsAB",
+            "test_result": "PASS on real App PDFs: mixed C2 uses two physical columns, filling the usable right column even when the left source column is long, and keeps custom attributes with their linked skills in fitting columns; no single giant vertical column.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: audit_v11_p3_c2_manuscript.py and audit_v11_c207_vacancy.py PASS on the 108 PDFs.",
+            "limitations": "Dedicated C2 table pages are full width (see C205). G2 and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -3298,8 +3325,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "realMaraSinglePageC2EquipmentUsesBothSourceBackedPairs; g3OversizedSpecialEquipmentKeepsSourceIdentityOnEveryC2PageAB",
+            "test_result": "PASS on real App PDFs: C2 ordinary equipment keeps its object/quantity pairs in both columns, and C2 EQUIPO ESPECIAL keeps the four full-width columns (golden x39.69..572.31, C343) on every continuation page with the source identity.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: audit_v11_pdf_physical_envelope.py 0 errors and audit_v11_continuation_cues.py 0 errors.",
+            "limitations": "The golden mixes some C2 tables into shared columns; the app still gives them their own pages. G2 and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
