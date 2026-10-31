@@ -5127,7 +5127,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 val endLine: Int,
                 val heightPt: Float,
             )
-            val c2SpecialArea = PcSheetV11RectPt(39.69f, 76f, 532.62f, 626f) // C343 golden width
+            // C343 golden width; C344: the table starts under the golden C2 cartela
+            // band (y662.74..685.7, 1.98 pt above the table), as golden C2 p5.
+            val c2SpecialArea = PcSheetV11RectPt(39.69f, 76f, 532.62f, 660.76f - 76f)
             val c2SpecialPages = mutableListOf<List<SpecialC2Fragment>>()
             var currentC2 = mutableListOf<SpecialC2Fragment>()
             var availableC2 = c2SpecialArea.heightPt - specialHeaderHeight
@@ -5179,7 +5181,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     c2SpecialPages.single().single().startLine == 0 &&
                     specialHeaderHeight +
                         c2SpecialPages.single().sumOf { it.heightPt.toDouble() } <
-                        fullC2PairedArea.heightPt - pending.upperHeight - 22f - 10f
+                        c2SpecialArea.heightPt - pending.upperHeight - 24.94f - 10f
             }
             if (deferredOrdinaryForSpecial != null && sharedC2 == null) {
                 val separate = requireNotNull(deferredOrdinaryForSpecial)
@@ -5189,7 +5191,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 val shared = sharedC2?.takeIf { pageIndex == 0 }
                 val drawingArea = if (shared != null) PcSheetV11RectPt(
                     c2SpecialArea.leftPt, c2SpecialArea.bottomPt, c2SpecialArea.widthPt,
-                    c2SpecialArea.heightPt - shared.upperHeight - 22f,
+                    c2SpecialArea.heightPt - shared.upperHeight - 24.94f, // C344: cartela gap
                 ) else c2SpecialArea
                 val page = PDPage(PDRectangle.LETTER)
                 pdf.addPage(page)
@@ -5220,9 +5222,16 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         drawFrameAndHeader(stream,
                             "C2 - Equipo especial / continuación / " + (pageIndex + 1))
                     }
-                    // C307: golden 9.1 pt title ink.
-                    stream.setNonStrokingColor(Color(29, 56, 79))
-                    drawP1Label(stream, "EQUIPO ESPECIAL", 42f, drawingArea.topPt + 6f, 9.1f)
+                    // C344: golden C2 p5 - the full-width EQUIPO ESPECIAL cartela with
+                    // its base page before the right diamond («VIENE DE PÁG. n», C341).
+                    drawP2Cartela(stream, "EQUIPO ESPECIAL", drawingArea)
+                    val specialBase = physicalSectionKeys.indexOf("P2 - Equipo y tesoro") + 1
+                    val specialOrigin = pcSheetV11PrintableText(
+                        PcSheetV11ContinuationText.comesFrom(specialBase))
+                    stream.setNonStrokingColor(Color(38, 75, 104))
+                    drawP1Label(stream, specialOrigin, drawingArea.rightPt + 0.01f - 13f -
+                        headerPdfFont.getStringWidth(specialOrigin) * 6.1f / 1000f,
+                        drawingArea.topPt + 1.98f + 5.99f, 6.1f)
                     stream.setNonStrokingColor(Color(36, 57, 75))
                     // An oversized source row can continue with ONLY its
                     // description: name/location were drawn on the prior
@@ -5268,7 +5277,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         stream.setNonStrokingColor(Color(80, 122, 151))
                         stream.beginText()
                         stream.setFont(bodyPdfFont, fontPt)
-                        stream.newLineAtOffset(x, drawingArea.topPt + 6f)
+                        stream.newLineAtOffset(x, 708f) // C344: the free header strip, above the cartela
                         stream.showText(pcSheetV11PrintableText(label))
                         stream.endText()
                         stream.restoreGraphicsState()
