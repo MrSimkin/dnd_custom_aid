@@ -1363,8 +1363,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "denseSixAbilitySourcesKeepAllAbilitiesInBoundsAndDeferOnlySkills; customAttributeAndSkillsStayInSamePhysicalColumnWhenGroupFits",
+            "test_result": "PASS — shared attribute/skill budget and text flow: with dense sources every ability stays inside P1 bounds and only skills are deferred (no compression); a custom attribute and its skills stay in one physical column when the group fits.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: realMaraBPhysicallyPrintsThreeFittingCustomAttributesAndDefersTheFourth on the real PDF.",
+            "limitations": "Composition layer only; G4 stays NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -2225,8 +2234,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "realZeroTreasureIsPrintedRatherThanOmittedOrInvented; hundredsOfDistinctRowsRemainOrderedAndDeterministicWithNoDuplicateSourceIds",
+            "test_result": "PASS — shared paired-table composer: a recorded zero currency is placed as a printed amount, never omitted or invented, and hundreds of distinct currency/equipment rows stay in source order, deterministic and without duplicate source IDs.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: G3 real-PDF tests and audit_v11_pdf_physical_envelope.py 0 errors on the 108 PDFs.",
+            "limitations": "Composition layer only; G4 stays NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -2261,8 +2279,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "longP2LabelWrapsWithIndentedContinuationLinesAndOneAmount; c2SinglePageBalancesBothSourcePairsWithoutChangingFrozenP2OrAmounts",
+            "test_result": "PASS — shared paired-table composer: each label/amount is one internal pair; a long label wraps onto new indented rows inside its own pair with its single amount, and C2 balances both pairs without changing P2 or any amount.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: g3RealP2PairedTableHeadersIdentifyObjectAndDenominationWithoutMovingSourceCells on the real PDF; physical audit 0 errors.",
+            "limitations": "Composition layer only; G3 and G4 stay NOT_VERIFIED for P205."
+          }
         },
         {
           "stage": "G3",
@@ -2354,8 +2381,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "separateFullWidthEntriesPreserveEveryFieldAndUnknownActivoMark; aHugeDescriptionCanCrossFullWidthPagesWithoutDuplicatingActivo",
+            "test_result": "PASS — shared special-equipment composer: every entry is a full-width row with location, name, description and one ACTIVO mark; a huge description crosses full-width pages without duplicating ACTIVO.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: the golden P2/C2 table geometry of C343 measured on the real PDF; physical audit 0 errors.",
+            "limitations": "Composition layer only; G4 stays NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -2405,8 +2441,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "separateFullWidthEntriesPreserveEveryFieldAndUnknownActivoMark",
+            "test_result": "PASS — shared special-equipment composer: an unknown ACTIVO state stays unknown (blank paper box), never derived from other fields.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: c325RealStatesUseOwnerParaHojaDePjSymbolsV8GlyphsAB (no ACTIVO glyph without a real state) on the real PDF.",
+            "limitations": "Composition layer only; the App has no ACTIVO field yet. G4 stays NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -3292,8 +3337,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "customAttributeAndSkillsStayInSamePhysicalColumnWhenGroupFits; oversizedC2AttributeGroupStillPaginatesWithoutLosingIdsOrText",
+            "test_result": "PASS — shared text flow: a custom attribute keeps its linked skills in the same physical column when the group fits; an oversized group still paginates without losing IDs or text.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: g3OversizedRealCustomAttributeShowsItsIdentityOnEveryC2ContinuationColumnAB on the real PDF.",
+            "limitations": "Composition layer only; G4 stays NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -3327,8 +3381,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c2SinglePageBalancesBothSourcePairsWithoutChangingFrozenP2OrAmounts; aHugeDescriptionCanCrossFullWidthPagesWithoutDuplicatingActivo",
+            "test_result": "PASS — shared composers: C2 ordinary equipment keeps both object/quantity pairs, and C2 special equipment stays full width across pages.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: realMaraSinglePageC2EquipmentUsesBothSourceBackedPairs on the real PDF; physical audit 0 errors.",
+            "limitations": "Composition layer only; G4 stays NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -3768,8 +3831,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "bk04MeasuredBookKeepsMediumCardWholeAtStartOfNextColumn; bk05MeasuredBookSplitsOnlyOversizedCardAcrossColumnsAndPagesLosslessly",
+            "test_result": "PASS — shared measured placer: the Libro flows in two real columns; a card with its whole description stays whole (moving to the next column when it fits there) and only an oversized card splits, losslessly.",
+            "source_commit": "c10edba2ab86698a5ec02fc47a293e18ddbe5478",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13026619689",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41160513446/artifacts/13027008245",
+            "independent_inspection": "Same CI run: audit_v11_spellbook_cards.py (18/18 physical card frames) and g3Bk06LibroCardPrintsTheRealSchoolUnderTheNameOnlyWhenTheAppHasOneAB on the real PDF.",
+            "limitations": "Composition layer only; G4 stays NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",

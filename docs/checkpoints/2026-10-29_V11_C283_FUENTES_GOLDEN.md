@@ -79,6 +79,7 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 | C345 | Matriz: P1 en G3 (P102, P105, P107, P109, P120) | Evidencia registrada con la CI 41160513446 (commit c10edba2; PDFs 13026619689, auditoría 13027008245): cada etapa cita la prueba real que la demuestra, la auditoría independiente de la misma ejecución y sus limitaciones. Matriz: 82/242 controles de etapa en PASS. |
 | C346 | Matriz: P2 y C2 en G3 (P204, P209, C205, C202) | Evidencia registrada con la CI 41160513446 (commit c10edba2; PDFs 13026619689, auditoría 13027008245): cada etapa cita la prueba real que la demuestra, la auditoría independiente de la misma ejecución y sus limitaciones. Matriz: 86/242 controles de etapa en PASS. |
 | C347 | Matriz: orden y anexo en G3 (C209, IN07) | Evidencia registrada con la CI 41160513446 (commit c10edba2; PDFs 13026619689, auditoría 13027008245): cada etapa cita la prueba real que la demuestra, la auditoría independiente de la misma ejecución y sus limitaciones. Matriz: 88/242 controles de etapa en PASS. |
+| C348 | Matriz: composición G2 (P204, P205, P208, P209, C205, BK03, P109, C204) | Evidencia registrada con la CI 41160513446 (commit c10edba2; PDFs 13026619689, auditoría 13027008245): cada etapa cita la prueba real que la demuestra, la auditoría independiente de la misma ejecución y sus limitaciones. Matriz: 96/242 controles de etapa en PASS. |
 
 ## Pendiente (siguiente)
 
