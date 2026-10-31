@@ -1,4 +1,4 @@
-"""C248: golden C2 cartela "VIENE P. n" origin labels are identical on Android and Desktop."""
+"""C248/C341: C2 cartela «VIENE DE PÁG. n» origin labels are identical on Android and Desktop."""
 from pathlib import Path
 import re
 import unittest
@@ -17,7 +17,7 @@ class C2CartelaOriginParityTest(unittest.TestCase):
         for path in RENDERERS:
             data = path.read_text(encoding="utf-8")
             part = data.split("// C248: golden C2 cartelas", 1)[1].split("// C213:", 1)[0]
-            self.assertIn('val origin = "VIENE P. " + base', part)
+            self.assertIn("PcSheetV11ContinuationText.comesFrom(base)", part)
             pieces.append(re.sub(r"\s+", " ", part))
         self.assertEqual(pieces[0], pieces[1])
         self.assertIn("g3C2ModuleCartelasShowTheirRealBasePageAB", TESTS.read_text(encoding="utf-8"))

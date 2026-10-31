@@ -1,5 +1,6 @@
 package io.github.mrsimkin.dndcustomaid.desktop
 
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ContinuationText
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowItem
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowSection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableComposer
@@ -261,11 +262,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // C295: golden C2 cartela — diamonds at both ends, title 16 pt in, and
             // "VIENE P. n" before the right diamond; a longer title keeps 5 pt.
             // C334: a long title steps down (9.1 to 7.1 pt) to keep the golden
-            // cartela - diamonds, 16 pt inset and «VIENE P. n» - before falling back.
+            // cartela - diamonds, 16 pt inset and its origin - before falling back.
+            // C341: the origin reads «VIENE DE PÁG. n» (owner 2026-10-30).
             fun c2CartelaTitlePt(text: String, widthPt: Float): Float? =
                 listOf(9.1f, 8.6f, 8.1f, 7.6f, 7.1f).firstOrNull { pt ->
                     16f + headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * pt / 1000f +
-                        8f + headerPdfFont.getStringWidth("VIENE P. 99") * 6f / 1000f + 13f <= widthPt
+                        8f + headerPdfFont.getStringWidth(
+                            pcSheetV11PrintableText(PcSheetV11ContinuationText.comesFrom(99))
+                        ) * 6f / 1000f + 13f <= widthPt
                 }
             fun c2CartelaGoldenFits(text: String, widthPt: Float): Boolean =
                 c2CartelaTitlePt(text, widthPt) != null
@@ -2724,6 +2728,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 sourceTitle = note?.title ?: (note?.sourceId?.toString()
                                     ?: "NOTAS GENERALES"),
                                 stableId = note?.sourceId?.toString() ?: "GENERAL",
+                                fromPage = pdf.numberOfPages,
                                 fits = { value ->
                                     headerPdfFont.getStringWidth(
                                         pcSheetV11PrintableText(value)
@@ -2785,9 +2790,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         }?.sourceKey?.removePrefix("spell-level:")
                                         ?.toIntOrNull()
                                     if (level != null) {
-                                        val context = if (level == 0)
-                                            "TRUCOS 0 / CONTINUACIÓN" // C330 golden
-                                        else "NIVEL " + level + " / CONTINUACIÓN"
+                                        // C330 golden «TRUCOS 0 / CONTINUACIÓN»; C341: a
+                                        // level arriving from another page names it.
+                                        val context = PcSheetV11ContinuationText.arrived(
+                                            if (level == 0) "TRUCOS 0" else "NIVEL " + level,
+                                            if (columnZero == 0 && index > 0) pdf.numberOfPages - 1 else null,
+                                        )
                                         require(p4SourceFont.width.measurePt(context) <=
                                             column.widthPt - 4f) {
                                             "P4 physical column continuation label overflows."
@@ -2908,9 +2916,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         val fontPt = 7f
                                         val shortName = precedingHeading.text
                                             .substringBefore(" / ").substringBefore(",")
+                                        // C341: the first column continues the previous
+                                        // physical page; a later column the one beside it.
+                                        val fromPage = if (columnZero == 0)
+                                            pdf.numberOfPages - 1 else null
                                         val context = listOf(
-                                            "CONTINÚA: " + precedingHeading.text,
-                                            "CONTINÚA: " + shortName,
+                                            PcSheetV11ContinuationText.arrived(precedingHeading.text, fromPage),
+                                            PcSheetV11ContinuationText.arrived(shortName, fromPage),
+                                            shortName,
                                         ).firstOrNull { candidate ->
                                             bodyPdfFont.getStringWidth(
                                                 pcSheetV11PrintableText(candidate)
@@ -2946,17 +2959,22 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                             bodyPdfFont.getStringWidth(
                                                 pcSheetV11PrintableText(text)
                                             ) * fontPt / 1000f <= column.widthPt - 4f
-                                        val full = "CONTINÚA ATRIBUTO: " + attribute.name
+                                        val full = "ATRIBUTO: " + attribute.name
                                         val short = attribute.abbreviation
                                             .takeIf { it.isNotBlank() }
                                             ?.let {
-                                                "CONTINÚA ATRIBUTO: " +
+                                                "ATRIBUTO: " +
                                                     approvedAbilityAbbreviation(it)
                                             }
                                         val sourceId = attribute.reference.customAttributeId
-                                            ?.toString()?.let { "CONTINÚA ID: " + it }
-                                        val context = listOfNotNull(full, short, sourceId)
-                                            .firstOrNull { fits(it) }
+                                            ?.toString()?.let { "ID: " + it }
+                                        // C341: «VIENE DE PÁG. n» when it leaves a page.
+                                        val fromPage = if (columnZero == 0)
+                                            pdf.numberOfPages - 1 else null
+                                        val identities = listOfNotNull(full, short, sourceId)
+                                        val context = (identities.map {
+                                            PcSheetV11ContinuationText.arrived(it, fromPage)
+                                        } + identities).firstOrNull { fits(it) }
                                         requireNotNull(context) {
                                             "C2 source attribute continuation cannot fit the " +
                                                 "existing physical header band."
@@ -3221,7 +3239,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     physicalSectionKeys.indexOf("P2 - Equipo y tesoro") + 1
                                 else physicalSectionKeys.indexOfFirst { it.startsWith("P1 - ") } + 1
                                 if (base > 0) {
-                                    val origin = "VIENE P. " + base
+                                    val origin = pcSheetV11PrintableText(
+                                        PcSheetV11ContinuationText.comesFrom(base)) // C341
                                     val originWidth = headerPdfFont.getStringWidth(origin) * 6.1f / 1000f
                                     stream.setNonStrokingColor(Color(38, 75, 104)) // C295: golden ink
                                     val inkWidth = headerPdfFont.getStringWidth(
@@ -4735,14 +4754,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // C253/C258: golden P3 footer "HISTORIA A P. 6": each continued P3
             // field by its own name (owner 2026-10-28) and the story, with the
             // first real physical page of each, on the module-link band.
-            val p3ModuleLinks = (p3FieldSpecs.indices.mapNotNull { index ->
-                p3FieldHeadingPages["p3-field-heading:" + index]?.let {
-                    p3FieldSpecs[index].first + " A P. " + it
-                }
-            } + listOfNotNull(
-                if (p3StoryOverflow.isNotEmpty()) "HISTORIA A P. " + (p3StoryPagesBefore + 1)
-                else null,
-            )).joinToString("   ·   ").takeIf { it.isNotEmpty() } // C290: golden separator
+            // C341: «IDEALES CONTINÚA EN PÁG. 4 · HISTORIA CONTINÚA EN PÁG. 5».
+            val p3ModuleLinks = PcSheetV11ContinuationText.moduleLinks(
+                p3FieldSpecs.indices.mapNotNull { index ->
+                    p3FieldHeadingPages["p3-field-heading:" + index]?.let {
+                        p3FieldSpecs[index].first to it
+                    }
+                } + listOfNotNull(
+                    if (p3StoryOverflow.isNotEmpty()) "HISTORIA" to (p3StoryPagesBefore + 1)
+                    else null,
+                ),
+            )
             if (p3ModuleLinks != null) {
                 require(headerPdfFont.getStringWidth(p3ModuleLinks) * 6.1f / 1000f <= 528f) {
                     "All genuine P3 continuation destinations must fit the footer band."
@@ -5202,8 +5224,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         fun fits(text: String) =
                             bodyPdfFont.getStringWidth(pcSheetV11PrintableText(text)) *
                                 fontPt / 1000f <= available
-                        val full = "CONTINÚA EQUIPO: " + item.name
-                        val sourceId = "CONTINÚA ID: " + item.sourceId
+                        // C341: a continued row always comes from the previous page.
+                        val fromPage = pdf.numberOfPages - 1
+                        val full = PcSheetV11ContinuationText.arrived("EQUIPO: " + item.name, fromPage)
+                        val sourceId = PcSheetV11ContinuationText.arrived("ID: " + item.sourceId, fromPage)
+                        val plainId = "ID: " + item.sourceId
                         // The full name is drawn losslessly in its real
                         // measured table cells. Its PAPER navigation label is
                         // single-line: explicit source CR/LF must never be sent
@@ -5215,6 +5240,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         val label = when {
                             canUseNameInHeader && fits(full) -> full
                             fits(sourceId) -> sourceId
+                            fits(plainId) -> plainId
                             else -> error("Real C2 special equipment continuation ID " +
                                 "does not fit the existing physical header.")
                         }
@@ -5627,6 +5653,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 it == "P2 - Equipo y tesoro"
             } + 1
             require(physicalP1 > 0 && physicalP2 > 0)
+            val physicalP3 = physicalSectionKeys.indexOf("P3 - Trasfondo / Perfil / Historia") + 1
+            val p3ContinuationFirst = physicalSectionKeys.indexOf("P3 - Narrativa / continuación")
+                .takeIf { it >= 0 }?.plus(1)
             val mixedC2Key = "C2 - Habilidades, acciones y recursos"
             val c2FromP1 = mixedC2P1Pages.minOrNull()
             fun isFromP2(key: String): Boolean =
@@ -5664,16 +5693,19 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // C251: golden P2 footer names EVERY continued module with its real
             // physical page ("EQUIPO A P. 4 · TESORO A P. 5 · EQUIPO ESPECIAL
             // A P. 5"), the same grammar as the P1 footer (C246).
-            val p2ModuleLinks = p2C2Destinations
-                .joinToString("   ·   ") { (module, physical) -> // C290: golden separator
+            // C341: «RASGOS CONTINÚA EN PÁG. 5 · EQUIPO CONTINÚA EN PÁG. 6».
+            val p2ModuleLinks = PcSheetV11ContinuationText.moduleLinks(
+                p2C2Destinations.map { (module, physical) ->
                     when (module) {
                         "EQUIPO/TESORO" -> "EQUIPO Y TESORO"
                         "ESPECIAL" -> "EQUIPO ESPECIAL"
                         else -> module
-                    } + " A P. " + physical
-                }.takeIf { it.isNotEmpty() }
+                    } to physical
+                },
+            )
             if (p2ModuleLinks != null) {
-                require(body.width.measurePt(p2ModuleLinks) <= 528f) {
+                require(headerPdfFont.getStringWidth( // C341: measured as drawn, 6.1 pt
+                        pcSheetV11PrintableText(p2ModuleLinks)) * 6.1f / 1000f <= 528f) {
                     "All genuine P2 module destinations must fit the reserved footer."
                 }
             }
@@ -5686,10 +5718,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 "c2-heading:combat" to "ATAQUES",
                 "c2-heading:resources" to "RECURSOS Y MUNICIONES",
             ).mapNotNull { (key, module) ->
-                mixedC2HeadingPages[key]?.let { module + " A P. " + it }
-            }.joinToString("   ·   ").takeIf { it.isNotEmpty() } // C290: golden separator
+                mixedC2HeadingPages[key]?.let { module to it }
+            }.let { PcSheetV11ContinuationText.moduleLinks(it) } // C341
             if (p1ModuleLinks != null) {
-                require(body.width.measurePt(p1ModuleLinks) <= 528f) {
+                require(headerPdfFont.getStringWidth( // C341: measured as drawn, 6.1 pt
+                        pcSheetV11PrintableText(p1ModuleLinks)) * 6.1f / 1000f <= 528f) {
                     "All genuine P1 module destinations must fit the reserved footer."
                 }
             }
@@ -5723,37 +5756,34 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 require(position >= 0)
                 val prev = sectionPages.getOrNull(position - 1)
                 val next = sectionPages.getOrNull(position + 1)
+                // C341 (owner 2026-10-30): «CONTINÚA EN PÁG. X» where content
+                // leaves this page, «VIENE DE PÁG. Y» where it arrives.
                 val link = when {
                     key.startsWith("P1 - ") && c2FromP1 != null ->
-                        "CONTINÚA EN C2 PÁG. " + c2FromP1
+                        PcSheetV11ContinuationText.continuesOn(c2FromP1)
                     key.startsWith("P2 - ") && c2FromP2 != null ->
-                        "CONTINÚA EN C2 PÁG. " + c2FromP2
-                    key == mixedC2Key -> {
+                        PcSheetV11ContinuationText.continuesOn(c2FromP2)
+                    key == "P3 - Trasfondo / Perfil / Historia" && p3ContinuationFirst != null ->
+                        PcSheetV11ContinuationText.continuesOn(p3ContinuationFirst)
+                    else -> {
                         // A single mixed C2 physical page may contain P1
-                        // continuations, P2 trait continuations, both or neither.
-                        // Link each base page to its FIRST genuine continuation,
-                        // and announce provenance only when it begins there.
-                        val origins = listOfNotNull(
-                            if (physicalPage == c2FromP1)
-                                "P1 PÁG. " + physicalP1 else null,
-                            if (physicalPage == mixedC2TraitPages.minOrNull())
-                                "P2 PÁG. " + physicalP2 else null,
-                        )
+                        // continuations, P2 trait continuations, both or neither:
+                        // announce each base page only where its FIRST genuine
+                        // continuation begins, plus the previous page of the same flow.
+                        val origins = when {
+                            key == mixedC2Key -> listOfNotNull(
+                                physicalP1.takeIf { physicalPage == c2FromP1 },
+                                physicalP2.takeIf { physicalPage == mixedC2TraitPages.minOrNull() },
+                            )
+                            isFromP2(key) && prev == null -> listOf(physicalP2)
+                            key == "P3 - Narrativa / continuación" && prev == null -> listOf(physicalP3)
+                            else -> emptyList()
+                        }
                         listOfNotNull(
-                            origins.takeIf { it.isNotEmpty() }?.let {
-                                "VIENE DE " + it.joinToString(" / ")
-                            },
-                            prev?.let { "ANT. " + it },
-                            next?.let { "SIG. " + it },
+                            PcSheetV11ContinuationText.comesFrom(origins + listOfNotNull(prev)),
+                            next?.let { PcSheetV11ContinuationText.continuesOn(it) },
                         ).joinToString(" | ")
                     }
-                    isFromP2(key) && prev == null ->
-                        "VIENE DE P2 PÁG. " + physicalP2 +
-                            (next?.let { " | SIG. " + it } ?: "")
-                    else -> listOfNotNull(
-                        prev?.let { "ANT. " + it },
-                        next?.let { "SIG. " + it },
-                    ).joinToString(" | ")
                 }
                 PDPageContentStream(
                     pdf, pdf.getPage(index), PDPageContentStream.AppendMode.APPEND,
@@ -5793,7 +5823,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         drawModuleLinks(stream, p3ModuleLinks)
                     }
                     // C340 (owner 2026-10-30, reverses C339): the page number comes
-                    // back so «A P. n» / «VIENE P. n» references resolve, but only
+                    // back so «CONTINÚA EN PÁG. n» / «VIENE DE PÁG. n» resolve, but only
                     // the bare number - no «/ total». Golden counter slot and ink,
                     // unpadded so it reads exactly like the references.
                     val label = physicalPage.toString()

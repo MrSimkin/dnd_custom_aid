@@ -10,41 +10,41 @@ class PcSheetV11NoteContinuationHeaderTest {
     private val base = "C-N3 - Notas digitales / 99999"
 
     @Test
-    fun normalTitleKeepsOriginalVisibleContext() {
+    fun normalTitleKeepsOriginalVisibleContextAndItsOriginPage() {
         val name = "Nota 1 — Hipótesis"
-        val header = PcSheetV11NoteContinuationHeader.choose(base, name, id) { it.length <= 200 }
-        assertEquals(base + " / CONTINÚA: " + name, header)
+        val header = PcSheetV11NoteContinuationHeader.choose(base, name, id, 9) { it.length <= 200 }
+        assertEquals("$base / $name / VIENE DE PÁG. 9", header)
     }
 
     @Test
     fun tooLongTitleAndPagePrefixStillKeepGenuineId() {
         val header = PcSheetV11NoteContinuationHeader.choose(
-            base, "TÍTULO ".repeat(150), id,
+            base, "TÍTULO ".repeat(150), id, 9,
         ) { it.length <= 54 }
-        assertEquals("CONTINÚA ID: " + id, header)
+        assertEquals("ID: $id", header)
         assertTrue(header.contains(id))
     }
 
     @Test
     fun generalNotesKeepExistingReadableCaption() {
         val header = PcSheetV11NoteContinuationHeader.choose(
-            base, "NOTAS GENERALES", "GENERAL",
+            base, "NOTAS GENERALES", "GENERAL", 12,
         ) { it.length <= 200 }
-        assertEquals(base + " / CONTINÚA: NOTAS GENERALES", header)
+        assertEquals("$base / NOTAS GENERALES / VIENE DE PÁG. 12", header)
     }
 
     @Test
     fun sourceControlBreaksUseStableIdRatherThanBrokenHeaderGlyphs() {
         val header = PcSheetV11NoteContinuationHeader.choose(
-            base, "nota con salto\nde línea", id,
+            base, "nota con salto\nde línea", id, 9,
         ) { it.length <= 200 }
-        assertEquals(base + " / CONTINÚA ID: " + id, header)
+        assertEquals("$base / ID: $id / VIENE DE PÁG. 9", header)
     }
 
     @Test
     fun impossiblePhysicalBandFailsInsteadOfDroppingNoteIdentity() {
         assertFailsWith<IllegalStateException> {
-            PcSheetV11NoteContinuationHeader.choose(base, "Título", id) { false }
+            PcSheetV11NoteContinuationHeader.choose(base, "Título", id, 9) { false }
         }
     }
 }

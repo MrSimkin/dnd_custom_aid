@@ -30,7 +30,8 @@ def continued_level_bands(page):
     """Require physical blue clipped context cards at real continued columns."""
     words = page.get_text("words")
     continued = [
-        word for word in words if word[4] == "CONTINUACIÓN"
+        # C341: «NIVEL n / CONTINUACIÓN» or «NIVEL n / VIENE DE PÁG. m».
+        word for word in words if word[4] in ("CONTINUACIÓN", "VIENE")
         and 148 < word[1] < 160 and word[0] >= 39.69  # C322: band above the golden column top
     ]
     bands = [
@@ -108,7 +109,8 @@ def audit_spell_page(page, page_number):
     levels = []
     for line in lines:
         match = LEVEL.search(line)
-        if match and "CONTINUACIÓN" not in line.upper():
+        # C341: a continued level reads «NIVEL n / CONTINUACIÓN» or «… / VIENE DE PÁG. m».
+        if match and "CONTINUACIÓN" not in line.upper() and "VIENE DE PÁG" not in line.upper():
             levels.append(int(match.group(1)))
     # PDF drawing inspection, separate from the Kotlin text/slot model.
     squares = []

@@ -19,8 +19,8 @@ class P2ModuleLinksParityTest(unittest.TestCase):
             self.assertNotIn("OTROS C2", data)
             part = data.split("// C251: golden P2 footer", 1)[1].split("// C246:", 1)[0]
             self.assertIn('"ESPECIAL" -> "EQUIPO ESPECIAL"', part)
-            self.assertIn('} + " A P. " + physical', part)
-            self.assertIn('.joinToString("   ·   ")', part)
+            self.assertIn("PcSheetV11ContinuationText.moduleLinks(", part)  # C341
+            self.assertIn("} to physical", part)
             self.assertIn("drawModuleLinks(stream, p2ModuleLinks)", data)
             pieces.append(re.sub(r"\s+", " ", part))
         self.assertEqual(pieces[0], pieces[1])

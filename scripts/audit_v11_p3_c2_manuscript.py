@@ -240,10 +240,18 @@ def c2_context_result(page: fitz.Page) -> tuple[int, int, list[str]]:
     Deliberately checks only captions already printed in the reserved header
     gap; does not invent missing source identities or approve whole C2.
     """
-    captions = [
+    # C341: a continued source caption is «IDENTIDAD / VIENE DE PÁG. n» or
+    # «IDENTIDAD / CONTINUACIÓN»; check the first word of each such line.
+    words = [
         w for w in page.get_text("words")
-        if w[4].startswith("CONTINÚA") and 76.3 <= w[1] <= 79.0
-        and w[3] < 88
+        if 76.3 <= w[1] <= 79.0 and w[3] < 88
+    ]
+    lines: dict[tuple[int, int], list] = {}
+    for w in words:
+        lines.setdefault((w[5], w[6]), []).append(w)
+    captions = [
+        min(line, key=lambda w: w[0]) for line in lines.values()
+        if any(w[4] in ("VIENE", "CONTINUACIÓN") for w in line)
     ]
     color = (231 / 255, 242 / 255, 247 / 255)  # C293 golden cartela fill
     bands = [

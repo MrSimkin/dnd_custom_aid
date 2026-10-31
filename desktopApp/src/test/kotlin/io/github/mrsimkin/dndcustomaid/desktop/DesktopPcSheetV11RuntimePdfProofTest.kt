@@ -1003,10 +1003,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 .containsMatchIn(commands),
                 "Source-backed mixed C2 requires a distinct clipped blue " +
                     "NOTAS heading above a complete physical manuscript grid.")
-            assertTrue(text.contains("VIENE DE P1 PÁG. 1"),
+            assertTrue(text.contains("VIENE DE PÁG. 1"),
                 "C2 cartelas cannot disturb genuine physical P1 backlinks.")
             if (text.contains("RASGOS / CONTINUACIÓN P2")) {
-                assertTrue(text.contains("P2 PÁG. 2"),
+                assertTrue(2 in cameFromPages(text),
                     "Only a C2 that actually contains deferred P2 Rasgos may cite P2.")
             }
         }
@@ -1233,27 +1233,23 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(physicalMixedC2.contains("Técnica 2"),
                 "Mara's overflowed real combat action must remain in C2.")
             assertTrue(pagesByPhysicalNumber[p1Physical - 1].contains(
-                "CONTINÚA EN C2 PÁG. " + mixedC2Physical,
+                "CONTINÚA EN PÁG. " + mixedC2Physical,
             ), "P1 must point to C2 with skills/actions/resources.")
-            assertTrue(pagesByPhysicalNumber[mixedC2Physical - 1].contains(
-                "VIENE DE P1 PÁG. " + p1Physical,
-            ), "Mixed C2 must link to the true physical P1, never P2.")
+            assertTrue(p1Physical in cameFromPages(pagesByPhysicalNumber[mixedC2Physical - 1]),
+                "Mixed C2 must link to the true physical P1, never P2.")
             if (pagesByPhysicalNumber[mixedC2Physical - 1]
                     .contains("RASGOS / CONTINUACIÓN P2")) {
-                assertTrue(pagesByPhysicalNumber[mixedC2Physical - 1]
-                    .contains("P2 PÁG. " + p2Physical),
+                assertTrue(p2Physical in cameFromPages(pagesByPhysicalNumber[mixedC2Physical - 1]),
                     "A mixed page with genuine P2 traits needs both source backlinks.")
             } else {
-                assertFalse(pagesByPhysicalNumber[mixedC2Physical - 1]
-                    .contains("VIENE DE P2 PÁG."),
+                assertFalse(p2Physical in cameFromPages(pagesByPhysicalNumber[mixedC2Physical - 1]),
                     "A P1-only mixed page must never invent a P2 provenance.")
             }
             assertTrue(pagesByPhysicalNumber[p2Physical - 1].contains(
-                "CONTINÚA EN C2 PÁG. " + p2C2Physical,
+                "CONTINÚA EN PÁG. " + p2C2Physical,
             ), "P2 must point to its OWN first continuation, not mixed P1 C2.")
-            assertTrue(pagesByPhysicalNumber[p2C2Physical - 1].contains(
-                "P2 PÁG. " + p2Physical,
-            ), "The first P2-owned C2 (dedicated OR mixed) must link to physical P2.")
+            assertTrue(p2Physical in cameFromPages(pagesByPhysicalNumber[p2C2Physical - 1]),
+                "The first P2-owned C2 (dedicated OR mixed) must link to physical P2.")
             assertFalse(Regex("""\d{2} / \d{2}""").containsMatchIn(pagesByPhysicalNumber.last()),
                 "The mandatory final handwritten page has no digital footer.")
             assertTrue(printed.contains("EQUIPO"))
@@ -1923,7 +1919,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 assertTrue(subsequent.size >= 2)
                 subsequent.forEach { (_, _, header) ->
-                    assertTrue(header.contains("CONTINÚA ATRIBUTO: QAMEGAATRIBUTO"),
+                    assertTrue(header.contains("ATRIBUTO: QAMEGAATRIBUTO"),
                         "Continued skills require the true source attribute in " +
                             "the free per-column header band.")
                 }
@@ -2184,7 +2180,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // Spellbook notes: the special entry is never duplicated.
                 assertEquals(2, Regex("Evocation Savant")
                     .findAll(flat(pages.joinToString("\n"))).count())
-                assertFalse(pages[1].contains("CONTINÚA EN C2"),
+                assertFalse(pages[1].contains("CONTINÚA EN PÁG."),
                     "P2 must not point to a C2 that no longer exists.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
             }
@@ -2220,10 +2216,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertFalse(pages.any { it.contains("C2 - Rasgos / continuación") },
                 "No dedicated C2 page may be fabricated just to print descriptions.")
             if (mixed.contains("RASGOS / CONTINUACIÓN P2")) {
-                assertTrue(mixed.contains("P2 PÁG. 2"),
+                assertTrue(2 in cameFromPages(mixed),
                     "True mixed P2 Rasgo continuation needs genuine backlink.")
             } else {
-                assertFalse(mixed.contains("VIENE DE P2 PÁG."),
+                assertFalse(2 in cameFromPages(mixed),
                     "A P1-only mixed C2 must not fabricate P2 provenance.")
             }
             assertTrue(pages.last().trim().endsWith("NOTAS"))
@@ -2284,7 +2280,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         "Every physical page needs the same navigable one-line name: " +
                             (index + 1))
                 }
-                assertTrue(pages.first().contains("CONTINÚA EN C2 PÁG."),
+                assertTrue(pages.first().contains("CONTINÚA EN PÁG."),
                     "P1 must link to the genuine page containing the full name.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
                 assertFalse(pages.last().contains("NOMBRE COMPLETO DEL PERSONAJE:"))
@@ -2330,7 +2326,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertEquals(1, Regex("QACABECERA").findAll(c2Body).count())
                 assertEquals(1, Regex("QANOMBRECOMPLETO").findAll(c2Body).count())
                 assertEquals(1, Regex("DELPC").findAll(c2Body).count())
-                assertTrue(pages.first().contains("CONTINÚA EN C2 PÁG."),
+                assertTrue(pages.first().contains("CONTINÚA EN PÁG."),
                     "P1 must link to its actual C2 source body.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
                 assertTrue(pdf.numberOfPages >= 4)
@@ -5048,15 +5044,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 fun originOf(heading: String): String? {
                     val head = runs.firstOrNull { it.first.startsWith(heading) } ?: return null
                     return runs.firstOrNull {
-                        it.first.startsWith("VIENE P. ") && kotlin.math.abs(it.third - head.third) < 0.6f &&
+                        it.first.startsWith("VIENE DE PÁG. ") && kotlin.math.abs(it.third - head.third) < 0.6f &&
                             it.second > head.second && it.second < head.second + 258f
                     }?.first
                 }
                 assertTrue(c2.contains("RECURSOS Y MUNICIONES"), "Mara C2 has resources ($variant).")
                 listOf("ATAQUES, NOTAS Y ESPACIOS REALES", "RECURSOS Y MUNICIONES").forEach {
-                    assertEquals("VIENE P. 1", originOf(it), "$it comes from P1 ($variant).")
+                    assertEquals("VIENE DE PÁG. 1", originOf(it), "$it comes from P1 ($variant).")
                 }
-                assertEquals("VIENE P. 2", originOf("RASGOS / CONTINUACIÓN P2"),
+                assertEquals("VIENE DE PÁG. 2", originOf("RASGOS / CONTINUACIÓN P2"),
                     "P2 traits continuation comes from P2 ($variant).")
             }
         }
@@ -5167,11 +5163,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     val pages = (1..pdf.numberOfPages).map { n ->
                         PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
                     }
-                    val footer = pages.first().lineSequence().firstOrNull { it.contains(" A P. ") }
+                    val footer = pages.first().lineSequence().firstOrNull { moduleLinksOf(it).isNotEmpty() }
                     assertTrue(footer != null, "P1 footer lists continued modules ($fixture $variant).")
-                    val links = Regex("""([A-ZÁÉÍÓÚ ]+?) A P\. (\d+)""").findAll(footer!!)
-                        .map { it.groupValues[1].trim().removePrefix("· ").trim() to it.groupValues[2].toInt() }
-                        .toList()
+                    val links = moduleLinksOf(footer!!)
                     assertTrue(links.isNotEmpty())
                     links.forEach { (module, page) ->
                         val heading = requireNotNull(headings[module]) { "Unknown P1 module $module" }
@@ -5206,11 +5200,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val pages = (1..pdf.numberOfPages).map { n ->
                     PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
                 }
-                val footer = pages[1].lineSequence().firstOrNull { it.contains(" A P. ") }
+                val footer = pages[1].lineSequence().firstOrNull { moduleLinksOf(it).isNotEmpty() }
                 assertTrue(footer != null, "P2 footer lists continued modules ($variant).")
                 assertFalse(pages[1].contains("OTROS C2"), "Old P2 footer grammar ($variant).")
-                val links = Regex("""([A-ZÁÉÍÓÚ ]+?) A P\. (\d+)""").findAll(footer!!)
-                    .map { it.groupValues[1].trim() to it.groupValues[2].toInt() }.toList()
+                val links = moduleLinksOf(footer!!)
                 assertEquals(listOf("RASGOS", "EQUIPO", "EQUIPO ESPECIAL"), links.map { it.first },
                     "Mara P2 continues traits, equipment and special equipment ($variant).")
                 links.forEach { (module, page) ->
@@ -5258,11 +5251,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }
                     val p3 = pages.indexOfFirst { it.contains("P3 - Trasfondo") }
                     assertTrue(p3 >= 0)
-                    val footer = pages[p3].lineSequence().firstOrNull { it.contains(" A P. ") }
-                    val links = footer?.let { line ->
-                        Regex("""([A-ZÁÉÍÓÚ ]+?) A P\. (\d+)""").findAll(line)
-                            .map { it.groupValues[1].trim() to it.groupValues[2].toInt() }.toList()
-                    }.orEmpty()
+                    val footer = pages[p3].lineSequence().firstOrNull { moduleLinksOf(it).isNotEmpty() }
+                    val links = footer?.let { moduleLinksOf(it) }.orEmpty()
                     assertEquals(expected, links.map { it.first }, "P3 links ($variant): $footer")
                     links.forEach { (module, page) ->
                         val first = pages.indexOfFirst { text ->
@@ -5304,7 +5294,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         override fun writeString(
                             text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
                         ) {
-                            if (text.contains(" A P. ")) {
+                            if (moduleLinksOf(text).isNotEmpty()) { // C341: the band, not the right link
                                 textPositions.forEach { sizes += it.fontSizeInPt to 792f - it.yDirAdj }
                             }
                         }
@@ -5539,7 +5529,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val joined = pages.joinToString("\n")
                 assertEquals(1, Regex("CN3-LARGE-NAME-START").findAll(joined).count())
                 assertEquals(1, Regex("CN3-LARGE-NAME-END").findAll(joined).count())
-                assertTrue(pages.any { it.contains("CONTINÚA ID: " + sourceId) },
+                assertTrue(pages.any { it.contains("ID: " + sourceId) },
                     "A long real note title cannot erase its UUID in the continuation.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
                 assertFalse(pages.last().contains("CN3-LARGE-NAME-END"))
@@ -5616,7 +5606,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(cn3.size >= 2,
                     "Long genuine digital note must span multiple C-N3 physical pages.")
                 assertTrue(cn3.drop(1).all {
-                    it.contains("CONTINÚA: " + note.title)
+                    it.contains(note.title + " / VIENE DE PÁG.")
                 }, "A physical continuation page must identify the original note.")
                 val all = cn3.joinToString("\n")
                 assertEquals(1, Regex("CN3ACTUALSTART").findAll(all).count())
@@ -5689,7 +5679,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 startPage = pageNumber
                 endPage = pageNumber
             }.getText(pdf)
-            assertTrue(printed.contains("VIENE DE P2 PÁG. 2"))
+            assertTrue(printed.contains("VIENE DE PÁG. 2"))
             assertTrue(printed.lineSequence().any { it.trim() == "NOTAS" },
                 "Balancing must preserve handwriting on the same physical C2.")
         }
@@ -5819,10 +5809,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "The real source description must cross a physical C2 page.")
                 assertTrue(specialPages.first().contains(label) &&
                     specialPages.first().contains("QAC2INICIO"))
-                assertFalse(specialPages.first().contains("CONTINÚA EQUIPO: " + label),
+                assertFalse(specialPages.first().contains("EQUIPO: " + label + " / VIENE DE PÁG."),
                     "The first appearance is the genuine source row, not a repeat.")
                 specialPages.drop(1).forEach { page ->
-                    assertTrue(page.contains("CONTINÚA EQUIPO: " + label),
+                    assertTrue(page.contains("EQUIPO: " + label + " / VIENE DE PÁG."),
                         "A new physical C2 page must retain the source identity.")
                     assertTrue(page.contains("UBICACIÓN") && page.contains("NOMBRE") &&
                         page.contains("DESCRIPCIÓN") && page.contains("ACTIVO"),
@@ -5897,11 +5887,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertEquals(1, Regex("QADESCINICIO").findAll(allText).count())
                 assertEquals(1, Regex("QADESCFINAL").findAll(allText).count())
                 assertTrue(c2.first().contains("QANOMBREINICIO"))
-                assertFalse(c2.first().contains("CONTINÚA ID: " + id))
+                assertFalse(c2.first().contains("ID: " + id + " / VIENE DE PÁG."))
                 c2.drop(1).forEach { page ->
-                    assertTrue(page.contains("CONTINÚA ID: " + id),
+                    assertTrue(page.contains("ID: " + id + " / VIENE DE PÁG."),
                         "Each continued real C2 page must retain the source UUID.")
-                    assertFalse(page.contains("CONTINÚA EQUIPO: QANOMBREINICIO"))
+                    assertFalse(page.contains("EQUIPO: QANOMBREINICIO"))
                     assertTrue(page.contains("UBICACIÓN") &&
                         page.contains("NOMBRE") && page.contains("DESCRIPCIÓN") &&
                         page.contains("ACTIVO"))
@@ -6138,7 +6128,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "P1 must retain the paper trait summary area.")
                 assertTrue(pages.any { it.contains("P2 - Equipo y tesoro") },
                     "P2 remains the continuation/trait area.")
-                assertTrue(pages.any { it.contains("C2") && it.contains("RASGOS") },
+                assertTrue(pages.drop(1).any { it.contains("RASGOS") },
                     "48 real trait identities must overflow to C2, not disappear.")
                 rawTraits.forEachIndexed { index, trait ->
                     val key = "RSGQ" + index.toString().padStart(3, '0')
@@ -6490,9 +6480,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(treasurePages.isNotEmpty(),
                     "The independent treasure stream must also overflow to C2.")
                 assertTrue(equipmentPages.last() < treasurePages.first())
-                assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " +
+                assertTrue(pages[1].contains("CONTINÚA EN PÁG. " +
                     equipmentPages.first()))
-                assertTrue(pages[1].contains("TESORO A P. " +
+                assertTrue(pages[1].contains("TESORO CONTINÚA EN PÁG. " +
                     treasurePages.first()),
                     "P2 must link independently to the physical TESORO start.")
                 val p2Footer = PDFTextStripperByArea().apply {
@@ -6500,31 +6490,31 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         Rectangle2D.Float(42f, 734f, 528f, 16f)) // C290: golden band y43.94..56.98
                     extractRegions(pdf.getPage(1))
                 }.getTextForRegion("module-forward-links")
-                assertTrue(p2Footer.contains("EQUIPO A P. " + equipmentPages.first() +
-                    "   ·   TESORO A P. " + treasurePages.first()),
+                assertTrue(p2Footer.contains("EQUIPO CONTINÚA EN PÁG. " + equipmentPages.first() +
+                    "   ·   TESORO CONTINÚA EN PÁG. " + treasurePages.first()),
                     "Every distinct P2 module needs a visible source-backed forward cue.")
 
                 for (physical in equipmentPages) {
                     val footer = pages[physical - 1]
                     if (physical == equipmentPages.first()) {
-                        assertTrue(footer.contains("VIENE DE P2 PÁG. 2"))
-                        assertFalse(footer.contains("ANT. "))
+                        assertTrue(footer.contains("VIENE DE PÁG. 2"))
+                        assertEquals(setOf(2), cameFromPages(footer))
                     }
                     if (physical == equipmentPages.last()) {
-                        assertFalse(footer.contains("SIG. " + treasurePages.first()),
+                        assertFalse(footer.contains("CONTINÚA EN PÁG. " + treasurePages.first()),
                             "Equipo cannot link to the next DIFFERENT table.")
-                        assertFalse(footer.contains("SIG. "),
+                        assertFalse(footer.contains("CONTINÚA EN PÁG."),
                             "Last Equipo page must not point to Tesoro.")
                     } else {
-                        assertTrue(footer.contains("SIG. " + (physical + 1)))
+                        assertTrue(footer.contains("CONTINÚA EN PÁG. " + (physical + 1)))
                     }
                 }
                 val firstTreasure = pages[treasurePages.first() - 1]
-                assertTrue(firstTreasure.contains("VIENE DE P2 PÁG. 2"),
+                assertTrue(firstTreasure.contains("VIENE DE PÁG. 2"),
                     "Independent Tesoro must link to its real P2 parent.")
-                assertFalse(firstTreasure.contains("ANT. " + equipmentPages.last()),
+                assertFalse(equipmentPages.last() in cameFromPages(firstTreasure),
                     "First Tesoro must not claim the last Equipo page as a parent.")
-                assertFalse(firstTreasure.contains("ANT. "),
+                assertEquals(setOf(2), cameFromPages(firstTreasure),
                     "Treasure begins a new module, not a continuation of equipment.")
                 // C211 R1: names can now wrap on P2; compare whitespace-normalized text.
                 val whole = pages.joinToString("\n").replace(Regex("\\s+"), " ")
@@ -6600,13 +6590,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     it.contains("C2 - Habilidades, acciones y recursos")
                 } + 1
                 assertTrue(mixedPage > 3, "P2-only trait overflow must reach C2.")
-                assertFalse(pages[0].contains("CONTINÚA EN C2"),
+                assertFalse(pages[0].contains("CONTINÚA EN PÁG."),
                     "P1 must not advertise a C2 page containing ONLY P2 traits.")
-                assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " + mixedPage),
+                assertTrue(pages[1].contains("CONTINÚA EN PÁG. " + mixedPage),
                     "P2 must link to the real first physical traits continuation.")
-                assertTrue(pages[mixedPage - 1].contains("VIENE DE P2 PÁG. 2"),
+                assertTrue(pages[mixedPage - 1].contains("VIENE DE PÁG. 2"),
                     "P2-only mixed C2 must identify its actual base page.")
-                assertFalse(pages[mixedPage - 1].contains("VIENE DE P1"),
+                assertFalse(1 in cameFromPages(pages[mixedPage - 1]),
                     "P2-only mixed C2 must never falsely claim a P1 source.")
                 assertTrue(pages.joinToString("\n").contains("Rasgo de navegacion 118"),
                     "The final original trait identity must survive P1/P2/C2.")
@@ -6655,7 +6645,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // C259: P2 points to the first C2 page that really holds its traits.
                 val p2TraitsPage = pages.indexOfFirst { it.contains("RASGOS / CONTINUACIÓN P2") } + 1
                 assertTrue(p2TraitsPage in c2 &&
-                    pages[1].contains("CONTINÚA EN C2 PÁG. " + p2TraitsPage),
+                    pages[1].contains("CONTINÚA EN PÁG. " + p2TraitsPage),
                     "P2 must use the NEW final physical C2 destination.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
                 assertFalse(pages.last().contains("P4 - Conjuros") ||
@@ -6709,7 +6699,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }
                 }
                 assertTrue(
-                    reservedHeaders.any { it.contains("CONTINÚA: RECURSOS Y MUNICIONES") },
+                    reservedHeaders.any { resourceCaption.containsMatchIn(it) },
                     "A continued real resource group requires its label in " +
                         "the RESERVED right C2 header, not an anonymous paragraph.",
                 )
@@ -6717,8 +6707,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(c2Text.contains("Reserva 3"),
                     "Group context may not remove real Mara resource records.")
                 assertEquals(1,
-                    Regex(Regex.escape("CONTINÚA: RECURSOS Y MUNICIONES"))
-                        .findAll(c2Text).count(),
+                    resourceCaption.findAll(c2Text).count(),
                     "A physical C2 source-group header must not duplicate itself.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
             }
@@ -6749,14 +6738,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     it.contains("C2 - Habilidades, acciones y recursos")
                 } + 1
                 assertTrue(mixedPhysical > 0)
-                assertTrue(pages[0].contains("CONTINÚA EN C2 PÁG. " + mixedPhysical))
-                assertTrue(pages[mixedPhysical - 1].contains("VIENE DE P1 PÁG. 1"))
+                assertTrue(pages[0].contains("CONTINÚA EN PÁG. " + mixedPhysical))
+                assertTrue(pages[mixedPhysical - 1].contains("VIENE DE PÁG. 1"))
                 if (fixture.contains("mara")) {
                     // C259: P2 points to the first mixed C2 page with its traits.
                     val p2Physical = pages.indexOfFirst { it.contains("RASGOS / CONTINUACIÓN P2") } + 1
                     assertTrue(p2Physical >= mixedPhysical)
-                    assertTrue(pages[1].contains("CONTINÚA EN C2 PÁG. " + p2Physical))
-                    assertTrue(pages[p2Physical - 1].contains("P2 PÁG. 2"))
+                    assertTrue(pages[1].contains("CONTINÚA EN PÁG. " + p2Physical))
+                    assertTrue(2 in cameFromPages(pages[p2Physical - 1]))
                     val ordinaryC2 = pages.indexOfFirst {
                         it.contains("C2 - Equipo y tesoro / EQUIPO")
                     } + 1
@@ -6764,9 +6753,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         it.contains("C2 - Equipo especial / continuación")
                     } + 1
                     assertTrue(ordinaryC2 > mixedPhysical && specialC2 > ordinaryC2)
-                    assertTrue(pages[1].contains("EQUIPO A P. " + ordinaryC2),
+                    assertTrue(pages[1].contains("EQUIPO CONTINÚA EN PÁG. " + ordinaryC2),
                         "Mara P2 must lead to its separate ordinary-equipment C2.")
-                    assertTrue(pages[1].contains("EQUIPO ESPECIAL A P. " + specialC2),
+                    assertTrue(pages[1].contains("EQUIPO ESPECIAL CONTINÚA EN PÁG. " + specialC2),
                         "Mara P2 must lead to its separate special-equipment C2.")
 
                 }
@@ -7003,7 +6992,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(combined.single().contains("TESORO / CANTIDAD"))
                 assertFalse(pages.any { it.contains("C2 - Equipo y tesoro / EQUIPO") },
                     "No ordinary object is left for C2.")
-                assertTrue(combined.single().contains("VIENE DE P2 PÁG. 2"))
+                assertTrue(combined.single().contains("VIENE DE PÁG. 2"))
                 val c2 = combined.joinToString("\n")
                 val full = pages.joinToString("\n")
                 assertTrue(p2.contains("QACOINZERO"),
@@ -7116,3 +7105,19 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
 }
+
+// C341 (owner 2026-10-30): pages named by «VIENE DE PÁG. 1, 2 Y 4».
+private fun cameFromPages(text: String): Set<Int> =
+    Regex("""VIENE DE PÁG\. (\d+(?:(?:, | Y )\d+)*)""").findAll(text)
+        .flatMap { match -> Regex("""\d+""").findAll(match.groupValues[1]).map { it.value.toInt() } }
+        .toSet()
+
+// C341: module band «A, B CONTINÚAN EN PÁG. 4   ·   C CONTINÚA EN PÁG. 5».
+private fun moduleLinksOf(line: String): List<Pair<String, Int>> =
+    Regex("""([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ ,]*?) CONTINÚAN? EN PÁG\. (\d+)""").findAll(line)
+        .flatMap { match ->
+            match.groupValues[1].split(", ").map { it.trim() to match.groupValues[2].toInt() }
+        }.toList()
+
+private val resourceCaption =
+    Regex("""RECURSOS Y MUNICIONES / (?:VIENE DE PÁG\. \d+|CONTINUACIÓN)""")

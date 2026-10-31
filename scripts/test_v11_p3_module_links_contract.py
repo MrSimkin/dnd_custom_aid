@@ -18,8 +18,9 @@ class P3ModuleLinksParityTest(unittest.TestCase):
             data = path.read_text(encoding="utf-8")
             part = data.split("val p3StoryPagesBefore = physicalSectionKeys.size", 1)[1].split(
                 "// Resource balances and ammunition", 1)[0]
-            self.assertIn('"HISTORIA A P. " + (p3StoryPagesBefore + 1)', part)
-            self.assertIn('p3FieldSpecs[index].first + " A P. " + it', part)
+            self.assertIn('"HISTORIA" to (p3StoryPagesBefore + 1)', part)  # C341
+            self.assertIn("p3FieldSpecs[index].first to it", part)
+            self.assertIn("PcSheetV11ContinuationText.moduleLinks(", part)
             self.assertIn('if (key == "P3 - Trasfondo / Perfil / Historia" && p3ModuleLinks != null) {', data)
             pieces.append(re.sub(r"\s+", " ", part))
         self.assertEqual(pieces[0], pieces[1])
