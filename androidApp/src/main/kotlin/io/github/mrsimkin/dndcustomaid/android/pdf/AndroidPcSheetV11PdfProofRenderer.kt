@@ -5786,8 +5786,16 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     if (key == "P3 - Trasfondo / Perfil / Historia" && p3ModuleLinks != null) {
                         drawModuleLinks(stream, p3ModuleLinks)
                     }
-                    // C339 (owner 2026-10-30): «ninguna página debe tener número de
-                    // página» - the golden «01 / 11» footer counter is not printed.
+                    // C340 (owner 2026-10-30, reverses C339): the page number comes
+                    // back so «A P. n» / «VIENE P. n» references resolve, but only
+                    // the bare number - no «/ total». Golden counter slot and ink,
+                    // unpadded so it reads exactly like the references.
+                    val label = physicalPage.toString()
+                    stream.saveGraphicsState()
+                    stream.setNonStrokingColor(Color(38, 75, 104))
+                    drawP1Label(stream, label, 569.48f -
+                        headerPdfFont.getStringWidth(label) * 8.2f / 1000f, 32.6f, 8.2f)
+                    stream.restoreGraphicsState()
                 }
             }
             pdf.save(target)

@@ -228,11 +228,21 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.getText(pdf)
                 assertFalse(Regex("""\d+\s*/\s*\d+""").containsMatchIn(last),
                     "The final NOTAS sheet prints no page number ($variant).")
-                // C339: no page carries the golden «NN / NN» counter.
+                // C340: every page but the final NOTAS prints its bare physical
+                // number in the golden counter slot; none prints «NN / NN».
                 for (page in 1..pdf.numberOfPages) {
                     val text = PDFTextStripper().apply { startPage = page; endPage = page }.getText(pdf)
                     assertFalse(Regex("""\b\d{2} / \d{2}\b""").containsMatchIn(text),
-                        "Page $page prints no page-number counter ($variant).")
+                        "Page $page prints no «NN / NN» counter ($variant).")
+                    val slot = PDFTextStripperByArea().apply {
+                        addRegion("n", java.awt.geom.Rectangle2D.Float(544f, 750f, 30f, 14f))
+                        extractRegions(pdf.getPage(page - 1))
+                    }.getTextForRegion("n").trim()
+                    if (page < pdf.numberOfPages) {
+                        assertEquals(page.toString(), slot, "Page $page prints its bare number ($variant).")
+                    } else {
+                        assertEquals("", slot, "The final NOTAS sheet prints no page number ($variant).")
+                    }
                 }
             }
         }
@@ -1189,10 +1199,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     endPage = number
                 }.getText(pdf)
             }
-            // C339 (owner 2026-10-30): no page prints a page-number counter.
+            // C340 (owner 2026-10-30): bare page number, never «NN / NN».
             assertTrue(pagesByPhysicalNumber.none {
                 Regex("""\b\d{2} / \d{2}\b""").containsMatchIn(it)
-            }, "No physical page prints a page-number counter.")
+            }, "No physical page prints a «NN / NN» counter.")
             fun realHeading(page: String, heading: String) =
                 page.lineSequence().any { line -> line.trim().startsWith(heading) }
             val p1Physical = pagesByPhysicalNumber.indexOfFirst {

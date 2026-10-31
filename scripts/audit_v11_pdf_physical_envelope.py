@@ -110,6 +110,8 @@ def cn3_cards(page: fitz.Page) -> list[str]:
 
 # C290: golden page number "01 / 11", right edge x569.48, baseline y32.6.
 FOOTER = re.compile(r"\b(\d{2})\s*/\s*(\d{2})\b")
+PAGE_NUMBER = re.compile(r"^\d{1,2}$")
+PAGE_NUMBER_CLIP = fitz.Rect(544, 750, 575, 766)
 FOOTER_CLIP = fitz.Rect(500, 750, 575, 766)
 
 
@@ -136,10 +138,16 @@ def inspect_one(path: Path) -> dict:
         fonts = " ".join(item[3] for item in page.get_fonts(full=True))
         if "NotoSansDisplay" not in fonts or (index < total and "NotoSans-Regular" not in fonts):
             errors.append(f"p{index}: expected embedded text font missing")
-        # C339 (owner 2026-10-30): no page prints a page-number counter.
-        foot = FOOTER.findall(page.get_text(clip=FOOTER_CLIP))
-        if foot:
-            errors.append(f"p{index}: unexpected page-number counter {foot}")
+        # C340 (owner 2026-10-30): bare physical page number on every page but
+        # the final manuscript NOTAS; the golden «NN / NN» counter never returns.
+        foot_text = page.get_text(clip=PAGE_NUMBER_CLIP).strip()
+        if FOOTER.findall(foot_text):
+            errors.append(f"p{index}: «NN / NN» counter must not be printed {foot_text!r}")
+        number = [t for t in foot_text.split() if PAGE_NUMBER.match(t)]
+        if index < total and number != [str(index)]:
+            errors.append(f"p{index}: missing or inconsistent page number {foot_text!r}")
+        if index == total and number:
+            errors.append(f"p{index}: last manuscript-only NOTES has an unexpected page number")
         words = sorted(page.get_text("words"), key=lambda w: w[1])
         word_count += len(words)
         for w in words:

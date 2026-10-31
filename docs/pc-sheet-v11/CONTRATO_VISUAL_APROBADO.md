@@ -51,7 +51,7 @@
 
 - Páginas C-N3 exclusivas solo si existen Notas digitales generales o tituladas; nunca mezclarlas con C2.
 - Libro de Conjuros es **único anexo opcional**, en dos columnas, fichas de altura variable nombre/nivel/escuela/descripción íntegra. Ficha completa pasa a siguiente columna cuando allí cabe; ficha mayor que una columna se parte legiblemente con continuidad (el Python V11 *NO resuelve* este caso).
-- **Última página física obligatoria y enteramente manuscrita**: un solo título NOTAS, renglones en dos columnas arriba y cuadrícula entera abajo, sin última fila recortada; nunca usada para contenido digital (2026-10-30: lleva la línea de pie del golden y ningún número de página; ver aclaración de esa fecha).
+- **Última página física obligatoria y enteramente manuscrita**: un solo título NOTAS, renglones en dos columnas arriba y cuadrícula entera abajo, sin última fila recortada; nunca usada para contenido digital (2026-10-30: lleva la línea de pie del golden y ningún número de página; las demás páginas sí llevan su número; ver aclaración de esa fecha).
 
 
 ## Aclaración del propietario — presentación de Rasgos (2026-10-16)
@@ -118,7 +118,8 @@ El propietario aprobó P1/P3/P4, P2, C2, final y variante B tras revisión V11. 
 - **Cabecera:** «Te autorizo a ajustar el encabezado de las hojas de PJ a tu criterio, con control mío para ajuste conservando el espíritu y concepto del golden». Criterio aplicado y sujeto al control del propietario: línea de cabecera en y717; segunda línea derecha con el título de la página.
 - **Estados:** las marcas de estado reales usan Para Hoja de PJ Symbols v8 por sus alias de `GUIDE.md`: competencia ✓ U+E108, pericia ✓✓ U+E109, inspiración ★ U+E10E, ACTIVO ◆ U+E10F (solo con un dato real de la App). Las casillas vacías siguen siendo vectores del golden.
 - **Última hoja NOTAS:** «permite la línea, evita/elimina el número de página». La hoja final lleva la línea azul de pie del golden (#527c96, 0,55 pt, x39,69–572,32, y45,07), igual que todas las páginas, y **no** lleva número de página ni ningún otro texto de pie. Esto precisa la regla «nunca usada para contenido digital» de esa hoja.
-- **Ninguna página lleva número de página:** «espera, aclaración: ninguna página debe tener número de página». El contador de pie del golden («01 / 11» … «11 / 11») no se imprime en ninguna página. La línea de pie sí se conserva en todas.
+- ~~**Ninguna página lleva número de página**~~ (C339, **revertido** por el propietario el mismo día; se conserva como historial).
+- **Número de página, solo el número (vigente, C340):** «me equivoqué, debí mantener los números de páginas para que las referencias de "viene de pág X" o "continúa en pág Y" tengan sentido. Reversa esa decisión, reincorpora los números de página, pero solo número, de una forma estéticamente atractiva y en línea con el contrato». Cada página física excepto la última hoja NOTAS imprime su número sin ceros a la izquierda y sin «/ total» («1», «2» … «10»), en el lugar del contador del golden: alineado a la derecha en x569,48, línea base y32,6, bajo la línea de pie, tinta del golden #264b68, fuente de cabecera a 8,2 pt. Es el mismo número que usan las referencias «A P. n», «CONTINÚA EN … PÁG. n», «VIENE P. n» y «PÁGINA n»; nunca se imprime «NN / NN».
 
 ## Aclaración del propietario — Equipo y Tesoro con nombres largos (2026-10-26)
 
