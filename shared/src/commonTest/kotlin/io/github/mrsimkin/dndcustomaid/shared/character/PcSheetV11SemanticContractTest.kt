@@ -49,6 +49,28 @@ class PcSheetV11SemanticContractTest {
     }
 
     @Test
+    fun sameSourcesAndOptionsMapToTheSameSemanticDataEveryTime() {
+        // C368 / GLB11: the semantic layer is a pure function of sources and
+        // options - same IDs, records, order, notices and selected state.
+        val sheet = baseSheet().copy(
+            inventoryItems = listOf(item("40000000-0000-0000-0000-000000000001", special = false),
+                item("40000000-0000-0000-0000-000000000002", special = true)),
+        )
+        val sources = PcSheetExportSources(aggregate(sheet), aggregate(sheet.copy(currentHp = 9)))
+        for (variant in PcSheetV11Variant.entries) {
+            for (state in listOf(PcSheetExportStateSelection.PERMANENT,
+                PcSheetExportStateSelection.CURRENT_SNAPSHOT)) {
+                val request = PcSheetV11ExportRequest(variant = variant, stateSelection = state)
+                val first = PcSheetV11SemanticMapper.map(request, sources)
+                repeat(2) {
+                    assertEquals(first, PcSheetV11SemanticMapper.map(request, sources),
+                        "Same semantic data ($variant, $state).")
+                }
+            }
+        }
+    }
+
+    @Test
     fun customAttributeAndSkillUseStableRelationshipsAndMissingTargetIsNotFabricated() {
         val attributeId = id("30000000-0000-0000-0000-000000000001")
         val missingId = id("30000000-0000-0000-0000-000000000099")
