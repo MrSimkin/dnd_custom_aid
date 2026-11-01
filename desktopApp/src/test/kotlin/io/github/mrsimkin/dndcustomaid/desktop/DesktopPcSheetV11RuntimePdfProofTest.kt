@@ -209,6 +209,61 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c360P1FollowsTheGoldenVerticalRhythmInBothVariants() {
+        // C356-C359: the golden v11_extremo P1 rhythm on real App PDFs - every
+        // cartela foot, the first attribute row's score box, oval and saving box,
+        // and B's HABILIDADES cartela 3.12 pt under its last attribute row.
+        val pathStart = Regex("""(?m)(?:^|\s)(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+m(?:\s|$)""")
+        val rect = Regex("""(?m)(?:^|\s)(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+re(?:\s|$)""")
+        for ((fixture, variant) in listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.A,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
+        )) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources(fixture),
+            ).bytes
+            Loader.loadPDF(bytes).use { pdf ->
+                val ops = pdf.getPage(0).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                val starts = pathStart.findAll(ops).map { it.groupValues[1].toFloat() to it.groupValues[2].toFloat() }.toList()
+                val rects = rect.findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }.toList()
+                fun startsAt(x: Float, y: Float) = starts.any { (sx, sy) ->
+                    kotlin.math.abs(sx - x) < 0.02f && kotlin.math.abs(sy - y) < 0.02f }
+                // Golden cartela feet (chamfered paths start 5 pt in from the left edge).
+                assertTrue(startsAt(44.69f, 588.19f), "ATRIBUTOS cartela at y588.19 ($fixture $variant).")
+                for (foot in listOf(588.19f, 462.9f, 348.94f, 219.68f, 106.3f)) {
+                    assertTrue(startsAt(275.43f, foot), "Right column cartela at y$foot ($fixture $variant).")
+                }
+                // First attribute row from y586.2: score box (3 pt chamfer), oval, saving box.
+                assertTrue(startsAt(45.24f, 564.52f), "Golden score box of the first attribute ($fixture $variant).")
+                assertTrue(startsAt(124.16f, 573f), "Golden modifier oval of the first attribute ($fixture $variant).")
+                assertTrue(rects.any { (x, y, w, h) -> kotlin.math.abs(x - 220.54f) < 0.02f &&
+                    kotlin.math.abs(y - 569.76f) < 0.02f && kotlin.math.abs(w - 8.78f) < 0.02f &&
+                    kotlin.math.abs(h - 8.78f) < 0.02f }, "Golden saving box of the first attribute ($fixture $variant).")
+                val leftCartelaFeet = starts.filter { (sx, sy) -> kotlin.math.abs(sx - 44.69f) < 0.02f && sy < 615f /* not the portrait */ }
+                    .map { it.second }.distinct()
+                if (variant == PcSheetV11Variant.B) {
+                    val p1Text = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
+                    val rows = Regex("""(?<!CD )SALVACIÓN""").findAll(p1Text).count() // not the CD SALVACIÓN card
+                    val expectedFoot = 586.2f - rows * 25.09f - 3.12f - 22.96f
+                    assertTrue(leftCartelaFeet.any { kotlin.math.abs(it - expectedFoot) < 0.05f },
+                        "B HABILIDADES 3.12 pt under its $rows golden 25.09 pt rows ($fixture): $leftCartelaFeet")
+                    assertTrue(rects.count { (x, _, w, h) -> kotlin.math.abs(x - 39.69f) < 0.02f &&
+                        kotlin.math.abs(w - 108.56f) < 0.02f && kotlin.math.abs(h - 14.74f) < 0.02f } >= 9,
+                        "B golden 14.74 pt skill rows ($fixture).")
+                } else {
+                    assertEquals(1, leftCartelaFeet.size, "A has a single left cartela ($fixture).")
+                    assertTrue(rects.any { (x, _, w, h) -> kotlin.math.abs(x - 39.69f) < 0.02f &&
+                        kotlin.math.abs(w - 220.53f) < 0.02f && kotlin.math.abs(h - 12.47f) < 0.02f },
+                        "A golden 12.47 pt skill rows ($fixture).")
+                }
+            }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
