@@ -21,10 +21,10 @@ class SpellbookContinuationParityTest(unittest.TestCase):
             for required in (
                 "it.continuedFromPrevious",
                 "fragment.startLineIndexInColumn == 0",
-                "col.topPt == 702f",
+                "col.topPt == 692.79f",  # C366: golden Libro flow top
                 '"CONTINUACIÓN: " + realName',
                 '"CONTINUACIÓN (VER ÍNDICE)"',
-                "col.topPt + 5f",
+                "col.topPt + 8.2f",
                 "fragment.sourceKey",
                 "D-0076 §3.48 / BK05",
             ):

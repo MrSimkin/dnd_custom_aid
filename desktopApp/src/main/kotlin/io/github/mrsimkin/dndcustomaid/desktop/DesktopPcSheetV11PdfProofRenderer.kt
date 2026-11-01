@@ -2942,8 +2942,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             // column must identify the SAME persisted spell.
                             // All fragments start at line 0 in the next column.
                             // Put the source-free sign within the real reserved
-                            // 15pt band BELOW header rule y717 and ABOVE flow
-                            // top y702: never spend a description line.
+                            // band BELOW the header rule and ABOVE the card frame
+                            // (C366: golden flow top y692.79, frame y695.62): never
+                            // spend a description line.
                             val namesByKey = entries.associate {
                                 it.sourceKey to it.text.substringBefore('\n')
                             }
@@ -2957,7 +2958,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     "Book continuation must begin at a genuine column top."
                                 }
                                 val col = actualColumns[fragment.columnIndex - 1]
-                                require(col.topPt == 702f) {
+                                require(col.topPt == 692.79f) {
                                     "V11 book continuation label needs the source-free header band."
                                 }
                                 val realName = namesByKey.getValue(fragment.sourceKey)
@@ -2973,7 +2974,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 stream.setNonStrokingColor(Color(80, 122, 151))
                                 stream.beginText()
                                 stream.setFont(bodyPdfFont, fontSize)
-                                stream.newLineAtOffset(col.leftPt + 2f, col.topPt + 5f)
+                                stream.newLineAtOffset(col.leftPt + 2f, col.topPt + 8.2f)
                                 stream.showText(pcSheetV11PrintableText(printed))
                                 stream.endText()
                                 stream.restoreGraphicsState()
@@ -5661,7 +5662,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     pageArea.widthPt - 12f, 670.68f - pageArea.bottomPt),
                 font = notesFont)
             // C289: golden Libro columns — text 48.19..292.82 and 319.18..563.81 pt.
-            val bookArea = PcSheetV11RectPt(48.19f, pageArea.bottomPt, 515.62f, pageArea.heightPt)
+            // C366: golden Libro - the first card's frame top is y695.62, so the
+            // flow starts 2.83 pt under it, at y692.79 (was the y702 page area top).
+            val bookArea = PcSheetV11RectPt(48.19f, pageArea.bottomPt, 515.62f,
+                692.79f - pageArea.bottomPt)
             val bookGutter = 26.36f
             val bookColumnPt = (515.62f - 26.36f) / 2f
             data.spellbookEntries?.takeIf { it.isNotEmpty() }?.let { spells ->
