@@ -190,15 +190,26 @@ object PcSheetV11TextFlow {
             if (group != null && (index == 0 || items[index - 1].groupKey != group)) {
                 var next = index
                 var measuredGroupLines = 0
+                var groupExtra = 0f
                 while (next < items.size && items[next].groupKey == group) {
-                    measuredGroupLines += splitIntoMeasuredLines(
+                    val groupLines = splitIntoMeasuredLines(
                         items[next].text, column.widthPt, textWidth,
-                    ).size
+                    )
+                    measuredGroupLines += groupLines.size
+                    groupExtra += groupLines.sumOf {
+                        (items[next].lineExtrasPt[it.startOffset] ?: 0f).toDouble()
+                    }.toFloat()
                     next++
                     if (measuredGroupLines > column.lineCapacity) break
                 }
                 if (measuredGroupLines in 1..column.lineCapacity &&
                     measuredGroupLines > remaining()) {
+                    nextColumn()
+                }
+                // C365: a group whose line extras (golden C2 cartela) no longer fit
+                // here, but would fit a fresh column, moves on whole.
+                if (groupExtra > 0f && measuredGroupLines in 1..capacity(groupExtra) &&
+                    measuredGroupLines > capacity(extraUsed + groupExtra) - used) {
                     nextColumn()
                 }
             }

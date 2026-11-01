@@ -3313,11 +3313,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             }
                             stream.saveGraphicsState()
                             stream.setNonStrokingColor(Color(231, 242, 247))
-                            stream.setStrokingColor(Color(80, 122, 151))
-                            stream.setLineWidth(0.55f)
+                            // C365: golden C2 cartela edge - #264b68 0.65 pt, 5 pt chamfer.
+                            stream.setStrokingColor(Color(38, 75, 104))
+                            stream.setLineWidth(0.65f)
                             groupHeadings.forEach { heading ->
                                 val cell = heading.cellPt
-                                val cut = minOf(3f, cell.heightPt / 4f)
+                                val cut = minOf(5f, cell.heightPt / 4f)
                                 stream.moveTo(cell.leftPt + cut, cell.bottomPt)
                                 stream.lineTo(cell.rightPt - cut, cell.bottomPt)
                                 stream.lineTo(cell.rightPt, cell.bottomPt + cut)
@@ -3347,13 +3348,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         drawCartelaDiamonds(stream, heading.cellPt.leftPt,
                                             heading.cellPt.rightPt, heading.cellPt.bottomPt,
                                             heading.cellPt.topPt)
+                                        // C365: golden «VIENE P. n» baseline 5.95 pt above the foot.
                                         drawP1Label(stream, origin,
                                             heading.cellPt.rightPt - 13f - originWidth,
-                                            body.metrics.baselineIn(heading.cellPt), 6.1f)
+                                            heading.cellPt.bottomPt + 5.95f, 6.1f)
                                     } else if (5f + inkWidth + 8f + originWidth + 5f <= heading.cellPt.widthPt) {
                                         drawP1Label(stream, origin,
                                             heading.cellPt.rightPt - 5f - originWidth,
-                                            body.metrics.baselineIn(heading.cellPt), 6.1f)
+                                            heading.cellPt.bottomPt + 5.95f, 6.1f)
                                     }
                                     stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                                 }
@@ -3902,9 +3904,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 }
                                 stream.beginText()
                                 stream.setFont(headerPdfFont, fontSize)
+                                // C365: golden C2 cartela title 6.8 pt above its foot.
                                 stream.newLineAtOffset(
                                     cell.cellPt.leftPt + inset,
-                                    body.metrics.baselineIn(cell.cellPt),
+                                    if (cell.cellPt.heightPt > body.metrics.lineHeightPt + 0.01f)
+                                        cell.cellPt.bottomPt + 6.8f
+                                    else body.metrics.baselineIn(cell.cellPt),
                                 )
                                 stream.showText(pcSheetV11PrintableText(cell.drawableText))
                                 stream.endText()
@@ -5021,31 +5026,37 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     addAll(items)
                 }
             }
+            // C365: golden C2 cartela, 22.96 pt over the 15.7 pt list rows.
+            val c2CartelaExtra = mapOf(0 to 22.96f - c2Font.metrics.lineHeightPt)
             val mixedC2 = buildList {
                 if (p1Unprinted.isNotEmpty()) {
                     add(PcSheetV11FlowItem("c2-heading:p1-overflow",
                         "PERSONAJE, HABILIDADES Y ACCIONES / CONTINUACIÓN",
-                        keepTogetherIfFits = true))
+                        keepTogetherIfFits = true, lineExtrasPt = c2CartelaExtra))
                     addAll(p1Unprinted)
                 }
                 if (detachedSkills.isNotEmpty()) {
                     addHeaded(PcSheetV11FlowItem("c2-heading:skills",
-                        "HABILIDADES Y REFERENCIAS", keepTogetherIfFits = true), detachedSkills)
+                        "HABILIDADES Y REFERENCIAS", keepTogetherIfFits = true,
+                        lineExtrasPt = c2CartelaExtra), detachedSkills)
                 }
                 if (extraCombatData.isNotEmpty()) {
                     addHeaded(PcSheetV11FlowItem("c2-heading:combat",
-                        "ATAQUES, NOTAS Y ESPACIOS REALES", keepTogetherIfFits = true), extraCombatData)
+                        "ATAQUES, NOTAS Y ESPACIOS REALES", keepTogetherIfFits = true,
+                        lineExtrasPt = c2CartelaExtra), extraCombatData)
                 }
                 if (resourceLines.isNotEmpty()) {
                     addHeaded(PcSheetV11FlowItem("c2-heading:resources",
-                        "RECURSOS Y MUNICIONES", keepTogetherIfFits = true), resourceLines)
+                        "RECURSOS Y MUNICIONES", keepTogetherIfFits = true,
+                        lineExtrasPt = c2CartelaExtra), resourceLines)
                 }
                 if (remainingTraits.isNotEmpty()) {
                     // Source-accurate P2 continuation follows the P1 streams
                     // inside the same TWO-column measured C2. Extra pages are
                     // generated only if actual text requires them.
                     addHeaded(PcSheetV11FlowItem("c2-heading:traits",
-                        "RASGOS / CONTINUACIÓN P2", keepTogetherIfFits = true), remainingTraits)
+                        "RASGOS / CONTINUACIÓN P2", keepTogetherIfFits = true,
+                        lineExtrasPt = c2CartelaExtra), remainingTraits)
                 }
             }
             // C323: golden C2 columns 39.69..301.04 and 310.96..572.32 (9.92 pt gutter).

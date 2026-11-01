@@ -1055,12 +1055,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             // Only a complete 258pt cartela in either measured C2 column
             // qualifies. The frame, manuscript grid, or a text glyph cannot
             // substitute for a physically FILLED interior heading band.
-            // C323: golden C2 columns 39.69..301.04 and 310.96..572.32 (3 pt corner cut).
+            // C323: golden C2 columns 39.69..301.04 and 310.96..572.32; C365: golden 5 pt corner cut.
             val clippedGroupBands = Regex(
                 """(?m)(?:^|\s)([0-9.]+)\s+[0-9.]+\s+m\s+([0-9.]+)\s+[0-9.]+\s+l\s+([0-9.]+)\s+[0-9.]+\s+l"""
             ).findAll(commands).count { m ->
                 val (a, b, c) = m.destructured
-                listOf(Triple(42.69f, 298.04f, 301.04f), Triple(313.96f, 569.32f, 572.32f)).any { (x0, x1, x2) ->
+                listOf(Triple(44.69f, 296.04f, 301.04f), Triple(315.96f, 567.32f, 572.32f)).any { (x0, x1, x2) ->
                     kotlin.math.abs(a.toFloat() - x0) < 0.05f && kotlin.math.abs(b.toFloat() - x1) < 0.05f &&
                         kotlin.math.abs(c.toFloat() - x2) < 0.05f
                 }
@@ -5143,8 +5143,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     // C357: skip a column continuation caption («… / CONTINUACIÓN»).
                     val head = runs.firstOrNull { it.first.startsWith(heading) &&
                         !it.first.endsWith("/ CONTINUACIÓN") && !it.first.contains("/ VIENE DE PÁG.") } ?: return null
+                    // C365: golden title 6.8 pt and «VIENE P. n» 5.95 pt above the foot.
                     return runs.firstOrNull {
-                        it.first.startsWith("VIENE DE PÁG. ") && kotlin.math.abs(it.third - head.third) < 0.6f &&
+                        it.first.startsWith("VIENE DE PÁG. ") && kotlin.math.abs(it.third - head.third + 0.85f) < 0.3f &&
                             it.second > head.second && it.second < head.second + 258f
                     }?.first
                 }
