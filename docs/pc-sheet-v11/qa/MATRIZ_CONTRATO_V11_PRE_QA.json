@@ -749,22 +749,49 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "sameSourcesAndOptionsMapToTheSameSemanticDataEveryTime",
+            "test_result": "PASS — shared G1 semantics: the same sources (permanent and current, with ordinary and special equipment) and the same options map three times to equal V11 semantic data (IDs, records, order, notices, selected state) for variants A and B and for PERMANENT and CURRENT_SNAPSHOT.",
+            "source_commit": "9b5caf0948e82fd097ef76e5d9081554c898f868",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41353371111",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41353371111/artifacts/13102611644",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41353371111/artifacts/13102671556",
+            "independent_inspection": "Same CI run: c368SameInputGivesTheSamePagesBreaksAndTextAB repeats whole real App PDFs page by page from the same sources.",
+            "limitations": "Semantic data equality on a shared fixture; does not certify every persisted field. G4 stays NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "sameInputGivesTheSameBreaksIdsAndPagesEveryTime",
+            "test_result": "PASS — shared G2 composition: 80 grouped items with leading separations and line extras over three columns and several local pages place four times into identical fragments and cells (source keys, UTF-16 offsets, columns, pages, rows and point coordinates).",
+            "source_commit": "9b5caf0948e82fd097ef76e5d9081554c898f868",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41353371111",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41353371111/artifacts/13102611644",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41353371111/artifacts/13102671556",
+            "independent_inspection": "Same CI run: c368SameInputGivesTheSamePagesBreaksAndTextAB on real App PDFs.",
+            "limitations": "Fixture measurer (5 pt per char), not the embedded fonts; the real-font path is covered by the G3 test. G4 stays NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c368SameInputGivesTheSamePagesBreaksAndTextAB",
+            "test_result": "PASS on real App PDFs: Mara (no Libro) and Ilyra (with Libro), variants A and B, generated three times each, keep the same physical page count and the same printed text on every page.",
+            "source_commit": "9b5caf0948e82fd097ef76e5d9081554c898f868",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41353371111",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41353371111/artifacts/13102611644",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41353371111/artifacts/13102671556",
+            "independent_inspection": "Same CI run: the 13 independent physical audits (envelope, cues, rhythm, P4 meters, spellbook cards and others) PASS on the 108 PDFs of the internal proof artifact.",
+            "limitations": "Desktop renderer PDFs; text-per-page equality, not byte equality (PDF metadata may differ). Android installed candidate and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
