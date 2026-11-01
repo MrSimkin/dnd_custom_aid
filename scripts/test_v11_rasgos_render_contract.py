@@ -51,13 +51,10 @@ class RasgosStageTripwire(unittest.TestCase):
             with self.subTest(renderer=renderer):
                 text = renderer.read_text(encoding="utf-8")
                 region = between(text, "fun drawP1Traits(", "// Explicit AMMUNITION usage")
-                self.assertIn("stream.moveTo(273.43f,368f) // C351 golden right column", region)
-                self.assertIn("stream.lineTo(270.43f,371f)", region)
-                self.assertIn("stream.fillAndStroke()", region)
-                self.assertIn("stream.setFont(headerPdfFont,9.1f)", region)
-                self.assertIn("stream.newLineAtOffset(left + 16f,top - 11f)", region)
-                self.assertIn('stream.showText("RASGOS Y ATRIBUTOS")', region)
-                self.assertIn("top - 21f - (slot % 6) * 10f", region)
+                # C356: golden RASGOS cartela, two columns of seven 14.46 pt rows.
+                self.assertIn('drawGoldenCartela(stream, "RASGOS Y ATRIBUTOS", left, left + width, 348.94f, "dos columnas")', region)
+                self.assertIn("drawGoldenRows(stream, x, columnWidth, firstTop, pitch, p1TraitRowsPerColumn)", region)
+                self.assertIn("firstTop - (slot % p1TraitRowsPerColumn) * pitch - 10.26f", region)
 
     def test_g3_android_desktop_trait_logic_is_identical(self):
         desktop, android = [r.read_text(encoding="utf-8") for r in RENDERERS]

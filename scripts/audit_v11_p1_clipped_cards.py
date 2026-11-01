@@ -14,11 +14,14 @@ IDENTITY = [(127.56, 93.54, 572.32, 127.56), (127.56, 133.23, 274.96, 170.08),
             (280.63, 133.23, 455.81, 170.08), (461.48, 133.23, 572.32, 170.08)]
 # P1 3+3+2 combat cards, PDF top-origin. C351: golden x - three 98.74 pt cards
 # (step 101.57) and two 147.83 pt PV cards (step 150.94) from x270.43.
+# C356: golden rows - tops y586.2 / 554.74 / 520.16 (29.76 / 29.76 / 31.18 pt).
+COMBAT_TOPS = (792 - 586.2, 792 - 554.74, 792 - 520.16)
+COMBAT_HEIGHTS = (29.76, 29.76, 31.18)
 COMBAT = [
     (270.43 + col*(101.57 if row < 2 else 150.94),
-     201 + row*28 + 1.2,
+     COMBAT_TOPS[row],
      270.43 + col*(101.57 if row < 2 else 150.94) + (98.74 if row < 2 else 147.83),
-     201 + row*28 + (28 if row < 2 else 32) - 1.2)
+     COMBAT_TOPS[row] + COMBAT_HEIGHTS[row])
     for row in range(3) for col in range(3 if row < 2 else 2)
 ]
 LABELS = [
@@ -78,10 +81,10 @@ def physical_p1(pdf_bytes):
             # C351: golden cards - 98.74 pt (step 101.57) / 147.83 pt (step 150.94).
             width = 98.74 if row < 2 else 147.83
             left = 270.43 + col*(101.57 if row < 2 else 150.94)
-            top = 201 + row*28
+            top = COMBAT_TOPS[row]
             in_card = [w[4] for w in words
                        if left <= w[0] and w[2] <= left+width
-                       and top <= w[1] and w[3] <= top+(28 if row < 2 else 32)]
+                       and top <= w[1] and w[3] <= top+COMBAT_HEIGHTS[row]]
             if label not in in_card:
                 errors.append(f"P1 real {label} outside card row={row},col={col}")
         # Genuine EMPTY ammunition receives twenty UNMARKED golden 7.94pt

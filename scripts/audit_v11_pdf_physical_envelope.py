@@ -81,7 +81,7 @@ def p1_ammo_cartela(page: fitz.Page) -> list[str]:
         r, fill = d["rect"], d.get("fill")
         if (fill is not None and all(abs(fill[i] - AMMO_CARTELA[i]) < .012 for i in range(3))
                 and abs(r.x0 - 270.43) < .6 and abs(r.width - 301.89) < .6
-                and abs(r.y0 - 644) < .6 and abs(r.height - 17) < .6):
+                and abs(r.y0 - (792 - 129.26)) < .6 and abs(r.height - 22.96) < .6):  # C356 golden
             return []
     return ["P1 lacks the golden MUNICIONES cartela"]
 
