@@ -4590,16 +4590,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         Triple(pair.leftPt, pair.rightPt, notes.gridTop + 18f)
                     })
                 if (compactC2) {
-                    // Approved C2 paper grammar: a real pale-blue cartela
-                    // with clipped corners, within the EXISTING 14.5pt
-                    // strip between the table and fixed header rule.
-                    // The title previously overlapped that rule by 3pt.
-                    // Font glyph extents at 11pt stay inside this measured
-                    // strip, while all source table cells remain unchanged.
+                    // C361: golden C2 p5 - the 22.96 pt cartela 1.98 pt above its table,
+                    // with the module name and its base page («VIENE DE PÁG. n»).
                     val left = area.leftPt
                     val right = area.rightPt
-                    val bottom = area.topPt
-                    val top = bottom + 14.5f
+                    val bottom = area.topPt + 1.98f
+                    val top = bottom + 22.96f
                     val corner = 5f
                     require(top < 717f) {
                         "C2 cartela cannot cross the fixed physical header rule."
@@ -4625,9 +4621,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.setNonStrokingColor(Color(29, 56, 79))
                     stream.beginText()
                     stream.setFont(headerPdfFont, 9.1f)
-                    stream.newLineAtOffset(left + 16f, bottom + 4f)
-                    stream.showText(title)
+                    stream.newLineAtOffset(left + 16f, bottom + 6.84f)
+                    stream.showText(title.substringBefore(" / "))
                     stream.endText()
+                    val base = physicalSectionKeys.indexOf("P2 - Equipo y tesoro") + 1
+                    if (base > 0) {
+                        val origin = pcSheetV11PrintableText(PcSheetV11ContinuationText.comesFrom(base))
+                        stream.setNonStrokingColor(Color(38, 75, 104))
+                        drawP1Label(stream, origin, right - 13f -
+                            headerPdfFont.getStringWidth(origin) * 6.1f / 1000f, bottom + 5.99f, 6.1f)
+                    }
                     stream.restoreGraphicsState()
                 }
                 stream.saveGraphicsState()
@@ -5058,7 +5061,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 return complete.copy(rows = rows)
             }
 
-            val fullC2PairedArea = PcSheetV11RectPt(42f, 76f, 528f, 626f)
+            // C361: the table starts under the golden C2 cartela band (y662.74..685.7).
+            val fullC2PairedArea = PcSheetV11RectPt(42f, 76f, 528f, 660.76f - 76f)
             val pairedRemainders = listOf(
                 Triple("EQUIPO", completeEquipment, inventoryPlaced),
                 Triple("TESORO", completeTreasure, treasurePlaced),
@@ -5105,7 +5109,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     // 14.5pt blue cartela ABOVE each module, plus a 5.5pt
                     // physical gap. The two content rectangles never overlap.
                     val upperHeight = maxOf(70f, occupiedEquipment + 12f)
-                    val lowerTop = fullC2PairedArea.topPt - upperHeight - 20f
+                    val lowerTop = fullC2PairedArea.topPt - upperHeight - 24.94f // C361: golden cartela gap
                     if (lowerTop > fullC2PairedArea.bottomPt + 55f) {
                         val topArea = PcSheetV11RectPt(
                             42f, fullC2PairedArea.topPt - upperHeight, 528f, upperHeight,

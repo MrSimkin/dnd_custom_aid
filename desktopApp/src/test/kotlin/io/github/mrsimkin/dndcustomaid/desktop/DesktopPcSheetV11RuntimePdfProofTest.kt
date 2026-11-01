@@ -5736,12 +5736,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "inventory without inventing content or adding a page.")
             // Verify genuine stroked AND filled clipped cartela path, not
             // just a background image or the literal EQUIPO heading text.
-            // Its whole 702..716.5pt band stays below the header rule y=717.
+            // C361: the golden 22.96 pt band y662.74..685.7, below the header rule y=717.
             val commands = page.contents.use {
                 it.readBytes().toString(Charsets.ISO_8859_1)
             }
             val clippedCartela = Regex(
-                """(?s)(?:^|\s)47\s+702\s+m\s+565\s+702\s+l\s+570\s+707\s+l.*?\s+B(?:\s|$)"""
+                """(?s)(?:^|\s)47\s+662\.(?:74|739+)\d*\s+m\s+565\s+662\.(?:74|739+)\d*\s+l\s+570\s+667\.(?:74|739+)\d*\s+l.*?\s+B(?:\s|$)"""
             )
             assertTrue(clippedCartela.containsMatchIn(commands),
                 "A real beveled blue C2 EQUIPO cartela must be filled and stroked " +
@@ -6082,7 +6082,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // Treasure keeps an independent genuine paired module, even
                 // when it shares a physical C2 page with ordinary Equipment.
                 it.contains("C2 - Equipo y tesoro") &&
-                    it.contains("TESORO / CANTIDAD")
+                    it.lineSequence().any { line -> Regex("""^TESORO(\s|$)""").containsMatchIn(line.trim()) } // C361 golden title
             }
             assertTrue(treasureC2.isNotEmpty(),
                 "Real treasure must remain a distinct C2 paired module even on shared paper.")
@@ -7069,7 +7069,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 assertEquals(1, combined.size,
                     "The deferred currencies use one physical C2 page.")
-                assertTrue(combined.single().contains("TESORO / CANTIDAD"))
+                assertTrue(combined.single().lineSequence().any { Regex("""^TESORO(\s|$)""").containsMatchIn(it.trim()) }) // C361 golden title
                 assertFalse(pages.any { it.contains("C2 - Equipo y tesoro / EQUIPO") },
                     "No ordinary object is left for C2.")
                 assertTrue(combined.single().contains("VIENE DE PÁG. 2"))
