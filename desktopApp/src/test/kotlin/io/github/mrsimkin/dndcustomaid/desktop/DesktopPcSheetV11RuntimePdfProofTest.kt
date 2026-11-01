@@ -673,7 +673,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             Triple("03_mara_siete_umbrales_custom_extended.json",
                 PcSheetV11Variant.B, 235.9f),
             Triple("03_mara_siete_umbrales_custom_extended.json",
-                PcSheetV11Variant.A, 237.9f),
+                PcSheetV11Variant.A, 227.2f), // C357: golden A label at the band top - 21.4
         )
         for ((fixture, variant, expectedBaselineY) in cases) {
             val proof = DesktopPcSheetExportService().generateV11Proof(
@@ -701,7 +701,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 stripper.getText(pdf)
                 val expectedRows = when {
                     fixture.startsWith("02_") -> 6
-                    variant == PcSheetV11Variant.A -> 7 // Mara: grouped A skills reserve row height.
+                    variant == PcSheetV11Variant.A -> 9 // C357: on the golden rhythm Mara A fits 6 + 3.
                     else -> 9 // Mara B: all three custom attributes fit P1.
                 }
                 assertEquals(expectedRows, savingLabels.count {
@@ -1763,14 +1763,18 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     // C247: golden C2 attribute row — score box, modifier oval,
                     // name, SALVACIÓN and the real save value, in reading order.
                     val flat = actualC2.replace(Regex("\\s+"), " ")
-                    assertTrue(flat.contains("13 +1 Cordura SALVACIÓN +0"),
-                        "C2 Cordura must show the real score, modifier and save with a plus.")
-                    assertTrue(flat.contains("18 +4 Éter SALVACIÓN +8"),
-                        "C2 Éter must keep both real nonnegative signed values.")
+                    // C357: on the golden A rhythm Fortuna, Cordura and Éter fit P1 with
+                    // their linked skills; only the fourth extra ability, Renombre, is in C2.
+                    val p1Flat = pages.first().replace(Regex("\\s+"), " ")
+                    assertTrue(p1Flat.contains("Cordura") && p1Flat.contains("Éter") &&
+                        p1Flat.contains("Sincronía") && p1Flat.contains("Manipulación de éter"),
+                        "Cordura and Éter print on P1 with their linked skills.")
+                    assertFalse(flat.contains("Cordura SALVACIÓN") || flat.contains("Éter SALVACIÓN"),
+                        "An attribute printed on P1 is never repeated as a C2 row.")
                     assertTrue(flat.contains("11 +0 Renombre SALVACIÓN sin valor"),
                         "A missing source save must remain explicitly unresolved.")
-                    assertTrue(actualC2.contains("+9") && actualC2.contains("+8"),
-                        "C2 linked true skill totals must retain golden plus signs.")
+                    assertTrue(p1Flat.contains("+9") && p1Flat.contains("+8"),
+                        "Linked true skill totals keep golden plus signs on P1 (C357).")
                 }
                 for ((attribute, skill) in linked) {
                     val key = "Habilidad " + skill
@@ -5070,7 +5074,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 // The label shares its heading baseline, at the right of the same column.
                 fun originOf(heading: String): String? {
-                    val head = runs.firstOrNull { it.first.startsWith(heading) } ?: return null
+                    // C357: skip a column continuation caption («… / CONTINUACIÓN»).
+                    val head = runs.firstOrNull { it.first.startsWith(heading) &&
+                        !it.first.endsWith("/ CONTINUACIÓN") && !it.first.contains("/ VIENE DE PÁG.") } ?: return null
                     return runs.firstOrNull {
                         it.first.startsWith("VIENE DE PÁG. ") && kotlin.math.abs(it.third - head.third) < 0.6f &&
                             it.second > head.second && it.second < head.second + 258f
@@ -6329,8 +6335,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 val titlePolygon = Regex(
                     // C350: golden left column x39.69..260.22.
-                    """(?s)(?:^|\s)43\.6[89]\d*\s+579\s+m\s+256\.2[12]\d*\s+579\s+l\s+""" +
-                        """260\.2[12]\d*\s+583\s+l.*?39\.69\d*\s+583\s+l\s+h\s+B(?:\s|$)"""
+                    """(?s)(?:^|\s)44\.6[89]\d*\s+588\.(?:19|189+)\d*\s+m\s+255\.2[12]\d*\s+588\.(?:19|189+)\d*\s+l\s+""" + /* C357 golden */
+                        """260\.2[12]\d*\s+593\.(?:19|189+)\d*\s+l.*?39\.69\d*\s+593\.(?:19|189+)\d*\s+l\s+h\s+B(?:\s|$)"""
                 )
                 assertEquals(1, titlePolygon.findAll(ops).count(),
                     "Genuine P1 missing 8-sided ATRIBUTOS cartela ($fixture $variant).")

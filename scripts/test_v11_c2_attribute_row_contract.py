@@ -22,7 +22,8 @@ class C2AttributeRowParityTest(unittest.TestCase):
             pieces.append(re.sub(r"\s+", " ", part))
         self.assertEqual(pieces[0], pieces[1])
         tests = TESTS.read_text(encoding="utf-8")
-        self.assertIn('flat.contains("13 +1 Cordura SALVACIÓN +0")', tests)
+        # C357: Mara A fits Cordura on P1 now; the C2 row grammar is checked on Renombre.
+        self.assertIn('flat.contains("11 +0 Renombre SALVACIÓN sin valor")', tests)
 
 
 if __name__ == "__main__":

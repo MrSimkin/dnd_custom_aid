@@ -477,8 +477,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         data.attributes.take(6).map { attribute ->
                             data.skills.count { it.ability == attribute.reference }
                         },
-                        areaTopPt = 577f,
-                        safeBottomPt = 110f,
+                        areaTopPt = 586.2f, // C357: golden P1 A column
+                        safeBottomPt = 60f,
                     ).mapIndexed { index, cap ->
                         data.attributes[index].reference to cap
                     }.toMap()
@@ -501,11 +501,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 data.request.variant ==
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A -> {
                     var count = 6
-                    var remainingBottom = 577f - data.attributes.take(6)
+                    var remainingBottom = 586.2f - data.attributes.take(6)
                         .sumOf { p1AttributeHeight(it).toDouble() }.toFloat()
                     while (count < minOf(9, data.attributes.size)) {
                         val extraHeight = p1AttributeHeight(data.attributes[count])
-                        if (remainingBottom - extraHeight <= 110f) break
+                        if (remainingBottom - extraHeight <= 60f) break
                         remainingBottom -= extraHeight
                         count++
                     }
@@ -513,7 +513,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
                 else -> 6
             }
-            fun p1AttributeTop(i:Int):Float = 577f -
+            // C357: A follows the golden column from y586.2; B keeps its own panel.
+            fun p1AttributeTop(i:Int):Float = (if (data.request.variant ==
+                io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A) 586.2f else 577f) -
                 data.attributes.take(i).sumOf { p1AttributeHeight(it).toDouble() }.toFloat()
 
             // Standard enum IDs stay English in the model; only owner-approved
@@ -568,7 +570,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             fun drawP1Attributes(stream:PDPageContentStream) {
                 val standards=data.attributes.take(p1PrintedAttributeCount)
                 require(standards.size>=6 && p1AttributeTop(p1PrintedAttributeCount) >
-                    (if (compactBAttributes) 328f else 110f))
+                    (if (compactBAttributes) 328f else if (data.request.variant ==
+                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A) 60f else 110f)) // C357
                 // Approved V11 P1 C2c: shared A/B Attributes blue header.
                 // It fits the genuine 23pt strip BELOW portrait (PDF y605)
                 // and ABOVE first source-backed ability row (PDF y577).
@@ -576,63 +579,94 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.saveGraphicsState()
                 stream.setNonStrokingColor(Color(231, 242, 247))
                 stream.setStrokingColor(Color(38, 75, 104))
-                stream.setLineWidth(0.55f)
+                stream.setLineWidth(0.65f) // C357: golden cartela edge
                 // C350: golden v11_extremo p1 left column x39.69..260.22.
-                stream.moveTo(43.69f, 579f)
-                stream.lineTo(256.22f, 579f)
-                stream.lineTo(260.22f, 583f)
-                stream.lineTo(260.22f, 598f)
-                stream.lineTo(256.22f, 602f)
-                stream.lineTo(43.69f, 602f)
-                stream.lineTo(39.69f, 598f)
-                stream.lineTo(39.69f, 583f)
+                // C357: golden y588.19..611.15 (22.96 pt, 5 pt chamfer).
+                stream.moveTo(44.69f, 588.19f)
+                stream.lineTo(255.22f, 588.19f)
+                stream.lineTo(260.22f, 593.19f)
+                stream.lineTo(260.22f, 606.15f)
+                stream.lineTo(255.22f, 611.15f)
+                stream.lineTo(44.69f, 611.15f)
+                stream.lineTo(39.69f, 606.15f)
+                stream.lineTo(39.69f, 593.19f)
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
                 // C264: golden cartela titles are 9.1 pt.
                 stream.setNonStrokingColor(Color(29, 56, 79)) // C266: golden title ink
-                drawCartelaDiamonds(stream, 39.69f, 260.22f, 579f, 602f)
+                drawCartelaDiamonds(stream, 39.69f, 260.22f, 588.19f, 611.15f)
                 drawP1Label(stream,if(data.request.variant ==
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A)
-                    "ATRIBUTOS · A" else "ATRIBUTOS · B",56.69f,586f,9.1f)
+                    "ATRIBUTOS · A" else "ATRIBUTOS · B",56.69f,594.99f,9.1f)
                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 val k=0.5522848f
+                // C357: A uses the golden band grammar (22.82 pt band, white score box
+                // and oval with #264b68 edges); B keeps its own rows for now.
+                val goldenA = data.request.variant ==
+                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A
                 standards.forEachIndexed { i,ability ->
                     val top=p1AttributeTop(i)
                     val bottom=p1AttributeTop(i+1)
                     stream.saveGraphicsState()
-                    stream.setStrokingColor(Color(130,165,186))
-                    stream.setLineWidth(0.6f)
-                    stream.setNonStrokingColor(if (i % 2 == 0) Color(231,242,247) else Color(240,247,250))
-                    stream.addRect(39.69f,bottom,220.53f,top-bottom)
-                    stream.fill()
-                    stream.addRect(39.69f,bottom,220.53f,top-bottom)
-                    stream.stroke()
-                    // C350: golden score box x42.24..85.32 and modifier oval x88.72..124.16.
-                    stream.addRect(42.24f,top-(if(compactBAttributes) 22f else 27f),
-                        43.08f,if(compactBAttributes) 18f else 22f)
-                    stream.stroke()
+                    if (goldenA) {
+                        val bandBottom = top - 22.82f
+                        stream.setNonStrokingColor(if (i % 2 == 0) Color(231,242,247) else Color(240,247,250))
+                        stream.addRect(39.69f,bandBottom,220.53f,22.82f)
+                        stream.fill()
+                        stream.setStrokingColor(Color(148,176,193))
+                        stream.setLineWidth(0.32f)
+                        stream.moveTo(39.69f,bandBottom+0.99f)
+                        stream.lineTo(260.22f,bandBottom+0.99f)
+                        stream.stroke()
+                        // Golden score box x42.24..85.32, y top-21.68..top-3.54, 3 pt chamfer.
+                        stream.setNonStrokingColor(Color(255,255,255))
+                        stream.setStrokingColor(Color(38,75,104))
+                        stream.setLineWidth(0.65f)
+                        val sl=42.24f; val sr=85.32f; val sb=top-21.68f; val st=top-3.54f; val c=3f
+                        stream.moveTo(sl+c,sb); stream.lineTo(sr-c,sb); stream.lineTo(sr,sb+c)
+                        stream.lineTo(sr,st-c); stream.lineTo(sr-c,st); stream.lineTo(sl+c,st)
+                        stream.lineTo(sl,st-c); stream.lineTo(sl,sb+c); stream.closePath()
+                        stream.fillAndStroke()
+                        stream.setLineWidth(0.63f)
+                    } else {
+                        stream.setStrokingColor(Color(130,165,186))
+                        stream.setLineWidth(0.6f)
+                        stream.setNonStrokingColor(if (i % 2 == 0) Color(231,242,247) else Color(240,247,250))
+                        stream.addRect(39.69f,bottom,220.53f,top-bottom)
+                        stream.fill()
+                        stream.addRect(39.69f,bottom,220.53f,top-bottom)
+                        stream.stroke()
+                        // C350: golden score box x42.24..85.32 and modifier oval x88.72..124.16.
+                        stream.addRect(42.24f,top-(if(compactBAttributes) 22f else 27f),
+                            43.08f,if(compactBAttributes) 18f else 22f)
+                        stream.stroke()
+                    }
                     val cx=106.44f
-                    val cy=top-(if(compactBAttributes) 13f else 16f)
+                    val cy=if (goldenA) top-13.2f else top-(if(compactBAttributes) 13f else 16f)
                     val rx=17.72f
-                    val ry=if(compactBAttributes) 9f else 11f
+                    val ry=if (goldenA) 7.23f else if(compactBAttributes) 9f else 11f
+                    if (goldenA) stream.setNonStrokingColor(Color(255,255,255))
                     stream.moveTo(cx+rx,cy)
                     stream.curveTo(cx+rx,cy+ry*k,cx+rx*k,cy+ry,cx,cy+ry)
                     stream.curveTo(cx-rx*k,cy+ry,cx-rx,cy+ry*k,cx-rx,cy)
                     stream.curveTo(cx-rx,cy-ry*k,cx-rx*k,cy-ry,cx,cy-ry)
                     stream.curveTo(cx+rx*k,cy-ry,cx+rx,cy-ry*k,cx+rx,cy)
                     stream.closePath()
-                    stream.stroke()
+                    if (goldenA) stream.fillAndStroke() else stream.stroke()
                     stream.restoreGraphicsState()
                     val score=ability.score.toString()
                     val mod=if(ability.modifier>=0)"+"+ability.modifier else ability.modifier.toString()
                     val valueY=top-(if(compactBAttributes) 17f else 20f)
                     // C264: golden score 11 pt, modifier 8.7 pt, name 7.7 pt.
                     // C300: golden Noto Sans Bold - score #1d384f, modifier #264b68.
-                    p1Bold(stream,score,63.78f-p1BoldWidth(score,11f)/2f,valueY,11f,Color(29,56,79))
-                    p1Bold(stream,mod,cx-p1BoldWidth(mod,8.7f)/2f,valueY,8.7f,Color(38,75,104))
+                    // C357: golden A baselines - score top-17.43, modifier top-16.58, name top-12.61.
+                    p1Bold(stream,score,63.78f-p1BoldWidth(score,11f)/2f,
+                        if (goldenA) top-17.43f else valueY,11f,Color(29,56,79))
+                    p1Bold(stream,mod,cx-p1BoldWidth(mod,8.7f)/2f,
+                        if (goldenA) top-16.58f else valueY,8.7f,Color(38,75,104))
                     p1Ink(stream,approvedAbilityName(ability.name),128.41f,
-                        top-(if(compactBAttributes) 11f else 14f),7.7f)
+                        if (goldenA) top-12.61f else top-(if(compactBAttributes) 11f else 14f),7.7f)
                     stream.saveGraphicsState()
                     stream.setNonStrokingColor(Color(101,125,144))
                     stream.beginText()
@@ -640,10 +674,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     // Golden B: label-to-box gap 17.85pt; previous real App gap 20.18pt.
                     // Move the label only 2.3pt right and 2.1pt upward relative
                     // to its attribute name; leave the 7pt box, value and row intact.
-                    val saveY=top-(if(compactBAttributes) 23f else 25f)
+                    val saveY=if (goldenA) top-16.44f else top-(if(compactBAttributes) 23f else 25f)
                     // Position only the label; saveY remains the untouched
                     // checkbox/value baseline from the verified App PDF.
-                    val savingLabelY=saveY+2.1f
+                    // C357: golden A label 4.96 pt under the box foot (top-21.4).
+                    val savingLabelY=if (goldenA) top-21.4f else saveY+2.1f
                     stream.newLineAtOffset(175.18f,savingLabelY) // C350 golden x
                     stream.showText("SALVACIÓN")
                     stream.endText()
@@ -658,7 +693,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.setNonStrokingColor(Color(255, 255, 255))
                     stream.setStrokingColor(Color(82, 124, 150))
                     stream.setLineWidth(0.48f)
-                    stream.addRect(220.54f, saveY - 1.89f, 8.78f, 8.78f)
+                    stream.addRect(220.54f, if (goldenA) saveY else saveY - 1.89f, 8.78f, 8.78f)
                     stream.fillAndStroke()
                     stream.restoreGraphicsState()
                     ability.savingThrowTotal?.let {
@@ -707,15 +742,17 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 groupedSkills.forEach { (attrIndex,rows) ->
                     val top=p1AttributeTop(attrIndex)
                     rows.forEachIndexed { idx,(_,skill) ->
-                        val y=top-36f-idx*10.5f
+                        // C357: golden A rows - 12.47 pt under the 22.82 pt band.
+                        val rowTop=top-22.82f-idx*12.47f
+                        val y=rowTop-8.72f
                         require(y>p1AttributeTop(attrIndex+1)+1f)
-                        fillBand(stream, 39.69f, y - 3f, 220.53f, 10.5f, idx + 1)
+                        fillBand(stream, 39.69f, rowTop - 12.47f, 220.53f, 12.47f, idx + 1)
                         // C350: golden skill box - 8.5 pt at x43.23, white, #527c96 0.48 pt.
                         stream.saveGraphicsState()
                         stream.setNonStrokingColor(Color(255, 255, 255))
                         stream.setStrokingColor(Color(82, 124, 150))
                         stream.setLineWidth(0.48f)
-                        stream.addRect(43.23f, y - 2.75f, 8.5f, 8.5f)
+                        stream.addRect(43.23f, y - 1.76f, 8.5f, 8.5f)
                         stream.fillAndStroke()
                         stream.restoreGraphicsState()
                         fun put(value:String,x:Float){
@@ -729,7 +766,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         }
                         // C325: v8 training grammar - one check, or two stacked checks.
                         // C350: the v8 mark keeps its 7 pt size, centred in the 8.5 pt box.
-                        trainingGlyph(skill.training)?.let { drawStateGlyph(stream, it, 43.98f, y - 2f, 7f) }
+                        trainingGlyph(skill.training)?.let { drawStateGlyph(stream, it, 43.98f, y - 1.01f, 7f) }
                         put(approvedSkillName(skill),54.99f)
                         skill.total?.let {
                             val v=if(it>=0)"+"+it else it.toString()
@@ -740,11 +777,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
                 // C232 step 3: the golden fills the unused foot of the left column with
                 // blank banded manuscript rows (13pt) instead of a stray caption.
-                var blankRowTop = p1AttributeTop(p1PrintedAttributeCount) - 3f
+                // C357: golden blank rows of 12.47 pt down to the y60 foot reserve.
+                var blankRowTop = p1AttributeTop(p1PrintedAttributeCount)
                 var blankRowIndex = 0
-                while (blankRowTop - 13f >= 105f) {
-                    fillBand(stream, 39.69f, blankRowTop - 13f, 220.53f, 13f, blankRowIndex)
-                    blankRowTop -= 13f
+                while (blankRowTop - 12.47f >= 60f) {
+                    fillBand(stream, 39.69f, blankRowTop - 12.47f, 220.53f, 12.47f, blankRowIndex)
+                    blankRowTop -= 12.47f
                     blankRowIndex += 1
                 }
             }

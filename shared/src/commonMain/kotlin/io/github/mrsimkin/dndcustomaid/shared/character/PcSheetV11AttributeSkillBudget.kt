@@ -7,14 +7,15 @@ package io.github.mrsimkin.dndcustomaid.shared.character
  */
 object PcSheetV11AttributeSkillBudget {
     const val MAX_ROWS_PER_ATTRIBUTE = 6
-    const val MIN_ATTRIBUTE_HEIGHT_PT = 38f
-    const val SKILL_LINE_HEIGHT_PT = 10.5f
-    const val HEADER_AND_FIRST_ROW_PT = 29f
+    // C357: golden v11_extremo p1 rhythm - a 22.82 pt attribute band followed by
+    // one 12.47 pt row per printed skill.
+    const val ATTRIBUTE_BAND_PT = 22.82f
+    const val MIN_ATTRIBUTE_HEIGHT_PT = ATTRIBUTE_BAND_PT
+    const val SKILL_LINE_HEIGHT_PT = 12.47f
 
     fun heightPt(visibleRows: Int): Float {
         require(visibleRows in 0..MAX_ROWS_PER_ATTRIBUTE)
-        return maxOf(MIN_ATTRIBUTE_HEIGHT_PT,
-            HEADER_AND_FIRST_ROW_PT + visibleRows * SKILL_LINE_HEIGHT_PT)
+        return ATTRIBUTE_BAND_PT + visibleRows * SKILL_LINE_HEIGHT_PT
     }
 
     /**
