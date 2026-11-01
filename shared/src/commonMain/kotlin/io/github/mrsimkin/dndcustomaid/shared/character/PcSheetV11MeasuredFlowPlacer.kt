@@ -149,6 +149,11 @@ object PcSheetV11MeasuredFlowPlacer {
                 val column = columns[fragment.columnIndex - 1]
                 fragment.lineRanges.forEachIndexed { localRow, range ->
                     val row = fragment.startLineIndexInColumn + localRow
+                    // C362: a first-line extra (golden P4 level band) makes that
+                    // cell taller and pushes the column's later cells down.
+                    val own = if (localRow == 0) fragment.leadingExtraPt else 0f
+                    val above = fragment.extraAbovePt +
+                        (if (localRow > 0) fragment.leadingExtraPt else 0f)
                     require(row in 0 until geometry.lineCapacity) {
                         "V11 page overflow while placing a text fragment."
                     }
@@ -165,9 +170,9 @@ object PcSheetV11MeasuredFlowPlacer {
                                 .substring(range.startOffset, range.endExclusive),
                             cellPt = PcSheetV11RectPt(
                                 leftPt = column.leftPt,
-                                bottomPt = column.topPt - (row + 1) * geometry.lineHeightPt,
+                                bottomPt = column.topPt - (row + 1) * geometry.lineHeightPt - above - own,
                                 widthPt = column.widthPt,
-                                heightPt = geometry.lineHeightPt,
+                                heightPt = geometry.lineHeightPt + own,
                             ),
                         ),
                     )

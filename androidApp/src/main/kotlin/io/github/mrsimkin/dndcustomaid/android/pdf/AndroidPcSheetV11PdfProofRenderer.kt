@@ -3727,10 +3727,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 val level = cell.sourceKey.removePrefix("spell-level:")
                                     .toIntOrNull()
                                 if (level != null && level in 1..9) {
-                                    val baseline = body.metrics.baselineIn(cell.cellPt)
+                                    // C362: golden band baseline 6.52 pt above its foot.
+                                    val baseline = cell.cellPt.bottomPt + 6.52f
                                     val labelPt = 5.9f // C294: golden "ESP." size
                                     val regularX = cell.cellPt.rightPt - 83f
-                                    val firstSquareX = cell.cellPt.rightPt - 33f
+                                    // C362: golden squares 42.52 pt in from the column edge.
+                                    val firstSquareX = cell.cellPt.rightPt - 42.52f
                                     val actualSlots = data.spellSlots.firstOrNull {
                                         it.level == level
                                     }
@@ -3764,7 +3766,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                             else -> null
                                         }
                                     }
-                                    val labelX = chosen?.first ?: regularX
+                                    // C362: the blank golden meter «ESP. ___» sits 70.87 pt in.
+                                    val labelX = chosen?.first ?: (cell.cellPt.rightPt - 70.87f)
                                     val label = chosen?.second ?: "ESP."
                                     require(headerPdfFont.getStringWidth(label) *
                                         labelPt / 1000f <= firstSquareX - labelX - 5f) {
@@ -3774,7 +3777,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                         headingInkWidth + 7f) {
                                         "P4 true slot label overlaps the real level heading."
                                     }
-                                    require(firstSquareX + 2 * 11f + 7f <=
+                                    require(firstSquareX + 2 * 13.04f + 8.22f <=
                                         cell.cellPt.rightPt - 2f) {
                                         "P4 handwritten level slots exceed measured column."
                                     }
@@ -3788,15 +3791,21 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     stream.setLineWidth(0.6f)
                                     // Paper-only meter: a GENUINE blue ruled line,
                                     // NEVER literal underscores printed as fake ink.
+                                    // C362: the golden «___» spans labelX+11..labelX+19.05.
                                     if (label == "ESP.") {
-                                        stream.moveTo(labelX + 24f, baseline - 1f)
-                                        stream.lineTo(firstSquareX - 7f, baseline - 1f)
+                                        stream.moveTo(labelX + 11f, baseline - 1f)
+                                        stream.lineTo(labelX + 19.05f, baseline - 1f)
                                         stream.stroke()
                                     }
+                                    // C362: golden squares 8.22 pt, white, #527c96 0.48 pt,
+                                    // 13.04 pt apart, 0.7 pt above the baseline.
+                                    stream.setStrokingColor(Color(82, 124, 150))
+                                    stream.setNonStrokingColor(Color(255, 255, 255))
+                                    stream.setLineWidth(0.48f)
                                     repeat(3) { slot ->
-                                        stream.addRect(firstSquareX + slot * 11f,
-                                            baseline - 1f, 7f, 7f)
-                                        stream.stroke()
+                                        stream.addRect(firstSquareX + slot * 13.04f,
+                                            baseline + 0.7f, 8.22f, 8.22f)
+                                        stream.fillAndStroke()
                                     }
                                     stream.restoreGraphicsState()
                                 }
@@ -3804,8 +3813,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 stream.saveGraphicsState()
                                 stream.setNonStrokingColor(Color(38, 75, 104))
                                 // C318: golden heading 3.4 pt inside the column.
+                                // C362: on the golden 20.69 pt band, 6.52 pt above its foot.
                                 drawP1Label(stream, cell.drawableText.trimEnd(), cell.cellPt.leftPt + 3.4f,
-                                    body.metrics.baselineIn(cell.cellPt), 7.6f)
+                                    if (title.startsWith("P4 - ") && cell.sourceKey.startsWith("spell-level:"))
+                                        cell.cellPt.bottomPt + 6.52f
+                                    else body.metrics.baselineIn(cell.cellPt), 7.6f)
                                 stream.restoreGraphicsState()
                                 return@forEach
                             }
@@ -5512,7 +5524,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         add(PcSheetV11FlowItem("spell-level:" + level,
                             // C330: golden level titles «TRUCOS 0», «NIVEL 2».
                             if (level == 0) "TRUCOS 0" else "NIVEL " + level,
-                            keepTogetherIfFits = true))
+                            keepTogetherIfFits = true,
+                            // C362: golden level band 20.69 pt over the 15.73 pt rows.
+                            firstLineExtraPt = 20.69f - 15.73f))
                         val spellsHere = data.spells.filter { it.spell.level == level }
                         spellsHere.forEach { entry ->
                             p4SpellRows.getValue(entry.spell.id).forEach { (key, sourceInfo) ->

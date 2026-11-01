@@ -58,6 +58,48 @@ class PcSheetV11MeasuredFlowPlacerTest {
     }
 
     @Test
+    fun firstLineExtraMakesATallerBandAndShrinksTheColumnCapacity() {
+        // C362: golden P4 level bands are taller than the rows under them.
+        val input = listOf(PcSheetV11FlowItem("h1", "A", firstLineExtraPt = 5f)) +
+            (1..3).map { PcSheetV11FlowItem("r$it", "r") } +
+            PcSheetV11FlowItem("h2", "B", firstLineExtraPt = 5f) +
+            (4..8).map { PcSheetV11FlowItem("r$it", "r") }
+        val measured = PcSheetV11MeasuredFlowPlacer.place(
+            PcSheetV11FlowSection.QUICK_SPELLS, input,
+            PcSheetV11RectPt(36f, 60f, 540f, 100f),
+            columnsPerPage = 2, gutterPt = 12f, lineHeightPt = 10f,
+            textWidth = measuredFont,
+        )
+        val first = measured.cells.filter { it.columnIndex == 1 }
+        assertEquals(listOf(145f, 135f, 125f, 115f, 100f, 90f, 80f, 70f, 60f),
+            first.map { it.cellPt.bottomPt })
+        assertEquals(listOf(15f, 10f, 10f, 10f, 15f, 10f, 10f, 10f, 10f),
+            first.map { it.cellPt.heightPt })
+        // Two 5 pt bands cost one whole line: r8 opens the second column.
+        val second = measured.cells.single { it.columnIndex == 2 }
+        assertEquals("r8", second.sourceKey)
+        assertEquals(150f, second.cellPt.bottomPt)
+        measured.sourceFlow.verifyLosslessAgainst(input)
+
+        // A band that no longer fits moves on; a continued fragment never repeats the extra.
+        val split = PcSheetV11MeasuredFlowPlacer.place(
+            PcSheetV11FlowSection.QUICK_SPELLS,
+            listOf(PcSheetV11FlowItem("a", "a"), PcSheetV11FlowItem("b", "b"),
+                PcSheetV11FlowItem("h", "h\nh2\nh3", firstLineExtraPt = 5f)),
+            PcSheetV11RectPt(36f, 60f, 540f, 30f),
+            columnsPerPage = 2, gutterPt = 12f, lineHeightPt = 10f,
+            textWidth = measuredFont,
+        )
+        val heading = split.cells.filter { it.sourceKey == "h" }
+        assertEquals(listOf(1 to 2, 1 to 2, 2 to 1), heading.map { it.localPageIndex to it.columnIndex })
+        assertEquals(listOf(75f, 65f, 80f), heading.map { it.cellPt.bottomPt })
+        assertEquals(listOf(15f, 10f, 10f), heading.map { it.cellPt.heightPt })
+        assertFailsWith<IllegalArgumentException> {
+            PcSheetV11FlowItem("bad", "x", firstLineExtraPt = -1f)
+        }
+    }
+
+    @Test
     fun narrativeCrossesColumnsAndPagesWithContiguousSourceOffsets() {
         val original = ("Historia extensa de Mara — capítulo 1.\n").repeat(110)
         val items = listOf(PcSheetV11FlowItem("story:Mara", original))

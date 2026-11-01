@@ -828,11 +828,17 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertTrue(clippedPath(640.91f, 646.91f, x + 6f, x + 174.33f - 6f, x + 174.33f),
                         "Each real P4 magic-source card needs 6pt clipped corners.")
                 }
+                // C362: golden level meters - three 8.22 pt squares 13.04 pt apart,
+                // the first 42.52 pt in from each column's right edge.
+                val meterXs = listOf(207.5f, 389.91f, 572.31f).flatMap { right ->
+                    (0..2).map { right - 42.52f + it * 13.04f } }
                 val paperSlots = Regex(
-                    // C309: golden P4 columns move the three slot boxes (right - 33/22/11).
-                    """(?m)(?:^|\s)(?:174\.5\d*|185\.5\d*|196\.5\d*|356\.9\d*|367\.9\d*|378\.9\d*|539\.3\d*|550\.3\d*|561\.3\d*)""" +
-                        """\s+[\d.]+\s+7\s+7\s+re(?:\s|$)"""
-                ).findAll(operators).count()
+                    """(?m)(?:^|\s)([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+re(?:\s|$)"""
+                ).findAll(operators).count { m ->
+                    val (x, _, w, h) = m.groupValues.drop(1).map { it.toFloat() }
+                    kotlin.math.abs(w - 8.22f) < 0.02f && kotlin.math.abs(h - 8.22f) < 0.02f &&
+                        meterXs.any { kotlin.math.abs(it - x) < 0.03f }
+                }
                 assertEquals(27, paperSlots,
                     "Exactly three BLANK genuine vector slot boxes for each " +
                         "of nine spell levels. No 0-level or fabricated 10+.") 
@@ -1357,10 +1363,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val contents = pdf.getPage(physical).contents.use {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
-                Regex("""(?m)(?:^|\s)7 7 re(?:\s|$)""").findAll(contents).count()
+                // C362: golden 8.22 pt spell boxes and level-meter squares.
+                Regex("""(?m)(?:^|\s)8\.22\d* 8\.22\d* re(?:\s|$)""").findAll(contents).count()
             }
             assertTrue(vectorSquares >= 20,
-                "P4 paper-only checkbox marks must be real 7pt PDF rectangles.")
+                "P4 paper-only checkbox marks must be real 8.22 pt PDF rectangles.")
             assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })
             assertTrue(printed.lineSequence().any { it.trim() == "NOTAS" })
             assertTrue(printed.contains("PRUEBA INTERNA V11 - NO APROBADA"))
@@ -1639,10 +1646,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val contents = pdf.getPage(physical).contents.use {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
-                Regex("""(?m)(?:^|\s)7 7 re(?:\s|$)""").findAll(contents).count()
+                // C362: golden 8.22 pt spell boxes and level-meter squares.
+                Regex("""(?m)(?:^|\s)8\.22\d* 8\.22\d* re(?:\s|$)""").findAll(contents).count()
             }
             assertTrue(vectorSquares >= 20,
-                "P4 paper-only checkbox marks must be real 7pt PDF rectangles.")
+                "P4 paper-only checkbox marks must be real 8.22 pt PDF rectangles.")
             assertTrue(printed.contains("Libro de conjuros"))
             val pageTexts = (1..pdf.numberOfPages).map { physical ->
                 PDFTextStripper().apply {
@@ -3669,15 +3677,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             // 7 additional Ilyra / 8 additional Mara BLANK vector rows.
             // Keep the physical square count exact; do not weaken this
             // assertion or conflate empty writing with a digital spell.
+            // C362: the golden 20.69 pt level bands leave 66 / 70 blank rows.
             Triple("02_ilyra_quill_srd5_2_1_evoker_wizard.json",
-                PcSheetV11Variant.B, 68),
+                PcSheetV11Variant.B, 66),
             // C258: Ilyra's two-source spells take two rows (91 -> 89 blank rows);
             // Mara's source label now fits beside each spell without the [X]
             // mark, so her rows are single-line and leave 89 blank rows (was 68).
             // C261: the golden P4 rhythm (6.8 pt on 15.7 pt rows) leaves 62 / 65.
             // C322: golden P4 columns (y630.43..64.92, 15.73 pt rows) leave 68 / 71.
             Triple("03_mara_siete_umbrales_custom_extended.json",
-                PcSheetV11Variant.B, 71),
+                PcSheetV11Variant.B, 70),
         )) {
             val generated = DesktopPcSheetExportService().generateV11Proof(
                 PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
@@ -3698,8 +3707,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     val stream = pdf.getPage(index).contents.use {
                         it.readBytes().toString(Charsets.ISO_8859_1)
                     }
-                    // C317: golden 8.22 pt spell boxes plus the 7 pt level-meter squares.
-                    marks += Regex("""(?m)(?:^|\s)(?:7 7|8\.22\d* 8\.22\d*) re(?:\s|$)""")
+                    // C317/C362: golden 8.22 pt spell boxes and level-meter squares.
+                    marks += Regex("""(?m)(?:^|\s)8\.22\d* 8\.22\d* re(?:\s|$)""")
                         .findAll(stream).count()
                 }
                 assertTrue(paperRows >= 1, "Actual spell P4 page must be present.")

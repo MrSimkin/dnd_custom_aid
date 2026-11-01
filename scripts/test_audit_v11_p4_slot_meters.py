@@ -8,7 +8,7 @@ import audit_v11_p4_slot_meters as audit
 
 
 def specimen(missing_level=None, missing_square=None, extra_meter=False,
-             real_total_level=None, long_level=None):
+             real_total_level=None, long_level=None, legacy=False):
     doc = fitz.open()
     page = doc.new_page(width=612, height=792)
     page.insert_text((45, 73), "P4 - Conjuros", fontsize=12)
@@ -28,14 +28,36 @@ def specimen(missing_level=None, missing_square=None, extra_meter=False,
             for index in range(3):
                 if missing_square == (level, index):
                     continue
-                # C309: golden first column ends at x207.5; boxes start 33 pt before it.
-                page.draw_rect(fitz.Rect(174.5 + index * 11, y - 6, 181.5 + index * 11, y + 1))
+                # C362: golden first column ends at x207.5; 8.22 pt boxes start 42.52 pt
+                # before it, 13.04 pt apart.
+                x = 164.98 + index * 13.04
+                if legacy:  # pre-C362 7 pt squares at right - 33, 11 pt apart
+                    page.draw_rect(fitz.Rect(174.5 + index * 11, y - 6, 181.5 + index * 11, y + 1))
+                else:
+                    page.draw_rect(fitz.Rect(x, y - 7.2, x + 8.22, y + 1.02))
     if extra_meter:
         page.insert_text((110, 615), "ESP.", fontsize=7)
     return doc
 
 
 class PhysicalP4Meters(unittest.TestCase):
+    def test_final_level9_rows_may_reach_the_golden_column_foot(self):
+        for foot, ok in ((727.09, True), (740.0, False)):
+            doc = fitz.open()
+            page = doc.new_page(width=612, height=792)
+            page.insert_text((410, 300), "NIVEL 9", fontsize=8)
+            page.draw_rect(fitz.Rect(404.5, foot - 15.73, 572.31, foot), color=None,
+                           fill=(231/255, 242/255, 247/255))
+            in_window, end, errors = audit.final_level9_manuscript_paper(page)
+            doc.close()
+            self.assertTrue(in_window)
+            self.assertEqual(ok, errors == [], (foot, end, errors))
+
+    def test_rejects_the_pre_golden_7pt_meter(self):
+        with specimen(legacy=True) as doc:
+            result = audit.audit_document(doc)
+        self.assertTrue(any("has 0 squares" in e for e in result["errors"]), result["errors"])
+
     def test_all_ten_levels_nine_meters_and_27_real_squares(self):
         with specimen() as doc:
             result = audit.audit_document(doc)

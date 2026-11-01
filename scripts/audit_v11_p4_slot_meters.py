@@ -3,7 +3,8 @@
 
 Checks a deliberately narrow part of the frozen V11 contract: one printed
 level 0..9 and, for levels 1..9, an ESP. physical meter with three genuine
-7pt vector squares on the same baseline. An ESP.N G.M label means true
+golden 8.22 pt vector squares (C362: 13.04 pt apart, the first 42.52 pt in from
+the column edge) on the same baseline. An ESP.N G.M label means true
 persisted capacity/spent; blank ESP. remains blank paper, never synthetic. It cannot establish spell-source completeness,
 visual golden equivalence, Android parity or G4 acceptance.
 """
@@ -65,7 +66,7 @@ def final_level9_manuscript_paper(page):
 
     Apply only when the genuine level-9 header is in physical column 3
     of a SINGLE P4 page. Dense multi-page and epic P4 are not altered.
-    The top-origin writing region ends at PDF y=716pt.
+    The top-origin writing region ends at the golden column foot, y=727.09pt.
     """
     words = page.get_text("words")
     level9_in_right = any(
@@ -89,7 +90,9 @@ def final_level9_manuscript_paper(page):
     if not ends:
         return True, 0.0, ["P4 final level 9 lacks real pale writing rows"]
     bottom = max(ends)
-    errors = ([] if 703 <= bottom <= 717 else [
+    # C362: with the golden 20.69 pt level bands the rows reach the golden
+    # column foot itself (y64.91 bottom-origin = 727.09 top-origin).
+    errors = ([] if 703 <= bottom <= 727.2 else [
         f"P4 last-level handwritten lines end at y={bottom:.2f}, "
         "leaving avoidable unused printable paper"
     ])
@@ -116,7 +119,7 @@ def audit_spell_page(page, page_number):
     squares = []
     for drawing in page.get_drawings():
         r = drawing["rect"]
-        if (abs(r.width - 7) <= 0.6 and abs(r.height - 7) <= 0.6
+        if (abs(r.width - 8.22) <= 0.6 and abs(r.height - 8.22) <= 0.6
                 and 41 <= r.x0 and r.x1 <= 571 and 158 <= r.y0 <= 730):  # C322: golden columns from y161.6
             squares.append(r)
     continued, context_errors = continued_level_bands(page)
@@ -133,11 +136,11 @@ def audit_spell_page(page, page_number):
         column_right = next((edge for left, edge in
                              ((39.69, 207.5), (222.09, 389.9), (404.5, 572.31))
                              if left <= x < edge - 2), None)
-        expected_first_box_x = (column_right - 33
+        expected_first_box_x = (column_right - 42.52
                                 if column_right is not None else None)
         boxes = [r for r in squares
                  if expected_first_box_x is not None
-                 and any(abs(r.x0 - (expected_first_box_x + n * 11)) <= .6
+                 and any(abs(r.x0 - (expected_first_box_x + n * 13.04)) <= .6
                          for n in range(3))
                  and abs((r.y0 + r.y1) / 2 - y) <= 9]
         meters.append({

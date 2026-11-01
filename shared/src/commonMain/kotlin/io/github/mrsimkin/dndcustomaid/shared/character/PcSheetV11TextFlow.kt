@@ -48,10 +48,17 @@ data class PcSheetV11FlowItem(
      * column start or for a continued fragment. Default remains zero.
      * The approved V11 spellbook uses one line between real cards. */
     val leadingSeparationLines: Int = 0,
+    /** C362: paper geometry only - extra points added to this item's FIRST line
+     * cell (the golden P4 level band is 20.69 pt over 15.73 pt rows). The column
+     * capacity accounts for it; a continued fragment never repeats it. */
+    val firstLineExtraPt: Float = 0f,
 ) {
     init {
         require(leadingSeparationLines >= 0) {
             "A V11 leading separation cannot have a negative line count."
+        }
+        require(firstLineExtraPt.isFinite() && firstLineExtraPt >= 0f) {
+            "A V11 first-line extra height must be finite and nonnegative."
         }
     }
 }
@@ -89,6 +96,10 @@ data class PcSheetV11FlowFragment(
     val lineRanges: List<PcSheetV11TextLine>,
     val continuedFromPrevious: Boolean,
     val continuesOnNext: Boolean,
+    /** C362: extra points already used above this fragment in its column. */
+    val extraAbovePt: Float = 0f,
+    /** C362: extra points of this fragment's first line (0 when continued). */
+    val leadingExtraPt: Float = 0f,
 )
 
 data class PcSheetV11FlowResult(
@@ -149,14 +160,22 @@ object PcSheetV11TextFlow {
 
         var page = 1
         var col = 1
-        var remaining = column.lineCapacity
+        var used = 0
+        var extraUsed = 0f
+        // C362: whole lines that fit once `extra` points are spent; with no extra
+        // this is exactly the column's uniform line capacity.
+        fun capacity(extra: Float) =
+            if (extra == 0f) column.lineCapacity
+            else ((column.heightPt - extra) / column.lineHeightPt).toInt()
+        fun remaining() = capacity(extraUsed) - used
         fun nextColumn() {
             col += 1
             if (col > columnsPerPage) {
                 page += 1
                 col = 1
             }
-            remaining = column.lineCapacity
+            used = 0
+            extraUsed = 0f
         }
 
         val fragments = mutableListOf<PcSheetV11FlowFragment>()
@@ -178,38 +197,49 @@ object PcSheetV11TextFlow {
                     if (measuredGroupLines > column.lineCapacity) break
                 }
                 if (measuredGroupLines in 1..column.lineCapacity &&
-                    measuredGroupLines > remaining) {
+                    measuredGroupLines > remaining()) {
                     nextColumn()
                 }
             }
             val lines = splitIntoMeasuredLines(item.text, column.widthPt, textWidth)
             if (lines.isEmpty()) return@forEachIndexed
             val separation = item.leadingSeparationLines
-            if (separation > 0 && remaining < column.lineCapacity) {
+            if (separation > 0 && remaining() < column.lineCapacity) {
                 // A real manuscript gap must not steal a source line or
                 // split a card that fits completely in a fresh column.
                 // If the gap cannot precede at least one source line
                 // (or a keep-together card), begin the next column
                 // and omit this leading-only gap there.
                 val wholeFitsFresh = lines.size <= column.lineCapacity
-                if (remaining <= separation ||
+                if (remaining() <= separation ||
                     (item.keepTogetherIfFits && wholeFitsFresh &&
-                        lines.size + separation > remaining)
+                        lines.size + separation > remaining())
                 ) {
                     nextColumn()
                 } else {
-                    remaining -= separation
+                    used += separation
                 }
             }
             if (item.keepTogetherIfFits && lines.size <= column.lineCapacity &&
-                lines.size > remaining
+                lines.size > remaining()
             ) {
                 nextColumn()
             }
+            val extra = item.firstLineExtraPt
+            if (extra > 0f && item.keepTogetherIfFits && lines.size <= capacity(extra) &&
+                lines.size > capacity(extraUsed + extra) - used
+            ) {
+                nextColumn()
+            }
+            if (extra > 0f && capacity(extraUsed + extra) - used < 1) nextColumn()
+            require(capacity(extra) >= 1) { "A V11 first-line extra height leaves no line." }
             var offset = 0
             while (offset < lines.size) {
-                if (remaining == 0) nextColumn()
-                val taken = min(remaining, lines.size - offset)
+                if (remaining() <= 0) nextColumn()
+                val above = extraUsed
+                val leading = if (offset == 0) extra else 0f
+                extraUsed += leading
+                val taken = min(remaining(), lines.size - offset)
                 check(taken > 0) { "V11 text flow made no progress." }
                 val slice = lines.subList(offset, offset + taken)
                 val start = slice.first().startOffset
@@ -218,15 +248,17 @@ object PcSheetV11TextFlow {
                     sourceKey = item.sourceKey,
                     localPageIndex = page,
                     columnIndex = col,
-                    startLineIndexInColumn = column.lineCapacity - remaining,
+                    startLineIndexInColumn = used,
                     startOffset = start,
                     endExclusive = end,
                     text = item.text.substring(start, end),
                     lineRanges = slice.toList(),
                     continuedFromPrevious = offset > 0,
                     continuesOnNext = offset + taken < lines.size,
+                    extraAbovePt = above,
+                    leadingExtraPt = leading,
                 )
-                remaining -= taken
+                used += taken
                 offset += taken
             }
         }
