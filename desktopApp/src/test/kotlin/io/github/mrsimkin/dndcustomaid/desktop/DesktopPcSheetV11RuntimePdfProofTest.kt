@@ -273,10 +273,22 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             ).bytes
             Loader.loadPDF(bytes).use { pdf ->
                 val footRule = Regex("""(?:^|\s)39\.69\d*\s+45\.07\d*\s+m\s+572\.32\d*\s+45\.07\d*\s+l""")
+                var bands = 0
                 for (index in 0 until pdf.numberOfPages) {
                     val ops = pdf.getPage(index).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
                     assertTrue(footRule.containsMatchIn(ops), "Golden foot rule on page ${index + 1} ($variant).")
+                    // C364: no stray pale rule under the right half of the footer.
+                    assertFalse(Regex("""(?:^|\s)270\.43\d*\s+37\.28\d*\s+m""").containsMatchIn(ops),
+                        "No non-golden y37.28 footer rule on page ${index + 1} ($variant).")
+                    // C364: as in the golden, the module-link band covers the foot rule.
+                    Regex("""(?:^|\s)39\.6\d*\s+43\.9\d*\s+532\.6\d*\s+13\.0\d*\s+re""")
+                        .find(ops)?.let { band ->
+                            bands++
+                            assertTrue(footRule.findAll(ops).all { it.range.first < band.range.first },
+                                "The link band is painted over the foot rule on page ${index + 1} ($variant).")
+                        }
                 }
+                assertTrue(bands >= 1, "Mara prints at least one module-link band ($variant).")
                 val last = PDFTextStripper().apply {
                     startPage = pdf.numberOfPages
                     endPage = pdf.numberOfPages

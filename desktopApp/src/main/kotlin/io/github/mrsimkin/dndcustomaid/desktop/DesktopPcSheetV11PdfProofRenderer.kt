@@ -5905,15 +5905,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // between the body (>=76) and the internal watermark (y=46).
             fun drawModuleLinks(stream: PDPageContentStream, links: String) {
                 stream.saveGraphicsState()
-                // C290: golden band geometry (v11_extremo p1): fill, foot rule, text.
+                // C290: golden band geometry (v11_extremo p1): fill and text. C364: as
+                // in the golden, the band is painted over the page foot rule (y45.07),
+                // which therefore stays hidden under it.
                 stream.setNonStrokingColor(Color(231, 242, 247))
                 stream.addRect(39.69f, 43.94f, 532.62f, 13.04f)
                 stream.fill()
-                stream.setStrokingColor(Color(82, 124, 150))
-                stream.setLineWidth(0.55f)
-                stream.moveTo(39.69f, 45.07f)
-                stream.lineTo(572.32f, 45.07f)
-                stream.stroke()
                 stream.setNonStrokingColor(Color(38, 75, 104))
                 drawP1Label(stream, links, 42.52f, 47.34f, 6.1f)
                 stream.restoreGraphicsState()
@@ -5963,15 +5960,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     pdf, pdf.getPage(index), PDPageContentStream.AppendMode.APPEND,
                     true, true,
                 ).use { stream ->
-                    // C290: golden footer line — a pale rule, the approved §3.33
-                    // references in 6.1 pt label ink before the page number, and the
-                    // golden "01 / 11" page number (7.4 pt, right edge x569.48).
+                    // C290: the approved §3.33 references in 6.1 pt label ink before
+                    // the page number (right edge x569.48). C364: no pale rule here -
+                    // the golden's y37.28 rule is only the foot of its second P1
+                    // MUNICIONES row; the golden foot rule is y45.07 (C337).
                     stream.saveGraphicsState()
-                    stream.setStrokingColor(Color(148, 176, 193))
-                    stream.setLineWidth(0.32f)
-                    stream.moveTo(270.43f, 37.28f)
-                    stream.lineTo(572.32f, 37.28f)
-                    stream.stroke()
                     stream.setNonStrokingColor(Color(38, 75, 104))
                     if (link.isNotEmpty()) {
                         val linkWidth = headerPdfFont.getStringWidth(
