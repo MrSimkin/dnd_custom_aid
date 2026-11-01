@@ -242,9 +242,11 @@ def c2_context_result(page: fitz.Page) -> tuple[int, int, list[str]]:
     """
     # C341: a continued source caption is «IDENTIDAD / VIENE DE PÁG. n» or
     # «IDENTIDAD / CONTINUACIÓN»; check the first word of each such line.
+    # C367: the band sits under the golden header rule y709.8 (top-origin
+    # 83.4..93.8); in the first column it starts after the C2 section label.
     words = [
         w for w in page.get_text("words")
-        if 76.3 <= w[1] <= 79.0 and w[3] < 88
+        if 83.0 <= w[1] <= 86.5 and w[3] < 95
     ]
     lines: dict[tuple[int, int], list] = {}
     for w in words:
@@ -258,9 +260,9 @@ def c2_context_result(page: fitz.Page) -> tuple[int, int, list[str]]:
         dr for dr in page.get_drawings()
         if dr.get("fill") is not None
         and all(close(dr["fill"][j], color[j], .015) for j in range(3))
-        and close(dr["rect"].y0, 76., .3)
-        and close(dr["rect"].y1, 89., .3)
-        and dr["rect"].width > 235
+        and close(dr["rect"].y0, 83.4, .3)
+        and close(dr["rect"].y1, 93.8, .3)
+        and dr["rect"].width > 100
         and dr.get("type") in {"fs", "f"}
     ]
     matched = 0

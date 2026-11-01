@@ -318,12 +318,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.setLineWidth(0.38f)
                 stream.addRect(30.6142f, 28.9134f, 550.7716f, 734.1732f)
                 stream.stroke()
-                // C311: golden header rule colour and width, x39.69..572.32 (the golden
-                // sits it at y709.8; the app keeps 717, above its C-N3 cartela strip).
+                // C311: golden header rule colour and width, x39.69..572.32.
+                // C367: at the golden y709.8 (was 717), under the logo divider's foot.
                 stream.setStrokingColor(Color(82, 124, 150))
                 stream.setLineWidth(0.55f)
-                stream.moveTo(39.69f, 717f)
-                stream.lineTo(572.32f, 717f)
+                stream.moveTo(39.69f, 709.8f)
+                stream.lineTo(572.32f, 709.8f)
                 stream.stroke()
                 // C337: the golden closes EVERY page (final NOTAS sheet included) with
                 // this #527c96 0.55 pt foot rule; it used to exist only under the
@@ -2634,19 +2634,26 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 ) key to sourceInfo else null
             }.toMap()
 
+                // C367: x where a C2 column cue may start - clear of the golden
+                // «MÓDULOS COMPARTIDOS · DOS COLUMNAS» label in the first column.
+                val c2LabelRight = 39.69f + headerPdfFont.getStringWidth(
+                    "MÓDULOS COMPARTIDOS · DOS COLUMNAS") * 7.5f / 1000f
+                fun c2CueLeft(column: PcSheetV11RectPt): Float =
+                    if (column.leftPt < c2LabelRight) c2LabelRight + 6f else column.leftPt
                 fun drawC2ContinuationCartela(
                     stream: PDPageContentStream,
                     column: PcSheetV11RectPt,
                 ) {
                     // Golden C2c: a genuine column-continuation identity is a
                     // small clipped BLUE band, not loose ink above the source.
-                    // The 703..716pt header gap is already empty; source rows
-                    // start below 702pt. No pagination/content change.
-                    val bottom = 703f
-                    val top = 716f
-                    require(column.topPt <= 702f && top < 717f && bottom > column.topPt)
+                    // C367: the free strip between the C2 columns (top y685.7) and the
+                    // golden header rule y709.8; in the first column it starts after
+                    // the «MÓDULOS COMPARTIDOS» label. No pagination/content change.
+                    val bottom = 698.2f
+                    val top = 708.6f
+                    require(column.topPt <= 702f && top < 709.8f && bottom > column.topPt)
                     val cut = 2.5f
-                    val left = column.leftPt
+                    val left = c2CueLeft(column)
                     val right = column.rightPt
                     stream.saveGraphicsState()
                     stream.setNonStrokingColor(Color(231, 242, 247))
@@ -3012,7 +3019,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                             it.sourceKey.startsWith("c2-heading:")
                                         } else null
                                     if (precedingHeading != null) {
-                                        val fontPt = 7f
+                                        val fontPt = 6.1f // C367: golden label face
                                         val shortName = precedingHeading.text
                                             .substringBefore(" / ").substringBefore(",")
                                         // C341: the first column continues the previous
@@ -3024,9 +3031,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                             PcSheetV11ContinuationText.arrived(shortName, fromPage),
                                             shortName,
                                         ).firstOrNull { candidate ->
-                                            bodyPdfFont.getStringWidth(
+                                            headerPdfFont.getStringWidth(
                                                 pcSheetV11PrintableText(candidate)
-                                            ) * fontPt / 1000f <= column.widthPt - 4f
+                                            ) * fontPt / 1000f <= column.rightPt - c2CueLeft(column) - 4f
                                         }
                                         requireNotNull(context) {
                                             "C2 source group continuation cannot fit the existing header band."
@@ -3035,8 +3042,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         stream.saveGraphicsState()
                                         stream.setNonStrokingColor(Color(80, 122, 151))
                                         stream.beginText()
-                                        stream.setFont(bodyPdfFont, fontPt)
-                                        stream.newLineAtOffset(column.leftPt + 2f, 707f)
+                                        stream.setFont(headerPdfFont, fontPt)
+                                        stream.newLineAtOffset(c2CueLeft(column) + 2f, 700.9f) // C367
                                         stream.showText(pcSheetV11PrintableText(context))
                                         stream.endText()
                                         stream.restoreGraphicsState()
@@ -3053,11 +3060,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         val attribute = requireNotNull(
                                             data.attributes.drop(6).getOrNull(attrIndex)
                                         ) { "C2 continuation lost its source attribute." }
-                                        val fontPt = 7f
+                                        val fontPt = 6.1f // C367: golden label face
                                         fun fits(text: String): Boolean =
-                                            bodyPdfFont.getStringWidth(
+                                            headerPdfFont.getStringWidth(
                                                 pcSheetV11PrintableText(text)
-                                            ) * fontPt / 1000f <= column.widthPt - 4f
+                                            ) * fontPt / 1000f <= column.rightPt - c2CueLeft(column) - 4f
                                         val full = "ATRIBUTO: " + attribute.name
                                         val short = attribute.abbreviation
                                             .takeIf { it.isNotBlank() }
@@ -3082,8 +3089,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         stream.saveGraphicsState()
                                         stream.setNonStrokingColor(Color(80, 122, 151))
                                         stream.beginText()
-                                        stream.setFont(bodyPdfFont, fontPt)
-                                        stream.newLineAtOffset(column.leftPt + 2f, 707f)
+                                        stream.setFont(headerPdfFont, fontPt)
+                                        stream.newLineAtOffset(c2CueLeft(column) + 2f, 700.9f) // C367
                                         stream.showText(pcSheetV11PrintableText(context))
                                         stream.endText()
                                         stream.restoreGraphicsState()
@@ -4448,7 +4455,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val bottom = area.topPt + 1.98f
                 val top = bottom + 22.96f
                 val corner = 5f
-                require(top < 717f) { "P2 cartela cannot hit the physical page header" }
+                require(top < 709.8f) { "P2 cartela cannot hit the physical page header" }
                 require(headerPdfFont.getStringWidth(title) * 11f / 1000f <=
                     area.widthPt - 18f) {
                     "P2 title cannot fit inside its approved source-free cartela: " + title
@@ -4621,7 +4628,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val bottom = area.topPt + 1.98f
                     val top = bottom + 22.96f
                     val corner = 5f
-                    require(top < 717f) {
+                    require(top < 709.8f) {
                         "C2 cartela cannot cross the fixed physical header rule."
                     }
                     stream.saveGraphicsState()
@@ -5415,7 +5422,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         stream.setNonStrokingColor(Color(80, 122, 151))
                         stream.beginText()
                         stream.setFont(bodyPdfFont, fontPt)
-                        stream.newLineAtOffset(x, 708f) // C344: the free header strip, above the cartela
+                        // C344/C367: the free strip above the cartela, under the golden rule.
+                        stream.newLineAtOffset(x, 696f)
                         stream.showText(pcSheetV11PrintableText(label))
                         stream.endText()
                         stream.restoreGraphicsState()

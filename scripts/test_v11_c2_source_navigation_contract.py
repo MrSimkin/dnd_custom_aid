@@ -23,8 +23,8 @@ class C2PhysicalOriginParityTest(unittest.TestCase):
             self.assertEqual(source.count("drawC2ContinuationCartela(stream, column)"), 2,
                 "Every genuine C2 continued source-group or attribute heading needs golden cartela.")
             self.assertIn("stream.fillAndStroke()", source)
-            self.assertIn("val bottom = 703f", source)
-            self.assertIn("val top = 716f", source)
+            self.assertIn("val bottom = 698.2f", source)  # C367: under the golden rule y709.8
+            self.assertIn("val top = 708.6f", source)
             # C213 physical paper grouping is sourced from real C2 group keys.
             self.assertIn("val c2CustomGroups = pageCells.mapNotNull", source)
             self.assertIn('sourceGroup?.startsWith("custom-attribute-group:") == true', source)

@@ -277,6 +277,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 for (index in 0 until pdf.numberOfPages) {
                     val ops = pdf.getPage(index).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
                     assertTrue(footRule.containsMatchIn(ops), "Golden foot rule on page ${index + 1} ($variant).")
+                    // C367: the golden header rule at y709.8 (was y717) on every page.
+                    assertTrue(Regex("""(?:^|\s)39\.69\d*\s+709\.(?:8|79)\d*\s+m\s+572\.32\d*\s+709\.(?:8|79)\d*\s+l""")
+                        .containsMatchIn(ops), "Golden header rule at y709.8 on page ${index + 1} ($variant).")
+                    assertFalse(Regex("""(?:^|\s)39\.69\d*\s+717\s+m""").containsMatchIn(ops),
+                        "No pre-golden y717 header rule on page ${index + 1} ($variant).")
                     // C364: no stray pale rule under the right half of the footer.
                     assertFalse(Regex("""(?:^|\s)270\.43\d*\s+37\.28\d*\s+m""").containsMatchIn(ops),
                         "No non-golden y37.28 footer rule on page ${index + 1} ($variant).")
@@ -1947,14 +1952,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     texts[index].contains("C2 - Habilidades, acciones y recursos")
                 }.flatMap { pageIndex ->
                     val region = PDFTextStripperByArea().apply {
+                        // C367: the context band sits under the golden header rule (y709.8).
                         addRegion("left-body",
-                            Rectangle2D.Float(40f, 90f, 262f, 630f))
+                            Rectangle2D.Float(40f, 95f, 262f, 625f))
                         addRegion("right-body",
-                            Rectangle2D.Float(310f, 90f, 262f, 630f))
+                            Rectangle2D.Float(310f, 95f, 262f, 625f))
                         addRegion("left-context",
-                            Rectangle2D.Float(40f, 75f, 262f, 16f))
+                            Rectangle2D.Float(40f, 80f, 262f, 15f))
                         addRegion("right-context",
-                            Rectangle2D.Float(310f, 75f, 262f, 16f))
+                            Rectangle2D.Float(310f, 80f, 262f, 15f))
                         extractRegions(pdf.getPage(pageIndex))
                     }
                     listOf(
