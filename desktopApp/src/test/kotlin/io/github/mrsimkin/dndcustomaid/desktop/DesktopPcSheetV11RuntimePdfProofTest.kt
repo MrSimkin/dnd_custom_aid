@@ -264,6 +264,39 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c368SameInputGivesTheSamePagesBreaksAndTextAB() {
+        // C368 / GLB11: the same sources and options give the same physical pages,
+        // the same page breaks and the same printed text, page by page.
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        val ilyra = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            for ((label, source, book) in listOf(Triple("Mara", mara, false), Triple("Ilyra", ilyra, true))) {
+                fun pagesOf(): List<String> {
+                    val bytes = DesktopPcSheetExportService().generateV11Proof(
+                        PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT,
+                            includeSpellDescriptions = book),
+                        source,
+                    ).bytes
+                    return Loader.loadPDF(bytes).use { pdf ->
+                        (1..pdf.numberOfPages).map { n ->
+                            PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                        }
+                    }
+                }
+                val first = pagesOf()
+                assertTrue(first.size >= 5, "$label $variant prints a multi-page sheet.")
+                repeat(2) {
+                    val again = pagesOf()
+                    assertEquals(first.size, again.size, "Same page count ($label $variant).")
+                    first.indices.forEach { i ->
+                        assertEquals(first[i], again[i], "Same text on page ${i + 1} ($label $variant).")
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {

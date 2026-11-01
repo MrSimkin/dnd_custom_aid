@@ -100,6 +100,33 @@ class PcSheetV11MeasuredFlowPlacerTest {
     }
 
     @Test
+    fun sameInputGivesTheSameBreaksIdsAndPagesEveryTime() {
+        // C368 / GLB11: the measured placement is a pure function of its input -
+        // groups, separations, line extras, column and page breaks included.
+        fun input() = (1..40).flatMap { n ->
+            listOf(
+                PcSheetV11FlowItem("head:$n", "Heading $n", keepTogetherIfFits = true,
+                    groupKey = "g$n", lineExtrasPt = mapOf(0 to 4.96f)),
+                PcSheetV11FlowItem("body:$n", "word ".repeat(n % 7 + 3).trim() + "\nsecond line $n",
+                    groupKey = "g$n", leadingSeparationLines = n % 2),
+            )
+        }
+        fun place() = PcSheetV11MeasuredFlowPlacer.place(
+            PcSheetV11FlowSection.QUICK_SPELLS, input(),
+            PcSheetV11RectPt(36f, 60f, 540f, 200f),
+            columnsPerPage = 3, gutterPt = 9f, lineHeightPt = 15.73f,
+            textWidth = measuredFont,
+        )
+        val first = place()
+        assertTrue(first.sourceFlow.localPageCount >= 2, "The fixture must break pages.")
+        repeat(3) {
+            val again = place()
+            assertEquals(first.sourceFlow, again.sourceFlow)
+            assertEquals(first.cells, again.cells)
+        }
+    }
+
+    @Test
     fun lineExtraBeforeAMiddleLineAddsAirOnlyThere() {
         // C363: the golden book card leaves more air before its description.
         val card = PcSheetV11FlowItem("card", "Name\nSchool\nDescription", keepTogetherIfFits = true,
