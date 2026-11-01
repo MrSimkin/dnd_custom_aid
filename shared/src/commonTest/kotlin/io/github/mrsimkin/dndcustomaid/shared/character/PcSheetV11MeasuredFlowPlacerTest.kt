@@ -60,9 +60,9 @@ class PcSheetV11MeasuredFlowPlacerTest {
     @Test
     fun firstLineExtraMakesATallerBandAndShrinksTheColumnCapacity() {
         // C362: golden P4 level bands are taller than the rows under them.
-        val input = listOf(PcSheetV11FlowItem("h1", "A", firstLineExtraPt = 5f)) +
+        val input = listOf(PcSheetV11FlowItem("h1", "A", lineExtrasPt = mapOf(0 to 5f))) +
             (1..3).map { PcSheetV11FlowItem("r$it", "r") } +
-            PcSheetV11FlowItem("h2", "B", firstLineExtraPt = 5f) +
+            PcSheetV11FlowItem("h2", "B", lineExtrasPt = mapOf(0 to 5f)) +
             (4..8).map { PcSheetV11FlowItem("r$it", "r") }
         val measured = PcSheetV11MeasuredFlowPlacer.place(
             PcSheetV11FlowSection.QUICK_SPELLS, input,
@@ -85,7 +85,7 @@ class PcSheetV11MeasuredFlowPlacerTest {
         val split = PcSheetV11MeasuredFlowPlacer.place(
             PcSheetV11FlowSection.QUICK_SPELLS,
             listOf(PcSheetV11FlowItem("a", "a"), PcSheetV11FlowItem("b", "b"),
-                PcSheetV11FlowItem("h", "h\nh2\nh3", firstLineExtraPt = 5f)),
+                PcSheetV11FlowItem("h", "h\nh2\nh3", lineExtrasPt = mapOf(0 to 5f))),
             PcSheetV11RectPt(36f, 60f, 540f, 30f),
             columnsPerPage = 2, gutterPt = 12f, lineHeightPt = 10f,
             textWidth = measuredFont,
@@ -95,8 +95,34 @@ class PcSheetV11MeasuredFlowPlacerTest {
         assertEquals(listOf(75f, 65f, 80f), heading.map { it.cellPt.bottomPt })
         assertEquals(listOf(15f, 10f, 10f), heading.map { it.cellPt.heightPt })
         assertFailsWith<IllegalArgumentException> {
-            PcSheetV11FlowItem("bad", "x", firstLineExtraPt = -1f)
+            PcSheetV11FlowItem("bad", "x", lineExtrasPt = mapOf(0 to -1f))
         }
+    }
+
+    @Test
+    fun lineExtraBeforeAMiddleLineAddsAirOnlyThere() {
+        // C363: the golden book card leaves more air before its description.
+        val card = PcSheetV11FlowItem("card", "Name\nSchool\nDescription", keepTogetherIfFits = true,
+            lineExtrasPt = mapOf(12 to 3f))
+        val measured = PcSheetV11MeasuredFlowPlacer.place(
+            PcSheetV11FlowSection.SPELLBOOK, listOf(card, PcSheetV11FlowItem("next", "n")),
+            PcSheetV11RectPt(36f, 60f, 540f, 100f),
+            columnsPerPage = 2, gutterPt = 12f, lineHeightPt = 10f,
+            textWidth = measuredFont,
+        )
+        assertEquals(listOf(150f, 140f, 127f, 117f), measured.cells.map { it.cellPt.bottomPt })
+        assertEquals(listOf(10f, 10f, 13f, 10f), measured.cells.map { it.cellPt.heightPt })
+        assertEquals(listOf(0, 1, 2, 3), measured.cells.map { it.rowIndex })
+        // A 3 pt extra in a 40 pt column of 10 pt rows leaves room for 3 lines only.
+        val tight = PcSheetV11MeasuredFlowPlacer.place(
+            PcSheetV11FlowSection.SPELLBOOK,
+            listOf(PcSheetV11FlowItem("a", "a"), card),
+            PcSheetV11RectPt(36f, 60f, 540f, 40f),
+            columnsPerPage = 2, gutterPt = 12f, lineHeightPt = 10f,
+            textWidth = measuredFont,
+        )
+        assertTrue(tight.cells.filter { it.sourceKey == "card" }.all { it.columnIndex == 2 })
+        tight.sourceFlow.verifyLosslessAgainst(listOf(PcSheetV11FlowItem("a", "a"), card))
     }
 
     @Test

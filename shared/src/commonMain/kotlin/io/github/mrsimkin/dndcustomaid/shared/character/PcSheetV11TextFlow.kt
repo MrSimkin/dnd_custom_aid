@@ -48,17 +48,18 @@ data class PcSheetV11FlowItem(
      * column start or for a continued fragment. Default remains zero.
      * The approved V11 spellbook uses one line between real cards. */
     val leadingSeparationLines: Int = 0,
-    /** C362: paper geometry only - extra points added to this item's FIRST line
-     * cell (the golden P4 level band is 20.69 pt over 15.73 pt rows). The column
-     * capacity accounts for it; a continued fragment never repeats it. */
-    val firstLineExtraPt: Float = 0f,
+    /** C362/C363: paper geometry only - extra points added on top of the line
+     * cell that starts at a given source offset (the golden P4 level band is 20.69
+     * pt over 15.73 pt rows; golden book cards leave more air before the
+     * description). The column capacity accounts for every extra. */
+    val lineExtrasPt: Map<Int, Float> = emptyMap(),
 ) {
     init {
         require(leadingSeparationLines >= 0) {
             "A V11 leading separation cannot have a negative line count."
         }
-        require(firstLineExtraPt.isFinite() && firstLineExtraPt >= 0f) {
-            "A V11 first-line extra height must be finite and nonnegative."
+        require(lineExtrasPt.all { (offset, pt) -> offset >= 0 && pt.isFinite() && pt >= 0f }) {
+            "A V11 line extra height must be finite and nonnegative."
         }
     }
 }
@@ -98,8 +99,8 @@ data class PcSheetV11FlowFragment(
     val continuesOnNext: Boolean,
     /** C362: extra points already used above this fragment in its column. */
     val extraAbovePt: Float = 0f,
-    /** C362: extra points of this fragment's first line (0 when continued). */
-    val leadingExtraPt: Float = 0f,
+    /** C363: extra points of each line, parallel to [lineRanges]; empty = none. */
+    val lineExtrasPt: List<Float> = emptyList(),
 )
 
 data class PcSheetV11FlowResult(
@@ -225,22 +226,28 @@ object PcSheetV11TextFlow {
             ) {
                 nextColumn()
             }
-            val extra = item.firstLineExtraPt
-            if (extra > 0f && item.keepTogetherIfFits && lines.size <= capacity(extra) &&
-                lines.size > capacity(extraUsed + extra) - used
+            val extras = lines.map { item.lineExtrasPt[it.startOffset] ?: 0f }
+            val extraSum = extras.sum()
+            if (extraSum > 0f && item.keepTogetherIfFits && lines.size <= capacity(extraSum) &&
+                lines.size > capacity(extraUsed + extraSum) - used
             ) {
                 nextColumn()
             }
-            if (extra > 0f && capacity(extraUsed + extra) - used < 1) nextColumn()
-            require(capacity(extra) >= 1) { "A V11 first-line extra height leaves no line." }
             var offset = 0
             while (offset < lines.size) {
-                if (remaining() <= 0) nextColumn()
+                if (capacity(extraUsed + extras[offset]) - used < 1) nextColumn()
+                require(capacity(extras[offset]) >= 1) { "A V11 line extra height leaves no line." }
                 val above = extraUsed
-                val leading = if (offset == 0) extra else 0f
-                extraUsed += leading
-                val taken = min(remaining(), lines.size - offset)
+                // C363: take every following line whose own extra still fits.
+                var taken = 0
+                var added = 0f
+                while (offset + taken < lines.size &&
+                    capacity(extraUsed + added + extras[offset + taken]) - used - taken >= 1) {
+                    added += extras[offset + taken]
+                    taken++
+                }
                 check(taken > 0) { "V11 text flow made no progress." }
+                extraUsed += added
                 val slice = lines.subList(offset, offset + taken)
                 val start = slice.first().startOffset
                 val end = slice.last().endExclusive
@@ -256,7 +263,8 @@ object PcSheetV11TextFlow {
                     continuedFromPrevious = offset > 0,
                     continuesOnNext = offset + taken < lines.size,
                     extraAbovePt = above,
-                    leadingExtraPt = leading,
+                    lineExtrasPt = if (added > 0f) extras.subList(offset, offset + taken).toList()
+                        else emptyList(),
                 )
                 used += taken
                 offset += taken

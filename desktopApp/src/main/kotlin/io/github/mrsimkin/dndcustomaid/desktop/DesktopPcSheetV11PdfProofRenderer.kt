@@ -3949,9 +3949,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         body.metrics.baselineIn(cell.cellPt), false)
                                 }
                             } else if (cell.drawableText.isNotEmpty()) {
+                                // C363: a book line with extra air above it keeps its
+                                // baseline at the foot of its taller cell.
                                 draw(stream, cell.drawableText,
                                     cell.cellPt.leftPt,
-                                    body.metrics.baselineIn(cell.cellPt),
+                                    if (title == "Libro de conjuros" &&
+                                        cell.cellPt.heightPt > body.metrics.lineHeightPt + 0.01f)
+                                        body.metrics.baselineIn(cell.cellPt.copy(
+                                            heightPt = body.metrics.lineHeightPt))
+                                    else body.metrics.baselineIn(cell.cellPt),
                                     false)
                             }
                             // C216: the approved C2 paper uses an EMPTY
@@ -5526,7 +5532,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             if (level == 0) "TRUCOS 0" else "NIVEL " + level,
                             keepTogetherIfFits = true,
                             // C362: golden level band 20.69 pt over the 15.73 pt rows.
-                            firstLineExtraPt = 20.69f - 15.73f))
+                            lineExtrasPt = mapOf(0 to 20.69f - 15.73f)))
                         val spellsHere = data.spells.filter { it.spell.level == level }
                         spellsHere.forEach { entry ->
                             p4SpellRows.getValue(entry.spell.id).forEach { (key, sourceInfo) ->
@@ -5691,6 +5697,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         text = lines.joinToString("\n"),
                         keepTogetherIfFits = true,
                         leadingSeparationLines = 1, // BK08: one REAL measured blank row between cards.
+                        // C363: golden air under the heading band - the description's
+                        // first baseline sits 45.35 pt under the card top (was 42.18).
+                        lineExtrasPt = mapOf(heading.sumOf { it.length + 1 } to 3.17f),
                     )
                 }
                 val contentFlow = bookFont.place(

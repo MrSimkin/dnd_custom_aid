@@ -4255,6 +4255,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         "Fire Bolt's real school prints once, uppercase ($variant).")
                     var name: Pair<Float, Float>? = null
                     var school: Triple<Float, Float, org.apache.pdfbox.text.TextPosition>? = null
+                    var description: Float? = null
                     val bookPage = bookPages.first { pages[it].contains("Fire Bolt") } + 1
                     object : PDFTextStripper() {
                         override fun writeString(
@@ -4264,6 +4265,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                             val y = 792f - first.yDirAdj
                             if (text.trim() == "Fire Bolt") name = first.xDirAdj to y
                             if (text.trim() == "EVOCACIÓN") school = Triple(first.xDirAdj, y, first)
+                            if (text.startsWith("Cantrip de evocación") && description == null) description = y
                         }
                     }.apply { startPage = bookPage; endPage = bookPage }.getText(pdf)
                     val (nameX, nameY) = requireNotNull(name) { "Fire Bolt name line ($variant)." }
@@ -4276,6 +4278,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         "Golden school size 7 pt ($variant): " + glyph.fontSizeInPt)
                     assertTrue(glyph.font.name.contains("NotoSansDisplay"),
                         "Golden condensed bold face ($variant): " + glyph.font.name)
+                    // C363: golden air under the heading band - the description's first
+                    // baseline sits 17.01 pt under the school (v11_extremo p10).
+                    val descriptionY = requireNotNull(description) { "Fire Bolt description ($variant)." }
+                    assertTrue(kotlin.math.abs(schoolY - descriptionY - 17.01f) < 0.3f,
+                        "Golden description baseline 17.01 pt under the school (C363, $variant): " +
+                            "$schoolY / $descriptionY")
                 }
             }
         }
