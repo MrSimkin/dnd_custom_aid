@@ -9,6 +9,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableSou
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTablePlaced
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11MeasuredFlowPlacer
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TextFlow
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TextWidth
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TextColumn
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11FlowSourceMapper
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ColumnGrid
@@ -829,9 +830,25 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             require(variantA || bPanelRows > 0) { "Golden B skills panel has no room on P1." }
             fun bSkillsAreaFor(rows: Int) = if (variantA) PcSheetV11RectPt(54.99f, 100f, 201.26f, 14.74f)
                 else PcSheetV11RectPt(54.99f, bPanelTop - rows * 14.74f, 201.26f, rows * 14.74f)
+            // C359: as the golden B, a label too long for one row with its value steps
+            // down (6.85 to 5.85 pt) instead of wrapping; the value keeps 7 pt bold.
+            val bSkillLabelPt = bSkillParts.mapValues { (_, parts) ->
+                val value = parts.second.trim()
+                val room = 89.29f - (if (value.isEmpty()) 0f else 4f + p1BoldWidth(value, 7f))
+                listOf(7f, 6.85f, 6.6f, 6.35f, 6.1f, 5.85f).firstOrNull { pt ->
+                    bSkillFont.width.measurePt(parts.first) * pt / 7f <= room
+                } ?: 7f
+            }
+            val bShrunkTexts = bSkillEntries.mapNotNull { item ->
+                bSkillLabelPt[item.sourceKey]?.takeIf { it < 7f }?.let { item.text to it }
+            }.toMap()
+            val bSkillWidth = PcSheetV11TextWidth { text ->
+                val pt = bShrunkTexts[text] ?: bShrunkTexts[text.trimEnd()]
+                bSkillFont.width.measurePt(text) * ((pt ?: 7f) / 7f)
+            }
             fun placeBSkills(rows: Int) = PcSheetV11MeasuredFlowPlacer.place(
                 PcSheetV11FlowSection.TRAITS,bSkillEntries,bSkillsAreaFor(rows),2,22.68f,
-                bSkillFont.metrics.lineHeightPt,bSkillFont.width,
+                bSkillFont.metrics.lineHeightPt,bSkillWidth,
             )
             // C358: the golden B fills BOTH subcolumns. Measure once at full height,
             // then balance the real lines over the two columns when that loses nothing.
@@ -923,9 +940,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 drawStateGlyph(stream, it, cell.cellPt.leftPt - 11.01f, baseline - 0.55f, 7f)
                             }
                         }
-                        fun ink(text: String, x: Float) {
+                        fun ink(text: String, x: Float, pt: Float = 7f) {
                             stream.beginText()
-                            stream.setFont(bodyPdfFont,7f)
+                            stream.setFont(bodyPdfFont,pt)
                             stream.newLineAtOffset(x, baseline)
                             stream.showText(pcSheetV11PrintableText(text))
                             stream.endText()
@@ -937,9 +954,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         val oneLine = parts != null && value.isNotEmpty() &&
                             cell.sourceStartOffset == 0 &&
                             cell.sourceEndExclusive == parts.first.length + parts.second.length
-                        if (oneLine && cell.cellPt.leftPt + bSkillFont.width.measurePt(parts!!.first) +
-                            4f <= valueRight - p1BoldWidth(value, 7f)) {
-                            ink(parts.first, cell.cellPt.leftPt)
+                        val labelPt = bSkillLabelPt[cell.sourceKey] ?: 7f
+                        if (oneLine && cell.cellPt.leftPt + bSkillFont.width.measurePt(parts!!.first) *
+                            labelPt / 7f + 4f <= valueRight - p1BoldWidth(value, 7f) + 0.01f) {
+                            ink(parts.first, cell.cellPt.leftPt, labelPt)
                             // C302: golden B skill bonus, Noto Sans Bold 7 pt #264b68.
                             p1Bold(stream, value, valueRight - p1BoldWidth(value, 7f), baseline,
                                 7f, Color(38, 75, 104))
