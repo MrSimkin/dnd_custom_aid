@@ -491,7 +491,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         aSkillRowCaps[ability.reference] ?: minOf(6,
                             data.skills.count { it.ability == ability.reference }),
                     )
-                    else if(compactBAttributes) 25f else 38f
+                    else 25.09f // C358: golden B attribute row
             }
             // Variant A NEVER uses B's fixed 25pt compression: a skill group
             // is only printed if the entire genuine attribute-height fits.
@@ -514,8 +514,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 else -> 6
             }
             // C357: A follows the golden column from y586.2; B keeps its own panel.
-            fun p1AttributeTop(i:Int):Float = (if (data.request.variant ==
-                io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A) 586.2f else 577f) -
+            fun p1AttributeTop(i:Int):Float = 586.2f - // C357/C358: golden column top
                 data.attributes.take(i).sumOf { p1AttributeHeight(it).toDouble() }.toFloat()
 
             // Standard enum IDs stay English in the model; only owner-approved
@@ -570,8 +569,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             fun drawP1Attributes(stream:PDPageContentStream) {
                 val standards=data.attributes.take(p1PrintedAttributeCount)
                 require(standards.size>=6 && p1AttributeTop(p1PrintedAttributeCount) >
-                    (if (compactBAttributes) 328f else if (data.request.variant ==
-                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A) 60f else 110f)) // C357
+                    (if (data.request.variant ==
+                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A) 60f else 200f)) // C357/C358
                 // Approved V11 P1 C2c: shared A/B Attributes blue header.
                 // It fits the genuine 23pt strip BELOW portrait (PDF y605)
                 // and ABOVE first source-backed ability row (PDF y577).
@@ -603,16 +602,18 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val k=0.5522848f
                 // C357: A uses the golden band grammar (22.82 pt band, white score box
                 // and oval with #264b68 edges); B keeps its own rows for now.
-                val goldenA = data.request.variant ==
-                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A
+                // C358: B shares the golden row grammar; only the band height differs.
+                val goldenA = true
+                val bandHeight = if (data.request.variant ==
+                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A) 22.82f else 25.09f
                 standards.forEachIndexed { i,ability ->
                     val top=p1AttributeTop(i)
                     val bottom=p1AttributeTop(i+1)
                     stream.saveGraphicsState()
                     if (goldenA) {
-                        val bandBottom = top - 22.82f
+                        val bandBottom = top - bandHeight
                         stream.setNonStrokingColor(if (i % 2 == 0) Color(231,242,247) else Color(240,247,250))
-                        stream.addRect(39.69f,bandBottom,220.53f,22.82f)
+                        stream.addRect(39.69f,bandBottom,220.53f,bandHeight)
                         stream.fill()
                         stream.setStrokingColor(Color(148,176,193))
                         stream.setLineWidth(0.32f)
@@ -814,46 +815,57 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     )
                 }
             else emptyList()
-            // Reserve 11pt for each approved B paper skill checkbox. Both
-            // physical columns are genuinely measured: x60..167 and x186..293
-            // (19pt between them houses the separator and second checkbox).
-            // This never adds a fake skill or clips an overlong source label.
-            // C350: golden B text x54.99..144.28 and x166.96..256.25 (89.29 pt each).
-            // The narrower golden subcolumns take two more rows (11 on the 10.5 pt
-            // pitch) from the blank paper below, so all 18 standard skills stay on P1.
-            val bSkillsArea = PcSheetV11RectPt(54.99f,199f,201.26f,116f)
-            val bSkillsPlaced = if(!variantA) PcSheetV11MeasuredFlowPlacer.place(
-                PcSheetV11FlowSection.TRAITS,bSkillEntries,bSkillsArea,2,22.68f,
-                skillFont.metrics.lineHeightPt,skillFont.width,
-            ) else null
+            // C358: golden v11_extremo B - the HABILIDADES cartela 3.12 pt under the last
+            // attribute row and, 1.99 pt below it, two golden subcolumns (text x54.99 and
+            // x166.96, 89.29 pt each) of 14.74 pt rows down to the y60 foot reserve.
+            val bSkillFont = measurer.resolve(PcSheetV11Typeface.BODY, 7f).let { font ->
+                val box = font.metrics.ascentPt + font.metrics.descentPt
+                font.copy(metrics = font.metrics.copy(leadingPt = maxOf(0f, 14.74f - box)))
+            }
+            val bCartelaBottom = p1AttributeTop(p1PrintedAttributeCount) - 3.12f - 22.96f
+            val bPanelTop = bCartelaBottom - 1.99f
+            // A has no B panel; keep a valid placeholder there (never drawn).
+            val bPanelRows = if (variantA) 1 else ((bPanelTop - 60f) / 14.74f).toInt()
+            require(variantA || bPanelRows > 0) { "Golden B skills panel has no room on P1." }
+            fun bSkillsAreaFor(rows: Int) = if (variantA) PcSheetV11RectPt(54.99f, 100f, 201.26f, 14.74f)
+                else PcSheetV11RectPt(54.99f, bPanelTop - rows * 14.74f, 201.26f, rows * 14.74f)
+            fun placeBSkills(rows: Int) = PcSheetV11MeasuredFlowPlacer.place(
+                PcSheetV11FlowSection.TRAITS,bSkillEntries,bSkillsAreaFor(rows),2,22.68f,
+                bSkillFont.metrics.lineHeightPt,bSkillFont.width,
+            )
+            // C358: the golden B fills BOTH subcolumns. Measure once at full height,
+            // then balance the real lines over the two columns when that loses nothing.
+            val bSkillsPlaced = if(!variantA) {
+                val full = placeBSkills(bPanelRows)
+                val usedLines = full.cells.count { it.localPageIndex == 1 }
+                val balancedRows = ((usedLines + 1) / 2).coerceIn(1, bPanelRows)
+                val balanced = placeBSkills(balancedRows)
+                if (balanced.sourceFlow.localPageCount <= full.sourceFlow.localPageCount &&
+                    balanced.cells.count { it.localPageIndex == 1 } == usedLines) balanced else full
+            } else null
             fun drawP1BIndependentSkills(stream: PDPageContentStream) {
                 if (variantA) return
-                // Approved V11 golden B: HABILIDADES requires a clipped C2c
-                // blue-mist cartela. The existing sheet has an 18pt strip
-                // between final Attributes row (PDF y349) and Skills frame
-                // (top PDF y328). Do NOT move the source skill rows or frame.
+                // C358: golden B HABILIDADES cartela (22.96 pt, 5 pt chamfer, #264b68 0.65 pt).
+                val cb = bCartelaBottom
+                val ct = cb + 22.96f
                 stream.saveGraphicsState()
                 stream.setNonStrokingColor(Color(231, 242, 247))
                 stream.setStrokingColor(Color(38, 75, 104))
-                stream.setLineWidth(0.55f)
-                stream.moveTo(43.69f, 330f) // C350 golden left column
-                stream.lineTo(256.22f, 330f)
-                stream.lineTo(260.22f, 334f)
-                stream.lineTo(260.22f, 344f)
-                stream.lineTo(256.22f, 348f)
-                stream.lineTo(43.69f, 348f)
-                stream.lineTo(39.69f, 344f)
-                stream.lineTo(39.69f, 334f)
+                stream.setLineWidth(0.65f)
+                stream.moveTo(44.69f, cb)
+                stream.lineTo(255.22f, cb)
+                stream.lineTo(260.22f, cb + 5f)
+                stream.lineTo(260.22f, ct - 5f)
+                stream.lineTo(255.22f, ct)
+                stream.lineTo(44.69f, ct)
+                stream.lineTo(39.69f, ct - 5f)
+                stream.lineTo(39.69f, cb + 5f)
                 stream.closePath()
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
-                // 9pt horizontal inset and +3pt top-origin vertical inset.
-                // Entire original label/legend remains; no label is dropped.
-                // C310: golden B cartela - diamonds, HABILIDADES 9.1 pt ink 16 pt in,
-                // and the P/E legend as the golden grey 6.2 pt note on the right.
-                drawCartelaDiamonds(stream, 39.69f, 260.22f, 330f, 348f)
+                drawCartelaDiamonds(stream, 39.69f, 260.22f, cb, ct)
                 stream.setNonStrokingColor(Color(29, 56, 79))
-                drawP1Label(stream, "HABILIDADES", 56.69f, 336f, 9.1f)
+                drawP1Label(stream, "HABILIDADES", 56.69f, cb + 6.8f, 9.1f)
                 // C329: the legend shows the v8 marks themselves.
                 val skillsLegend = listOf(0xE108 to "COMPETENCIA", 0xE109 to "PERICIA")
                 fun legendWidth(text: String) = bodyPdfFont.getStringWidth(text) * 6.2f / 1000f
@@ -861,76 +873,54 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     (6f + 1.5f + legendWidth(text)).toDouble() }.toFloat() - 6f
                 stream.setNonStrokingColor(Color(101, 125, 144))
                 skillsLegend.forEachIndexed { i, (glyph, text) ->
-                    drawStateGlyph(stream, glyph, legendX, 336.2f, 6.4f, Color(101, 125, 144))
+                    drawStateGlyph(stream, glyph, legendX, cb + 7f, 6.4f, Color(101, 125, 144))
                     legendX += 7.5f
                     stream.beginText()
                     stream.setFont(bodyPdfFont, 6.2f)
-                    stream.newLineAtOffset(legendX, 337.2f)
+                    stream.newLineAtOffset(legendX, cb + 8.08f)
                     stream.showText(text)
                     stream.endText()
                     legendX += legendWidth(text) + if (i == 0) 6f else 0f
                 }
                 stream.setNonStrokingColor(Color(36, 57, 75))
+                // Golden subcolumn rows: alternating fills and the 0.32 pt rule, every
+                // row on paper whether or not a real skill sits in it (no frame).
                 stream.saveGraphicsState()
-                stream.setStrokingColor(Color(130,165,186))
-                stream.setLineWidth(0.6f)
-                stream.addRect(39.69f,105f,220.53f,223f)
-                stream.stroke()
-                stream.moveTo(149.95f,105f)
-                stream.lineTo(149.95f,319f)
-                stream.stroke()
-                stream.restoreGraphicsState()
-                // The approved B skills cartela remains useful on paper
-                // BELOW all real skill records. Its layout placer is confined
-                // to y=220..315; this lower region y=125..218 cannot erase,
-                // crowd or duplicate any source skill even with long entries.
-                // Two separate ruled columns mirror the frozen golden; no
-                // unchecked state or digital NOTAS record is invented.
-                val blankPaperTop = bSkillsArea.bottomPt - 15f
-                val blankPaperFloor = 105f + 20f
-                val blankPaperStep = 16f
-                var ruleY = blankPaperTop
-                stream.saveGraphicsState()
-                stream.setStrokingColor(Color(130,165,186))
-                stream.setLineWidth(0.45f)
-                stream.setNonStrokingColor(Color(238,247,251))
-                while (ruleY >= blankPaperFloor) {
-                    for ((xStart,xEnd) in listOf(39.69f to 148.25f,151.65f to 260.22f)) {
-                        // Alternate pale-blue usable handwriting bands, never
-                        // outside the skills frame or across its divider.
-                        stream.addRect(xStart,ruleY-1f,xEnd-xStart,14f)
+                for ((xStart, xEnd) in listOf(39.69f to 148.25f, 151.65f to 260.22f)) {
+                    repeat(bPanelRows) { row ->
+                        val rowBottom = bPanelTop - (row + 1) * 14.74f
+                        stream.setNonStrokingColor(if (row % 2 == 0) Color(231, 242, 247) else Color(240, 247, 250))
+                        stream.addRect(xStart, rowBottom, xEnd - xStart, 14.74f)
                         stream.fill()
-                        stream.moveTo(xStart,ruleY)
-                        stream.lineTo(xEnd,ruleY)
+                    }
+                    stream.setStrokingColor(Color(148, 176, 193))
+                    stream.setLineWidth(0.32f)
+                    repeat(bPanelRows) { row ->
+                        val y = bPanelTop - (row + 1) * 14.74f + 0.99f
+                        stream.moveTo(xStart, y)
+                        stream.lineTo(xEnd, y)
                         stream.stroke()
                     }
-                    ruleY -= blankPaperStep
                 }
                 stream.restoreGraphicsState()
                 bSkillsPlaced?.cells?.filter{it.localPageIndex==1}?.forEach{cell->
                     if(cell.drawableText.isNotEmpty()){
-                        val baseline = skillFont.metrics.baselineIn(cell.cellPt)
-                        val bandRow = Math.round((bSkillsArea.topPt - cell.cellPt.topPt) /
-                            skillFont.metrics.lineHeightPt)
+                        // C358: golden baseline 10.32 pt under the row top.
+                        val baseline = cell.cellPt.topPt - 10.32f
                         val bandLeft = if (cell.cellPt.leftPt < 150f) 39.69f else 151.65f
                         val bandWidth = if (cell.cellPt.leftPt < 150f) 108.56f else 108.57f
-                        fillBand(stream, bandLeft, cell.cellPt.bottomPt, bandWidth,
-                            cell.cellPt.heightPt, bandRow)
                         if (cell.sourceStartOffset == 0) {
-                            // One genuine blank 7×7pt square per SOURCE skill,
-                            // never one per wrapped fragment. P/E text is only
-                            // a source-backed training label, not a checked state.
-                            // C350: golden B box - 8.5 pt, 11.76 pt before the name.
+                            // One genuine blank golden 8.5 pt square per SOURCE skill,
+                            // never one per wrapped fragment.
                             stream.saveGraphicsState()
                             stream.setNonStrokingColor(Color(255, 255, 255))
                             stream.setStrokingColor(Color(82, 124, 150))
                             stream.setLineWidth(0.48f)
-                            stream.addRect(cell.cellPt.leftPt - 11.76f,
-                                baseline - 2.75f, 8.5f, 8.5f)
+                            stream.addRect(cell.cellPt.leftPt - 11.76f, baseline - 1.3f, 8.5f, 8.5f)
                             stream.fillAndStroke()
                             stream.restoreGraphicsState()
                             bSkillTraining[cell.sourceKey]?.let(::trainingGlyph)?.let {
-                                drawStateGlyph(stream, it, cell.cellPt.leftPt - 11.01f, baseline - 2f, 7f)
+                                drawStateGlyph(stream, it, cell.cellPt.leftPt - 11.01f, baseline - 0.55f, 7f)
                             }
                         }
                         fun ink(text: String, x: Float) {
@@ -940,14 +930,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             stream.showText(pcSheetV11PrintableText(text))
                             stream.endText()
                         }
-                        // C241: golden B — value right-aligned 3 pt inside the band.
+                        // C241: golden B — value right-aligned inside the band.
                         val parts = bSkillParts[cell.sourceKey]
                         val value = parts?.second?.trim().orEmpty()
                         val valueRight = bandLeft + bandWidth - 3.97f // C350 golden
                         val oneLine = parts != null && value.isNotEmpty() &&
                             cell.sourceStartOffset == 0 &&
                             cell.sourceEndExclusive == parts.first.length + parts.second.length
-                        if (oneLine && cell.cellPt.leftPt + skillFont.width.measurePt(parts!!.first) +
+                        if (oneLine && cell.cellPt.leftPt + bSkillFont.width.measurePt(parts!!.first) +
                             4f <= valueRight - p1BoldWidth(value, 7f)) {
                             ink(parts.first, cell.cellPt.leftPt)
                             // C302: golden B skill bonus, Noto Sans Bold 7 pt #264b68.

@@ -669,9 +669,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         // gap 20.17pt; label was also 2.1pt lower relative to FUERZA.
         val cases = listOf(
             Triple("02_ilyra_quill_srd5_2_1_evoker_wizard.json",
-                PcSheetV11Variant.B, 237.9f),
+                PcSheetV11Variant.B, 227.2f), // C358: golden B label at the row top - 21.4
             Triple("03_mara_siete_umbrales_custom_extended.json",
-                PcSheetV11Variant.B, 235.9f),
+                PcSheetV11Variant.B, 227.2f), // C358
             Triple("03_mara_siete_umbrales_custom_extended.json",
                 PcSheetV11Variant.A, 227.2f), // C357: golden A label at the band top - 21.4
         )
@@ -1030,40 +1030,22 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val commands = first.contents.use {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
-                // C350: the golden subcolumns; the B skills area now ends at y199.
-                for (y in listOf(184, 168, 152, 136)) {
-                    for ((left,right) in listOf("39.69" to "148.25","151.65" to "260.22")) {
-                        // PDFBox prints 151.65 as 151.64999: compare the numbers, not the text.
-                        val line = Regex(
-                            """(?m)(?:^|\s)(\d+(?:\.\d+)?)\s+""" + y +
-                                """\s+m\s+(\d+(?:\.\d+)?)\s+""" + y +
-                                """\s+l(?:\s|$)"""
-                        )
-                        val matchesHere = line.findAll(commands).count { m ->
-                            kotlin.math.abs(m.groupValues[1].toFloat() - left.toFloat()) < 0.02f &&
-                                kotlin.math.abs(m.groupValues[2].toFloat() - right.toFloat()) < 0.02f
-                        }
-                        assertEquals(1, matchesHere,
-                            "Real B skills paper row y=$y x=$left..$right " +
-                                "must be whole, unique and inside its own column.")
-                        val filledBand = Regex(
-                            """(?m)(?:^|\s)(\d+(?:\.\d+)?)\s+""" + (y-1) +
-                                """\s+(\d+(?:\.\d+)?)\s+14\s+re(?:\s|$)"""
-                        )
-                        assertEquals(1, filledBand.findAll(commands).count { m ->
-                            kotlin.math.abs(m.groupValues[1].toFloat() - left.toFloat()) < 0.02f &&
-                                kotlin.math.abs(m.groupValues[2].toFloat() -
-                                    (right.toFloat() - left.toFloat())) < 0.02f
-                        },
-                            "Each writable B row must retain its complete " +
-                                "inside-border pale-blue band without clipping.")
-                    }
-                }
+                // C358: the golden B paper - every 14.74 pt row of both subcolumns is
+                // a filled row with its 0.32 pt rule, down to the y60 foot reserve.
+                val rowRects = Regex(
+                    """(?m)(?:^|\s)(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s+14\.7[34]\d*\s+re(?:\s|$)"""
+                ).findAll(commands).map { m -> m.groupValues.drop(1).map { it.toFloat() } }.toList()
+                val leftRows = rowRects.count { (x, _, w) -> kotlin.math.abs(x - 39.69f) < 0.02f && kotlin.math.abs(w - 108.56f) < 0.02f }
+                val rightRows = rowRects.count { (x, _, w) -> kotlin.math.abs(x - 151.65f) < 0.02f && kotlin.math.abs(w - 108.57f) < 0.02f }
+                assertTrue(leftRows >= 9 && leftRows == rightRows,
+                    "Real B skills paper rows must be whole and paired in both subcolumns: $leftRows / $rightRows.")
+                assertTrue(rowRects.all { (_, y) -> y >= 60f },
+                    "B paper rows stay above the y60 foot reserve.")
                 val blankText = PDFTextStripperByArea().apply {
                     // PDFBox uses top-origin region coordinates. The
-                    // manuscript rows run PDF y=125..197 (C350).
+                    // C358: the three lowest golden rows (PDF y60..104) stay manuscript paper.
                     addRegion("unused-B-paper",
-                        Rectangle2D.Float(40f, 595f, 220f, 71f))
+                        Rectangle2D.Float(40f, 688f, 220f, 44f))
                     extractRegions(first)
                 }.getTextForRegion("unused-B-paper")
                 assertTrue(blankText.isBlank(),
@@ -1446,8 +1428,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     .contains("N7"), "P1 ammunition overlaps spell slots.")
                 if(variant==PcSheetV11Variant.B){
                     val skillsByColumn=PDFTextStripperByArea().apply{
-                        addRegion("first",Rectangle2D.Float(39f,471f,111f,140f)) // C350 golden
-                        addRegion("second",Rectangle2D.Float(150f,471f,112f,140f))
+                        addRegion("first",Rectangle2D.Float(39f,370f,111f,365f)) // C358 golden panel
+                        addRegion("second",Rectangle2D.Float(150f,370f,112f,365f))
                         extractRegions(page)
                     }
                     assertTrue(skillsByColumn.getTextForRegion("first").contains("Acrobacias"),
@@ -4369,7 +4351,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         if (!split) continue
                         val part = textPositions.subList(start, i)
                         val y = 792f - part.first().yDirAdj
-                        if (y in 199f..316f && part.first().fontSizeInPt == 7f) {
+                        if (y in 60f..420f && part.first().xDirAdj < 262f && part.first().fontSizeInPt == 7f) { // C358
                             runs += Triple(part.joinToString("") { it.unicode }.trim(),
                                 part.first().xDirAdj, part.last().xDirAdj + part.last().widthDirAdj)
                         }
@@ -6290,16 +6272,18 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val ops = pdf.getPage(0).contents.use {
                     it.readBytes().toString(Charsets.ISO_8859_1)
                 }
+                // C358: golden B - ATRIBUTOS and HABILIDADES share the 44.69..255.22
+                // chamfered cartela shape; HABILIDADES sits 3.12 pt under the last row.
                 val clippedHeader = Regex(
-                    // C350: golden left column x39.69..260.22.
-                    """(?s)(?:^|\s)43\.6[89]\d*\s+330\s+m\s+256\.2[12]\d*\s+330\s+l\s+""" +
-                        """260\.2[12]\d*\s+334\s+l.*?39\.69\d*\s+334\s+l\s+h\s+B(?:\s|$)"""
+                    """(?s)(?:^|\s)44\.6[89]\d*\s+([\d.]+)\s+m\s+255\.2[12]\d*\s+\1\s+l\s+""" +
+                        """260\.2[12]\d*\s+[\d.]+\s+l.*?39\.69\d*\s+[\d.]+\s+l\s+h\s+B(?:\s|$)"""
                 )
-                assertEquals(1, clippedHeader.findAll(ops).count(),
+                assertEquals(2, clippedHeader.findAll(ops).count(),
                     "Golden C2c HABILIDADES header missing ($fixture).")
-                assertTrue(Regex(
-                    """(?:^|\s)39\.69\d*\s+105\s+220\.5[23]\d*\s+223\s+re(?:\s|$)""" // C350 golden
-                ).containsMatchIn(ops),
+                val goldenRows = Regex(
+                    """(?:^|\s)39\.69\d*\s+[\d.]+\s+108\.5[56]\d*\s+14\.7[34]\d*\s+re(?:\s|$)"""
+                ).findAll(ops).count()
+                assertTrue(goldenRows >= 9,
                     "Original B skills frame must not move.")
                 val page1 = PDFTextStripper().apply {
                     startPage = 1

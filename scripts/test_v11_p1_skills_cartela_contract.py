@@ -17,28 +17,26 @@ class SkillsHeadingParity(unittest.TestCase):
         for path in RENDERERS:
             body = path.read_text(encoding="utf-8").split(
                 "fun drawP1BIndependentSkills(", 1
-            )[1].split("val blankPaperTop", 1)[0]
+            )[1].split("bSkillsPlaced?.cells", 1)[0]
             self.assertIn("if (variantA) return", body)
-            self.assertIn('drawP1Label(stream, "HABILIDADES", 56.69f, 336f, 9.1f)', body)  # C310/C350
+            # C358: golden B cartela under the last attribute row, title 6.8 pt over its foot.
+            self.assertIn('drawP1Label(stream, "HABILIDADES", 56.69f, cb + 6.8f, 9.1f)', body)
             self.assertIn('val skillsLegend = listOf(0xE108 to "COMPETENCIA", 0xE109 to "PERICIA")', body)  # C329
             for operator in (
-                # C350: golden left column x39.69..260.22.
-                "stream.moveTo(43.69f, 330f) // C350 golden left column",
-                "stream.lineTo(256.22f, 330f)",
-                "stream.lineTo(260.22f, 334f)",
-                "stream.lineTo(260.22f, 344f)",
-                "stream.lineTo(256.22f, 348f)",
-                "stream.lineTo(43.69f, 348f)",
-                "stream.lineTo(39.69f, 344f)",
-                "stream.lineTo(39.69f, 334f)",
+                "stream.moveTo(44.69f, cb)",
+                "stream.lineTo(255.22f, cb)",
+                "stream.lineTo(260.22f, cb + 5f)",
+                "stream.lineTo(260.22f, ct - 5f)",
+                "stream.lineTo(255.22f, ct)",
+                "stream.lineTo(44.69f, ct)",
+                "stream.lineTo(39.69f, ct - 5f)",
+                "stream.lineTo(39.69f, cb + 5f)",
                 "stream.fillAndStroke()",
-                "stream.addRect(39.69f,105f,220.53f,223f)",
+                "stream.addRect(xStart, rowBottom, xEnd - xStart, 14.74f)",
             ):
                 self.assertIn(operator, body, f"{path.name}: missing {operator}")
-            declarations.append(tuple(line.strip() for line in body[
-                body.index("stream.moveTo(43.69f, 330f)"):
-                body.index('// C310: golden B cartela')
-            ].splitlines() if line.strip().startswith(("stream.",))))
+            declarations.append(tuple(line.strip() for line in body.splitlines()
+                                      if line.strip().startswith(("stream.",))))
         self.assertEqual(declarations[0], declarations[1], "Android/Desktop Skills B title has diverged")
 
     def test_native_pdf_output_guard_exists(self):
