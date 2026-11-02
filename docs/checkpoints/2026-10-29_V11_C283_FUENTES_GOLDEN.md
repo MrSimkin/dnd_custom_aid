@@ -116,5 +116,5 @@ Medidas tomadas de v11_extremo A/B (golden) el 2026-10-31; las x de P1 ya son la
   Cambia la capacidad de P1, así que exige revisar el reparto P1/C2 y las pruebas de presupuesto de atributos.
 - **C2**: el golden mezcla TESORO y EQUIPO en columnas con otros módulos, cada uno con su cartela de columna (x39,69–301,04, y662,74–685,7, «VIENE DE PÁG. n») y filas de 18,43 pt; la App les da páginas a todo el ancho con una franja de título.
 - **Matriz**: 101/233 controles de etapa (G1–G3) en PASS; G4 bloqueada hasta cerrar G1–G3.
-- **P104**: el contrato dice «óvalo superpuesto» y el golden lo dibuja al lado (3,4 pt de aire); pregunta pendiente al propietario.
+- **P104 (siguiente paso, decidido por el propietario 2026-11-01)**: implementar la fila de atributo de `CONTRATO_VISUAL_APROBADO.md` § «fila de atributo»: óvalo encima del borde de la casilla, todo centrado en la línea de la fila, y a la derecha «TIRADA DE / SALVACIÓN» (dos líneas, alineado a la derecha) + casilla + línea manuscrita siempre presente. P1 A/B y C2.
 - **C2**: banda de continuación de columna sigue siendo propia de la App (el golden no tiene ese caso); evaluar cartela repetida «/ CONTINUACIÓN».
