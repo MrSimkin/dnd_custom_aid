@@ -22,8 +22,10 @@ class C2AttributeRowParityTest(unittest.TestCase):
             pieces.append(re.sub(r"\s+", " ", part))
         self.assertEqual(pieces[0], pieces[1])
         tests = TESTS.read_text(encoding="utf-8")
-        # C357: Mara A fits Cordura on P1 now; the C2 row grammar is checked on Renombre.
-        self.assertIn('flat.contains("11 +0 Renombre SALVACIÓN sin valor")', tests)
+        # P104: the owner row grammar, checked on Renombre (empty save line).
+        self.assertIn('Regex("11 \\\\+0 Renombre").containsMatchIn(flat) && !flat.contains("sin valor")', tests)
+        for path in RENDERERS:
+            self.assertIn("drawOwnerAttributeRow(stream, left, right, (top + bottom) / 2f,", path.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

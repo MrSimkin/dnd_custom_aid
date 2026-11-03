@@ -92,8 +92,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             it.readBytes().toString(Charsets.ISO_8859_1)
         }
         // Must be genuine VECTOR squares in the P1 left saving band, not plain
-        // "[ ]" glyphs or unrelated marks. C350: the golden 8.78 pt box at x220.54.
-        val boxes = Regex("""(?m)(?:^|\s)220\.5[34]\d*\s+[0-9.]+\s+8\.78\d*\s+8\.78\d*\s+re(?:\s|$)""")
+        // "[ ]" glyphs or unrelated marks. P104: the 8.78 pt box at x225.84, just
+        // left of the saving-throw handwriting line (x238.62..256.62).
+        val boxes = Regex("""(?m)(?:^|\s)225\.8[34]\d*\s+[0-9.]+\s+8\.78\d*\s+8\.78\d*\s+re(?:\s|$)""")
             .findAll(operators).count()
         assertEquals(expectedRows, boxes,
             "Each actually printed P1 standard/custom saving row must get " +
@@ -237,10 +238,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertTrue(startsAt(275.43f, foot), "Right column cartela at y$foot ($fixture $variant).")
                 }
                 // First attribute row from y586.2: score box (3 pt chamfer), oval, saving box.
-                assertTrue(startsAt(45.24f, 564.52f), "Golden score box of the first attribute ($fixture $variant).")
-                assertTrue(startsAt(124.16f, 573f), "Golden modifier oval of the first attribute ($fixture $variant).")
-                assertTrue(rects.any { (x, y, w, h) -> kotlin.math.abs(x - 220.54f) < 0.02f &&
-                    kotlin.math.abs(y - 569.76f) < 0.02f && kotlin.math.abs(w - 8.78f) < 0.02f &&
+                // P104: the first row's box, oval and save box centred on the band's middle line.
+                val centre = 586.2f - (if (variant == PcSheetV11Variant.A) 22.82f else 25.09f) / 2f
+                assertTrue(startsAt(45.24f, centre - 9.07f), "Score box of the first attribute ($fixture $variant).")
+                assertTrue(startsAt(111.9f, centre), "Modifier oval of the first attribute ($fixture $variant).")
+                assertTrue(rects.any { (x, y, w, h) -> kotlin.math.abs(x - 225.84f) < 0.02f &&
+                    kotlin.math.abs(y - (centre - 4.39f)) < 0.02f && kotlin.math.abs(w - 8.78f) < 0.02f &&
                     kotlin.math.abs(h - 8.78f) < 0.02f }, "Golden saving box of the first attribute ($fixture $variant).")
                 val leftCartelaFeet = starts.filter { (sx, sy) -> kotlin.math.abs(sx - 44.69f) < 0.02f && sy < 615f /* not the portrait */ }
                     .map { it.second }.distinct()
@@ -767,57 +770,64 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
-    fun realP1SavingLabelUsesMeasuredGoldenMicroOffsetWithoutMovingBoxes() {
-        // Independently measure the generated PDF text, not source constants.
-        // Frozen B reference: label right x=202.68, checkbox left x=220.54,
-        // gap 17.85pt. Before fix: real App x=249.83 versus box x=270,
-        // gap 20.17pt; label was also 2.1pt lower relative to FUERZA.
+    fun c371OwnerAttributeRowIsCentredWithARightAlignedSaveGroupAB() {
+        // P104 (owner 2026-11-01): score box, modifier oval over its right edge and
+        // the name on the row's middle line; on the right the right-aligned
+        // «TIRADA DE / SALVACIÓN», the box and an always-printed handwriting line.
         val cases = listOf(
-            Triple("02_ilyra_quill_srd5_2_1_evoker_wizard.json",
-                PcSheetV11Variant.B, 227.2f), // C358: golden B label at the row top - 21.4
-            Triple("03_mara_siete_umbrales_custom_extended.json",
-                PcSheetV11Variant.B, 227.2f), // C358
-            Triple("03_mara_siete_umbrales_custom_extended.json",
-                PcSheetV11Variant.A, 227.2f), // C357: golden A label at the band top - 21.4
+            Triple("02_ilyra_quill_srd5_2_1_evoker_wizard.json", PcSheetV11Variant.B, 6),
+            Triple("03_mara_siete_umbrales_custom_extended.json", PcSheetV11Variant.B, 9),
+            Triple("03_mara_siete_umbrales_custom_extended.json", PcSheetV11Variant.A, 9),
         )
-        for ((fixture, variant, expectedBaselineY) in cases) {
+        val number = """(\d+(?:\.\d+)?)"""
+        for ((fixture, variant, expectedRows) in cases) {
             val proof = DesktopPcSheetExportService().generateV11Proof(
-                PcSheetV11ExportRequest(
-                    variant, PcSheetExportStateSelection.PERMANENT,
-                ), sources(fixture),
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), sources(fixture),
             )
             Loader.loadPDF(proof.bytes).use { pdf ->
-                val savingLabels = mutableListOf<Pair<Float, Float>>()
-                val stripper = object : PDFTextStripper() {
+                // Right edges (x of the last glyph's end) and baselines of the two label lines.
+                val labels = mutableListOf<Triple<String, Float, Float>>()
+                object : PDFTextStripper() {
                     override fun writeString(
-                        text: String,
-                        textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                        text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
                     ) {
-                        val at = text.indexOf("SALVACIÓN")
-                        if (at >= 0 && textPositions.size > at) {
-                            val position = textPositions[at]
-                            savingLabels += position.xDirAdj to position.yDirAdj
+                        for (word in listOf("TIRADA DE", "SALVACIÓN")) {
+                            var at = text.indexOf(word)
+                            while (at >= 0 && at + word.length <= textPositions.size) {
+                                if (word == "SALVACIÓN" && at >= 3 && text.substring(at - 3, at) == "CD ") {
+                                    at = text.indexOf(word, at + 1); continue
+                                }
+                                val last = textPositions[at + word.length - 1]
+                                labels += Triple(word, last.xDirAdj + last.widthDirAdj, 792f - last.yDirAdj)
+                                at = text.indexOf(word, at + 1)
+                            }
                         }
-                        super.writeString(text, textPositions)
                     }
+                }.apply { startPage = 1; endPage = 1 }.getText(pdf)
+                val firsts = labels.filter { it.first == "TIRADA DE" }
+                val seconds = labels.filter { it.first == "SALVACIÓN" && it.second < 230f }
+                assertEquals(expectedRows, firsts.size, "One «TIRADA DE» per printed row ($fixture $variant).")
+                assertEquals(expectedRows, seconds.size, "One «SALVACIÓN» per printed row ($fixture $variant).")
+                (firsts + seconds).forEach { (word, rightEdge, _) ->
+                    assertTrue(kotlin.math.abs(rightEdge - 222.84f) < 0.4f,
+                        "«$word» is right-aligned 3 pt left of its box ($fixture $variant): $rightEdge")
                 }
-                stripper.startPage = 1
-                stripper.endPage = 1
-                stripper.getText(pdf)
-                val expectedRows = when {
-                    fixture.startsWith("02_") -> 6
-                    variant == PcSheetV11Variant.A -> 9 // C357: on the golden rhythm Mara A fits 6 + 3.
-                    else -> 9 // Mara B: all three custom attributes fit P1.
+                firsts.forEach { (_, _, y) ->
+                    assertTrue(seconds.any { kotlin.math.abs(y - 6.3f - it.third) < 0.3f },
+                        "«SALVACIÓN» sits 6.3 pt under «TIRADA DE» ($fixture $variant).")
                 }
-                assertEquals(expectedRows, savingLabels.count {
-                    kotlin.math.abs(it.first - 175.18f) < 0.3f /* C350 golden x */
-                }, "Every printed P1 saving label must be physically at " +
-                    "the approved checkbox-relative x position ($fixture, $variant).")
-                val first = savingLabels.first { kotlin.math.abs(it.first - 175.18f) < 0.3f /* C350 golden x */ }
-                assertTrue(kotlin.math.abs(first.second - expectedBaselineY) < 0.35f,
-                    "Saving label baseline must move 2.1pt upward " +
-                    "relative to the original attribute row ($fixture, $variant).")
                 assertPhysicalP1SavingBoxes(pdf, expectedRows)
+                val ops = pdf.getPage(0).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                val lines = Regex("""(?:^|\s)238\.6\d*\s+$number\s+m\s+256\.6\d*\s+$number\s+l""").findAll(ops).count()
+                assertEquals(expectedRows, lines, "One saving-throw handwriting line per row ($fixture $variant).")
+                // The first row: box, oval and save box share the band's middle line.
+                val centre = 586.2f - (if (variant == PcSheetV11Variant.A) 22.82f else 25.09f) / 2f
+                val starts = Regex("""(?:^|\s)$number\s+$number\s+m(?:\s|$)""").findAll(ops)
+                    .map { it.groupValues[1].toFloat() to it.groupValues[2].toFloat() }.toList()
+                assertTrue(starts.any { (x, y) -> kotlin.math.abs(x - 45.24f) < 0.02f &&
+                    kotlin.math.abs(y - (centre - 9.07f)) < 0.02f }, "Score box centred ($fixture $variant).")
+                assertTrue(starts.any { (x, y) -> kotlin.math.abs(x - 111.9f) < 0.02f &&
+                    kotlin.math.abs(y - centre) < 0.02f }, "Oval centred over the box edge ($fixture $variant).")
             }
         }
     }
@@ -1866,8 +1876,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         "Cordura and Éter print on P1 with their linked skills.")
                     assertFalse(flat.contains("Cordura SALVACIÓN") || flat.contains("Éter SALVACIÓN"),
                         "An attribute printed on P1 is never repeated as a C2 row.")
-                    assertTrue(flat.contains("11 +0 Renombre SALVACIÓN sin valor"),
-                        "A missing source save must remain explicitly unresolved.")
+                    // P104: a missing source save leaves its handwriting line empty.
+                    assertTrue(Regex("11 \\+0 Renombre").containsMatchIn(flat) && !flat.contains("sin valor"),
+                        "Renombre's C2 row keeps its real score and modifier, with an empty save line.")
                     assertTrue(p1Flat.contains("+9") && p1Flat.contains("+8"),
                         "Linked true skill totals keep golden plus signs on P1 (C357).")
                 }
@@ -2016,7 +2027,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     Regex("QAMEGAATRIBUTO").findAll(body).count()
                 }
                 assertTrue(c2.any { (_, body, _) ->
-                    Regex("16\\s+\\+3\\s+QAMEGAATRIBUTO\\s+SALVACIÓN").containsMatchIn(body)
+                    Regex("16\\s+\\+3\\s+QAMEGAATRIBUTO").containsMatchIn(body) && body.contains("TIRADA DE")
                 }, "The source attribute row keeps its real score and modifier.")
                 assertEquals(1, originalScoreRows,
                     "Original custom attribute score must be printed only once.")

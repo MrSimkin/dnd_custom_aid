@@ -239,6 +239,90 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.endText()
                 stream.restoreGraphicsState()
             }
+            // P104 (owner 2026-11-01): one attribute-row grammar for P1 and C2. The
+            // score box, the modifier oval over its right edge (a quarter of the oval)
+            // and the name sit on the row's middle line, each number ink-centred in its
+            // figure (sign included). On the right, on the same line: the right-aligned
+            // «TIRADA DE / SALVACIÓN», the proficiency box and a handwriting line that is
+            // always printed, with the real saving-throw value on it when the App has one.
+            val boldCap = (boldPdfFont.fontDescriptor?.capHeight?.takeIf { it > 0f } ?: 714f) / 1000f
+            val labelCap = (headerPdfFont.fontDescriptor?.capHeight?.takeIf { it > 0f } ?: 714f) / 1000f
+            fun drawOwnerAttributeRow(
+                stream: PDPageContentStream, left: Float, right: Float, centreY: Float,
+                score: String, modifier: String, name: String, namePt: Float, save: String?,
+            ) {
+                val boxLeft = left + 2.55f
+                val boxRight = boxLeft + 43.08f
+                val boxBottom = centreY - 9.07f
+                val boxTop = centreY + 9.07f
+                val cut = 3f
+                val ovalWidth = 35.44f
+                val ovalLeft = boxRight - ovalWidth / 4f
+                val cx = ovalLeft + ovalWidth / 2f
+                val rx = ovalWidth / 2f
+                val ry = 7.23f
+                val k = 0.5522848f
+                stream.saveGraphicsState()
+                stream.setNonStrokingColor(Color.WHITE)
+                stream.setStrokingColor(Color(38, 75, 104))
+                stream.setLineWidth(0.65f)
+                stream.moveTo(boxLeft + cut, boxBottom)
+                stream.lineTo(boxRight - cut, boxBottom)
+                stream.lineTo(boxRight, boxBottom + cut)
+                stream.lineTo(boxRight, boxTop - cut)
+                stream.lineTo(boxRight - cut, boxTop)
+                stream.lineTo(boxLeft + cut, boxTop)
+                stream.lineTo(boxLeft, boxTop - cut)
+                stream.lineTo(boxLeft, boxBottom + cut)
+                stream.closePath()
+                stream.fillAndStroke()
+                // The oval is drawn after the box, so it lies over the box edge.
+                stream.setLineWidth(0.63f)
+                stream.moveTo(cx + rx, centreY)
+                stream.curveTo(cx + rx, centreY + ry * k, cx + rx * k, centreY + ry, cx, centreY + ry)
+                stream.curveTo(cx - rx * k, centreY + ry, cx - rx, centreY + ry * k, cx - rx, centreY)
+                stream.curveTo(cx - rx, centreY - ry * k, cx - rx * k, centreY - ry, cx, centreY - ry)
+                stream.curveTo(cx + rx * k, centreY - ry, cx + rx, centreY - ry * k, cx + rx, centreY)
+                stream.closePath()
+                stream.fillAndStroke()
+                stream.restoreGraphicsState()
+                // The score sits in the visible part of the box, left of the oval.
+                p1Bold(stream, score, (boxLeft + ovalLeft) / 2f - p1BoldWidth(score, 11f) / 2f,
+                    centreY - boldCap * 11f / 2f, 11f, Color(29, 56, 79))
+                p1Bold(stream, modifier, cx - p1BoldWidth(modifier, 8.7f) / 2f,
+                    centreY - boldCap * 8.7f / 2f, 8.7f, Color(38, 75, 104))
+                val lineRight = right - 3.6f
+                val lineLeft = lineRight - 18f
+                val valueBaseline = centreY - boldCap * 7.2f / 2f
+                val saveBoxLeft = lineLeft - 4f - 8.78f
+                val labelRight = saveBoxLeft - 3f
+                // The name is drawn here so the row's text reads left to right.
+                val labelLeft = labelRight - maxOf(p1InkWidth("TIRADA DE", 5.8f), p1InkWidth("SALVACIÓN", 5.8f))
+                val nameX = ovalLeft + ovalWidth + 4.25f
+                val room = labelLeft - 4f - nameX
+                val pt = listOf(namePt, namePt - 0.5f, namePt - 1f, namePt - 1.5f)
+                    .firstOrNull { p1InkWidth(name, it) <= room } ?: (namePt - 1.5f)
+                p1Ink(stream, name, nameX, centreY - labelCap * pt / 2f, pt)
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(82, 124, 150))
+                stream.setLineWidth(0.45f)
+                stream.moveTo(lineLeft, valueBaseline - 1.3f)
+                stream.lineTo(lineRight, valueBaseline - 1.3f)
+                stream.stroke()
+                stream.setNonStrokingColor(Color.WHITE)
+                stream.setLineWidth(0.48f)
+                stream.addRect(saveBoxLeft, centreY - 4.39f, 8.78f, 8.78f)
+                stream.fillAndStroke()
+                stream.restoreGraphicsState()
+                save?.let {
+                    p1Bold(stream, it, (lineLeft + lineRight) / 2f - p1BoldWidth(it, 7.2f) / 2f,
+                        valueBaseline, 7.2f, Color(38, 75, 104))
+                }
+                val firstBaseline = centreY + 3.15f - labelCap * 5.8f / 2f
+                listOf("TIRADA DE" to firstBaseline, "SALVACIÓN" to firstBaseline - 6.3f).forEach { (text, y) ->
+                    p1Ink(stream, text, labelRight - p1InkWidth(text, 5.8f), y, 5.8f, label = true)
+                }
+            }
             // C265: golden cartela diamonds, one at each end of a title band;
             // titles start 16 pt inside the band, clear of the left diamond.
             fun drawCartelaDiamonds(stream: PDPageContentStream, left: Float, right: Float,
@@ -600,108 +684,27 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A)
                     "ATRIBUTOS · A" else "ATRIBUTOS · B",56.69f,594.99f,9.1f)
                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
-                val k=0.5522848f
-                // C357: A uses the golden band grammar (22.82 pt band, white score box
-                // and oval with #264b68 edges); B keeps its own rows for now.
-                // C358: B shares the golden row grammar; only the band height differs.
-                val goldenA = true
+                // C357/C358: the golden band - 22.82 pt in A, 25.09 pt in B.
                 val bandHeight = if (data.request.variant ==
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant.A) 22.82f else 25.09f
                 standards.forEachIndexed { i,ability ->
                     val top=p1AttributeTop(i)
-                    val bottom=p1AttributeTop(i+1)
+                    val bandBottom = top - bandHeight
                     stream.saveGraphicsState()
-                    if (goldenA) {
-                        val bandBottom = top - bandHeight
-                        stream.setNonStrokingColor(if (i % 2 == 0) Color(231,242,247) else Color(240,247,250))
-                        stream.addRect(39.69f,bandBottom,220.53f,bandHeight)
-                        stream.fill()
-                        stream.setStrokingColor(Color(148,176,193))
-                        stream.setLineWidth(0.32f)
-                        stream.moveTo(39.69f,bandBottom+0.99f)
-                        stream.lineTo(260.22f,bandBottom+0.99f)
-                        stream.stroke()
-                        // Golden score box x42.24..85.32, y top-21.68..top-3.54, 3 pt chamfer.
-                        stream.setNonStrokingColor(Color(255,255,255))
-                        stream.setStrokingColor(Color(38,75,104))
-                        stream.setLineWidth(0.65f)
-                        val sl=42.24f; val sr=85.32f; val sb=top-21.68f; val st=top-3.54f; val c=3f
-                        stream.moveTo(sl+c,sb); stream.lineTo(sr-c,sb); stream.lineTo(sr,sb+c)
-                        stream.lineTo(sr,st-c); stream.lineTo(sr-c,st); stream.lineTo(sl+c,st)
-                        stream.lineTo(sl,st-c); stream.lineTo(sl,sb+c); stream.closePath()
-                        stream.fillAndStroke()
-                        stream.setLineWidth(0.63f)
-                    } else {
-                        stream.setStrokingColor(Color(130,165,186))
-                        stream.setLineWidth(0.6f)
-                        stream.setNonStrokingColor(if (i % 2 == 0) Color(231,242,247) else Color(240,247,250))
-                        stream.addRect(39.69f,bottom,220.53f,top-bottom)
-                        stream.fill()
-                        stream.addRect(39.69f,bottom,220.53f,top-bottom)
-                        stream.stroke()
-                        // C350: golden score box x42.24..85.32 and modifier oval x88.72..124.16.
-                        stream.addRect(42.24f,top-(if(compactBAttributes) 22f else 27f),
-                            43.08f,if(compactBAttributes) 18f else 22f)
-                        stream.stroke()
-                    }
-                    val cx=106.44f
-                    val cy=if (goldenA) top-13.2f else top-(if(compactBAttributes) 13f else 16f)
-                    val rx=17.72f
-                    val ry=if (goldenA) 7.23f else if(compactBAttributes) 9f else 11f
-                    if (goldenA) stream.setNonStrokingColor(Color(255,255,255))
-                    stream.moveTo(cx+rx,cy)
-                    stream.curveTo(cx+rx,cy+ry*k,cx+rx*k,cy+ry,cx,cy+ry)
-                    stream.curveTo(cx-rx*k,cy+ry,cx-rx,cy+ry*k,cx-rx,cy)
-                    stream.curveTo(cx-rx,cy-ry*k,cx-rx*k,cy-ry,cx,cy-ry)
-                    stream.curveTo(cx+rx*k,cy-ry,cx+rx,cy-ry*k,cx+rx,cy)
-                    stream.closePath()
-                    if (goldenA) stream.fillAndStroke() else stream.stroke()
+                    stream.setNonStrokingColor(if (i % 2 == 0) Color(231,242,247) else Color(240,247,250))
+                    stream.addRect(39.69f,bandBottom,220.53f,bandHeight)
+                    stream.fill()
+                    stream.setStrokingColor(Color(148,176,193))
+                    stream.setLineWidth(0.32f)
+                    stream.moveTo(39.69f,bandBottom+0.99f)
+                    stream.lineTo(260.22f,bandBottom+0.99f)
+                    stream.stroke()
                     stream.restoreGraphicsState()
-                    val score=ability.score.toString()
                     val mod=if(ability.modifier>=0)"+"+ability.modifier else ability.modifier.toString()
-                    val valueY=top-(if(compactBAttributes) 17f else 20f)
-                    // C264: golden score 11 pt, modifier 8.7 pt, name 7.7 pt.
-                    // C300: golden Noto Sans Bold - score #1d384f, modifier #264b68.
-                    // C357: golden A baselines - score top-17.43, modifier top-16.58, name top-12.61.
-                    p1Bold(stream,score,63.78f-p1BoldWidth(score,11f)/2f,
-                        if (goldenA) top-17.43f else valueY,11f,Color(29,56,79))
-                    p1Bold(stream,mod,cx-p1BoldWidth(mod,8.7f)/2f,
-                        if (goldenA) top-16.58f else valueY,8.7f,Color(38,75,104))
-                    p1Ink(stream,approvedAbilityName(ability.name),128.41f,
-                        if (goldenA) top-12.61f else top-(if(compactBAttributes) 11f else 14f),7.7f)
-                    stream.saveGraphicsState()
-                    stream.setNonStrokingColor(Color(101,125,144))
-                    stream.beginText()
-                    stream.setFont(headerPdfFont,5.8f)
-                    // Golden B: label-to-box gap 17.85pt; previous real App gap 20.18pt.
-                    // Move the label only 2.3pt right and 2.1pt upward relative
-                    // to its attribute name; leave the 7pt box, value and row intact.
-                    val saveY=if (goldenA) top-16.44f else top-(if(compactBAttributes) 23f else 25f)
-                    // Position only the label; saveY remains the untouched
-                    // checkbox/value baseline from the verified App PDF.
-                    // C357: golden A label 4.96 pt under the box foot (top-21.4).
-                    val savingLabelY=if (goldenA) top-21.4f else saveY+2.1f
-                    stream.newLineAtOffset(175.18f,savingLabelY) // C350 golden x
-                    stream.showText("SALVACIÓN")
-                    stream.endText()
-                    stream.restoreGraphicsState()
-                    // Approved V11 paper saving-throw mark. Always blank:
-                    // proficiency/state cannot be inferred from the save total.
-                    // Genuine vector 7×7pt square stays between the label
-                    // (ending before x250) and its actual value (starts x287+).
-                    // C350: golden saving box - 8.78 pt at x220.54, white, #527c96 0.48 pt,
-                    // centred where the old 7 pt box was; value right-aligned at x256.62.
-                    stream.saveGraphicsState()
-                    stream.setNonStrokingColor(Color(255, 255, 255))
-                    stream.setStrokingColor(Color(82, 124, 150))
-                    stream.setLineWidth(0.48f)
-                    stream.addRect(220.54f, if (goldenA) saveY else saveY - 1.89f, 8.78f, 8.78f)
-                    stream.fillAndStroke()
-                    stream.restoreGraphicsState()
-                    ability.savingThrowTotal?.let {
-                        val value=if(it>=0)"+"+it else it.toString()
-                        p1Bold(stream,value,256.62f-p1BoldWidth(value,7.2f),saveY,7.2f,Color(38,75,104))
-                    }
+                    // P104: the owner's attribute row on the band's middle line.
+                    drawOwnerAttributeRow(stream, 39.69f, 260.22f, top - bandHeight / 2f,
+                        ability.score.toString(), mod, approvedAbilityName(ability.name), 7.7f,
+                        ability.savingThrowTotal?.let { if (it >= 0) "+$it" else it.toString() })
                 }
             }
 
@@ -2688,56 +2691,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val top = cell.cellPt.topPt
                 val bottom = top - 2f * body.metrics.lineHeightPt
                 fillBand(stream, left, bottom, right - left, top - bottom, 0)
-                stream.saveGraphicsState()
-                stream.setStrokingColor(Color(80, 122, 151))
-                stream.setNonStrokingColor(Color.WHITE)
-                stream.setLineWidth(0.55f)
-                val boxLeft = left + 3f
-                val boxRight = left + 37f
-                val boxBottom = bottom + 2.5f
-                val boxTop = top - 2.5f
-                val cut = 3f
-                stream.moveTo(boxLeft + cut, boxBottom)
-                stream.lineTo(boxRight - cut, boxBottom)
-                stream.lineTo(boxRight, boxBottom + cut)
-                stream.lineTo(boxRight, boxTop - cut)
-                stream.lineTo(boxRight - cut, boxTop)
-                stream.lineTo(boxLeft + cut, boxTop)
-                stream.lineTo(boxLeft, boxTop - cut)
-                stream.lineTo(boxLeft, boxBottom + cut)
-                stream.closePath()
-                stream.fillAndStroke()
-                val ovalCx = left + 56f
-                val ovalCy = (boxTop + boxBottom) / 2f
-                val rx = 16f
-                val ry = 7f
-                val k = 0.5523f
-                stream.moveTo(ovalCx + rx, ovalCy)
-                stream.curveTo(ovalCx + rx, ovalCy + k * ry, ovalCx + k * rx, ovalCy + ry, ovalCx, ovalCy + ry)
-                stream.curveTo(ovalCx - k * rx, ovalCy + ry, ovalCx - rx, ovalCy + k * ry, ovalCx - rx, ovalCy)
-                stream.curveTo(ovalCx - rx, ovalCy - k * ry, ovalCx - k * rx, ovalCy - ry, ovalCx, ovalCy - ry)
-                stream.curveTo(ovalCx + k * rx, ovalCy - ry, ovalCx + rx, ovalCy - k * ry, ovalCx + rx, ovalCy)
-                stream.closePath()
-                stream.fillAndStroke()
-                val saving = attribute.savingThrowTotal?.let { signedC2(it) } ?: "sin valor"
-                // The paper save box always sits 6 pt left of the real value.
-                val saveBox = minOf(right - 34f, right - 3f - body.width.measurePt(saving) - 13f)
-                stream.addRect(saveBox, ovalCy - 3.5f, 7f, 7f)
-                stream.stroke()
-                stream.restoreGraphicsState()
-                val score = attribute.score.toString()
-                val modifier = signedC2(attribute.modifier)
-                val valueBaseline = ovalCy - 3f
-                // C302: golden C2 attribute numbers in Noto Sans Bold, as on P1.
-                p1Bold(stream, score, (boxLeft + boxRight) / 2f - p1BoldWidth(score, 11f) / 2f,
-                    valueBaseline, 11f, Color(29, 56, 79))
-                p1Bold(stream, modifier, ovalCx - p1BoldWidth(modifier, 8.7f) / 2f, valueBaseline,
-                    8.7f, Color(38, 75, 104))
-                drawP1Label(stream, attribute.name, left + 78f, top - 10f, 9f)
-                drawP1Label(stream, "SALVACIÓN", saveBox - 6f -
-                    headerPdfFont.getStringWidth("SALVACIÓN") * 6f / 1000f, bottom + 4f, 6f)
-                p1Bold(stream, saving, right - 3f - p1BoldWidth(saving, 7.2f), valueBaseline,
-                    7.2f, Color(38, 75, 104))
+                // P104: the owner's attribute row on the middle line of its two rows.
+                drawOwnerAttributeRow(stream, left, right, (top + bottom) / 2f,
+                    attribute.score.toString(), signedC2(attribute.modifier), attribute.name, 9f,
+                    attribute.savingThrowTotal?.let { signedC2(it) })
             }
 
             fun addSection(
