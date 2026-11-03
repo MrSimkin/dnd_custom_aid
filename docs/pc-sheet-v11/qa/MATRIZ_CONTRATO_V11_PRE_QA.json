@@ -984,8 +984,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "inventoryZeroCurrencyDigitalNotesAndPortraitKeepTheirOriginalMeaning",
+            "test_result": "PASS — shared G1 semantics: a portrait reference that is not available locally maps to locallyAvailable = false with the PORTRAIT_NOT_AVAILABLE_LOCALLY notice, never a substituted image.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the real-PDF G3 suite and the 14 independent audits pass on the 112 PDFs built from the same shared mapper.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -2263,8 +2272,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "inventoryZeroCurrencyDigitalNotesAndPortraitKeepTheirOriginalMeaning",
+            "test_result": "PASS — shared G1 semantics: ordinary and special items split by their real source flag, keep their IDs, and the V11 equipment model has no weight or consumable field to invent.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the real-PDF G3 suite and the 14 independent audits pass on the 112 PDFs built from the same shared mapper.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -2992,8 +3010,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "spellsAreRealOnlyAndPreparedStateBelongsToEachSource; v11PageSequenceKeepsCorePagesAndFinalHandwrittenPageEvenWithNoMagic",
+            "test_result": "PASS — shared G1 semantics: real spells set hasQuickSpellList; a spellcaster with no attached spells gets no quick list, no spellbook and an explicit notice, and its page sequence has no P4.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the real-PDF G3 suite and the 14 independent audits pass on the 112 PDFs built from the same shared mapper.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -3188,8 +3215,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "spellsAreRealOnlyAndPreparedStateBelongsToEachSource",
+            "test_result": "PASS — shared G1 semantics: one spell linked to two casting sources keeps one association per source, each with its own prepared state (true / false), never flattened.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the real-PDF G3 suite and the 14 independent audits pass on the 112 PDFs built from the same shared mapper.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -3256,8 +3292,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "spellsAreRealOnlyAndPreparedStateBelongsToEachSource",
+            "test_result": "PASS — shared G1 semantics: spell slots are the persisted totals and spent counts (3 / 2) and a caster without spells gets no invented list or progression.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the real-PDF G3 suite and the 14 independent audits pass on the 112 PDFs built from the same shared mapper.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -3799,8 +3844,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "inventoryZeroCurrencyDigitalNotesAndPortraitKeepTheirOriginalMeaning; v11PageSequencePlacesExtensionsThenExclusiveDigitalNotesBookAndLastManualNotes",
+            "test_result": "PASS — shared G1 semantics: the general note and the titled note card keep their full content, title and source ID, and map to exclusive digital-note pages.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the real-PDF G3 suite and the 14 independent audits pass on the 112 PDFs built from the same shared mapper.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -3841,8 +3895,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "v11PageSequencePlacesExtensionsThenExclusiveDigitalNotesBookAndLastManualNotes; v11PageSequenceRejectsInventedBookAndMissingDigitalNotesPages",
+            "test_result": "PASS — shared G1 page sequence: digital notes occupy their own DIGITAL_NOTES_CN3 pages after C2/P4 and before the Libro and the final NOTAS; real notes without their pages are rejected.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the real-PDF G3 suite and the 14 independent audits pass on the 112 PDFs built from the same shared mapper.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -4194,8 +4257,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "v11PageSequenceKeepsCorePagesAndFinalHandwrittenPageEvenWithNoMagic; v11PageSequencePlacesExtensionsThenExclusiveDigitalNotesBookAndLastManualNotes",
+            "test_result": "PASS — shared G1 page sequence: with no magic and with every optional section the last physical page is always FINAL_HANDWRITTEN_NOTES.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the real-PDF G3 suite and the 14 independent audits pass on the 112 PDFs built from the same shared mapper.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
