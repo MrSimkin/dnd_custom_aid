@@ -98,6 +98,32 @@ class PcSheetV11SemanticContractTest {
     }
 
     @Test
+    fun traitsKeepEachIdOnceInManualOrderWithLongNamesAndEveryCategory() {
+        // C389 / RSG04 + RSG05 G1: every mechanical trait maps exactly once, in its
+        // manual sort order, with its long name, category and (homebrew) source as
+        // persisted - nothing merged, shortened or invented.
+        val long = "Rasgo de nombre deliberadamente extenso ".repeat(5).trim()
+        val types = CharacterTraitType.entries
+        val traits = types.mapIndexed { i, type ->
+            CharacterTrait(
+                id = id("32000000-0000-0000-0000-00000000000" + (i + 1)),
+                name = if (i == 2) long else "Rasgo ${type.name}",
+                source = if (i % 2 == 0) "Homebrew del grupo $i" else "Multiclase $i",
+                type = type, description = "Descripción $i", notes = null,
+                maxUses = null, spentUses = 0, recovery = null, activation = null,
+                sortOrder = (types.size - i) * 10,
+            )
+        }
+        val snapshot = map(sources = PcSheetExportSources(aggregate(baseSheet().copy(traits = traits))))
+        assertEquals(traits.map { it.id }.toSet(), snapshot.traits.map { it.id }.toSet())
+        assertEquals(traits.size, snapshot.traits.size)
+        assertEquals(traits.sortedBy { it.sortOrder }.map { it.id }, snapshot.traits.map { it.id })
+        assertEquals(long, snapshot.traits.single { it.id == traits[2].id }.name)
+        assertEquals(types.toSet(), snapshot.traits.map { it.type }.toSet())
+        assertEquals(traits.associate { it.id to it.source }, snapshot.traits.associate { it.id to it.source })
+    }
+
+    @Test
     fun customAttributeAndSkillUseStableRelationshipsAndMissingTargetIsNotFabricated() {
         val attributeId = id("30000000-0000-0000-0000-000000000001")
         val missingId = id("30000000-0000-0000-0000-000000000099")
