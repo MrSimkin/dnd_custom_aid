@@ -974,6 +974,59 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c395P2DigitalWordsSitInsideOneRowAndBlankRowsStayWritableAB() {
+        // C395 / GLB07 G3: on the real P2, every word inside the EQUIPO, TESORO and
+        // RASGOS tables sits inside one row band (baseline and letter tops between
+        // its rules), and a sheet with few records keeps whole empty rows to write on.
+        val number = """(-?\d+(?:\.\d+)?)"""
+        for ((fixture, variant) in listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.A,
+        )) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), sources(fixture),
+            )
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                val p2 = (1..pdf.numberOfPages).first { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf).contains("P2 - Equipo y tesoro")
+                } - 1
+                val ops = pdf.getPage(p2).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                fun near(a: Float, b: Float) = kotlin.math.abs(a - b) < 0.05f
+                // Golden P2 table rows (bottom origin): EQUIPO/TESORO x39.69 w258.8, RASGOS x309.26 w263.06.
+                val rows = Regex("""(?:^|\s)$number\s+$number\s+$number\s+$number\s+re(?:\s|$)""").findAll(ops)
+                    .map { m -> m.groupValues.drop(1).map { it.toFloat() } }
+                    .filter { (x, _, w, h) -> ((near(x, 39.69f) && near(w, 258.8f)) || (near(x, 309.26f) && near(w, 263.06f))) &&
+                        h in 15.9f..19.9f }.toList()
+                assertTrue(rows.size >= 15, "P2 table rows are found ($fixture): ${rows.size}")
+                val glyphs = mutableListOf<org.apache.pdfbox.text.TextPosition>()
+                object : PDFTextStripper() {
+                    override fun writeString(text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>) {
+                        glyphs += textPositions.filter { !it.unicode.isBlank() }
+                    }
+                }.apply { startPage = p2 + 1; endPage = p2 + 1 }.getText(pdf)
+                val inTables = glyphs.filter { g ->
+                    val x = g.xDirAdj; val base = 792f - g.yDirAdj
+                    rows.any { (rx, ry, rw, rh) -> x >= rx && x <= rx + rw && base >= ry - 4f && base <= ry + rh + 4f }
+                }
+                assertTrue(inTables.size >= 20, "Table text is read ($fixture): ${inTables.size}")
+                inTables.forEach { g ->
+                    val base = 792f - g.yDirAdj
+                    val top = base + g.heightDir
+                    assertTrue(rows.any { (rx, ry, rw, rh) -> g.xDirAdj >= rx && g.xDirAdj <= rx + rw &&
+                        base >= ry && top <= ry + rh + 0.5f },
+                        "«${g.unicode}» at y$base sits inside one P2 row ($fixture $variant).")
+                }
+                if (fixture.startsWith("01_")) {
+                    val empty = rows.count { (rx, ry, rw, rh) -> inTables.none { g ->
+                        val base = 792f - g.yDirAdj
+                        g.xDirAdj >= rx && g.xDirAdj <= rx + rw && base >= ry && base <= ry + rh } }
+                    assertTrue(empty >= 5, "Aldren keeps whole empty P2 rows to write on: $empty")
+                }
+            }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
