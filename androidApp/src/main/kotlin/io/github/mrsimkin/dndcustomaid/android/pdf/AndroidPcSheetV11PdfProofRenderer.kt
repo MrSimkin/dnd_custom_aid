@@ -139,6 +139,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 it.sourceId != null && !it.title.isNullOrBlank() && it.content.isNotEmpty()
             }.map { "digital-note:" + it.sourceId }.toSet()
             val pageArea = PcSheetV11RectPt(42f, 76f, 528f, 626f)
+            // C397: golden C2 pages (no module-link band) run their content to y59.53.
+            val c2FootPt = 59.53f
             // Physical page roles are registered exactly when a PDFBox page is
             // created. Footers and C2 backlinks are resolved only when the final
             // document length is known: no section-local page guesses.
@@ -2230,7 +2232,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream: PDPageContentStream,
                 lowestTextBottom: Float,
             ) {
-                val gridBottom = 78f
+                val gridBottom = c2FootPt // C397: golden C2 grid foot (was 78)
                 val maxGridTop = lowestTextBottom - 28f
                 val completeRows = ((maxGridTop - gridBottom) / 16f).toInt()
                 if (completeRows < 3) return
@@ -2267,7 +2269,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 columns.forEachIndexed { index, column ->
                     val lowestTextBottom = cells.filter { it.columnIndex == index + 1 }
                         .minOfOrNull { it.cellPt.bottomPt } ?: column.topPt
-                    val gridBottom = 78f
+                    val gridBottom = c2FootPt // C397: golden C2 grid foot (was 78)
                     val gridSize = 16f
                     val maxGridTop = lowestTextBottom - 28f
                     val completeRows = ((maxGridTop - gridBottom) / gridSize).toInt()
@@ -4555,7 +4557,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         val pair = placed.pairs[pairZero]
                         val gridPitch = 16f
                         val gridBottom = if (notesUsable) tableBottom + 8f
-                            else maxOf(area.bottomPt + 2f, 78f)
+                            else c2FootPt // C397: golden C2 grid foot (was max(area foot + 2, 78))
                         val completeRows =
                             ((availableFrom - 28f - gridBottom) / gridPitch).toInt()
                         if (completeRows < 4) return@mapNotNull null
@@ -5029,7 +5031,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 PcSheetV11FlowSection.TRAITS,
                 mixedC2, columns = 2, ammunitionTracks = ammunitionTracks,
                 // C324: content starts at the golden first-cartela top (y685.7).
-                area = PcSheetV11RectPt(39.69f, pageArea.bottomPt, 532.63f, 685.7f - pageArea.bottomPt),
+                area = PcSheetV11RectPt(39.69f, c2FootPt, 532.63f, 685.7f - c2FootPt),
                 gutterPt = 9.92f, font = c2Font)
 
             // Reflow the exact P2-unprinted equipment/treasure suffixes into
@@ -5056,7 +5058,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
 
             // C361: the table starts under the golden C2 cartela band (y662.74..685.7).
-            val fullC2PairedArea = PcSheetV11RectPt(42f, 76f, 528f, 660.76f - 76f)
+            val fullC2PairedArea = PcSheetV11RectPt(42f, c2FootPt, 528f, 660.76f - c2FootPt)
             val pairedRemainders = listOf(
                 Triple("EQUIPO", completeEquipment, inventoryPlaced),
                 Triple("TESORO", completeTreasure, treasurePlaced),
@@ -5231,7 +5233,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             )
             // C343 golden width; C344: the table starts under the golden C2 cartela
             // band (y662.74..685.7, 1.98 pt above the table), as golden C2 p5.
-            val c2SpecialArea = PcSheetV11RectPt(39.69f, 76f, 532.62f, 660.76f - 76f)
+            val c2SpecialArea = PcSheetV11RectPt(39.69f, c2FootPt, 532.62f, 660.76f - c2FootPt)
             val c2SpecialPages = mutableListOf<List<SpecialC2Fragment>>()
             var currentC2 = mutableListOf<SpecialC2Fragment>()
             var availableC2 = c2SpecialArea.heightPt - specialHeaderHeight

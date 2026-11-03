@@ -1094,8 +1094,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         val xs = vertical.map { it.x0 }.distinct().sorted()
                         assertTrue(xs.zipWithNext().all { (a, b) -> kotlin.math.abs(b - a - 16f) < 0.05f },
                             "Regular 16 pt grid pitch on page ${index + 1} ($variant): $xs")
-                        // Whole cells only: no further 16 pt cell fits above the page-area foot (y76).
-                        assertTrue(vertical.minOf { minOf(it.y0, it.y1) } - 76f < 16f,
+                        // Whole cells only: no further 16 pt cell fits above the golden C2 foot (C397: y59.53).
+                        assertTrue(vertical.minOf { minOf(it.y0, it.y1) } - 59.53f < 16f,
                             "The grid reaches the page-area foot on page ${index + 1} ($variant).")
                         checked++
                     }
@@ -2935,8 +2935,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     pageTexts[index].contains("C2 - Habilidades, acciones y recursos")
                 }.flatMap { index ->
                     val stripper = PDFTextStripperByArea().apply {
-                        addRegion("left", Rectangle2D.Float(38f, 85f, 270f, 635f))
-                        addRegion("right", Rectangle2D.Float(306f, 85f, 270f, 635f))
+                        addRegion("left", Rectangle2D.Float(38f, 85f, 270f, 650f)) // C397: C2 runs to the golden y59.53
+                        addRegion("right", Rectangle2D.Float(306f, 85f, 270f, 650f))
                         extractRegions(pdf.getPage(index))
                     }
                     listOf(
