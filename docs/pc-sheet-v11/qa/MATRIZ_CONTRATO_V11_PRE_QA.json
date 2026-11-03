@@ -2163,8 +2163,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "traitsFlowAcrossColumnsAndPagesWithEachIdOnceAndInOrder",
+            "test_result": "PASS — shared G2 composition: 60 traits cross two columns and several pages with each key in one contiguous run, in source order, its text rebuilt exactly once.",
+            "source_commit": "7e6040203a2d8f92ada83a6f0512ffcf5e101903",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41720245332",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41720245332/artifacts/13273236315",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41720245332/artifacts/13273540567",
+            "independent_inspection": "Same CI run: the real-PDF G3 suite and the 14 independent audits pass on the 112 PDFs built from the same shared code.",
+            "limitations": "Shared composition with the fixture measurer (5 pt per character); real fonts are covered at G3. Android installed candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -2333,8 +2342,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "hugeEquipmentNamesSplitWithoutReplicatingAmountsAcrossColumnsOrPages; longP2LabelWrapsWithIndentedContinuationLinesAndOneAmount",
+            "test_result": "PASS — shared G2 composition: ordinary equipment is composed as name + quantity pairs; a long name wraps with indented continuation lines and its single quantity is never replicated across columns or pages.",
+            "source_commit": "7e6040203a2d8f92ada83a6f0512ffcf5e101903",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41720245332",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41720245332/artifacts/13273236315",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41720245332/artifacts/13273540567",
+            "independent_inspection": "Same CI run: the real-PDF G3 suite and the 14 independent audits pass on the 112 PDFs built from the same shared code.",
+            "limitations": "Shared composition with the fixture measurer (5 pt per character); real fonts are covered at G3. Android installed candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -3208,8 +3226,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "longQuickSpellNamesStayWholeInOneColumnUnderTheirLevelBand",
+            "test_result": "PASS — shared G2 composition: 40 two-line spell names under a taller level band stay whole in one column each, once and in order, over several pages.",
+            "source_commit": "7e6040203a2d8f92ada83a6f0512ffcf5e101903",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41720245332",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41720245332/artifacts/13273236315",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41720245332/artifacts/13273540567",
+            "independent_inspection": "Same CI run: the real-PDF G3 suite and the 14 independent audits pass on the 112 PDFs built from the same shared code.",
+            "limitations": "Shared composition with the fixture measurer (5 pt per character); real fonts are covered at G3. Android installed candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -3520,8 +3547,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "anExtensionPageAppearsOnlyWhenTheContentDoesNotFit",
+            "test_result": "PASS — shared G2 composition: content that fits uses one page; one extra line opens exactly one extension page holding only that line.",
+            "source_commit": "7e6040203a2d8f92ada83a6f0512ffcf5e101903",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41720245332",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41720245332/artifacts/13273236315",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41720245332/artifacts/13273540567",
+            "independent_inspection": "Same CI run: the real-PDF G3 suite and the 14 independent audits pass on the 112 PDFs built from the same shared code.",
+            "limitations": "Shared composition with the fixture measurer (5 pt per character); real fonts are covered at G3. Android installed candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -3555,8 +3591,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "twoColumnCompositionFillsTheSecondColumnBeforeOpeningAPage",
+            "test_result": "PASS — shared G2 composition: a two-column C2 flow uses both equal, non-overlapping columns of every page before the next page opens.",
+            "source_commit": "7e6040203a2d8f92ada83a6f0512ffcf5e101903",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41720245332",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41720245332/artifacts/13273236315",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41720245332/artifacts/13273540567",
+            "independent_inspection": "Same CI run: the real-PDF G3 suite and the 14 independent audits pass on the 112 PDFs built from the same shared code.",
+            "limitations": "Shared composition with the fixture measurer (5 pt per character); real fonts are covered at G3. Android installed candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
