@@ -71,6 +71,33 @@ class PcSheetV11SemanticContractTest {
     }
 
     @Test
+    fun sixStandardAttributesLeadInOrderThenCustomsBySortOrderWithTheirIds() {
+        // C387 / P103 G1: the six standard attributes first, in their fixed order,
+        // then every custom attribute by its manual sort order, each keeping its
+        // stable ID, name, score and modifier.
+        val customs = listOf(
+            CharacterCustomAttribute(id = id("31000000-0000-0000-0000-000000000003"), name = "Éter",
+                abbreviation = "ETE", score = 18, sortOrder = 2),
+            CharacterCustomAttribute(id = id("31000000-0000-0000-0000-000000000001"), name = "Fortuna",
+                abbreviation = "FOR", score = 16, sortOrder = 0),
+            CharacterCustomAttribute(id = id("31000000-0000-0000-0000-000000000002"), name = "Cordura",
+                abbreviation = "COR", score = 9, sortOrder = 1),
+        )
+        val snapshot = map(sources = PcSheetExportSources(
+            aggregate(baseSheet(), successor = CharacterSuccessorState(customAttributes = customs)),
+        ))
+        assertEquals(CharacterAbility.entries.map { CharacterAbilityReference.builtIn(it) },
+            snapshot.attributes.take(6).map { it.reference })
+        assertEquals(listOf(10, 14, 14, 18, 12, 8), snapshot.attributes.take(6).map { it.score })
+        val mapped = snapshot.attributes.drop(6)
+        assertEquals(customs.sortedBy { it.sortOrder }.map { it.id }, mapped.map { it.reference.customAttributeId })
+        assertEquals(listOf("Fortuna", "Cordura", "Éter"), mapped.map { it.name })
+        assertEquals(listOf(16, 9, 18), mapped.map { it.score })
+        assertEquals(listOf(3, -1, 4), mapped.map { it.modifier })
+        assertEquals(9, snapshot.attributes.map { it.reference }.distinct().size)
+    }
+
+    @Test
     fun customAttributeAndSkillUseStableRelationshipsAndMissingTargetIsNotFabricated() {
         val attributeId = id("30000000-0000-0000-0000-000000000001")
         val missingId = id("30000000-0000-0000-0000-000000000099")

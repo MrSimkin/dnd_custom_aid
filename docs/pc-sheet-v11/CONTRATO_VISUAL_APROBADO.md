@@ -163,7 +163,7 @@ El propietario aprobó P1/P3/P4, P2, C2, final y variante B tras revisión V11. 
 - Sin objetos especiales, la página no cambia.
 ## Aclaración del propietario — fila de atributo (2026-11-01)
 
-Decisión del propietario sobre P104 (bocetos revisados en la conversación; aún **no implementado**). Sustituye a la geometría del golden en este punto:
+Decisión del propietario sobre P104 (bocetos revisados en la conversación). Implementada en C371 y **aprobada visualmente por el propietario el 2026-11-03** sobre el PDF real de la App («esta bien así»). Sustituye a la geometría del golden en este punto:
 - El **óvalo del modificador va encima** del borde derecho de la casilla de puntuación (la tapa ~¼ de su ancho), dibujado por delante.
 - **Todo centrado verticalmente en la línea central de la fila**: casilla y su número, óvalo y su modificador (número centrado dentro del óvalo, signo incluido), nombre del atributo.
 - A la derecha de la fila, alineados horizontalmente en la misma línea y en este orden: el rótulo **«TIRADA DE / SALVACIÓN»** (dos líneas, **alineado a la derecha**, sustituye a «SALVACIÓN»), la casilla de competencia y una **línea para escribir a mano** el modificador de la tirada de salvación.
