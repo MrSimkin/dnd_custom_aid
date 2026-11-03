@@ -769,6 +769,48 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c383MechanicalTraitsNeverMixWithNarrativeTraitsOrSpecialEquipmentAB() {
+        // C383 / RSG06: the P2 RASGOS column holds mechanical traits only - never the
+        // narrative personality, ideals, bonds or flaws, nor a special item's
+        // description - and P3's narrative never prints a mechanical trait name.
+        fun flat(text: String) = text.replace(Regex("""\s+"""), " ").trim()
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources("03_mara_siete_umbrales_custom_extended.json"),
+            )
+            val semantic = generated.semantic
+            val background = semantic.background
+            val narrative = listOf(background.personalityTraits, background.ideals, background.bonds,
+                background.flaws).map { flat(it) }.filter { it.length >= 20 }
+            val special = semantic.specialEquipment.mapNotNull { it.description }.map { flat(it) }
+                .filter { it.length >= 20 }
+            assertTrue(narrative.size >= 2 && special.isNotEmpty() && semantic.traits.size >= 3,
+                "Mara has narrative traits, special descriptions and mechanical traits ($variant).")
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                val p2 = pages.indexOfFirst { it.contains("P2 - Equipo y tesoro") }
+                val rasgos = flat(PDFTextStripperByArea().apply {
+                    addRegion("rasgos", java.awt.geom.Rectangle2D.Float(306f, 100f, 270f, 400f))
+                    extractRegions(pdf.getPage(p2))
+                }.getTextForRegion("rasgos"))
+                assertTrue(rasgos.contains("RASGOS"), "The P2 RASGOS column is read ($variant).")
+                (narrative + special).forEach { text ->
+                    assertFalse(rasgos.contains(text.take(20)),
+                        "P2 RASGOS never prints narrative or special-equipment text ($variant): ${text.take(20)}")
+                }
+                val p3 = flat(pages.filter { it.contains("P3 - Trasfondo") || it.contains("P3 - Narrativa") }
+                    .joinToString(" "))
+                semantic.traits.map { flat(it.name) }.filter { it.length >= 12 }.forEach { name ->
+                    assertFalse(p3.contains(name), "P3 never prints the mechanical trait «$name» ($variant).")
+                }
+            }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
