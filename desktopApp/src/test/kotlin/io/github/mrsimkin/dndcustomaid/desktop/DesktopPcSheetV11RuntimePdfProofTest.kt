@@ -1027,6 +1027,85 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c396EveryC2NotasCartelaHasACompleteGridDownToThePageFootAB() {
+        // C396 / C207 G3: every NOTAS cartela on a C2 page sits over a complete
+        // manuscript grid - all its vertical rules share one length, all horizontal
+        // rules share one length, the pitch is a regular 16 pt and the grid reaches
+        // the foot of the page area. Strokes are read with their real colour.
+        data class Seg(val x0: Float, val y0: Float, val x1: Float, val y1: Float)
+        class Strokes(page: org.apache.pdfbox.pdmodel.PDPage) :
+            org.apache.pdfbox.contentstream.PDFGraphicsStreamEngine(page) {
+            val grid = mutableListOf<Seg>()
+            private var start: java.awt.geom.Point2D.Float? = null
+            private val pending = mutableListOf<Seg>()
+            private var current = java.awt.geom.Point2D.Float()
+            override fun appendRectangle(p0: java.awt.geom.Point2D, p1: java.awt.geom.Point2D,
+                p2: java.awt.geom.Point2D, p3: java.awt.geom.Point2D) {}
+            override fun drawImage(pdImage: org.apache.pdfbox.pdmodel.graphics.image.PDImage) {}
+            override fun clip(windingRule: Int) {}
+            override fun moveTo(x: Float, y: Float) { current = java.awt.geom.Point2D.Float(x, y); start = current }
+            override fun lineTo(x: Float, y: Float) {
+                pending += Seg(current.x, current.y, x, y); current = java.awt.geom.Point2D.Float(x, y)
+            }
+            override fun curveTo(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float, y3: Float) {
+                current = java.awt.geom.Point2D.Float(x3, y3)
+            }
+            override fun getCurrentPoint(): java.awt.geom.Point2D = current
+            override fun closePath() {}
+            override fun endPath() { pending.clear() }
+            override fun strokePath() {
+                val rgb = graphicsState.strokingColor.toRGB()
+                if (rgb == java.awt.Color(130, 165, 186).rgb and 0xFFFFFF) grid += pending
+                pending.clear()
+            }
+            override fun fillPath(windingRule: Int) { pending.clear() }
+            override fun fillAndStrokePath(windingRule: Int) { pending.clear() }
+            override fun shadingFill(shadingName: org.apache.pdfbox.cos.COSName) {}
+        }
+        var checked = 0
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources("03_mara_siete_umbrales_custom_extended.json"),
+            )
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                for (index in 0 until pdf.numberOfPages) {
+                    val text = PDFTextStripper().apply { startPage = index + 1; endPage = index + 1 }.getText(pdf)
+                    if (!text.contains("C2 - ")) continue
+                    val labels = mutableListOf<Pair<Float, Float>>()
+                    object : PDFTextStripper() {
+                        override fun writeString(s: String, tp: MutableList<org.apache.pdfbox.text.TextPosition>) {
+                            if (s.trim() == "NOTAS") labels += tp.first().xDirAdj to (792f - tp.first().yDirAdj)
+                        }
+                    }.apply { startPage = index + 1; endPage = index + 1 }.getText(pdf)
+                    if (labels.isEmpty()) continue
+                    val strokes = Strokes(pdf.getPage(index)).also { it.processPage(pdf.getPage(index)) }.grid
+                    for ((labelX, labelY) in labels) {
+                        val mine = strokes.filter { s -> maxOf(s.y0, s.y1) < labelY &&
+                            minOf(s.x0, s.x1) >= labelX - 12f && minOf(s.x0, s.x1) <= labelX + 520f }
+                        val vertical = mine.filter { kotlin.math.abs(it.x0 - it.x1) < 0.01f }
+                        val horizontal = mine.filter { kotlin.math.abs(it.y0 - it.y1) < 0.01f }
+                        assertTrue(vertical.size >= 3 && horizontal.size >= 3,
+                            "NOTAS at ($labelX, $labelY) has a grid on page ${index + 1} ($variant).")
+                        val vLengths = vertical.map { kotlin.math.abs(it.y1 - it.y0) }
+                        val hLengths = horizontal.map { kotlin.math.abs(it.x1 - it.x0) }
+                        assertTrue(vLengths.max() - vLengths.min() < 0.05f && hLengths.max() - hLengths.min() < 0.05f,
+                            "The grid under NOTAS on page ${index + 1} is complete, no cut cells ($variant).")
+                        val xs = vertical.map { it.x0 }.distinct().sorted()
+                        assertTrue(xs.zipWithNext().all { (a, b) -> kotlin.math.abs(b - a - 16f) < 0.05f },
+                            "Regular 16 pt grid pitch on page ${index + 1} ($variant): $xs")
+                        // Whole cells only: no further 16 pt cell fits above the page-area foot (y76).
+                        assertTrue(vertical.minOf { minOf(it.y0, it.y1) } - 76f < 16f,
+                            "The grid reaches the page-area foot on page ${index + 1} ($variant).")
+                        checked++
+                    }
+                }
+            }
+        }
+        assertTrue(checked >= 2, "Real C2 NOTAS grids are checked: $checked")
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
