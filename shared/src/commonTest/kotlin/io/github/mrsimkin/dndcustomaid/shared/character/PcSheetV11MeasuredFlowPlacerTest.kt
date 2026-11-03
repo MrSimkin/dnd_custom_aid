@@ -182,6 +182,30 @@ class PcSheetV11MeasuredFlowPlacerTest {
     }
 
     @Test
+    fun twoColumnCompositionFillsTheSecondColumnBeforeOpeningAPage() {
+        // C394 / C202 G2: a two-column C2 flow never becomes one giant vertical
+        // column - each page's second column is used before the next page opens,
+        // both columns have the same width, and they never overlap.
+        val input = (1..45).map { PcSheetV11FlowItem("c2:$it", "registro $it") }
+        val measured = PcSheetV11MeasuredFlowPlacer.place(
+            PcSheetV11FlowSection.TRAITS, input, PcSheetV11RectPt(39.69f, 60f, 532.63f, 100f),
+            columnsPerPage = 2, gutterPt = 9.92f, lineHeightPt = 10f, textWidth = measuredFont,
+        )
+        assertEquals(3, measured.sourceFlow.localPageCount)
+        val (left, right) = measured.columnsPt
+        assertEquals(left.widthPt, right.widthPt)
+        assertTrue(left.rightPt < right.leftPt, "The columns never overlap.")
+        for (page in 1 until measured.sourceFlow.localPageCount) {
+            val cells = measured.cells.filter { it.localPageIndex == page }
+            assertEquals(setOf(1, 2), cells.map { it.columnIndex }.toSet(), "Page $page uses both columns.")
+            assertEquals(20, cells.size, "Page $page is full before the next opens.")
+        }
+        // Reading order: column 1 then column 2 on each page.
+        assertEquals(input.map { it.sourceKey }, measured.cells.sortedWith(
+            compareBy({ it.localPageIndex }, { it.columnIndex }, { it.rowIndex })).map { it.sourceKey })
+    }
+
+    @Test
     fun anExtensionPageAppearsOnlyWhenTheContentDoesNotFit() {
         // C391 / C201 G2: a column pair that holds the content uses one local page;
         // a single extra line opens exactly one more page, which holds that line.
