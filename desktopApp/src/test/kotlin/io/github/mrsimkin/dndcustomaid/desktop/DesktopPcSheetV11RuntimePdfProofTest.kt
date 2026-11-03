@@ -630,6 +630,57 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c379EmptySheetKeepsFourP2ReservesAndItsP3AB() {
+        // C379 / P211 + P301: with no equipment, treasure, traits or narrative,
+        // P2 still prints its four modules, each with its own writable paper
+        // rows, and P3 still exists with both narrative cartelas and paper rows.
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val empty = original.copy(permanent = original.permanent.copy(
+            sheet = original.permanent.sheet.copy(
+                inventoryItems = emptyList(), currencies = emptyList(), traits = emptyList(),
+                background = io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackground(),
+            ),
+        ))
+        val number = """(-?\d+(?:\.\d+)?)"""
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), empty,
+            )
+            assertTrue(generated.semantic.ordinaryEquipment.isEmpty() && generated.semantic.specialEquipment.isEmpty() &&
+                generated.semantic.currencies.isEmpty() && generated.semantic.traits.isEmpty(),
+                "The fixture really is empty ($variant).")
+            preserveRealApplicationPdf(generated.bytes, "V11-INTERNAL-PROOF-C379-empty-sheet-" + variant.name + ".pdf")
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                val p2 = pages.indexOfFirst { it.contains("P2 - Equipo y tesoro") }
+                val p3 = pages.indexOfFirst { it.contains("P3 - Trasfondo") }
+                assertTrue(p2 >= 0 && p3 >= 0, "P2 and P3 exist on an empty sheet ($variant).")
+                for (title in listOf("EQUIPO", "TESORO", "RASGOS", "EQUIPO ESPECIAL")) {
+                    assertTrue(pages[p2].contains(title), "P2 keeps its «$title» module ($variant).")
+                }
+                assertTrue(pages[p3].contains("TRASFONDO Y PERFIL NARRATIVO") && pages[p3].contains("HISTORIA Y CRÓNICA"),
+                    "P3 keeps both narrative cartelas ($variant).")
+                fun rects(page: Int) = Regex("""(?:^|\s)$number\s+$number\s+$number\s+$number\s+re(?:\s|$)""")
+                    .findAll(pdf.getPage(page).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) })
+                    .map { m -> m.groupValues.drop(1).map { it.toFloat() } }.toList()
+                fun near(a: Float, b: Float) = kotlin.math.abs(a - b) < 0.05f
+                // Empty P2 tables use the golden manuscript rows: 16.15 pt EQUIPO, 19.84 pt TESORO.
+                val p2Rects = rects(p2)
+                val equipo = p2Rects.count { (x, y, w, h) -> near(x, 39.69f) && near(w, 258.8f) && (near(h, 16f) || near(h, 16.15f)) && y > 430f }
+                val tesoro = p2Rects.count { (x, y, w, h) -> near(x, 39.69f) && near(w, 258.8f) && (near(h, 16f) || near(h, 19.84f)) && y in 276f..427f }
+                val rasgos = p2Rects.count { (x, _, w, h) -> near(x, 309.26f) && near(w, 263.06f) && near(h, 16f) }
+                val especial = p2Rects.count { (x, _, w, h) -> near(x, 39.69f) && near(w, 532.62f) && near(h, 26.93f) }
+                assertTrue(equipo >= 3 && tesoro >= 2 && rasgos >= 3 && especial >= 2,
+                    "Each empty P2 module keeps its own writable rows ($variant): " +
+                        "equipo=$equipo tesoro=$tesoro rasgos=$rasgos especial=$especial")
+                assertTrue(rects(p3).size >= 10, "P3 keeps writable paper rows ($variant).")
+            }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
