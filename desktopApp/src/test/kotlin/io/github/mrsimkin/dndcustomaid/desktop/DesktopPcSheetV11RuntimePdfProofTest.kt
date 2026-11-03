@@ -727,6 +727,48 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c382P1PrintsTheChosenStateAndFallsBackToPermanentWithoutInventingAB() {
+        // C382 / IN02: PERMANENT vs CURRENT. With a current snapshot, CURRENT prints its
+        // HP; PERMANENT ignores it; CURRENT without a snapshot falls back to the
+        // permanent HP with the CURRENT_SNAPSHOT_UNAVAILABLE notice, never a made-up value.
+        val base = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val permanentHp = base.permanent.sheet.currentHp
+        val currentHp = if (permanentHp == 7) 8 else 7
+        val withCurrent = base.copy(currentSnapshot = base.permanent.copy(
+            sheet = base.permanent.sheet.copy(currentHp = currentHp)))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            for ((label, sourcesAndState, expected) in listOf(
+                Triple("current", withCurrent to PcSheetExportStateSelection.CURRENT_SNAPSHOT, currentHp),
+                Triple("permanent", withCurrent to PcSheetExportStateSelection.PERMANENT, permanentHp),
+                Triple("fallback", base to PcSheetExportStateSelection.CURRENT_SNAPSHOT, permanentHp),
+            )) {
+                val (src, state) = sourcesAndState
+                val generated = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, state), src,
+                )
+                val notices = generated.semantic.notices.map { it.code }
+                if (label == "fallback") {
+                    assertEquals(PcSheetExportStateSelection.PERMANENT, generated.semantic.selectedState)
+                    assertTrue(io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportNoticeCode.CURRENT_SNAPSHOT_UNAVAILABLE in notices,
+                        "The fallback carries its notice ($variant).")
+                } else {
+                    assertTrue(notices.isEmpty(), "No notice when the chosen state exists ($label $variant).")
+                }
+                Loader.loadPDF(generated.bytes).use { pdf ->
+                    // P1 PV ACTUALES card: the third golden combat row (y520.16 from the bottom).
+                    val card = PDFTextStripperByArea().apply {
+                        addRegion("pv", java.awt.geom.Rectangle2D.Float(270f, 271.8f, 140f, 31.2f))
+                        extractRegions(pdf.getPage(0))
+                    }.getTextForRegion("pv").replace(Regex("""\s+"""), " ").trim()
+                    val value = Regex("""PV ACTUALES (\d+)""").find(card)?.groupValues?.get(1)
+                    assertEquals(expected.toString(), value,
+                        "P1 PV ACTUALES prints the $label state's HP ($variant): $card")
+                }
+            }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
