@@ -154,6 +154,34 @@ class PcSheetV11MeasuredFlowPlacerTest {
     }
 
     @Test
+    fun longQuickSpellNamesStayWholeInOneColumnUnderTheirLevelBand() {
+        // C392 / P404 G2: under a taller level band, 40 long spell names (two lines
+        // each, keep-together) fill three columns over several pages; every name stays
+        // whole in one column, once and in source order, with no lost or split text.
+        val heading = PcSheetV11FlowItem("spell-level:3", "NIVEL 3", keepTogetherIfFits = true,
+            lineExtrasPt = mapOf(0 to 4.96f))
+        val spells = (1..40).map { n ->
+            PcSheetV11FlowItem("quick-spell:$n", "QAP4L" + n.toString().padStart(3, '0') +
+                " nombre largo de conjuro de prueba", keepTogetherIfFits = true)
+        }
+        val input = listOf(heading) + spells
+        val measured = PcSheetV11MeasuredFlowPlacer.place(
+            PcSheetV11FlowSection.QUICK_SPELLS, input, PcSheetV11RectPt(36f, 60f, 540f, 200f),
+            columnsPerPage = 3, gutterPt = 9f, lineHeightPt = 15.73f, textWidth = measuredFont,
+        )
+        assertTrue(measured.sourceFlow.localPageCount >= 2, "The fixture crosses pages.")
+        spells.forEach { spell ->
+            val parts = measured.sourceFlow.fragments.filter { it.sourceKey == spell.sourceKey }
+            assertEquals(1, parts.size, "${spell.sourceKey} stays whole in one column.")
+            assertEquals(2, parts.single().lineRanges.size, "${spell.sourceKey} wraps into its two lines.")
+            assertEquals(spell.text, parts.single().text)
+        }
+        assertEquals(input.map { it.sourceKey }, measured.sourceFlow.fragments.map { it.sourceKey })
+        measured.sourceFlow.verifyLosslessAgainst(input)
+        measured.verifyGeometry()
+    }
+
+    @Test
     fun anExtensionPageAppearsOnlyWhenTheContentDoesNotFit() {
         // C391 / C201 G2: a column pair that holds the content uses one local page;
         // a single extra line opens exactly one more page, which holds that line.

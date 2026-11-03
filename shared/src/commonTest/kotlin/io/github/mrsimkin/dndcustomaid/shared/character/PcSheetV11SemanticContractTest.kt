@@ -172,6 +172,31 @@ class PcSheetV11SemanticContractTest {
     }
 
     @Test
+    fun spellbookCardsKeepNameLevelSchoolAndTheWholeDescription() {
+        // C392 / BK03 G1: a requested Libro carries each real spell with its name,
+        // level, school (only when stored) and its complete description.
+        val description = "Descripción íntegra del conjuro. ".repeat(40).trim()
+        val withSchool = CharacterSpell(
+            id = id("34000000-0000-0000-0000-000000000001"), name = "Bola de fuego", level = 3,
+            castingTime = "1 acción", rangeText = "45 m", verbal = true, somatic = true, material = true,
+            materialText = "guano", duration = "Instantáneo", concentration = false, ritual = false,
+            description = description, notes = null, sortOrder = 0, school = "Evocación",
+        )
+        val withoutSchool = withSchool.copy(id = id("34000000-0000-0000-0000-000000000002"),
+            name = "Luz", level = 0, school = null, description = "Brilla.", sortOrder = 1)
+        val book = assertNotNull(map(
+            request = PcSheetV11ExportRequest(PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT,
+                includeSpellDescriptions = true),
+            sources = PcSheetExportSources(aggregate(baseSheet().copy(spells = listOf(withSchool, withoutSchool)))),
+        ).spellbookEntries)
+        assertEquals(setOf(withSchool.id, withoutSchool.id), book.map { it.spell.id }.toSet())
+        val fire = book.single { it.spell.id == withSchool.id }.spell
+        assertEquals(listOf("Bola de fuego", "3", "Evocación"), listOf(fire.name, fire.level.toString(), fire.school))
+        assertEquals(description, fire.description)
+        assertNull(book.single { it.spell.id == withoutSchool.id }.spell.school)
+    }
+
+    @Test
     fun customAttributeAndSkillUseStableRelationshipsAndMissingTargetIsNotFabricated() {
         val attributeId = id("30000000-0000-0000-0000-000000000001")
         val missingId = id("30000000-0000-0000-0000-000000000099")
