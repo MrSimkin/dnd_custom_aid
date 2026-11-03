@@ -300,6 +300,78 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c373EveryPageKeepsItsWordsInsideThePrintableAreaWithoutOverlapsAB() {
+        // C373 / GLB06: on every page of real App PDFs, every printed word lies
+        // inside the printable text area (x34..578, y30..767 from the top) and no
+        // two words substantively overlap (same rule as the independent audit).
+        data class Word(val text: String, val x0: Float, val y0: Float, val x1: Float, val y1: Float)
+        val fixtures = listOf(
+            Triple("01_aldren_vale_srd5_1_champion_fighter.json", PcSheetV11Variant.A, false),
+            Triple("02_ilyra_quill_srd5_2_1_evoker_wizard.json", PcSheetV11Variant.B, true),
+            Triple("03_mara_siete_umbrales_custom_extended.json", PcSheetV11Variant.A, false),
+            Triple("03_mara_siete_umbrales_custom_extended.json", PcSheetV11Variant.B, true),
+        )
+        for ((fixture, variant, book) in fixtures) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = book),
+                sources(fixture),
+            ).bytes
+            Loader.loadPDF(bytes).use { pdf ->
+                var checked = 0
+                for (page in 1..pdf.numberOfPages) {
+                    val words = mutableListOf<Word>()
+                    object : PDFTextStripper() {
+                        override fun writeString(
+                            text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                        ) {
+                            var current = mutableListOf<org.apache.pdfbox.text.TextPosition>()
+                            fun flush() {
+                                if (current.isNotEmpty()) {
+                                    words += Word(current.joinToString("") { it.unicode },
+                                        current.minOf { it.xDirAdj }, current.minOf { it.yDirAdj - it.heightDir },
+                                        current.maxOf { it.xDirAdj + it.widthDirAdj }, current.maxOf { it.yDirAdj })
+                                }
+                                current = mutableListOf()
+                            }
+                            // A word ends at a blank or where the next glyph jumps away
+                            // (backwards, or more than 1.5 pt after the previous glyph).
+                            textPositions.forEach { g ->
+                                val last = current.lastOrNull()
+                                if (g.unicode.isBlank()) flush()
+                                else {
+                                    if (last != null && (g.xDirAdj < last.xDirAdj ||
+                                            g.xDirAdj - (last.xDirAdj + last.widthDirAdj) > 1.5f ||
+                                            kotlin.math.abs(g.yDirAdj - last.yDirAdj) > 1f)) flush()
+                                    current += g
+                                }
+                            }
+                            flush()
+                        }
+                    }.apply { startPage = page; endPage = page }.getText(pdf)
+                    words.forEach { w ->
+                        assertTrue(w.x0 >= 33.99f && w.x1 <= 578.01f && w.y0 >= 29.99f && w.y1 <= 767.01f,
+                            "«${w.text}» lies outside the printable area on page $page ($fixture $variant): $w")
+                    }
+                    val sorted = words.sortedBy { it.y0 }
+                    sorted.forEachIndexed { i, a ->
+                        for (b in sorted.drop(i + 1)) {
+                            if (b.y0 >= a.y1 - 2f) break
+                            val dx = minOf(a.x1, b.x1) - maxOf(a.x0, b.x0)
+                            val dy = minOf(a.y1, b.y1) - maxOf(a.y0, b.y0)
+                            val smaller = minOf((a.x1 - a.x0) * (a.y1 - a.y0), (b.x1 - b.x0) * (b.y1 - b.y0))
+                            assertFalse(dx > 2f && dy > 3f && smaller > 0f && dx * dy / smaller > 0.35f,
+                                "«${a.text}» and «${b.text}» overlap on page $page ($fixture $variant).")
+                        }
+                    }
+                    checked += words.size
+                }
+                assertTrue(checked > 500, "The check read real words ($fixture $variant): $checked")
+            }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
