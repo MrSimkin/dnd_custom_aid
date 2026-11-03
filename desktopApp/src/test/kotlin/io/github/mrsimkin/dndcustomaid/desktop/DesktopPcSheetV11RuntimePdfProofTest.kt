@@ -811,6 +811,56 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c384EveryTraitPrintsOnceAcrossP1P2AndC2WithoutDescriptionsAB() {
+        // C384 / P207: mechanical traits flow P1 RASGOS -> P2 RASGOS (two internal
+        // columns) -> C2; each trait name prints exactly once across them and the
+        // P1/P2 boxes never print a trait description.
+        fun flat(text: String) = text.replace(Regex("""\s+"""), " ").trim()
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources("03_mara_siete_umbrales_custom_extended.json"),
+            )
+            val traits = generated.semantic.traits
+            assertTrue(traits.size >= 10, "Mara has many mechanical traits ($variant).")
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                fun columns(page: Int, vararg boxes: java.awt.geom.Rectangle2D.Float): List<String> =
+                    PDFTextStripperByArea().apply {
+                        boxes.forEachIndexed { i, box -> addRegion("c$i", box) }
+                        extractRegions(pdf.getPage(page))
+                    }.let { s -> boxes.indices.map { flat(s.getTextForRegion("c$it")) } }
+                // P1 RASGOS rows: x270.43..572.32 split at x424.2, y443..545 from the top.
+                val p1 = columns(0, java.awt.geom.Rectangle2D.Float(270f, 443f, 154f, 102f),
+                    java.awt.geom.Rectangle2D.Float(424.2f, 443f, 148f, 102f))
+                val p2Index = pages.indexOfFirst { it.contains("P2 - Equipo y tesoro") }
+                // P2 RASGOS: x309.26..572.32 split at its x440.79 rule, y121..475 from the top.
+                val p2 = columns(p2Index, java.awt.geom.Rectangle2D.Float(309f, 121f, 131.5f, 354f),
+                    java.awt.geom.Rectangle2D.Float(440.8f, 121f, 131.5f, 354f))
+                val c2 = pages.indices.filter { pages[it].contains("C2 - Habilidades, acciones y recursos") }
+                    .flatMap { index ->
+                        columns(index, java.awt.geom.Rectangle2D.Float(39f, 90f, 263f, 680f),
+                            java.awt.geom.Rectangle2D.Float(310.5f, 90f, 263f, 680f))
+                    }
+                val all = p1 + p2 + c2
+                traits.forEach { trait ->
+                    val name = Regex(Regex.escape(flat(trait.name)) + """(?=\s|$|—|-)""")
+                    assertEquals(1, all.sumOf { name.findAll(it).count() },
+                        "«${trait.name}» prints exactly once across P1, P2 and C2 ($variant).")
+                    val description = flat(trait.description)
+                    if (description.length >= 20) {
+                        assertFalse((p1 + p2).any { it.contains(description.take(20)) },
+                            "P1/P2 RASGOS never print the description of ${trait.name} ($variant).")
+                    }
+                }
+                assertTrue(p2.all { it.isNotBlank() }, "Both P2 internal trait columns are used ($variant).")
+            }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
