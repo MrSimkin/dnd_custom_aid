@@ -372,6 +372,61 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c374VariantASkillsSitUnderTheirOwnAttributeWithoutSuffix() {
+        // C374 / P106: in variant A every skill printed in P1's left column sits
+        // directly under ITS attribute (from the source reference, not the drawing)
+        // with no other attribute row in between, and carries no «(XXX)» suffix.
+        val printedName = mapOf("STRENGTH" to "FUERZA", "DEXTERITY" to "DESTREZA",
+            "CONSTITUTION" to "CONSTITUCIÓN", "INTELLIGENCE" to "INTELIGENCIA",
+            "WISDOM" to "SABIDURÍA", "CHARISMA" to "CARISMA")
+        for (fixture in listOf("01_aldren_vale_srd5_1_champion_fighter.json",
+            "03_mara_siete_umbrales_custom_extended.json")) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT),
+                sources(fixture),
+            )
+            val semantic = generated.semantic
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                val runs = mutableListOf<Pair<String, Float>>()
+                object : PDFTextStripper() {
+                    override fun writeString(
+                        text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                    ) {
+                        val first = textPositions.firstOrNull() ?: return
+                        if (first.xDirAdj < 262f && first.yDirAdj > 205f) runs += // v8 state glyphs are not text
+                            text.filterNot { it in '\uE000'..'\uF8FF' }.trim() to first.yDirAdj
+                    }
+                }.apply { startPage = 1; endPage = 1 }.getText(pdf)
+                fun rowOf(attribute: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Attribute): Float? {
+                    val name = printedName[attribute.name] ?: attribute.name
+                    val word = Regex("""(^|\s)""" + Regex.escape(name) + """(\s|$)""")
+                    return runs.firstOrNull { word.containsMatchIn(it.first) }?.second
+                }
+                val attributeRows = semantic.attributes.mapNotNull { a -> rowOf(a)?.let { a to it } }
+                assertTrue(attributeRows.size >= 6, "The six standard attributes print on P1 ($fixture).")
+                var checked = 0
+                for (skill in semantic.skills) {
+                    // The sheet prints built-in skills with the App's Spanish label.
+                    val label = skill.builtInKey?.let {
+                        io.github.mrsimkin.dndcustomaid.shared.character.characterSkillSpanishLabel(it)
+                    } ?: skill.name
+                    val run = runs.firstOrNull { (text, _) ->
+                        text == label || text.startsWith("$label ") || text.startsWith("$label+") ||
+                            text.startsWith("$label-") }
+                    assertFalse(runs.any { it.first.startsWith("$label (") },
+                        "A skill under its attribute carries no «(XXX)» suffix ($fixture): $label")
+                    if (run == null) continue
+                    val owner = attributeRows.filter { it.second < run.second }.maxByOrNull { it.second }
+                    assertEquals(skill.ability, owner?.first?.reference,
+                        "«${skill.name}» sits directly under its own attribute ($fixture).")
+                    checked++
+                }
+                assertTrue(checked >= 15, "Most skills are checked on P1 ($fixture): $checked")
+            }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
