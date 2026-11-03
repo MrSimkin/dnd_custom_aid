@@ -124,6 +124,54 @@ class PcSheetV11SemanticContractTest {
     }
 
     @Test
+    fun narrativeBackgroundKeepsEveryRealFieldApartFromMechanicalTraits() {
+        // C390 / P303 + P302 G1: the P3 narrative source carries the real background
+        // name, summary, race, religion/faith, personality, ideals, bonds, flaws and
+        // story verbatim; mechanical traits stay in their own list, never in it.
+        val background = CharacterBackground(
+            name = "Cartógrafa", summary = "Resumen real", race = "Humana", religionFaith = "Culto del faro",
+            personalityTraits = "Observadora", ideals = "La verdad", bonds = "El grupo",
+            flaws = "Desconfía", story = "Historia larga\nen dos párrafos",
+        )
+        val trait = CharacterTrait(
+            id = id("33000000-0000-0000-0000-000000000001"), name = "Visión en la oscuridad",
+            source = "Raza", type = CharacterTraitType.SPECIES_RACE, description = "Ve en la penumbra",
+            notes = null, maxUses = null, spentUses = 0, recovery = null, activation = null, sortOrder = 0,
+        )
+        val snapshot = map(sources = PcSheetExportSources(
+            aggregate(baseSheet().copy(background = background, traits = listOf(trait)))))
+        assertEquals(background, snapshot.background)
+        assertEquals(listOf(trait.id), snapshot.traits.map { it.id })
+        val narrative = with(snapshot.background) {
+            listOf(name, summary, race, religionFaith, personalityTraits, ideals, bonds, flaws, story)
+        }
+        assertFalse(narrative.any { it.contains(trait.name) || it.contains(trait.description) })
+    }
+
+    @Test
+    fun identityAndCombatStatsComeFromTheSelectedStateUnchanged() {
+        // C390 / P102 + P110 G1: class and level, race and the combat statistics
+        // reach the V11 data exactly as stored in the selected state.
+        val permanent = baseSheet().copy(
+            armorClass = 15, maxHp = 30, currentHp = 30, tempHp = 0, speed = 30, initiativeAdjustment = 1,
+            background = CharacterBackground(race = "Elfa"),
+        )
+        val current = permanent.copy(currentHp = 12, tempHp = 5)
+        val sources = PcSheetExportSources(aggregate(permanent), aggregate(current))
+        for ((state, expected) in listOf(PcSheetExportStateSelection.PERMANENT to permanent,
+            PcSheetExportStateSelection.CURRENT_SNAPSHOT to current)) {
+            val sheet = map(request = PcSheetV11ExportRequest(PcSheetV11Variant.A, state), sources = sources)
+                .source.sheet
+            assertEquals(expected.classes, sheet.classes, "Class and level ($state).")
+            assertEquals("Elfa", sheet.background.race, "Race ($state).")
+            assertEquals(listOf(expected.armorClass, expected.maxHp, expected.currentHp, expected.tempHp,
+                expected.speed, expected.initiativeAdjustment),
+                listOf(sheet.armorClass, sheet.maxHp, sheet.currentHp, sheet.tempHp, sheet.speed,
+                    sheet.initiativeAdjustment), "Combat statistics ($state).")
+        }
+    }
+
+    @Test
     fun customAttributeAndSkillUseStableRelationshipsAndMissingTargetIsNotFabricated() {
         val attributeId = id("30000000-0000-0000-0000-000000000001")
         val missingId = id("30000000-0000-0000-0000-000000000099")
