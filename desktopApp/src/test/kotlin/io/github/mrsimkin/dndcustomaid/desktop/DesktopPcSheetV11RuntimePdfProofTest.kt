@@ -427,6 +427,42 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c375P1AttacksStayASummaryAndTheirNotesContinueWholeInC2AB() {
+        // C375 / P119: the P1 ATAQUES box is a summary - at most its five data rows,
+        // never an attack's notes - and every note still prints whole in C2.
+        fun flat(text: String) = text.replace(Regex("""\s+"""), " ").trim()
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources("03_mara_siete_umbrales_custom_extended.json"),
+            )
+            val noted = generated.semantic.combatEntries.filter { (it.notes ?: "").trim().length >= 20 }
+            assertTrue(noted.size >= 3, "Mara has real attacks with long notes ($variant).")
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                // Golden ATAQUES rows: under the header (y448.44 from the bottom) and
+                // above the RASGOS cartela top (y371.9): top-origin y343.56..420.1.
+                val box = PDFTextStripperByArea().apply {
+                    addRegion("attacks", java.awt.geom.Rectangle2D.Float(270f, 343.6f, 302f, 76.5f))
+                    extractRegions(pdf.getPage(0))
+                }.getTextForRegion("attacks")
+                val rows = box.lines().filter { it.isNotBlank() }
+                assertTrue(rows.size in 1..5, "P1 ATAQUES prints at most its five rows ($variant): $rows")
+                val p1Box = flat(box)
+                val c2 = flat((2..pdf.numberOfPages).joinToString(" ") { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                })
+                noted.forEach { entry ->
+                    val note = flat(entry.notes!!)
+                    assertFalse(p1Box.contains(note.take(20)),
+                        "P1 ATAQUES never prints an attack's notes ($variant): ${entry.name}")
+                    assertTrue(c2.contains(note.take(40)),
+                        "The notes of ${entry.name} continue in C2 ($variant).")
+                }
+            }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
