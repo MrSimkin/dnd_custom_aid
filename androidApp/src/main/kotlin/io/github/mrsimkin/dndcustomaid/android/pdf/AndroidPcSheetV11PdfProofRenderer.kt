@@ -3098,6 +3098,19 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 }
                             }
                             stream.restoreGraphicsState()
+                            // C405: golden P4 - unused paper at the foot of a column (a whole
+                            // column on a continuation page) becomes a NOTAS panel: the 19.56 pt
+                            // cartela on a grid of 15.72 pt rows down to the golden foot.
+                            flow.columnsPt.forEachIndexed { columnZero, column ->
+                                val used = pageCells.filter { it.columnIndex == columnZero + 1 }
+                                val gridTop = (used.minOfOrNull { it.cellPt.bottomPt - 2f } ?: column.topPt) - 19.56f
+                                val rows = ((gridTop - c2FootPt) / 15.72f).toInt()
+                                if (rows >= 4) {
+                                    drawC2ManuscriptCartela(stream, column.leftPt, column.widthPt, gridTop)
+                                    drawGoldenNotesGrid(stream, column.leftPt, column.widthPt,
+                                        gridTop - rows * 15.72f, gridTop, rows)
+                                }
+                            }
                         }
                         // C-N3 source cards in the genuine Mara PDF were
                         // visibly glued together: the last text line of one
