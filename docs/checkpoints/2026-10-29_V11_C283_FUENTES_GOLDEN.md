@@ -131,6 +131,7 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 | C398 | Matriz G1: ocho reglas con las pruebas semánticas nuevas | Con la CI verde de 7e604020 (ejecución 41720245332) pasan a PASS en G1: P103 (C387), RSG04 y RSG05 (C389), P303 y P302, P102 y P110 (C390) y BK03 (C392). Matriz: 132/233. |
 | C399 | Matriz G2: cinco reglas de composición compartida | Con la CI verde de 7e604020 (ejecución 41720245332) pasan a PASS en G2: RSG04 y C201 (C391), C202 (C394), P404 (C392) y P202 (pruebas existentes del compositor de tablas emparejadas: nombre + cantidad, cantidad nunca repetida entre columnas o páginas). Matriz: 137/233. |
 | C400 | Cuadrícula NOTAS de C2 como el golden | Las cuadrículas NOTAS de C2 (ancho completo, por columna y laterales de las tablas emparejadas) toman la gramática del golden con una sola función. Llevan marco #94b0c1 de 0,45 pt y reglas interiores #bfd3de de 0,27 pt; las columnas de unos 15,37 pt llenan exactamente la columna del golden (x39,69–301,04 / 310,96–572,32) y las filas siguen siendo enteras de 16 pt. La cartela NOTAS se apoya sobre la cuadrícula: 19,56 pt, chaflán de 5 pt, borde #264b68, línea interior y rótulo a 8,5 pt del borde y 5,1 pt sobre su pie (antes una cuadrícula oscura de 16 pt centrada y una cartela de 16 pt separada). Las dos auditorías de C2 (`audit_v11_p3_c2_manuscript.py`, `audit_v11_c207_vacancy.py`) reconocen ahora solo la cuadrícula del golden: 296/296 completas, 0 reservas faltantes, con una prueba roja/verde nueva (`test_audit_v11_c2_golden_grid.py`, en la CI). Pruebas C396 y de navegación C2 actualizadas. Evidencia `docs/pc-sheet-v11/qa/evidence/c400/c400_cuadricula_notas_c2.png`. |
+| C401 | Matriz G3: cuatro reglas con la CI de C400 | Con la CI verde de e1b1a8eb (ejecución 41726287686, PDFs 13274927474, auditoría 13275761446) pasan a PASS en G3: RSG05 y P306 (C393), GLB07 (C395) y C207 (C396, con la cuadrícula del golden de C400; 296/296 cuadrículas completas). Matriz: 141/233 (G1 29/46, G2 24/90, G3 88/97). G4 sigue bloqueada. |
 
 ## Pendiente (siguiente)
 
@@ -144,6 +145,7 @@ Medidas tomadas de v11_extremo A/B (golden) el 2026-10-31; las x de P1 ya son la
   - cartela ATAQUES en y462,9–485,86 y filas de 14,74 pt; cartelas RASGOS y 348,94, LANZAMIENTO y 219,68 y MUNICIONES y 106,30; tarjetas de magia de 26,08 pt (y191,62).
   Cambia la capacidad de P1, así que exige revisar el reparto P1/C2 y las pruebas de presupuesto de atributos.
 - **C2**: el golden mezcla TESORO y EQUIPO en columnas con otros módulos, cada uno con su cartela de columna (x39,69–301,04, y662,74–685,7, «VIENE DE PÁG. n») y filas de 18,43 pt; la App les da páginas a todo el ancho con una franja de título.
-- **Matriz**: 116/233 controles de etapa (G1 13/46, G2 19/90, G3 84/97) en PASS; G4 bloqueada hasta cerrar G1–G3.
+- **Matriz**: 141/233 controles de etapa (G1 29/46, G2 24/90, G3 88/97) en PASS; G4 bloqueada hasta cerrar G1–G3.
+- **Conflictos contrato/golden por decidir**: GLB08 (renglones de 7 mm frente a los 15,73 pt del golden) y P112 (reparto dinámico ATAQUES/RASGOS frente a las filas fijas del golden).
 - **P104**: implementado en C371, PASS G3 (C385) y aprobado visualmente por el propietario el 2026-11-03.
 - **C2**: banda de continuación de columna sigue siendo propia de la App (el golden no tiene ese caso); evaluar cartela repetida «/ CONTINUACIÓN».

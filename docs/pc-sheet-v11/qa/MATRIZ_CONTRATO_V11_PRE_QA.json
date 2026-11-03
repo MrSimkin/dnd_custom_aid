@@ -661,8 +661,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c395P2DigitalWordsSitInsideOneRowAndBlankRowsStayWritableAB",
+            "test_result": "PASS on real App PDFs (Aldren A, Mara A): every glyph in the P2 EQUIPO, TESORO and RASGOS tables sits inside one row band, and a sheet with few records keeps whole empty rows to write on.",
+            "source_commit": "e1b1a8ebb90262b25508a61c5f994e52a0b7d7ed",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686/artifacts/13274927474",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686/artifacts/13275761446",
+            "independent_inspection": "Same CI run: the 14 independent audits pass on the 112 PDFs; audit_v11_p3_c2_manuscript.py finds 296/296 complete golden C2 grids and audit_v11_c207_vacancy.py 0 missing reservations.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2230,8 +2239,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c393TraitsPrintInManualOrderWithWholeLongNamesAB; c384EveryTraitPrintsOnceAcrossP1P2AndC2WithoutDescriptionsAB",
+            "test_result": "PASS on real App PDFs (Mara A and B): read column by column across P1, P2 and C2, traits print in their manual order with whole long names, each exactly once.",
+            "source_commit": "e1b1a8ebb90262b25508a61c5f994e52a0b7d7ed",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686/artifacts/13274927474",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686/artifacts/13275761446",
+            "independent_inspection": "Same CI run: the 14 independent audits pass on the 112 PDFs; audit_v11_p3_c2_manuscript.py finds 296/296 complete golden C2 grids and audit_v11_c207_vacancy.py 0 missing reservations.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -3072,8 +3090,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c393NoPagePrintsAnImageOtherThanTheHeaderLogoAB",
+            "test_result": "PASS on real App PDFs (Ilyra B with Libro, Mara A): every page, P3 included, carries exactly one image, the header logo, nested forms counted.",
+            "source_commit": "e1b1a8ebb90262b25508a61c5f994e52a0b7d7ed",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686/artifacts/13274927474",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686/artifacts/13275761446",
+            "independent_inspection": "Same CI run: the 14 independent audits pass on the 112 PDFs; audit_v11_p3_c2_manuscript.py finds 296/296 complete golden C2 grids and audit_v11_c207_vacancy.py 0 missing reservations.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -3806,8 +3833,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c396EveryC2NotasCartelaHasACompleteGridDownToThePageFootAB; mixedC2FillsUsableRightColumnEvenWhenLeftSourceColumnIsLong",
+            "test_result": "PASS on real App PDFs (Mara A and B): usable C2 gaps get a NOTAS cartela resting on a complete golden grid (equal-length rules, regular pitch, whole cells down to the golden foot y59.53); a long left column never suppresses the right column's notes.",
+            "source_commit": "e1b1a8ebb90262b25508a61c5f994e52a0b7d7ed",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686/artifacts/13274927474",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686/artifacts/13275761446",
+            "independent_inspection": "Same CI run: the 14 independent audits pass on the 112 PDFs; audit_v11_p3_c2_manuscript.py finds 296/296 complete golden C2 grids and audit_v11_c207_vacancy.py 0 missing reservations.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
