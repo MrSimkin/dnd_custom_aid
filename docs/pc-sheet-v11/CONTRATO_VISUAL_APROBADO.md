@@ -169,3 +169,7 @@ Decisión del propietario sobre P104 (bocetos revisados en la conversación). Im
 - A la derecha de la fila, alineados horizontalmente en la misma línea y en este orden: el rótulo **«TIRADA DE / SALVACIÓN»** (dos líneas, **alineado a la derecha**, sustituye a «SALVACIÓN»), la casilla de competencia y una **línea para escribir a mano** el modificador de la tirada de salvación.
 - La línea se imprime **siempre**: si la App tiene el valor, va escrito sobre ella; si no, queda vacía.
 - Se aplica a los atributos de P1 (variantes A y B) y a las filas de atributo de C2.
+
+## Aclaración del propietario — alto de renglón (GLB08, 2026-11-03)
+
+El propietario decide **seguir el golden** («sigue el golden»): las listas y tablas usan el ritmo del golden, unos 5,6 mm por renglón (P2 16 pt, C2 15,7 pt, P4 15,73 pt, ataques 14,74 pt), y no los 7 mm nominales de la regla GLB08, que queda sustituida por este ritmo. Las zonas solo manuscritas pueden seguir usando renglones más altos donde el golden los usa (TESORO vacío 19,84 pt, EQUIPO ESPECIAL 26,93 pt).

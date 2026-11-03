@@ -146,6 +146,7 @@ Medidas tomadas de v11_extremo A/B (golden) el 2026-10-31; las x de P1 ya son la
   Cambia la capacidad de P1, así que exige revisar el reparto P1/C2 y las pruebas de presupuesto de atributos.
 - **C2**: el golden mezcla TESORO y EQUIPO en columnas con otros módulos, cada uno con su cartela de columna (x39,69–301,04, y662,74–685,7, «VIENE DE PÁG. n») y filas de 18,43 pt; la App les da páginas a todo el ancho con una franja de título.
 - **Matriz**: 141/233 controles de etapa (G1 29/46, G2 24/90, G3 88/97) en PASS; G4 bloqueada hasta cerrar G1–G3.
-- **Conflictos contrato/golden por decidir**: GLB08 (renglones de 7 mm frente a los 15,73 pt del golden) y P112 (reparto dinámico ATAQUES/RASGOS frente a las filas fijas del golden).
+- **GLB08**: el propietario decidió seguir el golden (renglón de ~5,6 mm), 2026-11-03; falta registrar su evidencia en la matriz.
+- **Conflicto contrato/golden por decidir**: P112 (reparto dinámico ATAQUES/RASGOS frente a las filas fijas del golden).
 - **P104**: implementado en C371, PASS G3 (C385) y aprobado visualmente por el propietario el 2026-11-03.
 - **C2**: banda de continuación de columna sigue siendo propia de la App (el golden no tiene ese caso); evaluar cartela repetida «/ CONTINUACIÓN».
