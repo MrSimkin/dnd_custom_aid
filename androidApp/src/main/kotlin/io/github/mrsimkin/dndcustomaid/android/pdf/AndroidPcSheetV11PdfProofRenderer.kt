@@ -2202,13 +2202,15 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream: PDPageContentStream, x: Float, width: Float, gridTop: Float,
             ) {
                 require(width >= 32f)
-                val bottom = gridTop + 1f
-                val top = gridTop + 17f
-                val cut = 4f
+                // C401: golden C2 NOTAS cartela - 19.56 pt resting on its grid, 5 pt
+                // chamfer, #264b68 0.65 pt edge and the inner hairline 3.4 pt under its top.
+                val bottom = gridTop
+                val top = gridTop + 19.56f
+                val cut = 5f
                 stream.saveGraphicsState()
                 stream.setNonStrokingColor(Color(231, 242, 247))
-                stream.setStrokingColor(Color(80, 122, 151))
-                stream.setLineWidth(0.55f)
+                stream.setStrokingColor(Color(38, 75, 104))
+                stream.setLineWidth(0.65f)
                 stream.moveTo(x + cut, bottom)
                 stream.lineTo(x + width - cut, bottom)
                 stream.lineTo(x + width, bottom + cut)
@@ -2219,11 +2221,46 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.lineTo(x, bottom + cut)
                 stream.closePath()
                 stream.fillAndStroke()
+                stream.setStrokingColor(Color(191, 211, 222))
+                stream.setLineWidth(0.35f)
+                stream.moveTo(x + 9.07f, top - 3.4f)
+                stream.lineTo(x + width - 9.07f, top - 3.4f)
+                stream.stroke()
                 stream.restoreGraphicsState()
-                // C307: golden C2 NOTAS label, 7.6 pt #1d384f.
+                // C307/C401: golden C2 NOTAS label, 7.6 pt #1d384f, 8.5 pt in, 5.1 pt above the foot.
                 stream.setNonStrokingColor(Color(29, 56, 79))
-                drawP1Label(stream, "NOTAS", x + 8f, gridTop + 7f, 7.6f)
+                drawP1Label(stream, "NOTAS", x + 8.5f, bottom + 5.1f, 7.6f)
                 stream.setNonStrokingColor(Color(36, 57, 75))
+            }
+
+            // C401: golden C2 manuscript grid - a #94b0c1 0.45 pt frame and #bfd3de
+            // 0.27 pt inner rules; columns of ~15.37 pt fill the width exactly and
+            // the rows are the given whole rows.
+            fun drawGoldenNotesGrid(
+                stream: PDPageContentStream, left: Float, width: Float, bottom: Float, top: Float, rows: Int,
+            ) {
+                require(rows >= 1 && top > bottom && width > 0f)
+                val columns = maxOf(2, kotlin.math.round(width / 15.373f).toInt())
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(148, 176, 193))
+                stream.setLineWidth(0.45f)
+                stream.addRect(left, bottom, width, top - bottom)
+                stream.stroke()
+                stream.setStrokingColor(Color(191, 211, 222))
+                stream.setLineWidth(0.27f)
+                for (column in 1 until columns) {
+                    val x = left + column * width / columns
+                    stream.moveTo(x, bottom)
+                    stream.lineTo(x, top)
+                    stream.stroke()
+                }
+                for (row in 1 until rows) {
+                    val y = bottom + row * (top - bottom) / rows
+                    stream.moveTo(left, y)
+                    stream.lineTo(left + width, y)
+                    stream.stroke()
+                }
+                stream.restoreGraphicsState()
             }
 
             // C2 leftover paper is handwriting space, not a new digital-notes section.
@@ -2237,26 +2274,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 val completeRows = ((maxGridTop - gridBottom) / 16f).toInt()
                 if (completeRows < 3) return
                 val gridTop = gridBottom + completeRows * 16f
-                require(gridTop + 18f < lowestTextBottom) {
+                require(gridTop + 19.56f < lowestTextBottom) { // C401: golden cartela height
                     "C2 notes grid must never overlap character content."
                 }
-                drawC2ManuscriptCartela(stream, 42f, 528f, gridTop)
-                stream.saveGraphicsState()
-                stream.setStrokingColor(Color(130, 165, 186))
-                stream.setLineWidth(0.5f)
-                repeat(34) { column ->
-                    val x = 42f + column * 16f
-                    stream.moveTo(x, gridBottom)
-                    stream.lineTo(x, gridTop)
-                    stream.stroke()
-                }
-                repeat(completeRows + 1) { row ->
-                    val y = gridBottom + row * 16f
-                    stream.moveTo(42f, y)
-                    stream.lineTo(570f, y)
-                    stream.stroke()
-                }
-                stream.restoreGraphicsState()
+                // C401: golden full width x39.69..572.32.
+                drawC2ManuscriptCartela(stream, 39.69f, 532.63f, gridTop)
+                drawGoldenNotesGrid(stream, 39.69f, 532.63f, gridBottom, gridTop, completeRows)
             }
 
             fun fillUnusedC2WithNotes(
@@ -2265,7 +2288,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             ) {
                 // C2 is two independent vertical paper columns. A nearly
                 // occupied LEFT column cannot veto useful blank RIGHT paper.
-                val columns = PcSheetV11ColumnGrid.split(pageArea, 2, 12f)
+                // C401: the golden C2 columns x39.69..301.04 and 310.96..572.32.
+                val columns = PcSheetV11ColumnGrid.split(
+                    PcSheetV11RectPt(39.69f, c2FootPt, 532.63f, pageArea.topPt - c2FootPt), 2, 9.92f)
                 columns.forEachIndexed { index, column ->
                     val lowestTextBottom = cells.filter { it.columnIndex == index + 1 }
                         .minOfOrNull { it.cellPt.bottomPt } ?: column.topPt
@@ -2275,30 +2300,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     val completeRows = ((maxGridTop - gridBottom) / gridSize).toInt()
                     if (completeRows < 3) return@forEachIndexed
                     val gridTop = gridBottom + completeRows * gridSize
-                    require(gridTop + 18f < lowestTextBottom) {
+                    require(gridTop + 19.56f < lowestTextBottom) { // C401: golden cartela height
                         "Independent C2 manuscript notes may not overlap actual source cells."
                     }
-                    val completeColumns = (column.widthPt / gridSize).toInt()
-                    require(completeColumns >= 2)
-                    val gridWidth = completeColumns * gridSize
-                    val gridLeft = column.leftPt + (column.widthPt - gridWidth) / 2f
-                    drawC2ManuscriptCartela(stream, gridLeft, gridWidth, gridTop)
-                    stream.saveGraphicsState()
-                    stream.setStrokingColor(Color(130, 165, 186))
-                    stream.setLineWidth(0.5f)
-                    for (x in 0..completeColumns) {
-                        val px = gridLeft + x * gridSize
-                        stream.moveTo(px, gridBottom)
-                        stream.lineTo(px, gridTop)
-                        stream.stroke()
-                    }
-                    for (y in 0..completeRows) {
-                        val py = gridBottom + y * gridSize
-                        stream.moveTo(gridLeft, py)
-                        stream.lineTo(gridLeft + gridWidth, py)
-                        stream.stroke()
-                    }
-                    stream.restoreGraphicsState()
+                    // C401: the golden grid fills its whole column.
+                    drawC2ManuscriptCartela(stream, column.leftPt, column.widthPt, gridTop)
+                    drawGoldenNotesGrid(stream, column.leftPt, column.widthPt, gridBottom, gridTop, completeRows)
                 }
             }
 
@@ -4559,25 +4566,22 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         val gridBottom = if (notesUsable) tableBottom + 8f
                             else c2FootPt // C397: golden C2 grid foot (was max(area foot + 2, 78))
                         val completeRows =
-                            ((availableFrom - 28f - gridBottom) / gridPitch).toInt()
+                            ((availableFrom - 30f - gridBottom) / gridPitch).toInt() // C401: 19.56 pt cartela + 10 pt
                         if (completeRows < 4) return@mapNotNull null
                         val gridTop = gridBottom + completeRows * gridPitch
-                        require(gridTop + 18f <= availableFrom - 10f) {
+                        require(gridTop + 19.56f <= availableFrom - 10f) {
                             "C2 paired-table side notes would overlap source cells."
                         }
-                        val completeColumns = (pair.widthPt / gridPitch).toInt()
-                        require(completeColumns >= 4)
-                        val gridWidth = completeColumns * gridPitch
-                        val gridLeft = pair.leftPt + (pair.widthPt - gridWidth) / 2f
-                        SideNotes(pairZero, gridLeft, gridWidth, gridBottom, gridTop,
-                            completeRows, completeColumns)
+                        // C401: the golden grid fills the whole pair width.
+                        SideNotes(pairZero, pair.leftPt, pair.widthPt, gridBottom, gridTop,
+                            completeRows, kotlin.math.round(pair.widthPt / 15.373f).toInt())
                     }
                 } else emptyList()
                 grid(stream, visibleTable, true, manuscriptRowHeight,
                     alternateP2Rows = !compactC2,
                     stopRulesBelow = sideNotes.map { notes ->
                         val pair = placed.pairs[notes.pairZero]
-                        Triple(pair.leftPt, pair.rightPt, notes.gridTop + 18f)
+                        Triple(pair.leftPt, pair.rightPt, notes.gridTop + 19.56f)
                     })
                 if (compactC2) {
                     // C361: golden C2 p5 - the 22.96 pt cartela 1.98 pt above its table,
@@ -4678,26 +4682,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.saveGraphicsState()
                     stream.setNonStrokingColor(Color.WHITE)
                     stream.addRect(pair.leftPt + 0.6f, area.bottomPt + 0.6f,
-                        pair.widthPt - 1.2f, notes.gridTop + 18f - area.bottomPt - 0.6f)
+                        pair.widthPt - 1.2f, notes.gridTop + 19.56f - area.bottomPt - 0.6f)
                     stream.fill()
                     stream.restoreGraphicsState()
                     drawC2ManuscriptCartela(stream, notes.gridLeft, notes.gridWidth, notes.gridTop)
-                    stream.saveGraphicsState()
-                    stream.setStrokingColor(Color(130, 165, 186))
-                    stream.setLineWidth(0.5f)
-                    for (column in 0..notes.columns) {
-                        val x = notes.gridLeft + column * 16f
-                        stream.moveTo(x, notes.gridBottom)
-                        stream.lineTo(x, notes.gridTop)
-                        stream.stroke()
-                    }
-                    for (row in 0..notes.rows) {
-                        val y = notes.gridBottom + row * 16f
-                        stream.moveTo(notes.gridLeft, y)
-                        stream.lineTo(notes.gridLeft + notes.gridWidth, y)
-                        stream.stroke()
-                    }
-                    stream.restoreGraphicsState()
+                    drawGoldenNotesGrid(stream, notes.gridLeft, notes.gridWidth, notes.gridBottom,
+                        notes.gridTop, notes.rows)
                 }
                 if (notesUsable) drawUnusedC2NotesGrid(stream, tableBottom)
             }

@@ -1030,8 +1030,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     fun c396EveryC2NotasCartelaHasACompleteGridDownToThePageFootAB() {
         // C396 / C207 G3: every NOTAS cartela on a C2 page sits over a complete
         // manuscript grid - all its vertical rules share one length, all horizontal
-        // rules share one length, the pitch is a regular 16 pt and the grid reaches
-        // the foot of the page area. Strokes are read with their real colour.
+        // rules share one length, the pitch is regular and the grid reaches the foot
+        // of the page area. Strokes are read with their real colour (C401: the golden
+        // #bfd3de inner rules inside a #94b0c1 frame).
         data class Seg(val x0: Float, val y0: Float, val x1: Float, val y1: Float)
         class Strokes(page: org.apache.pdfbox.pdmodel.PDPage) :
             org.apache.pdfbox.contentstream.PDFGraphicsStreamEngine(page) {
@@ -1055,7 +1056,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             override fun endPath() { pending.clear() }
             override fun strokePath() {
                 val rgb = graphicsState.strokingColor.toRGB()
-                if (rgb == java.awt.Color(130, 165, 186).rgb and 0xFFFFFF) grid += pending
+                if (rgb == java.awt.Color(191, 211, 222).rgb and 0xFFFFFF) grid += pending
                 pending.clear()
             }
             override fun fillPath(windingRule: Int) { pending.clear() }
@@ -1081,8 +1082,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     if (labels.isEmpty()) continue
                     val strokes = Strokes(pdf.getPage(index)).also { it.processPage(pdf.getPage(index)) }.grid
                     for ((labelX, labelY) in labels) {
-                        val mine = strokes.filter { s -> maxOf(s.y0, s.y1) < labelY &&
-                            minOf(s.x0, s.x1) >= labelX - 12f && minOf(s.x0, s.x1) <= labelX + 520f }
+                        // This cartela's own grid: bounded by the first horizontal rule under it.
+                        val first = strokes.filter { s -> kotlin.math.abs(s.y0 - s.y1) < 0.01f && s.y0 < labelY - 1f &&
+                            minOf(s.x0, s.x1) <= labelX && maxOf(s.x0, s.x1) > labelX + 50f }.maxByOrNull { it.y0 }
+                        val (gx0, gx1) = if (first == null) 0f to 0f
+                            else minOf(first.x0, first.x1) to maxOf(first.x0, first.x1)
+                        val mine = strokes.filter { s -> maxOf(s.y0, s.y1) < labelY - 1f &&
+                            minOf(s.x0, s.x1) >= gx0 - 0.05f && maxOf(s.x0, s.x1) <= gx1 + 0.05f }
                         val vertical = mine.filter { kotlin.math.abs(it.x0 - it.x1) < 0.01f }
                         val horizontal = mine.filter { kotlin.math.abs(it.y0 - it.y1) < 0.01f }
                         assertTrue(vertical.size >= 3 && horizontal.size >= 3,
@@ -1092,8 +1098,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         assertTrue(vLengths.max() - vLengths.min() < 0.05f && hLengths.max() - hLengths.min() < 0.05f,
                             "The grid under NOTAS on page ${index + 1} is complete, no cut cells ($variant).")
                         val xs = vertical.map { it.x0 }.distinct().sorted()
-                        assertTrue(xs.zipWithNext().all { (a, b) -> kotlin.math.abs(b - a - 16f) < 0.05f },
-                            "Regular 16 pt grid pitch on page ${index + 1} ($variant): $xs")
+                        val steps = xs.zipWithNext().map { (a, b) -> b - a }
+                        assertTrue(steps.max() - steps.min() < 0.05f && steps.first() in 15f..16.5f,
+                            "Regular golden grid pitch on page ${index + 1} ($variant): $xs")
                         // Whole cells only: no further 16 pt cell fits above the golden C2 foot (C397: y59.53).
                         assertTrue(vertical.minOf { minOf(it.y0, it.y1) } - 59.53f < 16f,
                             "The grid reaches the page-area foot on page ${index + 1} ($variant).")
@@ -7439,9 +7446,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 // C268: with the bottom NOTES grid in use, the right grid starts
                 // just above it; it still spans the whole free right pair.
+                // C401: golden grid rules fill the pair; any vertical rule in the right half counts.
                 assertTrue(Regex(
-                    """(?m)(?:^|\s)313(?:\.0)?\s+([\d.]+)\s+m\s+313(?:\.0)?\s+([\d.]+)\s+l"""
-                ).findAll(secondContent).any { it.groupValues[2].toFloat() - it.groupValues[1].toFloat() > 150f },
+                    """(?m)(?:^|\s)(\d{3}(?:\.\d+)?)\s+([\d.]+)\s+m\s+(\d{3}(?:\.\d+)?)\s+([\d.]+)\s+l"""
+                ).findAll(secondContent).any { m ->
+                    val (x0, y0, x1, y1) = m.groupValues.drop(1).map { it.toFloat() }
+                    x0 > 305f && kotlin.math.abs(x0 - x1) < 0.01f && y1 - y0 > 150f
+                },
                     "Right C2 NOTES grid must contain real full-height PDF vectors.")
                 assertTrue(treasurePages.isNotEmpty(),
                     "The independent treasure stream must also overflow to C2.")

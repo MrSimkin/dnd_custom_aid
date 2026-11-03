@@ -29,23 +29,21 @@ def notas_labels(page):
             for s in line["spans"] if s["text"].strip() == "NOTAS" and abs(s["size"]-7.6)<.05]  # C307
 
 def grids(page):
+    """C401: golden C2 grid - a 0.45 pt stroked frame with 0.27 pt inner rules;
+    the NOTAS cartela rests on the frame, its label baseline 5.1 pt above it."""
     paths = page.get_drawings()
-    h = [s["rect"] for s in paths if s["type"] == "s" and
-         s.get("width") is not None and abs(s["width"]-.5)<.08 and
-         s["rect"].height < .05 and s["rect"].width > 180]
-    v = [s["rect"] for s in paths if s["type"] == "s" and
-         s.get("width") is not None and abs(s["width"]-.5)<.08 and
-         s["rect"].width < .05 and s["rect"].height > 46]
+    frames = [s["rect"] for s in paths if s.get("width") is not None and abs(s["width"]-.45)<.06
+              and len(s["items"]) == 1 and s["items"][0][0] == "re"
+              and s["rect"].width > 180 and s["rect"].height > 46]
+    inner = [s["rect"] for s in paths if s["type"] == "s" and
+             s.get("width") is not None and abs(s["width"]-.27)<.05 and s["rect"].width < .05]
     out=[]
-    # The NOTAS cartela is the 12 pt label span; its grid rule lies 7 pt below its
-    # baseline. Font-independent (C283: the golden Noto label face replaced Barlow).
     for w in notas_labels(page):
-        y=w[3]+7.0
-        for line in h:
-            if abs(line.y0-y)<.4 and line.x0<w[0]+2 and line.x1>w[2]+50:
-                cols=[c for c in v if abs(c.y0-y)<.4 and
-                      line.x0-1<=c.x0<=line.x1+1]
-                if cols: out.append((line.x0,line.x1,y,max(c.y1 for c in cols)))
+        y=w[3]+5.1
+        for frame in frames:
+            if abs(frame.y0-y)<.4 and frame.x0<w[0]+2 and frame.x1>w[2]+50:
+                cols=[c for c in inner if abs(c.y0-frame.y0)<.4 and frame.x0<c.x0<frame.x1]
+                if cols: out.append((frame.x0,frame.x1,frame.y0,frame.y1))
                 break
     return out
 

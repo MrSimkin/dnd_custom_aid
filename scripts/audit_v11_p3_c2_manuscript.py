@@ -152,14 +152,21 @@ def p3_golden_row_grammar(page: fitz.Page, first_page: bool) -> tuple[int,int,li
 
 def c2_result(page: fitz.Page) -> tuple[int, int, list[str]]:
     drawings = page.get_drawings()
+    # C401: golden C2 grid - a 0.45 pt stroked frame and 0.27 pt inner rules.
+    frames = [
+        dr["rect"] for dr in drawings
+        if dr.get("width") is not None and close(dr["width"], .45, .06)
+        and len(dr["items"]) == 1 and dr["items"][0][0] == "re"
+        and dr["rect"].width > 180 and dr["rect"].height > 46
+    ]
     horizontal = [
         dr["rect"] for dr in drawings
-        if dr.get("width") is not None and close(dr["width"], .5, .08)
+        if dr.get("width") is not None and close(dr["width"], .27, .05)
         and dr["rect"].height < .05 and dr["rect"].width > 180
     ]
     vertical = [
         dr["rect"] for dr in drawings
-        if dr.get("width") is not None and close(dr["width"], .5, .08)
+        if dr.get("width") is not None and close(dr["width"], .27, .05)
         and dr["rect"].width < .05 and dr["rect"].height > 46
     ]
     words = page.get_text("words")
@@ -170,40 +177,39 @@ def c2_result(page: fitz.Page) -> tuple[int, int, list[str]]:
     failures: list[str] = []
     complete = 0
     for word in cartelas:
-        grid_top = cartela_baseline(word, labels) + 7.0
+        # C401: the cartela rests on the grid frame; its label sits 5.1 pt above it.
+        grid_top = cartela_baseline(word, labels) + 5.1
         tops = [
-            rect for rect in horizontal
+            rect for rect in frames
             if close(rect.y0, grid_top, .38)
             and rect.x0 < word[0] + 2 and rect.x1 > word[2] + 50
         ]
         if not tops:
-            failures.append(f"C207 NOTAS at y={word[1]:.2f} has no grid top line")
+            failures.append(f"C207 NOTAS at y={word[1]:.2f} has no grid frame")
             continue
         first = tops[0]
+        bottom = first.y1
         columns = [
             rect for rect in vertical
-            if close(rect.y0, grid_top, .38)
-            and first.x0 - 1 <= rect.x0 <= first.x1 + 1
+            if close(rect.y0, grid_top, .38) and close(rect.y1, bottom, .38)
+            and first.x0 < rect.x0 < first.x1
         ]
-        bottom = max((line.y1 for line in columns), default=None)
         rows = [
             rect for rect in horizontal
-            if bottom is not None
-            and close(rect.x0, first.x0, 1)
-            and close(rect.x1, first.x1, 1)
-            and grid_top - .4 <= rect.y0 <= bottom + .4
+            if close(rect.x0, first.x0, .5) and close(rect.x1, first.x1, .5)
+            and grid_top < rect.y0 < bottom
         ]
+        xs = [first.x0] + sorted(line.x0 for line in columns) + [first.x1]
+        ys = [grid_top] + sorted(line.y0 for line in rows) + [bottom]
+        x_step = (first.x1 - first.x0) / (len(columns) + 1) if columns else 0
+        y_step = (bottom - grid_top) / (len(rows) + 1) if rows else 0
         if (
-            bottom is None or len(columns) < 6 or len(rows) < 4
-            or not steps_regular([line.x0 for line in columns])
-            or not steps_regular([line.y0 for line in rows])
-            or not close(min(line.x0 for line in columns), first.x0, 1)
-            or not close(max(line.x0 for line in columns), first.x1, 1)
-            or not close(min(line.y0 for line in rows), grid_top, .4)
-            or not close(max(line.y0 for line in rows), bottom, .4)
+            len(columns) < 5 or len(rows) < 2
+            or not 15 <= x_step <= 16.5 or not 15.5 <= y_step <= 17
+            or not steps_regular(xs, x_step) or not steps_regular(ys, y_step)
         ):
             failures.append(
-                f"C207 incomplete/irregular 16pt grid at y={word[1]:.2f}; "
+                f"C207 incomplete/irregular golden grid at y={word[1]:.2f}; "
                 f"vertical={len(columns)}, horizontal={len(rows)}"
             )
             continue
