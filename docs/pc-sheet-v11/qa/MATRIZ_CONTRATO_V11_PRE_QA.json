@@ -617,8 +617,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c373EveryPageKeepsItsWordsInsideThePrintableAreaWithoutOverlapsAB",
+            "test_result": "PASS on real App PDFs: on every page of Aldren A, Ilyra B (Libro), Mara A and Mara B (Libro) every printed word lies inside the printable text area and no two words substantively overlap (PDFBox measurement).",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the 14 independent physical audits (PyMuPDF), including audit_v11_pdf_physical_envelope.py and audit_v11_attribute_row_owner.py, PASS on the 112 PDFs of the internal proof artifact.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -730,8 +739,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c380NearlyEmptyNonCasterSheetInventsNoValuesOrMarkersAB; c376P1SkillRowsCarryTheirRealTrainingMarkAndTotalIncludingCustomSkills",
+            "test_result": "PASS on real App PDFs: a nearly empty non-caster gets no P4 or Libro, no epic level, only labels in P1 spellcasting and no numbers in the empty P2 tables; skill rows carry a mark only for real training.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the 14 independent physical audits (PyMuPDF), including audit_v11_pdf_physical_envelope.py and audit_v11_attribute_row_owner.py, PASS on the 112 PDFs of the internal proof artifact.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -870,8 +888,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c382P1PrintsTheChosenStateAndFallsBackToPermanentWithoutInventingAB",
+            "test_result": "PASS on real App PDFs (Aldren A and B): CURRENT with a snapshot prints its HP on P1, PERMANENT ignores it, and CURRENT without a snapshot falls back to the permanent HP with the CURRENT_SNAPSHOT_UNAVAILABLE notice.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the 14 independent physical audits (PyMuPDF), including audit_v11_pdf_physical_envelope.py and audit_v11_attribute_row_owner.py, PASS on the 112 PDFs of the internal proof artifact.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -1200,8 +1227,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c377EveryAttributePrintsOnceInSourceOrderWithItsRealValuesAB",
+            "test_result": "PASS on real App PDFs (Aldren A, Mara A and B): the six standard attributes lead the source; every attribute prints exactly once as score, modifier and name with its real values; P1 holds a leading run in source order and the rest continue in C2.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the 14 independent physical audits (PyMuPDF), including audit_v11_pdf_physical_envelope.py and audit_v11_attribute_row_owner.py, PASS on the 112 PDFs of the internal proof artifact.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -1226,8 +1262,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c371OwnerAttributeRowIsCentredWithARightAlignedSaveGroupAB; c360P1FollowsTheGoldenVerticalRhythmInBothVariants",
+            "test_result": "PASS on real App PDFs (A and B): the score box and the modifier oval riding a quarter over its right edge share the row's middle line with the save box; the two-line «TIRADA DE / SALVACIÓN» label is right-aligned 3 pt before the box and an always-printed handwriting line carries the save value (owner decision 2026-11-01).",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: audit_v11_attribute_row_owner.py checks every P1/C2 attribute row (oval over the box edge, common middle line, right-aligned label) with 0 errors; plus the other independent audits.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -1294,8 +1339,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c374VariantASkillsSitUnderTheirOwnAttributeWithoutSuffix",
+            "test_result": "PASS on real App PDFs: on Aldren A and Mara A every printed P1 skill sits directly under the attribute its source references, with no other attribute row in between, and carries no «(XXX)» suffix.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the 14 independent physical audits (PyMuPDF), including audit_v11_pdf_physical_envelope.py and audit_v11_attribute_row_owner.py, PASS on the 112 PDFs of the internal proof artifact.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -1380,8 +1434,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c376P1SkillRowsCarryTheirRealTrainingMarkAndTotalIncludingCustomSkills; c374VariantASkillsSitUnderTheirOwnAttributeWithoutSuffix",
+            "test_result": "PASS on real App PDFs: every printed P1 A skill row, Mara's custom skills included, carries exactly the v8 mark of its real training and its real signed total, and sits under the attribute its stable reference names.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the 14 independent physical audits (PyMuPDF), including audit_v11_pdf_physical_envelope.py and audit_v11_attribute_row_owner.py, PASS on the 112 PDFs of the internal proof artifact.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -1809,8 +1872,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c375P1AttacksStayASummaryAndTheirNotesContinueWholeInC2AB",
+            "test_result": "PASS on real App PDFs (Mara A and B): the P1 ATAQUES box prints at most its five rows and never an attack note; every long note still prints whole in C2.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the 14 independent physical audits (PyMuPDF), including audit_v11_pdf_physical_envelope.py and audit_v11_attribute_row_owner.py, PASS on the 112 PDFs of the internal proof artifact.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2128,8 +2200,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c383MechanicalTraitsNeverMixWithNarrativeTraitsOrSpecialEquipmentAB",
+            "test_result": "PASS on real App PDFs (Mara A and B): the P2 RASGOS column never prints narrative personality, ideals, bonds, flaws or a special item description, and P3 never prints a mechanical trait name.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the 14 independent physical audits (PyMuPDF), including audit_v11_pdf_physical_envelope.py and audit_v11_attribute_row_owner.py, PASS on the 112 PDFs of the internal proof artifact.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2196,8 +2277,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null,
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c378P2OrdinaryEquipmentPrintsOnlyNameAndQuantityAndNoGenericOtrosBoxAB",
+            "test_result": "PASS on real App PDFs (Aldren A, Mara A and B): each P2 EQUIPO subcolumn read on its own shows every printed ordinary item with its real quantity (wrapped names included) and never its description or notes.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the 14 independent physical audits (PyMuPDF), including audit_v11_pdf_physical_envelope.py and audit_v11_attribute_row_owner.py, PASS on the 112 PDFs of the internal proof artifact.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          },
           "test_name": "g3RealP2PairedTableHeadersIdentifyObjectAndDenominationWithoutMovingSourceCells",
           "source_parity_test": "scripts/test_v11_p2_paired_column_legend_contract.py"
         }
@@ -2405,8 +2495,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null,
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c384EveryTraitPrintsOnceAcrossP1P2AndC2WithoutDescriptionsAB",
+            "test_result": "PASS on real App PDFs (Mara A and B): reading each internal column of P1 RASGOS, P2 RASGOS and every C2 page, each mechanical trait prints exactly once and the P1/P2 boxes never print a description.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the 14 independent physical audits (PyMuPDF), including audit_v11_pdf_physical_envelope.py and audit_v11_attribute_row_owner.py, PASS on the 112 PDFs of the internal proof artifact.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          },
           "test_name": "g3RealP2RasgosHeadingMatchesApprovedGoldenWithoutChangingActualTraits",
           "source_parity_test": "scripts/test_v11_p2_rasgos_heading_contract.py"
         }
@@ -2581,8 +2680,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c379EmptySheetKeepsFourP2ReservesAndItsP3AB",
+            "test_result": "PASS on real App PDFs: an emptied Aldren (no equipment, treasure, traits or narrative), A and B, keeps EQUIPO, TESORO, RASGOS and EQUIPO ESPECIAL on P2, each with its own writable rows.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the 14 independent physical audits (PyMuPDF), including audit_v11_pdf_physical_envelope.py and audit_v11_attribute_row_owner.py, PASS on the 112 PDFs of the internal proof artifact.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2614,8 +2722,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c378P2OrdinaryEquipmentPrintsOnlyNameAndQuantityAndNoGenericOtrosBoxAB",
+            "test_result": "PASS on real App PDFs (Aldren A, Mara A and B): no page opens a generic «OTROS» box.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the 14 independent physical audits (PyMuPDF), including audit_v11_pdf_physical_envelope.py and audit_v11_attribute_row_owner.py, PASS on the 112 PDFs of the internal proof artifact.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2640,8 +2757,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c379EmptySheetKeepsFourP2ReservesAndItsP3AB",
+            "test_result": "PASS on real App PDFs: with no narrative at all P3 still exists, with both narrative cartelas and writable paper rows (A and B).",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the 14 independent physical audits (PyMuPDF), including audit_v11_pdf_physical_envelope.py and audit_v11_attribute_row_owner.py, PASS on the 112 PDFs of the internal proof artifact.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -2999,8 +3125,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c386LongSpellNamesPrintWholeOnceAndTheirLevelContinuesAB; g3DenseRealCantripsKeepLevelZeroContextAcrossPhysicalColumnsAB",
+            "test_result": "PASS on real App PDFs: 40 long-named level-3 spells each print exactly once on P4 with every word of the name and the level names its continuation in the next column; 175 cantrips keep «TRUCOS 0 / CONTINUACIÓN» across columns and pages.",
+            "source_commit": "28d7a2671a52ae7f0e356ff8d92a2c3b12661b8d",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13268620962",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41711422492/artifacts/13266814778",
+            "independent_inspection": "Same CI run: the 14 independent physical audits (PyMuPDF), including audit_v11_pdf_physical_envelope.py and audit_v11_attribute_row_owner.py, PASS on the 112 PDFs of the internal proof artifact.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },

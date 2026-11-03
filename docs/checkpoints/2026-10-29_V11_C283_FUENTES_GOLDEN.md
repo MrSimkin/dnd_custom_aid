@@ -116,6 +116,7 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 | C383 | Prueba de PDF real: rasgos mecánicos separados de los narrativos (RSG06 G3) | Nueva prueba `c383MechanicalTraitsNeverMixWithNarrativeTraitsOrSpecialEquipmentAB` (Mara A y B). La columna RASGOS de P2 nunca imprime la personalidad, ideales, vínculos o defectos narrativos, ni la descripción de un objeto especial, y el P3 narrativo nunca imprime el nombre de un rasgo mecánico. Sin cambio de producción. |
 | C384 | Prueba de PDF real: cada rasgo una sola vez, sin descripciones (P207 G3) | Nueva prueba `c384EveryTraitPrintsOnceAcrossP1P2AndC2WithoutDescriptionsAB` (Mara A y B, al menos 10 rasgos mecánicos). Lee por separado las dos columnas internas de RASGOS de P1 (corte x424,2), de P2 (regla x440,79) y de cada hoja C2. Cada rasgo se imprime exactamente una vez en el conjunto; las cajas de P1 y P2 nunca imprimen su descripción, y las dos columnas de P2 están en uso. Sin cambio de producción. |
 | C386 | Prueba de PDF real: nombres largos de conjuro y continuación por nivel (P404 G3) | Nueva prueba `c386LongSpellNamesPrintWholeOnceAndTheirLevelContinuesAB` (Ilyra A y B con 40 conjuros de nivel 3 de nombre largo, cada uno con su marca única). Cada conjuro se imprime exactamente una vez en P4 y conserva todas las palabras de su nombre, y el nivel 3, al cruzar de columna, nombra su continuación. Los PDFs se guardan como pruebas (`V11-INTERNAL-PROOF-C386-long-spell-names-A/B.pdf`); las 14 auditorías pasan sobre los 112 PDFs. Sin cambio de producción. |
+| C385 | Matriz: 15 controles G3 con la CI de C386 | Con la CI verde del commit 28d7a267 (ejecución 41711422492, PDFs 13268620962, auditoría 13266814778) pasan a PASS en G3: P104 (fila de atributo del propietario), GLB06, P106, P108, P119, P103, P202, P212, P211, P301, GLB10, IN02, RSG06, P207 y P404, cada uno con su prueba de PDF real (C371–C386) y las 14 auditorías independientes sobre 112 PDFs. Matriz: 116/233 controles de etapa en PASS (antes 101); G3 84/97. G4 sigue bloqueada. Evidencia `docs/pc-sheet-v11/qa/evidence/c385/c385_p1_golden_vs_app.png`. |
 
 ## Pendiente (siguiente)
 
@@ -129,6 +130,6 @@ Medidas tomadas de v11_extremo A/B (golden) el 2026-10-31; las x de P1 ya son la
   - cartela ATAQUES en y462,9–485,86 y filas de 14,74 pt; cartelas RASGOS y 348,94, LANZAMIENTO y 219,68 y MUNICIONES y 106,30; tarjetas de magia de 26,08 pt (y191,62).
   Cambia la capacidad de P1, así que exige revisar el reparto P1/C2 y las pruebas de presupuesto de atributos.
 - **C2**: el golden mezcla TESORO y EQUIPO en columnas con otros módulos, cada uno con su cartela de columna (x39,69–301,04, y662,74–685,7, «VIENE DE PÁG. n») y filas de 18,43 pt; la App les da páginas a todo el ancho con una franja de título.
-- **Matriz**: 101/233 controles de etapa (G1–G3) en PASS; G4 bloqueada hasta cerrar G1–G3.
-- **P104**: implementado en C371; falta la evidencia de matriz (G3) con la CI de C371 y la revisión visual del propietario.
+- **Matriz**: 116/233 controles de etapa (G1 13/46, G2 19/90, G3 84/97) en PASS; G4 bloqueada hasta cerrar G1–G3.
+- **P104**: implementado en C371 y en PASS G3 (C385); pendiente la revisión visual del propietario.
 - **C2**: banda de continuación de columna sigue siendo propia de la App (el golden no tiene ese caso); evaluar cartela repetida «/ CONTINUACIÓN».
