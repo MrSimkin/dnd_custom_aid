@@ -565,6 +565,71 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c378P2OrdinaryEquipmentPrintsOnlyNameAndQuantityAndNoGenericOtrosBoxAB() {
+        // C378 / P202 + P212: the P2 EQUIPO table (left half, above EQUIPO ESPECIAL)
+        // prints each ordinary item with its real quantity and never its description
+        // or notes; no page opens a generic «OTROS» box.
+        fun flat(text: String) = text.replace(Regex("""\s+"""), " ").trim()
+        for ((fixture, variant) in listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.A,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
+        )) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), sources(fixture),
+            )
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                // The P2 EQUIPO table has two subcolumns (name + right-aligned quantity),
+                // split at x168; each is read on its own, in reading order.
+                val halves = PDFTextStripperByArea().apply {
+                    sortByPosition = true // quantities are drawn in a later pass than the names
+                    addRegion("left", java.awt.geom.Rectangle2D.Float(39f, 100f, 129f, 400f))
+                    addRegion("right", java.awt.geom.Rectangle2D.Float(168f, 100f, 134f, 400f))
+                    extractRegions(pdf.getPage(1))
+                }.let { listOf(flat(it.getTextForRegion("left")), flat(it.getTextForRegion("right"))) }
+                val table = halves.joinToString(" ")
+                // The name's words in order; a quantity may sit between them (wrapped name).
+                fun quantityOf(tokens: List<String>, words: List<String>): String? {
+                    for (start in tokens.indices) {
+                        if (tokens[start] != words[0]) continue
+                        var i = start
+                        var w = 0
+                        val skipped = mutableListOf<String>()
+                        while (i < tokens.size && w < words.size) {
+                            when {
+                                tokens[i] == words[w] -> w++
+                                tokens[i].all(Char::isDigit) && skipped.size < 2 -> skipped += tokens[i]
+                                else -> break
+                            }
+                            i++
+                        }
+                        if (w == words.size) return skipped.firstOrNull() ?: tokens.getOrNull(i)
+                    }
+                    return null
+                }
+                var printed = 0
+                for (item in generated.semantic.ordinaryEquipment) {
+                    for (extra in listOfNotNull(item.description, item.notes).map { flat(it) }.filter { it.length >= 15 }) {
+                        assertFalse(table.contains(extra.take(15)),
+                            "P2 EQUIPO never prints the description or notes of ${item.name} ($fixture $variant).")
+                    }
+                    val words = flat(item.name).split(" ")
+                    val found = halves.firstNotNullOfOrNull { quantityOf(it.split(" "), words) } ?: continue
+                    assertEquals(item.quantity.toString(), found,
+                        "«${item.name}» prints with its real quantity ($fixture $variant).")
+                    printed++
+                }
+                assertTrue(printed >= 3, "Real ordinary items print on P2 ($fixture $variant): $printed")
+                for (n in 1..pdf.numberOfPages) {
+                    val text = PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                    assertFalse(Regex("""(^|\s)OTROS(\s|$)""").containsMatchIn(text),
+                        "No generic «OTROS» box on page $n ($fixture $variant).")
+                }
+            }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
