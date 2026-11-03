@@ -696,8 +696,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c395P2DigitalWordsSitInsideOneRowAndBlankRowsStayWritableAB; c360P1FollowsTheGoldenVerticalRhythmInBothVariants",
+            "test_result": "PASS on real App PDFs (A and B): lists and tables use the golden ~5.6 mm rhythm the owner chose - P2 rows of 16 pt (16.15 / 19.84 pt when empty) with every word inside one row, and the golden P1 rows (12.47 pt skills in A, 14.74 pt in B).",
+            "source_commit": "e1b1a8ebb90262b25508a61c5f994e52a0b7d7ed",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686/artifacts/13274927474",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686/artifacts/13275761446",
+            "independent_inspection": "Same CI run: audit_v11_p1_golden_rhythm.py and the other 13 independent audits pass on the 112 PDFs.",
+            "limitations": "Owner decision 2026-11-03 («sigue el golden» / «seguir el golden») replaces the rule text with the golden layout; Desktop renderer PDFs; Android installed candidate and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -1635,8 +1644,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c360P1FollowsTheGoldenVerticalRhythmInBothVariants; c375P1AttacksStayASummaryAndTheirNotesContinueWholeInC2AB",
+            "test_result": "PASS on real App PDFs (A and B): ATAQUES and RASGOS keep the fixed golden cartelas and rows the owner chose (5 attack rows, 7 x 2 trait rows) without pushing either module off P1; spare rows stay writable and the rest continues in C2.",
+            "source_commit": "e1b1a8ebb90262b25508a61c5f994e52a0b7d7ed",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686/artifacts/13274927474",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41726287686/artifacts/13275761446",
+            "independent_inspection": "Same CI run: audit_v11_p1_golden_rhythm.py and the other 13 independent audits pass on the 112 PDFs.",
+            "limitations": "Owner decision 2026-11-03 («sigue el golden» / «seguir el golden») replaces the rule text with the golden layout; Desktop renderer PDFs; Android installed candidate and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },

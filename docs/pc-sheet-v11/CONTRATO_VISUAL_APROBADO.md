@@ -173,3 +173,7 @@ Decisión del propietario sobre P104 (bocetos revisados en la conversación). Im
 ## Aclaración del propietario — alto de renglón (GLB08, 2026-11-03)
 
 El propietario decide **seguir el golden** («sigue el golden»): las listas y tablas usan el ritmo del golden, unos 5,6 mm por renglón (P2 16 pt, C2 15,7 pt, P4 15,73 pt, ataques 14,74 pt), y no los 7 mm nominales de la regla GLB08, que queda sustituida por este ritmo. Las zonas solo manuscritas pueden seguir usando renglones más altos donde el golden los usa (TESORO vacío 19,84 pt, EQUIPO ESPECIAL 26,93 pt).
+
+## Aclaración del propietario — ATAQUES y RASGOS en P1 (P112, 2026-11-03)
+
+El propietario decide **seguir el golden** («seguir el golden»): en P1, ATAQUES tiene 5 filas fijas y RASGOS 7 filas en 2 columnas fijas, en la posición del golden, sea cual sea la cantidad de datos. Las filas sobrantes quedan para escribir a mano y lo que no cabe continúa en C2. Sustituye el reparto dinámico de altura que pedía la regla P112.
