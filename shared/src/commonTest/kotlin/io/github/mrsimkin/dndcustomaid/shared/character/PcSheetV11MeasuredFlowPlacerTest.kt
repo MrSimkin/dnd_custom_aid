@@ -127,6 +127,50 @@ class PcSheetV11MeasuredFlowPlacerTest {
     }
 
     @Test
+    fun traitsFlowAcrossColumnsAndPagesWithEachIdOnceAndInOrder() {
+        // C391 / RSG04 G2: 60 traits of varied length cross two columns and several
+        // local pages; each source key appears in one contiguous run of fragments,
+        // in source order, with its text rebuilt exactly once.
+        val input = (1..60).map { n ->
+            PcSheetV11FlowItem("trait:$n", "Rasgo $n " + "texto ".repeat(n % 9 + 1).trim())
+        }
+        val measured = PcSheetV11MeasuredFlowPlacer.place(
+            PcSheetV11FlowSection.TRAITS, input, PcSheetV11RectPt(36f, 60f, 540f, 160f),
+            columnsPerPage = 2, gutterPt = 12f, lineHeightPt = 16f, textWidth = measuredFont,
+        )
+        assertTrue(measured.sourceFlow.localPageCount >= 3, "The fixture crosses pages.")
+        val keys = measured.sourceFlow.fragments.map { it.sourceKey }
+        assertEquals(input.map { it.sourceKey }, keys.distinct())
+        keys.distinct().forEach { key ->
+            val at = keys.indices.filter { keys[it] == key }
+            assertEquals((at.first()..at.last()).toList(), at, "$key is one contiguous run.")
+        }
+        input.forEach { item ->
+            assertEquals(item.text, measured.sourceFlow.fragments.filter { it.sourceKey == item.sourceKey }
+                .joinToString("") { it.text })
+        }
+        measured.sourceFlow.verifyLosslessAgainst(input)
+        measured.verifyGeometry()
+    }
+
+    @Test
+    fun anExtensionPageAppearsOnlyWhenTheContentDoesNotFit() {
+        // C391 / C201 G2: a column pair that holds the content uses one local page;
+        // a single extra line opens exactly one more page, which holds that line.
+        val area = PcSheetV11RectPt(36f, 60f, 540f, 100f)
+        fun place(lines: Int) = PcSheetV11MeasuredFlowPlacer.place(
+            PcSheetV11FlowSection.TRAITS, (1..lines).map { PcSheetV11FlowItem("l$it", "línea $it") },
+            area, columnsPerPage = 2, gutterPt = 12f, lineHeightPt = 10f, textWidth = measuredFont,
+        )
+        val full = place(20)
+        assertEquals(1, full.sourceFlow.localPageCount, "20 lines fill two 10-line columns on one page.")
+        val over = place(21)
+        assertEquals(2, over.sourceFlow.localPageCount, "One more line opens one extension page.")
+        assertEquals(listOf("l21"), over.cells.filter { it.localPageIndex == 2 }.map { it.sourceKey })
+        assertEquals(1, place(1).sourceFlow.localPageCount)
+    }
+
+    @Test
     fun lineExtraBeforeAMiddleLineAddsAirOnlyThere() {
         // C363: the golden book card leaves more air before its description.
         val card = PcSheetV11FlowItem("card", "Name\nSchool\nDescription", keepTogetherIfFits = true,
