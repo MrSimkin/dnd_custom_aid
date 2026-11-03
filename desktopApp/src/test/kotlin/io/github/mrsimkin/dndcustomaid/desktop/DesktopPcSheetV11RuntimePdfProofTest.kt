@@ -521,6 +521,50 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c377EveryAttributePrintsOnceInSourceOrderWithItsRealValuesAB() {
+        // C377 / P103: the six standard attributes first and in order, then the
+        // custom ones in source order; every attribute prints exactly once in the
+        // whole PDF (P1 or C2) as «score modifier name» with its real values.
+        val printedName = mapOf("STRENGTH" to "FUERZA", "DEXTERITY" to "DESTREZA",
+            "CONSTITUTION" to "CONSTITUCIÓN", "INTELLIGENCE" to "INTELIGENCIA",
+            "WISDOM" to "SABIDURÍA", "CHARISMA" to "CARISMA")
+        fun signed(n: Int) = if (n >= 0) "+$n" else n.toString()
+        for ((fixture, variant) in listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to PcSheetV11Variant.A,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.A,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.B,
+        )) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), sources(fixture),
+            )
+            val attributes = generated.semantic.attributes
+            assertEquals(listOf("STRENGTH", "DEXTERITY", "CONSTITUTION", "INTELLIGENCE", "WISDOM", "CHARISMA"),
+                attributes.take(6).map { it.name }, "Six standard attributes lead the source ($fixture).")
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                        .replace(Regex("""\s+"""), " ")
+                }
+                val p1Order = mutableListOf<Pair<Int, Int>>()
+                attributes.forEachIndexed { index, a ->
+                    val name = printedName[a.name] ?: a.name
+                    val row = Regex(Regex.escape(a.score.toString()) + " " + Regex.escape(signed(a.modifier)) +
+                        " " + Regex.escape(name) + """(?=\s|$)""")
+                    val hits = pages.mapIndexed { page, text -> page to row.findAll(text).count() }
+                    assertEquals(1, hits.sumOf { it.second },
+                        "«${a.score} ${signed(a.modifier)} $name» prints exactly once ($fixture $variant).")
+                    if (hits.first().second == 1) p1Order += index to (row.find(pages[0])!!.range.first)
+                }
+                assertTrue(p1Order.size >= 6, "At least the six standard attributes print on P1 ($fixture).")
+                assertEquals(p1Order.map { it.first }.sorted(), p1Order.sortedBy { it.second }.map { it.first },
+                    "P1 prints its attributes in source order ($fixture $variant).")
+                assertEquals((0 until p1Order.size).toList(), p1Order.map { it.first }.sorted(),
+                    "P1 holds a leading run of the source attributes; the rest continue in C2 ($fixture $variant).")
+            }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
