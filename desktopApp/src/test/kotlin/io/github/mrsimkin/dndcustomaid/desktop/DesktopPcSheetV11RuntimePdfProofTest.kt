@@ -861,6 +861,48 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c386LongSpellNamesPrintWholeOnceAndTheirLevelContinuesAB() {
+        // C386 / P404: 40 level-3 spells with long names - each tagged by a unique
+        // token - print exactly once on P4 with every word of the name, and the
+        // level that crosses a physical column names its continuation.
+        val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val base = original.permanent.sheet.spells.first { it.sourceAssociations.isNotEmpty() }
+        val tail = "nombre muy largo para probar el ajuste de columna"
+        val spells = (1..40).map { n ->
+            base.copy(
+                id = Uuid.parse("f6000000-0000-4000-8000-" + n.toString().padStart(12, '0')),
+                name = "QAP4L" + n.toString().padStart(3, '0') + " " + tail,
+                level = 3, sortOrder = n,
+            )
+        }
+        val input = original.copy(permanent = original.permanent.copy(
+            sheet = original.permanent.sheet.copy(spells = spells)))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), input,
+            )
+            preserveRealApplicationPdf(proof.bytes, "V11-INTERNAL-PROOF-C386-long-spell-names-$variant.pdf")
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val p4 = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }.filter { it.contains("P4 - Conjuros /") }
+                assertTrue(p4.isNotEmpty(), "Real spells produce P4 ($variant).")
+                val tokens = p4.joinToString(" ").split(Regex("""\s+"""))
+                for (n in 1..40) {
+                    val tag = "QAP4L" + n.toString().padStart(3, '0')
+                    val at = tokens.indices.filter { tokens[it] == tag }
+                    assertEquals(1, at.size, "$tag prints exactly once on P4 ($variant).")
+                    val window = tokens.drop(at.single() + 1).take(14)
+                    assertTrue(window.containsAll(tail.split(" ")),
+                        "$tag keeps every word of its long name ($variant): $window")
+                }
+                assertTrue(p4.any { it.contains("NIVEL 3 / CONTINUACIÓN") || it.contains("NIVEL 3 / VIENE DE PÁG.") },
+                    "Level 3 names its continuation in the next physical column ($variant).")
+            }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
