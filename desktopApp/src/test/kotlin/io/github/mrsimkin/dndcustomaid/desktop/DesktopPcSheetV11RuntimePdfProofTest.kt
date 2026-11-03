@@ -1113,6 +1113,68 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c406GoldenNotesPanelsOnCn3TheLibroIndexAndAContinuedP4AB() {
+        // C406: guards C403-C405 on real App PDFs - the C-N3 NOTAS MANUSCRITAS reserve
+        // (cartela over banded 18.71 pt rows), the Libro index (cartela + one banded
+        // 15.7 pt row per spell) and the NOTAS panel in a free column of a continued P4.
+        val number = """(-?\d+(?:\.\d+)?)"""
+        fun rects(pdf: org.apache.pdfbox.pdmodel.PDDocument, page: Int) =
+            Regex("""(?:^|\s)$number\s+$number\s+$number\s+$number\s+re(?:\s|$)""")
+                .findAll(pdf.getPage(page).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) })
+                .map { m -> m.groupValues.drop(1).map { it.toFloat() } }.toList()
+        fun near(a: Float, b: Float) = kotlin.math.abs(a - b) < 0.05f
+        fun pageTexts(pdf: org.apache.pdfbox.pdmodel.PDDocument) = (1..pdf.numberOfPages).map { n ->
+            PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+        }
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            // C-N3 (Mara): the last notes page carries the golden reserve.
+            DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources("03_mara_siete_umbrales_custom_extended.json"),
+            ).bytes.let { bytes -> Loader.loadPDF(bytes).use { pdf ->
+                val texts = pageTexts(pdf)
+                val last = texts.indices.last { texts[it].contains("C-N3 - Notas digitales") }
+                assertTrue(texts[last].contains("NOTAS MANUSCRITAS"), "C-N3 reserve cartela ($variant).")
+                assertTrue(rects(pdf, last).count { (x, _, w, h) -> near(x, 39.69f) && near(w, 532.63f) && near(h, 18.71f) } >= 2,
+                    "C-N3 reserve uses banded 18.71 pt golden rows ($variant).")
+            } }
+            // Libro index (Ilyra with the Libro): one banded row per spell.
+            val ilyra = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT, includeSpellDescriptions = true),
+                sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json"),
+            )
+            Loader.loadPDF(ilyra.bytes).use { pdf ->
+                val texts = pageTexts(pdf)
+                val index = texts.indices.filter { texts[it].contains("Índice del Libro de Conjuros") }
+                assertTrue(index.isNotEmpty() && index.all { texts[it].contains("ÍNDICE DEL LIBRO DE CONJUROS") },
+                    "Every index page carries its golden cartela ($variant).")
+                val bands = index.sumOf { i -> rects(pdf, i).count { (_, _, _, h) -> near(h, 15.7f) } }
+                assertEquals(ilyra.semantic.spellbookEntries!!.size, bands, "One banded 15.7 pt row per spell ($variant).")
+            }
+            // A continued P4 (175 cantrips): the free last column holds a NOTAS panel.
+            val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+            val base = original.permanent.sheet.spells.first { it.sourceAssociations.isNotEmpty() }
+            val stress = original.copy(permanent = original.permanent.copy(sheet = original.permanent.sheet.copy(
+                spells = (1..175).map { n -> base.copy(
+                    id = Uuid.parse("f7000000-0000-4000-8000-" + n.toString().padStart(12, '0')),
+                    name = "QAP4NOTA" + n.toString().padStart(3, '0'), level = 0, sortOrder = n) })))
+            DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), stress,
+            ).bytes.let { bytes -> Loader.loadPDF(bytes).use { pdf ->
+                val texts = pageTexts(pdf)
+                val lastP4 = texts.indices.last { texts[it].contains("P4 - Conjuros /") }
+                val column3 = PDFTextStripperByArea().apply {
+                    addRegion("c3", java.awt.geom.Rectangle2D.Float(404f, 150f, 170f, 590f))
+                    extractRegions(pdf.getPage(lastP4))
+                }.getTextForRegion("c3")
+                assertTrue(column3.lines().any { it.trim() == "NOTAS" }, "The free P4 column gets its NOTAS cartela ($variant).")
+                assertTrue(rects(pdf, lastP4).any { (x, y, w, h) -> near(x, 404.5f) && kotlin.math.abs(w - 167.81f) < 0.1f &&
+                    y < 64f && h > 60f }, "Its golden grid frame reaches the page foot ($variant).")
+            } }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
