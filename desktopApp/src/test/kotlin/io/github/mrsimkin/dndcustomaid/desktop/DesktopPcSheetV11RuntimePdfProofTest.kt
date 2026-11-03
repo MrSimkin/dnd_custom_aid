@@ -903,6 +903,77 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c393TraitsPrintInManualOrderWithWholeLongNamesAB() {
+        // C393 / RSG05 G3: reading P1 RASGOS, P2 RASGOS and C2 column by column in
+        // flow order, Mara's traits appear in their manual (semantic) order and each
+        // long name prints whole.
+        fun flat(text: String) = text.replace(Regex("""\s+"""), " ").trim()
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources("03_mara_siete_umbrales_custom_extended.json"),
+            )
+            val traits = generated.semantic.traits
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                fun columns(page: Int, vararg boxes: java.awt.geom.Rectangle2D.Float): List<String> =
+                    PDFTextStripperByArea().apply {
+                        boxes.forEachIndexed { i, box -> addRegion("c$i", box) }
+                        extractRegions(pdf.getPage(page))
+                    }.let { s -> boxes.indices.map { flat(s.getTextForRegion("c$it")) } }
+                val p2 = pages.indexOfFirst { it.contains("P2 - Equipo y tesoro") }
+                val flow = (columns(0, java.awt.geom.Rectangle2D.Float(270f, 443f, 154f, 102f),
+                    java.awt.geom.Rectangle2D.Float(424.2f, 443f, 148f, 102f)) +
+                    columns(p2, java.awt.geom.Rectangle2D.Float(309f, 121f, 131.5f, 354f),
+                        java.awt.geom.Rectangle2D.Float(440.8f, 121f, 131.5f, 354f)) +
+                    pages.indices.filter { pages[it].contains("C2 - Habilidades, acciones y recursos") }
+                        .flatMap { i -> columns(i, java.awt.geom.Rectangle2D.Float(39f, 90f, 263f, 680f),
+                            java.awt.geom.Rectangle2D.Float(310.5f, 90f, 263f, 680f)) })
+                    .joinToString(" ")
+                val positions = traits.map { trait ->
+                    val at = Regex(Regex.escape(flat(trait.name)) + """(?=\s|$|—|-)""").find(flow)
+                    assertTrue(at != null, "«${trait.name}» prints whole ($variant).")
+                    at!!.range.first
+                }
+                assertEquals(positions.sorted(), positions, "Traits print in their manual order ($variant).")
+                assertTrue(traits.any { it.name.length >= 15 }, "The fixture has long trait names ($variant).")
+            }
+        }
+    }
+
+    @Test
+    fun c393NoPagePrintsAnImageOtherThanTheHeaderLogoAB() {
+        // C393 / P306 G3: no background or narrative image is ever printed - every
+        // page, P3 included, carries only the header logo image (no portrait given).
+        for ((fixture, variant) in listOf(
+            "02_ilyra_quill_srd5_2_1_evoker_wizard.json" to PcSheetV11Variant.B,
+            "03_mara_siete_umbrales_custom_extended.json" to PcSheetV11Variant.A,
+        )) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = true), sources(fixture),
+            )
+            // Images are counted through nested form XObjects too.
+            fun images(resources: org.apache.pdfbox.pdmodel.PDResources?): Int =
+                resources?.xObjectNames?.sumOf { name ->
+                    when (val x = resources.getXObject(name)) {
+                        is org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject -> 1
+                        is org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject -> images(x.resources)
+                        else -> 0
+                    }
+                } ?: 0
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                for (index in 0 until pdf.numberOfPages) {
+                    assertEquals(1, images(pdf.getPage(index).resources),
+                        "Page ${index + 1} carries only the header logo image ($fixture $variant).")
+                }
+            }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
