@@ -463,6 +463,64 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c376P1SkillRowsCarryTheirRealTrainingMarkAndTotalIncludingCustomSkills() {
+        // C376 / P108: each skill row printed on P1 A - custom skills included -
+        // carries exactly the v8 mark of its real training (U+E108 proficiency,
+        // U+E109 expertise, none otherwise) and its real signed total.
+        var customChecked = 0
+        for (fixture in listOf("01_aldren_vale_srd5_1_champion_fighter.json",
+            "03_mara_siete_umbrales_custom_extended.json")) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT),
+                sources(fixture),
+            )
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                // Left-column text joined per printed line (baselines within 1 pt).
+                val pieces = mutableListOf<Pair<Float, String>>()
+                object : PDFTextStripper() {
+                    override fun writeString(
+                        text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                    ) {
+                        textPositions.filter { it.xDirAdj < 262f && it.yDirAdj > 205f }
+                            .forEach { pieces += it.yDirAdj to it.unicode }
+                    }
+                }.apply { startPage = 1; endPage = 1 }.getText(pdf)
+                // State marks are drawn centred in their box, off the text baseline.
+                val isMark = { s: String -> s.any { it in '\uE000'..'\uF8FF' } }
+                val marksAt = pieces.filter { isMark(it.second) }
+                val lines = pieces.filterNot { isMark(it.second) }.groupBy { kotlin.math.round(it.first) }
+                    .map { (y, group) -> y to group.joinToString("") { it.second } }
+                var checked = 0
+                for (skill in generated.semantic.skills) {
+                    val label = skill.builtInKey?.let {
+                        io.github.mrsimkin.dndcustomaid.shared.character.characterSkillSpanishLabel(it)
+                    } ?: skill.name
+                    val (lineY, line) = lines.firstOrNull { (_, text) ->
+                        text.replace(" ", "").startsWith(label.replace(" ", "")) } ?: continue
+                    val expected = when (skill.training) {
+                        io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> '\uE108'
+                        io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.EXPERTISE -> '\uE109'
+                        else -> null
+                    }
+                    val marks = marksAt.filter { kotlin.math.abs(it.first - lineY) < 5f }
+                        .joinToString("") { it.second }.filter { it == '\uE108' || it == '\uE109' }
+                    assertEquals(expected?.toString() ?: "", marks,
+                        "«$label» prints the mark of its real training ($fixture): ${skill.training}")
+                    skill.total?.let { total ->
+                        val signed = if (total >= 0) "+$total" else total.toString()
+                        assertTrue(line.replace(" ", "").endsWith(signed),
+                            "«$label» prints its real total $signed ($fixture): $line")
+                    }
+                    if (skill.customSkillId != null) customChecked++
+                    checked++
+                }
+                assertTrue(checked >= 15, "Most P1 skill rows are checked ($fixture): $checked")
+            }
+        }
+        assertTrue(customChecked >= 2, "Mara's custom skills are among the checked rows: $customChecked")
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
