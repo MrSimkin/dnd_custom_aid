@@ -681,6 +681,52 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c380NearlyEmptyNonCasterSheetInventsNoValuesOrMarkersAB() {
+        // C380 / GLB10: a nearly empty non-caster (Aldren without equipment, treasure,
+        // traits or narrative) gets no P4 or Libro, no spellcasting values or slot
+        // counts on P1, no numbers in the empty P2 tables and no epic levels anywhere.
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val empty = original.copy(permanent = original.permanent.copy(
+            sheet = original.permanent.sheet.copy(
+                inventoryItems = emptyList(), currencies = emptyList(), traits = emptyList(),
+                background = io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackground(),
+            ),
+        ))
+        val spellLabels = setOf("LANZAMIENTO", "DE", "CONJUROS", "APTITUD", "MÁGICA", "CD", "SALVACIÓN",
+            "ATAQUE", "MÁGICO", "MUNICIONES") +
+            (1..9).map { "N$it" }
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT,
+                    includeSpellDescriptions = true), empty,
+            )
+            assertTrue(generated.semantic.spells.isEmpty() && generated.semantic.spellSlots.isEmpty(),
+                "Aldren casts no spells ($variant).")
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                assertFalse(pages.any { it.contains("P4 - Conjuros") || it.contains("Libro de conjuros") },
+                    "No P4 or Libro without real spells ($variant).")
+                assertFalse(pages.any { Regex("""NIVEL 1[0-2]\b""").containsMatchIn(it) },
+                    "No epic spell level without real epic rules ($variant).")
+                fun region(page: Int, x: Float, y: Float, w: Float, h: Float) = PDFTextStripperByArea().apply {
+                    addRegion("r", java.awt.geom.Rectangle2D.Float(x, y, w, h))
+                    extractRegions(pdf.getPage(page))
+                }.getTextForRegion("r").split(Regex("""\s+""")).filter { it.isNotBlank() }
+                // P1 LANZAMIENTO DE CONJUROS: its cards and N1..N9 slot rows (y560..700 from the top).
+                val spell = region(0, 268f, 560f, 307f, 140f)
+                assertTrue(spell.isNotEmpty() && spellLabels.containsAll(spell),
+                    "P1 spellcasting prints only its labels, no invented value or slot count ($variant): $spell")
+                val p2 = pages.indexOfFirst { it.contains("P2 - Equipo y tesoro") }
+                val tables = region(p2, 36f, 100f, 540f, 400f)
+                assertFalse(tables.any { token -> token.any(Char::isDigit) },
+                    "Empty P2 tables print no invented quantity or amount ($variant): $tables")
+            }
+        }
+    }
+
+    @Test
     fun c337EveryPageHasTheGoldenFootRuleAndTheFinalNotasSheetHasNoPageNumberAB() {
         // Owner 2026-10-30: «permite la línea, evita/elimina el número de página».
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
