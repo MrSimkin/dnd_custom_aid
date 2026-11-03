@@ -5898,13 +5898,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     val raw = page.contents.use {
                         it.readBytes().toString(Charsets.ISO_8859_1)
                     }
-                    // A genuine PDFBox vector line at the printable-floor row.
-                    // Text-only tests would not prove a writable paper reserve.
-                    val firstRule = Regex(
-                        """(?m)(?:^|\s)42(?:\.0)?\s+92(?:\.0)?\s+m\s+570(?:\.0)?\s+92(?:\.0)?\s+l\s+S(?:\s|$)"""
-                    )
-                    assertTrue(firstRule.containsMatchIn(raw),
-                        "C-N3 must use genuine ruled-paper PDF vectors, not fake underscores.")
+                    // Genuine PDFBox vector rules across the golden width (C403: banded
+                    // 18.71 pt rows down to y59.53). Text-only tests would not prove a
+                    // writable paper reserve.
+                    val rules = Regex(
+                        """(?m)(?:^|\s)39\.69\d*\s+([\d.]+)\s+m\s+572\.32\d*\s+([\d.]+)\s+l\s+S(?:\s|$)"""
+                    ).findAll(raw).count { it.groupValues[1] == it.groupValues[2] }
+                    assertTrue(rules >= 2,
+                        "C-N3 must use genuine ruled-paper PDF vectors, not fake underscores: $rules")
+                    assertTrue(texts[cn3.single()].contains("NOTAS MANUSCRITAS"),
+                        "The C-N3 reserve carries its golden NOTAS MANUSCRITAS cartela.")
                 }
             }
         }

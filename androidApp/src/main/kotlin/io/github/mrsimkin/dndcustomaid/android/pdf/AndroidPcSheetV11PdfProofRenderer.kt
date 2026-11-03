@@ -3199,46 +3199,57 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         }
                         // CN304: a digital C-N3 record is never replaced by paper
                         // notes. Only unused floor below the LAST measured source
-                        // line can carry secondary handwriting rules. No extra
+                        // line can carry secondary handwriting rows. No extra
                         // page, caption, fictitious record or pagination offset.
+                        // C403: golden reserve - the 22.96 pt NOTAS MANUSCRITAS cartela 8.5 pt
+                        // under the last note card, 1.99 pt above banded 18.71 pt writing rows
+                        // (#e7f2f7 / #f0f7fa, #94b0c1 rule 0.99 pt above each foot) down to y59.53.
                         if (title == "C-N3 - Notas digitales" && pageCells.isNotEmpty()) {
                             val lastSourceBottom = pageCells.minOf { it.cellPt.bottomPt }
-                            val ruleBottom = 92f // above the real page footer
-                            val rulePitch = 16f
-                            val ruleTopLimit = lastSourceBottom - 24f
-                            val fullRules = ((ruleTopLimit - ruleBottom) / rulePitch).toInt() + 1
-                            if (fullRules >= 4) {
-                                require(ruleBottom + (fullRules - 1) * rulePitch <=
-                                    lastSourceBottom - 24f) {
-                                    "C-N3 manual reserve overlaps genuine note content."
-                                }
+                            val rowPitch = 18.71f
+                            val cartelaTop = lastSourceBottom - 3f - 8.5f
+                            val cartelaBottom = cartelaTop - 22.96f
+                            val firstRowTop = cartelaBottom - 1.99f
+                            val rows = ((firstRowTop - c2FootPt) / rowPitch).toInt()
+                            if (rows >= 2) {
+                                val left = 39.69f
+                                val right = 572.32f
                                 stream.saveGraphicsState()
-                                stream.setStrokingColor(Color(174, 203, 220))
-                                stream.setLineWidth(0.35f)
-                                repeat(fullRules) { row ->
-                                    val y = ruleBottom + row * rulePitch
-                                    stream.moveTo(42f, y)
-                                    stream.lineTo(570f, y)
+                                repeat(rows) { row ->
+                                    val rowBottom = firstRowTop - (row + 1) * rowPitch
+                                    stream.setNonStrokingColor(
+                                        if (row % 2 == 0) Color(231, 242, 247) else Color(240, 247, 250))
+                                    stream.addRect(left, rowBottom, right - left, rowPitch)
+                                    stream.fill()
+                                    stream.setStrokingColor(Color(148, 176, 193))
+                                    stream.setLineWidth(0.32f)
+                                    stream.moveTo(left, rowBottom + 0.99f)
+                                    stream.lineTo(right, rowBottom + 0.99f)
                                     stream.stroke()
                                 }
-                                stream.restoreGraphicsState()
-                                // C238: golden "NOTAS MANUSCRITAS" cartela just above
-                                // the handwriting rules, inside the reserved 24 pt gap.
-                                val topRule = ruleBottom + (fullRules - 1) * rulePitch
-                                val band = PcSheetV11RectPt(42f, topRule + 3f, 528f, 13f)
-                                require(band.topPt <= lastSourceBottom - 6f)
-                                stream.saveGraphicsState()
+                                val cut = 5f
                                 stream.setNonStrokingColor(Color(231, 242, 247))
-                                stream.setStrokingColor(Color(80, 122, 151))
-                                stream.setLineWidth(0.45f)
-                                stream.addRect(band.leftPt, band.bottomPt, band.widthPt, band.heightPt)
+                                stream.setStrokingColor(Color(38, 75, 104))
+                                stream.setLineWidth(0.65f)
+                                stream.moveTo(left + cut, cartelaBottom)
+                                stream.lineTo(right - cut, cartelaBottom)
+                                stream.lineTo(right, cartelaBottom + cut)
+                                stream.lineTo(right, cartelaTop - cut)
+                                stream.lineTo(right - cut, cartelaTop)
+                                stream.lineTo(left + cut, cartelaTop)
+                                stream.lineTo(left, cartelaTop - cut)
+                                stream.lineTo(left, cartelaBottom + cut)
+                                stream.closePath()
                                 stream.fillAndStroke()
                                 stream.restoreGraphicsState()
+                                stream.setNonStrokingColor(Color(29, 56, 79))
+                                drawCartelaDiamonds(stream, left, right, cartelaBottom, cartelaTop)
                                 stream.beginText()
-                                stream.setFont(headerPdfFont, 9f)
-                                stream.newLineAtOffset(band.leftPt + 6f, band.bottomPt + 3.5f)
+                                stream.setFont(headerPdfFont, 9.1f)
+                                stream.newLineAtOffset(left + 17f, cartelaBottom + 6.8f)
                                 stream.showText("NOTAS MANUSCRITAS")
                                 stream.endText()
+                                stream.setNonStrokingColor(Color(36, 57, 75))
                             }
                         }
                         // Mixed C2 must preserve the approved blue interior
