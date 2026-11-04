@@ -148,20 +148,18 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 | C415 | Nombres largos de atributo propio en la fila aprobada | Un nombre largo en C2 caía a un texto «16 / mod +3 / salvación +7» con caja y óvalo dibujados encima, roto a la vista. Ahora todo atributo usa la fila de atributo aprobada (P104): el nombre largo se parte en líneas de 8 pt junto al óvalo, centradas, y la fila crece una altura por cada línea por encima de dos. Solo un nombre con saltos de línea guardados conserva la tarjeta anterior. Nueva prueba `c415LongCustomAttributeNamesWrapInsideTheOwnerRowAB` (ninguna palabra se pierde; el nombre empieza junto al óvalo). Suite, 15 auditorías y 94 trampas en verde. Evidencia `docs/pc-sheet-v11/qa/evidence/c415/c415_c2_nombres_largos.png`. |
 | C416 | Sangría del golden en las listas de C2 | El texto de las listas de C2 (notas, referencias, recursos) iba pegado al borde de su banda; ahora empieza 4,25 pt dentro, como el golden (x43,94), y las líneas se parten como si la banda midiera 8,5 pt menos, para quedar también separadas a la derecha. La regla de cada registro baja a 0,99 pt sobre el pie (antes 0,2 pt). Suite, 15 auditorías y 94 trampas en verde. Evidencia `docs/pc-sheet-v11/qa/evidence/c416/c416_c2_sangria.png`. |
 | C417 | Pruebas reales de P4 y del PDF único | Dos pruebas nuevas sobre PDF reales, A y B. `c417P4HasThreeRealColumnsWithoutLargeGapsForFewAndManySpellsAB` (P402): con pocos, propios o 175 conjuros, cada página de P4 llena sus tres columnas con filas continuas hasta el pie; el único escalón mayor es la cartela NOTAS sobre su rejilla. `c417OverflowPaginatesOnePdfWithoutASecondExportOptionAB` (IN08): la misma solicitud sirve a una hoja normal y a una que desborda; solo crece el número de páginas. Sin cambios en los renderizadores. |
+| C417b | Evidencia de matriz | Run verde [41766019633](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41766019633) sobre `c4937a44`: P402 e IN08 pasan a PASS en G3. La paleta del golden también pasa en CI, sobre 114 PDF. G1 e IN08 de interfaz siguen sin verificar. |
 
 ## Pendiente (siguiente)
 
-Medidas tomadas de v11_extremo A/B (golden) el 2026-10-31; las x de P1 ya son las del golden (C350–C351).
+Actualizado el 2026-11-04.
 
-- **P1, ritmo vertical del golden** (siguiente bloque):
-  - cartelas ATRIBUTOS y COMBATE en y588,19–611,15 (hoy 579–602 y 594–616);
-  - A: fila de atributo de 22,82 pt y fila de habilidad de 12,47 pt (casilla de puntuación x42,24–85,32 de 18,14 pt de alto, óvalo de 14,45 pt);
-  - B: HABILIDADES en y334,35–357,31 y 18 filas de 14,74 pt por subcolumna hasta y67,04; las etiquetas largas bajan a 6,85 pt o menos para caber en una línea, como el golden;
-  - COMBATE: tarjetas de 29,76 pt (y556,44 y 524,98) y PV de 31,18 pt (y488,98);
-  - cartela ATAQUES en y462,9–485,86 y filas de 14,74 pt; cartelas RASGOS y 348,94, LANZAMIENTO y 219,68 y MUNICIONES y 106,30; tarjetas de magia de 26,08 pt (y191,62).
-  Cambia la capacidad de P1, así que exige revisar el reparto P1/C2 y las pruebas de presupuesto de atributos.
-- **C2**: el golden mezcla TESORO y EQUIPO en columnas con otros módulos, cada uno con su cartela de columna (x39,69–301,04, y662,74–685,7, «VIENE DE PÁG. n») y filas de 18,43 pt; la App les da páginas a todo el ancho con una franja de título.
-- **Matriz**: 141/233 controles de etapa (G1 29/46, G2 24/90, G3 88/97) en PASS; G4 bloqueada hasta cerrar G1–G3.
-- **GLB08 y P112**: el propietario decidió seguir el golden (2026-11-03); ambos en PASS G3 con el ritmo del golden.
-- **P104**: implementado en C371, PASS G3 (C385) y aprobado visualmente por el propietario el 2026-11-03.
-- **C2**: banda de continuación de columna sigue siendo propia de la App (el golden no tiene ese caso); evaluar cartela repetida «/ CONTINUACIÓN».
+- **Matriz**: 145/233 controles de etapa en PASS (G1 29/46, G2 24/90, G3 92/97); G4 bloqueada hasta cerrar G1–G3.
+- **G3 abiertos**: GLB09, IN01, IN04, IN06 y P407.
+- **C2, composición**: el golden mezcla módulos en columnas de media página (EQUIPO y TESORO incluidos); la App les da páginas a todo el ancho, ya con la gramática de filas y márgenes del golden (C414).
+- **C2, EQUIPO ESPECIAL**: el golden no repite la fila de títulos UBICACIÓN / NOMBRE / DESCRIPCIÓN en C2 y sus filas miden 25,4 pt; la App la conserva, con filas según el texto.
+- **P4**: el golden repite el título del nivel con sus casillas al continuar en otra columna; la App usa la banda «NIVEL n / CONTINUACIÓN».
+- **Comparador C2**: `v11_comparador_C2_extremo` aún no se ha comparado página a página.
+- **Contrato sobre golden casi vacío** (sin cambio, C410): niveles sin espacios sin casillas inventadas (contrato visual, «mínimo 0, máximo 4»), y EQUIPO ESPECIAL con rótulos reconocidos por la App más filas en blanco (D-0076 §3.42).
+- **GLB08 y P112**: el propietario decidió seguir el golden (2026-11-03); ambos en PASS G3.
+- **P104**: PASS G3 (C385) y aprobado visualmente por el propietario el 2026-11-03.

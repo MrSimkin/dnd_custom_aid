@@ -1144,8 +1144,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c417OverflowPaginatesOnePdfWithoutASecondExportOptionAB",
+            "test_result": "PASS on real App PDFs, variants A and B: the same request shape serves an ordinary sheet (Aldren) and an overflowing one (Mara); one PDF comes back, only its page count grows, and both keep the chosen variant and the final NOTAS page.",
+            "source_commit": "c4937a445c384d5b8080208ac993bc711ef44e86",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41766019633",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41766019633/artifacts/13291964333",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41766019633/artifacts/13293007424",
+            "independent_inspection": "Same CI run: the independent audits pass on the 114 PDFs.",
+            "limitations": "Export service and PDF only: the installed UI is not exercised, so G1 and G4 of IN08 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -3203,8 +3212,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c417P4HasThreeRealColumnsWithoutLargeGapsForFewAndManySpellsAB",
+            "test_result": "PASS on real App PDFs, variants A and B: with few (Ilyra), custom (Mara) and 175 spells, every P4 page fills its three golden columns with continuous rows down to the foot; the only taller step is a NOTAS cartela on its grid frame.",
+            "source_commit": "c4937a445c384d5b8080208ac993bc711ef44e86",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41766019633",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41766019633/artifacts/13291964333",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41766019633/artifacts/13293007424",
+            "independent_inspection": "Same CI run: the independent audits pass on the 114 PDFs, including audit_v11_p4_slot_meters.py and the new audit_v11_golden_palette.py.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
