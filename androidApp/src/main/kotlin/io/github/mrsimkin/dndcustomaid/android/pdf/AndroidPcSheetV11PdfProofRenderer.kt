@@ -5748,20 +5748,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 )
                 val minimalQuick = quickRows({ 1 })
                 val quick = if (p4Pages(minimalQuick).sourceFlow.localPageCount == 1) {
-                    // C422: the golden share of one P4 page - rows of trucos and levels 1..9,
-                    // real spells included: low levels get far more writing room than high ones.
-                    val goldenRows = listOf(16, 17, 17, 16, 8, 4, 4, 4, 4, 4)
-                    fun realRows(level: Int) = data.spells.filter { it.spell.level == level }
-                        .sumOf { p4SpellRows.getValue(it.spell.id).size }
-                    val paper = (0..9).associateWith { level ->
-                        maxOf(1, goldenRows[level] - realRows(level))
-                    }.toMutableMap()
-                    // Real spells can exceed that share: take rows back from the level with
-                    // the most paper (the highest on a tie) until the page holds everything.
+                    // C422: the golden share of one P4 page, real spells included. Real spells
+                    // beyond it take rows back until the page holds everything.
+                    var paper = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11QuickSpellShare
+                        .paperRows { level -> data.spells.filter { it.spell.level == level }
+                            .sumOf { p4SpellRows.getValue(it.spell.id).size } }
                     while (p4Pages(quickRows({ paper.getValue(it) })).sourceFlow.localPageCount > 1) {
-                        val level = paper.entries.filter { it.value > 1 }
-                            .maxWith(compareBy({ it.value }, { it.key })).key
-                        paper[level] = paper.getValue(level) - 1
+                        paper = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11QuickSpellShare
+                            .takeOneRow(paper)
                     }
                     val baseRows = quickRows({ paper.getValue(it) })
                     // Paper left at the foot of the last column goes to level 9.

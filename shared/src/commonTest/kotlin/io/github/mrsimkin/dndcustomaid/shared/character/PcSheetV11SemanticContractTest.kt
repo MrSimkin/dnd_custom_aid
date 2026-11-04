@@ -362,6 +362,117 @@ class PcSheetV11SemanticContractTest {
     }
 
     @Test
+    fun aSparseSheetMapsToRealAbsencesAndNoInventedValues() {
+        // GLB10: nothing absent becomes a value, proficiency, epic level or marker.
+        val data = map()
+        assertTrue(data.spellSlots.isEmpty() && data.spells.isEmpty() && data.spellbookEntries == null)
+        assertTrue(data.spellcastingSources.isEmpty() && data.combatEntries.isEmpty() && data.traits.isEmpty())
+        assertTrue(data.ordinaryEquipment.isEmpty() && data.specialEquipment.isEmpty() && data.digitalNotes.isEmpty())
+        assertTrue(data.skills.filter { it.builtInKey != null }.all { it.training == SkillTraining.NONE })
+        assertEquals(CharacterAbility.entries.size, data.attributes.size, "Only the six real attributes.")
+    }
+
+    @Test
+    fun mappingLeavesItsSourcesExactlyAsTheyWere() {
+        // IN03: exporting is a read-only projection; repeating it changes nothing.
+        val sources = PcSheetExportSources(aggregate(baseSheet().copy(generalNotes = "Nota")))
+        val before = sources.copy()
+        val first = map(sources = sources)
+        val second = map(sources = sources)
+        assertEquals(before, sources)
+        assertEquals(first, second)
+        assertEquals(sources.permanent, first.source)
+    }
+
+    @Test
+    fun portraitPlanCarriesTheChosenModeAndOnlyTrustsLocalBytes() {
+        // IN04: Fit and Crop are two explicit choices for the same saved portrait reference.
+        val aggregateWithPortrait = aggregate(baseSheet(), CharacterClosureState(portraitRef = "local://retrato"))
+        for (fit in PcSheetPortraitFitMode.entries) {
+            val request = PcSheetV11ExportRequest(PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT,
+                portraitFitMode = fit)
+            val available = map(request = request, sources = PcSheetExportSources(aggregateWithPortrait,
+                locallyAvailablePortraitRefs = setOf("local://retrato")))
+            assertEquals(fit, available.portrait.fitMode)
+            assertTrue(available.portrait.locallyAvailable)
+            val missing = map(request = request, sources = PcSheetExportSources(aggregateWithPortrait))
+            assertEquals(fit, missing.portrait.fitMode)
+            assertFalse(missing.portrait.locallyAvailable)
+        }
+    }
+
+    @Test
+    fun bothVariantsKeepTheSameSkillsAndTheirRealAttributeRelation() {
+        // P106/P107: A and B differ in layout, never in which skill belongs to which attribute.
+        val attribute = CharacterCustomAttribute(
+            id = id("70000000-0000-0000-0000-000000000001"), name = "Fortuna", abbreviation = "FOR",
+            score = 16, sortOrder = 0,
+        )
+        val skill = CharacterCustomSkill(
+            id = id("70000000-0000-0000-0000-000000000002"), name = "Contratos", ability = CharacterAbility.CHARISMA,
+            training = SkillTraining.PROFICIENT, sortOrder = 0,
+        )
+        val relation = CharacterCustomSkillAbilityConfiguration(skill.id, CharacterAbilityReference.custom(attribute.id))
+        val sources = PcSheetExportSources(aggregate(baseSheet(),
+            CharacterClosureState(customSkills = listOf(skill)),
+            CharacterSuccessorState(customAttributes = listOf(attribute), customSkillAbilities = listOf(relation))))
+        val a = map(variant = PcSheetV11Variant.A, sources = sources)
+        val b = map(variant = PcSheetV11Variant.B, sources = sources)
+        assertEquals(a.skills, b.skills)
+        assertEquals(a.attributes, b.attributes)
+        a.skills.forEach { each -> assertTrue(a.attributes.any { it.reference == each.ability }, each.name) }
+        assertEquals("FOR", a.attributes.first { it.reference == a.skills.last().ability }.abbreviation)
+        assertEquals(SkillTraining.PROFICIENT, a.skills.last().training)
+    }
+
+    @Test
+    fun spellSlotsAndLevelsStayTheRealOnesWithLongNamesAndIdsWhole() {
+        // P115/P403/P404: real levels only, each slot keeps total and spent, long names whole.
+        val slots = listOf(CharacterSpellSlot(3, 2, 0), CharacterSpellSlot(1, 4, 2))
+        val long = "Conjuro de nombre extraordinariamente largo que nunca se abrevia en ninguna parte"
+        val spells = listOf(0, 3).mapIndexed { i, level -> CharacterSpell(
+            id = id("71000000-0000-0000-0000-00000000000" + (i + 1)),
+            name = long + i, level = level, castingTime = "acción", rangeText = "propio",
+            verbal = true, somatic = false, material = false, materialText = null, duration = "un turno",
+            concentration = false, ritual = false, description = "Real.", notes = null, sortOrder = i,
+        ) }
+        val data = map(sources = PcSheetExportSources(aggregate(baseSheet().copy(spellSlots = slots, spells = spells))))
+        assertEquals(listOf(1, 3), data.spellSlots.map { it.level }, "No level is invented, none above the real ones.")
+        assertEquals(listOf(4 to 2, 2 to 0), data.spellSlots.map { it.totalSlots to it.spentSlots })
+        assertEquals(setOf(0, 3), data.spells.map { it.spell.level }.toSet())
+        assertEquals(spells.map { it.id }.toSet(), data.spells.map { it.spell.id }.toSet())
+        assertEquals(spells.map { it.name }.toSet(), data.spells.map { it.spell.name }.toSet())
+    }
+
+    @Test
+    fun onlyExplicitAmmunitionUsageIsAmmunitionWithItsRealQuantity() {
+        // P117/P118: the amount is the saved one, a name never implies ammunition, none means none.
+        val arrows = item("72000000-0000-0000-0000-000000000001", special = false).copy(name = "Flechas", quantity = 30)
+        val named = item("72000000-0000-0000-0000-000000000002", special = false).copy(name = "Virotes de adorno", quantity = 5)
+        val used = CharacterInventoryUsage(itemId = arrows.id, carryState = CharacterInventoryCarryState.CARRIED,
+            kind = CharacterConsumableKind.AMMUNITION)
+        val data = map(sources = PcSheetExportSources(aggregate(baseSheet().copy(inventoryItems = listOf(arrows, named)),
+            CharacterClosureState(inventoryUsage = listOf(used)))))
+        val ammunition = data.source.closure.inventoryUsage.filter { it.kind == CharacterConsumableKind.AMMUNITION }
+        assertEquals(listOf(arrows.id), ammunition.map { it.itemId })
+        assertEquals(30, data.ordinaryEquipment.first { it.sourceId == arrows.id }.quantity)
+        assertTrue(map().source.closure.inventoryUsage.isEmpty(), "No record, no ammunition entry.")
+    }
+
+    @Test
+    fun everyInventoryItemLandsInOrdinaryOrSpecialAndNothingElseIsCreated() {
+        // P210/P212: no generic OTROS bucket, no invented special item, no trait mixed in.
+        val ordinary = item("73000000-0000-0000-0000-000000000001", special = false)
+        val special = item("73000000-0000-0000-0000-000000000002", special = true)
+        val both = map(sources = PcSheetExportSources(aggregate(baseSheet().copy(inventoryItems = listOf(ordinary, special)))))
+        assertEquals(listOf(ordinary.id), both.ordinaryEquipment.map { it.sourceId })
+        assertEquals(listOf(special.id), both.specialEquipment.map { it.sourceId })
+        val noSpecial = map(sources = PcSheetExportSources(aggregate(baseSheet().copy(inventoryItems = listOf(ordinary)))))
+        assertTrue(noSpecial.specialEquipment.isEmpty(), "No special record is invented for empty paper rows.")
+        assertTrue(noSpecial.traits.isEmpty(), "An item never becomes a trait.")
+    }
+
+    @Test
     fun v11PageSequenceKeepsCorePagesAndFinalHandwrittenPageEvenWithNoMagic() {
         val noMagic = map(
             sources = PcSheetExportSources(aggregate(baseSheet().copy(spellcasterEnabled = true))),
