@@ -1115,6 +1115,44 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c419C2SpecialTableKeepsItsFourColumnsWithoutATitleRowAB() {
+        // C419: golden C2 EQUIPO ESPECIAL - rows start right under the cartela, with the
+        // three column rules and one paper ACTIVO box per record, and no title row.
+        val number = """(-?\d+(?:\.\d+)?)"""
+        fun near(a: Float, b: Float) = kotlin.math.abs(a - b) < 0.05f
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources("03_mara_siete_umbrales_custom_extended.json"),
+            ).bytes
+            Loader.loadPDF(bytes).use { pdf ->
+                val pages = (0 until pdf.numberOfPages).filter { i ->
+                    PDFTextStripper().apply { startPage = i + 1; endPage = i + 1 }.getText(pdf)
+                        .contains("C2 - Equipo especial")
+                }
+                assertTrue(pages.isNotEmpty(), "Mara has a C2 special page ($variant).")
+                pages.forEach { i ->
+                    val text = PDFTextStripper().apply { startPage = i + 1; endPage = i + 1 }.getText(pdf)
+                    assertFalse(text.contains("UBICACIÓN") || text.contains("DESCRIPCIÓN"),
+                        "No title row ($variant).")
+                    val ops = pdf.getPage(i).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                    val verticals = Regex("""(?:^|\s)$number\s+$number\s+m\s+$number\s+$number\s+l\s+S""")
+                        .findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }
+                        .filter { (x0, _, x1) -> near(x0, x1) }.toList()
+                    for (x in listOf(146.21f, 279.37f, 527.04f)) {
+                        assertTrue(verticals.any { (x0, _, _, y1) -> near(x0, x) && near(y1, 660.76f) },
+                            "Column rule at $x starts under the cartela ($variant).")
+                    }
+                    val boxes = Regex("""(?:^|\s)$number\s+$number\s+$number\s+$number\s+re(?:\s|$)""")
+                        .findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }
+                        .count { (x, _, w, h) -> near(x, 545.28f) && near(w, 8.79f) && near(h, 8.79f) }
+                    assertTrue(boxes >= 1, "One ACTIVO paper box per record ($variant).")
+                }
+            }
+        }
+    }
+
+    @Test
     fun c417P4HasThreeRealColumnsWithoutLargeGapsForFewAndManySpellsAB() {
         // C417 / P402: with few or many real spells, every P4 page fills its three golden
         // columns with continuous rows down to the foot; a free column ends in its NOTAS grid.
@@ -2465,10 +2503,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 realHeading(it, "C2 - Equipo especial / continuación")
             }
             assertTrue(specialContinuation.isNotEmpty())
-            assertTrue(specialContinuation.all { it.contains("UBICACIÓN") &&
-                it.contains("NOMBRE") && it.contains("DESCRIPCIÓN") &&
-                it.contains("ACTIVO") },
-                "Every physical special C2 must preserve the approved four columns.")
+            // C419: the golden C2 table has no title row; c419 guards its four columns.
+            assertTrue(specialContinuation.none { it.contains("UBICACIÓN") },
+                "The C2 special table has no title row, like the golden.")
             // D-0076 §3.21: P2 shows the first real entries in taller rows;
             // only the remaining source suffix continues on C2, never twice.
             assertTrue(physicalP2.replace(Regex("\\s+"), " ")
@@ -7059,9 +7096,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 specialPages.drop(1).forEach { page ->
                     assertTrue(page.contains("EQUIPO: " + label + " / VIENE DE PÁG."),
                         "A new physical C2 page must retain the source identity.")
-                    assertTrue(page.contains("UBICACIÓN") && page.contains("NOMBRE") &&
-                        page.contains("DESCRIPCIÓN") && page.contains("ACTIVO"),
-                        "The approved four columns must remain physically present.")
+                    assertFalse(page.contains("UBICACIÓN"),
+                        "C419: no title row on a C2 special page, like the golden.")
                 }
                 assertEquals(1, Regex("QAC2INICIO").findAll(
                     pages.joinToString("\n")).count())
@@ -7137,9 +7173,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertTrue(page.contains("ID: " + id + " / VIENE DE PÁG."),
                         "Each continued real C2 page must retain the source UUID.")
                     assertFalse(page.contains("EQUIPO: QANOMBREINICIO"))
-                    assertTrue(page.contains("UBICACIÓN") &&
-                        page.contains("NOMBRE") && page.contains("DESCRIPCIÓN") &&
-                        page.contains("ACTIVO"))
+                    assertFalse(page.contains("UBICACIÓN"))
                 }
                 assertTrue(c2.last().contains("QADESCFINAL"))
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })

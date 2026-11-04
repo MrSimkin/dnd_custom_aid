@@ -5441,11 +5441,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val c2SpecialArea = PcSheetV11RectPt(39.69f, c2FootPt, 532.62f, 660.76f - c2FootPt)
             val c2SpecialPages = mutableListOf<List<SpecialC2Fragment>>()
             var currentC2 = mutableListOf<SpecialC2Fragment>()
-            var availableC2 = c2SpecialArea.heightPt - specialHeaderHeight
+            var availableC2 = c2SpecialArea.heightPt
             fun flushC2Special() {
                 if (currentC2.isNotEmpty()) c2SpecialPages += currentC2.toList()
                 currentC2 = mutableListOf()
-                availableC2 = c2SpecialArea.heightPt - specialHeaderHeight
+                availableC2 = c2SpecialArea.heightPt
             }
             specialC2Rows.forEachIndexed { rowIndex, (_, fields) ->
                 val totalLines = maxOf(1, fields.maxOf { it.size })
@@ -5488,8 +5488,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val sharedC2 = deferredOrdinaryForSpecial?.takeIf { pending ->
                 c2SpecialPages.size == 1 && c2SpecialPages.single().size == 1 &&
                     c2SpecialPages.single().single().startLine == 0 &&
-                    specialHeaderHeight +
-                        c2SpecialPages.single().sumOf { it.heightPt.toDouble() } <
+                    c2SpecialPages.single().sumOf { it.heightPt.toDouble() } <
                         c2SpecialArea.heightPt - pending.upperHeight - 24.94f - 10f
             }
             if (deferredOrdinaryForSpecial != null && sharedC2 == null) {
@@ -5592,7 +5591,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         stream.endText()
                         stream.restoreGraphicsState()
                     }
-                    val printedHeight = specialHeaderHeight +
+                    val printedHeight =
                         fragments.sumOf { it.heightPt.toDouble() }.toFloat()
                     val tableBottom = drawingArea.topPt - printedHeight
                     require(tableBottom >= drawingArea.bottomPt - 0.1f)
@@ -5601,11 +5600,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     // foot, 0.34 pt column rules (#94b0c1), no outer frame.
                     val left = drawingArea.leftPt
                     val right = drawingArea.rightPt
-                    val headerBottom = drawingArea.topPt - specialHeaderHeight
+                    // C419: the golden C2 table has no title row; rows start under the cartela.
+                    val headerBottom = drawingArea.topPt
                     stream.saveGraphicsState()
-                    stream.setNonStrokingColor(Color(231, 242, 247))
-                    stream.addRect(left, headerBottom, right - left, specialHeaderHeight)
-                    stream.fill()
                     var fillTop = headerBottom
                     fragments.forEachIndexed { index, part ->
                         stream.setNonStrokingColor(
@@ -5616,9 +5613,6 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     }
                     stream.setStrokingColor(Color(148, 176, 193))
                     stream.setLineWidth(0.32f)
-                    stream.moveTo(left, headerBottom + 0.99f)
-                    stream.lineTo(right, headerBottom + 0.99f)
-                    stream.stroke()
                     stream.setLineWidth(0.34f)
                     var separator = left
                     specialColumns.dropLast(1).forEach { width ->
@@ -5628,17 +5622,6 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         stream.stroke()
                     }
                     stream.restoreGraphicsState()
-                    val headingInsets = listOf(3.96f, 4.54f, 4.53f, 2.84f) // C343 golden
-                    var headerX = left
-                    listOf("UBICACIÓN", "NOMBRE", "DESCRIPCIÓN", "ACTIVO")
-                        .forEachIndexed { index, label ->
-                            // C242: golden column labels; C303: 6.8 pt (ACTIVO 5.5) in #264b68.
-                            stream.setNonStrokingColor(Color(38, 75, 104))
-                            drawP1Label(stream, label, headerX + headingInsets[index], headerBottom + 4.25f,
-                                if (label == "ACTIVO") 5.5f else 6.8f)
-                            stream.setNonStrokingColor(Color(36, 57, 75))
-                            headerX += specialColumns[index]
-                        }
                     val positions = listOf(left, left + specialColumns[0],
                         left + specialColumns[0] + specialColumns[1])
                     var rowTop = headerBottom

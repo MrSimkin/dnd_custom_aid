@@ -20,8 +20,8 @@ class P2AmountsLabelsParityTest(unittest.TestCase):
                 self.assertIn("stream.setFont(boldPdfFont, amountPt)", data)
                 self.assertIn("val amountRight = blockRight(cell) - 5.67f", data)
                 self.assertIn("else if (cell.rectPt.leftPt < 170f) 166.25f else 298.49f", data)
-                # C343: golden label insets and baseline on P2 and C2 alike.
-                self.assertEqual(2, data.count(
+                # C343: golden label insets and baseline on P2; C419: the C2 table has no title row.
+                self.assertEqual(1, data.count(
                     "drawP1Label(stream, label, headerX + headingInsets[index], headerBottom + 4.25f,"))
                 self.assertNotIn("draw(stream, label, headerX + 5f, specialArea.topPt - 13f, false)", data)
         self.assertIn("g3P2PairedAmountsAreRightAlignedLikeTheGoldenAB",
