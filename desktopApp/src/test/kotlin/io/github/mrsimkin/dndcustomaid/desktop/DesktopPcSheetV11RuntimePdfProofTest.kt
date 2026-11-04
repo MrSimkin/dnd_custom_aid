@@ -1115,6 +1115,51 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c414C2TablesAreGoldenBlocksWithGoldenRowsAndPerRecordSeparatorsAB() {
+        // C414: guards the C2 EQUIPO table on real App PDFs - two golden blocks at the
+        // C2 margins, 15.87 pt rows, no frame, a short separator per printed record.
+        val number = """(-?\d+(?:\.\d+)?)"""
+        fun near(a: Float, b: Float) = kotlin.math.abs(a - b) < 0.05f
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                sources("03_mara_siete_umbrales_custom_extended.json"),
+            ).bytes
+            Loader.loadPDF(bytes).use { pdf ->
+                val pages = (0 until pdf.numberOfPages).filter { i ->
+                    PDFTextStripper().apply { startPage = i + 1; endPage = i + 1 }.getText(pdf)
+                        .contains("C2 - Equipo y tesoro")
+                }
+                assertTrue(pages.isNotEmpty(), "Mara has a C2 equipment page ($variant).")
+                pages.forEach { i ->
+                    val ops = pdf.getPage(i).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                    val rects = Regex("""(?:^|\s)$number\s+$number\s+$number\s+$number\s+re(?:\s|$)""")
+                        .findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }.toList()
+                    val left = rects.filter { (x, _, w, h) -> near(x, 39.69f) && near(w, 261.35f) && near(h, 15.87f) }
+                    val right = rects.filter { (x, _, w, h) -> near(x, 310.96f) && near(w, 261.36f) && near(h, 15.87f) }
+                    assertTrue(left.isNotEmpty() && right.isNotEmpty(),
+                        "Two golden blocks of 15.87 pt rows on page ${i + 1} ($variant).")
+                    assertFalse(rects.any { (x, y, w, h) -> near(x, 39.69f) && near(w, 532.63f) && h > 100f && y + h > 655f },
+                        "No frame around the C2 table ($variant).")
+                    val separators = Regex("""(?:^|\s)$number\s+$number\s+m\s+$number\s+$number\s+l\s+S""")
+                        .findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }
+                        .filter { (x0, y0, x1, y1) ->
+                            near(x0, x1) && kotlin.math.abs(kotlin.math.abs(y1 - y0) - 15.87f) < 0.05f
+                        }.toList()
+                    assertTrue(separators.isNotEmpty() &&
+                        separators.all { (x) -> near(x, 268.87f) || near(x, 540.15f) },
+                        "Short separators 32.17 pt inside each block ($variant): $separators")
+                    assertFalse(Regex("""(?:^|\s)$number\s+$number\s+m\s+$number\s+$number\s+l\s+S""")
+                        .findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }
+                        .any { (x0, y0, x1, y1) -> near(x0, x1) && (near(x0, 258f) || near(x0, 306f) || near(x0, 528f)) &&
+                            kotlin.math.abs(y1 - y0) > 40f },
+                        "No long table verticals remain ($variant).")
+                }
+            }
+        }
+    }
+
+    @Test
     fun c406GoldenNotesPanelsOnCn3TheLibroIndexAndAContinuedP4AB() {
         // C406: guards C403-C405 on real App PDFs - the C-N3 NOTAS MANUSCRITAS reserve
         // (cartela over banded 18.71 pt rows), the Libro index (cartela + one banded
@@ -6747,7 +6792,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 it.readBytes().toString(Charsets.ISO_8859_1)
             }
             val clippedCartela = Regex(
-                """(?s)(?:^|\s)47\s+662\.(?:74|739+)\d*\s+m\s+565\s+662\.(?:74|739+)\d*\s+l\s+570\s+667\.(?:74|739+)\d*\s+l.*?\s+B(?:\s|$)"""
+                """(?s)(?:^|\s)44\.(?:69|689+)\d*\s+662\.(?:74|739+)\d*\s+m\s+567\.(?:32|319+)\d*\s+662\.(?:74|739+)\d*\s+l\s+572\.(?:32|319+)\d*\s+667\.(?:74|739+)\d*\s+l.*?\s+B(?:\s|$)"""
             )
             assertTrue(clippedCartela.containsMatchIn(commands),
                 "A real beveled blue C2 EQUIPO cartela must be filled and stroked " +

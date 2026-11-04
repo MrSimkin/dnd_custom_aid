@@ -2437,7 +2437,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // step 9 pt inside the owner's 25 pt rows (D-0076 §3.21).
             val specialFont = goldenRhythm(7f, 9f)
             // C268: golden C2 Equipo / Tesoro continuation tables, 7.2 pt on 18.4 pt.
-            val c2TableFont = goldenRhythm(7.2f, 18.4f)
+            val c2TableFont = goldenRhythm(7.2f, 15.87f) // C414: golden C2 table pitch
             val c2Inset = " ".repeat((1..16).first {
                 c2Font.width.measurePt(" ".repeat(it)) >= 11f
             })
@@ -4481,8 +4481,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     val rows = (rect.heightPt / manuscriptRowHeightPt).toInt()
                     stream.saveGraphicsState()
                     goldenBlocks.forEach { (blockLeft, blockRight) ->
+                        val floor = stopRulesBelow.firstOrNull { (l, r, _) ->
+                            blockLeft < r && blockRight > l }?.third ?: Float.NEGATIVE_INFINITY
                         repeat(rows) { row ->
                             val rowBottom = rect.topPt - (row + 1) * manuscriptRowHeightPt
+                            if (rowBottom < floor) return@repeat
                             stream.setNonStrokingColor(
                                 if (row % 2 == 0) Color(231, 242, 247) else Color(240, 247, 250))
                             stream.addRect(blockLeft, rowBottom, blockRight - blockLeft, manuscriptRowHeightPt)
@@ -4723,7 +4726,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 } else emptyList()
                 grid(stream, visibleTable, true, manuscriptRowHeight,
                     alternateP2Rows = !compactC2,
-                    goldenBlocks = if (compactC2) null else listOf(39.69f to 166.25f, 171.92f to 298.49f), // C408
+                    // C408/C414: golden tables are separate blocks with no frame or long rules.
+                    goldenBlocks = if (compactC2) placed.pairs.map { it.leftPt to it.rightPt }
+                        else listOf(39.69f to 166.25f, 171.92f to 298.49f),
                     stopRulesBelow = sideNotes.map { notes ->
                         val pair = placed.pairs[notes.pairZero]
                         Triple(pair.leftPt, pair.rightPt, notes.gridTop + 19.56f)
@@ -4772,25 +4777,6 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     }
                     stream.restoreGraphicsState()
                 }
-                stream.saveGraphicsState()
-                stream.setStrokingColor(Color(148, 176, 193))
-                stream.setLineWidth(0.45f)
-                // C408: the golden P2 has no quantity separators.
-                if (compactC2) placed.pairs.forEach { pair ->
-                    // The quantity separator belongs to its ACTUAL measured column.
-                    // Preserve the original -42pt separator for normal 36pt rows.
-                    val amountWidth = placed.quantities.firstOrNull()?.rectPt?.widthPt
-                        ?: PcSheetV11PairedAmountRouting.BASE_AMOUNT_WIDTH_PT
-                    val quantitySeparator = pair.rightPt -
-                        amountWidth - PcSheetV11PairedAmountRouting.AMOUNT_GAP_PT
-                    val separatorBottom = sideNotes.firstOrNull {
-                        placed.pairs[it.pairZero] == pair
-                    }?.let { it.gridTop + 18f } ?: visibleTable.bottomPt
-                    stream.moveTo(quantitySeparator, separatorBottom)
-                    stream.lineTo(quantitySeparator, pair.topPt)
-                    stream.stroke()
-                }
-                stream.restoreGraphicsState()
                 // C409: golden P2 text - 4.53 pt inside its block (TESORO 4.25), on the
                 // golden baseline; amounts end 5.67 pt inside the block, 7.2 pt bold.
                 val isEquipment = placed.data.kind ==
@@ -4798,46 +4784,48 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 fun blockLeft(cell: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableCell) =
                     if (cell.rectPt.leftPt < 170f) 39.69f else 171.92f
                 fun rowBaseline(rect: PcSheetV11RectPt) =
-                    if (compactC2) body.metrics.baselineIn(rect)
-                    else rect.bottomPt + (if (isEquipment) 4.52f else 5.55f)
+                    rect.bottomPt + (if (compactC2) 4.44f else if (isEquipment) 4.52f else 5.55f)
+                // C414: the right edge of the golden block holding this cell.
+                fun blockRight(cell: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableCell) =
+                    if (compactC2) placed.pairs[cell.pairIndex - 1].rightPt
+                    else if (cell.rectPt.leftPt < 170f) 166.25f else 298.49f
                 pageLabels.forEach { cell ->
                     if (cell.printableText.isNotEmpty()) {
-                        val x = if (compactC2) cell.rectPt.leftPt + 2f
+                        val x = if (compactC2) cell.rectPt.leftPt + 4.54f // C414 golden
                             else blockLeft(cell) + (if (isEquipment) 4.53f else 4.25f) +
                                 (cell.rectPt.leftPt - placed.pairs[cell.pairIndex - 1].leftPt)
                         draw(stream, cell.printableText, x, rowBaseline(cell.rectPt), false)
                     }
                 }
-                // C408: golden P2 - only a row with a record gets its quantity separator
-                // (#94b0c1 0.35 pt), 31.64 pt inside the block for EQUIPO, 35.44 pt for TESORO.
-                if (!compactC2) {
-                    val inset = if (placed.data.kind ==
-                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableKind.EQUIPMENT) 31.64f else 35.44f
-                    stream.saveGraphicsState()
-                    stream.setStrokingColor(Color(148, 176, 193))
-                    stream.setLineWidth(0.35f)
-                    placed.quantities.filter { it.localPageIndex == localPage }.forEach { cell ->
-                        val blockRight = if (cell.rectPt.leftPt < 170f) 166.25f else 298.49f
-                        val x = blockRight - inset
-                        // A very long real amount keeps its digits clear of the separator.
-                        if (blockRight - 5.67f - boldPdfFont.getStringWidth(
-                                pcSheetV11PrintableText(cell.printableText)) * 7.2f / 1000f < x + 1f) return@forEach
-                        stream.moveTo(x, cell.rectPt.bottomPt)
-                        stream.lineTo(x, cell.rectPt.topPt)
-                        stream.stroke()
-                    }
-                    stream.restoreGraphicsState()
+                // C408/C414: golden - only a row with a record gets its quantity separator
+                // (#94b0c1 0.35 pt): 31.64 pt inside the block for EQUIPO, 35.44 pt for TESORO,
+                // and 32.17 pt in C2.
+                val inset = if (compactC2) 32.17f else if (isEquipment) 31.64f else 35.44f
+                stream.saveGraphicsState()
+                stream.setStrokingColor(Color(148, 176, 193))
+                stream.setLineWidth(0.35f)
+                placed.quantities.filter {
+                    it.localPageIndex == localPage && it.sourceKey !in suppressAmounts
+                }.forEach { cell ->
+                    val edge = blockRight(cell)
+                    val x = edge - inset
+                    // A very long real amount keeps its digits clear of the separator.
+                    if (edge - 5.67f - boldPdfFont.getStringWidth(
+                            pcSheetV11PrintableText(cell.printableText)) * 7.2f / 1000f < x + 1f) return@forEach
+                    stream.moveTo(x, cell.rectPt.bottomPt)
+                    stream.lineTo(x, cell.rectPt.topPt)
+                    stream.stroke()
                 }
+                stream.restoreGraphicsState()
                 placed.quantities.filter {
                     it.localPageIndex == localPage && it.sourceKey !in suppressAmounts
                 }.forEach { cell ->
                     // C242: golden paired tables right-align each amount 3 pt
                     // inside its quantity cell (P2 and C2).
                     // C292: golden amounts are Noto Sans Bold in ink #264b68.
-                    val amountPt = if (compactC2) body.metrics.fontSizePt else 7.2f
+                    val amountPt = 7.2f
                     val amountText = pcSheetV11PrintableText(cell.printableText)
-                    val amountRight = if (compactC2) cell.rectPt.rightPt - 3f
-                        else (if (cell.rectPt.leftPt < 170f) 166.25f else 298.49f) - 5.67f
+                    val amountRight = blockRight(cell) - 5.67f // C409/C414 golden
                     stream.saveGraphicsState()
                     stream.setNonStrokingColor(Color(38, 75, 104))
                     stream.beginText()
@@ -5228,7 +5216,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
 
             // C361: the table starts under the golden C2 cartela band (y662.74..685.7).
-            val fullC2PairedArea = PcSheetV11RectPt(42f, c2FootPt, 528f, 660.76f - c2FootPt)
+            // C414: the golden C2 margins x39.69..572.32.
+            val fullC2PairedArea = PcSheetV11RectPt(39.69f, c2FootPt, 532.63f, 660.76f - c2FootPt)
             val pairedRemainders = listOf(
                 Triple("EQUIPO", completeEquipment, inventoryPlaced),
                 Triple("TESORO", completeTreasure, treasurePlaced),
@@ -5239,7 +5228,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 remaining: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData,
                 area: PcSheetV11RectPt,
             ): PcSheetV11PairedTablePlaced = PcSheetV11PairedTableComposer.place(
-                remaining, area, 12f,
+                remaining, area, 9.92f, // C414: golden C2 gutter
                 PcSheetV11PairedAmountRouting.c2AmountWidth(remaining, c2TableFont.width),
                 PcSheetV11PairedAmountRouting.AMOUNT_GAP_PT,
                 c2TableFont.metrics.lineHeightPt, c2TableFont.width,
@@ -5278,10 +5267,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     val lowerTop = fullC2PairedArea.topPt - upperHeight - 24.94f // C361: golden cartela gap
                     if (lowerTop > fullC2PairedArea.bottomPt + 55f) {
                         val topArea = PcSheetV11RectPt(
-                            42f, fullC2PairedArea.topPt - upperHeight, 528f, upperHeight,
+                            39.69f, fullC2PairedArea.topPt - upperHeight, 532.63f, upperHeight,
                         )
                         val bottomArea = PcSheetV11RectPt(
-                            42f, fullC2PairedArea.bottomPt, 528f,
+                            39.69f, fullC2PairedArea.bottomPt, 532.63f,
                             lowerTop - fullC2PairedArea.bottomPt,
                         )
                         val top = placeC2Paired(equipmentRemainder, topArea)
@@ -5477,8 +5466,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         drawFrameAndHeader(stream,
                             "C2 - Equipo y tesoro / EQUIPO + EQUIPO ESPECIAL")
                         val topArea = PcSheetV11RectPt(
-                            42f, c2SpecialArea.topPt - shared.upperHeight,
-                            528f, shared.upperHeight,
+                            39.69f, c2SpecialArea.topPt - shared.upperHeight,
+                            532.63f, shared.upperHeight,
                         )
                         val topPlaced = placeC2Paired(
                             pairedRemainders.first().second, topArea,
