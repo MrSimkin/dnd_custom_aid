@@ -843,9 +843,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // no longer a « P» / « E» suffix; an overflowing B skill keeps it in words.
             val bSkillTraining = mutableMapOf<String,
                 io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining>()
+            // C420: golden B panel - every skill of an attribute printed on P1, custom ones
+            // too, in the order of its attribute, each with its three letters.
+            val bPanelAttributes = data.attributes.take(p1PrintedAttributeCount).map { it.reference }
             val bSkillEntries = if (!variantA) data.skills.withIndex()
-                .filter { it.value.builtInKey != null }
+                .filter { it.value.builtInKey != null || it.value.ability in bPanelAttributes }
+                .sortedBy { (_, skill) -> bPanelAttributes.indexOf(skill.ability).let { if (it < 0) Int.MAX_VALUE else it } }
                 .map { (index, skill) ->
+                    printedSkillIndices += index
                     val abbreviation = data.attributes.firstOrNull {
                         it.reference == skill.ability
                     }?.abbreviation?.let { approvedAbilityAbbreviation(it) }
@@ -879,7 +884,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val bSkillLabelPt = bSkillParts.mapValues { (_, parts) ->
                 val value = parts.second.trim()
                 val room = 89.29f - (if (value.isEmpty()) 0f else 4f + p1BoldWidth(value, 7f))
-                listOf(7f, 6.85f, 6.6f, 6.35f, 6.1f, 5.85f).firstOrNull { pt ->
+                listOf(7f, 6.85f, 6.6f, 6.35f, 6.1f, 5.85f, 5.6f, 5.35f).firstOrNull { pt -> // C420
                     bSkillFont.width.measurePt(parts.first) * pt / 7f <= room
                 } ?: 7f
             }
@@ -887,7 +892,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 bSkillLabelPt[item.sourceKey]?.takeIf { it < 7f }?.let { item.text to it }
             }.toMap()
             val bSkillWidth = PcSheetV11TextWidth { text ->
-                val pt = bShrunkTexts[text] ?: bShrunkTexts[text.trimEnd()]
+                // C420: the placer also measures a label word by word, so a prefix of a
+                // stepped-down label measures at that label's size too.
+                val pt = bShrunkTexts[text] ?: bShrunkTexts[text.trimEnd()] ?: bShrunkTexts.entries
+                    .firstOrNull { it.key.startsWith(text.trimEnd()) }?.value
                 bSkillFont.width.measurePt(text) * ((pt ?: 7f) / 7f)
             }
             fun placeBSkills(rows: Int) = PcSheetV11MeasuredFlowPlacer.place(
@@ -4288,7 +4296,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
                 if (!variantA) {
                     data.skills.forEachIndexed { index, skill ->
-                        if (skill.builtInKey == null &&
+                        if (skill.builtInKey == null && index !in printedSkillIndices &&
                             skill.ability !in customAttributeReferences) {
                             val abbreviation = data.attributes.firstOrNull {
                                 it.reference == skill.ability

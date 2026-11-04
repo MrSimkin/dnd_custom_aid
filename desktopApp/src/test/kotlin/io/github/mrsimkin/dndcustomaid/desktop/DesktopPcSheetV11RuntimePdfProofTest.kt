@@ -1115,6 +1115,35 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c420VariantBPanelOrdersSkillsByAttributeWithCustomOnesOnOneRow() {
+        // C420: golden B panel - skills by attribute order, custom skills of an attribute
+        // printed on P1 included with their three letters, each on one row with its value.
+        val generated = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.B, PcSheetExportStateSelection.PERMANENT),
+            sources("03_mara_siete_umbrales_custom_extended.json"),
+        )
+        Loader.loadPDF(generated.bytes).use { pdf ->
+            val lines = mutableListOf<Triple<String, Float, Float>>()
+            object : PDFTextStripper() {
+                override fun writeString(text: String, positions: MutableList<org.apache.pdfbox.text.TextPosition>) {
+                    val first = positions.first()
+                    if (first.xDirAdj < 262f && 792f - first.yDirAdj < 340f)
+                        lines += Triple(text.trim(), first.xDirAdj, 792f - first.yDirAdj)
+                }
+            }.apply { startPage = 1; endPage = 1 }.getText(pdf)
+            val labels = lines.filter { it.first.endsWith(")") }
+                .sortedWith(compareBy({ it.second > 150f }, { -it.third }))
+            assertEquals("Atletismo (FUE)", labels.first().first, "Strength's skill opens the panel.")
+            val letters = labels.map { it.first.substringAfterLast('(').removeSuffix(")") }
+            val order = listOf("FUE", "DES", "CON", "INT", "SAB", "CAR", "FOR", "COR", "ETE")
+            assertEquals(letters.sortedBy { order.indexOf(it) }, letters, "Skills follow their attribute's order.")
+            assertTrue(letters.containsAll(listOf("FOR", "COR", "ETE")), "Custom attributes' skills are in the panel.")
+            assertFalse(lines.any { Regex("""^\([A-Z]{3}\)""").containsMatchIn(it.first) },
+                "No label wraps its three letters onto a second row: $lines")
+        }
+    }
+
+    @Test
     fun c419C2SpecialTableKeepsItsFourColumnsWithoutATitleRowAB() {
         // C419: golden C2 EQUIPO ESPECIAL - rows start right under the cartela, with the
         // three column rules and one paper ACTIVO box per record, and no title row.
@@ -2288,7 +2317,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         Rectangle2D.Float(40f, 688f, 220f, 44f))
                     extractRegions(first)
                 }.getTextForRegion("unused-B-paper")
-                assertTrue(blankText.isBlank(),
+                // C420: Mara's panel holds her custom skills too, down to its foot.
+                assertTrue(blankText.isBlank() || fixture.startsWith("03_mara"),
                     "Source text cannot overlap the manuscript-only B panel.")
                 val pageText = PDFTextStripper().apply {
                     startPage = 1; endPage = 1
@@ -2329,7 +2359,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 assertEquals(18, standardNames.size,
                     "Both SRD and custom fixture must preserve the 18 actual standard skills.")
-                assertEquals(standardNames.size,
+                // C420: custom skills of an attribute printed on P1 join the panel.
+                val onP1 = generated.semantic.attributes.take(9).map { it.reference }
+                assertEquals(generated.semantic.skills.count { it.builtInKey != null || it.ability in onP1 },
                     firstColumnMarks + secondColumnMarks,
                     "Each real B skill printed on P1 must have exactly one vector mark.")
                 assertTrue(firstColumnMarks > 0 && secondColumnMarks > 0,
@@ -2458,8 +2490,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val physicalMixedC2 = pagesByPhysicalNumber.filter {
                 realHeading(it, "C2 - Habilidades, acciones y recursos")
             }.joinToString("\n")
-            assertTrue(physicalMixedC2.contains("Cartografía imposible"),
-                "Mara's overflowed custom skill must not be lost when P1 stays single.")
+            assertTrue((pagesByPhysicalNumber[p1Physical - 1] + physicalMixedC2).replace(Regex("""\s+"""), " ")
+                .contains("Cartografía imposible"),
+                "Mara's custom skill must not be lost when P1 stays single.")
             assertTrue(physicalMixedC2.contains("Técnica 2"),
                 "Mara's overflowed real combat action must remain in C2.")
             assertTrue(pagesByPhysicalNumber[p1Physical - 1].contains(
@@ -2672,10 +2705,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         addRegion("second",Rectangle2D.Float(150f,370f,112f,365f))
                         extractRegions(page)
                     }
-                    assertTrue(skillsByColumn.getTextForRegion("first").contains("Acrobacias"),
-                        "B skills first subcolumn must contain real Acrobatics.")
-                    assertTrue(skillsByColumn.getTextForRegion("second").contains("Supervivencia"),
-                        "B skills second subcolumn must contain real Survival.")
+                    // C420: golden order - by attribute, Charisma's skills last.
+                    assertTrue(skillsByColumn.getTextForRegion("first").contains("Atletismo"),
+                        "B skills first subcolumn opens with Strength's real Athletics.")
+                    assertTrue(skillsByColumn.getTextForRegion("second").contains("Persuasión"),
+                        "B skills second subcolumn holds Charisma's real Persuasion.")
                 }
             }
         }
@@ -3023,9 +3057,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                             .customAttributes.first { it.name == attribute }
                             .abbreviation.uppercase().take(3)
                         assertEquals(3, sourceAbbreviation.length)
-                        assertTrue(pages.any { text -> text.contains("C2 - ") &&
-                            text.contains(key + " (" + sourceAbbreviation + ")") },
-                            "Detached C2 skill must print source-backed (XXX), " +
+                        // C420: its skill sits in the golden B panel of P1 with its (XXX).
+                        assertTrue(pages.first().replace(Regex("""\s+"""), " ")
+                            .contains(skill + " (" + sourceAbbreviation + ")"),
+                            "A P1 attribute's skill prints source-backed (XXX) in the B panel, " +
                                 "not a full name or invented attribute.")
                         assertFalse(full.contains(key + " (" + attribute + ")"),
                             "A full custom attribute name is not a V11 (XXX) suffix.")
@@ -3361,14 +3396,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     .containsMatchIn(c2),
                     "Already-printed custom attribute cannot repeat as a C2 score row.")
             }
-            // V11 detached-skill rule: use persisted custom abbreviations,
-            // not the full attribute names that are already present in P1.
-            assertTrue(c2.contains("Contratos arcanos (FOR)"))
-            assertTrue(c2.contains("Sincronía (COR)"))
-            assertTrue(c2.contains("Manipulación de éter (ETE)"))
-            assertFalse(c2.contains("Contratos arcanos (Fortuna)") ||
-                c2.contains("Sincronía (Cordura)") ||
-                c2.contains("Manipulación de éter (Éter)"))
+            // C420: the golden B panel holds the skills of every attribute printed on P1,
+            // with the persisted custom abbreviation, not the full attribute name.
+            val p1Flat = p1.replace(Regex("""\s+"""), " ")
+            assertTrue(p1Flat.contains("Contratos arcanos (FOR)"))
+            assertTrue(p1Flat.contains("Sincronía (COR)"))
+            assertTrue(p1Flat.contains("Manipulación de éter (ETE)"))
+            assertFalse(c2.contains("Contratos arcanos") || c2.contains("Sincronía") ||
+                c2.contains("Manipulación de éter"), "A panel skill never repeats in C2.")
         }
     }
 
@@ -4010,7 +4045,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 PcSheetExportStateSelection.PERMANENT), real,
         ).bytes
         Loader.loadPDF(bytes).use { pdf ->
-            val mixed = (0 until pdf.numberOfPages).firstOrNull { index ->
+            val mixed = (0 until pdf.numberOfPages).lastOrNull { index ->
                 PDFTextStripper().apply {
                     startPage = index + 1
                     endPage = index + 1
@@ -6322,7 +6357,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     return runs.firstOrNull {
                         it.first.startsWith("VIENE DE PÁG. ") && kotlin.math.abs(it.third - head.third + 0.85f) < 0.3f &&
                             it.second > head.second && it.second < head.second + 258f
-                    }?.first
+                    }?.first?.let { Regex("""^VIENE DE PÁG\. \d+""").find(it)?.value } // C420: a same-baseline cartela may follow
                 }
                 assertTrue(c2.contains("RECURSOS Y MUNICIONES"), "Mara C2 has resources ($variant).")
                 listOf("ATAQUES, NOTAS Y ESPACIOS REALES", "RECURSOS Y MUNICIONES").forEach {
