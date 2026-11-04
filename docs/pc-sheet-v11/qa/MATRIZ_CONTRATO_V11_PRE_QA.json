@@ -731,8 +731,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c424UnderStressIntegrityComesBeforeLegibilityPaperAndPageCountAB",
+            "test_result": "PASS on real App PDFs, A and B: with 120 more spells every record prints once, no text falls below 5.3 pt, the final page stays handwriting paper, and only the page count grows.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the 16 independent audits pass on the real PDFs, among them audit_v11_golden_palette.py and audit_v11_golden_geometry.py.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -750,8 +759,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "aSparseSheetMapsToRealAbsencesAndNoInventedValues",
+            "test_result": "PASS - shared G1 semantics: a sparse sheet maps to real absences, with no invented value, proficiency, epic level or marker.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -934,8 +952,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "mappingLeavesItsSourcesExactlyAsTheyWere",
+            "test_result": "PASS - shared G1 semantics: mapping for export is a read-only projection; repeating it leaves the sources unchanged and gives the same result.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -969,8 +996,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "portraitPlanCarriesTheChosenModeAndOnlyTrustsLocalBytes",
+            "test_result": "PASS - shared G1 semantics: Fit and Crop are explicit choices carried to the plan, and only local bytes count as available.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -983,8 +1019,17 @@
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c424PortraitFitShowsTheWholeImageAndCropFillsWithoutDistortionOnRealRasterAB; portraitModesEmbedLocallyLoadedImageAndNoImageStillReservesSilhouette",
+            "test_result": "PASS on a real raster, A and B: with a 2:1 image, Fit shows its side bands with margins above and below, Crop fills the box and cuts them, and neither spills out of the viewport.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the 16 independent audits pass on the real PDFs, among them audit_v11_golden_palette.py and audit_v11_golden_geometry.py.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -1379,8 +1424,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "bothVariantsKeepTheSameSkillsAndTheirRealAttributeRelation",
+            "test_result": "PASS - shared G1 semantics: in variant A each skill keeps its real attribute relation by ID.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -1421,8 +1475,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "bothVariantsKeepTheSameSkillsAndTheirRealAttributeRelation",
+            "test_result": "PASS - shared G1 semantics: variant B keeps the same skills and relations, and the persisted custom abbreviation.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -1758,8 +1821,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "spellSlotsAndLevelsStayTheRealOnesWithLongNamesAndIdsWhole",
+            "test_result": "PASS - shared G1 semantics: only real slot levels exist, each with its real total and spent; none is invented.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -1851,8 +1923,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "onlyExplicitAmmunitionUsageIsAmmunitionWithItsRealQuantity",
+            "test_result": "PASS - shared G1 semantics: ammunition is explicit usage only, with its real saved quantity.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -1893,8 +1974,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "onlyExplicitAmmunitionUsageIsAmmunitionWithItsRealQuantity",
+            "test_result": "PASS - shared G1 semantics: with no record there is no ammunition entry; a name never implies one.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -2294,15 +2384,33 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11TraitSummaryTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "narrativeBackgroundKeepsEveryRealFieldApartFromMechanicalTraits",
+            "test_result": "PASS - shared G1 semantics: narrative fields stay apart from mechanical traits.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "traitsFlowAcrossColumnsAndPagesWithEachIdOnceAndInOrder; narrativeBackgroundKeepsEveryRealFieldApartFromMechanicalTraits",
+            "test_result": "PASS - shared: mechanical traits flow as their own records, apart from the narrative fields.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared composition only (G2); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -2755,8 +2863,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "everyInventoryItemLandsInOrdinaryOrSpecialAndNothingElseIsCreated",
+            "test_result": "PASS - shared G1 semantics: an empty special list stays empty; no record is invented for paper rows.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -2834,8 +2951,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "everyInventoryItemLandsInOrdinaryOrSpecialAndNothingElseIsCreated",
+            "test_result": "PASS - shared G1 semantics: every item is ordinary or special; no generic OTROS bucket exists and no item becomes a trait.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -2876,8 +3002,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "v11PageSequenceKeepsCorePagesAndFinalHandwrittenPageEvenWithNoMagic",
+            "test_result": "PASS - shared G2 page sequence: P3 is present in the sequence for a sheet with no narrative and no magic.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared composition only (G2); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -3161,8 +3296,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "v11PageSequenceKeepsCorePagesAndFinalHandwrittenPageEvenWithNoMagic",
+            "test_result": "PASS - shared G2 page sequence: with no real spell the sequence has no P4 page.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared composition only (G2); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -3240,8 +3384,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "spellSlotsAndLevelsStayTheRealOnesWithLongNamesAndIdsWhole",
+            "test_result": "PASS - shared G1 semantics: each spell keeps its real level; the printed grouping is the G3 evidence.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -3282,8 +3435,17 @@
           "stage": "G1",
           "scope": "semántica: campos auténticos, tipos, orden, ausencia, estados, IDs",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContractTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "spellSlotsAndLevelsStayTheRealOnesWithLongNamesAndIdsWhole",
+            "test_result": "PASS - shared G1 semantics: long spell names and every ID stay whole.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared semantic layer only (G1); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G2",
@@ -3419,15 +3581,33 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "extraRealSpellsTakeRowsFromTheirOwnColumnSoTheOthersKeepTheirShape; anEmptyListGetsTheGoldenRowsOfOnePage",
+            "test_result": "PASS - shared G2 composition: the P4 share gives the golden rows per level, and real spells beyond a share take blank rows from their own column.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared composition only (G2); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
           "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "c422P4SharesItsRowsLikeTheGoldenWithMoreRoomForLowLevelsAB; c429ALevelTitleNeverStaysAloneAtAColumnFootAB",
+            "test_result": "PASS on real App PDFs, A and B: one P4 page gives the golden 33, 33 and 28 rows per column (16/17, 17/16, 8 + 4x5 by level), 25 real level 2 spells still fit, and no level title stays alone at a column foot.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the 16 independent audits pass on the real PDFs, among them audit_v11_golden_palette.py and audit_v11_golden_geometry.py.",
+            "limitations": "Desktop renderer PDFs; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
+          }
         }
       ]
     },
@@ -3897,8 +4077,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "anExtensionPageAppearsOnlyWhenTheContentDoesNotFit",
+            "test_result": "PASS - shared G2 composition: content that fits opens no extension page, so no C2 exists only for NOTAS.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared composition only (G2); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -3989,8 +4178,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "v11PageSequenceRejectsInventedBookAndMissingDigitalNotesPages",
+            "test_result": "PASS - shared G2 page sequence: a C-N3 page without digital notes is rejected, and notes without their page too.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared composition only (G2); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -4091,8 +4289,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "v11PageSequencePlacesExtensionsThenExclusiveDigitalNotesBookAndLastManualNotes",
+            "test_result": "PASS - shared G2 page sequence: C-N3 occupies its own pages, apart from C2, the Libro and the final page.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared composition only (G2); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -4177,8 +4384,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "v11PageSequenceRejectsInventedBookAndMissingDigitalNotesPages",
+            "test_result": "PASS - shared G2 page sequence: a Libro page without requested, real spell data is rejected.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared composition only (G2); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -4212,8 +4428,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "v11PageSequencePlacesExtensionsThenExclusiveDigitalNotesBookAndLastManualNotes",
+            "test_result": "PASS - shared G2 page sequence: the Libro follows extensions, P4 and C-N3, and precedes the final NOTAS page.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared composition only (G2); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -4462,8 +4687,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "v11PageSequenceKeepsCorePagesAndFinalHandwrittenPageEvenWithNoMagic; v11PageSequencePlacesExtensionsThenExclusiveDigitalNotesBookAndLastManualNotes",
+            "test_result": "PASS - shared G2 page sequence: the last physical page is always the final handwritten NOTAS page.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared composition only (G2); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",
@@ -4567,8 +4801,17 @@
           "stage": "G2",
           "scope": "composición: distribución, medidas, reservas, continuaciones, no pérdida",
           "test_target": "shared/src/commonTest/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11MeasuredFlowPlacerTest.kt",
-          "status": "NOT_VERIFIED",
-          "evidence": null
+          "status": "PASS",
+          "evidence": {
+            "test_name": "v11PageSequencePlacesExtensionsThenExclusiveDigitalNotesBookAndLastManualNotes",
+            "test_result": "PASS - shared G2 page sequence: nothing follows the final NOTAS page, with continuations and annexes present.",
+            "source_commit": "b81c4dfc9fdbe288a9579d745bf2b9796a7213d6",
+            "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985",
+            "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343865264",
+            "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985/artifacts/13343396118",
+            "independent_inspection": "Same CI run: the shared Kotlin suite passes; this rule's renderer proof is the separate G3 evidence.",
+            "limitations": "Shared composition only (G2); PDF output is G3 and the installed Android candidate / G4 stay NOT_VERIFIED."
+          }
         },
         {
           "stage": "G3",

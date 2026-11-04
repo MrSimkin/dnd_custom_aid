@@ -161,17 +161,16 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 | C427 | Auditoría de geometría contra el golden | Nueva auditoría `audit_v11_golden_geometry.py` (con 6 pruebas rojo/verde, también en CI): abre `v11_personaje_casi_vacio.pdf` del ZIP aprobado y exige que cada trazo y relleno de sus páginas P1, P2, P3 y NOTAS exista en el PDF real de una hoja casi vacía, en el mismo sitio y con las mismas tintas (tolerancia 0,6 pt). Solo se excusan tres cosas, cada una por decisión escrita: el logo, la fila de atributo aprobada (P104) y las casillas de un nivel sin espacios (contrato). PASS en 4 páginas. La paridad total entre renderizadores también corre en CI. |
 | C428 | Rótulo MIXTO en las páginas de equipo de C2 | Como el comparador del golden, las páginas de C2 con módulos a todo el ancho llevan «MÓDULOS COMPARTIDOS · MIXTO», y las de dos columnas siguen con «· DOS COLUMNAS»; línea base y691,94. Prueba `c423…` ampliada. Suite, 16 auditorías y 102 trampas en verde. |
 | C429 | Niveles de P4 sin títulos sueltos ni cortes innecesarios | Un título de nivel viaja siempre con su primera fila, nunca queda solo al pie de una columna. Los conjuros reales que exceden la parte de su nivel quitan filas en blanco a su propia columna del golden (0–1, 2–3, 4–9), así las demás columnas y el inicio de cada nivel quedan como en el golden: Mara ya no parte el nivel 4 entre columnas. Nuevas pruebas `c429ALevelTitleNeverStaysAloneAtAColumnFootAB` y `extraRealSpellsTakeRowsFromTheirOwnColumnSoTheOthersKeepTheirShape`. Suite, compartidas, 16 auditorías y 102 trampas en verde. Evidencia `docs/pc-sheet-v11/qa/evidence/c429/c429_p4_niveles.png`. |
+| C430 | Evidencia de matriz | Run verde [41865770985](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985) sobre `b81c4dfc`: 3 reglas pasan a PASS en G3 (P407, IN04, GLB09), 11 en G2 y 13 en G1. Paleta y geometría del golden también pasan en CI. IN06 e IN01 siguen abiertas porque exigen la interfaz real. |
 
 ## Pendiente (siguiente)
 
 Actualizado el 2026-11-04.
 
-- **Matriz**: 145/233 controles de etapa en PASS (G1 29/46, G2 24/90, G3 92/97); G4 bloqueada hasta cerrar G1–G3.
-- **G3 abiertos**: GLB09, IN01, IN04, IN06 y P407.
-- **C2, composición**: el golden mezcla módulos en columnas de media página (EQUIPO y TESORO incluidos); la App les da páginas a todo el ancho, ya con la gramática de filas y márgenes del golden (C414).
-- **C2, EQUIPO ESPECIAL**: el golden no repite la fila de títulos UBICACIÓN / NOMBRE / DESCRIPCIÓN en C2 y sus filas miden 25,4 pt; la App la conserva, con filas según el texto.
-- **P4**: el golden repite el título del nivel con sus casillas al continuar en otra columna; la App usa la banda «NIVEL n / CONTINUACIÓN».
-- **Comparador C2**: `v11_comparador_C2_extremo` aún no se ha comparado página a página.
+- **Matriz**: 172/233 controles de etapa en PASS (G1 42/46, G2 35/90, G3 95/97); G4 bloqueada hasta cerrar G1–G3.
+- **G3 abiertos**: IN01 e IN06, que exigen las acciones reales de la interfaz en Android o Desktop.
+- **C2, composición**: el golden coloca EQUIPO y TESORO en media página cuando sus nombres son cortos; la App los pone a todo el ancho, con la gramática de filas y márgenes del golden.
+- **Índice y última página del Libro**: quedan columnas libres sin rejilla NOTAS; el golden no tiene un caso igual para comparar.
 - **Contrato sobre golden casi vacío** (sin cambio, C410): niveles sin espacios sin casillas inventadas (contrato visual, «mínimo 0, máximo 4»), y EQUIPO ESPECIAL con rótulos reconocidos por la App más filas en blanco (D-0076 §3.42).
-- **GLB08 y P112**: el propietario decidió seguir el golden (2026-11-03); ambos en PASS G3.
-- **P104**: PASS G3 (C385) y aprobado visualmente por el propietario el 2026-11-03.
+- **P4, nivel que sigue en otra columna**: rótulo «NIVEL n / CONTINUACIÓN» por decisión escrita del propietario (C341), aunque el golden repite el título.
+- **Herramienta**: `audit_v11_golden_geometry.py` comprueba hoy P1, P2, P3 y NOTAS del golden casi vacío; se puede ampliar a las demás páginas.
