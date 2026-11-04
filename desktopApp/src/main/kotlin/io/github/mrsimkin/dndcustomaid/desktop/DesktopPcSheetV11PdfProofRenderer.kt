@@ -366,9 +366,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // titles start 16 pt inside the band, clear of the left diamond.
             fun drawCartelaDiamonds(stream: PDPageContentStream, left: Float, right: Float,
                                     bottom: Float, top: Float) {
-                val h = minOf(6.2f, top - bottom - 4f)
+                // C418: golden diamonds - 3.56 x 6.24 pt, 8.5 pt inside each end, 0.14 pt under the middle.
+                val h = minOf(6.24f, top - bottom - 4f)
                 val w = h * 0.57f
-                val mid = (bottom + top) / 2f
+                val mid = (bottom + top) / 2f - 0.14f
                 // C353: every golden cartela carries the inner hairline - 3.4 pt
                 // under its top edge, 9.07 pt in from each side, #bfd3de 0.35 pt.
                 stream.saveGraphicsState()
@@ -382,7 +383,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.setStrokingColor(Color(82, 124, 150))
                 stream.setNonStrokingColor(Color.WHITE)
                 stream.setLineWidth(0.48f)
-                listOf(left + 6f, right - 6f).forEach { cx ->
+                listOf(left + 8.5f, right - 8.5f).forEach { cx ->
                     stream.moveTo(cx, mid + h / 2f)
                     stream.lineTo(cx + w / 2f, mid)
                     stream.lineTo(cx, mid - h / 2f)
