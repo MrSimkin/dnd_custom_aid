@@ -198,8 +198,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.fill()
                 stream.setStrokingColor(Color(148, 176, 193))
                 stream.setLineWidth(0.32f)
-                stream.moveTo(x, y + 0.2f)
-                stream.lineTo(x + w, y + 0.2f)
+                stream.moveTo(x, y + 0.99f) // C411 golden: 0.99 pt above the row foot
+                stream.lineTo(x + w, y + 0.99f)
                 stream.stroke()
                 stream.restoreGraphicsState()
             }
@@ -753,7 +753,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         val rowTop=top-22.82f-idx*12.47f
                         val y=rowTop-8.72f
                         require(y>p1AttributeTop(attrIndex+1)+1f)
-                        fillBand(stream, 39.69f, rowTop - 12.47f, 220.53f, 12.47f, idx + 1)
+                        // C411: golden skills start each attribute on the darker tone.
+                        fillBand(stream, 39.69f, rowTop - 12.47f, 220.53f, 12.47f, idx)
                         // C350: golden skill box - 8.5 pt at x43.23, white, #527c96 0.48 pt.
                         stream.saveGraphicsState()
                         stream.setNonStrokingColor(Color(255, 255, 255))
@@ -784,12 +785,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
                 // C232 step 3: the golden fills the unused foot of the left column with
                 // blank banded manuscript rows (13pt) instead of a stray caption.
-                // C357: golden blank rows of 12.47 pt down to the y60 foot reserve.
+                // C411: golden blank rows of 14.17 pt (taller than a skill row) down to the foot.
                 var blankRowTop = p1AttributeTop(p1PrintedAttributeCount)
                 var blankRowIndex = 0
-                while (blankRowTop - 12.47f >= 60f) {
-                    fillBand(stream, 39.69f, blankRowTop - 12.47f, 220.53f, 12.47f, blankRowIndex)
-                    blankRowTop -= 12.47f
+                while (blankRowTop - 14.17f >= 59.5f) {
+                    fillBand(stream, 39.69f, blankRowTop - 14.17f, 220.53f, 14.17f, blankRowIndex)
+                    blankRowTop -= 14.17f
                     blankRowIndex += 1
                 }
             }
@@ -1309,6 +1310,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         Color(231,242,247) else Color(240,247,250))
                     stream.addRect(p1MagicColumn(col),p1MagicRowBottom(row),magicCard,18.99f)
                     stream.fill()
+                    // C411: golden row rule, 0.99 pt above the row foot.
+                    stream.setStrokingColor(Color(148,176,193))
+                    stream.setLineWidth(0.32f)
+                    stream.moveTo(p1MagicColumn(col),p1MagicRowBottom(row)+0.99f)
+                    stream.lineTo(p1MagicColumn(col)+magicCard,p1MagicRowBottom(row)+0.99f)
+                    stream.stroke()
                 }
                 stream.restoreGraphicsState()
                 val magical=when(source.spellcastingAbility){
