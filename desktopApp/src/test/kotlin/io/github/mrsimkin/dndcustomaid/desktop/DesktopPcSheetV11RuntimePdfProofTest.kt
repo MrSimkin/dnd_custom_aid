@@ -1144,6 +1144,33 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c423ALeftoverTableSharesItsPageWithEquipoEspecialAB() {
+        // C423: as in the golden, one table left over from P2 shares its page with every
+        // deferred EQUIPO ESPECIAL row that fits, and P2 points both modules to that page.
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            Loader.loadPDF(DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), mara,
+            ).bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                val shared = pages.indexOfFirst { it.contains("C2 - Equipo y tesoro / EQUIPO + EQUIPO ESPECIAL") }
+                assertTrue(shared > 0, "The shared page exists ($variant).")
+                assertFalse(pages.any { it.contains("C2 - Equipo especial / continuación") },
+                    "No separate special page remains ($variant).")
+                listOf("EQUIPO", "EQUIPO ESPECIAL", "NOTAS").forEach { title ->
+                    assertTrue(pages[shared].lineSequence().any { it.trim().startsWith(title) },
+                        "$title cartela on the shared page ($variant).")
+                }
+                assertTrue(pages[1].contains("EQUIPO, EQUIPO ESPECIAL CONTINÚAN EN PÁG. " + (shared + 1)),
+                    "P2 names both modules with the real page ($variant).")
+                assertTrue(pages[shared].contains("VIENE DE PÁG. 2"), "It names its origin ($variant).")
+            }
+        }
+    }
+
+    @Test
     fun c422P4SharesItsRowsLikeTheGoldenWithMoreRoomForLowLevelsAB() {
         // C422 / P407: the golden share of one P4 page, real spells included - trucos 16,
         // levels 1..3 17/17/16, level 4 8 and levels 5..9 4 each, column by column; a level
@@ -1203,7 +1230,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             Loader.loadPDF(bytes).use { pdf ->
                 val pages = (0 until pdf.numberOfPages).filter { i ->
                     PDFTextStripper().apply { startPage = i + 1; endPage = i + 1 }.getText(pdf)
-                        .contains("C2 - Equipo especial")
+                        .let { it.contains("C2 - Equipo especial") || it.contains("+ EQUIPO ESPECIAL") }
                 }
                 assertTrue(pages.isNotEmpty(), "Mara has a C2 special page ($variant).")
                 pages.forEach { i ->
@@ -1215,8 +1242,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         .findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }
                         .filter { (x0, _, x1) -> near(x0, x1) }.toList()
                     for (x in listOf(146.21f, 279.37f, 527.04f)) {
-                        assertTrue(verticals.any { (x0, _, _, y1) -> near(x0, x) && near(y1, 660.76f) },
-                            "Column rule at $x starts under the cartela ($variant).")
+                        assertTrue(verticals.any { (x0, y0, _, y1) -> near(x0, x) && kotlin.math.abs(y1 - y0) >= 26f },
+                            "Column rule at $x runs along its rows ($variant).")
                     }
                     val boxes = Regex("""(?:^|\s)$number\s+$number\s+$number\s+$number\s+re(?:\s|$)""")
                         .findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }
@@ -2577,9 +2604,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(real.permanent.sheet.traits.isNotEmpty())
             assertTrue(printed.contains("RASGOS"),
                 "The owner-approved identification area must still exist.")
-            assertTrue(printed.contains("C2 - Equipo especial"))
+            // C423: a short deferred table shares its page with EQUIPO ESPECIAL.
+            assertTrue(printed.contains("C2 - Equipo especial") || printed.contains("+ EQUIPO ESPECIAL"))
             val specialContinuation = pagesByPhysicalNumber.filter {
-                realHeading(it, "C2 - Equipo especial / continuación")
+                realHeading(it, "C2 - Equipo especial / continuación") || it.contains("+ EQUIPO ESPECIAL")
             }
             assertTrue(specialContinuation.isNotEmpty())
             // C419: the golden C2 table has no title row; c419 guards its four columns.
@@ -2590,7 +2618,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(physicalP2.replace(Regex("\\s+"), " ")
                 .contains("Astrolabio de cobre"),
                 "Mara's first special entry must be printed on P2.")
-            assertFalse(specialContinuation.joinToString("\n")
+            // C423: on a shared page, only what follows the EQUIPO ESPECIAL cartela is special.
+            assertFalse(specialContinuation.joinToString("\n") { it.substringAfterLast("EQUIPO ESPECIAL") }
                 .contains("Astrolabio de cobre"),
                 "An entry printed on P2 must not be repeated on C2.")
             assertTrue(printed.contains("RASGOS"))
@@ -6553,7 +6582,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             "EQUIPO Y TESORO" to listOf("C2 - Equipo y tesoro / EQUIPO Y TESORO"),
             "EQUIPO" to listOf("C2 - Equipo y tesoro / EQUIPO"),
             "TESORO" to listOf("C2 - Equipo y tesoro / TESORO"),
-            "EQUIPO ESPECIAL" to listOf("C2 - Equipo especial / continuación"),
+            "EQUIPO ESPECIAL" to listOf("C2 - Equipo especial / continuación",
+                "C2 - Equipo y tesoro / EQUIPO + EQUIPO ESPECIAL"),
         )
         val mara = sources("03_mara_siete_umbrales_custom_extended.json")
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
@@ -8050,8 +8080,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 // C259: Mara's golden resource boxes and action table take one
                 // more real C2 page; C314: the golden note spacing gives her nine
-                // long notes a second C-N3 page (11). The header itself adds none.
-                assertEquals(11, pages.size,
+                // long notes a second C-N3 page; C423: her equipment and special equipment
+                // share a page, as in the golden (10). The header itself adds none.
+                assertEquals(10, pages.size,
                     "A source-only C2 header must not create or remove pages.")
                 val c2Indices = pages.indices.filter {
                     pages[it].contains("C2 - Habilidades, acciones y recursos")
@@ -8120,14 +8151,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     val ordinaryC2 = pages.indexOfFirst {
                         it.contains("C2 - Equipo y tesoro / EQUIPO")
                     } + 1
-                    val specialC2 = pages.indexOfFirst {
-                        it.contains("C2 - Equipo especial / continuación")
-                    } + 1
-                    assertTrue(ordinaryC2 > mixedPhysical && specialC2 > ordinaryC2)
-                    assertTrue(pages[1].contains("EQUIPO CONTINÚA EN PÁG. " + ordinaryC2),
-                        "Mara P2 must lead to its separate ordinary-equipment C2.")
-                    assertTrue(pages[1].contains("EQUIPO ESPECIAL CONTINÚA EN PÁG. " + specialC2),
-                        "Mara P2 must lead to its separate special-equipment C2.")
+                    // C423: as in the golden, her leftover equipment and special equipment
+                    // share one C2 page, and P2 names both modules with that page.
+                    assertTrue(ordinaryC2 > mixedPhysical)
+                    assertTrue(pages[ordinaryC2 - 1].contains("+ EQUIPO ESPECIAL"),
+                        "Equipment and special equipment share their C2 page.")
+                    assertTrue(pages[1].contains("EQUIPO, EQUIPO ESPECIAL CONTINÚAN EN PÁG. " + ordinaryC2),
+                        "Mara P2 must lead to the shared equipment C2.")
 
                 }
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })

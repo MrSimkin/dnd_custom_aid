@@ -5391,17 +5391,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val occupied = (expanded.labels.maxOfOrNull { it.rowIndex + 1 }
                         ?: 0) * c2TableFont.metrics.lineHeightPt
                     val upperHeight = maxOf(90f, occupied + 18f)
-                    // Only ONE short, standard-width ordinary pair may join
-                    // ONE deferred special record. The real full-width special
-                    // table is measured below before this reservation commits.
-                    // Large, multi-page or currency cases remain unchanged.
-                    val reserveForSpecial = label == "EQUIPO" &&
+                    // C423: as in the golden, one table left over from P2 shares its page with
+                    // the deferred EQUIPO ESPECIAL. The real full-width special table is
+                    // measured below before this reservation commits.
+                    val reserveForSpecial =
                         pairedRemainders.count { it.second.rows.isNotEmpty() } == 1 &&
-                        specialDeferredToC2.size == 1 &&
-                        PcSheetV11PairedAmountRouting.c2AmountWidth(
-                            remaining, c2TableFont.width,
-                        ) <= PcSheetV11PairedAmountRouting.BASE_AMOUNT_WIDTH_PT &&
-                        expanded.localPageCount == 1 && upperHeight <= 180f
+                        specialDeferredToC2.isNotEmpty() &&
+                        expanded.localPageCount == 1
                     if (reserveForSpecial) {
                         deferredOrdinaryForSpecial =
                             DeferredOrdinaryForSpecial(label, original, expanded, upperHeight)
@@ -5495,8 +5491,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // If not, flush the deferred ordinary page unchanged before the
             // original special continuation pages; never attempt compression.
             val sharedC2 = deferredOrdinaryForSpecial?.takeIf { pending ->
-                c2SpecialPages.size == 1 && c2SpecialPages.single().size == 1 &&
-                    c2SpecialPages.single().single().startLine == 0 &&
+                c2SpecialPages.size == 1 &&
                     c2SpecialPages.single().sumOf { it.heightPt.toDouble() } <
                         c2SpecialArea.heightPt - pending.upperHeight - 24.94f - 10f
             }
@@ -5513,18 +5508,18 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val page = PDPage(PDRectangle.LETTER)
                 pdf.addPage(page)
                 physicalSectionKeys += if (shared != null)
-                    "C2 - Equipo y tesoro / EQUIPO + EQUIPO ESPECIAL"
+                    "C2 - Equipo y tesoro / " + shared.label + " + EQUIPO ESPECIAL"
                     else "C2 - Equipo especial / continuación"
                 PDPageContentStream(pdf, page).use { stream ->
                     if (shared != null) {
                         drawFrameAndHeader(stream,
-                            "C2 - Equipo y tesoro / EQUIPO + EQUIPO ESPECIAL")
+                            "C2 - Equipo y tesoro / " + shared.label + " + EQUIPO ESPECIAL")
                         val topArea = PcSheetV11RectPt(
                             39.69f, c2SpecialArea.topPt - shared.upperHeight,
                             532.63f, shared.upperHeight,
                         )
                         val topPlaced = placeC2Paired(
-                            pairedRemainders.first().second, topArea,
+                            pairedRemainders.first { it.first == shared.label }.second, topArea,
                         )
                         require(topPlaced.localPageCount == 1) {
                             "Measured shared C2 ordinary equipment cannot fit its top panel."
@@ -5532,7 +5527,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         val alreadyP2 = shared.original.quantities
                             .filter { it.localPageIndex == 1 }
                             .map { it.sourceKey }.toSet()
-                        drawPaired(stream, "EQUIPO / CANTIDAD", topArea,
+                        drawPaired(stream, shared.label + " / CANTIDAD", topArea,
                             topPlaced, 1, alreadyP2, compactC2 = true, tableFont = c2TableFont,
                             writeC2Notes = false)
                     } else {
@@ -6024,6 +6019,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         else -> null
                     }
                     if (sourceModule != null) add(sourceModule to (physicalIndex + 1))
+                    // C423: a shared page also holds the deferred EQUIPO ESPECIAL.
+                    if (section.endsWith(" + EQUIPO ESPECIAL")) add("ESPECIAL" to (physicalIndex + 1))
                 }
             }.distinctBy { it.first }.sortedBy { it.second }
             require(p2C2Destinations.minOfOrNull { it.second } == c2FromP2) {
