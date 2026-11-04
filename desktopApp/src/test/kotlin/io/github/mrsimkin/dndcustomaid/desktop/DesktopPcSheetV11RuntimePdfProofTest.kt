@@ -1287,6 +1287,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(pages[1].contains("EQUIPO, EQUIPO ESPECIAL CONTINÚAN EN PÁG. " + (shared + 1)),
                     "P2 names both modules with the real page ($variant).")
                 assertTrue(pages[shared].contains("VIENE DE PÁG. 2"), "It names its origin ($variant).")
+                // C428: the golden comparator's label for full-width modules.
+                assertTrue(pages[shared].contains("MÓDULOS COMPARTIDOS · MIXTO"), "Mixed C2 label ($variant).")
+                assertTrue(pages.any { it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") }, "Two-column C2 label ($variant).")
             }
         }
     }

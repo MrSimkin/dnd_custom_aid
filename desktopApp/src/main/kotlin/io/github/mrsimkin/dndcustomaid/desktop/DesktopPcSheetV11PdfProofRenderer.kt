@@ -577,7 +577,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 if (title.startsWith("C2 - Habilidades, acciones y recursos")) {
                     stream.saveGraphicsState()
                     stream.setNonStrokingColor(Color(38, 75, 104))
-                    drawP1Label(stream, "MÓDULOS COMPARTIDOS · DOS COLUMNAS", 39.69f, 691.9f, 7.5f)
+                    drawP1Label(stream, "MÓDULOS COMPARTIDOS · DOS COLUMNAS", 39.69f, 691.94f, 7.5f)
+                    stream.restoreGraphicsState()
+                }
+                // C428: golden comparator - full-width modules are the mixed C2 composition.
+                if (title.startsWith("C2 - Equipo")) {
+                    stream.saveGraphicsState()
+                    stream.setNonStrokingColor(Color(38, 75, 104))
+                    drawP1Label(stream, "MÓDULOS COMPARTIDOS · MIXTO", 39.69f, 691.94f, 7.5f)
                     stream.restoreGraphicsState()
                 }
                 // C298: the golden has no black text; every page starts in its value ink.
