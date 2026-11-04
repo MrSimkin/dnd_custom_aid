@@ -101,7 +101,7 @@ class DesktopPcSheetV11FontMeasurerTest {
             assertEquals(29, equipment.rows.size)
             assertEquals(5, treasure.rows.size)
             assertEquals(data.ordinaryEquipment.map { it.sourceId }, equipment.rows.map { it.sourceId })
-            assertEquals(data.currencies.map { it.amount }, treasure.rows.map { it.amount })
+            assertEquals(data.currencies.associate { "currency:" + it.key to it.amount }, treasure.rows.associate { it.sourceKey to it.amount })
             listOf(equipment, treasure).forEach { table ->
                 val paired = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableComposer.place(
                     data = table,

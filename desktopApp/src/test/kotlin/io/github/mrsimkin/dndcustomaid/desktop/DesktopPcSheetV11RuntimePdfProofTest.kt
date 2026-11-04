@@ -5587,7 +5587,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }
                 }.apply { startPage = firstBookPage; endPage = firstBookPage }.getText(pdf)
                 val fireBolt = requireNotNull(names["Fire Bolt"]) { "Fire Bolt card name line ($variant)." }
-                assertTrue(levels.any { (x, y) -> kotlin.math.abs(y - fireBolt) < 0.1f && x > 200f },
+                assertTrue(levels.any { (x, y) -> kotlin.math.abs(y - fireBolt) < 0.7f && x > 200f }, // C425 golden 0.57 pt above
                     "NIVEL is right-aligned on the Fire Bolt name line ($variant): $levels")
                 assertTrue(book.contains("BK06_DESCRIPCION_FIN"),
                     "The whole real spell description must survive the book reflow.")

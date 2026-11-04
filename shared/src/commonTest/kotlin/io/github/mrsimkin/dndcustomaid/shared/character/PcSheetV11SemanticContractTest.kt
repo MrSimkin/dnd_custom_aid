@@ -342,6 +342,26 @@ class PcSheetV11SemanticContractTest {
     }
 
     @Test
+    fun treasureTableFollowsTheGoldenCoinOrderThenCustomCoinsAsSaved() {
+        // C425: platinum down to copper, then custom coins in their saved order.
+        val coins = listOf(
+            CharacterCurrency("cp", "Cobre", 1, 0, true),
+            CharacterCurrency("sp", "Plata", 2, 1, true),
+            CharacterCurrency("ep", "Electrum", 3, 2, true),
+            CharacterCurrency("gp", "Oro", 4, 3, true),
+            CharacterCurrency("pp", "Platino", 5, 4, true),
+            CharacterCurrency("custom-b", "Perla", 0, 5, false),
+            CharacterCurrency("custom-a", "Concha", 7, 6, false),
+        )
+        val data = map(sources = PcSheetExportSources(aggregate(baseSheet().copy(currencies = coins))))
+        assertEquals(
+            listOf("Platino", "Oro", "Electrum", "Plata", "Cobre", "Perla", "Concha"),
+            PcSheetV11PairedTableSources.treasure(data).rows.map { it.label },
+        )
+        assertEquals(listOf(5, 4, 3, 2, 1, 0, 7), PcSheetV11PairedTableSources.treasure(data).rows.map { it.amount })
+    }
+
+    @Test
     fun v11PageSequenceKeepsCorePagesAndFinalHandwrittenPageEvenWithNoMagic() {
         val noMagic = map(
             sources = PcSheetExportSources(aggregate(baseSheet().copy(spellcasterEnabled = true))),

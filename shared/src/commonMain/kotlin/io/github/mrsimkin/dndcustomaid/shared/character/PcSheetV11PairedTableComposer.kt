@@ -40,7 +40,11 @@ object PcSheetV11PairedTableSources {
     fun treasure(data: PcSheetV11SemanticData): PcSheetV11PairedTableData =
         PcSheetV11PairedTableData(
             PcSheetV11PairedTableKind.TREASURE,
-            data.currencies.map { coin ->
+            // C425: the golden order - platinum down to copper, then custom coins as saved.
+            data.currencies.sortedBy { coin ->
+                listOf("pp", "gp", "ep", "sp", "cp").indexOf(coin.key.lowercase())
+                    .let { if (it < 0) Int.MAX_VALUE else it }
+            }.map { coin ->
                 PcSheetV11PairedTableRow(
                     "currency:" + coin.key,
                     coin.name,

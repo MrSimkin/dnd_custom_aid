@@ -2575,7 +2575,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.saveGraphicsState()
                 stream.setNonStrokingColor(Color(29, 56, 79))
                 // C321: golden title baseline 6.84 pt above a 22.96 pt band.
-                drawP1Label(stream, label, 55.69f, y + (if (height > 21f) 6.84f else 6.4f), 9.1f)
+                drawP1Label(stream, label, 56.69f, y + (if (height > 21f) 6.8f else 6.4f), 9.1f) // C425 golden
                 stream.restoreGraphicsState()
             }
             fun p3RuledCells(
@@ -2817,7 +2817,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
                 // C416: golden C2 list text sits 4.25 pt inside its band; lines wrap as if
                 // the band were 8.5 pt narrower, so the text also stays clear on the right.
-                val c2TextInset = if (title == "C2 - Habilidades, acciones y recursos") 4.25f else 0f
+                val c2TextInset = if (title == "C2 - Habilidades, acciones y recursos" ||
+                    title == "Índice del Libro de Conjuros") 4.25f else 0f
                 val flow = (if (c2TextInset > 0f) font.copy(width = PcSheetV11TextWidth { text ->
                     font.width.measurePt(text) + 2f * c2TextInset
                 }) else font).place(section, entries, area, columns, gutterPt)
@@ -3750,9 +3751,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 val label = bookInlineLevels.getValue(cell.sourceKey)
                                 // C270: golden NIVEL label 6.3 pt, #264b68.
                                 stream.setNonStrokingColor(Color(38, 75, 104))
-                                drawP1Label(stream, label, cell.cellPt.rightPt - 2f -
+                                // C425: golden tag 2 pt nearer the card edge, 0.57 pt above the name baseline.
+                                drawP1Label(stream, label, cell.cellPt.rightPt + 1.98f -
                                     headerPdfFont.getStringWidth(label) * 6.3f / 1000f,
-                                    cell.cellPt.topPt - 12.76f, 6.3f) // C288: golden name baseline
+                                    cell.cellPt.topPt - 12.19f, 6.3f)
                                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                             }
                         }
