@@ -1144,6 +1144,52 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c422P4SharesItsRowsLikeTheGoldenWithMoreRoomForLowLevelsAB() {
+        // C422 / P407: the golden share of one P4 page, real spells included - trucos 16,
+        // levels 1..3 17/17/16, level 4 8 and levels 5..9 4 each, column by column; a level
+        // with more real spells keeps them all and the page stays single.
+        val number = """(-?\d+(?:\.\d+)?)"""
+        val ilyra = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val base = ilyra.permanent.sheet.spells.first { it.sourceAssociations.isNotEmpty() }
+        fun withSpells(vararg levels: Int) = ilyra.copy(permanent = ilyra.permanent.copy(
+            sheet = ilyra.permanent.sheet.copy(spells = levels.mapIndexed { i, level -> base.copy(
+                id = Uuid.parse("f7200000-0000-4000-8000-" + (i + 1).toString().padStart(12, '0')),
+                name = "QAP4R" + i, level = level, sortOrder = i) })))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            fun rows(bytes: ByteArray): Triple<Int, List<Int>, List<Int>> = Loader.loadPDF(bytes).use { pdf ->
+                val p4 = (0 until pdf.numberOfPages).filter { i ->
+                    PDFTextStripper().apply { startPage = i + 1; endPage = i + 1 }.getText(pdf).contains("P4 - Conjuros /")
+                }
+                val ops = pdf.getPage(p4.first()).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                val boxes = Regex("""(?:^|\s)$number\s+$number\s+$number\s+$number\s+re(?:\s|$)""")
+                    .findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }
+                    .filter { (_, _, w, h) -> kotlin.math.abs(w - 8.22f) < 0.02f && kotlin.math.abs(h - 8.22f) < 0.02f }.toList()
+                val columns = listOf(39.69f, 222.09f, 404.5f)
+                val rowCounts = columns.map { c -> boxes.count { (x) -> kotlin.math.abs(x - (c + 2.56f)) < 0.05f } }
+                val pageText = PDFTextStripper().apply { startPage = p4.first() + 1; endPage = p4.first() + 1 }.getText(pdf)
+                val levelFirstColumn = (1..9).map { pageText.indexOf("NIVEL $it") }
+                Triple(p4.size, rowCounts, levelFirstColumn)
+            }
+            val few = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), withSpells(0, 1, 3),
+            )
+            val (pages, counts) = rows(few.bytes)
+            assertEquals(1, pages, "A short list stays on one P4 page ($variant).")
+            assertEquals(listOf(33, 33, 28), counts, "The golden 16+17, 17+16 and 8+4x5 rows per column ($variant).")
+            // Level 2 with 25 real spells keeps them all on the single page.
+            val busy = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                withSpells(*IntArray(25) { 2 }),
+            )
+            Loader.loadPDF(busy.bytes).use { pdf ->
+                val all = PDFTextStripper().getText(pdf)
+                (0 until 25).forEach { assertEquals(1, Regex("QAP4R$it\\b").findAll(all).count(), "Spell $it prints once ($variant).") }
+            }
+            assertEquals(1, rows(busy.bytes).first, "25 real level 2 spells still fit one P4 page ($variant).")
+        }
+    }
+
+    @Test
     fun c419C2SpecialTableKeepsItsFourColumnsWithoutATitleRowAB() {
         // C419: golden C2 EQUIPO ESPECIAL - rows start right under the cartela, with the
         // three column rules and one paper ACTIVO box per record, and no title row.
@@ -4896,9 +4942,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             // 7 additional Ilyra / 8 additional Mara BLANK vector rows.
             // Keep the physical square count exact; do not weaken this
             // assertion or conflate empty writing with a digital spell.
-            // C362: the golden 20.69 pt level bands leave 66 / 70 blank rows.
+            // C422: the golden share of the page holds 94 rows, real spells included,
+            // which leaves 67 / 70 blank rows.
             Triple("02_ilyra_quill_srd5_2_1_evoker_wizard.json",
-                PcSheetV11Variant.B, 66),
+                PcSheetV11Variant.B, 67),
             // C258: Ilyra's two-source spells take two rows (91 -> 89 blank rows);
             // Mara's source label now fits beside each spell without the [X]
             // mark, so her rows are single-line and leave 89 blank rows (was 68).

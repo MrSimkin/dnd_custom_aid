@@ -3289,7 +3289,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             stream.setNonStrokingColor(Color(29, 56, 79))
                             stream.beginText()
                             stream.setFont(headerPdfFont, 9.1f)
-                            stream.newLineAtOffset(55.69f, 679.5f)
+                            stream.newLineAtOffset(56.69f, 679.46f) // C422 golden
                             stream.showText("NOTAS")
                             stream.endText()
                             val scope = "solo notas digitales"
@@ -5696,10 +5696,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // epic rules data and are not invented. Sources/preparation stay
                 // linked to the specific persisted casting-source association.
                 fun quickRows(
-                    manuscriptRowsPerLevel: Int,
+                    manuscriptRows: (Int) -> Int,
                     extraLastLevel9PaperRows: Int = 0,
                 ): List<PcSheetV11FlowItem> = buildList {
-                    require(manuscriptRowsPerLevel >= 1 && extraLastLevel9PaperRows >= 0)
+                    require(extraLastLevel9PaperRows >= 0)
                     val levels = (0..9).toList() +
                         data.spells.map { it.spell.level }.filter { it >= 10 }.distinct().sorted()
                     levels.forEach { level ->
@@ -5726,7 +5726,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         // Rows are PAPER-ONLY: no fabricated spell, source, preparation
                         // or spell slot. Every level is writable, even when populated.
                         val paperRows = (if (level in 0..9)
-                            manuscriptRowsPerLevel else 1) +
+                            manuscriptRows(level).also { require(it >= 1) } else 1) +
                             (if (level == 9) extraLastLevel9PaperRows else 0)
                         repeat(paperRows) { row ->
                             add(PcSheetV11FlowItem(
@@ -5746,64 +5746,47 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // C322: golden P4 rows from y630.43 down to 64.92.
                 val p4WritingArea = PcSheetV11RectPt(39.69f, 64.92f, 532.62f, 565.51f)
                 val p4GutterPt = 14.59f
-                val minimalQuick = quickRows(1)
-                val minimalPlacement = quickFont.place(
-                    PcSheetV11FlowSection.QUICK_SPELLS,
-                    minimalQuick, p4WritingArea, 3, p4GutterPt,
+                fun p4Pages(items: List<PcSheetV11FlowItem>) = quickFont.place(
+                    PcSheetV11FlowSection.QUICK_SPELLS, items, p4WritingArea, 3, p4GutterPt,
                 )
-                val quick = if (minimalPlacement.sourceFlow.localPageCount == 1) {
-                    var lowest = 1
-                    var highest = 20
-                    while (lowest < highest) {
-                        val candidateRows = (lowest + highest + 1) / 2
-                        val candidate = quickFont.place(
-                            PcSheetV11FlowSection.QUICK_SPELLS,
-                            quickRows(candidateRows), p4WritingArea, 3, p4GutterPt,
-                        )
-                        if (candidate.sourceFlow.localPageCount == 1) {
-                            lowest = candidateRows
-                        } else {
-                            highest = candidateRows - 1
-                        }
+                val minimalQuick = quickRows({ 1 })
+                val quick = if (p4Pages(minimalQuick).sourceFlow.localPageCount == 1) {
+                    // C422: the golden share of one P4 page - rows of trucos and levels 1..9,
+                    // real spells included: low levels get far more writing room than high ones.
+                    val goldenRows = listOf(16, 17, 17, 16, 8, 4, 4, 4, 4, 4)
+                    fun realRows(level: Int) = data.spells.filter { it.spell.level == level }
+                        .sumOf { p4SpellRows.getValue(it.spell.id).size }
+                    val paper = (0..9).associateWith { level ->
+                        maxOf(1, goldenRows[level] - realRows(level))
+                    }.toMutableMap()
+                    // Real spells can exceed that share: take rows back from the level with
+                    // the most paper (the highest on a tie) until the page holds everything.
+                    while (p4Pages(quickRows({ paper.getValue(it) })).sourceFlow.localPageCount > 1) {
+                        val level = paper.entries.filter { it.value > 1 }
+                            .maxWith(compareBy({ it.value }, { it.key })).key
+                        paper[level] = paper.getValue(level) - 1
                     }
-                    val baseRows = quickRows(lowest)
-                    val basePlacement = quickFont.place(
-                        PcSheetV11FlowSection.QUICK_SPELLS,
-                        baseRows, p4WritingArea, 3, p4GutterPt,
-                    )
-                    require(basePlacement.sourceFlow.localPageCount == 1)
-                    // Original golden P4 fills each column with handwriting
-                    // paper. Measured genuine App sheets often leave the LAST
-                    // column 7-8 writable rows short even when all source
-                    // levels are present. Grow ONLY the tail of the final
-                    // non-epic level 9, after every real spell/heading.
-                    // Never add a P4 filler page or give fake epic levels.
-                    val finalLevel9InLastColumn =
-                        data.spells.none { it.spell.level >= 10 } &&
-                            basePlacement.cells.any { cell ->
-                                cell.sourceKey == "spell-handwritten:9:" + (lowest - 1) &&
-                                    cell.localPageIndex == 1 && cell.columnIndex == 3
-                            }
+                    val baseRows = quickRows({ paper.getValue(it) })
+                    // Paper left at the foot of the last column goes to level 9.
+                    val lastPaperKey = "spell-handwritten:9:" + (paper.getValue(9) - 1)
+                    val finalLevel9InLastColumn = data.spells.none { it.spell.level >= 10 } &&
+                        p4Pages(baseRows).cells.any { cell ->
+                            cell.sourceKey == lastPaperKey && cell.localPageIndex == 1 && cell.columnIndex == 3
+                        }
                     if (finalLevel9InLastColumn) {
                         var extraLow = 0
                         var extraHigh = 42
                         while (extraLow < extraHigh) {
                             val extraCandidate = (extraLow + extraHigh + 1) / 2
-                            val candidate = quickFont.place(
-                                PcSheetV11FlowSection.QUICK_SPELLS,
-                                quickRows(lowest, extraCandidate),
-                                p4WritingArea, 3, p4GutterPt,
-                            )
-                            if (candidate.sourceFlow.localPageCount == 1) {
+                            if (p4Pages(quickRows({ paper.getValue(it) }, extraCandidate))
+                                    .sourceFlow.localPageCount == 1) {
                                 extraLow = extraCandidate
                             } else {
                                 extraHigh = extraCandidate - 1
                             }
                         }
                         // Only adds genuine vector WRITING ROWS at the end.
-                        // Existing source cells keep identical coordinates,
-                        // font, value and physical page number.
-                        quickRows(lowest, extraLow)
+                        quickRows({ paper.getValue(it) }, extraLow)
                     } else baseRows
                 } else minimalQuick
                 // C261: golden P4 rhythm, Fira 6.8 pt on 15.7 pt rows.
