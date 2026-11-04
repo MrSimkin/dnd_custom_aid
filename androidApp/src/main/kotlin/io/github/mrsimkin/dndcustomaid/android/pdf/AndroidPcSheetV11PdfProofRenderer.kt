@@ -4432,9 +4432,32 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // C211 R1: (xLeft, xRight, yLimit) — row rules below yLimit are not
                 // drawn across [xLeft, xRight], where a manuscript NOTES grid sits.
                 stopRulesBelow: List<Triple<Float, Float, Float>> = emptyList(),
+                // C408: golden P2 tables - separate (left, right) blocks of alternating
+                // rows with their rule; no frame and no vertical rules.
+                goldenBlocks: List<Pair<Float, Float>>? = null,
             ) {
                 require(manuscriptRowHeightPt.isFinite() && manuscriptRowHeightPt >=
                     body.metrics.lineHeightPt) { "Writing rows cannot be compressed." }
+                if (goldenBlocks != null) {
+                    val rows = (rect.heightPt / manuscriptRowHeightPt).toInt()
+                    stream.saveGraphicsState()
+                    goldenBlocks.forEach { (blockLeft, blockRight) ->
+                        repeat(rows) { row ->
+                            val rowBottom = rect.topPt - (row + 1) * manuscriptRowHeightPt
+                            stream.setNonStrokingColor(
+                                if (row % 2 == 0) Color(231, 242, 247) else Color(240, 247, 250))
+                            stream.addRect(blockLeft, rowBottom, blockRight - blockLeft, manuscriptRowHeightPt)
+                            stream.fill()
+                            stream.setStrokingColor(Color(148, 176, 193))
+                            stream.setLineWidth(0.32f)
+                            stream.moveTo(blockLeft, rowBottom + 0.99f)
+                            stream.lineTo(blockRight, rowBottom + 0.99f)
+                            stream.stroke()
+                        }
+                    }
+                    stream.restoreGraphicsState()
+                    return
+                }
                 // Blue mist writing bands and fine rules match the approved V11
                 // paper grammar; black default strokes belong only to PREQA.
                 stream.saveGraphicsState()
@@ -4661,6 +4684,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 } else emptyList()
                 grid(stream, visibleTable, true, manuscriptRowHeight,
                     alternateP2Rows = !compactC2,
+                    goldenBlocks = if (compactC2) null else listOf(39.69f to 166.25f, 171.92f to 298.49f), // C408
                     stopRulesBelow = sideNotes.map { notes ->
                         val pair = placed.pairs[notes.pairZero]
                         Triple(pair.leftPt, pair.rightPt, notes.gridTop + 19.56f)
@@ -4712,7 +4736,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(130, 165, 186))
                 stream.setLineWidth(0.45f)
-                placed.pairs.forEach { pair ->
+                // C408: the golden P2 has no quantity separators.
+                if (compactC2) placed.pairs.forEach { pair ->
                     // The quantity separator belongs to its ACTUAL measured column.
                     // Preserve the original -42pt separator for normal 36pt rows.
                     val amountWidth = placed.quantities.firstOrNull()?.rectPt?.widthPt
@@ -4732,6 +4757,22 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         draw(stream, cell.printableText, cell.rectPt.leftPt + 2f,
                             body.metrics.baselineIn(cell.rectPt), false)
                     }
+                }
+                // C408: golden P2 - only a row with a record gets its quantity separator
+                // (#94b0c1 0.35 pt), 31.64 pt inside the block for EQUIPO, 35.44 pt for TESORO.
+                if (!compactC2) {
+                    val inset = if (placed.data.kind ==
+                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableKind.EQUIPMENT) 31.64f else 35.44f
+                    stream.saveGraphicsState()
+                    stream.setStrokingColor(Color(148, 176, 193))
+                    stream.setLineWidth(0.35f)
+                    placed.quantities.filter { it.localPageIndex == localPage }.forEach { cell ->
+                        val x = (if (cell.rectPt.leftPt < 170f) 166.25f else 298.49f) - inset
+                        stream.moveTo(x, cell.rectPt.bottomPt)
+                        stream.lineTo(x, cell.rectPt.topPt)
+                        stream.stroke()
+                    }
+                    stream.restoreGraphicsState()
                 }
                 placed.quantities.filter {
                     it.localPageIndex == localPage && it.sourceKey !in suppressAmounts
@@ -4780,7 +4821,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 drawPaired(stream, "TESORO   /   CANTIDAD", treasureArea, treasurePlaced, localPage,
                     tableFont = p2Font)
                 drawP2Cartela(stream, "RASGOS Y ATRIBUTOS", traitsArea)
-                grid(stream, traitsArea, true, p2Font.metrics.lineHeightPt, alternateP2Rows = true)
+                grid(stream, traitsArea, true, p2Font.metrics.lineHeightPt, alternateP2Rows = true,
+                    goldenBlocks = listOf(309.26f to 438.8f, 442.77f to 572.32f)) // C408
                 traitsPlaced.cells.filter { it.localPageIndex == localPage }.forEach { cell ->
                     if (cell.drawableText.isNotEmpty()) {
                         stream.beginText()

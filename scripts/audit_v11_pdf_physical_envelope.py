@@ -20,9 +20,13 @@ P2_MODULES = (
     # REAL golden source-free P2 rows expand to manuscript rhythm;
     # source-populated tables use the golden 16 pt row (C263, 7.1 pt text).
     # C320: golden P2 tables (v11_extremo p2).
-    ("Equipo", 39.69, 121.32, 258.8, (16.0, 16.15)),
-    ("Tesoro", 39.69, 364.82, 258.8, (16.0, 19.84)),
-    ("Rasgos", 309.26, 121.32, 263.06, (16.0,)),
+    # C408: separate golden blocks (x39.69..166.25 / 171.92..298.49, x309.26..438.8 / 442.77..572.32).
+    ("Equipo", 39.69, 121.32, 126.56, (16.0, 16.15)),
+    ("Equipo derecha", 171.92, 121.32, 126.57, (16.0, 16.15)),
+    ("Tesoro", 39.69, 364.82, 126.56, (16.0, 19.84)),
+    ("Tesoro derecha", 171.92, 364.82, 126.57, (16.0, 19.84)),
+    ("Rasgos", 309.26, 121.32, 129.54, (16.0,)),
+    ("Rasgos derecha", 442.77, 121.32, 129.55, (16.0,)),
     # D-0076 §3.21: a multi-line special entry spans whole pitches; C343: the
     # golden 26.93 pt rows under a 15.02 pt header, full width x39.69..572.31.
     ("Equipo especial", 39.69, 515.62, 532.62, tuple(26.93 * n for n in range(1, 9))),
@@ -43,6 +47,11 @@ def p2_alternating_writing_rows(page: fitz.Page) -> list[str]:
                    and any(abs(r.height-height) < .5 for height in possible_heights)
                    for r in tinted):
             errors.append(f"P2 missing golden row shade in {name} at ({x},{y})")
+    # C408: the golden P2 tables (above EQUIPO ESPECIAL) have no vertical rules.
+    for d in page.get_drawings():
+        r = d["rect"]
+        if d.get("color") is not None and r.width < .05 and r.height > 40 and 118 < r.y0 and r.y1 < 490:
+            errors.append(f"P2 table has a non-golden vertical rule at x={r.x0:.2f}")
     return errors
 SPECIAL_TABLE = (39.69, 500.6, 572.31, 731.06)  # C343 golden P2 special table, top-origin
 

@@ -668,9 +668,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 fun near(a: Float, b: Float) = kotlin.math.abs(a - b) < 0.05f
                 // Empty P2 tables use the golden manuscript rows: 16.15 pt EQUIPO, 19.84 pt TESORO.
                 val p2Rects = rects(p2)
-                val equipo = p2Rects.count { (x, y, w, h) -> near(x, 39.69f) && near(w, 258.8f) && (near(h, 16f) || near(h, 16.15f)) && y > 430f }
-                val tesoro = p2Rects.count { (x, y, w, h) -> near(x, 39.69f) && near(w, 258.8f) && (near(h, 16f) || near(h, 19.84f)) && y in 276f..427f }
-                val rasgos = p2Rects.count { (x, _, w, h) -> near(x, 309.26f) && near(w, 263.06f) && near(h, 16f) }
+                val equipo = p2Rects.count { (x, y, w, h) -> near(x, 39.69f) && near(w, 126.56f) && (near(h, 16f) || near(h, 16.15f)) && y > 430f }
+                val tesoro = p2Rects.count { (x, y, w, h) -> near(x, 39.69f) && near(w, 126.56f) && (near(h, 16f) || near(h, 19.84f)) && y in 276f..427f }
+                val rasgos = p2Rects.count { (x, _, w, h) -> near(x, 309.26f) && near(w, 129.54f) && near(h, 16f) }
                 val especial = p2Rects.count { (x, _, w, h) -> near(x, 39.69f) && near(w, 532.62f) && near(h, 26.93f) }
                 assertTrue(equipo >= 3 && tesoro >= 2 && rasgos >= 3 && especial >= 2,
                     "Each empty P2 module keeps its own writable rows ($variant): " +
@@ -992,10 +992,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 } - 1
                 val ops = pdf.getPage(p2).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
                 fun near(a: Float, b: Float) = kotlin.math.abs(a - b) < 0.05f
-                // Golden P2 table rows (bottom origin): EQUIPO/TESORO x39.69 w258.8, RASGOS x309.26 w263.06.
+                // Golden P2 table blocks (C408, bottom origin): EQUIPO/TESORO x39.69 and x171.92,
+                // RASGOS x309.26 and x442.77.
                 val rows = Regex("""(?:^|\s)$number\s+$number\s+$number\s+$number\s+re(?:\s|$)""").findAll(ops)
                     .map { m -> m.groupValues.drop(1).map { it.toFloat() } }
-                    .filter { (x, _, w, h) -> ((near(x, 39.69f) && near(w, 258.8f)) || (near(x, 309.26f) && near(w, 263.06f))) &&
+                    .filter { (x, _, w, h) -> ((near(x, 39.69f) && near(w, 126.56f)) || (near(x, 171.92f) && near(w, 126.57f)) ||
+                        (near(x, 309.26f) && near(w, 129.54f)) || (near(x, 442.77f) && near(w, 129.55f))) &&
                         h in 15.9f..19.9f }.toList()
                 assertTrue(rows.size >= 15, "P2 table rows are found ($fixture): ${rows.size}")
                 val glyphs = mutableListOf<org.apache.pdfbox.text.TextPosition>()
@@ -1171,6 +1173,47 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(rects(pdf, lastP4).any { (x, y, w, h) -> near(x, 404.5f) && kotlin.math.abs(w - 167.81f) < 0.1f &&
                     y < 64f && h > 60f }, "Its golden grid frame reaches the page foot ($variant).")
             } }
+        }
+    }
+
+    @Test
+    fun c408P2TablesAreGoldenBlocksWithASeparatorOnlyOnRowsWithARecordAB() {
+        // C408: the golden P2 tables are separate blocks with no frame or long vertical
+        // rules; a short quantity separator appears only on rows that hold a record.
+        val number = """(-?\d+(?:\.\d+)?)"""
+        fun separators(ops: String) = Regex("""(?:^|\s)$number\s+$number\s+m\s+$number\s+$number\s+l(?:\s|$)""")
+            .findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }.filter { (x0, y0, x1, y1) ->
+                kotlin.math.abs(x0 - x1) < 0.01f && y1 - y0 in 10f..25f &&
+                    listOf(134.61f, 266.85f, 130.81f, 263.05f).any { kotlin.math.abs(it - x0) < 0.05f }
+            }.toList()
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val emptied = aldren.copy(permanent = aldren.permanent.copy(sheet = aldren.permanent.sheet.copy(
+            inventoryItems = emptyList(), currencies = emptyList())))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            for ((label, source) in listOf("Mara" to sources("03_mara_siete_umbrales_custom_extended.json"), "vacía" to emptied)) {
+                val bytes = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source).bytes
+                Loader.loadPDF(bytes).use { pdf ->
+                    val ops = pdf.getPage(1).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                    val blocks = Regex("""(?:^|\s)$number\s+$number\s+$number\s+$number\s+re(?:\s|$)""").findAll(ops)
+                        .map { m -> m.groupValues.drop(1).map { it.toFloat() } }.toList()
+                    for ((x, w) in listOf(39.69f to 126.56f, 171.92f to 126.57f, 309.26f to 129.54f, 442.77f to 129.55f)) {
+                        assertTrue(blocks.any { (bx, _, bw, _) -> kotlin.math.abs(bx - x) < 0.05f && kotlin.math.abs(bw - w) < 0.05f },
+                            "Golden P2 block at x$x ($label $variant).")
+                    }
+                    if (label == "vacía") {
+                        assertEquals(0, separators(ops).size, "An empty table has no separators ($variant).")
+                    } else {
+                        assertTrue(separators(ops).size >= 8, "Rows with records carry their separator ($variant).")
+                        val qtyDigits = PDFTextStripperByArea().apply {
+                            addRegion("q", java.awt.geom.Rectangle2D.Float(135f, 121f, 34f, 370f))
+                            extractRegions(pdf.getPage(1))
+                        }.getTextForRegion("q").split(Regex("""\s+""")).count { it.isNotBlank() && it.all(Char::isDigit) }
+                        val leftSeparators = separators(ops).count { (x, _, _, _) -> x < 170f }
+                        assertEquals(qtyDigits, leftSeparators, "One separator per left quantity ($variant).")
+                    }
+                }
+            }
         }
     }
 
@@ -7880,17 +7923,18 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             }
             // Look ONLY at the PDFBox full-width ruled lines of each left P2
             // table. Underlying digital labels are unaffected by this test.
-            // C320: golden P2 tables x39.69..298.49; EQUIPO 460.63..670.68, TESORO 327.97..427.18.
+            // C320: EQUIPO 460.63..670.68, TESORO 327.97..427.18. C408: golden blocks, first
+            // block x39.69..166.25, one rule 0.99 pt above each row foot.
             val rules = Regex(
-                """(?:^|\s)39\.69\d*\s+([0-9]+(?:\.[0-9]+)?)\s+m\s+298\.4\d*\s+\1\s+l"""
+                """(?:^|\s)39\.69\d*\s+([0-9]+(?:\.[0-9]+)?)\s+m\s+166\.2\d*\s+\1\s+l"""
             ).findAll(ops).map { it.groupValues[1].toFloat() }.toList()
             val equipment = rules.filter { it > 460.63f && it < 670.68f }.sortedDescending()
             val treasure = rules.filter { it > 327.97f && it < 427.18f }.sortedDescending()
-            assertEquals(12, equipment.size,
-                "Empty Equipo must reserve twelve generously spaced interior rules.")
-            // C320: the golden TESORO is five 19.84 pt rows, i.e. four interior rules.
-            assertEquals(4, treasure.size,
-                "Empty Tesoro must reserve the golden five pencil rows (four interior rules).")
+            assertEquals(13, equipment.size,
+                "Empty Equipo must reserve thirteen generously spaced golden rows.")
+            // C320: the golden TESORO is five 19.84 pt rows.
+            assertEquals(5, treasure.size,
+                "Empty Tesoro must reserve the golden five pencil rows.")
             equipment.zipWithNext { before, after ->
                 assertTrue(kotlin.math.abs(before - after - 16.15f) < 0.02f,
                     "Equipo handwritten rhythm must be the golden 16.16 pt (C320).")
