@@ -2595,9 +2595,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
             }
             fun drawP3ContinuationPaper(stream: PDPageContentStream, rowPt: Float) {
-                drawP3Band(stream, "TRASFONDO, PERFIL E HISTORIA / CONTINUACIÓN", 680f)
+                // C407: the golden P3 grammar - first-cartela band, story columns
+                // x39.69..302.88 and 309.12..572.32, from y670.68 down to the P3 foot y61.8.
+                drawP3Band(stream, "TRASFONDO, PERFIL E HISTORIA / CONTINUACIÓN", 672.66f, 22.96f)
                 val columns = PcSheetV11ColumnGrid.split(
-                    PcSheetV11RectPt(42f, 76f, 528f, 597f), 2, 12f,
+                    PcSheetV11RectPt(39.69f, 61.8f, 532.63f, 670.68f - 61.8f), 2, p3StoryGutterPt,
                 )
                 columns.forEach { p3RuledCells(stream, it, rowPt) }
             }
@@ -4921,18 +4923,19 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
             }
             val p3PagesBefore = physicalSectionKeys.size
-            // Text 4 pt inside the continuation paper bands (42..300 / 312..570).
-            val p3ContinuationTextArea = PcSheetV11RectPt(42f + p3TextInsetPt, 76f,
-                528f - 2 * p3TextInsetPt, 597f)
+            // Text 4 pt inside the continuation paper bands (C407: golden columns and foot).
+            val p3ContinuationTextArea = PcSheetV11RectPt(39.69f + p3TextInsetPt, 61.8f,
+                532.63f - 2 * p3TextInsetPt, 670.68f - 61.8f)
+            val p3ContinuationGutterPt = p3StoryGutterPt + 2 * p3TextInsetPt
             addSection("P3 - Narrativa / continuación", PcSheetV11FlowSection.NARRATIVE,
                 p3FieldOverflow, 2, area = p3ContinuationTextArea,
-                gutterPt = 12f + 2 * p3TextInsetPt)
+                gutterPt = p3ContinuationGutterPt)
             val p3StoryPagesBefore = physicalSectionKeys.size
             addSection("P3 - Narrativa / continuación", PcSheetV11FlowSection.NARRATIVE,
                 p3StoryOverflow, 2, area = p3ContinuationTextArea,
                 font = storyFont,
                 firstPageNumber = physicalSectionKeys.size - p3PagesBefore + 1,
-                gutterPt = 12f + 2 * p3TextInsetPt)
+                gutterPt = p3ContinuationGutterPt)
             // C253/C258: golden P3 footer "HISTORIA A P. 6": each continued P3
             // field by its own name (owner 2026-10-28) and the story, with the
             // first real physical page of each, on the module-link band.

@@ -142,7 +142,8 @@ def p3_golden_row_grammar(page: fitz.Page, first_page: bool) -> tuple[int,int,li
     else:
         # Long true-source P3 continuation: both columns must retain style
         # (12.42 pt profile-field rows or 17 pt story rows).
-        for x in (42.,312.):
+        # C407: the golden P3 story columns x39.69 and x309.12.
+        for x in (39.69,309.12):
             if any(close(r.x0,x,.42) and r.width>230
                    and 110<r.y0<150 and (9<r.height<15 or 16.5<r.height<17.5)
                    for r in color_fills): stripes+=1
