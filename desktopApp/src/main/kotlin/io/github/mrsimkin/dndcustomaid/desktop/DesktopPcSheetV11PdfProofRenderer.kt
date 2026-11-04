@@ -2408,6 +2408,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val c2Font = goldenRhythm(7.2f, 15.7f)
             // C263: golden P2 Equipo / Tesoro / Rasgos, 7.1 pt on 16 pt rows.
             val p2Font = goldenRhythm(7.1f, 16f)
+            // C409: golden P2 tables keep their own pitch with or without records.
+            val p2EquipmentFont = goldenRhythm(7.2f, 16.15f)
+            val p2TreasureFont = goldenRhythm(7.1f, 19.84f)
             // C267: golden Equipo Especial text is ~7 pt; lines of a tall entry
             // step 9 pt inside the owner's 25 pt rows (D-0076 §3.21).
             val specialFont = goldenRhythm(7f, 9f)
@@ -4316,15 +4319,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             fun rowsForP2(
                 input: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData,
                 area: PcSheetV11RectPt,
+                font: PcSheetV11ResolvedFont,
             ): io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData =
-                PcSheetV11PairedAmountRouting.p2Eligible(input, area, 12f, p2Font.width)
+                PcSheetV11PairedAmountRouting.p2Eligible(input, area, 12f, font.width)
             val inventoryPlaced = PcSheetV11PairedTableComposer.place(
-                rowsForP2(completeEquipment, equipmentArea),
-                equipmentArea, 12f, 36f, 6f, p2Font.metrics.lineHeightPt, p2Font.width,
+                rowsForP2(completeEquipment, equipmentArea, p2EquipmentFont),
+                equipmentArea, 12f, 36f, 6f, p2EquipmentFont.metrics.lineHeightPt, p2EquipmentFont.width,
             )
             val treasurePlaced = PcSheetV11PairedTableComposer.place(
-                rowsForP2(completeTreasure, treasureArea),
-                treasureArea, 12f, 36f, 6f, p2Font.metrics.lineHeightPt, p2Font.width,
+                rowsForP2(completeTreasure, treasureArea, p2TreasureFont),
+                treasureArea, 12f, 36f, 6f, p2TreasureFont.metrics.lineHeightPt, p2TreasureFont.width,
             )
             // P2 contains ONLY source IDs not already printed on P1.
             // G2 flow and mixed C2 extend these summary records losslessly;
@@ -4337,8 +4341,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TraitSummary.text(trait),
                         keepTogetherIfFits = true)
                 }
+            // C409: golden RASGOS text starts 5.1 pt inside each block
+            // (x309.26..438.8 / 442.77..572.32) and stays 2 pt clear of its right edge.
             val traitsPlaced = p2Font.place(PcSheetV11FlowSection.TRAITS, traitLines,
-                traitsArea, 2, 12f)
+                PcSheetV11RectPt(314.36f, traitsArea.bottomPt, 570.32f - 314.36f, traitsArea.heightPt),
+                2, 447.87f - 436.8f)
             // V11 golden P2: location / name / description / ACTIVO belong
             // to ONE logical row per special item, not four paragraphs.
             // D-0076 §3.21 (owner): keep the 25 pt writing rhythm when the
@@ -4752,10 +4759,21 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.stroke()
                 }
                 stream.restoreGraphicsState()
+                // C409: golden P2 text - 4.53 pt inside its block (TESORO 4.25), on the
+                // golden baseline; amounts end 5.67 pt inside the block, 7.2 pt bold.
+                val isEquipment = placed.data.kind ==
+                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableKind.EQUIPMENT
+                fun blockLeft(cell: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableCell) =
+                    if (cell.rectPt.leftPt < 170f) 39.69f else 171.92f
+                fun rowBaseline(rect: PcSheetV11RectPt) =
+                    if (compactC2) body.metrics.baselineIn(rect)
+                    else rect.bottomPt + (if (isEquipment) 4.52f else 5.55f)
                 pageLabels.forEach { cell ->
                     if (cell.printableText.isNotEmpty()) {
-                        draw(stream, cell.printableText, cell.rectPt.leftPt + 2f,
-                            body.metrics.baselineIn(cell.rectPt), false)
+                        val x = if (compactC2) cell.rectPt.leftPt + 2f
+                            else blockLeft(cell) + (if (isEquipment) 4.53f else 4.25f) +
+                                (cell.rectPt.leftPt - placed.pairs[cell.pairIndex - 1].leftPt)
+                        draw(stream, cell.printableText, x, rowBaseline(cell.rectPt), false)
                     }
                 }
                 // C408: golden P2 - only a row with a record gets its quantity separator
@@ -4767,7 +4785,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.setStrokingColor(Color(148, 176, 193))
                     stream.setLineWidth(0.35f)
                     placed.quantities.filter { it.localPageIndex == localPage }.forEach { cell ->
-                        val x = (if (cell.rectPt.leftPt < 170f) 166.25f else 298.49f) - inset
+                        val blockRight = if (cell.rectPt.leftPt < 170f) 166.25f else 298.49f
+                        val x = blockRight - inset
+                        // A very long real amount keeps its digits clear of the separator.
+                        if (blockRight - 5.67f - boldPdfFont.getStringWidth(
+                                pcSheetV11PrintableText(cell.printableText)) * 7.2f / 1000f < x + 1f) return@forEach
                         stream.moveTo(x, cell.rectPt.bottomPt)
                         stream.lineTo(x, cell.rectPt.topPt)
                         stream.stroke()
@@ -4780,15 +4802,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     // C242: golden paired tables right-align each amount 3 pt
                     // inside its quantity cell (P2 and C2).
                     // C292: golden amounts are Noto Sans Bold in ink #264b68.
-                    val amountPt = body.metrics.fontSizePt
+                    val amountPt = if (compactC2) body.metrics.fontSizePt else 7.2f
                     val amountText = pcSheetV11PrintableText(cell.printableText)
+                    val amountRight = if (compactC2) cell.rectPt.rightPt - 3f
+                        else (if (cell.rectPt.leftPt < 170f) 166.25f else 298.49f) - 5.67f
                     stream.saveGraphicsState()
                     stream.setNonStrokingColor(Color(38, 75, 104))
                     stream.beginText()
                     stream.setFont(boldPdfFont, amountPt)
-                    stream.newLineAtOffset(cell.rectPt.rightPt - 3f -
+                    stream.newLineAtOffset(amountRight -
                         boldPdfFont.getStringWidth(amountText) * amountPt / 1000f,
-                        body.metrics.baselineIn(cell.rectPt))
+                        rowBaseline(cell.rectPt))
                     stream.showText(amountText)
                     stream.endText()
                     stream.restoreGraphicsState()
@@ -4817,18 +4841,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
 
             fun drawP2Modules(stream: PDPageContentStream, localPage: Int) {
                 drawPaired(stream, "EQUIPO   /   CANTIDAD", equipmentArea, inventoryPlaced, localPage,
-                    tableFont = p2Font)
+                    tableFont = p2EquipmentFont)
                 drawPaired(stream, "TESORO   /   CANTIDAD", treasureArea, treasurePlaced, localPage,
-                    tableFont = p2Font)
-                drawP2Cartela(stream, "RASGOS Y ATRIBUTOS", traitsArea)
+                    tableFont = p2TreasureFont)
+                drawP2Cartela(stream, "RASGOS Y ATRIBUTOS", traitsArea, "mecánicos") // C409 golden legend
                 grid(stream, traitsArea, true, p2Font.metrics.lineHeightPt, alternateP2Rows = true,
                     goldenBlocks = listOf(309.26f to 438.8f, 442.77f to 572.32f)) // C408
                 traitsPlaced.cells.filter { it.localPageIndex == localPage }.forEach { cell ->
                     if (cell.drawableText.isNotEmpty()) {
                         stream.beginText()
                         stream.setFont(bodyPdfFont, p2Font.metrics.fontSizePt)
-                        stream.newLineAtOffset(cell.cellPt.leftPt + 2f,
-                            p2Font.metrics.baselineIn(cell.cellPt))
+                        stream.newLineAtOffset(cell.cellPt.leftPt, cell.cellPt.bottomPt + 4.65f) // C409 golden
                         stream.showText(pcSheetV11PrintableText(cell.drawableText))
                         stream.endText()
                     }

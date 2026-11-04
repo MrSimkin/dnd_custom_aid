@@ -15,9 +15,11 @@ class P2AmountsLabelsParityTest(unittest.TestCase):
         for path in RENDERERS:
             data = path.read_text(encoding="utf-8")
             with self.subTest(path=path.name):
-                # C292: golden amounts in Noto Sans Bold #264b68, right edge 3 pt inside.
+                # C292: golden amounts in Noto Sans Bold #264b68; C2 right edge 3 pt inside,
+                # C409: P2 right edge 5.67 pt inside its golden block.
                 self.assertIn("stream.setFont(boldPdfFont, amountPt)", data)
-                self.assertIn("stream.newLineAtOffset(cell.rectPt.rightPt - 3f -", data)
+                self.assertIn("val amountRight = if (compactC2) cell.rectPt.rightPt - 3f", data)
+                self.assertIn("else (if (cell.rectPt.leftPt < 170f) 166.25f else 298.49f) - 5.67f", data)
                 # C343: golden label insets and baseline on P2 and C2 alike.
                 self.assertEqual(2, data.count(
                     "drawP1Label(stream, label, headerX + headingInsets[index], headerBottom + 4.25f,"))

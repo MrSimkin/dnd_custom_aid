@@ -5373,7 +5373,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(amounts.size >= 8, "Mara P2 prints real amounts ($variant): $amounts")
                 amounts.forEach { (x, end) ->
                     // C320: golden P2 table x39.69..298.49 (amount edges 3 pt inside).
-                    val edge = if (x < 200f) 160.09f else 295.49f
+                    val edge = if (x < 200f) 160.58f else 292.82f // C409: 5.67 pt inside the golden block
                     assertEquals(edge, end, 0.6f, "P2 amount at $x is right-aligned ($variant).")
                 }
             }

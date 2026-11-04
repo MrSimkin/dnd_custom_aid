@@ -13,7 +13,7 @@ class P2RasgosHeadingContractTest(unittest.TestCase):
     def test_exact_heading_in_both_native_renderers_and_real_pdf_test(self):
         for path in RENDERERS:
             source = path.read_text(encoding="utf-8")
-            self.assertEqual(source.count('drawP2Cartela(stream, "RASGOS Y ATRIBUTOS", traitsArea)'), 1)
+            self.assertEqual(source.count('drawP2Cartela(stream, "RASGOS Y ATRIBUTOS", traitsArea, "mecánicos")'), 1)
             self.assertNotIn('drawP2Cartela(stream, "RASGOS", traitsArea)', source)
         self.assertIn("fun g3RealP2RasgosHeadingMatchesApprovedGoldenWithoutChangingActualTraits()",
                       TEST.read_text(encoding="utf-8"))
