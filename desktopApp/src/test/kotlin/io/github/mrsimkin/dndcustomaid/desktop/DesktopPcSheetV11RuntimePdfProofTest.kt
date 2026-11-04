@@ -1442,7 +1442,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // pre-marked, with the real "gastados/total" count (absent = no box).
                 val native = pdf.getPage(0).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
                 val boxes = Regex(
-                    """(?m)(?:^|\s)([\d.]+)\s+([\d.]+)\s+8(?:\.0)?\s+8(?:\.0)?\s+re(?:\s|$)""",
+                    """(?m)(?:^|\s)([\d.]+)\s+([\d.]+)\s+(8(?:\.0|\.79\d*|\.789\d*)?)\s+(8(?:\.0|\.79\d*|\.789\d*)?)\s+re(?:\s|$)""", // C413
                 ).findAll(native).map { it.groupValues[1].toFloat() to it.groupValues[2].toFloat() }.toList()
                 for (level in 1..9) {
                     val cellX = 270.43f + ((level - 1) % 3) * 101.57f // C351 golden
@@ -1454,7 +1454,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                             it.second > cellX + 15f && it.second < cellX + 98.74f // C351 golden card
                     }
                     val cellBoxes = boxes.count { (x, y) ->
-                        x >= cellX + 20f && x + 8f <= cellX + 98.74f && kotlin.math.abs(y - (cellY + 5.925f)) < 0.05f
+                        x >= cellX + 34f && x + 8f <= cellX + 98.74f && kotlin.math.abs(y - (cellY + 5.7f)) < 0.3f // C413 golden
                     }
                     val slot = real[level]
                     if (slot == null) {
@@ -3399,19 +3399,23 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertEquals(612f, p1.mediaBox.width)
                 assertEquals(792f, p1.mediaBox.height)
                 val content = p1.contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
-                fun actualSquare(x: Float): Int = Regex(
+                fun actualSquare(x: Float, y: Float, side: Float): Int = Regex(
                     """(?m)(?:^|\s)([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+re(?:\s|$)""",
                 ).findAll(content).map { m -> m.groupValues.drop(1).map { it.toFloat() } }.count { (rx, ry, rw, rh) ->
-                    kotlin.math.abs(rx - x) < 0.05f && kotlin.math.abs(ry - 174.865f) < 0.05f && // C356
-                        kotlin.math.abs(rw - 8f) < 0.01f && kotlin.math.abs(rh - 8f) < 0.01f
+                    kotlin.math.abs(rx - x) < 0.05f && kotlin.math.abs(ry - y) < 0.05f &&
+                        kotlin.math.abs(rw - side) < 0.01f && kotlin.math.abs(rh - side) < 0.01f
                 }
-                // C351: cells at x270.43 / 372.00 - N1=4 at +20 step 12; N2=5 at +20 step 10.
-                for (x in listOf(290.43f, 302.43f, 314.43f, 326.43f, 392f, 402f, 412f, 422f, 432f)) {
-                    assertEquals(1, actualSquare(x),
+                // C413: golden first box at cell+34.01. N1=4: 8.79 pt, step 13; N2=5: 8 pt, step 10.
+                for (x in listOf(304.44f, 317.44f, 330.44f, 343.44f)) {
+                    assertEquals(1, actualSquare(x, 174.47f, 8.79f),
                         "P1 must draw one true usable square for source x=$x.")
                 }
-                assertEquals(0, actualSquare(338.43f), "Do not invent fifth box for N1=4.")
-                assertEquals(0, actualSquare(442f), "Do not invent sixth box for N2=5.")
+                for (x in listOf(406.01f, 416.01f, 426.01f, 436.01f, 446.01f)) {
+                    assertEquals(1, actualSquare(x, 174.865f, 8f),
+                        "P1 must draw one true usable square for source x=$x.")
+                }
+                assertEquals(0, actualSquare(356.44f, 174.47f, 8.79f), "Do not invent fifth box for N1=4.")
+                assertEquals(0, actualSquare(456.01f, 174.865f, 8f), "Do not invent sixth box for N2=5.")
                 val pageText = PDFTextStripper().apply {
                     startPage = 1; endPage = 1
                 }.getText(pdf)
@@ -3453,7 +3457,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     """(?m)(?:^|\s)([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+re(?:\s|$)""",
                 ).findAll(native).map { m -> m.groupValues.drop(1).map { it.toFloat() } }.count { (rx, ry, rw, rh) ->
                     kotlin.math.abs(rx - x) < 0.05f && kotlin.math.abs(ry - y) < 0.05f &&
-                        kotlin.math.abs(rw - 8f) < 0.01f && kotlin.math.abs(rh - 8f) < 0.01f
+                        kotlin.math.abs(rw - 8.79f) < 0.01f && kotlin.math.abs(rh - 8.79f) < 0.01f
                 }
                 // N1: six real 6.5pt squares, step 8.3 (C255), so the real
                 // "4/6" count fits the cell; no seventh.
@@ -3462,14 +3466,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 ).findAll(native).map { it.groupValues[1].toFloat() to it.groupValues[2].toFloat() }.toList()
                 assertEquals(6, small.size, "Six genuine N1 squares and no seventh.")
                 small.sortedBy { it.first }.forEachIndexed { n, (x, y) ->
-                    assertTrue(kotlin.math.abs(x - (290.43f + n * 8.3f)) < 0.05f && // C351 golden
+                    assertTrue(kotlin.math.abs(x - (304.44f + n * 8.3f)) < 0.05f && // C413 golden
                         kotlin.math.abs(y - 175.615f) < 0.05f, "N1 square $n at ($x, $y).") // C356
                 }
-                // Unchanged real N2=3: five-point gaps are preserved.
-                for (x in listOf(392f, 404f, 416f)) {
-                    assertEquals(1, squareAt(x, 174.865f))
+                // Unchanged real N2=3: the golden 8.79 pt boxes, step 17.01 (C413).
+                for (x in listOf(406.01f, 423.02f, 440.03f)) {
+                    assertEquals(1, squareAt(x, 174.47f))
                 }
-                assertEquals(0, squareAt(426f, 174.865f),
+                assertEquals(0, squareAt(457.04f, 174.47f),
                     "Existing 1..5 spacing must never switch to six-slot spacing.")
                 val p1Text = PDFTextStripper().apply {
                     startPage = 1
@@ -6159,14 +6163,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     .map { kotlin.math.round(it * 100f) / 100f })
                 assertEquals(listOf(130.96f, 149.95f, 168.94f), cells.map { kotlin.math.round(it.second * 100f) / 100f }.distinct().sorted())
                 // Every 8pt box lies inside its level cell; totals are the real ones.
-                val boxes = rects("8", "8").filter { (x, y) -> x in 270f..573f && y in 130f..190f }
+                val boxes = (rects("8", "8") + rects("8.79", "8.79")) // C413 golden 8.79 pt
+                    .filter { (x, y) -> x in 270f..573f && y in 130f..190f }
                 assertEquals(slots.filter { it.totalSlots in 1..6 }.sumOf { it.totalSlots }, boxes.size,
                     "One paper box per real slot ($variant).")
                 slots.filter { it.totalSlots in 1..6 }.forEach { s ->
                     val cx = 270.43f + ((s.level - 1) % 3) * 101.57f // C351 golden
                     val cy = 168.94f - ((s.level - 1) / 3) * 18.99f // C356 golden
                     assertEquals(s.totalSlots, boxes.count { (x, y) ->
-                        x >= cx + 20f && x + 8f <= cx + 98.74f && kotlin.math.abs(y - (cy + 5.925f)) < 0.05f // C356 golden
+                        x >= cx + 34f && x + 8f <= cx + 98.74f && kotlin.math.abs(y - (cy + 5.7f)) < 0.3f // C413 golden
                     }, "N${s.level} boxes inside their cell ($variant).")
                 }
                 // C255: no pre-marked X; each level shows its real gastados/total

@@ -1422,13 +1422,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             val countPt = 7f
                             val countX = x + magicCard - 3f -
                                 headerPdfFont.getStringWidth(count) * countPt / 1000f
-                            val box = if (v.totalSlots == 6) 6.5f else 8f
+                            // C413: golden boxes - 8.79 pt from x+34.01, step 17.01; four real
+                            // slots tighten the step, five and six also the box, to clear the count.
+                            val box = when (v.totalSlots) {
+                                6 -> 6.5f
+                                5 -> 8f
+                                else -> 8.79f
+                            }
                             val markStep = when (v.totalSlots) {
                                 6 -> 8.3f
                                 5 -> 10f
-                                else -> 12f
+                                4 -> 13f
+                                else -> 17.01f
                             }
-                            require(x+20f+(v.totalSlots-1)*markStep+box <= countX-2f) {
+                            require(x+34.01f+(v.totalSlots-1)*markStep+box <= countX-2f) {
                                 "P1 spell-slot boxes overlap their real count"
                             }
                             stream.saveGraphicsState()
@@ -1436,7 +1443,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             stream.setNonStrokingColor(Color.WHITE)
                             stream.setLineWidth(0.48f)
                             repeat(v.totalSlots){n->
-                                stream.addRect(x+20f+n*markStep,b+5.53f+(8.79f-box)/2f,box,box)
+                                stream.addRect(x+34.01f+n*markStep,b+5.53f+(8.79f-box)/2f,box,box)
                                 stream.fillAndStroke()
                             }
                             stream.setNonStrokingColor(Color(38,75,104))
