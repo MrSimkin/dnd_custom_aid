@@ -400,7 +400,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // C341: the origin reads «VIENE DE PÁG. n» (owner 2026-10-30).
             fun c2CartelaTitlePt(text: String, widthPt: Float): Float? =
                 listOf(9.1f, 8.6f, 8.1f, 7.6f, 7.1f).firstOrNull { pt ->
-                    16f + headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * pt / 1000f +
+                    17f + headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * pt / 1000f +
                         8f + headerPdfFont.getStringWidth(
                             pcSheetV11PrintableText(PcSheetV11ContinuationText.comesFrom(99))
                         ) * 6f / 1000f + 13f <= widthPt
@@ -938,7 +938,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // C329: the legend shows the v8 marks themselves.
                 val skillsLegend = listOf(0xE108 to "COMPETENCIA", 0xE109 to "PERICIA")
                 fun legendWidth(text: String) = bodyPdfFont.getStringWidth(text) * 6.2f / 1000f
-                var legendX = 260.22f - 18.4f - skillsLegend.sumOf { (_, text) ->
+                var legendX = 260.22f - 17f - skillsLegend.sumOf { (_, text) ->
                     (6f + 1.5f + legendWidth(text)).toDouble() }.toFloat() - 6f
                 stream.setNonStrokingColor(Color(101, 125, 144))
                 skillsLegend.forEachIndexed { i, (glyph, text) ->
@@ -1209,7 +1209,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.setNonStrokingColor(Color(101, 125, 144))
                     stream.beginText()
                     stream.setFont(bodyPdfFont, 6.2f)
-                    stream.newLineAtOffset(right - 18.4f -
+                    stream.newLineAtOffset(right - 17f -
                         bodyPdfFont.getStringWidth(text) * 6.2f / 1000f, bottom + 8.08f)
                     stream.showText(text)
                     stream.endText()
@@ -2184,7 +2184,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // C269: golden cartela: diamonds, 9.1 pt title in golden ink.
                 drawCartelaDiamonds(stream, x0, x1, y0, y1)
                 stream.setNonStrokingColor(Color(29, 56, 79))
-                drawP1Label(stream, "REFERENCIA MÁGICA", x0 + 16f, 679.5f, 9.1f)
+                drawP1Label(stream, "REFERENCIA MÁGICA", x0 + 17f, 679.46f, 9.1f)
                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 fields.forEachIndexed { index, (label, value) ->
                     // C308: golden cards x39.69 + 178.58 i, 174.33 pt wide, #264b68 edge.
@@ -2210,6 +2210,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.closePath()
                     stream.stroke()
                     stream.restoreGraphicsState()
+                    drawGoldenCardHairline(stream, x, cardRight, cardTop) // C421 golden
                     // C269: golden card label 6.65 pt in golden grey.
                     val fieldLabelPt = 6.65f
                     require(headerPdfFont.getStringWidth(label) *
@@ -2219,7 +2220,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.setNonStrokingColor(Color(101, 125, 144))
                     stream.beginText()
                     stream.setFont(headerPdfFont, fieldLabelPt)
-                    stream.newLineAtOffset(x + 7f, 660.2f) // C322 golden label baseline
+                    stream.newLineAtOffset(x + 5.67f, 660.2f) // C421 golden label inset
                     stream.showText(label)
                     stream.endText()
                     stream.setNonStrokingColor(Color(29, 56, 79))
@@ -2601,12 +2602,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     }
                 }
                 stream.setStrokingColor(Color(148, 176, 193))
-                stream.setLineWidth(0.35f)
+                stream.setLineWidth(0.32f) // C421 golden
                 for (row in 1..rows) {
                     val y = rect.topPt - row * lineHeight
                     if (y >= rect.bottomPt) {
-                        stream.moveTo(rect.leftPt, y)
-                        stream.lineTo(rect.rightPt, y)
+                        stream.moveTo(rect.leftPt, y + 0.99f)
+                        stream.lineTo(rect.rightPt, y + 0.99f)
                         stream.stroke()
                     }
                 }
@@ -3229,14 +3230,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             drawCartelaDiamonds(stream, l, r, b, t)
                             stream.beginText()
                             stream.setFont(headerPdfFont, 9.1f)
-                            stream.newLineAtOffset(l + 16f, b + 6.84f)
+                            stream.newLineAtOffset(l + 17f, b + 6.8f)
                             stream.showText("ÍNDICE DEL LIBRO DE CONJUROS")
                             stream.endText()
                             val legend = "nivel · conjuro · página"
                             stream.setNonStrokingColor(Color(101, 125, 144))
                             stream.beginText()
                             stream.setFont(bodyPdfFont, 6.2f)
-                            stream.newLineAtOffset(r - 18.4f - bodyPdfFont.getStringWidth(legend) * 6.2f / 1000f,
+                            stream.newLineAtOffset(r - 17f - bodyPdfFont.getStringWidth(legend) * 6.2f / 1000f,
                                 b + 8.08f)
                             stream.showText(legend)
                             stream.endText()
@@ -3295,7 +3296,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             stream.setNonStrokingColor(Color(101, 125, 144))
                             stream.beginText()
                             stream.setFont(bodyPdfFont, 6.2f)
-                            stream.newLineAtOffset(572.32f - 18.4f -
+                            stream.newLineAtOffset(572.32f - 17f -
                                 bodyPdfFont.getStringWidth(scope) * 6.2f / 1000f, 680.7f)
                             stream.showText(scope)
                             stream.endText()
@@ -3974,7 +3975,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 stream.setStrokingColor(Color(82, 124, 150))
                                 stream.setNonStrokingColor(Color(255, 255, 255))
                                 stream.setLineWidth(0.48f)
-                                stream.addRect(cell.cellPt.leftPt + 2f, baseline - 1.6f, 8.22f, 8.22f)
+                                stream.addRect(cell.cellPt.leftPt + 2.56f, baseline - 1.4f, 8.22f, 8.22f)
                                 stream.fillAndStroke()
                                 stream.restoreGraphicsState()
                                 // Approved V11 P4 uses *blank ruled paper*, not
@@ -3996,7 +3997,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 stream.setStrokingColor(Color(82, 124, 150))
                                 stream.setNonStrokingColor(Color(255, 255, 255))
                                 stream.setLineWidth(0.48f)
-                                stream.addRect(cell.cellPt.leftPt + 2f, baseline - 1.6f, 8.22f, 8.22f)
+                                stream.addRect(cell.cellPt.leftPt + 2.56f, baseline - 1.4f, 8.22f, 8.22f)
                                 stream.fillAndStroke()
                                 stream.restoreGraphicsState()
                                 if (cell.drawableText.isNotEmpty()) {
@@ -4032,7 +4033,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 // C269: golden C2 cartela title 9.1 pt, golden ink.
                                 val goldenPt = c2CartelaTitlePt(cell.drawableText, cell.cellPt.widthPt)
                                 val fontSize = goldenPt ?: 9.1f
-                                val inset = if (goldenPt != null) 16f else 5f
+                                val inset = if (goldenPt != null) 17f else 5f
                                 stream.setNonStrokingColor(Color(29, 56, 79))
                                 val inkWidth = headerPdfFont.getStringWidth(
                                     cell.drawableText,
@@ -4647,7 +4648,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 drawCartelaDiamonds(stream, left, right, bottom, top)
                 stream.beginText()
                 stream.setFont(headerPdfFont, 9.1f)
-                stream.newLineAtOffset(left + 16f, bottom + 6.84f) // C315 golden baseline
+                stream.newLineAtOffset(left + 17f, bottom + 6.8f) // C421 golden
                 stream.showText(title)
                 stream.endText()
                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
@@ -4663,14 +4664,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         legendSize / 1000f
                     val titleWidth = headerPdfFont.getStringWidth(title) *
                         9.1f / 1000f
-                    val x = right - 18.4f - width
-                    require(x > left + 16f + titleWidth + 8f) {
+                    val x = right - 17f - width
+                    require(x > left + 17f + titleWidth + 8f) {
                         "P2 paired-table legend overlaps its approved heading."
                     }
                     stream.setNonStrokingColor(Color(101, 125, 144))
                     stream.beginText()
                     stream.setFont(bodyPdfFont, legendSize)
-                    stream.newLineAtOffset(x, bottom + 8.04f) // C315 golden baseline
+                    stream.newLineAtOffset(x, bottom + 8.08f) // C421 golden
                     stream.showText(printable)
                     stream.endText()
                     stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
@@ -4819,7 +4820,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.setNonStrokingColor(Color(29, 56, 79))
                     stream.beginText()
                     stream.setFont(headerPdfFont, 9.1f)
-                    stream.newLineAtOffset(left + 16f, bottom + 6.84f)
+                    stream.newLineAtOffset(left + 17f, bottom + 6.8f)
                     stream.showText(title.substringBefore(" / "))
                     stream.endText()
                     val base = physicalSectionKeys.indexOf("P2 - Equipo y tesoro") + 1
@@ -5821,8 +5822,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     item.copy(text = spaced, leadingSeparationLines = 1)
                 }, 1,
                 // C313: notes start under the golden NOTAS cartela (y670.68).
-                area = PcSheetV11RectPt(pageArea.leftPt + 6f, pageArea.bottomPt,
-                    pageArea.widthPt - 12f, 670.68f - pageArea.bottomPt),
+                area = PcSheetV11RectPt(48.19f, pageArea.bottomPt, // C421 golden x48.19..561.26
+                    561.26f - 48.19f, 670.68f - pageArea.bottomPt),
                 font = notesFont)
             // C289: golden Libro columns — text 48.19..292.82 and 319.18..563.81 pt.
             // C366: golden Libro - the first card's frame top is y695.62, so the
