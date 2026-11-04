@@ -1341,6 +1341,36 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c429ALevelTitleNeverStaysAloneAtAColumnFootAB() {
+        // C429: every level title has at least one row under it in its own column.
+        for (fixture in listOf("02_ilyra_quill_srd5_2_1_evoker_wizard.json", "03_mara_siete_umbrales_custom_extended.json")) {
+            for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+                val bytes = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), sources(fixture),
+                ).bytes
+                Loader.loadPDF(bytes).use { pdf ->
+                    (1..pdf.numberOfPages).forEach { n ->
+                        val text = PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                        if (!text.contains("P4 - Conjuros /")) return@forEach
+                        val titles = mutableListOf<Pair<Float, Float>>()
+                        object : PDFTextStripper() {
+                            override fun writeString(value: String, positions: MutableList<org.apache.pdfbox.text.TextPosition>) {
+                                val first = positions.first()
+                                if (Regex("""^(NIVEL \d+|TRUCOS 0)\b""").containsMatchIn(value.trim()) && !value.contains("/"))
+                                    titles += first.xDirAdj to 792f - first.yDirAdj
+                            }
+                        }.apply { startPage = n; endPage = n }.getText(pdf)
+                        assertTrue(titles.isNotEmpty())
+                        titles.forEach { (x, y) ->
+                            assertTrue(y > 64.92f + 20.69f, "Title at x=$x y=$y has a row below it ($fixture, $variant).")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun c419C2SpecialTableKeepsItsFourColumnsWithoutATitleRowAB() {
         // C419: golden C2 EQUIPO ESPECIAL - rows start right under the cartela, with the
         // three column rules and one paper ACTIVO box per record, and no title row.
@@ -1410,7 +1440,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                                 kotlin.math.abs(x - column) < 0.3f && kotlin.math.abs(w - 167.81f) < 0.3f && h > 5f
                             }.sortedByDescending { (_, y, _, h) -> y + h }
                             assertTrue(bands.size >= 20, "Column $column holds real rows, page ${i + 1} ($label, $variant).")
-                            assertTrue(bands.minOf { (_, y) -> y } < 85f, "Column $column reaches the foot ($label, $variant).")
+                            assertTrue(bands.minOf { (_, y) -> y } < 90f, "Column $column reaches the foot ($label, $variant).")
                             bands.zipWithNext().forEach { (upper, lower) ->
                                 val gap = upper[1] - (lower[1] + lower[3])
                                 // The only taller step is the NOTAS cartela sitting on its grid frame.

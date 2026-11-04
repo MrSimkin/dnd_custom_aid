@@ -5707,12 +5707,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val levels = (0..9).toList() +
                         data.spells.map { it.spell.level }.filter { it >= 10 }.distinct().sorted()
                     levels.forEach { level ->
+                        // C429: a level title never stays alone at a column foot: it travels
+                        // with its first row, as every level of the golden does.
+                        val levelGroup = "spell-level-group:" + level
                         add(PcSheetV11FlowItem("spell-level:" + level,
                             // C330: golden level titles «TRUCOS 0», «NIVEL 2».
                             if (level == 0) "TRUCOS 0" else "NIVEL " + level,
                             keepTogetherIfFits = true,
+                            groupKey = levelGroup,
                             // C362: golden level band 20.69 pt over the 15.73 pt rows.
                             lineExtrasPt = mapOf(0 to 20.69f - 15.73f)))
+                        var firstRow = true
                         val spellsHere = data.spells.filter { it.spell.level == level }
                         spellsHere.forEach { entry ->
                             p4SpellRows.getValue(entry.spell.id).forEach { (key, sourceInfo) ->
@@ -5724,7 +5729,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     quickInset + entry.spell.name +
                                         (if (sourceInfo.isBlank() || key in p4RightSources) ""
                                         else " | " + sourceInfo),
-                                    keepTogetherIfFits = true))
+                                    keepTogetherIfFits = true,
+                                    groupKey = levelGroup.takeIf { firstRow }))
+                                firstRow = false
                             }
                         }
                         // Rows are PAPER-ONLY: no fabricated spell, source, preparation
@@ -5737,7 +5744,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 "spell-handwritten:" + level + ":" + row,
                                 "[ ] ______________________",
                                 keepTogetherIfFits = true,
+                                groupKey = levelGroup.takeIf { firstRow },
                             ))
+                            firstRow = false
                         }
                     }
                 }

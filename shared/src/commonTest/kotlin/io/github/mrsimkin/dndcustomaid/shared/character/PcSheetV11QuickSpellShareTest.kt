@@ -16,11 +16,22 @@ class PcSheetV11QuickSpellShareTest {
     fun realSpellsCountInsideTheShareAndEveryLevelKeepsAWritingRow() {
         val real = mapOf(0 to 3, 1 to 20, 5 to 4, 9 to 9)
         val paper = PcSheetV11QuickSpellShare.paperRows { real[it] ?: 0 }
-        assertEquals(13, paper.getValue(0), "Trucos: 16 rows with 3 real spells.")
+        assertEquals(9, paper.getValue(0), "Trucos give up rows so that column 1 keeps its golden 33.")
         assertEquals(1, paper.getValue(1), "More real spells than the share still leave one row.")
         assertEquals(1, paper.getValue(5))
         assertEquals(1, paper.getValue(9))
         assertTrue(paper.values.all { it >= 1 })
+    }
+
+    @Test
+    fun extraRealSpellsTakeRowsFromTheirOwnColumnSoTheOthersKeepTheirShape() {
+        // Four real spells at level 5 fill its share: its one paper row comes out of column 3.
+        val paper = PcSheetV11QuickSpellShare.paperRows { if (it == 5) 4 else 0 }
+        assertEquals(listOf(16, 17), listOf(paper.getValue(0), paper.getValue(1)), "Column 1 is untouched.")
+        assertEquals(listOf(17, 16), listOf(paper.getValue(2), paper.getValue(3)), "Column 2 is untouched.")
+        assertEquals(1, paper.getValue(5))
+        assertEquals(7, paper.getValue(4), "The level with the most paper in the column gives the row.")
+        assertEquals(28, (4..9).sumOf { paper.getValue(it) + (if (it == 5) 4 else 0) }, "Column 3 keeps its 28 rows.")
     }
 
     @Test
