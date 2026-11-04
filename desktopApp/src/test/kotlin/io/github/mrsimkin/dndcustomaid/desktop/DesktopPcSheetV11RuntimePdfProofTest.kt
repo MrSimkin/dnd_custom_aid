@@ -1115,6 +1115,51 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c415LongCustomAttributeNamesWrapInsideTheOwnerRowAB() {
+        // C415: a long custom attribute name no longer falls back to inline numbers
+        // with outlines drawn over them: it is the owner row, name beside the oval.
+        val original = sources("03_mara_siete_umbrales_custom_extended.json")
+        val template = original.permanent.successor.customAttributes.first { it.name == "Fortuna" }
+        val longName = "QALARGO extensible adicional para dos renglones medidos en la fila"
+        val veryLong = "QAMUYLARGO " + List(16) { "palabra$it" }.joinToString(" ")
+        val added = listOf(longName, veryLong).mapIndexed { i, name ->
+            template.copy(id = Uuid.parse("a1500000-0000-4000-8000-" + (i + 1).toString().padStart(12, '0')),
+                name = name, sortOrder = 2000 + i)
+        }
+        val source = original.copy(permanent = original.permanent.copy(
+            successor = original.permanent.successor.copy(
+                customAttributes = original.permanent.successor.customAttributes + added)))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source,
+            ).bytes
+            preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-C2-long-attribute-name-" + variant + ".pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val text = PDFTextStripper().getText(pdf)
+                assertFalse(text.contains(" / mod "), "No inline score text remains ($variant).")
+                val flat = text.replace(Regex("""\s+"""), " ")
+                longName.split(' ').plus(veryLong.split(' ')).forEach { word ->
+                    assertTrue(flat.contains(word), "Every word of the saved name prints: $word ($variant).")
+                }
+                val page = (1..pdf.numberOfPages).first { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf).contains("QALARGO")
+                }
+                // Every name line starts beside the oval, never over the box.
+                val xs = mutableListOf<Float>()
+                object : PDFTextStripper() {
+                    override fun writeString(text: String, positions: MutableList<org.apache.pdfbox.text.TextPosition>) {
+                        if (text.startsWith("QALARGO")) xs += positions.first().xDirAdj
+                    }
+                }.apply { startPage = page; endPage = page }.getText(pdf)
+                assertEquals(1, xs.size, "The name starts once ($variant).")
+                val columnLeft = if (xs.single() < 306f) 39.69f else 310.96f
+                assertTrue(kotlin.math.abs(xs.single() - (columnLeft + 76.46f)) < 0.6f,
+                    "Name beside the oval at ${xs.single()} ($variant).")
+            }
+        }
+    }
+
+    @Test
     fun c414C2TablesAreGoldenBlocksWithGoldenRowsAndPerRecordSeparatorsAB() {
         // C414: guards the C2 EQUIPO table on real App PDFs - two golden blocks at the
         // C2 margins, 15.87 pt rows, no frame, a short separator per printed record.

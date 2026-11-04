@@ -16,8 +16,8 @@ class C2AttributeRowParityTest(unittest.TestCase):
         pieces = []
         for path in RENDERERS:
             data = path.read_text(encoding="utf-8")
-            self.assertIn('if (goldenRow) attribute.name + "\\n " else', data)
-            self.assertIn("if (cell.sourceStartOffset == 0) drawC2AttributeRow(stream, cell)", data)
+            self.assertIn('if (goldenRow) attribute.name + "\\n " + "\\n ".repeat(extraRows) else', data)
+            self.assertIn("if (cell.sourceStartOffset == 0) drawC2AttributeRow(stream, cell,", data)
             part = data.split("fun drawC2AttributeRow(", 1)[1].split("fun addSection(", 1)[0]
             pieces.append(re.sub(r"\s+", " ", part))
         self.assertEqual(pieces[0], pieces[1])

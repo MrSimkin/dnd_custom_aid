@@ -249,9 +249,39 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // always printed, with the real saving-throw value on it when the App has one.
             val boldCap = (boldPdfFont.fontDescriptor?.capHeight?.takeIf { it > 0f } ?: 714f) / 1000f
             val labelCap = (headerPdfFont.fontDescriptor?.capHeight?.takeIf { it > 0f } ?: 714f) / 1000f
+            // C415: a custom attribute name too long for one line wraps inside the name room of
+            // the owner row (never over its box or oval); no word is ever cut if it fits a line.
+            fun ownerAttributeNameRoom(width: Float): Float =
+                width - (2.55f + 43.08f - 35.44f / 4f + 35.44f + 4.25f) - 4f -
+                    (3.6f + 18f + 4f + 8.78f + 3f +
+                        maxOf(p1InkWidth("TIRADA DE", 5.8f), p1InkWidth("SALVACIÓN", 5.8f)))
+            fun wrappedAttributeName(name: String, room: Float, pt: Float): List<String> {
+                val lines = mutableListOf<String>()
+                var line = ""
+                name.split(' ').filter { it.isNotEmpty() }.forEach { word ->
+                    var rest = word
+                    val joined = if (line.isEmpty()) rest else line + " " + rest
+                    if (p1InkWidth(joined, pt) <= room) {
+                        line = joined
+                        return@forEach
+                    }
+                    if (line.isNotEmpty()) lines += line
+                    line = ""
+                    while (p1InkWidth(rest, pt) > room) {
+                        var cut = rest.length - 1
+                        while (cut > 1 && p1InkWidth(rest.take(cut), pt) > room) cut -= 1
+                        lines += rest.take(cut)
+                        rest = rest.drop(cut)
+                    }
+                    line = rest
+                }
+                if (line.isNotEmpty()) lines += line
+                return lines
+            }
             fun drawOwnerAttributeRow(
                 stream: PDPageContentStream, left: Float, right: Float, centreY: Float,
                 score: String, modifier: String, name: String, namePt: Float, save: String?,
+                wrapPt: Float? = null,
             ) {
                 val boxLeft = left + 2.55f
                 val boxRight = boxLeft + 43.08f
@@ -304,7 +334,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 val room = labelLeft - 4f - nameX
                 val pt = listOf(namePt, namePt - 0.5f, namePt - 1f, namePt - 1.5f)
                     .firstOrNull { p1InkWidth(name, it) <= room } ?: (namePt - 1.5f)
-                p1Ink(stream, name, nameX, centreY - labelCap * pt / 2f, pt)
+                if (wrapPt != null && p1InkWidth(name, pt) > room) {
+                    // C415: long name - lines centred on the row, next to its oval.
+                    val lines = wrappedAttributeName(name, room, wrapPt)
+                    lines.forEachIndexed { i, line ->
+                        p1Ink(stream, line, nameX, centreY - labelCap * wrapPt / 2f +
+                            ((lines.size - 1) / 2f - i) * 9.2f, wrapPt)
+                    }
+                } else p1Ink(stream, name, nameX, centreY - labelCap * pt / 2f, pt)
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(82, 124, 150))
                 stream.setLineWidth(0.45f)
@@ -2719,6 +2756,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             fun drawC2AttributeRow(
                 stream: PDPageContentStream,
                 cell: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PlacedLineCell,
+                bottom: Float,
             ) {
                 val index = requireNotNull(cell.sourceKey.removePrefix("attribute:").toIntOrNull())
                 val attribute = requireNotNull(data.attributes.drop(6).getOrNull(index)) {
@@ -2727,12 +2765,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 val left = cell.cellPt.leftPt
                 val right = cell.cellPt.rightPt
                 val top = cell.cellPt.topPt
-                val bottom = top - 2f * body.metrics.lineHeightPt
                 fillBand(stream, left, bottom, right - left, top - bottom, 0)
                 // P104: the owner's attribute row on the middle line of its two rows.
                 drawOwnerAttributeRow(stream, left, right, (top + bottom) / 2f,
                     attribute.score.toString(), signedC2(attribute.modifier), attribute.name, 9f,
-                    attribute.savingThrowTotal?.let { signedC2(it) })
+                    attribute.savingThrowTotal?.let { signedC2(it) }, wrapPt = 8f)
             }
 
             fun addSection(
@@ -3774,7 +3811,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 return@forEach
                             }
                             if (cell.sourceKey in c2AttributeCards) {
-                                if (cell.sourceStartOffset == 0) drawC2AttributeRow(stream, cell)
+                                if (cell.sourceStartOffset == 0) drawC2AttributeRow(stream, cell,
+                                    pageCells.filter { it.sourceKey == cell.sourceKey &&
+                                        it.columnIndex == cell.columnIndex }.minOf { it.cellPt.bottomPt })
                                 return@forEach
                             }
                             c2AttackTableRows[cell.sourceKey]?.let { attack ->
@@ -4189,17 +4228,18 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     val customC2Group = if (alreadyPrintedOnP1) null else
                         "custom-attribute-group:" + index
                     if (!alreadyPrintedOnP1) {
-                        // C247: golden C2 attribute row (score box, modifier oval,
-                        // name, SALVACIÓN box and value) when the name fits; the
-                        // flow reserves its two measured rows. Otherwise keep the
-                        // previous text card.
-                        val goldenRow = attribute.name.none { it == '\r' || it == '\n' || it == '\t' } &&
-                            headerPdfFont.getStringWidth(pcSheetV11PrintableText(attribute.name)) *
-                            9f / 1000f <= 100f
+                        // C247/C415: golden C2 attribute row (score box, modifier oval,
+                        // name, SALVACIÓN box and value); the flow reserves two measured
+                        // rows, one more per wrapped name line beyond two. Only a name with
+                        // saved control characters keeps the previous text card.
+                        val goldenRow = attribute.name.none { it == '\r' || it == '\n' || it == '\t' }
                         if (goldenRow) c2AttributeCards += "attribute:" + index
+                        val nameRoom = ownerAttributeNameRoom(c2ActionColumn)
+                        val extraRows = if (p1InkWidth(attribute.name, 7.5f) <= nameRoom) 0
+                            else maxOf(0, wrappedAttributeName(attribute.name, nameRoom, 8f).size - 2)
                         add(PcSheetV11FlowItem(
                             "attribute:" + index,
-                            if (goldenRow) attribute.name + "\n " else
+                            if (goldenRow) attribute.name + "\n " + "\n ".repeat(extraRows) else
                             attribute.name + "\n\n" + attribute.score +
                                 " / mod " + signedC2(attribute.modifier) +
                                 " / salvación " +
