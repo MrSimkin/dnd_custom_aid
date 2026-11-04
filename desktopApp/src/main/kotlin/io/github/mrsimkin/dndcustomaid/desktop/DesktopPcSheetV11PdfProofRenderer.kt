@@ -2108,7 +2108,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // C308: golden cartela edge #264b68 0.65 pt across x39.69..572.32.
                 stream.setStrokingColor(Color(38, 75, 104))
                 stream.setLineWidth(0.65f)
-                stream.setNonStrokingColor(Color(231, 241, 247))
+                stream.setNonStrokingColor(Color(231, 242, 247))
                 // Frozen V11 P4: a genuinely clipped, stroked blue cartela,
                 // confined to the original source-free header strip.
                 val x0 = 39.69f
@@ -2341,7 +2341,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     "P3 handwriting lines cannot overlap real printed narrative."
                 }
                 stream.saveGraphicsState()
-                stream.setStrokingColor(Color(130, 165, 186))
+                stream.setStrokingColor(Color(148, 176, 193))
                 stream.setLineWidth(0.5f)
                 for (row in 0..completeRows) {
                     val y = writingBottom + row * 16f
@@ -2530,7 +2530,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 lineHeight: Float,
             ) {
                 stream.saveGraphicsState()
-                stream.setNonStrokingColor(Color(238, 247, 251))
+                stream.setNonStrokingColor(Color(240, 247, 250))
                 stream.addRect(rect.leftPt, rect.bottomPt,
                     rect.widthPt, rect.heightPt)
                 stream.fill()
@@ -2547,7 +2547,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         stream.fill()
                     }
                 }
-                stream.setStrokingColor(Color(174, 203, 220))
+                stream.setStrokingColor(Color(148, 176, 193))
                 stream.setLineWidth(0.35f)
                 for (row in 1..rows) {
                     val y = rect.topPt - row * lineHeight
@@ -2691,7 +2691,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val right = column.rightPt
                     stream.saveGraphicsState()
                     stream.setNonStrokingColor(Color(231, 242, 247))
-                    stream.setStrokingColor(Color(80, 122, 151))
+                    stream.setStrokingColor(Color(38, 75, 104))
                     stream.setLineWidth(0.45f)
                     stream.moveTo(left + cut, bottom)
                     stream.lineTo(right - cut, bottom)
@@ -2909,7 +2909,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         require(bottom > column.topPt && top < 640.91f)
                                         stream.saveGraphicsState()
                                         stream.setNonStrokingColor(Color(231, 242, 247))
-                                        stream.setStrokingColor(Color(80, 122, 151))
+                                        stream.setStrokingColor(Color(38, 75, 104))
                                         stream.setLineWidth(0.45f)
                                         stream.moveTo(left + cut, bottom)
                                         stream.lineTo(right - cut, bottom)
@@ -2922,11 +2922,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         stream.closePath()
                                         stream.fillAndStroke()
                                         stream.restoreGraphicsState()
+                                        // C412: the golden level heading face, size, ink and inset.
+                                        stream.saveGraphicsState()
+                                        stream.setNonStrokingColor(Color(38, 75, 104))
                                         stream.beginText()
-                                        stream.setFont(bodyPdfFont, 7f)
-                                        stream.newLineAtOffset(column.leftPt + 2f, column.topPt + 3f)
+                                        stream.setFont(headerPdfFont, 7.6f)
+                                        stream.newLineAtOffset(column.leftPt + 3.4f, column.topPt + 3f)
                                         stream.showText(pcSheetV11PrintableText(context))
                                         stream.endText()
+                                        stream.restoreGraphicsState()
                                     }
                                 }
                             }
@@ -2966,7 +2970,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 require(bodyPdfFont.getStringWidth(pcSheetV11PrintableText(printed)) *
                                     fontSize / 1000f <= col.widthPt - 6f)
                                 stream.saveGraphicsState()
-                                stream.setNonStrokingColor(Color(80, 122, 151))
+                                stream.setNonStrokingColor(Color(101, 125, 144))
                                 stream.beginText()
                                 stream.setFont(bodyPdfFont, fontSize)
                                 stream.newLineAtOffset(col.leftPt + 2f, col.topPt + 8.2f)
@@ -3028,7 +3032,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         }
                                         drawC2ContinuationCartela(stream, column)
                                         stream.saveGraphicsState()
-                                        stream.setNonStrokingColor(Color(80, 122, 151))
+                                        stream.setNonStrokingColor(Color(38, 75, 104))
                                         stream.beginText()
                                         stream.setFont(headerPdfFont, fontPt)
                                         stream.newLineAtOffset(c2CueLeft(column) + 2f, 700.9f) // C367
@@ -3075,7 +3079,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         }
                                         drawC2ContinuationCartela(stream, column)
                                         stream.saveGraphicsState()
-                                        stream.setNonStrokingColor(Color(80, 122, 151))
+                                        stream.setNonStrokingColor(Color(38, 75, 104))
                                         stream.beginText()
                                         stream.setFont(headerPdfFont, fontPt)
                                         stream.newLineAtOffset(c2CueLeft(column) + 2f, 700.9f) // C367
@@ -3478,7 +3482,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     val right = column.rightPt
                                     val cut = minOf(2.5f, (top - bottom) / 4f)
                                     stream.setNonStrokingColor(Color(231, 242, 247))
-                                    stream.setStrokingColor(Color(80, 122, 151))
+                                    stream.setStrokingColor(Color(38, 75, 104))
                                     stream.setLineWidth(0.55f)
                                     stream.moveTo(left + cut, bottom)
                                     stream.lineTo(right - cut, bottom)
@@ -3495,7 +3499,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 // was printed in a previous physical column.
                                 val railX = column.leftPt - 3f
                                 require(railX >= 31f && railX + 1.5f < column.leftPt) // C323: inside the inner frame (30.61)
-                                stream.setNonStrokingColor(Color(80, 122, 151))
+                                stream.setNonStrokingColor(Color(82, 124, 150)) // C412 golden
                                 stream.addRect(railX, groupBottom + 1f, 1.5f,
                                     groupTop - groupBottom - 2f)
                                 stream.fill()
@@ -3577,7 +3581,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         "C2 custom card must stay within its measured rows."
                                     }
                                     stream.saveGraphicsState()
-                                    stream.setStrokingColor(Color(80, 122, 151))
+                                    stream.setStrokingColor(Color(38, 75, 104))
                                     stream.setLineWidth(0.45f)
                                     scoreInk?.let { (left, right) ->
                                         // The tight measured box avoids the real
@@ -3863,7 +3867,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     stream.showText(label)
                                     stream.endText()
                                     stream.saveGraphicsState()
-                                    stream.setStrokingColor(Color(130, 165, 186))
+                                    stream.setStrokingColor(Color(82, 124, 150)) // C412 golden
                                     stream.setLineWidth(0.6f)
                                     // Paper-only meter: a GENUINE blue ruled line,
                                     // NEVER literal underscores printed as fake ink.
@@ -4056,7 +4060,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 }
                                 val base = body.metrics.baselineIn(cell.cellPt)
                                 stream.saveGraphicsState()
-                                stream.setStrokingColor(Color(130, 165, 186))
+                                stream.setStrokingColor(Color(82, 124, 150)) // C412 golden
                                 stream.setLineWidth(0.65f)
                                 stream.addRect(cell.cellPt.leftPt + 2f, base - 1f, 7f, 7f)
                                 stream.stroke()
@@ -4097,7 +4101,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     }
                                     if (line == rows.size - 1) {
                                         stream.saveGraphicsState()
-                                        stream.setStrokingColor(Color(176, 204, 220))
+                                        stream.setStrokingColor(Color(148, 176, 193))
                                         stream.setLineWidth(0.35f)
                                         stream.moveTo(cell.cellPt.leftPt, cell.cellPt.bottomPt)
                                         stream.lineTo(cell.cellPt.rightPt, cell.cellPt.bottomPt)
@@ -4138,13 +4142,19 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 require(count in 0..20)
                                 if (count <= 20) {
                                     repeat(count) { mark ->
-                                        val px = cell.cellPt.leftPt + 54f + mark * 8f +
-                                            (mark / 5) * 4f
-                                        require(px + 6f <= cell.cellPt.rightPt) {
+                                        // C412: golden marks - 7.94 pt, white, #527c96 0.48 pt.
+                                        val px = cell.cellPt.leftPt + 54f + mark * 9.5f +
+                                            (mark / 5) * 2.83f
+                                        require(px + 7.94f <= cell.cellPt.rightPt) {
                                             "Ammunition track overflows its physical PDF column."
                                         }
-                                        stream.addRect(px, cell.cellPt.bottomPt + 2f, 6f, 6f)
-                                        stream.stroke()
+                                        stream.saveGraphicsState()
+                                        stream.setNonStrokingColor(Color(255, 255, 255))
+                                        stream.setStrokingColor(Color(82, 124, 150))
+                                        stream.setLineWidth(0.48f)
+                                        stream.addRect(px, cell.cellPt.bottomPt + 1.3f, 7.94f, 7.94f)
+                                        stream.fillAndStroke()
+                                        stream.restoreGraphicsState()
                                     }
                                 }
                             }
@@ -4483,7 +4493,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // Blue mist writing bands and fine rules match the approved V11
                 // paper grammar; black default strokes belong only to PREQA.
                 stream.saveGraphicsState()
-                stream.setNonStrokingColor(Color(238, 247, 251))
+                stream.setNonStrokingColor(Color(240, 247, 250))
                 stream.addRect(rect.leftPt, rect.bottomPt, rect.widthPt, rect.heightPt)
                 stream.fill()
                 // Golden P2 writes against alternating blue-mist rows, not
@@ -4502,7 +4512,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         }
                     }
                 }
-                stream.setStrokingColor(Color(130, 165, 186))
+                stream.setStrokingColor(Color(148, 176, 193))
                 stream.setLineWidth(0.45f)
                 stream.addRect(rect.leftPt, rect.bottomPt, rect.widthPt, rect.heightPt)
                 stream.stroke()
@@ -4756,7 +4766,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.restoreGraphicsState()
                 }
                 stream.saveGraphicsState()
-                stream.setStrokingColor(Color(130, 165, 186))
+                stream.setStrokingColor(Color(148, 176, 193))
                 stream.setLineWidth(0.45f)
                 // C408: the golden P2 has no quantity separators.
                 if (compactC2) placed.pairs.forEach { pair ->
@@ -5531,7 +5541,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             "Special equipment continuation must not overlap the heading."
                         }
                         stream.saveGraphicsState()
-                        stream.setNonStrokingColor(Color(80, 122, 151))
+                        stream.setNonStrokingColor(Color(101, 125, 144))
                         stream.beginText()
                         stream.setFont(bodyPdfFont, fontPt)
                         // C344/C367: the free strip above the cartela, under the golden rule.

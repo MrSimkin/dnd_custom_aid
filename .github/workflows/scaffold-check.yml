@@ -72,6 +72,8 @@ jobs:
           python3 scripts/audit_v11_spellbook_cards.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --minimum-books 4 --report desktopApp/build/v11-spellbook-card-panels.json
           python3 scripts/test_audit_v11_continuation_cues.py
           python3 scripts/audit_v11_continuation_cues.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-continuation-cues.json
+          python3 scripts/test_audit_v11_golden_palette.py
+          python3 scripts/audit_v11_golden_palette.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-golden-palette.json
           python3 scripts/test_audit_v11_p1_golden_rhythm.py
           python3 scripts/audit_v11_p1_golden_rhythm.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-p1-golden-rhythm.json
           python3 scripts/test_audit_v11_attribute_row_owner.py

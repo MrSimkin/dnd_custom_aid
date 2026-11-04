@@ -24,7 +24,7 @@ LEVEL = re.compile(r"\b(?:NIVEL|TRUCOS)\s+(\d+)\b")  # C330: golden «TRUCOS 0»
 # Golden P4 continuation panels are REAL vector clipped blue cartelas
 # in an existing 10pt free paper strip, never duplicate source headings.
 CONTINUATION_FILL = tuple(c / 255 for c in (231, 242, 247))  # C293 golden
-CONTINUATION_INK = tuple(c / 255 for c in (80, 122, 151))
+CONTINUATION_INK = tuple(c / 255 for c in (38, 75, 104))  # C412 golden
 
 
 def continued_level_bands(page):
