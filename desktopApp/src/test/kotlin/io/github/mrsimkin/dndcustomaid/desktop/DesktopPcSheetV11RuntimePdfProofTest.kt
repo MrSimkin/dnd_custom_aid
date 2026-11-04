@@ -1115,6 +1115,79 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c417P4HasThreeRealColumnsWithoutLargeGapsForFewAndManySpellsAB() {
+        // C417 / P402: with few or many real spells, every P4 page fills its three golden
+        // columns with continuous rows down to the foot; a free column ends in its NOTAS grid.
+        val number = """(-?\d+(?:\.\d+)?)"""
+        val ilyra = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val base = ilyra.permanent.sheet.spells.first { it.sourceAssociations.isNotEmpty() }
+        val many = ilyra.copy(permanent = ilyra.permanent.copy(sheet = ilyra.permanent.sheet.copy(
+            spells = (1..175).map { n -> base.copy(
+                id = Uuid.parse("f7100000-0000-4000-8000-" + n.toString().padStart(12, '0')),
+                name = "QAP4COL" + n.toString().padStart(3, '0'), level = 0, sortOrder = n) })))
+        val cases = listOf("few" to ilyra, "custom" to sources("03_mara_siete_umbrales_custom_extended.json"), "many" to many)
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            for ((label, source) in cases) {
+                val bytes = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source,
+                ).bytes
+                Loader.loadPDF(bytes).use { pdf ->
+                    val p4 = (0 until pdf.numberOfPages).filter { i ->
+                        PDFTextStripper().apply { startPage = i + 1; endPage = i + 1 }.getText(pdf)
+                            .contains("P4 - Conjuros /")
+                    }
+                    assertTrue(p4.isNotEmpty(), "A caster has P4 ($label, $variant).")
+                    p4.forEach { i ->
+                        val ops = pdf.getPage(i).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                        val rects = Regex("""(?:^|\s)$number\s+$number\s+$number\s+$number\s+re(?:\s|$)""")
+                            .findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }.toList()
+                        for (column in listOf(39.69f, 222.09f, 404.5f)) {
+                            val bands = rects.filter { (x, _, w, h) ->
+                                kotlin.math.abs(x - column) < 0.3f && kotlin.math.abs(w - 167.81f) < 0.3f && h > 5f
+                            }.sortedByDescending { (_, y, _, h) -> y + h }
+                            assertTrue(bands.size >= 20, "Column $column holds real rows, page ${i + 1} ($label, $variant).")
+                            assertTrue(bands.minOf { (_, y) -> y } < 85f, "Column $column reaches the foot ($label, $variant).")
+                            bands.zipWithNext().forEach { (upper, lower) ->
+                                val gap = upper[1] - (lower[1] + lower[3])
+                                // The only taller step is the NOTAS cartela sitting on its grid frame.
+                                assertTrue(gap < 3f || (gap < 25f && lower[3] > 60f),
+                                    "Gap of $gap pt in column $column, page ${i + 1} ($label, $variant).")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun c417OverflowPaginatesOnePdfWithoutASecondExportOptionAB() {
+        // C417 / IN08: the same request shape serves ordinary and overflowing sheets; the
+        // only difference in the one returned PDF is its page count.
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val request = PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT)
+            val ordinary = DesktopPcSheetExportService().generateV11Proof(request, aldren)
+            val overflowing = DesktopPcSheetExportService().generateV11Proof(request, mara)
+            Loader.loadPDF(ordinary.bytes).use { small ->
+                Loader.loadPDF(overflowing.bytes).use { large ->
+                    assertTrue(large.numberOfPages > small.numberOfPages,
+                        "Overflow is handled by automatic pagination ($variant).")
+                    listOf(small, large).forEach { pdf ->
+                        assertTrue(PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
+                            .contains("VARIANTE " + variant.name), "Same chosen variant in both ($variant).")
+                        assertTrue(PDFTextStripper().apply {
+                            startPage = pdf.numberOfPages; endPage = pdf.numberOfPages
+                        }.getText(pdf).lineSequence().any { it.trim() == "NOTAS" },
+                            "Both end on the same final NOTAS page ($variant).")
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun c415LongCustomAttributeNamesWrapInsideTheOwnerRowAB() {
         // C415: a long custom attribute name no longer falls back to inline numbers
         // with outlines drawn over them: it is the owner row, name beside the oval.
