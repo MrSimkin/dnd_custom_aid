@@ -22,8 +22,9 @@ class EmptyAmmoParity(unittest.TestCase):
             # never fake underscore glyphs. Both native renderers must
             # have identical paper geometry and 20 grouped source-free marks.
             self.assertNotIn('p1DrawSmall(stream, "____________", 316f, 122f)',section)
-            self.assertIn('stream.moveTo(274.96f, 90.69f)',section)  # C356 golden
-            self.assertIn('stream.lineTo(412.28f, 90.69f)',section)
+            self.assertIn('p1DrawSmall(stream, "Tipo:", 274.96f, 92.69f)',section)  # C410 golden
+            self.assertIn('stream.moveTo(293f, 91.8f)',section)
+            self.assertIn('stream.lineTo(350.85f, 91.8f)',section)
             self.assertIn("val y = if (index < 10) 94.82f else 79.37f // C356 golden",section)
             self.assertIn("val x = 422.08f + column * 13.75f + (column / 5) * 2.83f // C351 golden",section)
             self.assertIn("p1AmmoItems.forEach { item ->",section)

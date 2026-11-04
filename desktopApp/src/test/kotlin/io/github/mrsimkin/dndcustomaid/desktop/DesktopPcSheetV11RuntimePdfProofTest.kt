@@ -693,7 +693,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             ),
         ))
         val spellLabels = setOf("LANZAMIENTO", "DE", "CONJUROS", "APTITUD", "MÁGICA", "CD", "SALVACIÓN",
-            "ATAQUE", "MÁGICO", "MUNICIONES") +
+            "ATAQUE", "MÁGICO", "MUNICIONES", "Tipo:") +
             (1..9).map { "N$it" }
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
             val generated = DesktopPcSheetExportService().generateV11Proof(
@@ -7431,8 +7431,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(Regex("MUNICIONES(?! A P\\.)(?! /)").containsMatchIn(page1), "Golden MUNICIONES title.")
             assertFalse(page1.contains("____________"),
                 "Empty ammo name must be a real writable vector baseline, not fake printed underscores.")
+            // C410: golden «Tipo: ___» - the label and a true vector rule.
+            assertTrue(page1.contains("Tipo:"), "Golden empty ammunition label.")
             assertTrue(Regex(
-                """(?:^|\s)274\.(?:96|959+)\d*\s+90\.(?:69|689+)\d*\s+m\s+412\.(?:28|279+)\d*\s+90\.(?:69|689+)\d*\s+l\s+S(?:\s|$)""" /* C356 golden */
+                """(?:^|\s)293(?:\.0+)?\s+91\.(?:8|79+)\d*\s+m\s+350\.(?:85|849+)\d*\s+91\.(?:8|79+)\d*\s+l\s+S(?:\s|$)"""
             ).containsMatchIn(ops), "Exactly one measured blank ammo-name vector rule is required.")
             assertFalse(page1.contains("MARCAS: ____ / 20"),
                 "Paper-only marks do not imply 20 units of ammo.")

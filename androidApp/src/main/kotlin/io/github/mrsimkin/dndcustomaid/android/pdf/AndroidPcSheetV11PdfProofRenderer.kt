@@ -1396,7 +1396,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 cardInk(value, 11f, 197.29f)
                             }
                         }
-                        stream.setNonStrokingColor(Color(0,0,0))
+                        stream.setNonStrokingColor(Color(38,75,104)) // C410 golden level ink
                     }
                 (1..9).forEach{level->
                     val x=p1MagicColumn((level-1)%3)
@@ -1440,9 +1440,15 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             draw(stream,v.spentSlots.toString(),x+46f,b+5.96f,false)
                         }
                     }?:run{
+                        // C410: the contract forbids inventing boxes ("mínimo 0"): an absent
+                        // level keeps its writable line, in the golden box ink.
+                        stream.saveGraphicsState()
+                        stream.setStrokingColor(Color(82,124,150))
+                        stream.setLineWidth(0.48f)
                         stream.moveTo(x+20f,b+4.5f)
                         stream.lineTo(x+magicCard-6f,b+4.5f)
                         stream.stroke()
+                        stream.restoreGraphicsState()
                     }
                 }
             }
@@ -1680,11 +1686,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 if (p1AmmoItems.isEmpty()) {
                     // Empty ammunition NAME is a writable PAPER baseline,
                     // not black underscore glyphs impersonating a source.
+                    // C410: golden «Tipo: ___» at x274.96..350.85, baseline 92.69.
+                    p1DrawSmall(stream, "Tipo:", 274.96f, 92.69f)
                     stream.saveGraphicsState()
-                    stream.setStrokingColor(Color(130, 165, 186))
-                    stream.setLineWidth(0.55f)
-                    stream.moveTo(274.96f, 90.69f)
-                    stream.lineTo(412.28f, 90.69f)
+                    stream.setStrokingColor(Color(36, 57, 75))
+                    stream.setLineWidth(0.4f)
+                    stream.moveTo(293f, 91.8f)
+                    stream.lineTo(350.85f, 91.8f)
                     stream.stroke()
                     stream.restoreGraphicsState()
                     ammoBoxes(20)
