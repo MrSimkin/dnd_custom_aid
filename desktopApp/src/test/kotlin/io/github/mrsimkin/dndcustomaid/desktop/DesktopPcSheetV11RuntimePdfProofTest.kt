@@ -1144,6 +1144,127 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c424PortraitFitShowsTheWholeImageAndCropFillsWithoutDistortionOnRealRasterAB() {
+        // C424 / IN04: a 2:1 image with green side bands. FIT shows the bands with white
+        // margins above and below; CROP fills the box and cuts the bands; neither spills.
+        val image = BufferedImage(200, 100, BufferedImage.TYPE_INT_RGB)
+        image.createGraphics().apply {
+            color = Color(0, 200, 0); fillRect(0, 0, 200, 100)
+            color = Color(0, 0, 220); fillRect(20, 0, 160, 100)
+            dispose()
+        }
+        val png = ByteArrayOutputStream().use { out -> check(ImageIO.write(image, "png", out)); out.toByteArray() }
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val source = original.copy(permanent = original.permanent.copy(
+            closure = original.permanent.closure.copy(portraitRef = "qa:wide")))
+        val service = DesktopPcSheetExportService(portraitBytesLoader = { png })
+        // The viewport of the portrait box: x44.69..114.06, y631.92..693.46.
+        val left = 44.69f; val bottom = 631.92f; val width = 69.37f; val height = 61.54f
+        fun colour(raster: BufferedImage, x: Float, y: Float): Color =
+            Color(raster.getRGB((x * 4f).toInt(), ((792f - y) * 4f).toInt()))
+        fun isBlue(c: Color) = c.blue > 150 && c.green < 80
+        fun isGreen(c: Color) = c.green > 150 && c.blue < 80
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            for (fit in listOf(PcSheetPortraitFitMode.FIT_ENTIRE_IMAGE, PcSheetPortraitFitMode.CROP_TO_FILL)) {
+                val bytes = service.generateV11Proof(PcSheetV11ExportRequest(variant,
+                    PcSheetExportStateSelection.PERMANENT, portraitFitMode = fit), source).bytes
+                Loader.loadPDF(bytes).use { pdf ->
+                    val raster = org.apache.pdfbox.rendering.PDFRenderer(pdf).renderImageWithDPI(0, 288f)
+                    val midY = bottom + height / 2f
+                    assertTrue(isBlue(colour(raster, left + width / 2f, midY)), "Centre shows the image ($fit, $variant).")
+                    if (fit == PcSheetPortraitFitMode.FIT_ENTIRE_IMAGE) {
+                        // Scale 0.3469: band edge at left + 6.94; drawn height 34.69.
+                        assertTrue(isGreen(colour(raster, left + 3f, midY)), "FIT keeps the left band ($variant).")
+                        assertTrue(isBlue(colour(raster, left + 10f, midY)), "FIT keeps the proportion ($variant).")
+                        assertTrue(isGreen(colour(raster, left + width - 3f, midY)), "FIT keeps the right band ($variant).")
+                        assertFalse(isBlue(colour(raster, left + width / 2f, bottom + height - 3f)),
+                            "FIT leaves a margin above the image ($variant).")
+                        assertFalse(isBlue(colour(raster, left + width / 2f, bottom + 3f)),
+                            "FIT leaves a margin below the image ($variant).")
+                    } else {
+                        // Scale 0.6154: the bands fall outside the box.
+                        assertTrue(isBlue(colour(raster, left + 3f, midY)), "CROP cuts the left band ($variant).")
+                        assertTrue(isBlue(colour(raster, left + width - 3f, midY)), "CROP cuts the right band ($variant).")
+                        assertTrue(isBlue(colour(raster, left + width / 2f, bottom + height - 2f)), "CROP fills to the top ($variant).")
+                        assertTrue(isBlue(colour(raster, left + width / 2f, bottom + 2f)), "CROP fills to the foot ($variant).")
+                    }
+                    // Nothing spills out of the viewport, in either mode.
+                    assertFalse(isBlue(colour(raster, left - 2f, midY)) || isBlue(colour(raster, left + width + 2f, midY)) ||
+                        isBlue(colour(raster, left + width / 2f, bottom - 2f)), "No spill ($fit, $variant).")
+                }
+            }
+        }
+    }
+
+    @Test
+    fun c424LocalSaveWritesTheRealPdfWithNoConnectionAB() {
+        // C424 / IN06: the App's save step writes the real PDF locally; the service takes
+        // no account, token or network address. The UI itself is not exercised here.
+        val service = DesktopPcSheetExportService()
+        val folder = java.nio.file.Files.createTempDirectory("v11-local-save").toFile()
+        try {
+            for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+                val proof = service.generateV11Proof(
+                    PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT),
+                    sources("01_aldren_vale_srd5_1_champion_fighter.json"),
+                )
+                val saved = service.saveV11Proof(proof, File(folder, "hoja-" + variant.name))
+                assertTrue(saved.name.endsWith(".pdf") && saved.isFile, "Saved with its extension ($variant).")
+                assertTrue(saved.readBytes().contentEquals(proof.bytes), "The saved file is the generated PDF ($variant).")
+                Loader.loadPDF(saved).use { pdf -> assertTrue(pdf.numberOfPages >= 4, "A whole sheet ($variant).") }
+                assertEquals(setOf(saved.name), folder.listFiles()!!.filter { it.name.contains(variant.name) }.map { it.name }.toSet(),
+                    "No temporary file remains ($variant).")
+            }
+        } finally {
+            folder.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun c424UnderStressIntegrityComesBeforeLegibilityPaperAndPageCountAB() {
+        // C424 / GLB09: integrity first - every real record prints whole and once even if
+        // pages grow; then legibility - no text under the smallest step; then the writing
+        // paper - every P4 level keeps a blank row and the sheet ends on its NOTAS page.
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        val base = mara.permanent.sheet.spells.first { it.sourceAssociations.isNotEmpty() }
+        val stress = mara.copy(permanent = mara.permanent.copy(sheet = mara.permanent.sheet.copy(
+            spells = mara.permanent.sheet.spells + (1..120).map { n -> base.copy(
+                id = Uuid.parse("f7300000-0000-4000-8000-" + n.toString().padStart(12, '0')),
+                name = "QAGLB" + n.toString().padStart(3, '0'), level = n % 10, sortOrder = 1000 + n) })))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val ordinary = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), mara)
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), stress)
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                Loader.loadPDF(ordinary.bytes).use { small ->
+                    assertTrue(pdf.numberOfPages > small.numberOfPages, "Pages are what gives way ($variant).")
+                }
+                val text = PDFTextStripper().getText(pdf)
+                (1..120).forEach { n ->
+                    val name = "QAGLB" + n.toString().padStart(3, '0')
+                    assertEquals(1, Regex(name).findAll(text).count(), "$name prints once ($variant).")
+                }
+                proof.semantic.traits.forEach { trait ->
+                    assertTrue(text.replace(Regex("""\s+"""), " ").contains(trait.name.replace(Regex("""\s+"""), " ")),
+                        "Trait ${trait.name} survives ($variant).")
+                }
+                var smallest = 99f
+                var smallestAt = ""
+                object : PDFTextStripper() {
+                    override fun writeString(value: String, positions: MutableList<org.apache.pdfbox.text.TextPosition>) {
+                        positions.forEach { if (it.unicode.isNotBlank() && it.fontSize < smallest) { smallest = it.fontSize; smallestAt = value } }
+                    }
+                }.getText(pdf)
+                assertTrue(smallest >= 5.3f, "No text under the smallest step: $smallest in «$smallestAt» ($variant).")
+                val lastPage = PDFTextStripper().apply { startPage = pdf.numberOfPages; endPage = pdf.numberOfPages }.getText(pdf)
+                assertTrue(lastPage.lineSequence().any { it.trim() == "NOTAS" } && !lastPage.contains("QAGLB"),
+                    "The last page stays paper ($variant).")
+            }
+        }
+    }
+
+    @Test
     fun c423ALeftoverTableSharesItsPageWithEquipoEspecialAB() {
         // C423: as in the golden, one table left over from P2 shares its page with every
         // deferred EQUIPO ESPECIAL row that fits, and P2 points both modules to that page.
