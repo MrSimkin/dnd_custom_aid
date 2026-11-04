@@ -2805,7 +2805,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.endText()
                     if (!label) stream.restoreGraphicsState()
                 }
-                val flow = font.place(section, entries, area, columns, gutterPt)
+                // C416: golden C2 list text sits 4.25 pt inside its band; lines wrap as if
+                // the band were 8.5 pt narrower, so the text also stays clear on the right.
+                val c2TextInset = if (title == "C2 - Habilidades, acciones y recursos") 4.25f else 0f
+                val flow = (if (c2TextInset > 0f) font.copy(width = PcSheetV11TextWidth { text ->
+                    font.width.measurePt(text) + 2f * c2TextInset
+                }) else font).place(section, entries, area, columns, gutterPt)
                 val pageCount = maxOf(if (alwaysPage) 1 else 0, flow.sourceFlow.localPageCount)
                 repeat(minOf(pageCount, maxPhysicalPages ?: pageCount)) { index ->
                     val pageCells = flow.cells.filter {
@@ -3425,8 +3430,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 val foot = cells.minBy { it.cellPt.bottomPt }.cellPt
                                 stream.setStrokingColor(Color(148, 176, 193))
                                 stream.setLineWidth(0.32f)
-                                stream.moveTo(foot.leftPt, foot.bottomPt + 0.2f)
-                                stream.lineTo(foot.rightPt, foot.bottomPt + 0.2f)
+                                stream.moveTo(foot.leftPt, foot.bottomPt + 0.99f) // C416 golden
+                                stream.lineTo(foot.rightPt, foot.bottomPt + 0.99f)
                                 stream.stroke()
                                 stream.restoreGraphicsState()
                             }
@@ -4081,7 +4086,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 // C363: a book line with extra air above it keeps its
                                 // baseline at the foot of its taller cell.
                                 draw(stream, cell.drawableText,
-                                    cell.cellPt.leftPt,
+                                    cell.cellPt.leftPt + c2TextInset,
                                     if (title == "Libro de conjuros" &&
                                         cell.cellPt.heightPt > body.metrics.lineHeightPt + 0.01f)
                                         body.metrics.baselineIn(cell.cellPt.copy(
