@@ -1341,6 +1341,33 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c437HitDicePrintTheLevelTotalNotTheDiceLeftAB() {
+        // C437 / P123 (owner 2026-11-05, «Total del nivel»): Guerrero 5 with 3 dice left
+        // prints 5d10; a multiclass prints each class total on the same line.
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val fighter = aldren.permanent.sheet.classes.single()
+        assertEquals(3, fighter.hitDiceRemaining, "The fixture has spent dice.")
+        val multi = aldren.copy(permanent = aldren.permanent.copy(sheet = aldren.permanent.sheet.copy(
+            classes = listOf(fighter, fighter.copy(
+                id = Uuid.parse("a7700000-0000-4000-8000-000000000001"),
+                name = "Mago", level = 3, hitDieSides = 6, hitDiceRemaining = 1, sortOrder = fighter.sortOrder + 1)))))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            fun p1(source: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources) =
+                Loader.loadPDF(DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source,
+                ).bytes).use { pdf ->
+                    PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf).replace(Regex("""\s+"""), " ")
+                }
+            val single = p1(aldren)
+            assertTrue(single.contains("5d10"), "The level total prints ($variant).")
+            assertFalse(single.contains("3d10"), "The dice left do not print ($variant).")
+            val both = p1(multi)
+            assertTrue(both.contains("5d10 / 3d6"), "Each class total on one line ($variant).")
+            assertFalse(both.contains("1d6"), "Dice left of the second class do not print ($variant).")
+        }
+    }
+
+    @Test
     fun c431TitledNotesPrintBeforeTheGeneralNotesAB() {
         // C431 / D-0076 3.28: titled notes hold the main area, general notes follow them.
         val source = sources("03_mara_siete_umbrales_custom_extended.json")
@@ -4096,9 +4123,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 id = if (n == 1) first.id else
                     Uuid.parse("00000000-0000-4000-8000-" + n.toString().padStart(12, '0')),
                 name = "Clase " + n,
-                level = 1,
+                level = n,
                 hitDieSides = 100 + n,
-                hitDiceRemaining = n,
+                hitDiceRemaining = 0, // C437: the sheet prints the level, not the dice left.
                 sortOrder = n,
             )
         }
@@ -4108,7 +4135,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             ),
         )
         val expectedDice = classes.joinToString(" / ") {
-            it.hitDiceRemaining.toString() + "d" + it.hitDieSides
+            it.level.toString() + "d" + it.hitDieSides
         }
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
             val proof = DesktopPcSheetExportService().generateV11Proof(
@@ -4136,7 +4163,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val c2Text = c2Pages.joinToString("\n")
                 assertTrue(c2Text.contains("DADOS DE GOLPE: 1d101"))
                 classes.forEach { row ->
-                    val label = row.hitDiceRemaining.toString() + "d" + row.hitDieSides
+                    val label = row.level.toString() + "d" + row.hitDieSides
                     assertEquals(1, Regex(Regex.escape(label)).findAll(c2Text).count(),
                         "Every persisted class hit die must appear once in C2: " + label)
                 }

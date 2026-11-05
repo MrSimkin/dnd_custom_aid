@@ -177,3 +177,7 @@ El propietario decide **seguir el golden** («sigue el golden»): las listas y t
 ## Aclaración del propietario — ATAQUES y RASGOS en P1 (P112, 2026-11-03)
 
 El propietario decide **seguir el golden** («seguir el golden»): en P1, ATAQUES tiene 5 filas fijas y RASGOS 7 filas en 2 columnas fijas, en la posición del golden, sea cual sea la cantidad de datos. Las filas sobrantes quedan para escribir a mano y lo que no cabe continúa en C2. Sustituye el reparto dinámico de altura que pedía la regla P112.
+
+## Aclaración del propietario — Dados de Golpe (2026-11-05)
+
+El propietario decide **«Total del nivel»**: la tarjeta DADOS DE GOLPE de P1 imprime el nivel de cada clase con su dado (Guerrero 5 → `5d10`; multiclase `5d10 / 3d6`), como el golden, y no los dados que le quedan. Los dados restantes siguen guardados en la App y no se imprimen en la hoja. Aplica D-0076 §3.7 (regla P123).

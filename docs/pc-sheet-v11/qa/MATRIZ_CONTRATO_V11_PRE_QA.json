@@ -2493,6 +2493,25 @@
       ]
     },
     {
+      "id": "P123",
+      "area": "P1",
+      "obligation": "Dados de Golpe imprime el total del nivel de cada clase con su dado, no los dados que quedan",
+      "authority": "Propietario 2026-11-05 + D-0076 §3.7 + CONTRATO_VISUAL_APROBADO.md",
+      "method": "Fuente -> PDF",
+      "scenarios": "Clase con dados gastados y multiclase, A y B",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDF real: salida del renderizador nativo",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
       "id": "RSG01",
       "area": "Rasgos",
       "obligation": "Cada entrada contiene SOLO nombre, categoría/tipo y fuente/origen reales según ejemplo Pericia - Rasgo de Clase: Pícaro",

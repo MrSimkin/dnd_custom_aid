@@ -16,7 +16,7 @@
 | 3.4 | Jerarquía y campos | RETAIN; reparto 60/40 SUPERSEDED por el golden | P102, **P121 (nueva)** | **Corregido en C432:** la subraza guardada no se imprimía |
 | 3.5 | Variantes A y B | RETAIN; «lista separada de salvaciones» SUPERSEDED (fila de atributo, P104) | P106, P107 | Sin diferencia |
 | 3.6 | Atributos y habilidades propios | RETAIN | P108, P109, C204 | **Corregido en C420:** en B las habilidades propias iban a C2 con filas libres en el panel |
-| 3.7 | Combate y supervivencia | RETAIN; PV temporales SUPERSEDED (2026-10-28) | P110 | **Abierto para el propietario:** Dados de Golpe imprime los que quedan (Guerrero 5 → `3d10`); el golden muestra el total del nivel (`8d8`) |
+| 3.7 | Combate y supervivencia | RETAIN; PV temporales SUPERSEDED (2026-10-28) | P110, **P123 (nueva)** | **Corregido en C437 por decisión del propietario (2026-11-05):** Dados de Golpe imprime el total del nivel (Guerrero 5 → `5d10`), no los que quedan |
 | 3.8 | Ataques | RETAIN | P111, P119, P120 | Sin diferencia |
 | 3.9 | Rasgos sin descripción | RETAIN | RSG01–RSG06 | Sin diferencia |
 | 3.10 | Reparto Ataques/Rasgos | SUPERSEDED_BY_V11 (P112, 2026-11-03: filas fijas del golden) | P112 | Sin diferencia |
@@ -64,10 +64,9 @@
 - **P121:** el campo Raza incluye la subraza guardada (§3.4).
 - **P122:** una segunda munición se imprime en P1 cuando sus marcas caben en una subfila (§3.15 y golden).
 - **CN305:** las notas tituladas van antes que las generales (§3.28).
+- **P123:** Dados de Golpe imprime el total del nivel, por decisión del propietario (§3.7).
 
 ## Lo que necesita una decisión del propietario
-
-**Dados de Golpe (§3.7).** La App guarda los dados que quedan por clase, y la hoja imprime ese valor. El golden imprime el total del nivel. §3.7 solo pide «una expresión textual compacta» y prohíbe «controles de dados usados/disponibles», lo que apunta al total, pero es semántica de juego y no la decido yo.
 
 **Las dos imágenes del Trasfondo (§3.45).** El propietario dijo que «las imágenes son las dos opciones posibles para el retrato». La App las guarda en la pestaña Trasfondo como imagen principal y secundaria, y el PDF no las usa: el retrato sale solo de `portraitRef`. Un PJ con esas imágenes y sin `portraitRef` imprime la silueta. Falta decidir si el retrato debe tomarlas y cuál por defecto.
 

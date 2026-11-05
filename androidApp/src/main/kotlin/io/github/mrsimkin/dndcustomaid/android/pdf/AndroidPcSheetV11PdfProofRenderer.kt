@@ -1525,7 +1525,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // the existing measured, bidirectionally referenced P1-owned C2.
             fun signedCombat(v: Int) = if (v >= 0) "+" + v else v.toString()
             val p1HitDice = source.classes.joinToString(" / ") {
-                it.hitDiceRemaining.toString() + "d" + it.hitDieSides
+                // C437 (owner 2026-11-05, «Total del nivel»): the class level, not the dice left.
+                it.level.toString() + "d" + it.hitDieSides
             }
             // C256 (owner 2026-10-28, «D 35 pies y 10,5 m»): the saved speed is
             // in feet; print feet and metres (5 pies = 1,5 m).
