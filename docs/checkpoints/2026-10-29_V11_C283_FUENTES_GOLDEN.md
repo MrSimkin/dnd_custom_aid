@@ -164,15 +164,17 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 | C430 | Evidencia de matriz | Run verde [41865770985](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/41865770985) sobre `b81c4dfc`: 3 reglas pasan a PASS en G3 (P407, IN04, GLB09), 11 en G2 y 13 en G1. Paleta y geometría del golden también pasan en CI. IN06 e IN01 siguen abiertas porque exigen la interfaz real. |
 | C431–C433 | Conciliación de D-0076 con V11 | Se revisaron las 48 secciones de D-0076 contra V11, el contrato y la App (`docs/pc-sheet-v11/qa/CONCILIACION_D0076_V11.md`). Es una revisión del implementador: la independiente sigue pendiente y las secciones siguen en NOT_VERIFIED. Salieron tres defectos reales, ya corregidos: las notas generales salían antes que las tituladas (§3.28, C431); la subraza guardada no se imprimía (§3.4, C432); nunca se imprimía una segunda munición en P1 (§3.15 y golden, C433). Reglas nuevas P121, P122 y CN305. Queda una pregunta para el propietario: Dados de Golpe imprime los dados que quedan y el golden el total. Suite, compartidas, 16 auditorías y 102 trampas en verde. |
 | C434–C435 | Comparación de los 8 golden | `scripts/report_v11_golden_cases.py` compara cada forma fija de los ocho PDF golden con PDF reales de la App: P1, P2, P3, P4 y NOTAS final coinciden, una vez dado a las tarjetas de P4 su relleno blanco del golden (C434). C2, C-N3 y Libro quedan en revisión visual. Detalle y diferencias con su motivo en `docs/pc-sheet-v11/qa/COMPARACION_8_GOLDEN.md`. Es revisión del implementador: los ocho casos siguen en NOT_VERIFIED. Nueva prueba compartida para P306; otra para P113 e IN08. |
+| C436 | Toda la evidencia sobre un mismo commit | Cada control en PASS se volvió a atar a `39ffceeb`, comprobando que sus pruebas pasan en ese código; ninguno quedó sin prueba. P105 cambia de prueba: la fila aprobada P104 sustituyó a su microajuste. 53 controles G2 pasan a PASS con la misma prueba de PDF real que su G3, como admite la compuerta: **no son pruebas nuevas ni de código compartido**. Textos de evidencia que ya no describían la salida (P111, P113, P203, P206, P405, P409, C206) corregidos. |
 
 ## Pendiente (siguiente)
 
-Actualizado el 2026-11-04.
+Actualizado el 2026-11-05.
 
-- **Matriz**: 172/233 controles de etapa en PASS (G1 42/46, G2 35/90, G3 95/97); G4 bloqueada hasta cerrar G1–G3.
-- **G3 abiertos**: IN01 e IN06, que exigen las acciones reales de la interfaz en Android o Desktop.
-- **C2, composición**: el golden coloca EQUIPO y TESORO en media página cuando sus nombres son cortos; la App los pone a todo el ancho, con la gramática de filas y márgenes del golden.
-- **Índice y última página del Libro**: quedan columnas libres sin rejilla NOTAS; el golden no tiene un caso igual para comparar.
-- **Contrato sobre golden casi vacío** (sin cambio, C410): niveles sin espacios sin casillas inventadas (contrato visual, «mínimo 0, máximo 4»), y EQUIPO ESPECIAL con rótulos reconocidos por la App más filas en blanco (D-0076 §3.42).
+- **Control final (`--mode release`)**: sigue FALLANDO. Controles: G1 48/49, G2 89/90, G3 98/100, G4 0/9. Las 109 reglas siguen en NOT_VERIFIED a nivel global porque exigen candidato con APK y PDF con SHA, salida real de Guardar/Compartir y revisión independiente.
+- **Abiertos de interfaz**: IN01 (G2, G3) e IN06 (G1, G3) exigen las acciones reales en Android o Desktop.
+- **Revisión independiente**: las 48 secciones (`qa/CONCILIACION_D0076_V11.md`) y los 8 golden (`qa/COMPARACION_8_GOLDEN.md`) tienen solo la revisión del implementador. Siguen en NOT_VERIFIED.
+- **Preguntas al propietario**: Dados de Golpe (total del nivel o dados que quedan) y las dos imágenes del Trasfondo como retrato (§3.45).
+- **G4**: QA01–QA08 y GLB12 sin ejecutar, incluida la regresión de los cuatro exportadores anteriores (QA05) y la generación desde la interfaz real (QA03).
+- **C2, composición**: el golden coloca EQUIPO y TESORO en media página cuando sus nombres son cortos; la App los pone a todo el ancho.
+- **Índice y última página del Libro**: quedan columnas libres sin rejilla NOTAS; el golden no tiene un caso igual.
 - **P4, nivel que sigue en otra columna**: rótulo «NIVEL n / CONTINUACIÓN» por decisión escrita del propietario (C341), aunque el golden repite el título.
-- **Herramienta**: `audit_v11_golden_geometry.py` comprueba hoy P1, P2, P3 y NOTAS del golden casi vacío; se puede ampliar a las demás páginas.
