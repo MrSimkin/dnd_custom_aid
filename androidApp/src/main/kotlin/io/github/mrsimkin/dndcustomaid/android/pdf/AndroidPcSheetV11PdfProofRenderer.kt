@@ -1715,7 +1715,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 .sortedWith(compareBy<
                     io.github.mrsimkin.dndcustomaid.shared.character.CharacterInventoryItem> {
                     it.sortOrder
-                }.thenBy { it.id.toString() }).take(1)
+                }.thenBy { it.id.toString() }).withIndex()
+                // C433: golden second entry (row y36.28..70.3). Its lower sub-row would lie under
+                // the module band, so it stays on P1 only when one sub-row holds its marks.
+                .filter { (index, item) -> index == 0 || (index == 1 && (item.quantity <= 10 || item.quantity > 20)) }
+                .map { it.value }
             // C257: the golden two-row grammar fits ONE ammunition entry in the
             // fixed P1 band; the next ones continue whole in C2 (owner choice).
             val p1AmmoIds = p1AmmoItems.map { it.id }.toSet()
@@ -1731,7 +1735,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // Golden mark geometry (7.94 pt boxes, 13.75 pt step, 2.83 pt
                 // extra gap between groups), at the golden distance from the
                 // right edge of the column.
-                fun ammoBoxes(count: Int) {
+                fun ammoBoxes(count: Int, rowDrop: Float = 0f) {
                     stream.saveGraphicsState()
                     stream.setStrokingColor(Color(82, 124, 150))
                     stream.setNonStrokingColor(Color.WHITE)
@@ -1739,7 +1743,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     repeat(count) { index ->
                         val column = index % 10
                         val x = 422.08f + column * 13.75f + (column / 5) * 2.83f // C351 golden
-                        val y = if (index < 10) 94.82f else 79.37f // C356 golden
+                        val y = (if (index < 10) 94.82f else 79.37f) - rowDrop // C356 golden
                         require(x + 7.94f <= 572.32f)
                         stream.addRect(x, y, 7.94f, 7.94f)
                         stream.fillAndStroke()
@@ -1764,12 +1768,26 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.restoreGraphicsState()
                     ammoBoxes(20)
                 }
-                p1AmmoItems.forEach { item ->
-                    val baseline = 92.69f // C356 golden
+                p1AmmoItems.forEachIndexed { row, item ->
+                    // C433: the golden second entry sits 34.01 pt under the first, on its own band.
+                    val rowDrop = row * 34.01f
+                    if (row == 1) {
+                        stream.saveGraphicsState()
+                        stream.setNonStrokingColor(Color(240, 247, 250))
+                        stream.addRect(270.43f, 36.28f, 301.89f, 34.02f)
+                        stream.fill()
+                        stream.setStrokingColor(Color(148, 176, 193))
+                        stream.setLineWidth(0.32f)
+                        stream.moveTo(270.43f, 37.28f)
+                        stream.lineTo(572.32f, 37.28f)
+                        stream.stroke()
+                        stream.restoreGraphicsState()
+                    }
+                    val baseline = 92.69f - rowDrop // C356 golden
                     p1DrawSmall(stream, item.name, 274.96f, baseline)
                     when {
                         item.quantity == 0 -> p1DrawSmall(stream, "0", 422.08f, baseline)
-                        item.quantity <= 20 -> ammoBoxes(item.quantity)
+                        item.quantity <= 20 -> ammoBoxes(item.quantity, rowDrop)
                         else -> p1DrawSmall(stream, "MARCAS: ____ / " + item.quantity, 422.08f, baseline)
                     }
                 }
@@ -1881,7 +1899,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 "identity:classes",
                 source.classes.joinToString(", ") { it.name + " " + it.level },
             )
-            val raceIdentity = PcSheetV11FlowItem("identity:race", source.background.race)
+            val raceIdentity = PcSheetV11FlowItem("identity:race",
+                io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11RaceLine.of(
+                    source.background, data.source.successor))
             val identityFieldFrames = listOf(
                 // C349: golden v11_extremo p1 boxes - CLASE / NIVEL x127.56..572.32,
                 // y664.44..698.46; JUGADOR, RAZA and ALINEAMIENTO y621.92..658.77.

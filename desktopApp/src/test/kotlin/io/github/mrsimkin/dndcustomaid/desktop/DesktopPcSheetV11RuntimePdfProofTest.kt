@@ -1341,6 +1341,88 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c431TitledNotesPrintBeforeTheGeneralNotesAB() {
+        // C431 / D-0076 3.28: titled notes hold the main area, general notes follow them.
+        val source = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            Loader.loadPDF(DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source,
+            ).bytes).use { pdf ->
+                val notes = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }.filter { it.contains("C-N3 - Notas digitales") }.joinToString("\n").replace(Regex("""\s+"""), " ")
+                val general = source.permanent.sheet.generalNotes.replace(Regex("""\s+"""), " ").take(40)
+                val lastTitle = source.permanent.sheet.noteCards.maxBy { it.sortOrder }.title
+                assertTrue(notes.contains(general) && notes.contains(lastTitle), "Both kinds of note print ($variant).")
+                assertTrue(notes.indexOf(lastTitle) < notes.indexOf(general), "Titled notes come first ($variant).")
+            }
+        }
+    }
+
+    @Test
+    fun c432TheRaceFieldPrintsTheSubraceWhenOneExistsAB() {
+        // C432 / D-0076 3.4: `Elfo — Alto elfo`, from the character's own identities.
+        val original = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val species = io.github.mrsimkin.dndcustomaid.shared.character.CharacterOwnedSpeciesIdentity(
+            Uuid.parse("a7500000-0000-4000-8000-000000000001"), "Elfo")
+        val subrace = io.github.mrsimkin.dndcustomaid.shared.character.CharacterOwnedSubraceIdentity(
+            Uuid.parse("a7500000-0000-4000-8000-000000000002"), species.id, "Alto elfo")
+        val source = original.copy(permanent = original.permanent.copy(successor = original.permanent.successor.copy(
+            speciesIdentity = species, subraceIdentity = subrace)))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            Loader.loadPDF(DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source,
+            ).bytes).use { pdf ->
+                val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf).replace(Regex("""\s+"""), " ")
+                assertTrue(p1.contains("Elfo — Alto elfo"), "Race with its subrace ($variant).")
+            }
+        }
+    }
+
+    @Test
+    fun c433ASecondAmmunitionEntryPrintsOnP1WhenOneSubRowHoldsItsMarksAB() {
+        // C433 / D-0076 3.15 and the golden: a second entry 34 pt under the first, on its own band;
+        // with 11 to 20 marks it continues whole in C2, because its lower sub-row would be hidden.
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val usage = aldren.permanent.closure.inventoryUsage.single {
+            it.kind == io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind.AMMUNITION
+        }
+        val template = aldren.permanent.sheet.inventoryItems.first { it.id == usage.itemId }
+        fun withSecond(quantity: Int): io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources {
+            val id = Uuid.parse("a7600000-0000-4000-8000-000000000001")
+            return aldren.copy(permanent = aldren.permanent.copy(
+                sheet = aldren.permanent.sheet.copy(inventoryItems = aldren.permanent.sheet.inventoryItems +
+                    template.copy(id = id, name = "QAFLECHAS", quantity = quantity, sortOrder = template.sortOrder + 1)),
+                closure = aldren.permanent.closure.copy(inventoryUsage = aldren.permanent.closure.inventoryUsage +
+                    usage.copy(itemId = id)),
+            ))
+        }
+        val number = """(-?\d+(?:\.\d+)?)"""
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), withSecond(8)).bytes
+            preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-P1-two-ammo-entries-" + variant.name + ".pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
+                assertTrue(p1.contains("Virotes") && p1.contains("QAFLECHAS"), "Both entries on P1 ($variant).")
+                val ops = pdf.getPage(0).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                val marks = Regex("""(?:^|\s)$number\s+$number\s+7\.94\s+7\.94\s+re(?:\s|$)""")
+                    .findAll(ops).map { it.groupValues[2].toFloat() }.toList()
+                assertEquals(8, marks.count { kotlin.math.abs(it - 60.81f) < 0.05f }, "Eight marks on its one sub-row ($variant).")
+                assertEquals(1, PDFTextStripper().getText(pdf).split("MUNICIÓN QAFLECHAS").size - 1,
+                    "Its details print once in C2 ($variant).")
+            }
+            Loader.loadPDF(DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), withSecond(15)).bytes).use { pdf ->
+                assertFalse(PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf).contains("QAFLECHAS"),
+                    "With 15 marks it does not stay on P1 ($variant).")
+                assertEquals(1, PDFTextStripper().getText(pdf).split("MUNICIÓN QAFLECHAS").size - 1,
+                    "It continues once in C2 ($variant).")
+            }
+        }
+    }
+
+    @Test
     fun c429ALevelTitleNeverStaysAloneAtAColumnFootAB() {
         // C429: every level title has at least one row under it in its own column.
         for (fixture in listOf("02_ilyra_quill_srd5_2_1_evoker_wizard.json", "03_mara_siete_umbrales_custom_extended.json")) {

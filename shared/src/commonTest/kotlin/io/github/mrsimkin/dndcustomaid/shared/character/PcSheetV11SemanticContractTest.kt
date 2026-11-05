@@ -332,10 +332,11 @@ class PcSheetV11SemanticContractTest {
         assertEquals("Descripción detallada", result.specialEquipment.single().description)
         assertEquals(0, result.currencies.single().amount)
         assertEquals(2, result.digitalNotes.size)
-        assertNull(result.digitalNotes.first().sourceId)
-        assertEquals("Nota general\\nSegunda línea", result.digitalNotes.first().content)
-        assertEquals(cardId, result.digitalNotes.last().sourceId)
-        assertEquals("Secreto", result.digitalNotes.last().title)
+        // D-0076 3.28: titled notes first, then the general notes.
+        assertEquals(cardId, result.digitalNotes.first().sourceId)
+        assertEquals("Secreto", result.digitalNotes.first().title)
+        assertNull(result.digitalNotes.last().sourceId)
+        assertEquals("Nota general\\nSegunda línea", result.digitalNotes.last().content)
         assertEquals(PcSheetPortraitFitMode.FIT_ENTIRE_IMAGE, result.portrait.fitMode)
         assertFalse(result.portrait.locallyAvailable)
         assertTrue(result.notices.any { it.code == PcSheetExportNoticeCode.PORTRAIT_NOT_AVAILABLE_LOCALLY })
@@ -359,6 +360,25 @@ class PcSheetV11SemanticContractTest {
             PcSheetV11PairedTableSources.treasure(data).rows.map { it.label },
         )
         assertEquals(listOf(5, 4, 3, 2, 1, 0, 7), PcSheetV11PairedTableSources.treasure(data).rows.map { it.amount })
+    }
+
+    @Test
+    fun raceLineIncludesTheSubraceWhenOneExists() {
+        // D-0076 3.4: `Elfo — Alto elfo`; with no subrace, the race alone.
+        val species = CharacterOwnedSpeciesIdentity(id("74000000-0000-0000-0000-000000000001"), "Elfo")
+        val subrace = CharacterOwnedSubraceIdentity(id("74000000-0000-0000-0000-000000000002"), species.id, "Alto elfo")
+        val sheet = baseSheet().copy(background = CharacterBackground(race = "Elfo"))
+        assertEquals("Elfo — Alto elfo", PcSheetV11RaceLine.of(sheet.background,
+            CharacterSuccessorState(speciesIdentity = species, subraceIdentity = subrace)))
+        assertEquals("Elfo", PcSheetV11RaceLine.of(sheet.background, CharacterSuccessorState(speciesIdentity = species)))
+        assertEquals("Elfo", PcSheetV11RaceLine.of(sheet.background, CharacterSuccessorState()))
+        // The owned identity is the authority; the old text is only a fallback.
+        assertEquals("Enano", PcSheetV11RaceLine.of(CharacterBackground(race = "Elfo"),
+            CharacterSuccessorState(speciesIdentity = species.copy(name = "Enano"))))
+        // A saved text that already names the subrace is never repeated.
+        assertEquals("Elfo alto", PcSheetV11RaceLine.of(CharacterBackground(race = "Elfo alto"),
+            CharacterSuccessorState(subraceIdentity = subrace.copy(name = "alto"))))
+        assertEquals("", PcSheetV11RaceLine.of(CharacterBackground(), CharacterSuccessorState()))
     }
 
     @Test

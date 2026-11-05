@@ -25,9 +25,9 @@ class EmptyAmmoParity(unittest.TestCase):
             self.assertIn('p1DrawSmall(stream, "Tipo:", 274.96f, 92.69f)',section)  # C410 golden
             self.assertIn('stream.moveTo(293f, 91.8f)',section)
             self.assertIn('stream.lineTo(350.85f, 91.8f)',section)
-            self.assertIn("val y = if (index < 10) 94.82f else 79.37f // C356 golden",section)
+            self.assertIn("val y = (if (index < 10) 94.82f else 79.37f) - rowDrop // C356 golden",section)
             self.assertIn("val x = 422.08f + column * 13.75f + (column / 5) * 2.83f // C351 golden",section)
-            self.assertIn("p1AmmoItems.forEach { item ->",section)
+            self.assertIn("p1AmmoItems.forEachIndexed { row, item ->",section)
             # C243: golden MUNICIONES cartela and banded rows in the same box.
             self.assertIn('drawGoldenCartela(stream, "MUNICIONES", 270.43f, 572.32f, 106.30f)',section)  # C356
             self.assertIn("drawGoldenRows(stream, 270.43f, 301.89f, 104.31f, 34.01f, 1)",section)

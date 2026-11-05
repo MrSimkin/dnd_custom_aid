@@ -170,15 +170,16 @@ object PcSheetV11SemanticMapper {
                     active = null,
                 )
             }
+        // D-0076 3.28: titled notes hold the main area; general notes follow them.
         val digitalNotes = buildList {
-            if (sheet.generalNotes.isNotBlank()) {
-                add(PcSheetV11DigitalNote(sourceId = null, title = null, content = sheet.generalNotes))
-            }
             sheet.noteCards.sortedWith(compareBy<CharacterNote> { it.sortOrder }.thenBy { it.id.toString() })
                 .filter { it.title.isNotBlank() || it.content.isNotBlank() }
                 .forEach { note ->
                     add(PcSheetV11DigitalNote(note.id, note.title, note.content))
                 }
+            if (sheet.generalNotes.isNotBlank()) {
+                add(PcSheetV11DigitalNote(sourceId = null, title = null, content = sheet.generalNotes))
+            }
         }
         val spells = if (sheet.spells.isEmpty()) {
             emptyList()
