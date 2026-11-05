@@ -382,6 +382,31 @@ class PcSheetV11SemanticContractTest {
     }
 
     @Test
+    fun aSheetWithNoMagicStillKeepsP1AndOverflowOnlyAddsPagesToTheSameRequest() {
+        // P113/IN08: P1, which always holds the spellcasting module, needs no magic; and the
+        // same request serves any size: only the continuation pages change, never an option.
+        val data = map(sources = PcSheetExportSources(aggregate(baseSheet())))
+        assertFalse(data.hasQuickSpellList)
+        val ordinary = PcSheetV11PageSequenceBuilder.build(data, PcSheetV11PageRequirements())
+        val overflowing = PcSheetV11PageSequenceBuilder.build(data, PcSheetV11PageRequirements(continuationPages = 3))
+        assertEquals(PcSheetV11PageRole.CHARACTER_P1, ordinary.pages.first().role)
+        assertEquals(ordinary.pages.size + 3, overflowing.pages.size)
+        assertEquals(PcSheetV11PageRole.FINAL_HANDWRITTEN_NOTES, overflowing.pages.last().role)
+    }
+
+    @Test
+    fun savedBackgroundImagesNeverBecomeANarrativeImage() {
+        // P306: P3 is text only. A saved image gives the semantic data no narrative image, and
+        // the portrait plan still comes only from the portrait reference.
+        val image = CharacterBackgroundImage(id("75000000-0000-0000-0000-000000000001"),
+            CharacterBackgroundImageSlot.PRIMARY, "image/png", "AAAA")
+        val data = map(sources = PcSheetExportSources(aggregate(baseSheet(),
+            successor = CharacterSuccessorState(backgroundImages = listOf(image)))))
+        assertFalse(data.portrait.locallyAvailable)
+        assertEquals(baseSheet().background, data.background)
+    }
+
+    @Test
     fun aSparseSheetMapsToRealAbsencesAndNoInventedValues() {
         // GLB10: nothing absent becomes a value, proficiency, epic level or marker.
         val data = map()

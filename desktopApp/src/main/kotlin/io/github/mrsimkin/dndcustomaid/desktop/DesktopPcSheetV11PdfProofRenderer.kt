@@ -2235,7 +2235,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.lineTo(x, cardTop - cardCut)
                     stream.lineTo(x, cardBottom + cardCut)
                     stream.closePath()
-                    stream.stroke()
+                    stream.setNonStrokingColor(Color.WHITE) // C434 golden
+                    stream.fillAndStroke()
                     stream.restoreGraphicsState()
                     drawGoldenCardHairline(stream, x, cardRight, cardTop) // C421 golden
                     // C269: golden card label 6.65 pt in golden grey.

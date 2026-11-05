@@ -69,6 +69,8 @@
 
 **Dados de Golpe (§3.7).** La App guarda los dados que quedan por clase, y la hoja imprime ese valor. El golden imprime el total del nivel. §3.7 solo pide «una expresión textual compacta» y prohíbe «controles de dados usados/disponibles», lo que apunta al total, pero es semántica de juego y no la decido yo.
 
+**Las dos imágenes del Trasfondo (§3.45).** El propietario dijo que «las imágenes son las dos opciones posibles para el retrato». La App las guarda en la pestaña Trasfondo como imagen principal y secundaria, y el PDF no las usa: el retrato sale solo de `portraitRef`. Un PJ con esas imágenes y sin `portraitRef` imprime la silueta. Falta decidir si el retrato debe tomarlas y cuál por defecto.
+
 ## Lo que no cubre este documento
 
 No demuestra que el PDF cumpla cada regla: eso lo dice cada control de la matriz. Tampoco sustituye a la revisión independiente, ni a la comparación de los ocho PDF golden.
