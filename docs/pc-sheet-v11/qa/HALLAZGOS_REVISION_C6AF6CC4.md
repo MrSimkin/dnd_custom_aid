@@ -27,7 +27,7 @@ Este documento dice qué se hizo con cada hallazgo. **«Corregido» es la lectur
 | F11 G-c | Títulos de C2 | **Abierto** | «ESPACIOS REALES» y otros títulos no son los del golden |
 | F11 G-d | Barra lateral en C2 | **Corregido** | Eliminada |
 | F11 G-e | Rótulos de Equipo Especial | **Sin cambio** | §3.42 es decisión escrita y prevalece sobre el golden |
-| F11 | Índice del Libro | **Pregunta** | El golden no lo trae; el contrato C341 lo menciona como existente |
+| F11 | Índice del Libro | **Corregido en C450** | Decisión del propietario (2026-11-06): «Sí, quitarla». El Libro empieza en sus fichas, como el golden |
 | F11 | Siempre una C2 | **Corregido** | Un personaje nuevo imprime las 4 páginas del golden. La C2 solo sale con datos que continuar |
 | F12 | Letra pequeña de recursos | **Abierto** | Sigue a 7,2 pt |
 | F13 | Cabecera y717 en el contrato | **Corregido en el contrato** | La línea está en y709,8, como el golden, desde C367. El contrato ya lo indica |

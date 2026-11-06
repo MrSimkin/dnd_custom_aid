@@ -28,7 +28,7 @@ def classify(title: str) -> str | None:
         return "C2"
     if title.startswith("C-N3 - "):
         return "CN3"
-    if title.startswith("Índice del Libro de Conjuros") or title.startswith("Libro de conjuros"):
+    if title.startswith("Libro de conjuros"):
         return "BOOK"
     if title == "NOTAS":
         return "NOTES"

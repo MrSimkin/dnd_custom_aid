@@ -111,21 +111,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 endPage = page
             }.getText(pdf)
         }
-        val rows = pageTexts.filter { it.contains("Índice del Libro de Conjuros") }
-            .flatMap { page ->
-                page.lineSequence().mapNotNull { line ->
-                    val match = Regex("""NIVEL\s+\d+\s*\|\s*(.+?)\s*\|\s*PÁGINA\s+(\d+)""")
-                        .find(line)
-                    match?.let { it.groupValues[1] to it.groupValues[2].toInt() }
-                }
-            }
-        assertEquals(names.size, rows.size,
-            "The physical book index must list every genuine spell exactly once.")
-        assertEquals(names.sorted(), rows.map { it.first }.sorted())
-        rows.forEach { (name, physicalPage) ->
-            assertTrue(physicalPage in 1..pdf.numberOfPages)
-            assertTrue(pageTexts[physicalPage - 1].contains(name),
-                "Index sends real spell $name to the wrong PDF page $physicalPage.")
+        val book = pageTexts.filter { it.contains("Libro de conjuros /") }
+            .joinToString(" ").replace(Regex("\\s+"), " ")
+        names.forEach { name ->
+            assertTrue(book.contains(name), "Real spell $name must have its card in the Libro.")
         }
     }
 
@@ -1382,6 +1371,63 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c450TheBookHasNoIndexPageAB() {
+        // C450 / BK10 (owner 2026-11-06, «Sí, quitarla»): the Libro starts on its first cards.
+        val ilyra = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT, includeSpellDescriptions = true), ilyra)
+            preserveRealApplicationPdf(generated.bytes, "V11-INTERNAL-PROOF-book-without-index-$variant.pdf")
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                assertTrue(pages.none { it.contains("ÍNDICE") || it.contains("Índice") || Regex("""PÁGINA\s+\d""").containsMatchIn(it) },
+                    "No index page ($variant).")
+                val first = pages.indexOfFirst { it.contains("Libro de conjuros /") }
+                assertTrue(first > 0, "The Libro prints ($variant).")
+                assertFalse(pages[first - 1].contains("LIBRO DE CONJUROS"), "Nothing of the Libro comes before it ($variant).")
+                assertTrue(pages[first].contains("Fire Bolt"), "Its first page already has cards ($variant).")
+                assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })
+            }
+            // A card that continues with a name too long for its mark does not send the reader to an index.
+            val spell = ilyra.permanent.sheet.spells.first()
+            val longCard = ilyra.copy(permanent = ilyra.permanent.copy(sheet = ilyra.permanent.sheet.copy(
+                spells = ilyra.permanent.sheet.spells.map { if (it.id == spell.id) it.copy(
+                    name = "Conjuro de nombre excepcionalmente largo para probar la continuación de su ficha sin índice en el Libro",
+                    description = "COMIENZO-LARGO " + "Texto real de la ficha que ocupa más de una columna. ".repeat(300) + "FIN-LARGO",
+                ) else it })))
+            val long = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT, includeSpellDescriptions = true), longCard).bytes
+            preserveRealApplicationPdf(long, "V11-INTERNAL-PROOF-book-long-name-continuation-$variant.pdf")
+            Loader.loadPDF(long).use { pdf ->
+                val printed = PDFTextStripper().getText(pdf)
+                assertTrue(printed.contains("FIN-LARGO"), "The whole card prints ($variant).")
+                assertTrue(printed.lines().any { it.trim() == "CONTINUACIÓN" }, "It has its plain mark ($variant).")
+                assertFalse(printed.contains("ÍNDICE"), "No mention of an index ($variant).")
+            }
+        }
+    }
+
+    @Test
+    fun c450SavedDataTheOwnerKeepsInTheAppStaysOutOfThePdfAB() {
+        // C450 / GLB14 (owner 2026-11-06, «No, solo en App» and «Sí, toda la lista»).
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        val appOnly = listOf("Lengua de los Umbrales", "Instrumentos de cartografía planar", "Armas de foco umbral",
+            "Daño de paradoja", "Anclas causales", "Paso de umbral", "Sentido custom", "Efecto temporal 1",
+            "Marcador custom 1", "Protocolo de paradoja 1", "Prueba de Extended pages", "Cartógrafa de Paradojas",
+            "Baúl", "AGOTAMIENTO", "CONTRA LA MUERTE")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), mara).bytes
+            Loader.loadPDF(bytes).use { pdf ->
+                val printed = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+                appOnly.forEach { assertFalse(printed.contains(it), "$it stays in the App ($variant).") }
+            }
+        }
+    }
+
+    @Test
     fun c448LevelsTenToTwelvePrintOnlyWhenAClassEnablesEpicLevelsAB() {
         // C448 / P129 (owner 2026-11-06; D-0076 3.11): a fourth row with N10, N11 and N12 if
         // and only if a class has epic levels enabled, in the same height, moving no module.
@@ -2153,7 +2199,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
-    fun c406GoldenNotesPanelsOnCn3TheLibroIndexAndAContinuedP4AB() {
+    fun c406GoldenNotesPanelsOnCn3AndAContinuedP4AB() {
         // C406: guards C403-C405 on real App PDFs - the C-N3 NOTAS MANUSCRITAS reserve
         // (cartela over banded 18.71 pt rows), the Libro index (cartela + one banded
         // 15.7 pt row per spell) and the NOTAS panel in a free column of a continued P4.
@@ -2178,19 +2224,6 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(rects(pdf, last).count { (x, _, w, h) -> near(x, 39.69f) && near(w, 532.63f) && near(h, 18.71f) } >= 2,
                     "C-N3 reserve uses banded 18.71 pt golden rows ($variant).")
             } }
-            // Libro index (Ilyra with the Libro): one banded row per spell.
-            val ilyra = DesktopPcSheetExportService().generateV11Proof(
-                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT, includeSpellDescriptions = true),
-                sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json"),
-            )
-            Loader.loadPDF(ilyra.bytes).use { pdf ->
-                val texts = pageTexts(pdf)
-                val index = texts.indices.filter { texts[it].contains("Índice del Libro de Conjuros") }
-                assertTrue(index.isNotEmpty() && index.all { texts[it].contains("ÍNDICE DEL LIBRO DE CONJUROS") },
-                    "Every index page carries its golden cartela ($variant).")
-                val bands = index.sumOf { i -> rects(pdf, i).count { (_, _, _, h) -> near(h, 15.7f) } }
-                assertEquals(ilyra.semantic.spellbookEntries!!.size, bands, "One banded 15.7 pt row per spell ($variant).")
-            }
             // A continued P4 (175 cantrips): the free last column holds a NOTAS panel.
             val original = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
             val base = original.permanent.sheet.spells.first { it.sourceAssociations.isNotEmpty() }
@@ -3688,7 +3721,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 "Ilyra's long persisted special object must be printed on P2.")
             assertFalse(pageTexts.any { it.contains("C2 - Equipo especial") },
                 "A special object that fits P2 must not get a C2 page.")
-            assertTrue(printed.contains("Índice del Libro de Conjuros"))
+            assertFalse(printed.contains("Índice del Libro de Conjuros"))
             assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })
             assertTrue(printed.contains("LANZAMIENTO DE CONJUROS"),
                 "P1 casting and its separate spell references remain intact.")
@@ -3696,24 +3729,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.replace(Regex("\\s+"), " ")
                 .contains("Cantrip de evocación; ataque de conjuro de frío"),
                 "Essential spellbook cards keep their complete descriptions.")
-            // Index page references must point at the REAL physical PDF page,
-            // not local section offsets or guesses.
-            val bookIndexText = (1..pdf.numberOfPages).asSequence().map { number ->
-                PDFTextStripper().apply { startPage = number; endPage = number }
-                    .getText(pdf)
-            }.first { it.contains("Índice del Libro de Conjuros") }
-            val fireBoltLine = bookIndexText.lineSequence()
-                .first { it.contains("Fire Bolt") && it.contains("PÁGINA") }
-            val targetPhysicalPage = requireNotNull(
-                Regex("""PÁGINA\s+(\d+)""").find(fireBoltLine),
-            ).groupValues[1].toInt()
-            assertTrue(targetPhysicalPage in 1..pdf.numberOfPages)
-            val targetContent = PDFTextStripper().apply {
-                startPage = targetPhysicalPage
-                endPage = targetPhysicalPage
-            }.getText(pdf)
-            assertTrue(targetContent.contains("Fire Bolt"))
-            assertTrue(targetContent.contains("NIVEL 0"))
+            val bookText = (1..pdf.numberOfPages).map { number ->
+                PDFTextStripper().apply { startPage = number; endPage = number }.getText(pdf)
+            }.filter { it.contains("Libro de conjuros /") }.joinToString("\n")
+            assertTrue(bookText.contains("Fire Bolt"))
+            assertTrue(bookText.contains("NIVEL 0"))
             val notesOnly = PDFTextStripper().apply {
                 startPage = pdf.numberOfPages
                 endPage = pdf.numberOfPages
@@ -5643,14 +5663,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 assertTrue(p4.contains("P4 - Conjuros"))
                 // Optional annex must still follow P4 and the real spell ID:
-                // the book INDEX and CARD use source text, not a fabricated
+                // the book CARD uses source text, not a fabricated
                 // single-line replacement just to make the PDF export work.
-                val indexPage = pages.indexOfFirst {
-                    it.contains("Índice del Libro de Conjuros")
-                }
-                val bookPage = pages.indexOfFirst { it.contains("Libro de conjuros") &&
-                    !it.contains("Índice del Libro de Conjuros") }
-                assertTrue(indexPage >= 0 && bookPage > indexPage)
+                val bookPage = pages.indexOfFirst { it.contains("Libro de conjuros") }
+                assertTrue(bookPage >= 0)
                 val book = pages.drop(bookPage).dropLast(1).joinToString("\n")
                 tokens.forEach { token ->
                     assertTrue(book.contains(token),
@@ -5978,17 +5994,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     endPage = physical
                 }.getText(pdf)
             }
-            assertTrue(sections.any { it.contains("Índice del Libro de Conjuros") })
+            assertFalse(sections.any { it.contains("Índice del Libro de Conjuros") })
             assertTrue(sections.count {
-                it.contains("Libro de conjuros /") &&
-                    !it.contains("Índice del Libro de Conjuros")
+                it.contains("Libro de conjuros /")
             } >= 2, "A single taller-than-page card must span actual PDF book pages.")
             assertTrue(sections.any { it.contains("COMIENZO-EXTENSO") })
             assertTrue(sections.any { it.contains("FIN-EXTENSO-VERIFICABLE") },
                 "The final spell text cannot be omitted when the card overflows.")
             val realBookPages = sections.filter {
-                it.contains("Libro de conjuros /") &&
-                    !it.contains("Índice del Libro de Conjuros")
+                it.contains("Libro de conjuros /")
             }
             assertTrue(realBookPages.joinToString("\n").contains("CONTINUACIÓN: Fire Bolt"),
                 "An oversized source-backed card must identify the real spell in its next column.")
@@ -6107,13 +6121,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 val actualBookPage = pages.indexOfFirst {
-                    it.contains("Libro de conjuros /") &&
-                        !it.contains("Índice del Libro de Conjuros")
+                    it.contains("Libro de conjuros /")
                 }
                 assertTrue(actualBookPage >= 0)
                 assertEquals(1, pages.count {
-                    it.contains("Libro de conjuros /") &&
-                        !it.contains("Índice del Libro de Conjuros")
+                    it.contains("Libro de conjuros /")
                 }, "Two medium source-backed cards should fit on one 2-column page.")
                 val byArea = PDFTextStripperByArea()
                 byArea.addRegion("left", Rectangle2D.Float(42f, 88f, 258f, 630f))
@@ -6188,8 +6200,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 val book = pages.filter {
-                    it.contains("Libro de conjuros /") &&
-                        !it.contains("Índice del Libro de Conjuros")
+                    it.contains("Libro de conjuros /")
                 }.joinToString("\n")
                 // C240: the golden card has no DESCRIPCIÓN label; NIVEL shares the
                 // name line, right-aligned (checked by position below).
@@ -6198,7 +6209,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val levels = mutableListOf<Pair<Float, Float>>() // (x, baseline) of NIVEL labels
                 val names = mutableMapOf<String, Float>() // first word baseline of each card
                 val firstBookPage = pages.indexOfFirst {
-                    it.contains("Libro de conjuros /") && !it.contains("Índice del Libro de Conjuros")
+                    it.contains("Libro de conjuros /")
                 } + 1
                 object : PDFTextStripper() {
                     override fun writeString(
@@ -6276,8 +6287,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         }.getText(pdf)
                     }
                     val bookPages = pages.indices.filter {
-                        pages[it].contains("Libro de conjuros /") &&
-                            !pages[it].contains("Índice del Libro de Conjuros")
+                        pages[it].contains("Libro de conjuros /")
                     }
                     assertTrue(bookPages.isNotEmpty(), "Ilyra prints the Libro ($variant, $label).")
                     val book = bookPages.joinToString("\n") { pages[it] }
@@ -7007,8 +7017,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }, "The genuine spell origin must survive its compact P4 row.")
                 assertTrue(pageTexts.first().contains("TRAITTAB"),
                     "P1 summary must show the first small mechanical trait.")
-                val bookPages = pageTexts.filter { it.contains("Libro de conjuros /") &&
-                    !it.contains("Índice del Libro de Conjuros") }
+                val bookPages = pageTexts.filter { it.contains("Libro de conjuros /") }
                 assertTrue(bookPages.any { it.contains("BOOK_TAB_START") })
                 assertTrue(bookPages.any { it.contains("BOOK_TAB_FINISH") })
                 assertTrue(bookPages.any { it.contains("CONTINUACIÓN: QA7") },
@@ -7542,7 +7551,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     @Test
     fun g3PhysicalModuleOrderAndLetterSizeHoldOnEveryPageAB() {
         // BK02 / GLB01: with real digital notes AND the optional Spellbook, the
-        // physical order is P1, P2, P3, C2, P4, C-N3, book index, book, and the
+        // physical order is P1, P2, P3, C2, P4, C-N3, book, and the
         // manuscript NOTAS sheet last; every physical page is US Letter.
         val ilyra = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
         val template = sources("03_mara_siete_umbrales_custom_extended.json")
@@ -7571,14 +7580,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     fun first(title: String) = pages.indexOfFirst { it.contains(title) }
                     fun last(title: String) = pages.indexOfLast { it.contains(title) }
                     val order = listOf("P1 - ", "P2 - Equipo y tesoro", "P3 - Trasfondo", "C2 - ",
-                        "P4 - Conjuros", "C-N3 - Notas digitales", "Índice del Libro de Conjuros",
+                        "P4 - Conjuros", "C-N3 - Notas digitales",
                         "Libro de conjuros /").filter { first(it) >= 0 }
                     order.zipWithNext().forEach { (a, b) ->
                         assertTrue(last(a) < first(b), "$a must come before $b ($variant).")
                     }
                     if (fixture === withNotes) {
-                        assertTrue(listOf("C-N3 - Notas digitales", "Índice del Libro de Conjuros",
-                            "Libro de conjuros /").all { first(it) >= 0 },
+                        assertTrue(listOf("C-N3 - Notas digitales", "Libro de conjuros /").all { first(it) >= 0 },
                             "Fixture carries C-N3 and the Spellbook ($variant).")
                     }
                     assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" } &&
@@ -7592,7 +7600,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     @Test
     fun g3DigitalNotesNeverMixWithC2SpellbookOrFinalSheetWhenBothExistAB() {
         // CN303: a character with real digital notes AND the optional Spellbook.
-        // Note text must live only on C-N3 pages: never on C2, the book index,
+        // Note text must live only on C-N3 pages: never on C2,
         // the book cards or the final manuscript NOTAS sheet.
         val ilyra = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
         val template = sources("03_mara_siete_umbrales_custom_extended.json")
@@ -7621,8 +7629,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 val cn3 = pages.indices.filter { pages[it].contains("C-N3 - Notas digitales") }
                 val book = pages.indices.filter {
-                    pages[it].contains("Libro de conjuros /") ||
-                        pages[it].contains("Índice del Libro de Conjuros")
+                    pages[it].contains("Libro de conjuros /")
                 }
                 assertTrue(cn3.isNotEmpty() && book.isNotEmpty(),
                     "Fixture must carry both C-N3 and the Spellbook ($variant).")

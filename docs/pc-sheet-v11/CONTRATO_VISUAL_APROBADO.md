@@ -126,7 +126,7 @@ El propietario aprobó P1/P3/P4, P2, C2, final y variante B tras revisión V11. 
   - cartelas de C2 que retoman un módulo de P1 o P2: «VIENE DE PÁG. n» antes del rombo derecho;
   - rótulo superior de una columna que retoma un grupo, atributo, equipo especial o nivel de conjuros: «IDENTIDAD / VIENE DE PÁG. n» si viene de la hoja anterior, o «IDENTIDAD / CONTINUACIÓN» si viene de la columna de al lado en la misma hoja (como el «TRUCOS 0 / CONTINUACIÓN» del golden);
   - cabecera de una nota C-N3 que sigue: «… / Nota 1 — Hipótesis / VIENE DE PÁG. 9».
-  El índice del Libro («PÁGINA n») no es una continuación y no cambia. Los títulos de sección que dicen «/ CONTINUACIÓN» siguen como en el golden.
+  Los títulos de sección que dicen «/ CONTINUACIÓN» siguen como en el golden.
 
 ## Aclaración del propietario — Equipo y Tesoro con nombres largos (2026-10-26)
 
@@ -234,3 +234,7 @@ Preguntado si los idiomas y las competencias de herramientas, armas y armaduras 
 ## Aclaración del propietario — otros datos solo en App (2026-11-06)
 
 Preguntado si los demás datos guardados que no salen en el PDF quedan solo en la App, el propietario responde **«Sí, toda la lista»**. El PDF no imprime, tampoco en C2: defensas, sentidos, otros movimientos, salvaciones contra la muerte, agotamiento, efectos temporales, marcadores personalizados, opciones de clase, progreso de hito, subclase, notas de atributos, de habilidades personalizadas y de equipo común, ubicación del equipo común, formas, compañeros y maestrías de armas. Precisa D-0076 §3.31 para estos datos.
+
+## Aclaración del propietario — índice del Libro (2026-11-06)
+
+Preguntado si se quita la página de índice del Libro, que no está en los golden, el propietario responde **«Sí, quitarla»**. El Libro empieza directamente en sus fichas (regla BK10). Sustituye a C404 y a la mención del índice en C341.

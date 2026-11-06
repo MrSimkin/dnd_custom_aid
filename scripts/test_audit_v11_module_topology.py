@@ -12,7 +12,7 @@ class TopologyTests(unittest.TestCase):
             ["P1 - Hero", "P2 - Inventory", "P3 - History",
              "C2 - Recursos", "C2 - Equipo", "P4 - Conjuros",
              "C-N3 - Notas digitales", "C-N3 - Notas digitales / Fuente / VIENE DE PÁG. 9",
-             "Índice del Libro de Conjuros", "Libro de conjuros", "NOTAS"],
+             "Libro de conjuros", "NOTAS"],
         ):
             self.assertEqual(inspect_roles(titles), [])
 
@@ -61,7 +61,7 @@ class TopologyTests(unittest.TestCase):
 
     def test_title_classification_strict(self):
         self.assertEqual(classify("C-N3 - Notas digitales / nota / VIENE DE PÁG. 9"), "CN3")
-        self.assertEqual(classify("Índice del Libro de Conjuros"), "BOOK")
+        self.assertIsNone(classify("Índice del Libro de Conjuros"))
         self.assertIsNone(classify("Digital notes"))
         self.assertIsNone(classify("NOTAS manuscritas"))
 

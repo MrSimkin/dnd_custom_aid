@@ -12,7 +12,6 @@ from pathlib import Path
 
 import fitz
 
-NAV = "Índice del Libro de Conjuros"
 TITLE = "Libro de conjuros /"
 BLUE = (38 / 255, 75 / 255, 104 / 255)
 MIST = (231 / 255, 242 / 255, 247 / 255)
@@ -51,7 +50,7 @@ def audit_pdf(payload):
         book_pages = []
         for i, page in enumerate(doc):
             head = page.get_text().splitlines()[:3]
-            if not any(TITLE in line for line in head) or any(NAV in line for line in head):
+            if not any(TITLE in line for line in head):
                 continue
             measurements = inspect_page(page)
             measurements["page"] = i + 1

@@ -23,7 +23,7 @@ class SpellbookContinuationParityTest(unittest.TestCase):
                 "fragment.startLineIndexInColumn == 0",
                 "col.topPt == 692.79f",  # C366: golden Libro flow top
                 '"CONTINUACIÓN: " + realName',
-                '"CONTINUACIÓN (VER ÍNDICE)"',
+                'else "CONTINUACIÓN" // C450',
                 "col.topPt + 8.2f",
                 "fragment.sourceKey",
                 "D-0076 §3.48 / BK05",

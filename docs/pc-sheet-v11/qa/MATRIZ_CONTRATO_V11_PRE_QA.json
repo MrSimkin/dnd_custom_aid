@@ -5164,7 +5164,7 @@
           "status": "PASS",
           "evidence": {
             "test_name": "g3DigitalNotesNeverMixWithC2SpellbookOrFinalSheetWhenBothExistAB; g3ShortDigitalNoteReservesHandwritingOnlyBelowMeasuredSourceAB",
-            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: with real titled notes AND the requested Spellbook (Ilyra, P1..P4, C-N3, book index, book cards, NOTAS), every note marker prints exactly once and only on C-N3; C-N3 and Libro are distinct pages; no note on mechanical C2 or on the final manuscript NOTAS sheet.",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: with real titled notes AND the requested Spellbook (Ilyra, P1..P4, C-N3, book cards, NOTAS), every note marker prints exactly once and only on C-N3; C-N3 and Libro are distinct pages; no note on mechanical C2 or on the final manuscript NOTAS sheet.",
             "source_commit": "9cd9be1c284f3e5d8ea9121fa4c14c9e8a5fbc53",
             "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42272329391",
             "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42272329391/artifacts/13532546247",
@@ -5363,7 +5363,7 @@
           "status": "PASS",
           "evidence": {
             "test_name": "g3PhysicalModuleOrderAndLetterSizeHoldOnEveryPageAB",
-            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: with real notes and the requested Spellbook, the physical order is P1, P2, P3, C2, P4, C-N3, book index, book, and the manuscript NOTAS sheet last (the book never precedes C-N3 or follows the final sheet).",
+            "test_result": "SCOPED G3 PASS on real Desktop App PDFs A/B: with real notes and the requested Spellbook, the physical order is P1, P2, P3, C2, P4, C-N3, book, and the manuscript NOTAS sheet last (the book never precedes C-N3 or follows the final sheet).",
             "source_commit": "9cd9be1c284f3e5d8ea9121fa4c14c9e8a5fbc53",
             "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42272329391",
             "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42272329391/artifacts/13532546247",
@@ -5529,13 +5529,13 @@
           "status": "PASS",
           "evidence": {
             "test_name": "overlongRealSpellCardContinuesLosslesslyAfterPhysicalIndexPage; test_v11_spellbook_continuation_label_contract.py",
-            "test_result": "PASS — genuine Desktop PDFBox A/B stress: 14 physical pages each, 4 book pages, 5 identified CONTINUACIÓN: Fire Bolt signs each inside source-free header band; original start/end retained once; physical book index 25/25 references correct; final handwritten NOTES intact; source parity Android/Desktop; full Kotlin suite/Android DEBUG compile successful; 12 pre-existing real PDF baselines identical in pages, words, positions and vector paths.",
+            "test_result": "PASS — genuine Desktop PDFBox A/B stress: 4 book pages, 5 identified CONTINUACIÓN: Fire Bolt signs each inside source-free header band; original start/end retained once; every one of the 25 spells has its card; final handwritten NOTES intact; source parity Android/Desktop; full Kotlin suite/Android DEBUG compile successful; 12 pre-existing real PDF baselines identical in pages, words, positions and vector paths.",
             "source_commit": "9cd9be1c284f3e5d8ea9121fa4c14c9e8a5fbc53",
             "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42272329391",
             "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42272329391/artifacts/13532546247",
             "pdf_zip_sha256": "239210a76ba9962d7a92411ca024efc69df1cbbe8b67cddf7094cf5e26dfa991",
             "independent_inspection": "Same CI run: the 16 independent audits pass on the real PDFs, among them audit_v11_golden_palette.py and audit_v11_golden_geometry.py.",
-            "limitations": "BK05 G2 remains NOT_VERIFIED; global BK05 NOT_VERIFIED and G4 BLOCKED; no installed Android PDF parity/owner QA. For exceptionally long spell names, source-free banner falls back to explicit VER ÍNDICE instead of inventing/truncating persisted name.",
+            "limitations": "BK05 G2 remains NOT_VERIFIED; global BK05 NOT_VERIFIED and G4 BLOCKED; no installed Android PDF parity/owner QA. For exceptionally long spell names, source-free banner falls back to a plain CONTINUACIÓN instead of inventing/truncating persisted name.",
             "audit_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42272329391/artifacts/13533270720",
             "first_proved_on": "05744b69c8eb114adfe7e88df5294a1d92886e2f"
           },
@@ -5993,6 +5993,44 @@
             "independent_inspection": "Same CI run: the 16 independent audits pass on the real PDFs, among them audit_v11_golden_palette.py and audit_v11_golden_geometry.py.",
             "limitations": "Desktop proof; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
           }
+        }
+      ]
+    },
+    {
+      "id": "BK10",
+      "area": "Libro",
+      "obligation": "El Libro no lleva página de índice y empieza directamente en sus fichas",
+      "authority": "CONTRATO_VISUAL_APROBADO.md 2026-11-06",
+      "method": "PDF texto",
+      "scenarios": "Con Libro, A y B",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": "GLB14",
+      "area": "Global",
+      "obligation": "Idiomas, competencias y los demás datos que el propietario dejó solo en la App no se imprimen en ninguna página",
+      "authority": "CONTRATO_VISUAL_APROBADO.md 2026-11-06; docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md §3.31",
+      "method": "PDF texto",
+      "scenarios": "Mara, A y B",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
         }
       ]
     },

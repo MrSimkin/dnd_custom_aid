@@ -521,7 +521,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     title.startsWith("C2") -> "CONTINUACIONES C2"
                     title.startsWith("P4") -> "LISTA RÁPIDA DE CONJUROS"
                     title.startsWith("C-N3") -> "NOTAS C-N3"
-                    title.startsWith("Libro") || title.startsWith("Índice del Libro") -> "LIBRO DE CONJUROS"
+                    title.startsWith("Libro") -> "LIBRO DE CONJUROS"
                     else -> null
                 }
                 stream.restoreGraphicsState()
@@ -2535,8 +2535,6 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         leadingPt = maxOf(0f, pitchPt - box * fit)))
                 }
             val bookFont = goldenRhythm(6.7f, 10.5f)
-            // C404: the Libro index keeps the book text size on the golden C2 list pitch.
-            val indexFont = goldenRhythm(6.7f, 15.7f)
             val notesFont = goldenRhythm(7f, 11.6f)
             val quickFont = goldenRhythm(6.8f, 15.73f) // C322: golden P4 pitch
             // C262: golden C2 lists, 7.2 pt on 15.7 pt rows; the linked-skill
@@ -2908,8 +2906,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
                 // C416: golden C2 list text sits 4.25 pt inside its band; lines wrap as if
                 // the band were 8.5 pt narrower, so the text also stays clear on the right.
-                val c2TextInset = if (title == "C2 - Habilidades, acciones y recursos" ||
-                    title == "Índice del Libro de Conjuros") 4.25f else 0f
+                val c2TextInset = if (title == "C2 - Habilidades, acciones y recursos") 4.25f else 0f
                 val flow = (if (c2TextInset > 0f) font.copy(width = PcSheetV11TextWidth { text ->
                     font.width.measurePt(text) + 2f * c2TextInset
                 }) else font).place(section, entries, area, columns, gutterPt)
@@ -3116,7 +3113,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 val width = bodyPdfFont.getStringWidth(pcSheetV11PrintableText(titleText)) *
                                     fontSize / 1000f
                                 val printed = if (width <= col.widthPt - 6f) titleText
-                                    else "CONTINUACIÓN (VER ÍNDICE)"
+                                    else "CONTINUACIÓN" // C450: the Libro has no index to point at
                                 require(bodyPdfFont.getStringWidth(pcSheetV11PrintableText(printed)) *
                                     fontSize / 1000f <= col.widthPt - 6f)
                                 stream.saveGraphicsState()
@@ -3296,60 +3293,6 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         // changing word coordinates, or consuming extra pages.
                         // A continued record has no new start band: its real
                         // source identity is instead in this page's header.
-                        // C404: golden grammar for the Libro index (no golden page exists):
-                        // the first-cartela band and one banded C2-style row per entry.
-                        if (title == "Índice del Libro de Conjuros") {
-                            val l = 39.69f
-                            val r = 572.32f
-                            val b = 672.66f
-                            val t = 695.62f
-                            val cut = 5f
-                            stream.saveGraphicsState()
-                            stream.setNonStrokingColor(Color(231, 242, 247))
-                            stream.setStrokingColor(Color(38, 75, 104))
-                            stream.setLineWidth(0.65f)
-                            stream.moveTo(l + cut, b)
-                            stream.lineTo(r - cut, b)
-                            stream.lineTo(r, b + cut)
-                            stream.lineTo(r, t - cut)
-                            stream.lineTo(r - cut, t)
-                            stream.lineTo(l + cut, t)
-                            stream.lineTo(l, t - cut)
-                            stream.lineTo(l, b + cut)
-                            stream.closePath()
-                            stream.fillAndStroke()
-                            stream.restoreGraphicsState()
-                            stream.setNonStrokingColor(Color(29, 56, 79))
-                            drawCartelaDiamonds(stream, l, r, b, t)
-                            stream.beginText()
-                            stream.setFont(headerPdfFont, 9.1f)
-                            stream.newLineAtOffset(l + 17f, b + 6.8f)
-                            stream.showText("ÍNDICE DEL LIBRO DE CONJUROS")
-                            stream.endText()
-                            val legend = "nivel · conjuro · página"
-                            stream.setNonStrokingColor(Color(101, 125, 144))
-                            stream.beginText()
-                            stream.setFont(bodyPdfFont, 6.2f)
-                            stream.newLineAtOffset(r - 17f - bodyPdfFont.getStringWidth(legend) * 6.2f / 1000f,
-                                b + 8.08f)
-                            stream.showText(legend)
-                            stream.endText()
-                            stream.setNonStrokingColor(Color(36, 57, 75))
-                            val order = entries.map { it.sourceKey }
-                            stream.saveGraphicsState()
-                            pageCells.forEach { cell ->
-                                val i = order.indexOf(cell.sourceKey)
-                                stream.setNonStrokingColor(if (i % 2 == 0) Color(231, 242, 247) else Color(240, 247, 250))
-                                stream.addRect(cell.cellPt.leftPt, cell.cellPt.bottomPt, cell.cellPt.widthPt, cell.cellPt.heightPt)
-                                stream.fill()
-                                stream.setStrokingColor(Color(148, 176, 193))
-                                stream.setLineWidth(0.32f)
-                                stream.moveTo(cell.cellPt.leftPt, cell.cellPt.bottomPt + 0.99f)
-                                stream.lineTo(cell.cellPt.rightPt, cell.cellPt.bottomPt + 0.99f)
-                                stream.stroke()
-                            }
-                            stream.restoreGraphicsState()
-                        }
                         if (title == "C-N3 - Notas digitales") {
                             // C238: golden C-N3 — a NOTAS cartela in the free band
                             // below the header rule (703..716) and each persisted
@@ -5950,58 +5893,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     PcSheetV11FlowSection.SPELLBOOK, cards, bookArea, 2, bookGutter,
                 )
                 require(contentFlow.sourceFlow.localPageCount > 0)
-                val firstPagesByKey = contentFlow.cells.groupBy { it.sourceKey }
-                    .mapValues { (_, cells) -> cells.minOf { it.localPageIndex } }
-                require(firstPagesByKey.size == cards.size) {
+                require(contentFlow.cells.map { it.sourceKey }.toSet().size == cards.size) {
                     "Every real spell must have a distinct physical book entry."
                 }
-                val pagesBeforeIndex = pdf.numberOfPages
-                fun buildIndex(indexPageCount: Int): List<PcSheetV11FlowItem> =
-                    spells.map { entry ->
-                        val key = "book:" + entry.spell.id
-                        val relativePage = firstPagesByKey.getValue(key)
-                        PcSheetV11FlowItem(
-                            "index:" + entry.spell.id,
-                            "NIVEL " + entry.spell.level + " | " + entry.spell.name +
-                                " | PÁGINA " +
-                                (pagesBeforeIndex + indexPageCount + relativePage),
-                            keepTogetherIfFits = true,
-                        )
-                    }
-
-                // Page numbers are global PHYSICAL pages. If a long index spills
-                // onto multiple pages, converge on its measured page count, never
-                // guess the next physical page from a fixed section number.
-                // C404: golden C2 columns under the index cartela, down to the golden foot.
-                val indexArea = PcSheetV11RectPt(39.69f, c2FootPt, 532.63f, 670.68f - c2FootPt)
-                var indexPageCount = 1
-                repeat(8) {
-                    val measured = indexFont.place(
-                        PcSheetV11FlowSection.SPELLBOOK,
-                        buildIndex(indexPageCount),
-                        indexArea, 2, 9.92f,
-                    ).sourceFlow.localPageCount
-                    require(measured > 0)
-                    if (measured == indexPageCount) return@repeat
-                    indexPageCount = measured
-                }
-                val indexEntries = buildIndex(indexPageCount)
-                val finalIndexFlow = indexFont.place(
-                    PcSheetV11FlowSection.SPELLBOOK, indexEntries, indexArea, 2, 9.92f,
-                )
-                require(finalIndexFlow.sourceFlow.localPageCount == indexPageCount) {
-                    "Physical spellbook index pagination did not converge."
-                }
-                require(indexEntries.size == spells.size)
-                addSection("Índice del Libro de Conjuros",
-                    PcSheetV11FlowSection.SPELLBOOK, indexEntries, 2, area = indexArea,
-                    gutterPt = 9.92f, font = indexFont)
-                require(pdf.numberOfPages == pagesBeforeIndex + indexPageCount)
+                // C450 (owner 2026-11-06, «Sí, quitarla»): the Libro has no index page, as the golden.
+                val pagesBeforeBook = pdf.numberOfPages
                 addSection("Libro de conjuros",
                     PcSheetV11FlowSection.SPELLBOOK, cards, 2, area = bookArea,
                     gutterPt = bookGutter, font = bookFont)
-                require(pdf.numberOfPages ==
-                    pagesBeforeIndex + indexPageCount + contentFlow.sourceFlow.localPageCount)
+                require(pdf.numberOfPages == pagesBeforeBook + contentFlow.sourceFlow.localPageCount)
             }
 
             val finalPage = PDPage(PDRectangle.LETTER)
