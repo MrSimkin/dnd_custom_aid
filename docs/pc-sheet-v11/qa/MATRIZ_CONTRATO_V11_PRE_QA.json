@@ -5857,6 +5857,25 @@
       ]
     },
     {
+      "id": "P126",
+      "area": "P1",
+      "obligation": "ATAQUES imprime nombre y alcance en su primera columna cuando caben; si no, el alcance sigue una sola vez en C2",
+      "authority": "CONTRATO_VISUAL_APROBADO.md 2026-11-06",
+      "method": "PDF texto",
+      "scenarios": "Alcance corto y largo",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
       "id": "P412",
       "area": "P4",
       "obligation": "Un nivel con espacios guardados dibuja una casilla vacía por espacio real, en una línea",

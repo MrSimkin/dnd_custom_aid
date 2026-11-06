@@ -185,3 +185,7 @@ El propietario decide **«Total del nivel»**: la tarjeta DADOS DE GOLPE de P1 i
 ## Aclaración del propietario — Imágenes del Trasfondo y retrato (2026-11-05)
 
 El propietario decide **«No, deja la silueta»**: las imágenes principal y secundaria de la pestaña Trasfondo se quedan en la App y el PDF no las usa. El retrato de P1 sale solo del retrato asignado al personaje; sin él, P1 imprime la silueta aunque el personaje tenga imágenes guardadas en Trasfondo. Resuelve D-0076 §3.45 (regla P306).
+
+## Aclaración del propietario — alcance en ATAQUES de P1 (2026-11-06)
+
+El propietario decide **«Nombre y alcance»**: la primera columna de ATAQUES imprime `Espada larga / 5 pies` cuando cabe en la fila. Se aparta a sabiendas del golden, que imprime solo el nombre, y precisa D-0076 §3.8. Si nombre y alcance no caben juntos, la fila imprime el nombre y el alcance sigue una sola vez en C2 (regla P126).

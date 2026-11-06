@@ -1604,12 +1604,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 
     @Test
     fun c440AReachOnTheP1RowIsNotRepeatedInC2() {
-        // C440 / F06 (D-0076 3.31 «nada se omite, duplica»).
+        // C440 / F06 (D-0076 3.31 «nada se omite, duplica») and P126 (owner 2026-11-06,
+        // «Nombre y alcance»): the P1 row prints both, and C2 does not repeat the reach.
         val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
         val proof = DesktopPcSheetExportService().generateV11Proof(
             PcSheetV11ExportRequest(PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT), aldren)
         Loader.loadPDF(proof.bytes).use { pdf ->
             val full = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+            val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
+            assertTrue(p1.contains("Espada larga / 5 pies"), "The P1 row prints name and reach.")
+            assertTrue(p1.contains("Ballesta ligera / 80/320 pies"), "The P1 row prints name and reach.")
             assertTrue(full.contains("80/320"), "The reach prints.")
             assertEquals(1, Regex("80/320").findAll(full).count(), "Once.")
         }
