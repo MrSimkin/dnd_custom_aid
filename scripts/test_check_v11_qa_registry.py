@@ -68,6 +68,7 @@ class QaRegistryGuardTest(unittest.TestCase):
 
     def test_qa_release_without_actual_artifact_fails(self):
         self.data["release_gate"] = "READY_FOR_OWNER_QA"
+        self.data["active_candidate"] = None
         self.write()
         self.check_fails("Runtime QA cannot proceed without identifiable build")
 
