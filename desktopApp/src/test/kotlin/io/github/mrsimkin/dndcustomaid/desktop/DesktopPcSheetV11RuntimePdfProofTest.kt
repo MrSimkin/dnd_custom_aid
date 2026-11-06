@@ -1412,6 +1412,26 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertEquals(12, cells.size, "Twelve cells of a quarter of the height ($variant).")
                 assertTrue(kotlin.math.abs(cells.min() - 130.96f) < 0.02f, "The grid foot does not move ($variant).")
                 assertTrue(kotlin.math.abs(cells.max() + 56.97f / 4f - 187.93f) < 0.02f, "Its top neither ($variant).")
+                // C449 (owner 2026-11-06, «____/____ X/Y, sin casillas»): N10 to N12 have no box,
+                // only one line for each number and the slash between them.
+                val epicRow = 130.96f..(130.96f + 56.97f / 4f)
+                val boxes = Regex("""(?m)(?:^|\s)([\d.]+)\s+([\d.]+)\s+[\d.]+\s+[\d.]+\s+re(?:\s|$)""")
+                    .findAll(native).filter { m ->
+                        val width = m.value.trim().split(Regex("""\s+"""))[2].toFloat()
+                        m.groupValues[1].toFloat() >= 270f && width < 12f && m.groupValues[2].toFloat() in epicRow
+                    }.toList()
+                assertTrue(boxes.isEmpty(), "No box in N10 to N12 ($variant).")
+                val lines = Regex("""(?m)([\d.]+)\s+([\d.]+)\s+m\s+([\d.]+)\s+([\d.]+)\s+l(?:\s|$)""")
+                    .findAll(native).map { it.groupValues.drop(1).map(String::toFloat) }
+                    .filter { (x0, y0, x1, y1) -> x0 >= 270f && y0 == y1 && y0 in epicRow && x1 - x0 in 25f..31f }.toList()
+                assertEquals(6, lines.size, "Two write lines in each of the three cells ($variant).")
+                val words = page1Words(pdf)
+                listOf(10, 11, 12).forEach { level ->
+                    val label = words.first { it.first == "N$level" }
+                    val cellX = 270.43f + ((level - 1) % 3) * 101.57f
+                    assertEquals(1, words.count { it.first == "/" && kotlin.math.abs(it.third - label.third) < 1f &&
+                        it.second in (cellX + 60f)..(cellX + 69f) }, "The slash between both lines of N$level ($variant).")
+                }
             }
         }
     }
@@ -1467,6 +1487,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         // C445 / P128 (owner 2026-11-06): N1..N9 draw 4, 3, 3, 3, 4, 2, 2, 1, 1 empty boxes
         // for any character. Beside them the real count, or a line to write it.
         assertEquals(listOf(4, 3, 3, 3, 4, 2, 2, 1, 1), (1..9).map { io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSlotCapacity.maximum(it) })
+        assertEquals(listOf(0, 0, 0), (10..12).map { io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSlotCapacity.boxes(it, 3) })
         for ((fixture, name) in listOf(
             "01_aldren_vale_srd5_1_champion_fighter.json" to "non-caster",
             "03_mara_siete_umbrales_custom_extended.json" to "caster",

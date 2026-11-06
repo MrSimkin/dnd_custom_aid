@@ -5971,7 +5971,7 @@
     {
       "id": "P129",
       "area": "P1",
-      "obligation": "N10, N11 y N12 se imprimen si y solo si alguna clase del personaje tiene niveles épicos habilitados",
+      "obligation": "N10, N11 y N12 se imprimen si y solo si alguna clase del personaje tiene niveles épicos habilitados, y cada celda lleva ____/____ sin casillas",
       "authority": "CONTRATO_VISUAL_APROBADO.md 2026-11-06; docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md §3.11",
       "method": "PDF texto y vectores",
       "scenarios": "Con y sin la opción",
@@ -5985,7 +5985,7 @@
           "status": "PASS",
           "evidence": {
             "test_name": "c448LevelsTenToTwelvePrintOnlyWhenAClassEnablesEpicLevelsAB",
-            "test_result": "PASS on real App PDFs, A and B: N10 to N12 print only with the option on, in twelve cells of the same grid height, and no other module moves.",
+            "test_result": "PASS on real App PDFs, A and B: N10 to N12 print only with the option on, in twelve cells of the same grid height, and no other module moves. Each of them has two write lines and a slash, and no box.",
             "source_commit": "14d19d1cbaa8bf4e400470626406a1bae20917dc",
             "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42255639263",
             "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42255639263/artifacts/13522857489",

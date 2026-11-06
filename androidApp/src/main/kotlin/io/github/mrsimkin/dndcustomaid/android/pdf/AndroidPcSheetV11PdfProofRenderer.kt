@@ -1517,6 +1517,18 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         if (count != null) {
                             stream.setNonStrokingColor(Color(38,75,104))
                             drawP1Label(stream,count,countX,b+magicTextFloor,countPt)
+                        } else if (level > 9) {
+                            // C449 (owner 2026-11-06, «____/____ X/Y, sin casillas»): no boxes,
+                            // one line for each number, the slash between them.
+                            val slashWidth = headerPdfFont.getStringWidth("/") * countPt / 1000f
+                            val slashX = x + 64.875f - slashWidth / 2f
+                            stream.moveTo(x+34.01f,b+magicLineFloor)
+                            stream.lineTo(slashX-2f,b+magicLineFloor)
+                            stream.moveTo(slashX+slashWidth+2f,b+magicLineFloor)
+                            stream.lineTo(x+magicCard-3f,b+magicLineFloor)
+                            stream.stroke()
+                            stream.setNonStrokingColor(Color(38,75,104))
+                            drawP1Label(stream,"/",slashX,b+magicTextFloor,countPt)
                         } else {
                             stream.moveTo(writeLeft,b+magicLineFloor)
                             stream.lineTo(x+magicCard-3f,b+magicLineFloor)

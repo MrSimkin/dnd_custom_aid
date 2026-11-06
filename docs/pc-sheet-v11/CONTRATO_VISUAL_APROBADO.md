@@ -219,4 +219,8 @@ Preguntado si el resto de una historia larga comparte hoja con otros módulos, e
 
 - **App:** cada clase del personaje tiene la opción «Habilitar niveles épicos», apagada por defecto.
 - **PDF:** P1 agrega una cuarta fila N10, N11, N12 si y solo si alguna clase la tiene activada (regla P129). Aplica D-0076 §3.11.
-- **Detalles técnicos del Worker (no dichos por el propietario):** las cuatro filas comparten el alto de las tres del golden, así ningún otro módulo se mueve. N10 a N12 llevan 3 casillas de forma provisional, porque los SRD no tienen tabla para esos niveles. La App aún no guarda espacios ni conjuros de nivel 10 a 12, así que esa fila queda para escribir a mano.
+- **Detalles técnicos del Worker (no dichos por el propietario):** las cuatro filas comparten el alto de las tres del golden, así ningún otro módulo se mueve. La App aún no guarda espacios ni conjuros de nivel 10 a 12, así que esa fila queda para escribir a mano.
+
+## Aclaración del propietario — N10 a N12 sin casillas (2026-11-06)
+
+Los SRD no tienen tabla para los niveles 10 a 12. Preguntado cuántas casillas llevan, el propietario responde **«____/____   X/Y, sin casillas»**. Cada celda N10, N11 y N12 lleva dos líneas para escribir a mano separadas por una barra, sin ninguna casilla (regla P129). N1 a N9 no cambian (regla P128).

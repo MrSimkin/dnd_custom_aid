@@ -32,7 +32,7 @@ Este documento dice qué se hizo con cada hallazgo. **«Corregido» es la lectur
 | F12 | Letra pequeña de recursos | **Abierto** | Sigue a 7,2 pt |
 | F13 | Cabecera y717 en el contrato | **Corregido en el contrato** | La línea está en y709,8, como el golden, desde C367. El contrato ya lo indica |
 | F14 | La hoja antigua dentro de cada PDF | **Corregido** | Se incrusta solo el logo, de 344×134 píxeles |
-| F15 | Fila épica | **Corregido en C448** | Por decisión del propietario (2026-11-06): opción por clase en la App y fila N10 a N12 solo si está activada. Falta decidir cuántas casillas lleva y si la App guarda esos niveles |
+| F15 | Fila épica | **Corregido en C448** | Por decisión del propietario (2026-11-06): opción por clase en la App y fila N10 a N12 solo si está activada. En C449 el propietario decidió `____/____` sin casillas. Falta decidir si la App guarda esos niveles |
 
 **Encontrado después por las auditorías:** una tarjeta de P4 sin valor dibujaba su línea en negro, en un no lanzador con un conjuro de raza. Ningún PDF anterior cubría ese caso. Corregido en C441.
 
