@@ -132,8 +132,8 @@ def validate(root: Path, gate="record", prior=None):
         check(all(o.get("status") in {"CANDIDATE_VERIFIED", "OWNER_ACCEPTED"} for o in records if o.get("blocking")), "Unverified owner defect blocks QA handoff")
         r = d.get("regression_suite") or {}
         check(r.get("status") == "PASS" and r.get("latest_candidate_commit") == (c or {}).get("source_commit"), "Regression PASS missing or stale")
-        observed = {x.get("family") for x in r.get("legacy_family_evidence", [])}
-        check(FAMILIES.issubset(observed) and bool(r.get("v11_evidence")) and nonempty(r.get("independent_pdf_inspection")), "All-family real QA/PDF evidence missing")
+        # Owner 2026-11-06: V11 replaces the four old sheets, so they need no evidence here.
+        check(bool(r.get("v11_evidence")) and nonempty(r.get("independent_pdf_inspection")), "V11 real QA/PDF evidence missing")
     # CONTRACT G4: before owner QA, ALL approved V11 rules must have exact-build
     # independent real-App-PDF evidence. Inventory check alone is never a PASS.
     if gate in {"owner_qa", "merge"} or rel in {"READY_FOR_OWNER_QA", "READY_FOR_MERGE"}:

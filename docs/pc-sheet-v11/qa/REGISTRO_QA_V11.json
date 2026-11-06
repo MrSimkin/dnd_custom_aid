@@ -228,7 +228,7 @@
         "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
       }
     ],
-    "handling": "HISTORICAL_OPEN_NOT_AUTOMATICALLY_CLOSED; CHECK_NO_NEW_REGRESSION_ON_ALL_FOUR_LEGACY_FAMILIES",
+    "handling": "HISTORICAL_OPEN_NOT_AUTOMATICALLY_CLOSED; CHECK_NO_NEW_REGRESSION_ON_ALL_FOUR_LEGACY_FAMILIES SUPERSEDED 2026-11-06: the owner decided that V11 replaces the four old sheets; these items stay as history, not as pending work.",
     "note": "M50800-01 resolved old APK provenance only, not V11 pass"
   },
   "observations": [

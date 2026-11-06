@@ -920,8 +920,8 @@
       "area": "Global",
       "obligation": "No alterar el golden aprobado. Las cuatro hojas antiguas, que V11 reemplaza, no reciben reparaciones",
       "authority": "CONTRATO_VISUAL_APROBADO.md",
-      "method": "Comparación cuatro familias y git diff",
-      "scenarios": "Mara cuatro legacy",
+      "method": "SHA del golden frente a su ZIP",
+      "scenarios": "Ocho PDF golden",
       "status": "NOT_VERIFIED",
       "evidence": null,
       "stage_checks": [
@@ -6422,8 +6422,8 @@
       "area": "PreQA",
       "obligation": "V11 no depende de las cuatro hojas antiguas para exportar, y estas se retiran de la App cuando el propietario apruebe V11",
       "authority": "CONTRATO_VISUAL_APROBADO.md",
-      "method": "Mara cuatro legacy",
-      "scenarios": "Legados",
+      "method": "Exportar V11 desde la App instalada y revisar que su código no use los renderizadores antiguos",
+      "scenarios": "Mara, Aldren e Ilyra, A y B",
       "status": "NOT_VERIFIED",
       "evidence": null,
       "stage_checks": [
