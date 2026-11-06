@@ -5154,23 +5154,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         keepTogetherIfFits = true,
                     ))
                 }
-                ammunitionItems.forEach { item ->
+                // C451 (D-0076 3.31, golden): ammunition prints once. What P1 holds has no C2 row;
+                // only what does not fit P1 continues here. Its notes stay in the App (2026-11-06).
+                ammunitionItems.filter { it.id !in p1AmmoIds }.forEach { item ->
                     add(PcSheetV11FlowItem(
                         sourceKey = "ammo:" + item.id,
-                        text = "MUNICIÓN " + item.name + " | CANTIDAD " + item.quantity +
-                            (item.notes?.takeIf { it.isNotBlank() }?.let {
-                                " | NOTAS " + it
-                            } ?: ""),
+                        text = "MUNICIÓN " + item.name + " | CANTIDAD " + item.quantity,
                         keepTogetherIfFits = true,
                     ))
-                    if (item.id !in p1AmmoIds) {
-                        add(PcSheetV11FlowItem(
-                            sourceKey = "ammo-track:" + item.id,
-                            text = if (item.quantity in 0..20) "MARCAS:" else
-                                "MARCAS: ____ / " + item.quantity,
-                            keepTogetherIfFits = true,
-                        ))
-                    }
+                    add(PcSheetV11FlowItem(
+                        sourceKey = "ammo-track:" + item.id,
+                        text = if (item.quantity in 0..20) "MARCAS:" else
+                            "MARCAS: ____ / " + item.quantity,
+                        keepTogetherIfFits = true,
+                    ))
                 }
             }
             fun unprintedSuffix(

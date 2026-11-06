@@ -6035,6 +6035,25 @@
       ]
     },
     {
+      "id": "P130",
+      "area": "P1",
+      "obligation": "Cada munición clasificada se imprime una sola vez: en P1 o, si no cabe, en C2, y nunca en EQUIPO",
+      "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md §3.15, §3.31; golden V11",
+      "method": "PDF texto",
+      "scenarios": "Una munición en P1 y tres con una en C2, A y B",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
       "id": "P412",
       "area": "P4",
       "obligation": "Cada cabecera de nivel de P4 dibuja las mismas casillas vacías que P1 (4, 3, 3, 3, 4, 2, 2, 1, 1), en una línea",

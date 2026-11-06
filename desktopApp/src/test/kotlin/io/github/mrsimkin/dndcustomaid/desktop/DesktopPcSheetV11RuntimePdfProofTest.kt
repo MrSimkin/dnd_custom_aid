@@ -1371,6 +1371,45 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c451AmmunitionPrintsOnceOnP1OrC2AndNeverInEquipmentAB() {
+        // C451 / P130 (D-0076 3.31, golden): the golden prints ammunition on P1, continues in C2
+        // only what does not fit, and never lists it in EQUIPO.
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val sheet = aldren.permanent.sheet
+        val closure = aldren.permanent.closure
+        val virotes = sheet.inventoryItems.first { it.name == "Virotes" }
+        // A third entry cannot fit P1, so it continues in C2.
+        val extras = listOf("QASEGUNDA", "QATERCERA").mapIndexed { i, name ->
+            virotes.copy(id = Uuid.parse("f4510000-0000-4000-8000-00000000000" + i), name = name, quantity = 8, sortOrder = virotes.sortOrder + 1 + i)
+        }
+        val overflow = aldren.copy(permanent = aldren.permanent.copy(
+            sheet = sheet.copy(inventoryItems = sheet.inventoryItems + extras),
+            closure = closure.copy(inventoryUsage = closure.inventoryUsage + extras.map { item ->
+                closure.inventoryUsage.first { it.itemId == virotes.id }.copy(itemId = item.id) }),
+        ))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            fun pages(source: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources, proofName: String): List<String> {
+                val bytes = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source).bytes
+                preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-$proofName-$variant.pdf")
+                return Loader.loadPDF(bytes).use { pdf ->
+                    (1..pdf.numberOfPages).map { n -> PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf) }
+                }
+            }
+            val plain = pages(aldren, "ammo-once-on-P1")
+            assertEquals(listOf(0), plain.indices.filter { plain[it].contains("Virotes") }, "Only on P1 ($variant).")
+            assertFalse(plain.joinToString("\n").contains("Munición para ballesta"), "Its note stays in the App ($variant).")
+            val long = pages(overflow, "ammo-overflow-once-in-C2")
+            assertEquals(listOf(0), long.indices.filter { long[it].contains("Virotes") }, "Virotes only on P1 ($variant).")
+            assertEquals(listOf(0), long.indices.filter { long[it].contains("QASEGUNDA") }, "The second on P1 ($variant).")
+            val third = long.indices.filter { long[it].contains("QATERCERA") }
+            assertEquals(1, third.size, "The third prints on one page ($variant).")
+            assertTrue(long[third.single()].contains("C2 - "), "It continues in C2 ($variant).")
+            assertEquals(1, long[third.single()].split("MUNICIÓN QATERCERA").size - 1, "Once ($variant).")
+        }
+    }
+
+    @Test
     fun c450TheBookHasNoIndexPageAB() {
         // C450 / BK10 (owner 2026-11-06, «Sí, quitarla»): the Libro starts on its first cards.
         val ilyra = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
@@ -1954,8 +1993,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val marks = Regex("""(?:^|\s)$number\s+$number\s+7\.94\s+7\.94\s+re(?:\s|$)""")
                     .findAll(ops).map { it.groupValues[2].toFloat() }.toList()
                 assertEquals(8, marks.count { kotlin.math.abs(it - 60.81f) < 0.05f }, "Eight marks on its one sub-row ($variant).")
-                assertEquals(1, PDFTextStripper().getText(pdf).split("MUNICIÓN QAFLECHAS").size - 1,
-                    "Its details print once in C2 ($variant).")
+                assertFalse(PDFTextStripper().getText(pdf).contains("MUNICIÓN QAFLECHAS"),
+                    "P1 holds it, so C2 does not repeat it ($variant).")
             }
             Loader.loadPDF(DesktopPcSheetExportService().generateV11Proof(
                 PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), withSecond(15)).bytes).use { pdf ->
@@ -3619,8 +3658,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(printed.contains("Second Wind"))
             assertTrue(printed.contains("RECURSOS Y MUNICIONES"))
             assertTrue(printed.contains("Action Surge"))
-            assertTrue(printed.contains("MUNICIÓN Virotes"))
-            assertTrue(printed.contains("CANTIDAD 20"))
+            assertFalse(printed.contains("MUNICIÓN Virotes"), "P1 holds it, so C2 does not repeat it.")
             // C257: the golden title is MUNICIONES; the 20 marks are paper boxes.
             assertTrue(Regex("MUNICIONES(?! A P\\.)(?! /)").containsMatchIn(printed))
             val resourcePageText = (1..pdf.numberOfPages).map { physicalPage ->
@@ -5836,8 +5874,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         Loader.loadPDF(proof.bytes).use { pdf ->
             val text = PDFTextStripper().getText(pdf)
             assertTrue(text.contains("C2 - Habilidades, acciones y recursos"))
-            assertTrue(text.contains("MUNICIÓN Virotes"))
-            assertTrue(text.contains("CANTIDAD 41"))
+            assertFalse(text.contains("MUNICIÓN Virotes"), "P1 holds it, so C2 does not repeat it.")
             assertTrue(text.contains("MARCAS: ____ / 41"),
                 "Large ammunition quantities must be tracked with ____ / X.")
             val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
@@ -5919,8 +5956,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(c2.contains("CANTIDAD 9"))
                 assertTrue(p1.contains("QASHORTAMMO"),
                     "Eligible ammo should still use a real P1 row.")
-                assertTrue(c2.contains("MUNICIÓN QASHORTAMMO"),
-                    "C2 retains the real source summary; this is not a duplicate P1 marks row.")
+                assertFalse(c2.contains("MUNICIÓN QASHORTAMMO"), "P1 holds it, so C2 does not repeat it.")
                 assertFalse(c2.contains("MARCAS: ____ / 4"),
                     "A P1-tracked item must not get a second marks track on C2.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })

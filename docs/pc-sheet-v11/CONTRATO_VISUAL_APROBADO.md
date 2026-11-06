@@ -238,3 +238,7 @@ Preguntado si los demás datos guardados que no salen en el PDF quedan solo en l
 ## Aclaración del propietario — índice del Libro (2026-11-06)
 
 Preguntado si se quita la página de índice del Libro, que no está en los golden, el propietario responde **«Sí, quitarla»**. El Libro empieza directamente en sus fichas (regla BK10). Sustituye a C404 y a la mención del índice en C341.
+
+## Aclaración técnica del Worker — municiones una sola vez (2026-11-06)
+
+No es una decisión nueva del propietario: aplica D-0076 §3.31 («nada se omite, duplica») y el golden, que imprime las municiones en P1, sigue en C2 solo con lo que no cabe y no las lista en EQUIPO. La munición clasificada ya no se repite en EQUIPO de P2 ni en RECURSOS Y MUNICIONES de C2 si P1 la contiene. Sus notas quedan en la App, como las del equipo común (regla P130). Queda sujeta a la revisión del propietario.

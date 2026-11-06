@@ -24,10 +24,14 @@ data class PcSheetV11PairedTableData(
 }
 
 object PcSheetV11PairedTableSources {
-    fun equipment(data: PcSheetV11SemanticData): PcSheetV11PairedTableData =
-        PcSheetV11PairedTableData(
+    fun equipment(data: PcSheetV11SemanticData): PcSheetV11PairedTableData {
+        // C451 (D-0076 3.31, golden): classified ammunition prints on P1 or C2, not in EQUIPO.
+        val ammunition = data.source.closure.inventoryUsage
+            .filter { it.kind == CharacterConsumableKind.AMMUNITION }
+            .map { it.itemId }.toSet()
+        return PcSheetV11PairedTableData(
             PcSheetV11PairedTableKind.EQUIPMENT,
-            data.ordinaryEquipment.map { item ->
+            data.ordinaryEquipment.filterNot { it.sourceId in ammunition }.map { item ->
                 PcSheetV11PairedTableRow(
                     "equipment:" + item.sourceId,
                     item.name,
@@ -36,6 +40,7 @@ object PcSheetV11PairedTableSources {
                 )
             },
         )
+    }
 
     fun treasure(data: PcSheetV11SemanticData): PcSheetV11PairedTableData =
         PcSheetV11PairedTableData(

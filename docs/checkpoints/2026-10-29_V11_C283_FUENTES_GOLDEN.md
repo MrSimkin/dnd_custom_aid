@@ -178,6 +178,7 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 | C448 | Niveles épicos | Decisión del propietario, 2026-11-06. La App gana «Habilitar niveles épicos» por clase (migración 27, respaldos compatibles). P1 imprime N10 a N12 si y solo si alguna clase la activa, en el mismo alto. Regla nueva P129. |
 | C449 | N10 a N12 sin casillas | Decisión del propietario, 2026-11-06: «____/____   X/Y, sin casillas». Cada celda lleva dos líneas y una barra. Se retiran las 3 casillas provisionales. Regla P129 ampliada. Esos niveles son solo a mano («No, solo a mano»): la App no los guarda. |
 | C450 | Sin índice del Libro; datos solo en App | Decisiones del propietario, 2026-11-06. «Sí, quitarla»: el Libro empieza en sus fichas, regla nueva BK10. «No, solo en App» y «Sí, toda la lista»: idiomas, competencias y los demás datos listados no se imprimen, regla nueva GLB14 con prueba sobre PDF real. |
+| C451 | Municiones una sola vez | Aplica D-0076 §3.31 y el golden, sin decisión nueva del propietario. La munición clasificada sale en P1 o, si no cabe, en C2. Deja de repetirse en EQUIPO de P2 y en C2. Sus notas quedan en la App. Regla nueva P130. |
 
 ## Pendiente (siguiente)
 
