@@ -8,7 +8,16 @@
     "owner_visual_approved": true,
     "app_implementation_approved": false
   },
-  "active_candidate": null,
+  "active_candidate": {
+    "source_commit": "87533aa550a6089cdabaca71960be5ceffb96d99",
+    "apk_sha256": "d44067796ed6baa2cbd9c8b21e955dc514a4a3c60e8488d8caf46c0b2a50d025",
+    "version_name": "0.5.0-preqa.9",
+    "version_code": 50900,
+    "build_id": "scaffold-run-42298066622",
+    "artifact_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42298066622/artifacts/13543865291",
+    "apk_owner_file_name": "dnd-custom-aid-0.5.0-preqa.9-build-50900.apk",
+    "status": "IN_REVIEW: identified for the G4 audit; not offered to the owner"
+  },
   "release_gate": "NOT_BUILT",
   "qa_rounds": [
     {

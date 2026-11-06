@@ -181,14 +181,16 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 | C451 | Municiones una sola vez | Aplica D-0076 §3.31 y el golden, sin decisión nueva del propietario. La munición clasificada sale en P1 o, si no cabe, en C2. Deja de repetirse en EQUIPO de P2 y en C2. Sus notas quedan en la App. Regla nueva P130. |
 | C452 | Notas de ataque, títulos y filas de C2 | Decisión del propietario, 2026-11-06: «Sí, solo en App» para las notas de ataque. Títulos de C2 como el golden (C215), habilidad del panel B con su fila (C214), detalles de recursos en 6,1 pt (C216). Cierra esos tres controles. |
 | C453 | Referencias con página real | Aplica D-0076 §3.33. «VER C2» pasa a «CONTINÚA EN PÁG. n», o a «NOMBRE EN PÁG. n» en la cabecera de un nombre muy largo, con la página real; esas hojas se dibujan en dos pasadas. Un módulo que sigue en otra hoja de C2 lo avisa en la banda inferior. Cierra C213, y con él los controles G3. |
+| C454 | Candidato V11 | Versión `0.5.0-preqa.9`, build 50900. APK de CI probado en un emulador en solo lectura y sin red. Sus PDF coinciden con los de CI. Ver `qa/ACTA_CANDIDATO_PREQA9.md`. |
 
 ## Pendiente (siguiente)
 
 Actualizado el 2026-11-06.
 
-- **Control final (`--mode release`)**: sigue FALLANDO. Controles: G1 49/49, G2 90/90, G3 120/120, G4 0/9, atados a `78f3cfe0` (run 42290314300). G1, G2 y G3 pasan. Son pruebas de desarrollo con Desktop, no el cumplimiento final. Los controles G2 que reutilizan la prueba de G3 lo dicen. Las 129 reglas siguen en NOT_VERIFIED a nivel global porque exigen candidato con APK y PDF con SHA, salida real de Guardar/Compartir y revisión independiente.
+- **Control final (`--mode release`)**: sigue FALLANDO. Controles: G1 49/49, G2 90/90, G3 120/120, G4 0/9, atados a `87533aa5` (run 42298066622). G1, G2 y G3 pasan. Son pruebas de desarrollo con Desktop, no el cumplimiento final. Los controles G2 que reutilizan la prueba de G3 lo dicen. Las 129 reglas siguen en NOT_VERIFIED a nivel global porque exigen candidato con APK y PDF con SHA, salida real de Guardar/Compartir y revisión independiente.
 - **Interfaz real**: IN01 e IN06 probados en la pantalla de Desktop (C439) y en la App de Android instalada en un emulador, sin red (`qa/ACTA_ANDROID_EMULADOR_78F3CFE0.md`). Es evidencia previa al candidato: QA03 sigue abierto hasta repetirlo con él. Falta el selector y el portapapeles reales de Desktop.
-- **QA05**: Custom v1 con Mara sigue fallando (M50800-02, del 2026-09-28). No es regresión de V11.
+- **QA05**: Custom v1 con Mara sigue fallando en este candidato (M50800-02, del 2026-09-28). No es regresión de V11. Reparado aparte en `fix/custom-v1-mara-long-skill-label` (`3c6ede2e`), sin fusionar.
+- **Candidato**: `0.5.0-preqa.9`, build 50900, `87533aa5`, identificado en `qa/ACTA_CANDIDATO_PREQA9.md`. No se ofrece al propietario hasta pasar el control final.
 - **Revisión independiente**: hecha sobre `c6af6cc4`, con hallazgos (ver `qa/HALLAZGOS_REVISION_C6AF6CC4.md`). Debe repetirse sobre el candidato. Las 48 secciones y los 8 golden siguen en NOT_VERIFIED.
 - **Hallazgos abiertos**: F08, solo con muchas clases: el corte puede separar un nombre de su nivel. §3.32 sigue sin demostrar.
 - **Preguntas al propietario**: sin pendientes de esta tanda. Datos solo en App, notas de ataque e índice del Libro quedaron decididos el 2026-11-06. La segunda línea de la cabecera («… / 1») queda para su revisión, porque el propietario se reservó el control de ese ajuste.
