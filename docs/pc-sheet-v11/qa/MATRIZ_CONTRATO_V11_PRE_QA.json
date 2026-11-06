@@ -918,7 +918,7 @@
     {
       "id": "GLB12",
       "area": "Global",
-      "obligation": "No alterar cuatro exportadores legacy ni golden aprobado",
+      "obligation": "No alterar el golden aprobado. Las cuatro hojas antiguas, que V11 reemplaza, no reciben reparaciones",
       "authority": "CONTRATO_VISUAL_APROBADO.md",
       "method": "Comparación cuatro familias y git diff",
       "scenarios": "Mara cuatro legacy",
@@ -937,7 +937,7 @@
     {
       "id": "IN01",
       "area": "Entrada",
-      "obligation": "V11 es opción opt-in independiente, A y B ambas accesibles",
+      "obligation": "V11, con A y B accesibles, es la exportación que reemplaza a las cuatro hojas antiguas",
       "authority": "CONTRATO_VISUAL_APROBADO.md",
       "method": "UI real Guardar/Compartir",
       "scenarios": "Android Desktop",
@@ -6420,7 +6420,7 @@
     {
       "id": "QA05",
       "area": "PreQA",
-      "obligation": "Cuatro familias anteriores conservan comportamiento sin regresión",
+      "obligation": "V11 no depende de las cuatro hojas antiguas para exportar, y estas se retiran de la App cuando el propietario apruebe V11",
       "authority": "CONTRATO_VISUAL_APROBADO.md",
       "method": "Mara cuatro legacy",
       "scenarios": "Legados",

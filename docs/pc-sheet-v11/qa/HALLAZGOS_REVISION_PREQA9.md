@@ -27,6 +27,6 @@
 | §3.3 | Retrato real en Android | Sin demostrar | Probarlo en el emulador |
 | §3.4 | Subraza | Sin demostrar | Crear el caso |
 | §3.12 | Prueba impresa | Sin demostrar | La hace el propietario al final |
-| QA05, GLB12 | Familias anteriores contra una base | Sin demostrar | Comparar sus PDF con `main` |
+| QA05, GLB12 | Hojas antiguas | Redefinidas | El propietario decidió que V11 las reemplaza (2026-11-06). No se comparan ni se reparan. Falta demostrar que V11 no depende de ellas |
 
 **Identidad del próximo candidato:** no usar `preqa.9` ni `preqa.10`, que ya se usaron en ramas anteriores para otros binarios. El siguiente será `0.5.0-preqa.11`, build 51100.

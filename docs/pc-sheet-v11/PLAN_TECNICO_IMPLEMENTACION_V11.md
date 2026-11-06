@@ -1,5 +1,7 @@
 # DnD Custom Aid — Plan técnico de implementación V11
 
+> **Decisión posterior del propietario (2026-11-06):** V11 reemplaza las cuatro hojas antiguas. Lo que este plan dice sobre preservarlas queda sustituido; ver `CONTRATO_VISUAL_APROBADO.md`.
+
 **Fecha:** 2026-10-09 · **Estado:** plan V11 publicado en rama de trabajo; integración Kotlin NO implementada, NO fusionado.  
 **Repo:** `MrSimkin/dnd_custom_aid`; `main` verificado al preparar el plan: `27bd199633f1068ca481c387973d38f35cbb0c48` (se debe verificar nuevamente al ejecutar).  
 **Referencia de diseño:** `dnd_custom_aid_V11_Carta_revision.zip`, maqueta visual A/B aprobada en conversación por el propietario. **No usar el ReportLab/Python de V11 como renderer final.**

@@ -251,6 +251,13 @@ Preguntado si las notas de ataque quedan solo en la App, el propietario responde
 
 Aplica el golden, sin decisión nueva del propietario: `ATRIBUTOS Y HABILIDADES`, `COMBATE Y SUPERVIVENCIA`, `ATAQUES`, `LANZAMIENTO DE CONJUROS`, `MUNICIONES` y `RASGOS / CONTINUACIÓN` sustituyen a los títulos técnicos anteriores. `RECURSOS` no existe en el golden, va por la aclaración de recursos de C2, y las municiones que siguen en C2 tienen su propio título. Una habilidad que sale del panel B conserva en C2 su casilla y su valor a la derecha. Recuperación, fuente y notas de recursos van en 6,1 pt.
 
+## Decisión del propietario — V11 reemplaza las cuatro hojas antiguas (2026-11-06)
+
+**Dicho por el propietario:** «v11 reemplaza las 4 hojas antiguas, porque las 4 hojas antiguas no lograron ser desarrolladas para cumplir su equivalente a "su propio golden" y se evaluó imposible de lograr».
+
+- **Consecuencia:** Fantasy Sheet, Custom v1, Custom v2 Atributo y Custom v2 Habilidad no reciben más reparaciones ni revisiones. Sus observaciones abiertas, como M50800-02, se conservan como historial, pero ya no son trabajo pendiente. Sustituye a las frases que pedían preservar esas hojas (reglas GLB12, QA05 e IN01, y el plan técnico).
+- **Detalle técnico del Worker (no dicho por el propietario):** las hojas se retiran de la App cuando el propietario apruebe V11, porque hoy V11 solo existe en compilaciones de depuración y sigue rotulada como prueba interna. Retirarlas antes dejaría a la versión normal sin exportación de PDF.
+
 ## Aclaración técnica del Worker — referencias con página real (2026-11-06)
 
 Aplica D-0076 §3.33 y C341, sin decisión nueva del propietario. Los dados de golpe y los espacios que no caben en P1 ya no dicen «VER C2», sino «CONTINÚA EN PÁG. n», con la página física donde siguen. El nombre muy largo se repite en la cabecera de todas las hojas, así que dice «NOMBRE EN PÁG. n» y se detiene antes del rótulo derecho. Un módulo que sigue en otra hoja de C2 lo dice en la banda inferior de esa hoja («RECURSOS CONTINÚA EN PÁG. 5»).

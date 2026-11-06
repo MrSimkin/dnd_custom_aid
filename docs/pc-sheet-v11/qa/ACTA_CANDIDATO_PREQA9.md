@@ -50,6 +50,6 @@ La comparación es contra el PDF de la misma ficha en el artefacto de CI, en gri
 
 ## Abierto en este candidato
 
-- **Custom v1 con Mara:** reparado aparte, en la rama `fix/custom-v1-mara-long-skill-label` desde `main` (`3c6ede2e`). No entra aquí porque GLB12 pide no alterar las familias anteriores dentro de V11. En esa rama la App de Android genera 41 páginas. Los defectos de diseño de esa familia, como M50800-19, siguen abiertos.
+- **Custom v1 con Mara:** sigue fallando y ya no es trabajo pendiente, porque V11 reemplaza esa hoja (decisión del propietario, 2026-11-06). La rama `fix/custom-v1-mara-long-skill-label` (`3c6ede2e`) fue un esfuerzo que el Worker propuso sin preguntar; queda sin PR ni fusión.
 - **Reglas:** ninguna pasa a PASS por esta acta. Falta la revisión independiente sobre este candidato.
 - **Sin probar:** tablet Lenovo, aparatos físicos, retrato real en Android, y el selector y el portapapeles reales de Desktop.

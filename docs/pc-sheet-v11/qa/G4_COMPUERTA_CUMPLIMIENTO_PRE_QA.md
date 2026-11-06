@@ -2,6 +2,8 @@
 
 **Autorización:** 2026-10-16. **PR:** #173, única rama de implementación `docs/pc-sheet-v11-approved-implementation-handoff`; no fusionar. **Estado inicial:** BLOCKED / NOT_READY (las pruebas estructurales de CI NO equivalen a PASS de G4).
 
+> **Decisión posterior del propietario (2026-11-06):** V11 reemplaza las cuatro hojas antiguas. Donde este documento pide auditar o conservar los exportadores legacy, manda esa decisión; ver `../CONTRATO_VISUAL_APROBADO.md`.
+
 ## Qué falta para pasar a G5
 
 El propietario exige que **todas las reglas de exportación PDF aprobadas** estén implementadas, probadas y comprobadas sobre **PDF reales de la App** antes de hacer el QA manual del candidato instalado. Una suite Kotlin verde, una lista de pruebas propuestas o el golden visual aprobado **no son prueba de cumplimiento del renderer**.
