@@ -187,7 +187,8 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 Actualizado el 2026-11-06.
 
 - **Control final (`--mode release`)**: sigue FALLANDO. Controles: G1 49/49, G2 90/90, G3 120/120, G4 0/9, atados a `78f3cfe0` (run 42290314300). G1, G2 y G3 pasan. Son pruebas de desarrollo con Desktop, no el cumplimiento final. Los controles G2 que reutilizan la prueba de G3 lo dicen. Las 129 reglas siguen en NOT_VERIFIED a nivel global porque exigen candidato con APK y PDF con SHA, salida real de Guardar/Compartir y revisión independiente.
-- **Interfaz real**: IN01 e IN06 quedan probados en la pantalla de Desktop (C439). Falta la App Android instalada y el selector y el portapapeles reales: QA03, en G4.
+- **Interfaz real**: IN01 e IN06 probados en la pantalla de Desktop (C439) y en la App de Android instalada en un emulador, sin red (`qa/ACTA_ANDROID_EMULADOR_78F3CFE0.md`). Es evidencia previa al candidato: QA03 sigue abierto hasta repetirlo con él. Falta el selector y el portapapeles reales de Desktop.
+- **QA05**: Custom v1 con Mara sigue fallando (M50800-02, del 2026-09-28). No es regresión de V11.
 - **Revisión independiente**: hecha sobre `c6af6cc4`, con hallazgos (ver `qa/HALLAZGOS_REVISION_C6AF6CC4.md`). Debe repetirse sobre el candidato. Las 48 secciones y los 8 golden siguen en NOT_VERIFIED.
 - **Hallazgos abiertos**: F08, solo con muchas clases: el corte puede separar un nombre de su nivel. §3.32 sigue sin demostrar.
 - **Preguntas al propietario**: sin pendientes de esta tanda. Datos solo en App, notas de ataque e índice del Libro quedaron decididos el 2026-11-06. La segunda línea de la cabecera («… / 1») queda para su revisión, porque el propietario se reservó el control de ese ajuste.

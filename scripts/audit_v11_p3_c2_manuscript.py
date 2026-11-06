@@ -333,9 +333,16 @@ def c2_skill_checkbox_result(page: fitz.Page) -> tuple[int, int, list[str]]:
         if len(near) == 1:
             matched += 1
             # C259 (owner 2026-10-28): the real training mark sits inside the
-            # box, as on P1 - C325: the v8 check U+E108 / stacked double check
-            # U+E109; any OTHER ink there is a collision.
-            if any(not (other is w) and other[4] not in ("", "")
+            # box, as on P1 - C325. It is recognised by its v8 symbols font, not by
+            # the extracted letter: Android maps the same glyph to another character.
+            # Any OTHER ink there is a collision.
+            symbols = [fitz.Rect(s["bbox"]) for block in page.get_text("dict")["blocks"]
+                       for line in block.get("lines", []) for s in line["spans"]
+                       if "Symbols" in s["font"]]
+            def is_symbol(word) -> bool:
+                centre = fitz.Rect(word[:4]).tl + (fitz.Rect(word[:4]).br - fitz.Rect(word[:4]).tl) * 0.5
+                return any(centre in rect for rect in symbols)
+            if any(not (other is w) and not is_symbol(other)
                    and other[0] < near[0].x1
                    and other[2] > near[0].x0 and other[1] < near[0].y1
                    and other[3] > near[0].y0
