@@ -1382,6 +1382,52 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c447TheRestOfTheStorySharesAC2SheetAB() {
+        // C447 / P307 (owner 2026-11-06, «Sí, compartida»; golden v11_extremo p6): a HISTORIA
+        // module on a C2 sheet with the other modules, 7 pt on 17.01 pt rows, 4.25 pt inside.
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val story = "HISTORIA-INICIO " + "Viaje registrado con fechas y testigos verificables. ".repeat(75) + "HISTORIA-FIN"
+        val source = aldren.copy(permanent = aldren.permanent.copy(sheet = aldren.permanent.sheet.copy(
+            background = aldren.permanent.sheet.background.copy(story = story))))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source).bytes
+            preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-P3-story-shared-C2-$variant.pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                assertTrue(pages[2].contains("HISTORIA-INICIO"), "The story starts on P3 ($variant).")
+                assertFalse(pages.any { it.contains("P3 - Narrativa") }, "No sheet just for the story ($variant).")
+                val index = pages.indexOfFirst { it.contains("HISTORIA-FIN") }
+                val c2 = pages[index]
+                assertTrue(c2.contains("C2 - Habilidades, acciones y recursos"), "It is a C2 sheet ($variant).")
+                assertTrue(c2.contains("RECURSOS Y MUNICIONES"), "It shares the sheet with other modules ($variant).")
+                assertTrue(Regex("""(?m)^HISTORIA$""").containsMatchIn(c2), "It has its own cartela ($variant).")
+                assertTrue(c2.contains("VIENE DE PÁG. 3"), "It names its origin ($variant).")
+                assertTrue(pages[2].contains("HISTORIA CONTINÚA EN PÁG. " + (index + 1)), "P3 names the sheet ($variant).")
+                val rows = mutableListOf<Triple<Float, Float, Float>>()
+                object : PDFTextStripper() {
+                    init { startPage = index + 1; endPage = index + 1 }
+                    override fun writeString(s: String, tp: MutableList<org.apache.pdfbox.text.TextPosition>) {
+                        if (s.startsWith("Viaje") || s.startsWith("fechas") || s.startsWith("testigos") ||
+                            s.startsWith("registrado") || s.startsWith("verificables") || s.startsWith("con ")) {
+                            rows += Triple(tp.first().fontSize, tp.first().xDirAdj, tp.first().yDirAdj)
+                        }
+                    }
+                }.getText(pdf)
+                assertTrue(rows.size >= 3, "Story rows are found ($variant).")
+                assertTrue(rows.all { kotlin.math.abs(it.first - 7f) < 0.01f }, "The owner's 7 pt ($variant).")
+                val column = rows.filter { kotlin.math.abs(it.second - rows.first().second) < 0.5f }
+                column.zipWithNext().forEach { (a, b) ->
+                    assertTrue(kotlin.math.abs(kotlin.math.abs(b.third - a.third) - 17.01f) < 0.05f,
+                        "The golden 17.01 pt row ($variant): ${a.third} ${b.third}")
+                }
+            }
+        }
+    }
+
+    @Test
     fun c445EveryLevelDrawsItsMaximumWithTheRealCountOrASpaceAB() {
         // C445 / P128 (owner 2026-11-06): N1..N9 draw 4, 3, 3, 3, 4, 2, 2, 1, 1 empty boxes
         // for any character. Beside them the real count, or a line to write it.
@@ -4632,14 +4678,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         endPage = physical
                     }.getText(pdf)
                 }
+                // C447: the rest of the story is a C2 module.
                 val continuation = pages.filter {
-                    it.contains("P3 - Narrativa / continuación")
+                    it.contains("C2 - Habilidades, acciones y recursos") && it.contains("RASTRO")
                 }
                 assertTrue(continuation.size >= 3,
-                    "Three long source paragraphs must span genuine P3 pages.")
+                    "Three long source paragraphs must span genuine C2 pages.")
                 assertTrue(continuation.drop(1).all {
-                    it.contains("HISTORIA Y CRÓNICA / CONTINUACIÓN")
+                    it.contains("HISTORIA / VIENE DE PÁG.")
                 })
+                assertFalse(pages.any { it.contains("P3 - Narrativa / continuación") })
                 val allText = pages.joinToString("\n")
                 val orderedMarkers = listOf(
                     "P3-PARRAFO-UNO-INICIO", "P3-PARRAFO-UNO-FIN",
@@ -4692,14 +4740,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         startPage = physical; endPage = physical
                     }.getText(pdf)
                 }
+                // C447: the rest of the story is a C2 module.
                 val continuation = pages.filter {
-                    it.contains("P3 - Narrativa / continuación")
+                    it.contains("C2 - Habilidades, acciones y recursos") && it.contains("Viaje registrado")
                 }
                 assertTrue(continuation.size >= 2,
-                    "Stress fixture must exercise at least TWO P3 continuation sheets.")
+                    "Stress fixture must exercise at least TWO C2 story sheets.")
                 assertTrue(continuation.drop(1).all {
-                    it.contains("HISTORIA Y CRÓNICA / CONTINUACIÓN")
-                }, "Every further P3 physical page must name its original story.")
+                    it.contains("HISTORIA / VIENE DE PÁG.")
+                }, "Every further sheet must name the story it continues.")
                 val combined = pages.joinToString("\n")
                 assertEquals(1, Regex("P3LONG-CONTINUATION-START").findAll(combined).count())
                 assertEquals(1, Regex("P3LONG-CONTINUATION-END").findAll(combined).count())
@@ -4711,7 +4760,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
-    fun longRealHistoryContinuesInNarrativePagesWithoutBreakingFinalHandwriting() {
+    fun longRealHistoryContinuesInC2WithoutBreakingFinalHandwriting() {
         val source = sources("01_aldren_vale_srd5_1_champion_fighter.json")
         val story = "INICIO-HISTORIA-P3 " +
             ("Crónica persistida sin pérdidas ni párrafos de relleno. ").repeat(120) +
@@ -4736,8 +4785,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.getText(pdf)
             }
             assertTrue(pages[2].contains("INICIO-HISTORIA-P3"))
-            assertTrue(pages.any { it.contains("P3 - Narrativa / continuación") },
-                "Overflowed real history must continue on narrative-only pages.")
+            assertTrue(pages.any { it.contains("C2 - Habilidades, acciones y recursos") && it.contains("HISTORIA") },
+                "Overflowed real history must continue as a C2 module.")
             assertTrue(pages.any { it.contains("FIN-HISTORIA-P3") },
                 "The tail of the real history must survive the measured pagination.")
             assertTrue(pages.last().trim().endsWith("NOTAS"),
@@ -7291,10 +7340,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     val links = footer?.let { moduleLinksOf(it) }.orEmpty()
                     assertEquals(expected, links.map { it.first }, "P3 links ($variant): $footer")
                     links.forEach { (module, page) ->
+                        // C447: the story continues as a C2 module with its own cartela.
                         val first = pages.indexOfFirst { text ->
-                            text.contains("P3 - Narrativa / continuación") && when (module) {
-                                "HISTORIA" -> text.contains("HISTORIA Y CRÓNICA / CONTINUACIÓN")
-                                else -> text.contains("IDEALES / CONTINUACIÓN")
+                            when (module) {
+                                "HISTORIA" -> text.contains("C2 - Habilidades") &&
+                                    Regex("""(?m)^HISTORIA\s*$""").containsMatchIn(text)
+                                else -> text.contains("P3 - Narrativa / continuación") &&
+                                    text.contains("IDEALES / CONTINUACIÓN")
                             }
                         } + 1
                         assertEquals(first, page, "$module must point to its first real page ($variant).")

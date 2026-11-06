@@ -16,9 +16,9 @@ class P3ModuleLinksParityTest(unittest.TestCase):
         pieces = []
         for path in RENDERERS:
             data = path.read_text(encoding="utf-8")
-            part = data.split("val p3StoryPagesBefore = physicalSectionKeys.size", 1)[1].split(
-                "// Resource balances and ammunition", 1)[0]
-            self.assertIn('"HISTORIA" to (p3StoryPagesBefore + 1)', part)  # C341
+            part = data.split('// C253/C258: golden P3 footer "HISTORIA A P. 6"', 1)[1].split(
+                "// Reflow the exact P2-unprinted", 1)[0]
+            self.assertIn('mixedC2HeadingPages["c2-heading:story"]?.let { "HISTORIA" to it }', part)  # C447
             self.assertIn("p3FieldSpecs[index].first to it", part)
             self.assertIn("PcSheetV11ContinuationText.moduleLinks(", part)
             self.assertIn('if (key == "P3 - Trasfondo / Perfil / Historia" && p3ModuleLinks != null) {', data)

@@ -2584,18 +2584,41 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     }
                 }
             }
-            // The story continuation keeps its own 7/17 pt rhythm, so it is a
-            // separate measured flow after any profile-field continuation.
-            val p3StoryOverflow = buildList {
-                val remainingStory = remainingNarrative(p3StoryItems, p3Story)
-                if (remainingStory.isNotEmpty()) {
-                    add(PcSheetV11FlowItem(
-                        "p3-story-heading", "HISTORIA Y CRÓNICA / CONTINUACIÓN",
-                        keepTogetherIfFits = true,
-                    ))
-                    addAll(remainingStory)
+            // C447 (owner 2026-11-06, «Sí, compartida»): as in the golden, the rest of the
+            // story is a C2 module that shares its sheet. Its rows keep the owner's 7 pt on
+            // 17 pt, so each measured line is its own row of the golden 17.01 pt.
+            fun c2StoryLines(text: String): List<String> {
+                val room = 250f // the golden 261.35 pt column, less its text insets
+                fun fits(line: String) = c2Font.width.measurePt(pcSheetV11PrintableText(line)) <= room
+                val lines = mutableListOf<String>()
+                text.split(Regex("[\\r\\n]+")).forEach { paragraph ->
+                    var current = ""
+                    paragraph.split(Regex("\\s+")).filter { it.isNotEmpty() }.forEach { word ->
+                        var rest = word
+                        val joined = if (current.isEmpty()) rest else current + " " + rest
+                        if (fits(joined)) {
+                            current = joined
+                        } else {
+                            if (current.isNotEmpty()) lines += current
+                            current = ""
+                            while (!fits(rest)) {
+                                val cut = (1 until rest.length).last { fits(rest.take(it)) }
+                                lines += rest.take(cut)
+                                rest = rest.drop(cut)
+                            }
+                            current = rest
+                        }
+                    }
+                    if (current.isNotEmpty()) lines += current
                 }
+                return lines
             }
+            val p3StoryOverflow = remainingNarrative(p3StoryItems, p3Story)
+                .flatMap { c2StoryLines(it.text) }
+                .mapIndexed { index, line ->
+                    PcSheetV11FlowItem("c2-story:" + index, line,
+                        lineExtrasPt = mapOf(0 to 17.01f - c2Font.metrics.lineHeightPt))
+                }
             fun drawP3Band(
                 stream: PDPageContentStream, label: String, y: Float, height: Float = 20f,
             ) {
@@ -2896,8 +2919,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             firstCell?.sourceKey?.startsWith("narrative:") == true
                         ) {
                             entries.take(sourcePosition).lastOrNull {
-                                it.sourceKey == "p3-story-heading" ||
-                                    it.sourceKey.startsWith("p3-field-heading:")
+                                it.sourceKey.startsWith("p3-field-heading:")
                             }?.text
                         } else null
                         if (heading == null) basicTitle else {
@@ -3201,7 +3223,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             }
                             val fromP1 = pageCells.any {
                                 !it.sourceKey.startsWith("p2-trait:") &&
-                                    it.sourceKey != "c2-heading:traits"
+                                    it.sourceKey != "c2-heading:traits" &&
+                                    !it.sourceKey.startsWith("c2-story:") &&
+                                    it.sourceKey != "c2-heading:story"
                             }
                             if (fromP2) mixedC2TraitPages += pdf.numberOfPages
                             if (fromP1) mixedC2P1Pages += pdf.numberOfPages
@@ -3520,6 +3544,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             groupHeadings.filter { it.sourceStartOffset == 0 }.forEach { heading ->
                                 val base = if (heading.sourceKey == "c2-heading:traits")
                                     physicalSectionKeys.indexOf("P2 - Equipo y tesoro") + 1
+                                else if (heading.sourceKey == "c2-heading:story") // C447
+                                    physicalSectionKeys.indexOf("P3 - Trasfondo / Perfil / Historia") + 1
                                 else physicalSectionKeys.indexOfFirst { it.startsWith("P1 - ") } + 1
                                 if (base > 0) {
                                     val origin = pcSheetV11PrintableText(
@@ -3797,9 +3823,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             }
                         }
                         pageCells.forEach { cell ->
-                            if (font === storyFont) {
-                                // Owner option B: the story continuation keeps 7/17 pt.
-                                drawStory(stream, cell.drawableText, cell.cellPt.leftPt,
+                            if (cell.sourceKey.startsWith("c2-story:")) {
+                                // Owner option B: the story continuation keeps 7/17 pt;
+                                // C447: golden text 4.25 pt inside the C2 band.
+                                drawStory(stream, cell.drawableText, cell.cellPt.leftPt + 4.25f,
                                     storyBaseline(cell.cellPt))
                                 return@forEach
                             }
@@ -5108,31 +5135,6 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             addSection("P3 - Narrativa / continuación", PcSheetV11FlowSection.NARRATIVE,
                 p3FieldOverflow, 2, area = p3ContinuationTextArea,
                 gutterPt = p3ContinuationGutterPt)
-            val p3StoryPagesBefore = physicalSectionKeys.size
-            addSection("P3 - Narrativa / continuación", PcSheetV11FlowSection.NARRATIVE,
-                p3StoryOverflow, 2, area = p3ContinuationTextArea,
-                font = storyFont,
-                firstPageNumber = physicalSectionKeys.size - p3PagesBefore + 1,
-                gutterPt = p3ContinuationGutterPt)
-            // C253/C258: golden P3 footer "HISTORIA A P. 6": each continued P3
-            // field by its own name (owner 2026-10-28) and the story, with the
-            // first real physical page of each, on the module-link band.
-            // C341: «IDEALES CONTINÚA EN PÁG. 4 · HISTORIA CONTINÚA EN PÁG. 5».
-            val p3ModuleLinks = PcSheetV11ContinuationText.moduleLinks(
-                p3FieldSpecs.indices.mapNotNull { index ->
-                    p3FieldHeadingPages["p3-field-heading:" + index]?.let {
-                        p3FieldSpecs[index].first to it
-                    }
-                } + listOfNotNull(
-                    if (p3StoryOverflow.isNotEmpty()) "HISTORIA" to (p3StoryPagesBefore + 1)
-                    else null,
-                ),
-            )
-            if (p3ModuleLinks != null) {
-                require(headerPdfFont.getStringWidth(p3ModuleLinks) * 6.1f / 1000f <= 528f) {
-                    "All genuine P3 continuation destinations must fit the footer band."
-                }
-            }
 
 
             // Resource balances and ammunition are drawn only from persisted source
@@ -5276,6 +5278,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         "RASGOS / CONTINUACIÓN P2", keepTogetherIfFits = true,
                         lineExtrasPt = c2CartelaExtra), remainingTraits)
                 }
+                if (p3StoryOverflow.isNotEmpty()) {
+                    addHeaded(PcSheetV11FlowItem("c2-heading:story", "HISTORIA",
+                        keepTogetherIfFits = true, lineExtrasPt = c2CartelaExtra), p3StoryOverflow)
+                }
             }
             // C323: golden C2 columns 39.69..301.04 and 310.96..572.32 (9.92 pt gutter).
             addSection("C2 - Habilidades, acciones y recursos",
@@ -5284,6 +5290,24 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // C324: content starts at the golden first-cartela top (y685.7).
                 area = PcSheetV11RectPt(39.69f, c2FootPt, 532.63f, 685.7f - c2FootPt),
                 gutterPt = 9.92f, font = c2Font)
+            // C253/C258: golden P3 footer "HISTORIA A P. 6": each continued P3
+            // field by its own name (owner 2026-10-28) and the story, with the
+            // first real physical page of each, on the module-link band.
+            // C341: «IDEALES CONTINÚA EN PÁG. 4 · HISTORIA CONTINÚA EN PÁG. 5».
+            val p3ModuleLinks = PcSheetV11ContinuationText.moduleLinks(
+                p3FieldSpecs.indices.mapNotNull { index ->
+                    p3FieldHeadingPages["p3-field-heading:" + index]?.let {
+                        p3FieldSpecs[index].first to it
+                    }
+                } + listOfNotNull(
+                    mixedC2HeadingPages["c2-heading:story"]?.let { "HISTORIA" to it },
+                ),
+            )
+            if (p3ModuleLinks != null) {
+                require(headerPdfFont.getStringWidth(p3ModuleLinks) * 6.1f / 1000f <= 528f) {
+                    "All genuine P3 continuation destinations must fit the footer band."
+                }
+            }
 
             // Reflow the exact P2-unprinted equipment/treasure suffixes into
             // FULL-HEIGHT C2 paired tables. Never redraw quantities already
@@ -6031,6 +6055,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val physicalP3 = physicalSectionKeys.indexOf("P3 - Trasfondo / Perfil / Historia") + 1
             val p3ContinuationFirst = physicalSectionKeys.indexOf("P3 - Narrativa / continuación")
                 .takeIf { it >= 0 }?.plus(1)
+            val p3Destinations = listOfNotNull(p3ContinuationFirst, mixedC2HeadingPages["c2-heading:story"])
             val mixedC2Key = "C2 - Habilidades, acciones y recursos"
             val c2FromP1 = mixedC2P1Pages.minOrNull()
             fun isFromP2(key: String): Boolean =
@@ -6141,8 +6166,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     key.startsWith("P2 - ") && c2FromP2 != null ->
                         requireNotNull(PcSheetV11ContinuationText.continuesOn(
                             p2C2Destinations.map { it.second } + c2FromP2))
-                    key == "P3 - Trasfondo / Perfil / Historia" && p3ContinuationFirst != null ->
-                        PcSheetV11ContinuationText.continuesOn(p3ContinuationFirst)
+                    key == "P3 - Trasfondo / Perfil / Historia" && p3Destinations.isNotEmpty() ->
+                        requireNotNull(PcSheetV11ContinuationText.continuesOn(p3Destinations))
                     else -> {
                         // A single mixed C2 physical page may contain P1
                         // continuations, P2 trait continuations, both or neither:
@@ -6152,6 +6177,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             key == mixedC2Key -> listOfNotNull(
                                 physicalP1.takeIf { physicalPage == c2FromP1 },
                                 physicalP2.takeIf { physicalPage == mixedC2TraitPages.minOrNull() },
+                                physicalP3.takeIf { physicalPage == mixedC2HeadingPages["c2-heading:story"] },
                             )
                             isFromP2(key) && prev == null -> listOf(physicalP2)
                             key == "P3 - Narrativa / continuación" && prev == null -> listOf(physicalP3)

@@ -44,4 +44,4 @@ Ahora tienen PDF real conservado y una prueba de lo que pide la decisión: retra
 
 ## Preguntas al propietario
 
-Se hacen de una en una, por página. La lista está en la sección 5 del acta: P4, P9 y P10; P2 sigue al golden. Ya están respondidas P3 («Sí, las mismas», regla P412), P8 (casillas al máximo de cada nivel, regla P128), P5 («Sí, línea a mano»), P6 («Nombre y alcance», regla P126) y P7 («Sí, a ATAQUES», regla P127), las tres el 2026-11-06. P1 se resuelve por la jerarquía del contrato y se informa.
+Se hacen de una en una, por página. La lista está en la sección 5 del acta: P4 y P10; P2 sigue al golden. Ya están respondidas P9 («Sí, compartida», regla P307), P3 («Sí, las mismas», regla P412), P8 (casillas al máximo de cada nivel, regla P128), P5 («Sí, línea a mano»), P6 («Nombre y alcance», regla P126) y P7 («Sí, a ATAQUES», regla P127), las tres el 2026-11-06. P1 se resuelve por la jerarquía del contrato y se informa.

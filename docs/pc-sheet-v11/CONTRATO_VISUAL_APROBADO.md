@@ -146,7 +146,7 @@ El propietario aprobó P1/P3/P4, P2, C2, final y variante B tras revisión V11. 
 
 **Detalles técnicos del Worker (no dichos por el propietario):**
 - Fira Sans Regular; línea base 4 pt sobre la regla al pie de cada renglón (medido en el golden: el texto queda justo sobre la regla).
-- La continuación de Historia va en páginas propias con el mismo ritmo, después de cualquier continuación de campos de perfil.
+- ~~La continuación de Historia va en páginas propias~~ (sustituido por el propietario el 2026-11-06: va en C2; ver esa aclaración).
 - Una historia muy larga ocupa una página más que antes (capacidad de P3 ~3.100 → ~2.900 caracteres).
 - Si el resto del cuerpo de texto debe pasar también a 7 pt, se decidirá aparte.
 
@@ -208,3 +208,7 @@ El propietario decide **«Sí, línea a mano»**: la App no guarda estos dos cam
 ## Aclaración del propietario — casillas de espacios en P4 (2026-11-06)
 
 Preguntado si la página 4 lleva las mismas casillas por nivel que la página 1, el propietario responde **«Sí, las mismas»**. Cada cabecera de nivel de P4 dibuja 4, 3, 3, 3, 4, 2, 2, 1 o 1 casillas vacías, con `ESP.4 G.2` si hay dato o `ESP. ___` si no. Sustituye a las tres casillas del golden y precisa D-0076 §3.25 y §3.26 (regla P412).
+
+## Aclaración del propietario — historia larga (2026-11-06)
+
+Preguntado si el resto de una historia larga comparte hoja con otros módulos, el propietario responde **«Sí, compartida»**. Como en el golden, lo que no cabe en P3 sigue en un módulo HISTORIA de C2, con su cartela y `VIENE DE PÁG. 3`, y comparte hoja con los demás módulos. Conserva 7 pt sobre renglones de 17 pt (regla P307). Los campos de perfil que no caben en P3 no cambian en esta aclaración.

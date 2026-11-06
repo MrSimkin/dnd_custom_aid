@@ -3834,7 +3834,7 @@
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "PASS",
           "evidence": {
-            "test_name": "g3P3ThreeLongPersistedParagraphsKeepOrderAcrossPhysicalPagesAB; g3P3ExtremeStoryContinuationKeepsRealSourceHeadingOnEveryLaterPageAB; longRealHistoryContinuesInNarrativePagesWithoutBreakingFinalHandwriting",
+            "test_name": "g3P3ThreeLongPersistedParagraphsKeepOrderAcrossPhysicalPagesAB; g3P3ExtremeStoryContinuationKeepsRealSourceHeadingOnEveryLaterPageAB; longRealHistoryContinuesInC2WithoutBreakingFinalHandwriting",
             "test_result": "G3 scoped PASS on real Desktop App PDF A/B: THREE original separated paragraphs remain in strict source order over six genuine P3 continuation sheets (p4..p9), 6 unique boundary markers exactly once per variant, 190 source word occurrences for each of 3 distinct paragraphs (570 total per variant), final NOTES paper-only; all 70 prior app PDFs retain page counts, words/0.1pt coordinates and vector path counts.",
             "source_commit": "57d37743152213afb00a2981bb85c579e1569f89",
             "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42246008969",
@@ -5937,6 +5937,25 @@
             "independent_inspection": "Same CI run: the 16 independent audits pass on the real PDFs, among them audit_v11_golden_palette.py and audit_v11_golden_geometry.py.",
             "limitations": "Desktop proof; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
           }
+        }
+      ]
+    },
+    {
+      "id": "P307",
+      "area": "P3",
+      "obligation": "El resto de una historia larga sigue en un módulo HISTORIA de C2 que comparte hoja, a 7 pt sobre renglones de 17 pt",
+      "authority": "CONTRATO_VISUAL_APROBADO.md 2026-11-06; golden v11_extremo p6",
+      "method": "PDF texto y geometría",
+      "scenarios": "Historia que no cabe en P3",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
         }
       ]
     },
