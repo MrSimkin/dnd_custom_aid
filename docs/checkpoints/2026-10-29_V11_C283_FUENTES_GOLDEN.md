@@ -180,7 +180,7 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 
 Actualizado el 2026-11-05.
 
-- **Control final (`--mode release`)**: sigue FALLANDO. Controles: G1 49/49, G2 90/90, G3 111/115, G4 0/9, atados a `57d37743` (run 42246008969). G3 no pasa por los cuatro hallazgos abiertos C213 a C216. Son pruebas de desarrollo con Desktop, no el cumplimiento final. Los controles G2 que reutilizan la prueba de G3 lo dicen. Las 124 reglas siguen en NOT_VERIFIED a nivel global porque exigen candidato con APK y PDF con SHA, salida real de Guardar/Compartir y revisión independiente.
+- **Control final (`--mode release`)**: sigue FALLANDO. Controles: G1 49/49, G2 90/90, G3 112/116, G4 0/9, atados a `bd2b3d9f` (run 42250245431). G3 no pasa por los cuatro hallazgos abiertos C213 a C216. Son pruebas de desarrollo con Desktop, no el cumplimiento final. Los controles G2 que reutilizan la prueba de G3 lo dicen. Las 125 reglas siguen en NOT_VERIFIED a nivel global porque exigen candidato con APK y PDF con SHA, salida real de Guardar/Compartir y revisión independiente.
 - **Interfaz real**: IN01 e IN06 quedan probados en la pantalla de Desktop (C439). Falta la App Android instalada y el selector y el portapapeles reales: QA03, en G4.
 - **Revisión independiente**: hecha sobre `c6af6cc4`, con hallazgos (ver `qa/HALLAZGOS_REVISION_C6AF6CC4.md`). Debe repetirse sobre el candidato. Las 48 secciones y los 8 golden siguen en NOT_VERIFIED.
 - **Hallazgos abiertos**: F05 (panel B), F06 (municiones), F08 (corte), F09 (`VER C2`), F10 (tramos en C2), F11 G-c (títulos de C2), F12 (letra de recursos).
