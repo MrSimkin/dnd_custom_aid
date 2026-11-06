@@ -12,6 +12,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import org.apache.pdfbox.Loader
@@ -182,6 +183,75 @@ class DesktopPcSheetRuntimeQaFixtureTest {
                 assertTrue(normalized.contains("incluidos los añadidos por Evocation Savant"))
                 assertTrue(normalized.contains("Contiene la selección legal de conjuros de Ilyra hasta nivel 5"))
             }
+        }
+    }
+
+    @Test
+    fun maraCustomV1GeneratesAndWrapsALongSkillLabelAtOneScale() {
+        // M50800-02 (owner 2026-09-28; clarification B1-01, 2026-09-30): Mara must generate, a long
+        // skill name may wrap, and every wrapped line of one label keeps one uniform scale.
+        val document = fixture("03_mara_siete_umbrales_custom_extended.json")
+        val plan = PcSheetPdfExportPlanner.plan(
+            request = PcSheetPdfExportRequest(
+                visualFamily = PcSheetVisualFamily.CUSTOM_V1,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+            ),
+            sources = PcSheetExportSources(
+                permanent = PcSheetExportAggregate(
+                    sheet = document.character,
+                    closure = document.closureState,
+                    successor = document.successorState,
+                ),
+            ),
+        )
+        val bytes = ByteArrayOutputStream().use { output ->
+            DesktopPcSheetWholeDraftRenderer().renderDraft(plan, output)
+            output.toByteArray()
+        }
+        Loader.loadPDF(bytes).use { pdf ->
+            val runs = mutableListOf<List<org.apache.pdfbox.text.TextPosition>>()
+            object : PDFTextStripper() {
+                override fun writeString(
+                    text: String,
+                    textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
+                ) {
+                    runs += textPositions.toList()
+                }
+            }.getText(pdf)
+            fun text(run: List<org.apache.pdfbox.text.TextPosition>) = run.joinToString("") { it.unicode }
+            val first = runs.first { text(it).trim() == "Lectura de" }
+            val second = runs.first { text(it).trim() == "presagios" }
+            fun widthOf(run: List<org.apache.pdfbox.text.TextPosition>, letter: String) =
+                run.first { it.unicode == letter }.widthDirAdj
+            assertTrue(kotlin.math.abs(widthOf(first, "e") - widthOf(second, "e")) < 0.01f,
+                "Both lines of one label keep one horizontal scale.")
+            assertTrue(kotlin.math.abs(widthOf(first, "a") - widthOf(second, "a")) < 0.01f,
+                "Both lines of one label keep one horizontal scale.")
+            assertTrue(kotlin.math.abs(first.first().xDirAdj - second.first().xDirAdj) < 0.01f,
+                "Both lines start at the same left edge.")
+            // A long combat note wraps whole, at one scale, inside one page.
+            val combatPages = (1..pdf.numberOfPages).filter { n ->
+                PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf).contains("Combate / Acciones")
+            }
+            assertTrue(combatPages.isNotEmpty(), "Mara has the combat table.")
+            val combat = combatPages.joinToString(" ") { n ->
+                PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+            }.replace(Regex("\\s+"), " ")
+            listOf("Entrada de combate custom 1", "Daño: 2d6", "Entrada de combate custom 8")
+                .forEach { assertTrue(combat.contains(it), "$it prints in the combat table.") }
+            val note = runs.first { text(it).trim().startsWith("Entrada de combate custom 1") }
+            val noteEnd = runs.first { text(it).contains("Daño: 2d6") }
+            assertTrue(kotlin.math.abs(widthOf(note, "e") - widthOf(noteEnd, "e")) < 0.01f,
+                "All lines of one combat note keep one horizontal scale.")
+            // M50800-16 and M50800-26: compact identity, wrapped, without weight or state.
+            val wholeText = PDFTextStripper().getText(pdf)
+            assertTrue(runs.none { text(it).contains("Frasco de tinta") && text(it).contains(" lb") },
+                "Ordinary Equipment shows no weight.")
+            assertFalse(wholeText.contains("Estado: "), "Ordinary Equipment shows no state line.")
+            assertTrue(runs.any { text(it).trim().startsWith("2 x Frasco de tinta") }, "The identity keeps its quantity.")
+            val normalized = wholeText.replace(Regex("\\s+"), " ")
+            listOf("Mara de los Siete Umbrales", "Manipulación de éter", "Protocolo de paradoja 1", "Reserva 10: Sello")
+                .forEach { assertTrue(normalized.contains(it), "$it stays in the sheet.") }
         }
     }
 

@@ -574,16 +574,63 @@ internal class AndroidCustomV1ExtendedRenderer(
         val rows = combatReferenceRows(plan)
         if (rows.isEmpty()) return
 
-        val pages = pageCount(rows.size, COMBAT_ROWS_PER_PAGE)
-        repeat(pages) { pageIndex ->
+        // M50800-02: the physical rows of one entry stay together unless they exceed a whole page.
+        val pages = mutableListOf<MutableList<CombatPhysicalRow>>()
+        rows.map(::combatPhysicalRows).forEach { physical ->
+            physical.chunked(COMBAT_ROWS_PER_PAGE).forEach { part ->
+                if (pages.isEmpty() || pages.last().size + part.size > COMBAT_ROWS_PER_PAGE) {
+                    pages += mutableListOf<CombatPhysicalRow>()
+                }
+                pages.last() += part
+            }
+        }
+        pages.forEachIndexed { pageIndex, pageRows ->
             val page = PDPage(PDRectangle(W, H))
             document.addPage(page)
             renderCombatPage(
                 page = page,
-                rows = rows.pageSlice(pageIndex, COMBAT_ROWS_PER_PAGE),
+                rows = pageRows,
                 pageIndex = pageIndex,
             )
         }
+    }
+
+    // M50800-02 (owner clarification B1-01, 2026-09-30): a value that cannot be compressed readably
+    // wraps to more rows of the same entry, and all lines of one cell share one uniform scale.
+    private fun combatPhysicalRows(row: CombatReferenceRow): List<CombatPhysicalRow> {
+        val cells = listOf(
+            combatCellLines(resources.fira, COMBAT_NAME_RULE, row.name, 8.0f),
+            combatCellLines(resources.fira, COMBAT_RANGE_RULE, row.range, 7.8f),
+            combatCellLines(resources.firaSemibold, COMBAT_BONUS_RULE, row.bonus, 8.0f),
+            combatCellLines(resources.fira, COMBAT_EFFECT_RULE, row.effect, 7.8f),
+            combatCellLines(resources.fira, COMBAT_NOTES_RULE, row.notes, 7.6f),
+        )
+        return (0 until maxOf(1, cells.maxOf { it.size })).map { index ->
+            CombatPhysicalRow(
+                name = cells[0].getOrNull(index),
+                range = cells[1].getOrNull(index),
+                bonus = cells[2].getOrNull(index),
+                effect = cells[3].getOrNull(index),
+                notes = cells[4].getOrNull(index),
+            )
+        }
+    }
+
+    private fun combatCellLines(
+        font: PDFont,
+        rule: Rule,
+        value: String,
+        preferredSize: Float,
+        leftPadding: Float = 2f,
+    ): List<CombatCellLine> {
+        if (value.isBlank()) return emptyList()
+        val available = rule.endX - rule.startX - leftPadding - 1f
+        val narrowest = textWidth(font, value, MINIMUM_BODY_SIZE) * COMBAT_MINIMUM_HORIZONTAL_SCALE / 100f
+        if (narrowest <= available) return listOf(CombatCellLine(value, null))
+        val wrapped = wrapByWidth(value, font, preferredSize, available / (COMBAT_WRAP_HORIZONTAL_SCALE / 100f))
+        val widest = wrapped.maxOf { textWidth(font, it, preferredSize) }
+        val uniformScale = minOf(COMBAT_WRAP_HORIZONTAL_SCALE, available / widest * 100f)
+        return wrapped.map { CombatCellLine(it, uniformScale) }
     }
 
     private fun combatReferenceRows(plan: PcSheetPdfRenderPlan): List<CombatReferenceRow> {
@@ -626,7 +673,7 @@ internal class AndroidCustomV1ExtendedRenderer(
 
     private fun renderCombatPage(
         page: PDPage,
-        rows: List<CombatReferenceRow>,
+        rows: List<CombatPhysicalRow>,
         pageIndex: Int,
     ) {
         val prefix = "V1X COMBAT P${pageIndex + 1}"
@@ -656,11 +703,11 @@ internal class AndroidCustomV1ExtendedRenderer(
         appendLayer(page, "$prefix - VALUES") { s ->
             rows.forEachIndexed { index, row ->
                 val top = COMBAT_FIRST_RULE_TOP + index * COMBAT_ROW_STEP
-                combatCellText(s, resources.fira, Rule(27.5f, 201f, top), row.name, 8.0f)
-                combatCellText(s, resources.fira, Rule(207f, 281f, top), row.range, 7.8f)
-                combatCellText(s, resources.firaSemibold, Rule(287f, 331f, top), row.bonus, 8.0f)
-                combatCellText(s, resources.fira, Rule(337f, 456f, top), row.effect, 7.8f)
-                combatCellText(s, resources.fira, Rule(462f, 583.795f, top), row.notes, 7.6f)
+                combatCellText(s, resources.fira, COMBAT_NAME_RULE.copy(topY = top), row.name, 8.0f)
+                combatCellText(s, resources.fira, COMBAT_RANGE_RULE.copy(topY = top), row.range, 7.8f)
+                combatCellText(s, resources.firaSemibold, COMBAT_BONUS_RULE.copy(topY = top), row.bonus, 8.0f)
+                combatCellText(s, resources.fira, COMBAT_EFFECT_RULE.copy(topY = top), row.effect, 7.8f)
+                combatCellText(s, resources.fira, COMBAT_NOTES_RULE.copy(topY = top), row.notes, 7.6f)
             }
         }
         appendLayer(page, "$prefix - MARKERS") { }
@@ -1076,7 +1123,6 @@ internal class AndroidCustomV1ExtendedRenderer(
         val ordered = sheet.inventoryItems.sortedBy { it.sortOrder }
         val ordinary = ordered.filterNot { it.special }
         val ordinaryLines = ordinary.flatMapIndexed { index, item ->
-            val usage = usageByItem[item.id]
             val baseLabel = inventoryBaseLabel(item)
             val needsFullContinuation =
                 index >= BASE_V1_EQUIPMENT_CAPACITY ||
@@ -1087,7 +1133,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                         INVENTORY_ORDINARY_TEXT_WIDTH,
                     ).size > 1
             if (needsFullContinuation) {
-                inventoryContinuationLines(item, usage)
+                inventoryContinuationLines(item)
             } else {
                 emptyList()
             }
@@ -1224,7 +1270,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                         )
                     }
                 }
-                ruleText(
+                specialRowText(
                     s,
                     resources.fira,
                     Rule(126f, 238f, y),
@@ -1233,7 +1279,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                 )
                 val detail = specialInventoryDetail(item, usageByItem[item.id])
                 if (detail.isNotEmpty()) {
-                    ruleText(
+                    specialRowText(
                         s,
                         resources.fira,
                         Rule(240.803f, 583.795f, y),
@@ -1292,31 +1338,10 @@ internal class AndroidCustomV1ExtendedRenderer(
         return lines
     }
 
-    private fun inventoryContinuationLines(
-        item: CharacterInventoryItem,
-        usage: CharacterInventoryUsage?,
-    ): List<String> {
-        val lines = mutableListOf<String>()
-        // Full continuation is only for an item whose compact identity itself did not fit the
-        // native Equipment capacity. Location/description/notes remain Notes semantics.
-        lines += item.pdfCompactEquipmentLabel()
-
-        val operationalStatus = buildList {
-            if (item.equipped) add("Equipado")
-            if (item.attuned) add("Sintonizado")
-            addAll(inventoryUsageLabels(usage))
-        }.joinToString(" · ")
-        if (operationalStatus.isNotEmpty()) {
-            lines += wrapByWidth(
-                "Estado: $operationalStatus",
-                resources.condensed,
-                8.2f,
-                INVENTORY_ORDINARY_TEXT_WIDTH,
-            )
-        }
-
-        return lines
-    }
+    // M50800-16 and M50800-26 (owner 2026-09-28): ordinary Equipment shows its compact identity only,
+    // without weight or state, and a long name wraps instead of being cut. Every line keeps one size.
+    private fun inventoryContinuationLines(item: CharacterInventoryItem): List<String> =
+        wrapByWidth(inventoryContinuationLabel(item), resources.condensed, 8.4f, INVENTORY_ORDINARY_TEXT_WIDTH)
 
     private fun specialInventoryDetail(
         item: CharacterInventoryItem,
@@ -1669,8 +1694,7 @@ internal class AndroidCustomV1ExtendedRenderer(
             .groupBy { it.ability.customAttributeId }
 
         val customModules = stats.attributes.flatMap { projection ->
-            linkedByCustom[projection.attribute.id].orEmpty()
-                .chunked(SKILLS_PER_MODULE)
+            moduleSkillRows(linkedByCustom[projection.attribute.id].orEmpty())
                 .ifEmpty { listOf(emptyList()) }
                 .map { skills ->
                     ModuleSlice(
@@ -1693,14 +1717,14 @@ internal class AndroidCustomV1ExtendedRenderer(
                         } else {
                             Training.NONE
                         },
-                        skills = skills.map(::skillLine),
+                        skills = skills,
                     )
                 }
         }
 
         val standardModules = CharacterAbility.entries.flatMap { ability ->
             val grouped = stats.skills.filter { it.ability.builtIn == ability }
-            grouped.chunked(SKILLS_PER_MODULE).map { skills ->
+            moduleSkillRows(grouped).map { skills ->
                 ModuleSlice(
                     title = builtInKeyedName(ability),
                     score = sheet.abilityScore(ability).toString(),
@@ -1711,7 +1735,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                     } else {
                         Training.NONE
                     },
-                    skills = skills.map(::skillLine),
+                    skills = skills,
                 )
             }
         }
@@ -1719,12 +1743,46 @@ internal class AndroidCustomV1ExtendedRenderer(
         return customModules + standardModules
     }
 
-    private fun skillLine(projection: PcSheetCustomSkillProjection): SkillLine =
-        SkillLine(
-            name = projection.skill.name,
-            total = projection.total?.let(::signed).orEmpty(),
-            training = training(projection.skill.training),
-        )
+    // M50800-02 (owner clarification B1-01, 2026-09-30): a name stays on one line while it can be
+    // compressed readably. Otherwise it wraps, and all its lines share one uniform scale.
+    private fun skillLines(projection: PcSheetCustomSkillProjection): List<SkillLine> {
+        val name = projection.skill.name
+        val total = projection.total?.let(::signed).orEmpty()
+        val skillTraining = training(projection.skill.training)
+        val labelWidth = COLUMNS.minOf { it.width - 39f }
+        val fitsOnOneLine = textWidth(resources.fira, name, 10f) * MINIMUM_LABEL_HORIZONTAL_SCALE / 100f <= labelWidth
+        if (name.isBlank() || fitsOnOneLine) {
+            return listOf(SkillLine(name, total, skillTraining, marker = true, horizontalScale = null))
+        }
+        val wrapped = wrapByWidth(
+            name, resources.fira, 10f, labelWidth / (SOURCE_LABEL_HORIZONTAL_SCALE / 100f),
+        ).ifEmpty { listOf(name) }
+        val widest = wrapped.maxOf { textWidth(resources.fira, it, 10f) }
+        val uniformScale = minOf(SOURCE_LABEL_HORIZONTAL_SCALE, labelWidth / widest * 100f)
+        return wrapped.mapIndexed { index, line ->
+            SkillLine(
+                name = line,
+                total = total.takeIf { index == 0 }.orEmpty(),
+                training = if (index == 0) skillTraining else Training.NONE,
+                marker = index == 0,
+                horizontalScale = uniformScale,
+            )
+        }
+    }
+
+    // The lines of one skill stay together in one module, unless they alone exceed its rows.
+    private fun moduleSkillRows(skills: List<PcSheetCustomSkillProjection>): List<List<SkillLine>> {
+        val modules = mutableListOf<MutableList<SkillLine>>()
+        skills.map(::skillLines).forEach { lines ->
+            lines.chunked(SKILLS_PER_MODULE).forEach { part ->
+                if (modules.isEmpty() || modules.last().size + part.size > SKILLS_PER_MODULE) {
+                    modules += mutableListOf<SkillLine>()
+                }
+                modules.last() += part
+            }
+        }
+        return modules
+    }
 
     private fun renderCustomStatisticsPage(
         page: PDPage,
@@ -1840,6 +1898,7 @@ internal class AndroidCustomV1ExtendedRenderer(
                             ruleTop - SOURCE_LABEL_BASELINE_OFFSET,
                             skill.name,
                             column.width - 39f,
+                            skill.horizontalScale,
                         )
                         if (skill.total.isNotEmpty()) {
                             centeredText(
@@ -1868,12 +1927,16 @@ internal class AndroidCustomV1ExtendedRenderer(
                     module?.saveTraining ?: Training.NONE,
                 )
                 STAT_SKILL_RULE_TOPS.forEachIndexed { rowIndex, ruleTop ->
-                    drawV1TrainingBox(
-                        s, resources.symbol,
-                        column.x + 6.2f,
-                        ruleTop - 6.2f,
-                        module?.skills?.getOrNull(rowIndex)?.training ?: Training.NONE,
-                    )
+                    val skill = module?.skills?.getOrNull(rowIndex)
+                    // The second line of a wrapped name is not a new skill: it gets no box.
+                    if (skill == null || skill.marker) {
+                        drawV1TrainingBox(
+                            s, resources.symbol,
+                            column.x + 6.2f,
+                            ruleTop - 6.2f,
+                            skill?.training ?: Training.NONE,
+                        )
+                    }
                 }
             }
         }
@@ -1972,11 +2035,12 @@ internal class AndroidCustomV1ExtendedRenderer(
         baselineTop: Float,
         value: String,
         maximumWidth: Float,
+        uniformScale: Float? = null,
     ) {
         if (value.isBlank()) return
         val size = 10f
         val rawWidth = textWidth(font, value, size)
-        val scale = minOf(SOURCE_LABEL_HORIZONTAL_SCALE, maximumWidth / rawWidth * 100f)
+        val scale = uniformScale ?: minOf(SOURCE_LABEL_HORIZONTAL_SCALE, maximumWidth / rawWidth * 100f)
         require(scale >= MINIMUM_LABEL_HORIZONTAL_SCALE) {
             "Custom-v1 source-matched label requires excessive compression: '$value' ($scale%)"
         }
@@ -1994,18 +2058,19 @@ internal class AndroidCustomV1ExtendedRenderer(
         s: PDFormContentStream,
         font: PDFont,
         rule: Rule,
-        value: String,
+        line: CombatCellLine?,
         preferredSize: Float,
         leftPadding: Float = 2f,
     ) {
+        val value = line?.text.orEmpty()
         if (value.isBlank()) return
         val available = rule.endX - rule.startX - leftPadding - 1f
         var size = preferredSize
-        while (size > MINIMUM_BODY_SIZE && textWidth(font, value, size) > available) {
+        while (line?.uniformScale == null && size > MINIMUM_BODY_SIZE && textWidth(font, value, size) > available) {
             size -= 0.2f
         }
         val rawWidth = textWidth(font, value, size)
-        val horizontalScale = if (rawWidth <= available) {
+        val horizontalScale = line?.uniformScale ?: if (rawWidth <= available) {
             100f
         } else {
             (available / rawWidth * 100f).coerceAtMost(100f)
@@ -2046,6 +2111,52 @@ internal class AndroidCustomV1ExtendedRenderer(
         s.newLineAtOffset(rule.startX + leftPadding, H - rule.topY + 3.2f)
         s.showText(value)
         s.endText()
+    }
+
+    // M50800-02 (owner clarification B1-01, 2026-09-30): a special equipment row holds two small
+    // lines. A value that does not fit one line takes both, at one uniform size and scale.
+    private fun specialRowText(
+        s: PDFormContentStream,
+        font: PDFont,
+        rule: Rule,
+        value: String,
+        size: Float,
+        leftPadding: Float = 2f,
+    ) {
+        val available = rule.endX - rule.startX - leftPadding - 1f
+        if (value.isBlank() || textWidth(font, value, MINIMUM_BODY_SIZE) <= available) {
+            ruleText(s, font, rule, value, size, leftPadding)
+            return
+        }
+        val wrapScales = listOf(COMBAT_WRAP_HORIZONTAL_SCALE, COMBAT_MINIMUM_HORIZONTAL_SCALE)
+        val (lines, lineSize, scale) = wrapScales.asSequence().flatMap { candidateScale ->
+            generateSequence(SPECIAL_TWO_LINE_SIZE) { it - 0.2f }
+                .takeWhile { it >= MINIMUM_BODY_SIZE }
+                .map { candidateSize ->
+                    Triple(
+                        wrapByWidth(value, font, candidateSize, available / (candidateScale / 100f)),
+                        candidateSize,
+                        candidateScale,
+                    )
+                }
+        }.firstOrNull { (candidateLines, candidateSize, candidateScale) ->
+            candidateLines.size <= 2 && candidateLines.all {
+                textWidth(font, it, candidateSize) * candidateScale / 100f <= available + 0.05f
+            }
+        } ?: throw IllegalArgumentException("Custom-v1 Extended text does not fit: $value")
+        lines.forEachIndexed { index, line ->
+            s.beginText()
+            s.setNonStrokingColor(Color.BLACK)
+            s.setFont(font, lineSize)
+            s.setHorizontalScaling(scale)
+            s.newLineAtOffset(
+                rule.startX + leftPadding,
+                H - rule.topY + 2.4f + (lines.size - 1 - index) * (lineSize + 0.8f),
+            )
+            s.showText(line)
+            s.setHorizontalScaling(100f)
+            s.endText()
+        }
     }
 
     private fun centeredGeneratedHeading(
@@ -2264,6 +2375,19 @@ internal class AndroidCustomV1ExtendedRenderer(
         val slotRule: Rule?,
     )
 
+    private data class CombatCellLine(
+        val text: String,
+        val uniformScale: Float?,
+    )
+
+    private data class CombatPhysicalRow(
+        val name: CombatCellLine?,
+        val range: CombatCellLine?,
+        val bonus: CombatCellLine?,
+        val effect: CombatCellLine?,
+        val notes: CombatCellLine?,
+    )
+
     private data class CombatReferenceRow(
         val name: String,
         val range: String,
@@ -2314,6 +2438,8 @@ internal class AndroidCustomV1ExtendedRenderer(
         val name: String,
         val total: String,
         val training: Training,
+        val marker: Boolean,
+        val horizontalScale: Float?,
     )
 
     private data class ColumnGeometry(
@@ -2557,6 +2683,13 @@ internal class AndroidCustomV1ExtendedRenderer(
         const val SOURCE_LABEL_BASELINE_OFFSET = 3.0f
         const val MINIMUM_BODY_SIZE = 5.8f
         const val COMBAT_MINIMUM_HORIZONTAL_SCALE = 55f
+        const val COMBAT_WRAP_HORIZONTAL_SCALE = 70f
+        const val SPECIAL_TWO_LINE_SIZE = 7.2f
+        val COMBAT_NAME_RULE = Rule(27.5f, 201f, 0f)
+        val COMBAT_RANGE_RULE = Rule(207f, 281f, 0f)
+        val COMBAT_BONUS_RULE = Rule(287f, 331f, 0f)
+        val COMBAT_EFFECT_RULE = Rule(337f, 456f, 0f)
+        val COMBAT_NOTES_RULE = Rule(462f, 583.795f, 0f)
 
         val SOURCE_GRAY = Color(211, 210, 210)
 
