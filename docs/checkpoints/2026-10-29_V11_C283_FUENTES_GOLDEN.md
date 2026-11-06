@@ -171,7 +171,7 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 
 Actualizado el 2026-11-05.
 
-- **Control final (`--mode release`)**: sigue FALLANDO. Controles: G1 48/49, G2 89/90, G3 98/100, G4 0/9. Las 109 reglas siguen en NOT_VERIFIED a nivel global porque exigen candidato con APK y PDF con SHA, salida real de Guardar/Compartir y revisión independiente.
+- **Control final (`--mode release`)**: sigue FALLANDO. Controles: G1 48/49, G2 89/90, G3 99/101, G4 0/9, todos atados a `9575984a` (run 42132696047). Las 110 reglas siguen en NOT_VERIFIED a nivel global porque exigen candidato con APK y PDF con SHA, salida real de Guardar/Compartir y revisión independiente.
 - **Abiertos de interfaz**: IN01 (G2, G3) e IN06 (G1, G3) exigen las acciones reales en Android o Desktop.
 - **Revisión independiente**: las 48 secciones (`qa/CONCILIACION_D0076_V11.md`) y los 8 golden (`qa/COMPARACION_8_GOLDEN.md`) tienen solo la revisión del implementador. Siguen en NOT_VERIFIED.
 - **Pregunta al propietario**: las dos imágenes del Trasfondo como retrato (§3.45).
