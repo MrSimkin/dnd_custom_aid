@@ -20,8 +20,8 @@ Este documento dice qué se hizo con cada hallazgo. **«Corregido» es la lectur
 | F06 | Alcance añadido y datos repetidos | **Corregido en parte** | El alcance ya no se repite en C2. **P6 respondida (2026-11-06):** «Nombre y alcance», se queda en ATAQUES. Las municiones ya salen una sola vez (C451). Notas de ataque: «Sí, solo en App» (C452) |
 | F07 | C2 de P1 tras P3 | **Sin cambio** | El golden, aprobado después, la pone tras P3, y la jerarquía del contrato le da prioridad. Se le informa al propietario |
 | F08 | Multiclase con comas | **Corregido en parte** | Usa `Guerrero 5 / Mago 3`. **Abierto:** con muchas clases, el corte puede separar un nombre de su nivel |
-| F09 | `VER C2` sin página | **Abierto** | Afecta a nombres muy largos, muchas clases y espacios sin cabida |
-| F10 | Referencias incompletas | **Corregido en parte** | El pie de P1 y P2 nombra todas sus páginas. **Abierto:** los tramos que siguen dentro de C2 solo avisan en el pie |
+| F09 | «VER C2» sin número de página | **Corregido en C453** | Ahora dice «CONTINÚA EN PÁG. n», con la página real |
+| F10 | Referencias incompletas | **Corregido en C441 y C453** | El pie de P1 y P2 nombra todas sus páginas, y un módulo que sigue en otra hoja de C2 lo avisa en la banda inferior |
 | F11 G-a | Orden de habilidades | **Corregido** | Orden del golden |
 | F11 G-b | Atributos propios sin mayúsculas | **Corregido** | Mayúsculas, a 7,7 pt en C2 como el golden |
 | F11 G-c | Títulos de C2 | **Abierto** | «ESPACIOS REALES» y otros títulos no son los del golden |

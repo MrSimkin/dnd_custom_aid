@@ -12,7 +12,8 @@ data class PcSheetV11HeaderNameRoute(
 )
 
 object PcSheetV11HeaderNameRouter {
-    private const val NAVIGATION_SUFFIX = " / VER C2"
+    /** Reserves the width of the real reference; the renderer prints the real page (C453). */
+    const val NAVIGATION_SUFFIX = " / CONTINÚA EN PÁG. 00"
 
     fun route(
         sourceName: String,

@@ -6168,7 +6168,7 @@
     {
       "id": "C213",
       "area": "C2",
-      "obligation": "ABIERTO: «VER C2» debe decir la página física, y cada tramo que sigue dentro de C2 debe avisar dónde sigue",
+      "obligation": "Una marca de P1 que envía a C2 dice la página física, y cada módulo que sigue en otra hoja de C2 avisa dónde sigue",
       "authority": "CONTRATO_VISUAL_APROBADO.md C341; docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md §3.33",
       "method": "PDF texto",
       "scenarios": "Nombre largo, muchas clases, espacios sin cabida, tramos en C2",

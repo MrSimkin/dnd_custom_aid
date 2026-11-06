@@ -19,10 +19,10 @@ class PcSheetV11HeaderNameRouterTest {
     @Test
     fun longSourceNameRetainsAReadablePrefixAndCompleteC2Text() {
         val name = "Aldren de los Siete Reinos y los Incontables Sellos del Alba"
-        val actual = PcSheetV11HeaderNameRouter.route(name, 22f, width)
+        val actual = PcSheetV11HeaderNameRouter.route(name, 40f, width)
         assertTrue(actual.paperName.startsWith("Aldren"))
-        assertTrue(actual.paperName.endsWith(" / VER C2"))
-        assertTrue(width.measurePt(actual.paperName) <= 22f)
+        assertTrue(actual.paperName.endsWith(PcSheetV11HeaderNameRouter.NAVIGATION_SUFFIX))
+        assertTrue(width.measurePt(actual.paperName) <= 40f)
         val full = assertNotNull(actual.continuation)
         assertEquals("p1:character-full-name", full.sourceKey)
         assertEquals("NOMBRE COMPLETO DEL PERSONAJE: " + name, full.text)
@@ -40,14 +40,14 @@ class PcSheetV11HeaderNameRouterTest {
         }
         // Even a fitting single-line preview cannot erase original breaks.
         val routed = PcSheetV11HeaderNameRouter.route(rawName, 100f, strictWidth)
-        assertEquals("Ilyra Quill    Crónica / VER C2", routed.paperName)
+        assertEquals("Ilyra Quill    Crónica" + PcSheetV11HeaderNameRouter.NAVIGATION_SUFFIX, routed.paperName)
         val full = assertNotNull(routed.continuation)
         assertEquals("p1:character-full-name", full.sourceKey)
         assertEquals("NOMBRE COMPLETO DEL PERSONAJE: " + rawName, full.text)
 
-        val constrained = PcSheetV11HeaderNameRouter.route(rawName, 16f, strictWidth)
-        assertTrue(constrained.paperName.endsWith(" / VER C2"))
-        assertTrue(strictWidth.measurePt(constrained.paperName) <= 16f)
+        val constrained = PcSheetV11HeaderNameRouter.route(rawName, 30f, strictWidth)
+        assertTrue(constrained.paperName.endsWith(PcSheetV11HeaderNameRouter.NAVIGATION_SUFFIX))
+        assertTrue(strictWidth.measurePt(constrained.paperName) <= 30f)
         assertEquals(full.text, assertNotNull(constrained.continuation).text)
     }
 

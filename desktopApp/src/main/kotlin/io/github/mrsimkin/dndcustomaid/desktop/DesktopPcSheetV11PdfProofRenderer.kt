@@ -43,7 +43,21 @@ internal class DesktopPcSheetV11PdfProofRenderer {
         target: OutputStream,
         portraitBytes: ByteArray? = null,
     ) {
-        PDDocument().use { pdf ->
+        // C453 (D-0076 3.33): a P1 marker names the real page of its C2 row, which is only
+        // known once the document is paginated, so such a sheet is drawn twice.
+        val firstPass = java.io.ByteArrayOutputStream()
+        val c2Pages = renderPass(data, firstPass, portraitBytes, emptyMap())
+        if (c2Pages == null) firstPass.writeTo(target)
+        else renderPass(data, target, portraitBytes, c2Pages)
+    }
+
+    private fun renderPass(
+        data: PcSheetV11SemanticData,
+        target: OutputStream,
+        portraitBytes: ByteArray?,
+        c2Pages: Map<String, Int>,
+    ): Map<String, Int>? {
+        return PDDocument().use { pdf ->
             val measurer = DesktopPcSheetV11FontMeasurer(pdf)
             val body = measurer.resolve(PcSheetV11Typeface.BODY, 9f)
             measurer.resolve(PcSheetV11Typeface.LABEL, 12f)
@@ -123,6 +137,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
             }
             val source = data.source.sheet
+            var c2MarkerUsed = false
+            fun c2Marker(headingKey: String): String {
+                c2MarkerUsed = true
+                val page = c2Pages[headingKey]
+                require(page != null || c2Pages.isEmpty()) { "A P1 marker has no C2 row: " + headingKey }
+                // The first pass only measures: same width as any real page number.
+                return page?.let { PcSheetV11ContinuationText.continuesOn(it) } ?: "CONTINÚA EN PÁG. 00"
+            }
             val headerNameRoute =
                 io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11HeaderNameRouter.route(
                     sourceName = source.name,
@@ -132,6 +154,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         heroWidthPt(it, 13.4f)
                     },
                 )
+            val headerName = if (headerNameRoute.continuation == null) headerNameRoute.paperName
+                else headerNameRoute.paperName.removeSuffix(
+                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11HeaderNameRouter.NAVIGATION_SUFFIX) +
+                    " / " + c2Marker("c2-heading:p1-overflow")
             val texts = PcSheetV11FlowSourceMapper.from(data)
             // C314: titled notes get one more paper row after the title; the title is
             // drawn 6.47 pt lower, so title-to-text is the golden 16.73 pt.
@@ -154,6 +180,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val mixedC2P1Pages = mutableSetOf<Int>()
             // C246: first physical page of each mixed-C2 module heading.
             val mixedC2HeadingPages = mutableMapOf<String, Int>()
+            // C453 (D-0076 3.33): which module a C2 sheet ends on, and whether the next one opens a new module.
+            val mixedC2LastModule = mutableMapOf<Int, String>()
+            val mixedC2OpensModule = mutableMapOf<Int, Boolean>()
             // C258: first physical page of each continued P3 profile field.
             val p3FieldHeadingPages = mutableMapOf<String, Int>()
             // C247: custom attributes drawn as the golden C2 attribute row.
@@ -512,7 +541,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
                 // Golden character name: EB Garamond 12 Bold 13.4 pt, ink #1d384f.
                 stream.setNonStrokingColor(Color(29, 56, 79))
-                drawHero(stream, headerNameRoute.paperName, 161.57f, 735.31f, 13.4f)
+                drawHero(stream, headerName, 161.57f, 735.31f, 13.4f)
                 // Golden module group label: 7.3 pt #264b68, right edge x569.48.
                 val groupLabel = when {
                     lastHandwrittenPage -> "NOTAS"
@@ -1476,7 +1505,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     drawP1Label(stream,"N"+level,x+5.1f,b+magicTextFloor) // C356 golden baseline
                     val v = actual[level]
                     if (level in overflowP1SpellLevels) {
-                        draw(stream,"VER C2",x+20f,b+magicTextFloor,false)
+                        drawP1Label(stream,c2Marker("c2-heading:slots"),x+20f,b+magicTextFloor,6.1f)
                     } else if (v != null && !(v.totalSlots in 0..6 && v.spentSlots in 0..v.totalSlots)) {
                         draw(stream,v.totalSlots.toString(),x+20f,b+magicTextFloor,false)
                         draw(stream,v.spentSlots.toString(),x+46f,b+magicTextFloor,false)
@@ -2038,7 +2067,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // identity row; values are taken ONLY from the saved character.
             fun drawP1CombatReference(stream: PDPageContentStream) {
                 val values = p1CombatSourceFields.mapIndexed { index, field ->
-                    field.first to p1CombatRoutes[index].paperValue
+                    field.first to (if (p1CombatRoutes[index].continuation != null) c2Marker("c2-heading:vitals")
+                        else p1CombatRoutes[index].paperValue)
                 }
                 val left = 270.43f // C351: golden right column
                 val paperTop = 591f
@@ -2976,6 +3006,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         pageCells.filter { it.sourceKey.startsWith("c2-heading:") }.forEach {
                             mixedC2HeadingPages.putIfAbsent(it.sourceKey, pdf.numberOfPages)
                         }
+                        val lastHeading = pageCells.lastOrNull { it.sourceKey.startsWith("c2-heading:") }
+                        (lastHeading?.sourceText?.substringBefore(" / ")?.substringBefore(",")
+                            ?: mixedC2LastModule[pdf.numberOfPages - 1])?.let {
+                            mixedC2LastModule[pdf.numberOfPages] = it.trim()
+                        }
+                        mixedC2OpensModule[pdf.numberOfPages] =
+                            pageCells.firstOrNull()?.sourceKey?.startsWith("c2-heading:") == true
                     }
                     if (title == "P3 - Narrativa / continuación") {
                         pageCells.filter { it.sourceKey.startsWith("p3-field-heading:") }.forEach {
@@ -6178,6 +6215,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     if (key.startsWith("P1 - ") && p1ModuleLinks != null) {
                         drawModuleLinks(stream, p1ModuleLinks)
                     }
+                    // C453 (D-0076 3.33): a module that goes on in the next C2 sheet says so.
+                    if (key == mixedC2Key && next == physicalPage + 1 && mixedC2OpensModule[next] != true) {
+                        mixedC2LastModule[physicalPage]?.let { module ->
+                            drawModuleLinks(stream, requireNotNull(
+                                PcSheetV11ContinuationText.moduleLinks(listOf(module to next))))
+                        }
+                    }
                     if (key == "P3 - Trasfondo / Perfil / Historia" && p3ModuleLinks != null) {
                         drawModuleLinks(stream, p3ModuleLinks)
                     }
@@ -6194,6 +6238,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
             }
             pdf.save(target)
+            if (c2MarkerUsed) mixedC2HeadingPages.toMap() else null
         }
     }
 }

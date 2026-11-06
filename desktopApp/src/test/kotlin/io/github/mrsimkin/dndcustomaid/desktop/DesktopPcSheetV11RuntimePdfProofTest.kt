@@ -1372,6 +1372,88 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c453P1MarkersNameTheRealPageOfTheirC2RowAB() {
+        // C453 / C213 (D-0076 3.33, F09): no more «VER C2»; each marker names the real physical page.
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        val page = Regex("""CONTINÚA EN PÁG\. (\d+)""")
+        fun p1Region(pdf: org.apache.pdfbox.pdmodel.PDDocument, x: Float, y: Float, w: Float, h: Float): String =
+            PDFTextStripperByArea().apply {
+                addRegion("r", java.awt.geom.Rectangle2D.Float(x, y, w, h))
+                extractRegions(pdf.getPage(0))
+            }.getTextForRegion("r")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            fun check(source: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources, proofName: String,
+                inspect: (org.apache.pdfbox.pdmodel.PDDocument, List<String>) -> Unit) {
+                val bytes = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source).bytes
+                preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-$proofName-$variant.pdf")
+                Loader.loadPDF(bytes).use { pdf ->
+                    val pages = (1..pdf.numberOfPages).map { n ->
+                        PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                    }
+                    assertFalse(pages.any { it.contains("VER C2") || it.contains("PÁG. 00") }, "No placeholder ($proofName, $variant).")
+                    inspect(pdf, pages)
+                }
+            }
+            // The full name.
+            val name = "Aldren " + "NOMBREQA ".repeat(20) + "FINNOMBREQA"
+            check(aldren.copy(permanent = aldren.permanent.copy(sheet = aldren.permanent.sheet.copy(name = name))), "marker-long-name") { pdf, pages ->
+                val header = p1Region(pdf, 155f, 40f, 410f, 30f)
+                val target = page.find(header)?.groupValues?.get(1)?.toInt()
+                assertTrue(target != null, "The name names a page ($variant): $header")
+                assertTrue(pages[target - 1].contains("NOMBRE COMPLETO DEL PERSONAJE"), "The full name is there ($variant).")
+            }
+            // The hit dice.
+            val fighter = aldren.permanent.sheet.classes.first()
+            val classes = (10..25).mapIndexed { i, n -> fighter.copy(id = Uuid.parse("f4530000-0000-4000-8000-0000000000$n"),
+                name = "Clase $n", level = 1, sortOrder = i) }
+            check(aldren.copy(permanent = aldren.permanent.copy(sheet = aldren.permanent.sheet.copy(classes = classes))), "marker-hit-dice") { pdf, pages ->
+                val cards = p1Region(pdf, 270f, 206f, 303f, 97f)
+                val target = page.find(cards)?.groupValues?.get(1)?.toInt()
+                assertTrue(target != null, "The dice card names a page ($variant): $cards")
+                assertTrue(pages[target - 1].contains("COMBATE Y SUPERVIVENCIA") && pages[target - 1].contains("DADOS DE GOLPE:"),
+                    "The dice are there ($variant).")
+            }
+            // A slot count too large for its cell.
+            val slots = mara.permanent.sheet.spellSlots.map { if (it.level == 1)
+                it.copy(totalSlots = Int.MAX_VALUE, spentSlots = Int.MAX_VALUE - 1) else it }
+            check(mara.copy(permanent = mara.permanent.copy(sheet = mara.permanent.sheet.copy(spellSlots = slots))), "marker-slots") { pdf, pages ->
+                val cell = p1Region(pdf, 270f, 604f, 99f, 19f)
+                val target = page.find(cell)?.groupValues?.get(1)?.toInt()
+                assertTrue(target != null, "N1 names a page ($variant): $cell")
+                assertTrue(pages[target - 1].contains("LANZAMIENTO DE CONJUROS") && pages[target - 1].contains("NIVEL 1: "),
+                    "The count is there ($variant).")
+            }
+        }
+    }
+
+    @Test
+    fun c453AModuleThatGoesOnInTheNextC2SheetSaysSoAB() {
+        // C453 / C213 (D-0076 3.33, F10): every stretch that continues says where, not only the page foot.
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        var seen = 0
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            Loader.loadPDF(DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), mara).bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                pages.indices.filter { pages[it].contains("C2 - Habilidades, acciones y recursos") }.forEach { i ->
+                    Regex("""(?m)^([A-ZÁÉÍÓÚÑ ]+) / VIENE DE PÁG\. (\d+)""").find(pages[i])?.let { m ->
+                        val module = m.groupValues[1].trim()
+                        val from = m.groupValues[2].toInt()
+                        assertTrue(pages[from - 1].contains(module + " CONTINÚA EN PÁG. " + (i + 1)),
+                            "$module says where it goes on, on page $from ($variant).")
+                        seen++
+                    }
+                }
+            }
+        }
+        assertTrue(seen > 0, "Mara has a module that crosses C2 sheets.")
+    }
+
+    @Test
     fun c452AttackNotesStayInTheAppAB() {
         // C452 / GLB14 (owner 2026-11-06, «Sí, solo en App»).
         val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
@@ -4504,7 +4586,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 assertTrue(c2Text.contains("FINNOMBREQA"))
                 pages.forEachIndexed { index, text ->
-                    assertTrue(text.contains("VER C2"),
+                    assertTrue(Regex("/ CONTINÚA EN PÁG\\. \\d+").containsMatchIn(text),
                         "Every physical page needs the same navigable one-line name: " +
                             (index + 1))
                 }
@@ -4540,7 +4622,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 pages.forEach { page ->
-                    assertTrue(page.contains("VER C2"),
+                    assertTrue(Regex("/ CONTINÚA EN PÁG\\. \\d+").containsMatchIn(page),
                         "Every physical header must navigate to the unmodified name.")
                 }
                 val c2Body = pdf.pages.mapNotNull { page ->
@@ -4714,7 +4796,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val c2 = pages.filter {
                     it.contains("C2 - Habilidades, acciones y recursos")
                 }.joinToString("\n")
-                assertTrue(p1.contains("VER C2"),
+                assertTrue(Regex("CONTINÚA EN PÁG\\. \\d+").containsMatchIn(p1),
                     "Oversized slot quantities need a visible P1 continuation cue.")
                 assertFalse(p1.contains("2147483647") || p1.contains("2147483646"),
                     "Oversized values cannot spill into adjacent P1 cells.")
@@ -4770,7 +4852,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 assertTrue(pages.first().contains("DADOS"))
-                assertTrue(pages.first().contains("VER C2"),
+                assertTrue(Regex("CONTINÚA EN PÁG\\. \\d+").containsMatchIn(pages.first()),
                     "Fixed P1 combat cell must use a physical C2 navigation marker.")
                 assertFalse(pages.first().contains(expectedDice),
                     "Do not overflow a fixed P1 paper cell.")

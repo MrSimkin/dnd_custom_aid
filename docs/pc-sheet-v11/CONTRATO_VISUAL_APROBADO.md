@@ -250,3 +250,7 @@ Preguntado si las notas de ataque quedan solo en la App, el propietario responde
 ## Aclaración técnica del Worker — títulos de C2 (2026-11-06)
 
 Aplica el golden, sin decisión nueva del propietario: `ATRIBUTOS Y HABILIDADES`, `COMBATE Y SUPERVIVENCIA`, `ATAQUES`, `LANZAMIENTO DE CONJUROS`, `MUNICIONES` y `RASGOS / CONTINUACIÓN` sustituyen a los títulos técnicos anteriores. `RECURSOS` no existe en el golden, va por la aclaración de recursos de C2, y las municiones que siguen en C2 tienen su propio título. Una habilidad que sale del panel B conserva en C2 su casilla y su valor a la derecha. Recuperación, fuente y notas de recursos van en 6,1 pt.
+
+## Aclaración técnica del Worker — referencias con página real (2026-11-06)
+
+Aplica D-0076 §3.33 y C341, sin decisión nueva del propietario. El nombre largo, los dados de golpe y los espacios que no caben en P1 ya no dicen «VER C2», sino «CONTINÚA EN PÁG. n», con la página física donde siguen. Un módulo que sigue en otra hoja de C2 lo dice en la banda inferior de esa hoja («RECURSOS CONTINÚA EN PÁG. 5»).
