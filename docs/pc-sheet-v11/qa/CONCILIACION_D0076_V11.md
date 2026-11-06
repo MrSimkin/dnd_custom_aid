@@ -42,7 +42,7 @@
 | 3.28 | C-N3 | RETAIN | CN302, CN304, **CN305 (nueva)** | **Corregido en C431:** las notas generales salían antes que las tituladas |
 | 3.29 | C2 compartidas | RETAIN | C201–C205, **C211 (nueva)** | **Corregido en parte en C440:** fila de habilidad del golden. Queda abierto el desborde del panel B |
 | 3.30 | Ubicación de C2 | RETAIN el principio; orden exacto SUPERSEDED (golden: C2 tras P3) | C209, **P124 (nueva)** | **Mal revisado antes; corregido en C440:** la salvación competente no se marcaba |
-| 3.31 | Prioridades y Notas aparte | RETAIN | GLB09, CN303 | **Mal revisado antes.** Hay datos guardados que no se imprimen: pregunta P4 al propietario. Idiomas y competencias: «No, solo en App» (2026-11-06). Descripciones, notas y usos de rasgos ya estaban fuera por la regla de rasgos solo identificativos. El resto, pendiente. Municiones repetidas, abierto |
+| 3.31 | Prioridades y Notas aparte | RETAIN | GLB09, CN303 | **Mal revisado antes.** Hay datos guardados que no se imprimen: pregunta P4 al propietario. Idiomas y competencias: «No, solo en App» (2026-11-06). Descripciones, notas y usos de rasgos ya estaban fuera por la regla de rasgos solo identificativos. El resto de la lista: «Sí, toda la lista» (2026-11-06), solo en App. Municiones repetidas, abierto |
 | 3.32 | Compositor automático | RETAIN | C202, IN08 | La App compone dos columnas y mixto; no compara las tres familias con una puntuación. §3.32 no fija algoritmo |
 | 3.33 | Referencias de ida y vuelta | RETAIN; texto SUPERSEDED (C341) | C206, **C212, C213 (nuevas)** | **Mal revisado antes; corregido en parte en C441:** el pie nombra todas las páginas. Abierto: `VER C2` y tramos dentro de C2 |
 | 3.34 | Libro al final | RETAIN | BK01, BK02, FIN04 | Sin diferencia |

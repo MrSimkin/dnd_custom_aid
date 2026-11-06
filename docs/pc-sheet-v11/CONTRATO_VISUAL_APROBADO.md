@@ -230,3 +230,7 @@ Preguntado si la App debe guardar espacios y conjuros de nivel 10 a 12, el propi
 ## Aclaración del propietario — idiomas y competencias (2026-11-06)
 
 Preguntado si los idiomas y las competencias de herramientas, armas y armaduras se imprimen, el propietario responde **«No, solo en App»**. El PDF no los imprime, tampoco en C2. Precisa D-0076 §3.31 («nada se omite») para estos datos.
+
+## Aclaración del propietario — otros datos solo en App (2026-11-06)
+
+Preguntado si los demás datos guardados que no salen en el PDF quedan solo en la App, el propietario responde **«Sí, toda la lista»**. El PDF no imprime, tampoco en C2: defensas, sentidos, otros movimientos, salvaciones contra la muerte, agotamiento, efectos temporales, marcadores personalizados, opciones de clase, progreso de hito, subclase, notas de atributos, de habilidades personalizadas y de equipo común, ubicación del equipo común, formas, compañeros y maestrías de armas. Precisa D-0076 §3.31 para estos datos.
