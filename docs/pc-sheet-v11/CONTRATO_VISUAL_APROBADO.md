@@ -197,3 +197,10 @@ El propietario decide **«Sí, a ATAQUES»**: toda entrada de combate con bono d
 ## Aclaración del propietario — JUGADOR y ALINEAMIENTO (2026-11-06)
 
 El propietario decide **«Sí, línea a mano»**: la App no guarda estos dos campos y P1 imprime una línea para escribirlos a mano. Los textos del golden en esas tarjetas son datos de ejemplo. No se agregan campos a la App por este motivo.
+
+## Aclaración del propietario — casillas de espacios en P1 (2026-11-06)
+
+**Dicho por el propietario:** «revisa los SRD, cada nivel tiene un máximo independiente de la clase, quiero tantos cuadros como el máximo posible que podría tener un nivel, y al lado un espacio para marcar el real del PJ, que lo tienes como "X/Y" ("3/4")». Sustituye «mínimo 0, máximo 4» y «una por espacio real» de P1.
+
+- **Regla:** cada nivel de P1 dibuja siempre sus casillas vacías, tenga o no datos: N1 4, N2 3, N3 3, N4 3, N5 4, N6 2, N7 2, N8 1, N9 1. Al lado va el `gastados/total` real (`2/4`) o, sin dato, una línea para escribirlo. Nunca hay casillas premarcadas (regla P128).
+- **Detalles técnicos del Worker (no dichos por el propietario):** el máximo sale de la fila de nivel 20 de las tablas de SRD 5.1 y 5.2.1 (4, 3, 3, 3, 3, 2, 2, 1, 1). N5 es 4 porque el Brujo de nivel 17 o más tiene cuatro espacios de nivel 5 con Magia de Pacto. Un total guardado mayor que el máximo, hasta 6, conserva una casilla por espacio real.

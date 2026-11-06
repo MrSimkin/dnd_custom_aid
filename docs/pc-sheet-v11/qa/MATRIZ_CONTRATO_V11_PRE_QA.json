@@ -5913,6 +5913,25 @@
       ]
     },
     {
+      "id": "P128",
+      "area": "P1",
+      "obligation": "Cada nivel de P1 dibuja el máximo posible de casillas (4, 3, 3, 3, 4, 2, 2, 1, 1), con el gastados/total real o una línea para escribirlo",
+      "authority": "CONTRATO_VISUAL_APROBADO.md 2026-11-06",
+      "method": "PDF vectores y texto",
+      "scenarios": "Lanzador y no lanzador",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
       "id": "P412",
       "area": "P4",
       "obligation": "Un nivel con espacios guardados dibuja una casilla vacía por espacio real, en una línea",

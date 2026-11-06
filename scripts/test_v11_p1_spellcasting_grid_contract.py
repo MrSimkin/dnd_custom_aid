@@ -22,7 +22,7 @@ class P1SpellcastingGridParityTest(unittest.TestCase):
             self.assertIn("stream.addRect(p1MagicColumn(col),p1MagicRowBottom(row),magicCard,18.99f)", part)  # C356
             self.assertIn("stream.addRect(x+34.01f+n*markStep,b+5.53f+(8.79f-box)/2f,box,box)", part)
             # C255: never pre-marked; the real gastados/total count is printed.
-            self.assertIn('val count = v.spentSlots.toString() + "/" + v.totalSlots', part)
+            self.assertIn('val count = v?.let { it.spentSlots.toString() + "/" + it.totalSlots }', part)
             self.assertNotIn('showText("X")', part)
             # Counts that boxes cannot show keep their real numbers.
             self.assertIn("draw(stream,v.totalSlots.toString(),x+20f,b+5.96f,false)", part)

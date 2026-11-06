@@ -172,6 +172,7 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 | C441 | Casos que no tenían PDF | PDF reales y pruebas para retrato, dos clases, más de 20 municiones, no lanzador con conjuro de raza, sin ataques, personaje nuevo e imágenes de Trasfondo. El pie de P1 y P2 nombra todas sus páginas. La auditoría de paleta encontró una línea negra en una tarjeta de P4; corregida. |
 | C442 | Alcance en ATAQUES | Decisión del propietario, 2026-11-06: «Nombre y alcance». El PDF no cambia. Queda en el contrato y en la regla nueva P126. |
 | C443 | Entradas con bono en ATAQUES | Decisión del propietario, 2026-11-06: «Sí, a ATAQUES». Toda entrada con bono de ataque va a ATAQUES en su orden, sea cual sea su tipo de acción; las que no tienen bono siguen en ACCIONES. Regla nueva P127, en ambos renderizadores. |
+| C445 | Casillas de P1 al máximo de cada nivel | Decisión del propietario, 2026-11-06. N1 a N9 dibujan 4, 3, 3, 3, 4, 2, 2, 1, 1 casillas, con el `gastados/total` real o una línea para escribirlo. Máximo tomado de SRD 5.1 y 5.2.1; N5 cuenta el Brujo. Regla nueva P128. |
 
 ## Pendiente (siguiente)
 
@@ -181,7 +182,7 @@ Actualizado el 2026-11-05.
 - **Interfaz real**: IN01 e IN06 quedan probados en la pantalla de Desktop (C439). Falta la App Android instalada y el selector y el portapapeles reales: QA03, en G4.
 - **Revisión independiente**: hecha sobre `c6af6cc4`, con hallazgos (ver `qa/HALLAZGOS_REVISION_C6AF6CC4.md`). Debe repetirse sobre el candidato. Las 48 secciones y los 8 golden siguen en NOT_VERIFIED.
 - **Hallazgos abiertos**: F05 (panel B), F06 (municiones), F08 (corte), F09 (`VER C2`), F10 (tramos en C2), F11 G-c (títulos de C2), F12 (letra de recursos).
-- **Preguntas al propietario, de una en una**: P2 a P4 y P8 a P10 del acta.
+- **Preguntas al propietario, de una en una**: P2 a P4, P9 y P10 del acta.
 - **G4**: QA01–QA08 y GLB12 sin ejecutar, incluida la regresión de los cuatro exportadores anteriores (QA05) y la generación desde la interfaz real (QA03).
 - **C2, composición**: el golden coloca EQUIPO y TESORO en media página cuando sus nombres son cortos; la App los pone a todo el ancho.
 - **Índice y última página del Libro**: quedan columnas libres sin rejilla NOTAS; el golden no tiene un caso igual.

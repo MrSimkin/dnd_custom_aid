@@ -1463,59 +1463,55 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     val x=p1MagicColumn((level-1)%3)
                     val b=p1MagicRowBottom((level-1)/3)
                     drawP1Label(stream,"N"+level,x+5.1f,b+5.96f) // C356 golden baseline
-                    actual[level]?.let{v->
-                        if (level in overflowP1SpellLevels) {
-                            draw(stream,"VER C2",x+20f,b+5.96f,false)
-                        } else if(v.totalSlots in 1..6 && v.spentSlots in 0..v.totalSlots) {
-                            // C255 (owner 2026-10-28, «B, pero sin marcas»): empty
-                            // paper boxes, never pre-marked, and a small golden
-                            // "gastados/total" count right-aligned in the cell
-                            // (Mara N1: 2/4). Six slots use 6.5pt boxes so the
-                            // count still fits; never invent a grammar for 7+.
-                            val count = v.spentSlots.toString() + "/" + v.totalSlots
-                            val countPt = 7f
-                            val countX = x + magicCard - 3f -
-                                headerPdfFont.getStringWidth(count) * countPt / 1000f
-                            // C413: golden boxes - 8.79 pt from x+34.01, step 17.01; four real
-                            // slots tighten the step, five and six also the box, to clear the count.
-                            val box = when (v.totalSlots) {
-                                6 -> 6.5f
-                                5 -> 8f
-                                else -> 8.79f
-                            }
-                            val markStep = when (v.totalSlots) {
-                                6 -> 8.3f
-                                5 -> 10f
-                                4 -> 13f
-                                else -> 17.01f
-                            }
-                            require(x+34.01f+(v.totalSlots-1)*markStep+box <= countX-2f) {
-                                "P1 spell-slot boxes overlap their real count"
-                            }
-                            stream.saveGraphicsState()
-                            stream.setStrokingColor(Color(82,124,150))
-                            stream.setNonStrokingColor(Color.WHITE)
-                            stream.setLineWidth(0.48f)
-                            repeat(v.totalSlots){n->
-                                stream.addRect(x+34.01f+n*markStep,b+5.53f+(8.79f-box)/2f,box,box)
-                                stream.fillAndStroke()
-                            }
-                            stream.setNonStrokingColor(Color(38,75,104))
-                            drawP1Label(stream,count,countX,b+5.96f,countPt)
-                            stream.restoreGraphicsState()
-                        } else {
-                            draw(stream,v.totalSlots.toString(),x+20f,b+5.96f,false)
-                            draw(stream,v.spentSlots.toString(),x+46f,b+5.96f,false)
+                    val v = actual[level]
+                    if (level in overflowP1SpellLevels) {
+                        draw(stream,"VER C2",x+20f,b+5.96f,false)
+                    } else if (v != null && !(v.totalSlots in 0..6 && v.spentSlots in 0..v.totalSlots)) {
+                        draw(stream,v.totalSlots.toString(),x+20f,b+5.96f,false)
+                        draw(stream,v.spentSlots.toString(),x+46f,b+5.96f,false)
+                    } else {
+                        // C445 (owner 2026-11-06): every level draws the most boxes it could
+                        // ever have, whatever the class. Beside them, the real «gastados/total»
+                        // (Mara N1: 2/4), or a space to write it. C255: never pre-marked.
+                        val boxes = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSlotCapacity
+                            .boxes(level, v?.totalSlots)
+                        val count = v?.let { it.spentSlots.toString() + "/" + it.totalSlots }
+                        val countPt = 7f
+                        val writeLeft = x + magicCard - 14.7f
+                        val countX = count?.let { x + magicCard - 3f -
+                            headerPdfFont.getStringWidth(it) * countPt / 1000f } ?: writeLeft
+                        // C413: golden boxes - 8.79 pt from x+34.01, step 17.01; four boxes
+                        // tighten the step, five and six also the box, to clear the count.
+                        val box = when (boxes) {
+                            6 -> 6.5f
+                            5 -> 8f
+                            else -> 8.79f
                         }
-                    }?:run{
-                        // C410: the contract forbids inventing boxes ("mínimo 0"): an absent
-                        // level keeps its writable line, in the golden box ink.
+                        val markStep = when (boxes) {
+                            6 -> 8.3f
+                            5 -> 10f
+                            4 -> 13f
+                            else -> 17.01f
+                        }
+                        require(x+34.01f+(boxes-1)*markStep+box <= countX-2f) {
+                            "P1 spell-slot boxes overlap their real count"
+                        }
                         stream.saveGraphicsState()
                         stream.setStrokingColor(Color(82,124,150))
+                        stream.setNonStrokingColor(Color.WHITE)
                         stream.setLineWidth(0.48f)
-                        stream.moveTo(x+20f,b+4.5f)
-                        stream.lineTo(x+magicCard-6f,b+4.5f)
-                        stream.stroke()
+                        repeat(boxes){n->
+                            stream.addRect(x+34.01f+n*markStep,b+5.53f+(8.79f-box)/2f,box,box)
+                            stream.fillAndStroke()
+                        }
+                        if (count != null) {
+                            stream.setNonStrokingColor(Color(38,75,104))
+                            drawP1Label(stream,count,countX,b+5.96f,countPt)
+                        } else {
+                            stream.moveTo(writeLeft,b+4.5f)
+                            stream.lineTo(x+magicCard-3f,b+4.5f)
+                            stream.stroke()
+                        }
                         stream.restoreGraphicsState()
                     }
                 }

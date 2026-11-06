@@ -1382,6 +1382,42 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c445EveryLevelDrawsItsMaximumWithTheRealCountOrASpaceAB() {
+        // C445 / P128 (owner 2026-11-06): N1..N9 draw 4, 3, 3, 3, 4, 2, 2, 1, 1 empty boxes
+        // for any character. Beside them the real count, or a line to write it.
+        assertEquals(listOf(4, 3, 3, 3, 4, 2, 2, 1, 1), (1..9).map { io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSlotCapacity.maximum(it) })
+        for ((fixture, name) in listOf(
+            "01_aldren_vale_srd5_1_champion_fighter.json" to "non-caster",
+            "03_mara_siete_umbrales_custom_extended.json" to "caster",
+        )) {
+            val source = sources(fixture)
+            val saved = source.permanent.sheet.spellSlots.associateBy { it.level }
+            for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+                val bytes = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source).bytes
+                preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-P1-slot-maximum-$name-$variant.pdf")
+                Loader.loadPDF(bytes).use { pdf ->
+                    val stream = pdf.getPage(0).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                    val squares = Regex("""(?m)(?:^|\s)([\d.]+)\s+([\d.]+)\s+8\.79\d*\s+8\.79\d*\s+re(?:\s|$)""")
+                        .findAll(stream).map { it.groupValues[1].toFloat() to it.groupValues[2].toFloat() }.toList()
+                    val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
+                    for (level in 1..9) {
+                        val cx = 270.43f + ((level - 1) % 3) * 101.57f
+                        val cy = 168.94f - ((level - 1) / 3) * 18.99f
+                        assertEquals(io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSlotCapacity.maximum(level), squares.count { (x, y) ->
+                            x >= cx + 34f && x + 8f <= cx + 98.74f && kotlin.math.abs(y - (cy + 5.53f)) < 0.3f
+                        }, "N$level of $name ($variant).")
+                        saved[level]?.let { s ->
+                            assertTrue(p1.contains(s.spentSlots.toString() + "/" + s.totalSlots),
+                                "The real count prints for N$level of $name ($variant).")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun c443AnyEntryWithAnAttackBonusIsAnAttackRowAB() {
         // C443 / P127 (owner 2026-11-06, «Sí, a ATAQUES»): Mara's bonus actions join ATAQUES
         // in source order; the entries with no bonus stay in ACCIONES.
@@ -2339,8 +2375,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 fun near(word: Triple<String, Float, Float>, x: Float, y: Float) =
                     kotlin.math.abs(word.second - x) <= 2.5f &&
                         kotlin.math.abs(word.third - y) <= 2.5f
-                // C250/C255: golden cells; the paper boxes ARE the real totals, never
-                // pre-marked, with the real "gastados/total" count (absent = no box).
+                // C250/C255: golden cells; boxes never pre-marked, with the real
+                // "gastados/total" count where the sheet has one.
                 val native = pdf.getPage(0).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
                 val boxes = Regex(
                     """(?m)(?:^|\s)([\d.]+)\s+([\d.]+)\s+(8(?:\.0|\.79\d*|\.789\d*)?)\s+(8(?:\.0|\.79\d*|\.789\d*)?)\s+re(?:\s|$)""", // C413
@@ -2358,12 +2394,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         x >= cellX + 34f && x + 8f <= cellX + 98.74f && kotlin.math.abs(y - (cellY + 5.7f)) < 0.3f // C413 golden
                     }
                     val slot = real[level]
+                    // C445 (owner 2026-11-06): every level draws its maximum, real data or not.
+                    assertEquals(io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSlotCapacity.maximum(level), cellBoxes,
+                        "P1 N$level draws the most boxes the level could have.")
                     if (slot == null) {
-                        assertTrue(inCell.isEmpty() && cellBoxes == 0,
+                        assertTrue(inCell.isEmpty(),
                             "P1 must not invent total/spent for absent level $level: $inCell")
                     } else {
-                        assertEquals(slot.totalSlots, cellBoxes,
-                            "P1 N$level must draw the real total ${slot.totalSlots}")
                         assertTrue(inCell.none { w -> 'X' in w.first },
                             "C255: P1 N$level boxes are never pre-marked: $inCell")
                         assertTrue(inCell.any {
@@ -7083,14 +7120,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // Every 8pt box lies inside its level cell; totals are the real ones.
                 val boxes = (rects("8", "8") + rects("8.79", "8.79")) // C413 golden 8.79 pt
                     .filter { (x, y) -> x in 270f..573f && y in 130f..190f }
-                assertEquals(slots.filter { it.totalSlots in 1..6 }.sumOf { it.totalSlots }, boxes.size,
-                    "One paper box per real slot ($variant).")
-                slots.filter { it.totalSlots in 1..6 }.forEach { s ->
-                    val cx = 270.43f + ((s.level - 1) % 3) * 101.57f // C351 golden
-                    val cy = 168.94f - ((s.level - 1) / 3) * 18.99f // C356 golden
-                    assertEquals(s.totalSlots, boxes.count { (x, y) ->
+                // C445 (owner 2026-11-06): the maximum of each level, real data or not.
+                fun expected(level: Int) = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSlotCapacity.boxes(level, slots.firstOrNull { it.level == level }?.totalSlots)
+                assertEquals((1..9).sumOf { expected(it) }, boxes.size, "Each level's boxes ($variant).")
+                (1..9).forEach { level ->
+                    val cx = 270.43f + ((level - 1) % 3) * 101.57f // C351 golden
+                    val cy = 168.94f - ((level - 1) / 3) * 18.99f // C356 golden
+                    assertEquals(expected(level), boxes.count { (x, y) ->
                         x >= cx + 34f && x + 8f <= cx + 98.74f && kotlin.math.abs(y - (cy + 5.7f)) < 0.3f // C413 golden
-                    }, "N${s.level} boxes inside their cell ($variant).")
+                    }, "N$level boxes inside their cell ($variant).")
                 }
                 // C255: no pre-marked X; each level shows its real gastados/total
                 // count at the right of its cell. Runs are split at column gaps.
