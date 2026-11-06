@@ -224,3 +224,5 @@ Preguntado si el resto de una historia larga comparte hoja con otros módulos, e
 ## Aclaración del propietario — N10 a N12 sin casillas (2026-11-06)
 
 Los SRD no tienen tabla para los niveles 10 a 12. Preguntado cuántas casillas llevan, el propietario responde **«____/____   X/Y, sin casillas»**. Cada celda N10, N11 y N12 lleva dos líneas para escribir a mano separadas por una barra, sin ninguna casilla (regla P129). N1 a N9 no cambian (regla P128).
+
+Preguntado si la App debe guardar espacios y conjuros de nivel 10 a 12, el propietario responde **«No, solo a mano»**. La App sigue guardando espacios y conjuros solo hasta el nivel 9, y P4 no agrega esos niveles.
