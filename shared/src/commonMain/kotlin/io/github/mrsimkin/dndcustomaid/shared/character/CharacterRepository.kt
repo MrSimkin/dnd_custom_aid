@@ -247,6 +247,7 @@ class CharacterRepository(
                     subclass_source = classLevel.subclassSource,
                     subclass_catalog_key = classLevel.subclassCatalogKey,
                     subclass_rules_family = classLevel.subclassRulesFamily.name,
+                    epic_levels_enabled = if (classLevel.epicLevelsEnabled) 1L else 0L,
                 )
             }
 
@@ -388,13 +389,14 @@ class CharacterRepository(
     private fun hydrate(core: CharacterCore): CharacterSheet {
         val classes = database.characterQueries.selectCharacterClasses(core.id.toString()) {
                 id, _, name, level, hitDieSides, hitDiceRemaining, sortOrder, rulesFamily, source, catalogKey,
-                subclassName, subclassSource, subclassCatalogKey, subclassRulesFamily ->
+                subclassName, subclassSource, subclassCatalogKey, subclassRulesFamily, epicLevelsEnabled ->
             CharacterClassLevel(
                 id = Uuid.parse(id), name = name, level = level.toInt(), hitDieSides = hitDieSides.toInt(),
                 hitDiceRemaining = hitDiceRemaining.toInt(), sortOrder = sortOrder.toInt(),
                 rulesFamily = rulesFamily.toRulesFamily(), source = source, catalogKey = catalogKey,
                 subclassName = subclassName, subclassSource = subclassSource, subclassCatalogKey = subclassCatalogKey,
                 subclassRulesFamily = subclassRulesFamily.toRulesFamily(),
+                epicLevelsEnabled = epicLevelsEnabled != 0L,
             )
         }.executeAsList()
         val classIdSet = classes.map { it.id }.toSet()

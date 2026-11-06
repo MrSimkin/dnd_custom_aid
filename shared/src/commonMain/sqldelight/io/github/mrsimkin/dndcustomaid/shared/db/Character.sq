@@ -54,6 +54,7 @@ CREATE TABLE character_class (
     subclass_source TEXT,
     subclass_catalog_key TEXT,
     subclass_rules_family TEXT NOT NULL DEFAULT 'UNSPECIFIED',
+    epic_levels_enabled INTEGER NOT NULL DEFAULT 0,
     UNIQUE(character_id, sort_order)
 );
 
@@ -351,13 +352,15 @@ WHERE id = ?;
 insertCharacterClass:
 INSERT INTO character_class(
     id, character_id, name, level, hit_die_sides, hit_dice_remaining, sort_order,
-    rules_family, source, catalog_key, subclass_name, subclass_source, subclass_catalog_key, subclass_rules_family
+    rules_family, source, catalog_key, subclass_name, subclass_source, subclass_catalog_key, subclass_rules_family,
+    epic_levels_enabled
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectCharacterClasses:
 SELECT id, character_id, name, level, hit_die_sides, hit_dice_remaining, sort_order,
-       rules_family, source, catalog_key, subclass_name, subclass_source, subclass_catalog_key, subclass_rules_family
+       rules_family, source, catalog_key, subclass_name, subclass_source, subclass_catalog_key, subclass_rules_family,
+       epic_levels_enabled
 FROM character_class
 WHERE character_id = ?
 ORDER BY sort_order, id;

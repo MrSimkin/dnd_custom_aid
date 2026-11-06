@@ -41,6 +41,7 @@ class CharacterSpellSchoolTest {
             characters.saveCharacter(created.copy(spells = listOf(spell(spellId, "Luz", null, 0))))
             // Rebuild the version-26 shape: character_spell without the school column.
             driver.execute(null, "ALTER TABLE character_spell DROP COLUMN school", 0)
+            driver.execute(null, "ALTER TABLE character_class DROP COLUMN epic_levels_enabled", 0)
 
             AppDatabase.Schema.migrate(driver, oldVersion = 26, newVersion = AppDatabase.Schema.version)
 

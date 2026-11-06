@@ -32,7 +32,7 @@ Este documento dice qué se hizo con cada hallazgo. **«Corregido» es la lectur
 | F12 | Letra pequeña de recursos | **Abierto** | Sigue a 7,2 pt |
 | F13 | Cabecera y717 en el contrato | **Corregido en el contrato** | La línea está en y709,8, como el golden, desde C367. El contrato ya lo indica |
 | F14 | La hoja antigua dentro de cada PDF | **Corregido** | Se incrusta solo el logo, de 344×134 píxeles |
-| F15 | Fila épica | **Pregunta P10** | La App no tiene dato de reglas épicas |
+| F15 | Fila épica | **Corregido en C448** | Por decisión del propietario (2026-11-06): opción por clase en la App y fila N10 a N12 solo si está activada. Falta decidir cuántas casillas lleva y si la App guarda esos niveles |
 
 **Encontrado después por las auditorías:** una tarjeta de P4 sin valor dibujaba su línea en negro, en un no lanzador con un conjuro de raza. Ningún PDF anterior cubría ese caso. Corregido en C441.
 
@@ -44,4 +44,4 @@ Ahora tienen PDF real conservado y una prueba de lo que pide la decisión: retra
 
 ## Preguntas al propietario
 
-Se hacen de una en una, por página. La lista está en la sección 5 del acta: P4 y P10; P2 sigue al golden. Ya están respondidas P9 («Sí, compartida», regla P307), P3 («Sí, las mismas», regla P412), P8 (casillas al máximo de cada nivel, regla P128), P5 («Sí, línea a mano»), P6 («Nombre y alcance», regla P126) y P7 («Sí, a ATAQUES», regla P127), las tres el 2026-11-06. P1 se resuelve por la jerarquía del contrato y se informa.
+Se hacen de una en una, por página. La lista está en la sección 5 del acta: P4; P2 sigue al golden. Ya están respondidas P10 (opción por clase, regla P129), P9 («Sí, compartida», regla P307), P3 («Sí, las mismas», regla P412), P8 (casillas al máximo de cada nivel, regla P128), P5 («Sí, línea a mano»), P6 («Nombre y alcance», regla P126) y P7 («Sí, a ATAQUES», regla P127), las tres el 2026-11-06. P1 se resuelve por la jerarquía del contrato y se informa.

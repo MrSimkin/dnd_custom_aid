@@ -2122,7 +2122,7 @@
     {
       "id": "P115",
       "area": "P1",
-      "obligation": "Lanzamiento slots nivel 1..9 en cuadrícula 3x3, 10..12 solo reglas épicas reales",
+      "obligation": "Lanzamiento slots nivel 1..9 en cuadrícula 3x3; 10..12 solo si una clase tiene niveles épicos habilitados",
       "authority": "CONTRATO_VISUAL_APROBADO.md",
       "method": "Verificar presencia y ausencia",
       "scenarios": "Sin épicos",
@@ -5965,6 +5965,25 @@
             "independent_inspection": "Same CI run: the 16 independent audits pass on the real PDFs, among them audit_v11_golden_palette.py and audit_v11_golden_geometry.py.",
             "limitations": "Desktop proof; the installed Android candidate, owner QA and G4 stay NOT_VERIFIED."
           }
+        }
+      ]
+    },
+    {
+      "id": "P129",
+      "area": "P1",
+      "obligation": "N10, N11 y N12 se imprimen si y solo si alguna clase del personaje tiene niveles épicos habilitados",
+      "authority": "CONTRATO_VISUAL_APROBADO.md 2026-11-06; docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md §3.11",
+      "method": "PDF texto y vectores",
+      "scenarios": "Con y sin la opción",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
         }
       ]
     },

@@ -257,6 +257,11 @@ private fun CharacterClassIdentitySuccessorEditorV4(
                 prefix = "d",
             )
         }
+        CharacterCompactCheckboxItemV4(
+            checked = draft.epicLevelsEnabled,
+            onCheckedChange = { value -> draft = draft.copy(epicLevelsEnabled = value) },
+            label = "Habilitar niveles épicos",
+        )
         CharacterHelpV4("Los DG máximos se derivan del nivel de esta clase; solo se guarda cuántos quedan disponibles y el tipo de dado.")
     }
 }

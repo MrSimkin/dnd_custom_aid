@@ -3144,6 +3144,7 @@ internal data class ClassLevelDraftV4(
     val subclassSource: String? = null,
     val subclassCatalogKey: String? = null,
     val subclassRulesFamily: CharacterRulesFamily = CharacterRulesFamily.UNSPECIFIED,
+    val epicLevelsEnabled: Boolean = false,
 ) {
     fun withManualName(value: String): ClassLevelDraftV4 = if (value == name) {
         copy(name = value)
@@ -3344,6 +3345,7 @@ private data class CharacterEditorDraftV4(
                 subclassSource = classDraft.subclassSource,
                 subclassCatalogKey = classDraft.subclassCatalogKey,
                 subclassRulesFamily = classDraft.subclassRulesFamily,
+                epicLevelsEnabled = classDraft.epicLevelsEnabled,
             )
         }
         val parsedSaves = CharacterAbility.entries.map { ability ->
@@ -3454,6 +3456,7 @@ private data class CharacterEditorDraftV4(
                     put("subclassSource", item.subclassSource ?: JSONObject.NULL)
                     put("subclassCatalogKey", item.subclassCatalogKey ?: JSONObject.NULL)
                     put("subclassRulesFamily", item.subclassRulesFamily.name)
+                    put("epicLevelsEnabled", item.epicLevelsEnabled)
                 })
             }
         })
@@ -3525,6 +3528,7 @@ private data class CharacterEditorDraftV4(
                     subclassSource = classLevel.subclassSource,
                     subclassCatalogKey = classLevel.subclassCatalogKey,
                     subclassRulesFamily = classLevel.subclassRulesFamily,
+                    epicLevelsEnabled = classLevel.epicLevelsEnabled,
                 )
             },
             saves = CharacterAbility.entries.map { ability ->
@@ -3569,6 +3573,7 @@ private data class CharacterEditorDraftV4(
                             subclassSource = optionalString("subclassSource"),
                             subclassCatalogKey = optionalString("subclassCatalogKey"),
                             subclassRulesFamily = subclassRulesFamily,
+                            epicLevelsEnabled = item.optBoolean("epicLevelsEnabled", false),
                         ),
                     )
                 }

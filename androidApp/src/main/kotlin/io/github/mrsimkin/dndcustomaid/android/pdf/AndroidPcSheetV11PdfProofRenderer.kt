@@ -1311,6 +1311,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
             val overflowP1SpellLevels = overflowP1SpellSlots.map { it.level }.toSet()
 
+            // C448 (owner 2026-11-06; D-0076 3.11): levels 10..12 print if and only if
+            // a class of this character has epic levels enabled.
+            val epicLevels = data.source.sheet.classes.any { it.epicLevelsEnabled }
             fun drawP1Spellcasting(stream:PDPageContentStream) {
                 // Approved frozen B P1: LANZAMIENTO uses a filled/stroked
                 // 8-segment clipped cartela (302x23pt in the golden).
@@ -1332,7 +1335,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // C351: golden cards x270.43 / 372.00 / 473.57, 98.74 pt wide.
                 fun p1MagicColumn(idx:Int)=270.43f+idx*101.57f
                 // C356: golden level grid - three 18.99 pt rows, bottoms y168.94 / 149.95 / 130.96.
-                fun p1MagicRowBottom(row:Int)=168.94f-row*18.99f
+                // C448: a fourth row shares the same height, so no other module moves.
+                val magicRowHeight = if (epicLevels) 56.97f / 4f else 18.99f
+                val magicLevels = if (epicLevels) 1..12 else 1..9
+                val magicBoxFloor = if (epicLevels) 2.73f else 5.53f
+                val magicTextFloor = if (epicLevels) 3.4f else 5.96f
+                val magicLineFloor = if (epicLevels) 2.2f else 4.5f
+                fun p1MagicRowBottom(row:Int)= if (epicLevels) 130.96f+(3-row)*magicRowHeight
+                    else 168.94f-row*18.99f
                 val magicCard = 98.74f
                 // C352: golden P1 cards - white, #264b68 0.65 pt edge, inner hairline.
                 stream.saveGraphicsState()
@@ -1357,12 +1367,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.fillAndStroke()
                     drawGoldenCardHairline(stream, l, r, t)
                 }
-                (1..9).forEach{level->
+                magicLevels.forEach{level->
                     val col=(level-1)%3
                     val row=(level-1)/3
                     stream.setNonStrokingColor(if((col+row)%2==0)
                         Color(231,242,247) else Color(240,247,250))
-                    stream.addRect(p1MagicColumn(col),p1MagicRowBottom(row),magicCard,18.99f)
+                    stream.addRect(p1MagicColumn(col),p1MagicRowBottom(row),magicCard,magicRowHeight)
                     stream.fill()
                     // C411: golden row rule, 0.99 pt above the row foot.
                     stream.setStrokingColor(Color(148,176,193))
@@ -1459,16 +1469,16 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         }
                         stream.setNonStrokingColor(Color(38,75,104)) // C410 golden level ink
                     }
-                (1..9).forEach{level->
+                magicLevels.forEach{level->
                     val x=p1MagicColumn((level-1)%3)
                     val b=p1MagicRowBottom((level-1)/3)
-                    drawP1Label(stream,"N"+level,x+5.1f,b+5.96f) // C356 golden baseline
+                    drawP1Label(stream,"N"+level,x+5.1f,b+magicTextFloor) // C356 golden baseline
                     val v = actual[level]
                     if (level in overflowP1SpellLevels) {
-                        draw(stream,"VER C2",x+20f,b+5.96f,false)
+                        draw(stream,"VER C2",x+20f,b+magicTextFloor,false)
                     } else if (v != null && !(v.totalSlots in 0..6 && v.spentSlots in 0..v.totalSlots)) {
-                        draw(stream,v.totalSlots.toString(),x+20f,b+5.96f,false)
-                        draw(stream,v.spentSlots.toString(),x+46f,b+5.96f,false)
+                        draw(stream,v.totalSlots.toString(),x+20f,b+magicTextFloor,false)
+                        draw(stream,v.spentSlots.toString(),x+46f,b+magicTextFloor,false)
                     } else {
                         // C445 (owner 2026-11-06): every level draws the most boxes it could
                         // ever have, whatever the class. Beside them, the real «gastados/total»
@@ -1501,15 +1511,15 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         stream.setNonStrokingColor(Color.WHITE)
                         stream.setLineWidth(0.48f)
                         repeat(boxes){n->
-                            stream.addRect(x+34.01f+n*markStep,b+5.53f+(8.79f-box)/2f,box,box)
+                            stream.addRect(x+34.01f+n*markStep,b+magicBoxFloor+(8.79f-box)/2f,box,box)
                             stream.fillAndStroke()
                         }
                         if (count != null) {
                             stream.setNonStrokingColor(Color(38,75,104))
-                            drawP1Label(stream,count,countX,b+5.96f,countPt)
+                            drawP1Label(stream,count,countX,b+magicTextFloor,countPt)
                         } else {
-                            stream.moveTo(writeLeft,b+4.5f)
-                            stream.lineTo(x+magicCard-3f,b+4.5f)
+                            stream.moveTo(writeLeft,b+magicLineFloor)
+                            stream.lineTo(x+magicCard-3f,b+magicLineFloor)
                             stream.stroke()
                         }
                         stream.restoreGraphicsState()
@@ -1607,7 +1617,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     ))
                 }
                 // High-level slot rows only exist when explicitly persisted.
-                data.spellSlots.filter { it.level >= 10 }.forEach { slots ->
+                data.spellSlots.filter { it.level >= (if (epicLevels) 13 else 10) }.forEach { slots ->
                     add(PcSheetV11FlowItem(
                         "spellcasting:epic:" + slots.level,
                         "ESPACIOS REALES NIVEL " + slots.level +

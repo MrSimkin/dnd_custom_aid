@@ -148,6 +148,8 @@ data class CharacterClassLevel(
     val subclassSource: String? = null,
     val subclassCatalogKey: String? = null,
     val subclassRulesFamily: CharacterRulesFamily = rulesFamily,
+    /** Owner 2026-11-06: enabled per class; any enabled class adds spell levels 10..12 to the sheet. */
+    val epicLevelsEnabled: Boolean = false,
 )
 
 @Serializable

@@ -22,7 +22,7 @@
 | 3.8 | Ataques | RETAIN; alcance PRECISADO (2026-11-06) | P111, P119, P120, **P126, P127 (nuevas)** | **Mal revisado antes.** El alcance va junto al nombre **por decisión del propietario (2026-11-06)**, regla P126. Ya no se repite en C2 |
 | 3.9 | Rasgos sin descripción | RETAIN | RSG01–RSG06 | Sin diferencia |
 | 3.10 | Reparto Ataques/Rasgos | SUPERSEDED_BY_V11 (P112, 2026-11-03: filas fijas del golden) | P112 | Sin diferencia |
-| 3.11 | Lanzamiento de Conjuros | RETAIN; casillas según el propietario, 2026-11-06: el máximo de cada nivel | P113–P116, **P128 (nueva)** | Sustituye a «mínimo 0» y a «una por espacio real». La App no tiene dato de reglas épicas: la fila 10–12 no puede activarse; una fila con espacios ≥10 guardados va a C2 |
+| 3.11 | Lanzamiento de Conjuros | RETAIN; casillas según el propietario, 2026-11-06: el máximo de cada nivel | P113–P116, **P128, P129 (nuevas)** | Sustituye a «mínimo 0» y a «una por espacio real». La fila 10–12 existe desde C448, con una opción por clase en la App. La App no tiene dato de reglas épicas: la fila 10–12 no puede activarse; una fila con espacios ≥10 guardados va a C2 |
 | 3.12 | Filas, tonos y casillas | RETAIN; 7 mm SUPERSEDED (GLB08, 2026-11-03) | GLB08, GLB02 | Sin diferencia |
 | 3.13 | Azul niebla A | RETAIN | GLB02, auditoría de paleta | Sin diferencia |
 | 3.14 | Módulos inferiores (hipótesis) | SUPERSEDED_BY_V11 (la propia §3.15) | P117 | No aplica ya |

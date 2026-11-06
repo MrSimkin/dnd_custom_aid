@@ -175,6 +175,7 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 | C445 | Casillas de P1 al máximo de cada nivel | Decisión del propietario, 2026-11-06. N1 a N9 dibujan 4, 3, 3, 3, 4, 2, 2, 1, 1 casillas, con el `gastados/total` real o una línea para escribirlo. Máximo tomado de SRD 5.1 y 5.2.1; N5 cuenta el Brujo. Regla nueva P128. |
 | C446 | Casillas de P4 como P1 | Decisión del propietario, 2026-11-06: «Sí, las mismas». Cada cabecera de nivel dibuja 4, 3, 3, 3, 4, 2, 2, 1 o 1 casillas, sin marcar. Regla P412 reescrita; auditoría de P4 al día. |
 | C447 | Historia larga en C2 | Decisión del propietario, 2026-11-06: «Sí, compartida». Lo que no cabe en P3 sigue en un módulo HISTORIA de C2 que comparte hoja, a 7 pt sobre renglones de 17,01 pt, como el golden. P3 y el pie nombran su página real. Regla nueva P307. |
+| C448 | Niveles épicos | Decisión del propietario, 2026-11-06. La App gana «Habilitar niveles épicos» por clase (migración 27, respaldos compatibles). P1 imprime N10 a N12 si y solo si alguna clase la activa, en el mismo alto. Regla nueva P129. |
 
 ## Pendiente (siguiente)
 
@@ -184,7 +185,7 @@ Actualizado el 2026-11-05.
 - **Interfaz real**: IN01 e IN06 quedan probados en la pantalla de Desktop (C439). Falta la App Android instalada y el selector y el portapapeles reales: QA03, en G4.
 - **Revisión independiente**: hecha sobre `c6af6cc4`, con hallazgos (ver `qa/HALLAZGOS_REVISION_C6AF6CC4.md`). Debe repetirse sobre el candidato. Las 48 secciones y los 8 golden siguen en NOT_VERIFIED.
 - **Hallazgos abiertos**: F05 (panel B), F06 (municiones), F08 (corte), F09 (`VER C2`), F10 (tramos en C2), F11 G-c (títulos de C2), F12 (letra de recursos).
-- **Preguntas al propietario, de una en una**: P4 y P10 del acta. P2 sigue al golden.
+- **Preguntas al propietario, de una en una**: casillas de N10 a N12 y si la App guarda esos niveles; P4 del acta. P2 sigue al golden.
 - **G4**: QA01–QA08 y GLB12 sin ejecutar, incluida la regresión de los cuatro exportadores anteriores (QA05) y la generación desde la interfaz real (QA03).
 - **C2, composición**: el golden coloca EQUIPO y TESORO en media página cuando sus nombres son cortos; la App los pone a todo el ancho.
 - **Índice y última página del Libro**: quedan columnas libres sin rejilla NOTAS; el golden no tiene un caso igual.

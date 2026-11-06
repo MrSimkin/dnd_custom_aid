@@ -1382,6 +1382,41 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c448LevelsTenToTwelvePrintOnlyWhenAClassEnablesEpicLevelsAB() {
+        // C448 / P129 (owner 2026-11-06; D-0076 3.11): a fourth row with N10, N11 and N12 if
+        // and only if a class has epic levels enabled, in the same height, moving no module.
+        val base = sources("03_mara_siete_umbrales_custom_extended.json")
+        val sheet = base.permanent.sheet
+        val epic = base.copy(permanent = base.permanent.copy(sheet = sheet.copy(
+            classes = sheet.classes.mapIndexed { i, c -> if (i == 0) c.copy(epicLevelsEnabled = true) else c })))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            fun proof(source: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources) =
+                DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source).bytes
+            val on = proof(epic)
+            preserveRealApplicationPdf(on, "V11-INTERNAL-PROOF-P1-epic-levels-$variant.pdf")
+            fun labelsAndMunitions(bytes: ByteArray): Pair<List<String>, Float> = Loader.loadPDF(bytes).use { pdf ->
+                val labels = page1Words(pdf).map { it.first }.filter { Regex("""N\d+""").matches(it) }
+                val munitions = page1Words(pdf).first { it.first == "MUNICIONES" }.third
+                labels to munitions
+            }
+            val (withEpic, munitionsOn) = labelsAndMunitions(on)
+            val (withoutEpic, munitionsOff) = labelsAndMunitions(proof(base))
+            assertEquals((1..12).map { "N$it" }, withEpic.sortedBy { it.drop(1).toInt() }, "All twelve levels ($variant).")
+            assertEquals((1..9).map { "N$it" }, withoutEpic.sortedBy { it.drop(1).toInt() }, "Only nine ($variant).")
+            assertEquals(munitionsOff, munitionsOn, "No other module moves ($variant).")
+            Loader.loadPDF(on).use { pdf ->
+                val native = pdf.getPage(0).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+                val cells = Regex("""(?m)(?:^|\s)[\d.]+\s+([\d.]+)\s+98\.74\d*\s+14\.24\d*\s+re(?:\s|$)""")
+                    .findAll(native).map { it.groupValues[1].toFloat() }.toList()
+                assertEquals(12, cells.size, "Twelve cells of a quarter of the height ($variant).")
+                assertTrue(kotlin.math.abs(cells.min() - 130.96f) < 0.02f, "The grid foot does not move ($variant).")
+                assertTrue(kotlin.math.abs(cells.max() + 56.97f / 4f - 187.93f) < 0.02f, "Its top neither ($variant).")
+            }
+        }
+    }
+
+    @Test
     fun c447TheRestOfTheStorySharesAC2SheetAB() {
         // C447 / P307 (owner 2026-11-06, «Sí, compartida»; golden v11_extremo p6): a HISTORIA
         // module on a C2 sheet with the other modules, 7 pt on 17.01 pt rows, 4.25 pt inside.
