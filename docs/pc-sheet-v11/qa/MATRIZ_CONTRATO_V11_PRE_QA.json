@@ -4423,7 +4423,7 @@
     {
       "id": "P409",
       "area": "P4",
-      "obligation": "ESP. nivel 1..9 con 9 líneas y tres casillas manuscritas por nivel cuando aplicable",
+      "obligation": "ESP. nivel 1..9 con 9 líneas: una casilla por espacio real; tres casillas manuscritas en un nivel sin espacios guardados",
       "authority": "CONTRATO_VISUAL_APROBADO.md",
       "method": "Inspección de 27 marcas",
       "scenarios": "P4 A/B",
@@ -5796,6 +5796,215 @@
             "limitations": "Desktop PDFs; G2 NOT_VERIFIED; no installed Android or owner approval; global FIN04 and G4 remain NOT_VERIFIED.",
             "first_proved_on": "5727265b30a4e7ca6f0b4d78a66c1b055f4831e9"
           }
+        }
+      ]
+    },
+    {
+      "id": "P124",
+      "area": "P1",
+      "obligation": "La casilla de competencia de la tirada de salvación muestra el estado guardado (U+E108), en P1 y C2",
+      "authority": "CONTRATO_VISUAL_APROBADO.md 2026-10-30 y 2026-11-01",
+      "method": "PDF glifo por fila",
+      "scenarios": "Competente y no competente",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": "P125",
+      "area": "P1",
+      "obligation": "Habilidades en el orden del golden y atributos propios en mayúsculas",
+      "authority": "CONTRATO_VISUAL_APROBADO.md y golden V11",
+      "method": "PDF texto",
+      "scenarios": "A",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": "P412",
+      "area": "P4",
+      "obligation": "Un nivel con espacios guardados dibuja una casilla vacía por espacio real, en una línea",
+      "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md §3.25, §3.26",
+      "method": "PDF vectores",
+      "scenarios": "4, 3 y 2 espacios",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": "P413",
+      "area": "P4",
+      "obligation": "P4 conserva siempre el valor de cada fuente en APTITUD, CD y ATAQUE",
+      "authority": "CONTRATO_VISUAL_APROBADO.md 2026-10-28",
+      "method": "PDF texto",
+      "scenarios": "Una a seis fuentes",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": "C211",
+      "area": "C2",
+      "obligation": "Fila de habilidad: casilla con el estado, nombre, valor con signo; sin prefijo ni prosa",
+      "authority": "CONTRATO_VISUAL_APROBADO.md 2026-10-28; golden",
+      "method": "PDF texto y vectores",
+      "scenarios": "Propia y separada de su atributo",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": "C212",
+      "area": "C2",
+      "obligation": "El pie de P1 y P2 nombra todas las páginas donde continúan",
+      "authority": "CONTRATO_VISUAL_APROBADO.md C341; docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md §3.33",
+      "method": "PDF texto",
+      "scenarios": "Varios destinos",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": "C213",
+      "area": "C2",
+      "obligation": "ABIERTO: «VER C2» debe decir la página física, y cada tramo que sigue dentro de C2 debe avisar dónde sigue",
+      "authority": "CONTRATO_VISUAL_APROBADO.md C341; docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md §3.33",
+      "method": "PDF texto",
+      "scenarios": "Nombre largo, muchas clases, espacios sin cabida, tramos en C2",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": "C214",
+      "area": "C2",
+      "obligation": "ABIERTO: una habilidad que desborda el panel B a C2 lleva la fila del golden",
+      "authority": "CONTRATO_VISUAL_APROBADO.md 2026-10-28; golden",
+      "method": "PDF",
+      "scenarios": "B con muchas habilidades",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": "C215",
+      "area": "C2",
+      "obligation": "ABIERTO: títulos de C2 como los del golden, sin jerga técnica",
+      "authority": "CONTRATO_VISUAL_APROBADO.md y golden V11",
+      "method": "PDF texto",
+      "scenarios": "Todos los módulos C2",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": "C216",
+      "area": "C2",
+      "obligation": "ABIERTO: recuperación, fuente y notas de recursos en letra pequeña",
+      "authority": "CONTRATO_VISUAL_APROBADO.md 2026-10-28",
+      "method": "PDF fuente",
+      "scenarios": "Recursos",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": "GLB13",
+      "area": "Global",
+      "obligation": "El PDF incrusta solo el logo, no la hoja original del propietario",
+      "authority": "CONTRATO_VISUAL_APROBADO.md 2026-10-30",
+      "method": "PDF imágenes",
+      "scenarios": "Toda página",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
         }
       ]
     },

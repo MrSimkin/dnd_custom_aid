@@ -25,12 +25,15 @@ def specimen(missing_level=None, missing_square=None, extra_meter=False,
                      else "ESP.4 G.2" if level == real_total_level else "ESP.")
             page.insert_text((82 if level == long_level else 110, y),
                              label, fontsize=7)
-            for index in range(3):
+            # C440: one square per real slot; too many for the line draws none; a blank
+            # meter draws the golden three.
+            count = 0 if level == long_level else 4 if level == real_total_level else 3
+            for index in range(count):
                 if missing_square == (level, index):
                     continue
-                # C362: golden first column ends at x207.5; 8.22 pt boxes start 42.52 pt
+                # C362: golden first column ends at x207.5; 8.22 pt boxes end 8.22 pt
                 # before it, 13.04 pt apart.
-                x = 164.98 + index * 13.04
+                x = 191.06 - (count - 1 - index) * 13.04
                 if legacy:  # pre-C362 7 pt squares at right - 33, 11 pt apart
                     page.draw_rect(fitz.Rect(174.5 + index * 11, y - 6, 181.5 + index * 11, y + 1))
                 else:
@@ -64,14 +67,14 @@ class PhysicalP4Meters(unittest.TestCase):
         self.assertFalse(result["errors"], result["errors"])
         self.assertEqual(9, result["meter_count"])
 
-    def test_real_source_total_and_spent_keep_nine_blank_paper_meter_squares(self):
+    def test_real_source_total_draws_one_square_per_real_slot(self):
         with specimen(real_total_level=1) as doc:
             result = audit.audit_document(doc)
         self.assertFalse(result["errors"], result["errors"])
         self.assertEqual(9, result["meter_count"])
         self.assertEqual(1, result["source_backed_meter_count"])
 
-    def test_shifted_real_long_meter_keeps_all_three_physical_squares(self):
+    def test_a_real_total_too_long_for_the_line_keeps_its_digits_without_squares(self):
         with specimen(long_level=1) as doc:
             result = audit.audit_document(doc)
         self.assertFalse(result["errors"], result["errors"])

@@ -281,7 +281,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             fun drawOwnerAttributeRow(
                 stream: PDPageContentStream, left: Float, right: Float, centreY: Float,
                 score: String, modifier: String, name: String, namePt: Float, save: String?,
-                wrapPt: Float? = null,
+                wrapPt: Float? = null, saveProficient: Boolean = false,
             ) {
                 val boxLeft = left + 2.55f
                 val boxRight = boxLeft + 43.08f
@@ -353,6 +353,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.addRect(saveBoxLeft, centreY - 4.39f, 8.78f, 8.78f)
                 stream.fillAndStroke()
                 stream.restoreGraphicsState()
+                // C440: the owner's «casilla de competencia» shows the saved state (v8 U+E108).
+                if (saveProficient) drawStateGlyph(stream, 0xE108, saveBoxLeft, centreY - 4.39f, 8.78f)
                 save?.let {
                     p1Bold(stream, it, (lineLeft + lineRight) / 2f - p1BoldWidth(it, 7.2f) / 2f,
                         valueBaseline, 7.2f, Color(38, 75, 104))
@@ -408,18 +410,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             fun c2CartelaGoldenFits(text: String, widthPt: Float): Boolean =
                 c2CartelaTitlePt(text, widthPt) != null
             // Owner's original D&D sheet includes its genuine logotype in its top-left.
-            // Embed that real graphic from the already-versioned asset; clip to LOGO only,
-            // so no original-sheet boxes or lettering leak into this V11 page.
+            // Embed only that logo: the rest of the original sheet is never in the PDF.
             val originalSheetPixels = requireNotNull(DesktopPcSheetV11PdfProofRenderer::class.java.classLoader
-                .getResourceAsStream("character-sheets/templates/renders/original/page-1.png")
+                .getResourceAsStream("character-sheets/templates/renders/original/logo-only.png")
                 ?.use { it.readBytes() }) {
                 "The approved owner-logo source image is missing; never substitute text."
             }
             val ownerLogo = PDImageXObject.createFromByteArray(
-                pdf, originalSheetPixels, "owner-dnd-logo-original",
+                pdf, originalSheetPixels, "owner-dnd-logo",
             )
-            require(ownerLogo.width == 1224 && ownerLogo.height == 1584) {
-                "Unexpected original-logo raster dimensions; refuse an incorrect crop."
+            require(ownerLogo.width == 344 && ownerLogo.height == 134) {
+                "Unexpected logo raster dimensions."
             }
 
             fun drawFrameAndHeader(
@@ -458,25 +459,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.restoreGraphicsState()
 
                 stream.saveGraphicsState()
-                // Native template coordinates: logo x≈54–398, y≈50–184 in
-                // the 1224×1584 pixel original. Clip only the logo region.
+                // C440: the logo alone, cut from x54–398, y50–184 of the owner's sheet.
                 // C326 (owner 2026-10-30, «puedes usar ese o uno más pequeño»): the
                 // logo stays inside the frames instead of rising over the outer frame.
                 // C327 (owner: the golden shield belonged to its stand-in logo and may
                 // go): the logo takes that space, x57..147 × y719.5..754.5 (90×35 pt,
                 // 344×134 px at 0.2616 pt/px), clear of the corner bracket and diamond.
                 val scale = 0.2616f
-                stream.addRect(57f, 719.5f, 344f * scale, 134f * scale)
-                stream.clip()
-                // PDFBox exposes no endPath(); stroke closes the clipped path.
-                stream.stroke()
-                stream.drawImage(
-                    ownerLogo,
-                    57f - 54f * scale,
-                    719.5f + 184f * scale - ownerLogo.height * scale,
-                    ownerLogo.width * scale,
-                    ownerLogo.height * scale,
-                )
+                stream.drawImage(ownerLogo, 57f, 719.5f, 344f * scale, 134f * scale)
                 stream.restoreGraphicsState()
 
                 // C286 (golden header, v11_extremo): a pale rule after the logo, the
@@ -650,7 +640,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 data.attributes.take(i).sumOf { p1AttributeHeight(it).toDouble() }.toFloat()
 
             // Standard enum IDs stay English in the model; only owner-approved
-            // V11 P1 PAPER labels are translated. Custom names remain literal.
+            // V11 P1 PAPER labels are translated.
             fun approvedAbilityName(name: String): String = when (name) {
                 "STRENGTH" -> "FUERZA"
                 "DEXTERITY" -> "DESTREZA"
@@ -658,7 +648,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 "INTELLIGENCE" -> "INTELIGENCIA"
                 "WISDOM" -> "SABIDURÍA"
                 "CHARISMA" -> "CARISMA"
-                else -> name
+                else -> name.uppercase() // C440: golden SUERTE, CORDURA, HONOR
             }
             // C218: the approved V11 paper displays true positive/zero
             // ability and skill modifiers with an explicit plus, as P1 does.
@@ -751,7 +741,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     // P104: the owner's attribute row on the band's middle line.
                     drawOwnerAttributeRow(stream, 39.69f, 260.22f, top - bandHeight / 2f,
                         ability.score.toString(), mod, approvedAbilityName(ability.name), 7.7f,
-                        ability.savingThrowTotal?.let { if (it >= 0) "+$it" else it.toString() })
+                        ability.savingThrowTotal?.let { if (it >= 0) "+$it" else it.toString() },
+                        saveProficient = ability.savingThrowProficient)
                 }
             }
 
@@ -1060,6 +1051,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> "Competencia"
                     io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.EXPERTISE -> "Pericia"
                 }
+            fun trainingLetter(training: io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining) =
+                when (training) {
+                    io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> "P"
+                    io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.EXPERTISE -> "E"
+                    io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.NONE -> ""
+                }
+            fun isC2SkillRow(key: String) = key.startsWith("attribute-skill:") ||
+                key.startsWith("detached-skill:") || key.startsWith("skill:")
             val detachedSkills = if (variantA) data.skills.withIndex()
                 .filter { it.index !in printedSkillIndices &&
                     it.value.ability !in customAttributeReferences }
@@ -1067,10 +1066,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     val abbreviation = data.attributes.firstOrNull {
                         it.reference == skill.ability
                     }?.abbreviation?.let { approvedAbilityAbbreviation(it) }
+                    c2SkillTraining["detached-skill:" + index] = trainingLetter(skill.training)
                     PcSheetV11FlowItem(
                         "detached-skill:" + index,
                         approvedSkillName(skill) + (abbreviation?.let { " (" + it + ")" } ?: "") +
-                            " / " + (skill.total?.toString() ?: "sin resolver") +
+                            ": " + (skill.total?.let { signedC2(it) } ?: "sin resolver") +
                             " / " + spanishTraining(skill.training),
                     )
                 }
@@ -1584,7 +1584,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         ))
                     } else {
                         if(attack.rangeText?.isNotBlank()==true &&
-                            p1AttackLabel(attack)==attack.name) {
+                            p1AttackLabel(attack, p1 = attack.id in p1AttackIds)==attack.name) {
                             add(PcSheetV11FlowItem("combat:range:"+attack.id,
                                 "ALCANCE "+attack.name+": "+attack.rangeText,
                                 keepTogetherIfFits=true))
@@ -1898,7 +1898,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val identityTop = 698.46f // C349: golden identity block top
             val classIdentity = PcSheetV11FlowItem(
                 "identity:classes",
-                source.classes.joinToString(", ") { it.name + " " + it.level },
+                source.classes.joinToString(" / ") { it.name + " " + it.level },
             )
             val raceIdentity = PcSheetV11FlowItem("identity:race",
                 io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11RaceLine.of(
@@ -2256,27 +2256,46 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     fun centeredX(text: String, pt: Float) = x + (cardWidth -
                         headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * pt / 1000f) / 2f
                     if (value == null) {
+                        // C441: a writable line in golden ink, never the default black.
+                        stream.saveGraphicsState()
+                        stream.setStrokingColor(Color(82, 124, 150))
+                        stream.setLineWidth(0.48f)
                         stream.moveTo(x + 7f, 645f)
                         stream.lineTo(x + 160f, 645f)
                         stream.stroke()
+                        stream.restoreGraphicsState()
                     } else {
                         fun fits(text: String, pt: Float) =
                             headerPdfFont.getStringWidth(pcSheetV11PrintableText(text)) *
                                 pt / 1000f <= 152f
                         // C269: golden centered 10.7 pt value, stepping down to 7 pt.
                         val size = listOf(10.7f, 10f, 9f, 8f, 7f).firstOrNull { fits(value, it) }
-                        // Long source names: one source per line at 7pt. C322: the
-                        // golden 29.77 pt card holds two lines (the owner's P1 rule:
-                        // two lines, otherwise SEGÚN FUENTE).
-                        val stacked = if (size == null && label in varying)
-                            perSourceParts(label)?.takeIf { parts ->
-                                parts.size <= 2 && parts.all { fits(it, 7f) }
-                            } else null
+                        // C440 (owner 2026-10-28, «P4 conserva siempre el detalle»): the
+                        // values of every source, wrapped between sources, in the 29.77 pt
+                        // card: two lines down to 6.5 pt, then three down to 5.5 pt.
+                        fun wrapped(parts: List<String>, pt: Float): List<String>? {
+                            if (parts.any { !fits(it, pt) }) return null
+                            return parts.fold(mutableListOf<String>()) { lines, part ->
+                                val joined = lines.lastOrNull()?.let { it + " / " + part }
+                                if (joined != null && fits(joined, pt)) lines[lines.lastIndex] = joined
+                                else lines += part
+                                lines
+                            }
+                        }
+                        val parts = if (size == null && label in varying) perSourceParts(label) else null
+                        val stacked = parts?.let { all ->
+                            listOf(7f to 2, 6.5f to 2, 6f to 3, 5.5f to 3).firstNotNullOfOrNull { (pt, most) ->
+                                wrapped(all, pt)?.takeIf { it.size <= most }?.let { pt to it }
+                            }
+                        }
                         if (stacked != null) {
-                            stacked.forEachIndexed { line, text ->
+                            val (stackPt, lines) = stacked
+                            val first = if (lines.size == 3) 654.2f else 651.5f
+                            val pitch = if (lines.size == 3) 5.8f else 7.5f
+                            lines.forEachIndexed { line, text ->
                                 stream.beginText()
-                                stream.setFont(headerPdfFont, 7f)
-                                stream.newLineAtOffset(centeredX(text, 7f), 651.5f - line * 7.5f)
+                                stream.setFont(headerPdfFont, stackPt)
+                                stream.newLineAtOffset(centeredX(text, stackPt), first - line * pitch)
                                 stream.showText(pcSheetV11PrintableText(text))
                                 stream.endText()
                             }
@@ -2807,8 +2826,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 fillBand(stream, left, bottom, right - left, top - bottom, 0)
                 // P104: the owner's attribute row on the middle line of its two rows.
                 drawOwnerAttributeRow(stream, left, right, (top + bottom) / 2f,
-                    attribute.score.toString(), signedC2(attribute.modifier), attribute.name, 9f,
-                    attribute.savingThrowTotal?.let { signedC2(it) }, wrapPt = 8f)
+                    attribute.score.toString(), signedC2(attribute.modifier), attribute.name.uppercase(), 7.7f,
+                    attribute.savingThrowTotal?.let { signedC2(it) }, wrapPt = 7.7f,
+                    saveProficient = attribute.savingThrowProficient)
             }
 
             fun addSection(
@@ -3584,14 +3604,6 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     stream.closePath()
                                     stream.fillAndStroke()
                                 }
-                                // Narrow gutter rail persists when the header
-                                // was printed in a previous physical column.
-                                val railX = column.leftPt - 3f
-                                require(railX >= 31f && railX + 1.5f < column.leftPt) // C323: inside the inner frame (30.61)
-                                stream.setNonStrokingColor(Color(82, 124, 150)) // C412 golden
-                                stream.addRect(railX, groupBottom + 1f, 1.5f,
-                                    groupTop - groupBottom - 2f)
-                                stream.fill()
                                 stream.restoreGraphicsState()
                             }
                         }
@@ -3887,12 +3899,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             }
                             // C219: repeat genuinely persisted P1 total/spent
                             // spell slots on P4's physical SAME-LINE level
-                            // meter, as approved D-0076 §§3.25–3.26.
-                            // Three separate blank squares remain PAPER ONLY:
-                            // their number and state never claim digital slots.
-                            // For pathological oversized values retain the
-                            // prior blank paper meter rather than clipping real
-                            // digits or inferring smaller numbers.
+                            // meter, as approved D-0076 §§3.25–3.26: «no asumir número fijo
+                            // de casillas». C440: a level with saved slots draws one empty
+                            // square per real slot, right-aligned where the golden's end. A
+                            // level with none keeps the golden's blank paper meter of three.
                             if (title.startsWith("P4 - ") &&
                                 cell.sourceKey.startsWith("spell-level:") &&
                                 cell.sourceStartOffset == 0) {
@@ -3903,11 +3913,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     val baseline = cell.cellPt.bottomPt + 6.52f
                                     val labelPt = 5.9f // C294: golden "ESP." size
                                     val regularX = cell.cellPt.rightPt - 83f
-                                    // C362: golden squares 42.52 pt in from the column edge.
-                                    val firstSquareX = cell.cellPt.rightPt - 42.52f
                                     val actualSlots = data.spellSlots.firstOrNull {
                                         it.level == level
                                     }
+                                    // C362: golden squares 8.22 pt, 13.04 pt apart, ending 8.22 pt in.
+                                    fun firstSquareOf(count: Int) = cell.cellPt.rightPt - 8.22f -
+                                        (count - 1) * 13.04f - 8.22f
                                     val fullActualLabel = actualSlots?.let {
                                         "ESP.${it.totalSlots} G.${it.spentSlots}"
                                     }
@@ -3925,6 +3936,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     ) * 9f / 1000f
                                     val expandedX = cell.cellPt.leftPt +
                                         headingInkWidth + 8f
+                                    // Too many real slots for one line: the digits stay, the squares go.
+                                    val squares = when {
+                                        actualSlots == null -> 3
+                                        actualSlots.totalSlots <= 0 -> 0
+                                        firstSquareOf(actualSlots.totalSlots) - 5f - expandedX >=
+                                            headerPdfFont.getStringWidth(requireNotNull(fullActualLabel)) *
+                                            labelPt / 1000f -> actualSlots.totalSlots
+                                        else -> 0
+                                    }
+                                    val firstSquareX = firstSquareOf(squares)
                                     val chosen = fullActualLabel?.let { sourceLabel ->
                                         val width = headerPdfFont.getStringWidth(
                                             sourceLabel
@@ -3949,10 +3970,6 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         headingInkWidth + 7f) {
                                         "P4 true slot label overlaps the real level heading."
                                     }
-                                    require(firstSquareX + 2 * 13.04f + 8.22f <=
-                                        cell.cellPt.rightPt - 2f) {
-                                        "P4 handwritten level slots exceed measured column."
-                                    }
                                     stream.beginText()
                                     stream.setFont(headerPdfFont, labelPt)
                                     stream.newLineAtOffset(labelX, baseline)
@@ -3974,7 +3991,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     stream.setStrokingColor(Color(82, 124, 150))
                                     stream.setNonStrokingColor(Color(255, 255, 255))
                                     stream.setLineWidth(0.48f)
-                                    repeat(3) { slot ->
+                                    repeat(squares) { slot ->
                                         stream.addRect(firstSquareX + slot * 13.04f,
                                             baseline + 0.7f, 8.22f, 8.22f)
                                         stream.fillAndStroke()
@@ -4085,7 +4102,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 stream.endText()
                                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                             } else if (title == "C2 - Habilidades, acciones y recursos" &&
-                                cell.sourceKey.startsWith("attribute-skill:") &&
+                                isC2SkillRow(cell.sourceKey) &&
                                 cell.sourceStartOffset == 0) {
                                 // C217: reposition the unique REAL skill total
                                 // into the golden's right-value edge. Full
@@ -4142,11 +4159,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             // this 7pt square cannot obscure the printed name.
                             // Wrapped continuations never gain a second box.
                             if (title == "C2 - Habilidades, acciones y recursos" &&
-                                cell.sourceKey.startsWith("attribute-skill:") &&
+                                isC2SkillRow(cell.sourceKey) &&
+                                cell.sourceText.startsWith(c2Inset) &&
                                 cell.sourceStartOffset == 0) {
-                                require(cell.sourceText.startsWith(c2Inset + "Habilidad ")) {
-                                    "C2 linked skill square lacks its measured source inset."
-                                }
                                 require(body.width.measurePt(c2Inset) >= 11f) {
                                     "C2 paper skill checkbox needs genuine font-measured clearance."
                                 }
@@ -4281,8 +4296,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         val goldenRow = attribute.name.none { it == '\r' || it == '\n' || it == '\t' }
                         if (goldenRow) c2AttributeCards += "attribute:" + index
                         val nameRoom = ownerAttributeNameRoom(c2ActionColumn)
-                        val extraRows = if (p1InkWidth(attribute.name, 7.5f) <= nameRoom) 0
-                            else maxOf(0, wrappedAttributeName(attribute.name, nameRoom, 8f).size - 2)
+                        val extraRows = if (p1InkWidth(attribute.name.uppercase(), 6.2f) <= nameRoom) 0
+                            else maxOf(0, wrappedAttributeName(attribute.name.uppercase(), nameRoom, 7.7f).size - 2)
                         add(PcSheetV11FlowItem(
                             "attribute:" + index,
                             if (goldenRow) attribute.name + "\n " + "\n ".repeat(extraRows) else
@@ -4301,16 +4316,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             skill.ability == attribute.reference &&
                             skillIndex !in printedSkillIndices }
                         .forEach { (_, skill) ->
-                            c2SkillTraining["attribute-skill:" + skill.customSkillId] = when (skill.training) {
-                                io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> "P"
-                                io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.EXPERTISE -> "E"
-                                io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.NONE -> ""
-                            }
+                            c2SkillTraining["attribute-skill:" + skill.customSkillId] = trainingLetter(skill.training)
                             add(PcSheetV11FlowItem(
                                 "attribute-skill:" + skill.customSkillId,
                                 // Six spaces are measurable handwriting
                                 // clearance for the genuine 7pt paper box.
-                                c2Inset + "Habilidad " + skill.name +
+                                c2Inset + skill.name +
                                     // The source ability is still explicit if
                                     // the full attribute was already placed P1.
                                     (if (alreadyPrintedOnP1) attribute.abbreviation
@@ -4333,8 +4344,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             val abbreviation = data.attributes.firstOrNull {
                                 it.reference == skill.ability
                             }?.abbreviation?.let { approvedAbilityAbbreviation(it) }
+                            c2SkillTraining["skill:" + index] = trainingLetter(skill.training)
                             add(PcSheetV11FlowItem("skill:" + index,
-                                "Habilidad " + skill.name +
+                                c2Inset + skill.name +
                                     (abbreviation?.let { " (" + it + ")" } ?: "") +
                                     ": " + (skill.total?.let {
                                         signedC2(it)
@@ -5249,7 +5261,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 if (detachedSkills.isNotEmpty()) {
                     addHeaded(PcSheetV11FlowItem("c2-heading:skills",
                         "HABILIDADES Y REFERENCIAS", keepTogetherIfFits = true,
-                        lineExtrasPt = c2CartelaExtra), detachedSkills)
+                        lineExtrasPt = c2CartelaExtra), detachedSkills.map { it.copy(text = c2Inset + it.text) })
                 }
                 if (extraCombatData.isNotEmpty()) {
                     addHeaded(PcSheetV11FlowItem("c2-heading:combat",
@@ -6082,6 +6094,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // C246: golden P1 footer names every continued module and its real
             // physical C2 page (golden "ATRIBUTOS Y HABILIDADES A P. 4 · ATAQUES
             // A P. 4 · MUNICIONES A P. 4"), in the same free band P2 uses.
+            val p1HeadingKeys = setOf("c2-heading:p1-overflow", "c2-heading:skills",
+                "c2-heading:combat", "c2-heading:resources")
             val p1ModuleLinks = listOf(
                 "c2-heading:p1-overflow" to "PERSONAJE",
                 "c2-heading:skills" to "HABILIDADES",
@@ -6127,9 +6141,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // leaves this page, «VIENE DE PÁG. Y» where it arrives.
                 val link = when {
                     key.startsWith("P1 - ") && c2FromP1 != null ->
-                        PcSheetV11ContinuationText.continuesOn(c2FromP1)
+                        requireNotNull(PcSheetV11ContinuationText.continuesOn(
+                            mixedC2HeadingPages.filterKeys { it in p1HeadingKeys }.values + c2FromP1))
                     key.startsWith("P2 - ") && c2FromP2 != null ->
-                        PcSheetV11ContinuationText.continuesOn(c2FromP2)
+                        requireNotNull(PcSheetV11ContinuationText.continuesOn(
+                            p2C2Destinations.map { it.second } + c2FromP2))
                     key == "P3 - Trasfondo / Perfil / Historia" && p3ContinuationFirst != null ->
                         PcSheetV11ContinuationText.continuesOn(p3ContinuationFirst)
                     else -> {

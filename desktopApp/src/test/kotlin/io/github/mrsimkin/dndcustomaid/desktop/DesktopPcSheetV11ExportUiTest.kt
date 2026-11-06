@@ -21,6 +21,7 @@ import java.io.File
 import java.nio.file.Files
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -36,6 +37,37 @@ import org.apache.pdfbox.text.PDFTextStripper
 class DesktopPcSheetV11ExportUiTest {
     private fun text(bytes: ByteArray): String =
         Loader.loadPDF(bytes).use { PDFTextStripper().getText(it) }
+
+    @Test
+    fun c441ABrandNewCharacterPrintsTheFourGoldenPagesAB() {
+        // C441 / D-0076 3.44 and the near-empty golden: P1, P2, P3 and the final NOTAS,
+        // with no C2 and no C-N3, because a new character has nothing to continue.
+        val dir = Files.createTempDirectory("dnd-v11-new-").toFile()
+        val handle = DesktopDatabaseFactory(File(dir, "new.db")).create()
+        try {
+            val database = handle.database
+            val campaign = CampaignRepository(database).createCampaign("Campaña nueva")
+            val pc = CharacterRepository(database).createCharacter(campaign.id, "Personaje Nuevo")
+            val sources = desktopPcSheetExportSources(assertNotNull(DesktopPcManagerController(database).details(pc.id)))
+            for (variant in PcSheetV11Variant.entries) {
+                val bytes = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, DesktopPcSheetExportOptions().stateSelection), sources).bytes
+                System.getProperty("pcSheetProofDir")?.let { proofs ->
+                    File(proofs).mkdirs()
+                    File(proofs, "V11-INTERNAL-PROOF-new-character-$variant.pdf").writeBytes(bytes)
+                }
+                Loader.loadPDF(bytes).use { pdf ->
+                    val all = PDFTextStripper().getText(pdf)
+                    assertFalse(all.contains("C-N3"), "No digital notes, no C-N3 ($variant).")
+                    assertFalse(all.contains("C2 - "), "Nothing to continue, no C2 ($variant).")
+                    assertEquals(4, pdf.numberOfPages, "P1, P2, P3 and the final NOTAS ($variant).")
+                }
+            }
+        } finally {
+            handle.close()
+            dir.deleteRecursively()
+        }
+    }
 
     @Test
     fun c439RealButtonsSaveAndShareV11AAndBOfflineAndLeaveTheOldFamiliesAlone() {

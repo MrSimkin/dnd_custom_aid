@@ -398,7 +398,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }
                 }.apply { startPage = 1; endPage = 1 }.getText(pdf)
                 fun rowOf(attribute: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Attribute): Float? {
-                    val name = printedName[attribute.name] ?: attribute.name
+                    val name = printedName[attribute.name] ?: attribute.name.uppercase()
                     val word = Regex("""(^|\s)""" + Regex.escape(name) + """(\s|$)""")
                     return runs.firstOrNull { word.containsMatchIn(it.first) }?.second
                 }
@@ -547,7 +547,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 val p1Order = mutableListOf<Pair<Int, Int>>()
                 attributes.forEachIndexed { index, a ->
-                    val name = printedName[a.name] ?: a.name
+                    val name = printedName[a.name] ?: a.name.uppercase()
                     val row = Regex(Regex.escape(a.score.toString()) + " " + Regex.escape(signed(a.modifier)) +
                         " " + Regex.escape(name) + """(?=\s|$)""")
                     val hits = pages.mapIndexed { page, text -> page to row.findAll(text).count() }
@@ -1367,6 +1367,269 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         }
     }
 
+    /** Every printed character with its position, to find state marks in the symbol font. */
+    private fun glyphs(pdf: org.apache.pdfbox.pdmodel.PDDocument, page: Int): List<Triple<String, Float, Float>> {
+        val found = mutableListOf<Triple<String, Float, Float>>()
+        object : PDFTextStripper() {
+            init { startPage = page; endPage = page }
+            override fun processTextPosition(text: org.apache.pdfbox.text.TextPosition) {
+                found += Triple(text.unicode, text.xDirAdj, text.yDirAdj)
+                super.processTextPosition(text)
+            }
+        }.getText(pdf)
+        return found
+    }
+
+    @Test
+    fun c441CasesTheReviewCouldNotSeeNowHaveARealPdfAB() {
+        // C441: the independent review found no PDF for these decisions. Each one now has
+        // a preserved PDF and a check of what the decision asks.
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val sheet = aldren.permanent.sheet
+        val fighter = sheet.classes.single()
+        val fullText: (ByteArray) -> String = { bytes -> Loader.loadPDF(bytes).use {
+            PDFTextStripper().getText(it).replace(Regex("""\s+"""), " ") } }
+        fun proof(name: String, variant: PcSheetV11Variant,
+                  source: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources): ByteArray {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source).bytes
+            preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-$name-$variant.pdf")
+            return bytes
+        }
+        fun with(changed: io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet) =
+            aldren.copy(permanent = aldren.permanent.copy(sheet = changed))
+        // §3.38: no attacks keep the ATAQUES module with its writable rows.
+        val noAttacks = with(sheet.copy(combatEntries = sheet.combatEntries.filter {
+            it.type != io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK }))
+        // §3.15: more than 20 marks print «____ / X».
+        val ammoIds = aldren.permanent.closure.inventoryUsage.filter {
+            it.kind == io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind.AMMUNITION
+        }.map { it.itemId }.toSet()
+        assertTrue(ammoIds.isNotEmpty(), "The fixture has ammunition.")
+        val muchAmmo = with(sheet.copy(inventoryItems = sheet.inventoryItems.map {
+            if (it.id in ammoIds) it.copy(quantity = 40) else it }))
+        // §3.4 and §3.7: two classes on one line, class by class.
+        val twoClasses = with(sheet.copy(classes = listOf(fighter, fighter.copy(
+            id = Uuid.parse("a7a00000-0000-4000-8000-000000000001"), name = "Mago", level = 3,
+            hitDieSides = 6, hitDiceRemaining = 1, sortOrder = fighter.sortOrder + 1))))
+        // §3.35: P4 depends on real spells, not on the class.
+        val ilyra = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json").permanent.sheet
+        val raceSource = io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingSource(
+            id = Uuid.parse("a7a00000-0000-4000-8000-000000000002"), name = "Don de la sangre",
+            linkedClassId = null, sortOrder = 0,
+            originKind = io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingOriginKind.RACE)
+        val raceSpell = with(sheet.copy(spellcastingSources = listOf(raceSource),
+            spells = listOf(ilyra.spells.first().copy(sourceAssociations = listOf(
+                io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSourceAssociation(raceSource.id, false))))))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val attacks = Loader.loadPDF(proof("no-attacks", variant, noAttacks)).use {
+                PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(it) }
+            assertTrue(attacks.contains("ATAQUES") && attacks.contains("BON."), "ATAQUES stays ($variant).")
+            assertFalse(attacks.contains("Espada larga"), "No attack is invented or kept on P1 ($variant).")
+            assertTrue(fullText(proof("ammunition-over-20", variant, muchAmmo)).contains("____ / 40"),
+                "More than 20 marks print «____ / X» ($variant).")
+            val classes = fullText(proof("two-classes", variant, twoClasses))
+            assertTrue(classes.contains("/ Mago 3"), "Two classes with a slash ($variant).")
+            assertTrue(classes.contains("5d10 / 3d6"), "Each class total ($variant).")
+            val race = fullText(proof("non-caster-race-spell", variant, raceSpell))
+            assertTrue(race.contains("P4 - Conjuros"), "A real spell gives P4, whatever the class ($variant).")
+            assertTrue(race.contains("Raza"), "The source reads as its type ($variant).")
+            assertFalse(race.contains("Don de la sangre"), "No specific name for a non-class source ($variant).")
+        }
+    }
+
+    @Test
+    fun c441FootersOfP2NameEveryDestinationAB() {
+        // C441 / F10 (D-0076 3.33, contract C341): P2's foot names every page its modules
+        // continue on, the same pages its module band names.
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), mara)
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val p2 = PDFTextStripper().apply { startPage = 2; endPage = 2 }.getText(pdf)
+                    .replace(Regex("""\s+"""), " ")
+                val onBand = Regex("""CONTINÚAN? EN PÁG\. (\d+)""").findAll(p2).map { it.groupValues[1].toInt() }.toSet()
+                assertTrue(onBand.size >= 2, "The fixture continues on several pages ($variant): $p2")
+                val foot = Regex("""CONTINÚA EN PÁG\. ([\d, ]+ Y \d+)""").find(p2)
+                assertTrue(foot != null, "The foot names several pages ($variant).")
+                val named = Regex("""\d+""").findAll(foot!!.groupValues[1]).map { it.value.toInt() }.toSet()
+                assertEquals(onBand, named, "Foot and band name the same pages ($variant).")
+            }
+        }
+    }
+
+    @Test
+    fun c440TheSaveBoxShowsTheRealProficiencyAB() {
+        // C440 / F02 (contract 2026-10-30 and 2026-11-01): a proficient save is marked
+        // with U+E108 in its box; a save that is not proficient keeps the box empty.
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val proficient = io.github.mrsimkin.dndcustomaid.shared.character.CharacterAbility.entries
+            .count { aldren.permanent.sheet.savingThrow(it).proficient }
+        assertTrue(proficient in 1..5, "The fixture has saves of both kinds.")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), aldren)
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val marks = glyphs(pdf, 1).count { (ch, x, _) -> ch == "\uE108" && x in 215f..236f }
+                assertEquals(proficient, marks, "One mark per proficient save ($variant).")
+            }
+        }
+    }
+
+    @Test
+    fun c440P4LevelHeadersDrawOneSquarePerRealSlot() {
+        // C440 / F01 (D-0076 3.25-3.26): Mara N1 has 4 slots, N5 has 2; none of them is
+        // pre-marked, and a level with no saved slots keeps the golden's three.
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        val slots = mara.permanent.sheet.spellSlots.associateBy { it.level }
+        assertEquals(4, slots.getValue(1).totalSlots)
+        assertEquals(2, slots.getValue(5).totalSlots)
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT), mara)
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val p4 = (1..pdf.numberOfPages).first { page ->
+                PDFTextStripper().apply { startPage = page; endPage = page }.getText(pdf).contains("ESP.4 G.2")
+            }
+            val stream = pdf.getPage(p4 - 1).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
+            val squares = Regex("""(?m)(?:^|\s)([0-9.]+) ([0-9.]+) 8\.22\d* 8\.22\d* re(?:\s|$)""")
+                .findAll(stream).toList()
+            assertTrue(squares.isNotEmpty())
+            val text = PDFTextStripper().apply { startPage = p4; endPage = p4 }.getText(pdf)
+            assertTrue(text.contains("ESP.2 G.1"))
+            // Squares on one header line: same y, 13.04 pt apart.
+            val byLine = squares.groupBy { it.groupValues[2] }.mapValues { (_, rows) ->
+                rows.map { it.groupValues[1].toFloat() }.sorted()
+            }
+            val meters = byLine.values.filter { xs ->
+                xs.size >= 2 && xs.zipWithNext().all { (a, b) -> kotlin.math.abs(b - a - 13.04f) < 0.02f }
+            }.map { it.size }
+            assertTrue(4 in meters, "Level 1 draws four squares: " + meters)
+            assertTrue(2 in meters, "Level 5 draws two squares: " + meters)
+        }
+    }
+
+    @Test
+    fun c440SourceLabelsAndValuesFollowTheOwnerOnP1AndP4AB() {
+        // C440 / F03, F04 (contract 2026-10-26, 2026-10-28): a class source reads as its
+        // class, no internal ID is printed, and P4 always keeps the value of each source.
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        val className = mara.permanent.sheet.classes.first().name
+        val own = mara.permanent.sheet.spellcastingSources.first { it.linkedClassId != null }
+        assertTrue(className != own.name, "The fixture's source has a name of its own.")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), mara)
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val p4 = (1..pdf.numberOfPages).map { page ->
+                    PDFTextStripper().apply { startPage = page; endPage = page }.getText(pdf)
+                }.filter { it.contains("P4 - Conjuros") }.joinToString(" ").replace(Regex("\\s+"), " ")
+                assertTrue(p4.contains(className), "The class name labels the rows ($variant).")
+                assertFalse(p4.contains(own.name), "The source's own name is not printed ($variant).")
+                assertFalse(p4.contains("(#"), "No internal ID ($variant).")
+                assertFalse(p4.contains("SEGÚN FUENTE"), "P4 keeps the detail ($variant).")
+            }
+        }
+        // Six differing sources still print every value on P4, in the 29.77 pt card.
+        val base = mara.permanent.sheet
+        val source = base.spellcastingSources.first()
+        val extra = (1..5).map { i ->
+            source.copy(id = Uuid.parse("a7900000-0000-4000-8000-00000000000" + i), name = "Fuente " + i,
+                linkedClassId = null,
+                originKind = io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingOriginKind.FEAT,
+                sortOrder = source.sortOrder + i)
+        }
+        val spell = base.spells.first { it.sourceAssociations.isNotEmpty() }
+        val many = mara.copy(permanent = mara.permanent.copy(
+            sheet = base.copy(
+                spellcastingSources = base.spellcastingSources + extra,
+                spells = base.spells.map {
+                    if (it.id == spell.id) it.copy(sourceAssociations = it.sourceAssociations + extra.map { s ->
+                        io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSourceAssociation(s.id, false)
+                    }) else it
+                },
+            ),
+            successor = mara.permanent.successor.copy(
+                spellcastingProfiles = mara.permanent.successor.spellcastingProfiles + extra.mapIndexed { i, it ->
+                    io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingProfile(
+                        sourceId = it.id, legacySaveDcOverride = 10 + i)
+                },
+            ),
+        ))
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT), many)
+        preserveRealApplicationPdf(proof.bytes, "V11-INTERNAL-PROOF-P4-six-sources-A.pdf")
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val p4 = (1..pdf.numberOfPages).map { page ->
+                PDFTextStripper().apply { startPage = page; endPage = page }.getText(pdf)
+            }.filter { it.contains("P4 - Conjuros") }.joinToString(" ").replace(Regex("\\s+"), " ")
+            assertFalse(p4.contains("SEGÚN FUENTE"), "Six sources still print their values.")
+            for (dc in 10..14) assertTrue(p4.contains("Dote $dc"), "The value of Dote $dc prints.")
+        }
+    }
+
+    @Test
+    fun c440C2SkillRowsUseTheGoldenRowAB() {
+        // C440 / F05 (contract 2026-10-28): box with the real state, name, signed bold value;
+        // no «Habilidad» prefix and no training word on the line.
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), mara)
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val full = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+                assertFalse(full.contains("Habilidad "), "No «Habilidad» prefix ($variant).")
+                assertFalse(Regex(" / [0-9]+ / (Competencia|Pericia|Sin competencia)").containsMatchIn(full),
+                    "No prose row ($variant).")
+            }
+        }
+    }
+
+    @Test
+    fun c440SkillsFollowTheGoldenOrderAndCustomAttributesAreCapitalised() {
+        // C440 / G-a, G-b: golden order within each attribute; SUERTE, CORDURA, HONOR in capitals.
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT), mara)
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1; sortByPosition = true }.getText(pdf)
+            listOf("Medicina", "Percepción", "Perspicacia", "Supervivencia", "Trato con Animales").zipWithNext()
+                .forEach { (a, b) -> assertTrue(p1.indexOf(a) in 0 until p1.indexOf(b), "$a before $b") }
+            listOf("Engaño", "Interpretación", "Intimidación", "Persuasión").zipWithNext()
+                .forEach { (a, b) -> assertTrue(p1.indexOf(a) in 0 until p1.indexOf(b), "$a before $b") }
+            assertTrue(p1.contains("CORDURA"), "Custom attribute names print in capitals.")
+            assertFalse(p1.contains("Cordura"), "Not in mixed case.")
+        }
+    }
+
+    @Test
+    fun c440AReachOnTheP1RowIsNotRepeatedInC2() {
+        // C440 / F06 (D-0076 3.31 «nada se omite, duplica»).
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT), aldren)
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val full = PDFTextStripper().getText(pdf).replace(Regex("\\s+"), " ")
+            assertTrue(full.contains("80/320"), "The reach prints.")
+            assertEquals(1, Regex("80/320").findAll(full).count(), "Once.")
+        }
+    }
+
+    @Test
+    fun c440EveryPageEmbedsOnlyTheLogoImage() {
+        // C440 / F14: the owner's old sheet is no longer inside the PDF, clipped or not.
+        val proof = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT),
+            sources("01_aldren_vale_srd5_1_champion_fighter.json"))
+        Loader.loadPDF(proof.bytes).use { pdf ->
+            val resources = pdf.getPage(0).resources
+            val image = resources.xObjectNames.map { resources.getXObject(it) }
+                .filterIsInstance<org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject>().single()
+            assertEquals(344, image.width)
+            assertEquals(134, image.height)
+        }
+    }
+
     @Test
     fun c438SavedBackgroundImagesLeaveTheSilhouetteOnP1AB() {
         // C438 / P306 (owner 2026-11-05, «No, deja la silueta»): images saved in the Trasfondo
@@ -1396,6 +1659,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), withImages,
             )
             assertFalse(generated.semantic.portrait.locallyAvailable, "No portrait is taken from them ($variant).")
+            preserveRealApplicationPdf(generated.bytes, "V11-INTERNAL-PROOF-background-images-no-portrait-$variant.pdf")
             Loader.loadPDF(generated.bytes).use { pdf ->
                 for (index in 0 until pdf.numberOfPages) {
                     assertEquals(1, images(pdf.getPage(index).resources),
@@ -1655,7 +1919,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertFalse(text.contains(" / mod "), "No inline score text remains ($variant).")
                 val flat = text.replace(Regex("""\s+"""), " ")
                 longName.split(' ').plus(veryLong.split(' ')).forEach { word ->
-                    assertTrue(flat.contains(word), "Every word of the saved name prints: $word ($variant).")
+                    assertTrue(flat.contains(word.uppercase()), "Every word of the saved name prints: $word ($variant).")
                 }
                 val page = (1..pdf.numberOfPages).first { n ->
                     PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf).contains("QALARGO")
@@ -2412,10 +2676,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertTrue(clippedPath(640.91f, 646.91f, x + 6f, x + 174.33f - 6f, x + 174.33f),
                         "Each real P4 magic-source card needs 6pt clipped corners.")
                 }
-                // C362: golden level meters - three 8.22 pt squares 13.04 pt apart,
-                // the first 42.52 pt in from each column's right edge.
+                // C362, C440: golden 8.22 pt squares 13.04 pt apart, ending 8.22 pt inside
+                // each column; one per real slot, three on a level with no saved slots.
                 val meterXs = listOf(207.5f, 389.91f, 572.31f).flatMap { right ->
-                    (0..2).map { right - 42.52f + it * 13.04f } }
+                    (0..9).map { right - 16.44f - it * 13.04f } }
                 val paperSlots = Regex(
                     """(?m)(?:^|\s)([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+re(?:\s|$)"""
                 ).findAll(operators).count { m ->
@@ -2423,9 +2687,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     kotlin.math.abs(w - 8.22f) < 0.02f && kotlin.math.abs(h - 8.22f) < 0.02f &&
                         meterXs.any { kotlin.math.abs(it - x) < 0.03f }
                 }
-                assertEquals(27, paperSlots,
-                    "Exactly three BLANK genuine vector slot boxes for each " +
-                        "of nine spell levels. No 0-level or fabricated 10+.") 
+                assertEquals((1..9).sumOf { level ->
+                        proof.semantic.spellSlots.firstOrNull { it.level == level }?.totalSlots ?: 3 }, paperSlots,
+                    "One BLANK vector box per real slot, three on a level with none. " +
+                        "No 0-level or fabricated 10+.") 
                 assertTrue(Regex("""(?m)/F\d+\s+5\.9\d*\s+Tf""")
                     .findAll(operators).count() >= 9,
                     "P4 must use genuine embedded Noto Sans Display 5.9 pt (golden ESP.) on blank meters.")
@@ -2779,9 +3044,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val logo = page.resources.xObjectNames
                     .map { page.resources.getXObject(it) }
                     .filterIsInstance<PDImageXObject>()
-                    .singleOrNull { it.width == 1224 && it.height == 1584 }
+                    .singleOrNull { it.width == 344 && it.height == 134 }
                 assertTrue(logo != null,
-                    "Each physical page must contain the genuine owner-sheet logo image.")
+                    "Each physical page must contain the genuine owner logo image.")
             }
             val printed = PDFTextStripper().getText(pdf)
             assertTrue(printed.contains("Mara"), "This must render actual character data.")
@@ -3326,6 +3591,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertEquals(fit, proof.semantic.portrait.fitMode)
             assertTrue(proof.semantic.portrait.locallyAvailable,
                 "The App's local bytes must inform the exported portrait plan.")
+            preserveRealApplicationPdf(proof.bytes, "V11-INTERNAL-PROOF-portrait-" + fit.name + "-A.pdf")
             Loader.loadPDF(proof.bytes).use { pdf ->
                 val images = pdf.getPage(0).resources.xObjectNames
                     .map { pdf.getPage(0).resources.getXObject(it) }
@@ -3401,20 +3667,20 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     // C357: on the golden A rhythm Fortuna, Cordura and Éter fit P1 with
                     // their linked skills; only the fourth extra ability, Renombre, is in C2.
                     val p1Flat = pages.first().replace(Regex("\\s+"), " ")
-                    assertTrue(p1Flat.contains("Cordura") && p1Flat.contains("Éter") &&
+                    assertTrue(p1Flat.contains("CORDURA") && p1Flat.contains("ÉTER") &&
                         p1Flat.contains("Sincronía") && p1Flat.contains("Manipulación de éter"),
                         "Cordura and Éter print on P1 with their linked skills.")
-                    assertFalse(flat.contains("Cordura SALVACIÓN") || flat.contains("Éter SALVACIÓN"),
+                    assertFalse(flat.contains("CORDURA SALVACIÓN") || flat.contains("ÉTER SALVACIÓN"),
                         "An attribute printed on P1 is never repeated as a C2 row.")
                     // P104: a missing source save leaves its handwriting line empty.
-                    assertTrue(Regex("11 \\+0 Renombre").containsMatchIn(flat) && !flat.contains("sin valor"),
+                    assertTrue(Regex("11 \\+0 RENOMBRE").containsMatchIn(flat) && !flat.contains("sin valor"),
                         "Renombre's C2 row keeps its real score and modifier, with an empty save line.")
                     assertTrue(p1Flat.contains("+9") && p1Flat.contains("+8"),
                         "Linked true skill totals keep golden plus signs on P1 (C357).")
                 }
                 for ((attribute, skill) in linked) {
                     val key = "Habilidad " + skill
-                    assertTrue(full.contains(attribute),
+                    assertTrue(full.contains(attribute.uppercase()),
                         "Custom attribute must survive in C2: " + attribute)
                     // Variant A prints a fitting skill directly under its
                     // attribute, without the C2-only "Habilidad" prefix.
@@ -3424,7 +3690,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertEquals(1, Regex(Regex.escape(skill)).findAll(full).count(),
                         "Linked skill must appear exactly once in the real PDF: " + skill)
                     if (variant == PcSheetV11Variant.B) {
-                        assertTrue(pages[0].contains(attribute),
+                        assertTrue(pages[0].contains(attribute.uppercase()),
                             "Golden B requires fitting custom attribute on physical P1: " +
                                 attribute)
                         // V11: a skill detached from its P1 ability requires
@@ -3442,14 +3708,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                                 "not a full name or invented attribute.")
                         assertFalse(full.contains(key + " (" + attribute + ")"),
                             "A full custom attribute name is not a V11 (XXX) suffix.")
-                    } else if (pages[0].contains(attribute)) {
+                    } else if (pages[0].contains(attribute.uppercase())) {
                         assertTrue(pages[0].contains(skill),
                             "Fitting A custom abilities must keep their associated skill below.")
                         assertFalse(pages.drop(1).joinToString("\n").contains(key),
                             "An A skill already printed in P1 must not repeat in C2.")
                     } else {
                         assertTrue(pages.any { text -> text.contains("C2 - ") &&
-                            text.contains(attribute) && text.contains(key) },
+                            text.contains(attribute.uppercase()) && text.contains(skill) },
                             "Unfitted A source attribute and skill must survive together C2.")
                     }
                 }
@@ -3729,7 +3995,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 startPage = 1
                 endPage = 1
             }.getText(pdf)
-            assertTrue(first.contains("Fortuna") && first.contains("Cordura"),
+            assertTrue(first.contains("FORTUNA") && first.contains("CORDURA"),
                 "A's genuine 6+2 attribute rows must fit only with measured group heights.")
             assertPhysicalP1SavingBoxes(pdf, 8)
             assertTrue(first.contains("Contratos arcanos") && first.contains("Sincronía"),
@@ -3756,7 +4022,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         )
         Loader.loadPDF(proof.bytes).use { pdf ->
             val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
-            for (name in listOf("Fortuna", "Cordura", "Éter")) {
+            for (name in listOf("FORTUNA", "CORDURA", "ÉTER")) {
                 assertTrue(p1.contains(name), "Golden B P1 custom attribute absent: " + name)
             }
             assertFalse(p1.contains("Renombre"),
@@ -3768,8 +4034,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.getText(pdf)
             }.filter { it.contains("C2 - Habilidades, acciones y recursos") }
                 .joinToString("\n")
-            assertTrue(c2.contains("Renombre"), "Unfitted fourth ability must survive C2.")
-            for (name in listOf("Fortuna", "Cordura", "Éter")) {
+            assertTrue(c2.contains("RENOMBRE"), "Unfitted fourth ability must survive C2.")
+            for (name in listOf("FORTUNA", "CORDURA", "ÉTER")) {
                 assertFalse(Regex(Regex.escape(name) + """\s+\d+\s+/\s+mod""")
                     .containsMatchIn(c2),
                     "Already-printed custom attribute cannot repeat as a C2 score row.")
@@ -4667,9 +4933,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 .forSpells(proof.semantic.spells)
             val label1 = tags.getValue(realSource.id)
             val label2 = tags.getValue(secondId)
-            assertTrue(label1.startsWith(fixtureName + " (#"))
-            assertTrue(label2.startsWith(fixtureName + " (#"))
-            assertTrue(label1 != label2)
+            // C440 (owner 2026-10-26): same type, same label; no internal ID is printed.
+            assertEquals(label1, label2)
+            assertFalse(label1.contains("#"))
             Loader.loadPDF(proof.bytes).use { pdf ->
                 val p4Text = (1..pdf.numberOfPages).map { index ->
                     PDFTextStripper().apply {
@@ -4836,7 +5102,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val p1 = pages.first()
                 assertEquals(0, Regex("SEGÚN FUENTE").findAll(p1).count(),
                     "C231: P1 lists the real source value when it fits its card.")
-                assertTrue(p1.contains("Cronomancia umbral"),
+                assertTrue(p1.contains("Cronomante del Umbral"),
                     "C231: the single class source keeps its class name on P1.")
                 val p4 = pages.filter { it.contains("P4 - Conjuros") }
                 assertTrue(p4.isNotEmpty())
@@ -5098,7 +5364,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         val stressed = original.copy(permanent = original.permanent.copy(
             sheet = sheet.copy(
                 spellcastingSources = sheet.spellcastingSources +
-                    source.copy(id = newId, name = literalName,
+                    source.copy(id = newId, name = literalName, linkedClassId = null,
+                        originKind = io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingOriginKind.CLASS,
                         sortOrder = source.sortOrder + 1),
                 spells = sheet.spells.map {
                     if (it.id == spell.id) it.copy(
@@ -5138,8 +5405,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 for (token in listOf(
                     "QAP4SOURCEFIRST", "QAP4SOURCESECOND", "QAP4SOURCETHIRD",
                 )) {
-                    assertEquals(1, Regex(token).findAll(p4).count(),
-                        "Real CR/LF/TAB source token must survive once in P4 $variant: $token")
+                    // C440: its row plus the three reference cards, which keep each value.
+                    assertEquals(4, Regex(token).findAll(p4).count(),
+                        "Real CR/LF/TAB source token must survive on P4 $variant: $token")
                 }
                 assertTrue(p4.contains(spell.name),
                     "The original UUID-backed spell cannot be dropped.")
@@ -5318,10 +5586,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     generated.semantic.spells.sumOf { spell ->
                         maxOf(1, spell.sources.distinctBy { it.sourceId }.size)
                     }
-                val blankLevelMeters = 9 * 3
-                assertEquals(preparationAndPaper + blankLevelMeters, marks,
+                // C440 (D-0076 3.25-3.26): one square per real slot; three blank ones
+                // only on a level with no saved slots.
+                val levelMeters = (1..9).sumOf { level ->
+                    generated.semantic.spellSlots.firstOrNull { it.level == level }?.totalSlots ?: 3
+                }
+                assertEquals(preparationAndPaper + levelMeters, marks,
                     "One golden 8.22 pt preparation square per source/blank row AND " +
-                        "exactly 27 distinct unfilled level-meter squares.")
+                        "one level-meter square per real slot.")
             }
         }
     }
@@ -6510,7 +6782,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         else trait
                     },
                     spellcastingSources = sheet.spellcastingSources.mapIndexed { index, entry ->
-                        if (index == 0) entry.copy(name = sourceName) else entry
+                        if (index == 0) entry.copy(name = sourceName, linkedClassId = null,
+                            originKind = io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingOriginKind.CLASS) else entry
                     },
                     spells = sheet.spells.mapIndexed { index, spell ->
                         if (index == 0) spell.copy(

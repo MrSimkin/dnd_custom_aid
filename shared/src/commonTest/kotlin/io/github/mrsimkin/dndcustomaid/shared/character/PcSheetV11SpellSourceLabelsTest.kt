@@ -325,17 +325,18 @@ class PcSheetV11SpellSourceLabelsTest {
             ),
         )
         val names = PcSheetV11SpellSourceLabels.forSpells(listOf(first))
-        // Two class sources with the same visible name keep a collision-free id prefix.
-        assertEquals("Mago (#12345600)", names.getValue(one))
-        assertEquals("mago (#12345601)", names.getValue(two))
+        // C440 (owner 2026-10-26): two sources may read the same; no internal ID is printed.
+        assertEquals("Mago", names.getValue(one))
+        assertEquals("mago", names.getValue(two))
         // Non-class sources show only their type, even when two share it (owner decision).
         assertEquals("Dote", names.getValue(three))
         assertEquals("Dote", names.getValue(four))
         // No stored type means no specific name is printed either.
         assertEquals("Otro", names.getValue(five))
         val result = PcSheetV11SpellSourceLabels.perSpell(first, names)
-        assertTrue(result.contains("[X] Mago (#12345600)"))
-        assertTrue(result.contains("[ ] mago (#12345601)"))
+        assertTrue(result.contains("[X] Mago"))
+        assertTrue(result.contains("[ ] mago"))
+        assertTrue(!result.contains("#"))
         assertTrue(result.contains("[ ] Dote / [X] Dote"))
         assertTrue(result.contains("[ ] Otro"))
         assertTrue(!result.contains("Magic Initiate") && !result.contains("Otra dote"))

@@ -31,16 +31,16 @@ class C2PhysicalOriginParityTest(unittest.TestCase):
             self.assertIn('it.groupKey == identity.first', source)
             self.assertIn('it.sourceKey.startsWith("attribute-skill:")', source)
             self.assertIn('it.sourceKey.startsWith("attribute:")', source)
-            self.assertIn("val railX = column.leftPt - 3f", source)
+            self.assertNotIn("val railX", source)  # C440: the golden has no side rail
             # C215: real measured two-level card, one blank line between
             # true ability title and score. Preserve fragment/source offsets.
             self.assertIn('ability.name + "\\n\\n"', source)
             # C216: the paper box is sourced only from a real attribute-skill,
             # with reserved measured text inset and no duplicate on wrapping.
-            self.assertIn('c2Inset + "Habilidad " + skill.name', source)  # C262 measured inset
-            self.assertIn('cell.sourceKey.startsWith("attribute-skill:") &&', source)
+            self.assertIn('c2Inset + skill.name', source)  # C262 measured inset
+            self.assertIn('isC2SkillRow(cell.sourceKey) &&', source)
             self.assertIn('cell.sourceStartOffset == 0)', source)
-            self.assertIn('cell.sourceText.startsWith(c2Inset + "Habilidad ")', source)
+            self.assertIn('cell.sourceText.startsWith(c2Inset)', source)
             self.assertIn('body.width.measurePt(c2Inset) >= 11f', source)
             self.assertIn('stream.addRect(cell.cellPt.leftPt + 2f, base - 1f, 7f, 7f)', source)
             # C217 source-backed total is only moved if both sides fit.

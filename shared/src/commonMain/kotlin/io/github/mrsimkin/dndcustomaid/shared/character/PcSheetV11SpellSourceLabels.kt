@@ -2,12 +2,7 @@ package io.github.mrsimkin.dndcustomaid.shared.character
 
 import kotlin.uuid.Uuid
 
-/**
- * Retain distinct persisted spellcasting-source identities on P4 even when the
- * user assigned the same display name to multiple IDs. Unique names retain
- * their previous appearance. Only ambiguous names gain a collision-free
- * prefix of their real UUID, not a fabricated presentation ordinal.
- */
+/** The printed label and per-source values of the spellcasting sources on P1 and P4. */
 object PcSheetV11SpellSourceLabels {
     /**
      * C221: a universal P4 reference MUST NOT present one score/ability
@@ -171,7 +166,7 @@ object PcSheetV11SpellSourceLabels {
             // reference is a single physical line.
             names.getValue(source.sourceId).trim()
                 .replace(Regex("\\s+"), " ") + " " + value(source)
-        }
+        }.distinct() // C440: two sources with one label and one value say it once.
     }
 
     /**
@@ -185,7 +180,10 @@ object PcSheetV11SpellSourceLabels {
         val name = source.sourceName?.trim()?.replace(Regex("\\s+"), " ")
             ?.takeIf { it.isNotEmpty() }
         return when (source.originKind) {
-            CharacterSpellcastingOriginKind.CLASS -> name ?: "Clase"
+            // C440: the class name, without subclass; the source's own name only if unlinked.
+            CharacterSpellcastingOriginKind.CLASS ->
+                source.linkedClassName?.trim()?.replace(Regex("\\s+"), " ")?.takeIf { it.isNotEmpty() }
+                    ?: name ?: "Clase"
             CharacterSpellcastingOriginKind.TRAIT -> "Rasgo"
             CharacterSpellcastingOriginKind.RACE -> "Raza"
             CharacterSpellcastingOriginKind.BACKGROUND -> "Trasfondo"
@@ -199,35 +197,13 @@ object PcSheetV11SpellSourceLabels {
         }
     }
 
-    private fun isNameBased(source: PcSheetSpellbookSourceProjection): Boolean =
-        source.originKind == null || source.originKind == CharacterSpellcastingOriginKind.CLASS
-
-    fun forSpells(entries: List<PcSheetSpellbookEntry>): Map<Uuid, String> {
-        val sources = entries.flatMap { it.sources }.distinctBy { it.sourceId }
-        fun label(source: PcSheetSpellbookSourceProjection): String = sourceLabel(source)
-
-        val byName = sources.groupBy { label(it).trim().lowercase() }
-        return sources.associate { source ->
-            val original = label(source)
-            val siblings = byName.getValue(original.trim().lowercase())
-            // Type labels (Dote, Raza...) may legitimately repeat: the owner wants
-            // no names there, and each row still keeps its own preparation mark.
-            // Only name-based labels get a collision-free UUID prefix.
-            if (siblings.size == 1 || !isNameBased(source)) {
-                source.sourceId to original
-            } else {
-                val id = source.sourceId.toString()
-                val length = (6..id.length).first { size ->
-                    val prefix = id.take(size)
-                    siblings.none { other ->
-                        other.sourceId != source.sourceId &&
-                            other.sourceId.toString().startsWith(prefix)
-                    }
-                }
-                source.sourceId to "${original.trim()} (#${id.take(length)})"
-            }
-        }
-    }
+    /**
+     * C440 (owner 2026-10-26): «dos fuentes del mismo tipo pueden verse con el mismo rótulo».
+     * Internal identifiers are never printed; each source keeps its own row by its stable ID.
+     */
+    fun forSpells(entries: List<PcSheetSpellbookEntry>): Map<Uuid, String> =
+        entries.flatMap { it.sources }.distinctBy { it.sourceId }
+            .associate { it.sourceId to sourceLabel(it) }
 
     fun perSpell(
         entry: PcSheetSpellbookEntry,

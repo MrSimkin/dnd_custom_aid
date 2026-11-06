@@ -13,6 +13,17 @@ object PcSheetV11ContinuationText {
         return "CONTINÚA EN PÁG. $page"
     }
 
+    /** C441: every destination, as «VIENE DE» does: «CONTINÚA EN PÁG. 5 Y 6». */
+    fun continuesOn(pages: Collection<Int>): String? {
+        val sorted = pages.distinct().sorted()
+        require(sorted.all { it > 0 })
+        return when (sorted.size) {
+            0 -> null
+            1 -> continuesOn(sorted.single())
+            else -> "CONTINÚA EN PÁG. " + sorted.dropLast(1).joinToString(", ") + " Y " + sorted.last()
+        }
+    }
+
     fun comesFrom(page: Int): String = requireNotNull(comesFrom(listOf(page)))
 
     fun comesFrom(pages: Collection<Int>): String? {

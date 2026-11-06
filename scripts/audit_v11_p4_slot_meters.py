@@ -2,9 +2,10 @@
 """Independent physical P4 spell-meter audit on actual Desktop App PDFs.
 
 Checks a deliberately narrow part of the frozen V11 contract: one printed
-level 0..9 and, for levels 1..9, an ESP. physical meter with three genuine
-golden 8.22 pt vector squares (C362: 13.04 pt apart, the first 42.52 pt in from
-the column edge) on the same baseline. An ESP.N G.M label means true
+level 0..9 and, for levels 1..9, an ESP. physical meter of genuine golden 8.22 pt
+vector squares (C362: 13.04 pt apart, ending 8.22 pt inside the column) on the same
+baseline. C440: an ESP.N G.M label has one square per real slot (none if too many for
+the line; the digits stay); a blank ESP. has the golden three. An ESP.N G.M label means true
 persisted capacity/spent; blank ESP. remains blank paper, never synthetic. It cannot establish spell-source completeness,
 visual golden equivalence, Android parity or G4 acceptance.
 """
@@ -131,27 +132,25 @@ def audit_spell_page(page, page_number):
         x, y = float(word[0]), (float(word[1]) + float(word[3])) / 2
         # C220: genuine long totals may start right after the actual
         # "NIVEL X" heading, not at the former fixed x=right-83.
-        # Locate the three boxes by the immutable PHYSICAL column
-        # right edge, rather than the variable position of ESP.N G.M.
+        # Locate the boxes by the immutable PHYSICAL column right edge,
+        # rather than the variable position of ESP.N G.M.
         column_right = next((edge for left, edge in
                              ((39.69, 207.5), (222.09, 389.9), (404.5, 572.31))
                              if left <= x < edge - 2), None)
-        expected_first_box_x = (column_right - 42.52
-                                if column_right is not None else None)
+        actual_total = (int(word[4][4:]) if re.fullmatch(r"ESP\.[0-9]+", word[4])
+                        else None)
+        last_box_x = column_right - 16.44 if column_right is not None else None
         boxes = [r for r in squares
-                 if expected_first_box_x is not None
-                 and any(abs(r.x0 - (expected_first_box_x + n * 13.04)) <= .6
-                         for n in range(3))
+                 if last_box_x is not None
+                 and any(abs(r.x0 - (last_box_x - n * 13.04)) <= .6 for n in range(12))
                  and abs((r.y0 + r.y1) / 2 - y) <= 9]
         meters.append({
             "x": round(x, 2), "y": round(y, 2), "boxes": len(boxes),
-            "actual_total": (
-                int(word[4][4:]) if re.fullmatch(r"ESP\.[0-9]+", word[4])
-                else None
-            ),
+            "actual_total": actual_total,
         })
-        if len(boxes) != 3:
-            errors.append(f"ESP. meter at x={x:.1f}, y={y:.1f} has {len(boxes)} squares, expected 3")
+        allowed = {3} if actual_total is None else {actual_total, 0}
+        if len(boxes) not in allowed:
+            errors.append(f"ESP. meter at x={x:.1f}, y={y:.1f} has {len(boxes)} squares, expected {sorted(allowed)}")
     return {"page": page_number, "levels": levels, "meters": meters,
             "vector_squares": len(squares),
             "level_continuations_with_blue_bands": continued,

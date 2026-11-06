@@ -161,6 +161,8 @@ data class PcSheetSpellbookSourceProjection(
     val castingAbility: CharacterAbilityReference,
     val saveDc: Int?,
     val spellAttackModifier: Int?,
+    /** C440: the class this source is linked to, for the V11 source label. */
+    val linkedClassName: String? = null,
 )
 
 data class PcSheetSpellbookEntry(
@@ -425,6 +427,9 @@ object PcSheetPdfExportPlanner {
                             saveDc = profile?.let { aggregate.sheet.spellSaveDc(it, aggregate.successor) },
                             spellAttackModifier = profile?.let {
                                 aggregate.sheet.spellAttackModifier(it, aggregate.successor)
+                            },
+                            linkedClassName = source?.linkedClassId?.let { classId ->
+                                aggregate.sheet.classes.firstOrNull { it.id == classId }?.name
                             },
                         )
                     }

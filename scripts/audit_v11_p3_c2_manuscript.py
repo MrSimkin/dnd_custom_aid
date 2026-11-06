@@ -289,29 +289,43 @@ def c2_context_result(page: fitz.Page) -> tuple[int, int, list[str]]:
 
 
 
-def c2_skill_checkbox_result(page: fitz.Page) -> tuple[int, int, list[str]]:
-    """C216: actual source-linked skills have one blank PDF vector paper box.
-
-    Only the first line of an indented `Habilidad` source is eligible;
-    generic standalone skills use an unindented source and are not counted.
-    This is a physical-PDF check, not a count inferred from Kotlin call sites.
-    """
-    words = [
-        w for w in page.get_text("words")
-        if w[4] == "Habilidad" and 90 <= w[1] <= 704
-        and (48 <= w[0] <= 70 or 319 <= w[0] <= 340)  # C323 golden C2 columns
-    ]
-    boxes = [
+def c2_skill_boxes(page: fitz.Page) -> list:
+    """The 7 pt skill-row boxes of the two golden C2 columns (C323)."""
+    return [
         dr["rect"] for dr in page.get_drawings()
         if dr.get("type") == "s"
         and dr.get("width") is not None
         and close(dr["width"], .65, .07)
         and close(dr["rect"].width, 7, .08)
         and close(dr["rect"].height, 7, .08)
-        and any(close(dr["rect"].x0, x, .22) for x in (41.69, 312.96))  # C323 golden C2 columns
+        and any(close(dr["rect"].x0, x, .22) for x in (41.69, 312.96))
     ]
+
+
+def c2_skill_row_names(page: fitz.Page) -> list:
+    """C440: rows have no «Habilidad» prefix; the first word right of each box starts the name."""
+    words = page.get_text("words")
+    names = []
+    for box in c2_skill_boxes(page):
+        middle = (box.y0 + box.y1) / 2
+        row = [w for w in words if box.x1 - .5 <= w[0] < box.x0 + 262
+               and w[1] <= middle <= w[3]]
+        if row:
+            names.append(min(row, key=lambda w: w[0]))
+    return names
+
+
+def c2_skill_checkbox_result(page: fitz.Page) -> tuple[int, int, list[str]]:
+    """C216, C440: each skill row has one vector box and a name beside it.
+
+    This is a physical-PDF check, not a count inferred from Kotlin call sites.
+    """
+    words = c2_skill_row_names(page)
+    boxes = c2_skill_boxes(page)
     matched = 0
     errors: list[str] = []
+    if len(words) != len(boxes):
+        errors.append(f"C216 {len(boxes)} skill boxes but {len(words)} names beside them")
     for w in words:
         x = 41.69 if w[0] < 200 else 312.96
         near = [r for r in boxes if close(r.x0, x, .22)
@@ -345,11 +359,7 @@ def c2_source_skill_right_value_result(page: fitz.Page) -> tuple[int, list[str]]
     words = page.get_text("words")
     matched = 0
     failures: list[str] = []
-    for w in words:
-        if w[4] != "Habilidad" or not (
-            49 < w[0] < 70 or 320 < w[0] < 340
-        ) or not (90 < w[1] < 704):
-            continue
+    for w in c2_skill_row_names(page):
         right_edge = 301.04 if w[0] < 200 else 572.32
         same_row = [v for v in words if abs(v[1] - w[1]) <= .55 and v[0] > w[0]]
         totals = [v for v in same_row if

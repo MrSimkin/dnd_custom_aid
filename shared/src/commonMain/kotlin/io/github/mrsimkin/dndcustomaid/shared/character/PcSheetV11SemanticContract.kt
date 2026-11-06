@@ -23,7 +23,17 @@ data class PcSheetV11Attribute(
     val score: Int,
     val modifier: Int,
     val savingThrowTotal: Int?,
+    /** C440: the real saved state of the save box; never inferred from the total. */
+    val savingThrowProficient: Boolean = false,
 )
+
+private val GOLDEN_SKILL_ORDER: List<SkillKey> = listOf(
+    SkillKey.ATHLETICS,
+    SkillKey.ACROBATICS, SkillKey.SLEIGHT_OF_HAND, SkillKey.STEALTH,
+    SkillKey.ARCANA, SkillKey.HISTORY, SkillKey.INVESTIGATION, SkillKey.NATURE, SkillKey.RELIGION,
+    SkillKey.MEDICINE, SkillKey.PERCEPTION, SkillKey.INSIGHT, SkillKey.SURVIVAL, SkillKey.ANIMAL_HANDLING,
+    SkillKey.DECEPTION, SkillKey.PERFORMANCE, SkillKey.INTIMIDATION, SkillKey.PERSUASION,
+).also { order -> check(order.toSet() == SkillKey.entries.toSet()) }
 
 data class PcSheetV11Skill(
     val builtInKey: SkillKey?,
@@ -120,6 +130,7 @@ object PcSheetV11SemanticMapper {
                 score = sheet.abilityScore(ability),
                 modifier = sheet.abilityModifier(ability),
                 savingThrowTotal = sheet.savingThrowTotal(ability),
+                savingThrowProficient = sheet.savingThrow(ability).proficient,
             )
         }
         val customAttributes = aggregate.successor.customAttributes
@@ -132,9 +143,11 @@ object PcSheetV11SemanticMapper {
                     score = attribute.score,
                     modifier = attribute.modifier,
                     savingThrowTotal = sheet.customSavingThrowTotal(attribute),
+                    savingThrowProficient = attribute.savingThrowProficient,
                 )
             }
-        val builtInSkills = SkillKey.entries.map { key ->
+        // C440: the golden order, attribute by attribute and alphabetical in Spanish.
+        val builtInSkills = GOLDEN_SKILL_ORDER.map { key ->
             PcSheetV11Skill(
                 builtInKey = key,
                 customSkillId = null,
