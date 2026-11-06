@@ -1,6 +1,8 @@
 # Candidato V11 `0.5.0-preqa.9`, build 50900
 
-**Fecha:** 2026-11-06. **Hecha por:** el Worker, que también implementa el renderizador, así que **esto no es la revisión independiente**. G4 sigue sin pasar y este candidato **no se ofrece al propietario** hasta que pase el control final.
+**Fecha:** 2026-11-06. **Hecha por:** el Worker, que también implementa el renderizador, así que **esto no es la revisión independiente**.
+
+**Resultado de la revisión independiente:** no pasa (`ACTA_REVISION_INDEPENDIENTE_PREQA9.md`). Este binario **no se ofrece al propietario**.
 
 ## Identidad
 
@@ -32,7 +34,7 @@ Emulador `Redmi_Note_11_Pro_5G_Proxy`, Android 13, `-read-only -no-snapshot-save
 
 ## PDF generados por ese APK
 
-La comparación es contra el PDF de la misma ficha en el artefacto de CI, en gris a 100 ppp.
+La comparación es contra el PDF de la misma ficha en el artefacto de CI, en gris a 100 ppp, contando solo píxeles con una diferencia de gris mayor que 60. **Por eso «0 píxeles» no significa idénticos:** con un umbral de 8, el revisor independiente mide diferencias invisibles en la hoja (329 en Mara-A), por la ligadura «fi».
 
 | Archivo | Páginas | Frente a CI | SHA-256 |
 |---|---|---|---|

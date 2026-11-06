@@ -191,9 +191,9 @@ Actualizado el 2026-11-06.
 - **Interfaz real**: IN01 e IN06 probados en la pantalla de Desktop (C439) y en la App de Android instalada en un emulador, sin red (`qa/ACTA_ANDROID_EMULADOR_78F3CFE0.md`). Es evidencia previa al candidato: QA03 sigue abierto hasta repetirlo con él. Falta el selector y el portapapeles reales de Desktop.
 - **QA05**: Custom v1 con Mara sigue fallando en este candidato (M50800-02, del 2026-09-28). No es regresión de V11. Reparado aparte en `fix/custom-v1-mara-long-skill-label` (`3c6ede2e`), sin fusionar.
 - **Candidato**: `0.5.0-preqa.9`, build 50900, `87533aa5`, identificado en `qa/ACTA_CANDIDATO_PREQA9.md`. No se ofrece al propietario hasta pasar el control final.
-- **Revisión independiente**: hecha sobre `c6af6cc4`, con hallazgos (ver `qa/HALLAZGOS_REVISION_C6AF6CC4.md`). Debe repetirse sobre el candidato. Las 48 secciones y los 8 golden siguen en NOT_VERIFIED.
-- **Hallazgos abiertos**: F08, solo con muchas clases: el corte puede separar un nombre de su nivel. §3.32 sigue sin demostrar.
-- **Preguntas al propietario**: sin pendientes de esta tanda. Datos solo en App, notas de ataque e índice del Libro quedaron decididos el 2026-11-06. La segunda línea de la cabecera («… / 1») queda para su revisión, porque el propietario se reservó el control de ese ajuste.
+- **Revisión independiente**: hecha sobre `preqa.9`; **no pasa** (`qa/ACTA_REVISION_INDEPENDIENTE_PREQA9.md`, estado en `qa/HALLAZGOS_REVISION_PREQA9.md`). Debe repetirse sobre el siguiente candidato, `0.5.0-preqa.11`, build 51100. Las 48 secciones y los 8 golden siguen en NOT_VERIFIED.
+- **Hallazgos abiertos**: los de `qa/HALLAZGOS_REVISION_PREQA9.md`.
+- **Preguntas al propietario**: las 7 de la revisión de `preqa.9`, de una en una. La segunda línea de la cabecera («… / 1») queda para su revisión, porque se reservó el control de ese ajuste.
 - **G4**: QA01–QA08 y GLB12 sin ejecutar, incluida la regresión de los cuatro exportadores anteriores (QA05) y la generación desde la interfaz real (QA03).
 - **C2, composición**: el golden coloca EQUIPO y TESORO en media página cuando sus nombres son cortos; la App los pone a todo el ancho.
 - **Última página del Libro**: quedan columnas libres sin rejilla NOTAS; el golden no tiene un caso igual.
