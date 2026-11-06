@@ -173,7 +173,7 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 
 Actualizado el 2026-11-05.
 
-- **Control final (`--mode release`)**: sigue FALLANDO. Controles: G1 48/49, G2 89/90, G3 99/101, G4 0/9, todos atados a `9575984a` (run 42132696047). Las 110 reglas siguen en NOT_VERIFIED a nivel global porque exigen candidato con APK y PDF con SHA, salida real de Guardar/Compartir y revisión independiente.
+- **Control final (`--mode release`)**: sigue FALLANDO. Controles: G1 49/49, G2 90/90, G3 101/101, G4 0/9, todos atados a `c6af6cc4` (run 42144675231). Los controles de etapa G1, G2 y G3 pasan; son pruebas de desarrollo con Desktop, no el cumplimiento final. 54 controles G2 reutilizan la prueba de G3 de su regla y lo dicen. Las 110 reglas siguen en NOT_VERIFIED a nivel global porque exigen candidato con APK y PDF con SHA, salida real de Guardar/Compartir y revisión independiente.
 - **Interfaz real**: IN01 e IN06 quedan probados en la pantalla de Desktop (C439). Falta la App Android instalada y el selector y el portapapeles reales: QA03, en G4.
 - **Revisión independiente**: las 48 secciones (`qa/CONCILIACION_D0076_V11.md`) y los 8 golden (`qa/COMPARACION_8_GOLDEN.md`) tienen solo la revisión del implementador. Siguen en NOT_VERIFIED.
 - **G4**: QA01–QA08 y GLB12 sin ejecutar, incluida la regresión de los cuatro exportadores anteriores (QA05) y la generación desde la interfaz real (QA03).
