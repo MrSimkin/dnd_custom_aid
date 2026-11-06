@@ -184,14 +184,14 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 
 ## Pendiente (siguiente)
 
-Actualizado el 2026-11-05.
+Actualizado el 2026-11-06.
 
-- **Control final (`--mode release`)**: sigue FALLANDO. Controles: G1 49/49, G2 90/90, G3 113/117, G4 0/9, atados a `9cd9be1c` (run 42272329391). G3 no pasa por los cuatro hallazgos abiertos C213 a C216. Son pruebas de desarrollo con Desktop, no el cumplimiento final. Los controles G2 que reutilizan la prueba de G3 lo dicen. Las 126 reglas siguen en NOT_VERIFIED a nivel global porque exigen candidato con APK y PDF con SHA, salida real de Guardar/Compartir y revisión independiente.
+- **Control final (`--mode release`)**: sigue FALLANDO. Controles: G1 49/49, G2 90/90, G3 120/120, G4 0/9, atados a `78f3cfe0` (run 42290314300). G1, G2 y G3 pasan. Son pruebas de desarrollo con Desktop, no el cumplimiento final. Los controles G2 que reutilizan la prueba de G3 lo dicen. Las 129 reglas siguen en NOT_VERIFIED a nivel global porque exigen candidato con APK y PDF con SHA, salida real de Guardar/Compartir y revisión independiente.
 - **Interfaz real**: IN01 e IN06 quedan probados en la pantalla de Desktop (C439). Falta la App Android instalada y el selector y el portapapeles reales: QA03, en G4.
 - **Revisión independiente**: hecha sobre `c6af6cc4`, con hallazgos (ver `qa/HALLAZGOS_REVISION_C6AF6CC4.md`). Debe repetirse sobre el candidato. Las 48 secciones y los 8 golden siguen en NOT_VERIFIED.
-- **Hallazgos abiertos**: F05 (panel B), F06 (municiones), F08 (corte), F09 (`VER C2`), F10 (tramos en C2), F11 G-c (títulos de C2), F12 (letra de recursos).
-- **Preguntas al propietario, de una en una**:  P4 del acta. P2 sigue al golden.
+- **Hallazgos abiertos**: F08, solo con muchas clases: el corte puede separar un nombre de su nivel. §3.32 sigue sin demostrar.
+- **Preguntas al propietario**: sin pendientes de esta tanda. Datos solo en App, notas de ataque e índice del Libro quedaron decididos el 2026-11-06. La segunda línea de la cabecera («… / 1») queda para su revisión, porque el propietario se reservó el control de ese ajuste.
 - **G4**: QA01–QA08 y GLB12 sin ejecutar, incluida la regresión de los cuatro exportadores anteriores (QA05) y la generación desde la interfaz real (QA03).
 - **C2, composición**: el golden coloca EQUIPO y TESORO en media página cuando sus nombres son cortos; la App los pone a todo el ancho.
-- **Índice y última página del Libro**: quedan columnas libres sin rejilla NOTAS; el golden no tiene un caso igual.
+- **Última página del Libro**: quedan columnas libres sin rejilla NOTAS; el golden no tiene un caso igual.
 - **P4, nivel que sigue en otra columna**: rótulo «NIVEL n / CONTINUACIÓN» por decisión escrita del propietario (C341), aunque el golden repite el título.
