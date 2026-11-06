@@ -138,17 +138,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
             val source = data.source.sheet
             var c2MarkerUsed = false
-            fun c2Marker(headingKey: String): String {
+            fun c2MarkerPage(headingKey: String): String {
                 c2MarkerUsed = true
                 val page = c2Pages[headingKey]
                 require(page != null || c2Pages.isEmpty()) { "A P1 marker has no C2 row: " + headingKey }
                 // The first pass only measures: same width as any real page number.
-                return page?.let { PcSheetV11ContinuationText.continuesOn(it) } ?: "CONTINÚA EN PÁG. 00"
+                return page?.toString() ?: "00"
             }
+            fun c2Marker(headingKey: String) = "CONTINÚA EN PÁG. " + c2MarkerPage(headingKey)
             val headerNameRoute =
                 io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11HeaderNameRouter.route(
                     sourceName = source.name,
                     availableWidthPt = 398.43f, // C286: golden name x161.57..560.
+                    // C453: a routed name stops before the widest right-hand label (x487).
+                    routedWidthPt = 322f,
                     // C285: measured in the golden name face and size (Garamond 13.4 pt).
                     width = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TextWidth {
                         heroWidthPt(it, 13.4f)
@@ -157,7 +160,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val headerName = if (headerNameRoute.continuation == null) headerNameRoute.paperName
                 else headerNameRoute.paperName.removeSuffix(
                     io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11HeaderNameRouter.NAVIGATION_SUFFIX) +
-                    " / " + c2Marker("c2-heading:p1-overflow")
+                    // Printed on every page, so it says where the name is, not that it continues.
+                    " / NOMBRE EN PÁG. " + c2MarkerPage("c2-heading:p1-overflow")
             val texts = PcSheetV11FlowSourceMapper.from(data)
             // C314: titled notes get one more paper row after the title; the title is
             // drawn 6.47 pt lower, so title-to-text is the golden 16.73 pt.

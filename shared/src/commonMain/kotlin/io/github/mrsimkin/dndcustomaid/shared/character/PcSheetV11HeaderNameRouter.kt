@@ -13,12 +13,13 @@ data class PcSheetV11HeaderNameRoute(
 
 object PcSheetV11HeaderNameRouter {
     /** Reserves the width of the real reference; the renderer prints the real page (C453). */
-    const val NAVIGATION_SUFFIX = " / CONTINÚA EN PÁG. 00"
+    const val NAVIGATION_SUFFIX = " / NOMBRE EN PÁG. 00"
 
     fun route(
         sourceName: String,
         availableWidthPt: Float,
         width: PcSheetV11TextWidth,
+        routedWidthPt: Float = availableWidthPt,
     ): PcSheetV11HeaderNameRoute {
         require(availableWidthPt.isFinite() && availableWidthPt > 0f)
         // The header is physically one line: do not send persisted CR/LF
@@ -31,7 +32,7 @@ object PcSheetV11HeaderNameRouter {
         if (completeWidth <= availableWidthPt && !hasHardBreak) {
             return PcSheetV11HeaderNameRoute(printable, null)
         }
-        require(width.measurePt(NAVIGATION_SUFFIX) <= availableWidthPt) {
+        require(width.measurePt(NAVIGATION_SUFFIX) <= routedWidthPt) {
             "The approved V11 physical header cannot fit even the C2 cue."
         }
 
@@ -39,12 +40,12 @@ object PcSheetV11HeaderNameRouter {
         for (end in 1..printable.length) {
             // All text width decisions use the actual embedded Barlow font.
             val candidate = printable.substring(0, end).trimEnd() + NAVIGATION_SUFFIX
-            if (width.measurePt(candidate) > availableWidthPt) break
+            if (width.measurePt(candidate) > routedWidthPt) break
             longestPrefixEnd = end
         }
         val prefix = printable.substring(0, longestPrefixEnd).trimEnd()
         val paperName = prefix + NAVIGATION_SUFFIX
-        require(width.measurePt(paperName) <= availableWidthPt)
+        require(width.measurePt(paperName) <= routedWidthPt)
         return PcSheetV11HeaderNameRoute(
             paperName = paperName,
             continuation = PcSheetV11FlowItem(

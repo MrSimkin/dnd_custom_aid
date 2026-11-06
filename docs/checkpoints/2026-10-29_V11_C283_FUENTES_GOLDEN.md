@@ -180,7 +180,7 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 | C450 | Sin índice del Libro; datos solo en App | Decisiones del propietario, 2026-11-06. «Sí, quitarla»: el Libro empieza en sus fichas, regla nueva BK10. «No, solo en App» y «Sí, toda la lista»: idiomas, competencias y los demás datos listados no se imprimen, regla nueva GLB14 con prueba sobre PDF real. |
 | C451 | Municiones una sola vez | Aplica D-0076 §3.31 y el golden, sin decisión nueva del propietario. La munición clasificada sale en P1 o, si no cabe, en C2. Deja de repetirse en EQUIPO de P2 y en C2. Sus notas quedan en la App. Regla nueva P130. |
 | C452 | Notas de ataque, títulos y filas de C2 | Decisión del propietario, 2026-11-06: «Sí, solo en App» para las notas de ataque. Títulos de C2 como el golden (C215), habilidad del panel B con su fila (C214), detalles de recursos en 6,1 pt (C216). Cierra esos tres controles. |
-| C453 | Referencias con página real | Aplica D-0076 §3.33. «VER C2» pasa a «CONTINÚA EN PÁG. n», con la página real; esas hojas se dibujan en dos pasadas. Un módulo que sigue en otra hoja de C2 lo avisa en la banda inferior. Cierra C213, y con él los controles G3. |
+| C453 | Referencias con página real | Aplica D-0076 §3.33. «VER C2» pasa a «CONTINÚA EN PÁG. n», o a «NOMBRE EN PÁG. n» en la cabecera de un nombre muy largo, con la página real; esas hojas se dibujan en dos pasadas. Un módulo que sigue en otra hoja de C2 lo avisa en la banda inferior. Cierra C213, y con él los controles G3. |
 
 ## Pendiente (siguiente)
 

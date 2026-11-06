@@ -1400,7 +1400,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val name = "Aldren " + "NOMBREQA ".repeat(20) + "FINNOMBREQA"
             check(aldren.copy(permanent = aldren.permanent.copy(sheet = aldren.permanent.sheet.copy(name = name))), "marker-long-name") { pdf, pages ->
                 val header = p1Region(pdf, 155f, 40f, 410f, 30f)
-                val target = page.find(header)?.groupValues?.get(1)?.toInt()
+                val target = Regex("""/ NOMBRE EN PÁG\. (\d+)""").find(header)?.groupValues?.get(1)?.toInt()
                 assertTrue(target != null, "The name names a page ($variant): $header")
                 assertTrue(pages[target - 1].contains("NOMBRE COMPLETO DEL PERSONAJE"), "The full name is there ($variant).")
             }
@@ -4586,7 +4586,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 assertTrue(c2Text.contains("FINNOMBREQA"))
                 pages.forEachIndexed { index, text ->
-                    assertTrue(Regex("/ CONTINÚA EN PÁG\\. \\d+").containsMatchIn(text),
+                    assertTrue(Regex("/ NOMBRE EN PÁG\\. \\d+").containsMatchIn(text),
                         "Every physical page needs the same navigable one-line name: " +
                             (index + 1))
                 }
@@ -4622,7 +4622,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 pages.forEach { page ->
-                    assertTrue(Regex("/ CONTINÚA EN PÁG\\. \\d+").containsMatchIn(page),
+                    assertTrue(Regex("/ NOMBRE EN PÁG\\. \\d+").containsMatchIn(page),
                         "Every physical header must navigate to the unmodified name.")
                 }
                 val c2Body = pdf.pages.mapNotNull { page ->

@@ -253,4 +253,4 @@ Aplica el golden, sin decisión nueva del propietario: `ATRIBUTOS Y HABILIDADES`
 
 ## Aclaración técnica del Worker — referencias con página real (2026-11-06)
 
-Aplica D-0076 §3.33 y C341, sin decisión nueva del propietario. El nombre largo, los dados de golpe y los espacios que no caben en P1 ya no dicen «VER C2», sino «CONTINÚA EN PÁG. n», con la página física donde siguen. Un módulo que sigue en otra hoja de C2 lo dice en la banda inferior de esa hoja («RECURSOS CONTINÚA EN PÁG. 5»).
+Aplica D-0076 §3.33 y C341, sin decisión nueva del propietario. Los dados de golpe y los espacios que no caben en P1 ya no dicen «VER C2», sino «CONTINÚA EN PÁG. n», con la página física donde siguen. El nombre muy largo se repite en la cabecera de todas las hojas, así que dice «NOMBRE EN PÁG. n» y se detiene antes del rótulo derecho. Un módulo que sigue en otra hoja de C2 lo dice en la banda inferior de esa hoja («RECURSOS CONTINÚA EN PÁG. 5»).
