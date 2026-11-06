@@ -4,8 +4,9 @@
 Checks a deliberately narrow part of the frozen V11 contract: one printed
 level 0..9 and, for levels 1..9, an ESP. physical meter of genuine golden 8.22 pt
 vector squares (C362: 13.04 pt apart, ending 8.22 pt inside the column) on the same
-baseline. C440: an ESP.N G.M label has one square per real slot (none if too many for
-the line; the digits stay); a blank ESP. has the golden three. An ESP.N G.M label means true
+baseline. C446 (owner 2026-11-06): each level has its maximum of squares, 4 3 3 3 4 2 2 1 1,
+or the saved total if higher, up to 6 (none if the label does not fit the line; the digits
+stay). An ESP.N G.M label means true
 persisted capacity/spent; blank ESP. remains blank paper, never synthetic. It cannot establish spell-source completeness,
 visual golden equivalence, Android parity or G4 acceptance.
 """
@@ -105,6 +106,10 @@ def p4_pages(doc):
             if P4_HEADING.search(page.get_text())]
 
 
+# SRD 5.1 and 5.2.1 level 20 row, with the Warlock's four level 5 slots (owner 2026-11-06).
+MAXIMUM_BOXES = {1: 4, 2: 3, 3: 3, 4: 3, 5: 4, 6: 2, 7: 2, 8: 1, 9: 1}
+
+
 def audit_spell_page(page, page_number):
     errors = []
     if abs(page.rect.width - 612) > 0.05 or abs(page.rect.height - 792) > 0.05:
@@ -148,7 +153,13 @@ def audit_spell_page(page, page_number):
             "x": round(x, 2), "y": round(y, 2), "boxes": len(boxes),
             "actual_total": actual_total,
         })
-        allowed = {3} if actual_total is None else {actual_total, 0}
+        row_levels = [int(m.group(1)) for m in (
+            re.fullmatch(r"([1-9])", str(other[4])) for other in page.get_text("words")
+            if column_right is not None and column_right - 168 <= other[0] < x
+            and abs((other[1] + other[3]) / 2 - y) <= 3)
+            if m]
+        most = MAXIMUM_BOXES[row_levels[-1]] if row_levels else 3
+        allowed = {most} if actual_total is None else {max(most, actual_total if actual_total <= 6 else 0), 0}
         if len(boxes) not in allowed:
             errors.append(f"ESP. meter at x={x:.1f}, y={y:.1f} has {len(boxes)} squares, expected {sorted(allowed)}")
     return {"page": page_number, "levels": levels, "meters": meters,

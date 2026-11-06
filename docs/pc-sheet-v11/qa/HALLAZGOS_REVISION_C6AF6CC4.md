@@ -12,7 +12,7 @@ Este documento dice qué se hizo con cada hallazgo. **«Corregido» es la lectur
 
 | Id | Hallazgo | Estado | Qué cambió o qué falta |
 |---|---|---|---|
-| F01 | P4 con 3 casillas fijas | **Corregido**, salvo la pregunta P3 | Un nivel con espacios guardados dibuja una casilla por espacio real. Un nivel sin espacios guardados conserva las 3 del golden hasta que el propietario decida |
+| F01 | P4 con 3 casillas fijas | **Corregido** | Por decisión del propietario (2026-11-06), P4 dibuja las mismas casillas por nivel que P1: 4, 3, 3, 3, 4, 2, 2, 1, 1 |
 | F02 | Salvación competente sin marca | **Corregido** | La casilla muestra ✓ según el dato guardado, en P1 y C2 |
 | F03 | Rótulo con el nombre propio de la fuente | **Corregido** | Una fuente de clase se rotula con el nombre de la clase. No se imprime ningún identificador interno |
 | F04 | P4 ocultaba valores con `SEGÚN FUENTE` | **Corregido** | P4 imprime el valor de cada fuente, hasta tres renglones a 5,5 pt. `SEGÚN FUENTE` queda solo si tampoco así cabe; probado hasta seis fuentes |
@@ -44,4 +44,4 @@ Ahora tienen PDF real conservado y una prueba de lo que pide la decisión: retra
 
 ## Preguntas al propietario
 
-Se hacen de una en una, por página. La lista está en la sección 5 del acta: P2, P3, P4, P9 y P10. Ya están respondidas P8 (casillas al máximo de cada nivel, regla P128), P5 («Sí, línea a mano»), P6 («Nombre y alcance», regla P126) y P7 («Sí, a ATAQUES», regla P127), las tres el 2026-11-06. P1 se resuelve por la jerarquía del contrato y se informa.
+Se hacen de una en una, por página. La lista está en la sección 5 del acta: P4, P9 y P10; P2 sigue al golden. Ya están respondidas P3 («Sí, las mismas», regla P412), P8 (casillas al máximo de cada nivel, regla P128), P5 («Sí, línea a mano»), P6 («Nombre y alcance», regla P126) y P7 («Sí, a ATAQUES», regla P127), las tres el 2026-11-06. P1 se resuelve por la jerarquía del contrato y se informa.

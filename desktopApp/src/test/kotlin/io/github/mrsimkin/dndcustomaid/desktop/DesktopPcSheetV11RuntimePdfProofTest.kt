@@ -1541,9 +1541,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
-    fun c440P4LevelHeadersDrawOneSquarePerRealSlot() {
-        // C440 / F01 (D-0076 3.25-3.26): Mara N1 has 4 slots, N5 has 2; none of them is
-        // pre-marked, and a level with no saved slots keeps the golden's three.
+    fun c446P4LevelHeadersDrawTheSameBoxesAsP1() {
+        // C446 / P412 (owner 2026-11-06, «Sí, las mismas»): whatever Mara has saved, P4 draws
+        // 4, 3, 3, 3, 4, 2, 2, 1, 1 empty squares, one line per header, none pre-marked.
         val mara = sources("03_mara_siete_umbrales_custom_extended.json")
         val slots = mara.permanent.sheet.spellSlots.associateBy { it.level }
         assertEquals(4, slots.getValue(1).totalSlots)
@@ -1560,15 +1560,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(squares.isNotEmpty())
             val text = PDFTextStripper().apply { startPage = p4; endPage = p4 }.getText(pdf)
             assertTrue(text.contains("ESP.2 G.1"))
-            // Squares on one header line: same y, 13.04 pt apart.
-            val byLine = squares.groupBy { it.groupValues[2] }.mapValues { (_, rows) ->
-                rows.map { it.groupValues[1].toFloat() }.sorted()
-            }
-            val meters = byLine.values.filter { xs ->
-                xs.size >= 2 && xs.zipWithNext().all { (a, b) -> kotlin.math.abs(b - a - 13.04f) < 0.02f }
-            }.map { it.size }
-            assertTrue(4 in meters, "Level 1 draws four squares: " + meters)
-            assertTrue(2 in meters, "Level 5 draws two squares: " + meters)
+            // Each header's squares end 8.22 pt inside its column, on its own band.
+            val rights = listOf(207.5f, 389.91f, 572.31f)
+            val meterSquares = squares.map { it.groupValues[1].toFloat() to it.groupValues[2].toFloat() }
+                .filter { (x, _) -> rights.any { right ->
+                    (0..3).any { n -> kotlin.math.abs(x - (right - 16.44f - n * 13.04f)) < 0.03f } } }
+            val total = listOf(4, 3, 3, 3, 4, 2, 2, 1, 1).sum()
+            // Preparation squares sit at the left of a column, never at these positions.
+            assertEquals(total, meterSquares.size, "The maximum squares of N1..N9 on Mara's P4.")
         }
     }
 
@@ -2744,8 +2743,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertTrue(clippedPath(640.91f, 646.91f, x + 6f, x + 174.33f - 6f, x + 174.33f),
                         "Each real P4 magic-source card needs 6pt clipped corners.")
                 }
-                // C362, C440: golden 8.22 pt squares 13.04 pt apart, ending 8.22 pt inside
-                // each column; one per real slot, three on a level with no saved slots.
+                // C362, C446: golden 8.22 pt squares 13.04 pt apart, ending 8.22 pt inside
+                // each column; the same boxes per level as P1.
                 val meterXs = listOf(207.5f, 389.91f, 572.31f).flatMap { right ->
                     (0..9).map { right - 16.44f - it * 13.04f } }
                 val paperSlots = Regex(
@@ -2756,9 +2755,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         meterXs.any { kotlin.math.abs(it - x) < 0.03f }
                 }
                 assertEquals((1..9).sumOf { level ->
-                        proof.semantic.spellSlots.firstOrNull { it.level == level }?.totalSlots ?: 3 }, paperSlots,
-                    "One BLANK vector box per real slot, three on a level with none. " +
-                        "No 0-level or fabricated 10+.") 
+                        io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSlotCapacity.boxes(level, proof.semantic.spellSlots.firstOrNull { it.level == level }?.totalSlots) }, paperSlots,
+                    "The maximum BLANK vector boxes of each level. No 0-level or fabricated 10+.") 
                 assertTrue(Regex("""(?m)/F\d+\s+5\.9\d*\s+Tf""")
                     .findAll(operators).count() >= 9,
                     "P4 must use genuine embedded Noto Sans Display 5.9 pt (golden ESP.) on blank meters.")
@@ -5654,14 +5652,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     generated.semantic.spells.sumOf { spell ->
                         maxOf(1, spell.sources.distinctBy { it.sourceId }.size)
                     }
-                // C440 (D-0076 3.25-3.26): one square per real slot; three blank ones
-                // only on a level with no saved slots.
+                // C446 (owner 2026-11-06): the same boxes per level as P1.
                 val levelMeters = (1..9).sumOf { level ->
-                    generated.semantic.spellSlots.firstOrNull { it.level == level }?.totalSlots ?: 3
+                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSlotCapacity.boxes(level, generated.semantic.spellSlots.firstOrNull { it.level == level }?.totalSlots)
                 }
                 assertEquals(preparationAndPaper + levelMeters, marks,
                     "One golden 8.22 pt preparation square per source/blank row AND " +
-                        "one level-meter square per real slot.")
+                        "the maximum level-meter squares of each level.")
             }
         }
     }

@@ -25,9 +25,8 @@ def specimen(missing_level=None, missing_square=None, extra_meter=False,
                      else "ESP.4 G.2" if level == real_total_level else "ESP.")
             page.insert_text((82 if level == long_level else 110, y),
                              label, fontsize=7)
-            # C440: one square per real slot; too many for the line draws none; a blank
-            # meter draws the golden three.
-            count = 0 if level == long_level else 4 if level == real_total_level else 3
+            # C446: the maximum of the level; a label too long for the line draws none.
+            count = 0 if level == long_level else audit.MAXIMUM_BOXES[level]
             for index in range(count):
                 if missing_square == (level, index):
                     continue
@@ -61,13 +60,13 @@ class PhysicalP4Meters(unittest.TestCase):
             result = audit.audit_document(doc)
         self.assertTrue(any("has 0 squares" in e for e in result["errors"]), result["errors"])
 
-    def test_all_ten_levels_nine_meters_and_27_real_squares(self):
+    def test_all_ten_levels_nine_meters_and_their_maximum_squares(self):
         with specimen() as doc:
             result = audit.audit_document(doc)
         self.assertFalse(result["errors"], result["errors"])
         self.assertEqual(9, result["meter_count"])
 
-    def test_real_source_total_draws_one_square_per_real_slot(self):
+    def test_real_source_total_keeps_the_maximum_of_its_level(self):
         with specimen(real_total_level=1) as doc:
             result = audit.audit_document(doc)
         self.assertFalse(result["errors"], result["errors"])

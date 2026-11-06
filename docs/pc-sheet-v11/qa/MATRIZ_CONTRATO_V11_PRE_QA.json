@@ -4424,7 +4424,7 @@
     {
       "id": "P409",
       "area": "P4",
-      "obligation": "ESP. nivel 1..9 con 9 líneas: una casilla por espacio real; tres casillas manuscritas en un nivel sin espacios guardados",
+      "obligation": "ESP. nivel 1..9 con 9 líneas y el máximo de casillas de cada nivel",
       "authority": "CONTRATO_VISUAL_APROBADO.md",
       "method": "Inspección de 27 marcas",
       "scenarios": "P4 A/B",
@@ -5943,10 +5943,10 @@
     {
       "id": "P412",
       "area": "P4",
-      "obligation": "Un nivel con espacios guardados dibuja una casilla vacía por espacio real, en una línea",
-      "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md §3.25, §3.26",
+      "obligation": "Cada cabecera de nivel de P4 dibuja las mismas casillas vacías que P1 (4, 3, 3, 3, 4, 2, 2, 1, 1), en una línea",
+      "authority": "CONTRATO_VISUAL_APROBADO.md 2026-11-06; docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md §3.25, §3.26",
       "method": "PDF vectores",
-      "scenarios": "4, 3 y 2 espacios",
+      "scenarios": "Con y sin espacios guardados",
       "status": "NOT_VERIFIED",
       "evidence": null,
       "stage_checks": [

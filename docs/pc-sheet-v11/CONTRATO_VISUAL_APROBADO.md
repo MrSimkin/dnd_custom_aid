@@ -204,3 +204,7 @@ El propietario decide **«Sí, línea a mano»**: la App no guarda estos dos cam
 
 - **Regla:** cada nivel de P1 dibuja siempre sus casillas vacías, tenga o no datos: N1 4, N2 3, N3 3, N4 3, N5 4, N6 2, N7 2, N8 1, N9 1. Al lado va el `gastados/total` real (`2/4`) o, sin dato, una línea para escribirlo. Nunca hay casillas premarcadas (regla P128).
 - **Detalles técnicos del Worker (no dichos por el propietario):** el máximo sale de la fila de nivel 20 de las tablas de SRD 5.1 y 5.2.1 (4, 3, 3, 3, 3, 2, 2, 1, 1). N5 es 4 porque el Brujo de nivel 17 o más tiene cuatro espacios de nivel 5 con Magia de Pacto. Un total guardado mayor que el máximo, hasta 6, conserva una casilla por espacio real.
+
+## Aclaración del propietario — casillas de espacios en P4 (2026-11-06)
+
+Preguntado si la página 4 lleva las mismas casillas por nivel que la página 1, el propietario responde **«Sí, las mismas»**. Cada cabecera de nivel de P4 dibuja 4, 3, 3, 3, 4, 2, 2, 1 o 1 casillas vacías, con `ESP.4 G.2` si hay dato o `ESP. ___` si no. Sustituye a las tres casillas del golden y precisa D-0076 §3.25 y §3.26 (regla P412).

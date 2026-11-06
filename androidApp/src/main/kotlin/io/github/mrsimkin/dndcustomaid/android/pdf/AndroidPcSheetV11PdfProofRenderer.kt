@@ -3896,10 +3896,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             }
                             // C219: repeat genuinely persisted P1 total/spent
                             // spell slots on P4's physical SAME-LINE level
-                            // meter, as approved D-0076 §§3.25–3.26: «no asumir número fijo
-                            // de casillas». C440: a level with saved slots draws one empty
-                            // square per real slot, right-aligned where the golden's end. A
-                            // level with none keeps the golden's blank paper meter of three.
+                            // meter, as approved D-0076 §§3.25–3.26. C446 (owner 2026-11-06,
+                            // «Sí, las mismas»): the same boxes per level as P1, right-aligned
+                            // where the golden's end, none pre-marked.
                             if (title.startsWith("P4 - ") &&
                                 cell.sourceKey.startsWith("spell-level:") &&
                                 cell.sourceStartOffset == 0) {
@@ -3933,15 +3932,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     ) * 9f / 1000f
                                     val expandedX = cell.cellPt.leftPt +
                                         headingInkWidth + 8f
-                                    // Too many real slots for one line: the digits stay, the squares go.
-                                    val squares = when {
-                                        actualSlots == null -> 3
-                                        actualSlots.totalSlots <= 0 -> 0
-                                        firstSquareOf(actualSlots.totalSlots) - 5f - expandedX >=
-                                            headerPdfFont.getStringWidth(requireNotNull(fullActualLabel)) *
-                                            labelPt / 1000f -> actualSlots.totalSlots
-                                        else -> 0
-                                    }
+                                    val wantedSquares = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSlotCapacity
+                                        .boxes(level, actualSlots?.totalSlots)
+                                    // A label too long for one line: the digits stay, the squares go.
+                                    val squares = if (fullActualLabel == null ||
+                                        firstSquareOf(wantedSquares) - 5f - expandedX >=
+                                        headerPdfFont.getStringWidth(fullActualLabel) * labelPt / 1000f
+                                    ) wantedSquares else 0
                                     val firstSquareX = firstSquareOf(squares)
                                     val chosen = fullActualLabel?.let { sourceLabel ->
                                         val width = headerPdfFont.getStringWidth(
@@ -3956,8 +3953,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                             else -> null
                                         }
                                     }
-                                    // C362: the blank golden meter «ESP. ___» sits 70.87 pt in.
-                                    val labelX = chosen?.first ?: (cell.cellPt.rightPt - 70.87f)
+                                    // C362: the blank golden meter «ESP. ___» sits 70.87 pt in;
+                                    // C446: further left when four squares need the room.
+                                    val labelX = chosen?.first ?: minOf(cell.cellPt.rightPt - 70.87f,
+                                        firstSquareX - 24.05f)
                                     val label = chosen?.second ?: "ESP."
                                     require(headerPdfFont.getStringWidth(label) *
                                         labelPt / 1000f <= firstSquareX - labelX - 5f) {

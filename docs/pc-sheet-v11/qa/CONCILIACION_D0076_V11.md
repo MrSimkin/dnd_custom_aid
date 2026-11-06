@@ -36,7 +36,7 @@
 | 3.22 | Casilla ACTIVO | RETAIN | P209 | Sin diferencia |
 | 3.23 | P3 con Rasgos a la derecha | SUPERSEDED_BY_V11 (P3 solo narrativa, 2026-10-16) | P302, P303 | Sin diferencia |
 | 3.24 | P4 tres columnas | RETAIN | P402–P406 | Sin diferencia |
-| 3.25 | Espacios en la cabecera de nivel | RETAIN | P408, P409, **P412 (nueva)** | **Mal revisado antes; corregido en C440:** una casilla por espacio real. Falta la pregunta P3 para niveles sin espacios |
+| 3.25 | Espacios en la cabecera de nivel | RETAIN | P408, P409, **P412 (nueva)** | **Mal revisado antes; corregido en C446 por decisión del propietario (2026-11-06):** las mismas casillas por nivel que P1 |
 | 3.26 | Referencia y cabecera en una línea | RETAIN | P409, P410, **P413 (nueva)** | **Mal revisado antes; corregido en C440:** P4 imprime el valor de cada fuente |
 | 3.27 | Notas y última hoja | RETAIN | FIN01–FIN04, CN302 | Sin diferencia |
 | 3.28 | C-N3 | RETAIN | CN302, CN304, **CN305 (nueva)** | **Corregido en C431:** las notas generales salían antes que las tituladas |
