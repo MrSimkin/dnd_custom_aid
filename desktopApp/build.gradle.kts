@@ -22,6 +22,7 @@ dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.pdfbox)
     testImplementation(kotlin("test"))
+    testImplementation(compose.desktop.uiTestJUnit4)
 }
 
 compose.desktop {

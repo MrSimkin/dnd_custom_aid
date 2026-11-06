@@ -1368,6 +1368,46 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c438SavedBackgroundImagesLeaveTheSilhouetteOnP1AB() {
+        // C438 / P306 (owner 2026-11-05, «No, deja la silueta»): images saved in the Trasfondo
+        // tab never reach the PDF. With no assigned portrait, P1 keeps the silhouette.
+        val base = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val pixel = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+        val saved = listOf(
+            io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackgroundImageSlot.PRIMARY to "a7800000-0000-4000-8000-000000000001",
+            io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackgroundImageSlot.SECONDARY to "a7800000-0000-4000-8000-000000000002",
+        ).map { (slot, id) ->
+            io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackgroundImage(Uuid.parse(id), slot, "image/png", pixel)
+        }
+        val withImages = base.copy(permanent = base.permanent.copy(
+            closure = base.permanent.closure.copy(portraitRef = null),
+            successor = base.permanent.successor.copy(backgroundImages = saved),
+        ))
+        fun images(resources: org.apache.pdfbox.pdmodel.PDResources?): Int =
+            resources?.xObjectNames?.sumOf { name ->
+                when (val x = resources.getXObject(name)) {
+                    is org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject -> 1
+                    is org.apache.pdfbox.pdmodel.graphics.form.PDFormXObject -> images(x.resources)
+                    else -> 0
+                }
+            } ?: 0
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val generated = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), withImages,
+            )
+            assertFalse(generated.semantic.portrait.locallyAvailable, "No portrait is taken from them ($variant).")
+            Loader.loadPDF(generated.bytes).use { pdf ->
+                for (index in 0 until pdf.numberOfPages) {
+                    assertEquals(1, images(pdf.getPage(index).resources),
+                        "Page ${index + 1} carries only the header logo ($variant).")
+                }
+                val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
+                assertTrue(p1.contains("RETRATO"), "P1 keeps its portrait frame ($variant).")
+            }
+        }
+    }
+
+    @Test
     fun c431TitledNotesPrintBeforeTheGeneralNotesAB() {
         // C431 / D-0076 3.28: titled notes hold the main area, general notes follow them.
         val source = sources("03_mara_siete_umbrales_custom_extended.json")

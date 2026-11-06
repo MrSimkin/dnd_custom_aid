@@ -75,6 +75,7 @@ jobs:
           python3 scripts/test_audit_v11_golden_geometry.py
           python3 scripts/audit_v11_golden_geometry.py --golden-zip docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip --pdf-dir desktopApp/build/pc-sheet-proofs --report desktopApp/build/v11-golden-geometry.json
           python3 scripts/test_v11_renderer_full_parity.py
+          python3 scripts/test_v11_export_offline.py
           python3 scripts/test_audit_v11_golden_palette.py
           python3 scripts/audit_v11_golden_palette.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-golden-palette.json
           python3 scripts/test_audit_v11_p1_golden_rhythm.py

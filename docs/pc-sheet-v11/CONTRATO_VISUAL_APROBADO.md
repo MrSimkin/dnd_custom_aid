@@ -181,3 +181,7 @@ El propietario decide **seguir el golden** («seguir el golden»): en P1, ATAQUE
 ## Aclaración del propietario — Dados de Golpe (2026-11-05)
 
 El propietario decide **«Total del nivel»**: la tarjeta DADOS DE GOLPE de P1 imprime el nivel de cada clase con su dado (Guerrero 5 → `5d10`; multiclase `5d10 / 3d6`), como el golden, y no los dados que le quedan. Los dados restantes siguen guardados en la App y no se imprimen en la hoja. Aplica D-0076 §3.7 (regla P123).
+
+## Aclaración del propietario — Imágenes del Trasfondo y retrato (2026-11-05)
+
+El propietario decide **«No, deja la silueta»**: las imágenes principal y secundaria de la pestaña Trasfondo se quedan en la App y el PDF no las usa. El retrato de P1 sale solo del retrato asignado al personaje; sin él, P1 imprime la silueta aunque el personaje tenga imágenes guardadas en Trasfondo. Resuelve D-0076 §3.45 (regla P306).

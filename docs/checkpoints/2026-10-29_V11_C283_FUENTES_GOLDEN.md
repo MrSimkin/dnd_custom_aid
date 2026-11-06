@@ -166,15 +166,16 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 | C434–C435 | Comparación de los 8 golden | `scripts/report_v11_golden_cases.py` compara cada forma fija de los ocho PDF golden con PDF reales de la App: P1, P2, P3, P4 y NOTAS final coinciden, una vez dado a las tarjetas de P4 su relleno blanco del golden (C434). C2, C-N3 y Libro quedan en revisión visual. Detalle y diferencias con su motivo en `docs/pc-sheet-v11/qa/COMPARACION_8_GOLDEN.md`. Es revisión del implementador: los ocho casos siguen en NOT_VERIFIED. Nueva prueba compartida para P306; otra para P113 e IN08. |
 | C436 | Toda la evidencia sobre un mismo commit | Cada control en PASS se volvió a atar a `39ffceeb`, comprobando que sus pruebas pasan en ese código; ninguno quedó sin prueba. P105 cambia de prueba: la fila aprobada P104 sustituyó a su microajuste. 53 controles G2 pasan a PASS con la misma prueba de PDF real que su G3, como admite la compuerta: **no son pruebas nuevas ni de código compartido**. Textos de evidencia que ya no describían la salida (P111, P113, P203, P206, P405, P409, C206) corregidos. |
 | C437 | Dados de Golpe: total del nivel | Decisión del propietario, 2026-11-05: «Total del nivel». La tarjeta imprime el nivel de cada clase con su dado (`5d10`; multiclase `5d10 / 3d6`), no los dados que quedan. Regla nueva P123, anotada en el contrato. Prueba `c437HitDicePrintTheLevelTotalNotTheDiceLeftAB`; la de 16 clases se adapta. Suite, compartidas, 16 auditorías y 102 trampas en verde. |
+| C438 | Imágenes del Trasfondo: silueta | Decisión del propietario, 2026-11-05: «No, deja la silueta». El PDF no cambia. Queda en el contrato, en la conciliación y en P306. Prueba nueva `c438SavedBackgroundImagesLeaveTheSilhouetteOnP1AB` sobre PDF real, A y B. |
+| C439 | Botones reales de Desktop | Prueba nueva `DesktopPcSheetV11ExportUiTest` sobre la pantalla real del PC Manager: pulsa Guardar y Compartir, en A y B, con todos los servicios alojados apuntando a un puerto cerrado, y compara cada PDF con su variante. La familia anterior conserva su botón y su archivo. Sustituye solo el selector de archivos y el portapapeles, por no haber pantalla en la prueba. `scripts/test_v11_export_offline.py` revisa que la ruta de exportación no use red y que Android ofrezca OFF, A y B. No ejecuta la App Android instalada. |
 
 ## Pendiente (siguiente)
 
 Actualizado el 2026-11-05.
 
 - **Control final (`--mode release`)**: sigue FALLANDO. Controles: G1 48/49, G2 89/90, G3 99/101, G4 0/9, todos atados a `9575984a` (run 42132696047). Las 110 reglas siguen en NOT_VERIFIED a nivel global porque exigen candidato con APK y PDF con SHA, salida real de Guardar/Compartir y revisión independiente.
-- **Abiertos de interfaz**: IN01 (G2, G3) e IN06 (G1, G3) exigen las acciones reales en Android o Desktop.
+- **Interfaz real**: IN01 e IN06 quedan probados en la pantalla de Desktop (C439). Falta la App Android instalada y el selector y el portapapeles reales: QA03, en G4.
 - **Revisión independiente**: las 48 secciones (`qa/CONCILIACION_D0076_V11.md`) y los 8 golden (`qa/COMPARACION_8_GOLDEN.md`) tienen solo la revisión del implementador. Siguen en NOT_VERIFIED.
-- **Pregunta al propietario**: las dos imágenes del Trasfondo como retrato (§3.45).
 - **G4**: QA01–QA08 y GLB12 sin ejecutar, incluida la regresión de los cuatro exportadores anteriores (QA05) y la generación desde la interfaz real (QA03).
 - **C2, composición**: el golden coloca EQUIPO y TESORO en media página cuando sus nombres son cortos; la App los pone a todo el ancho.
 - **Índice y última página del Libro**: quedan columnas libres sin rejilla NOTAS; el golden no tiene un caso igual.

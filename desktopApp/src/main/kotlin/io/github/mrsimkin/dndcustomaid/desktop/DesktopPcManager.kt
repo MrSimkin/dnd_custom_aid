@@ -218,6 +218,9 @@ internal fun DesktopPcManagerScreen(
     hostedController: DesktopHostedCampaignAdministrationController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
+    // The two operating-system dialogs; a test without a display replaces them.
+    chooseSaveTarget: (String) -> File? = ::choosePcSheetSaveTarget,
+    copyFileToClipboard: ((File) -> Unit)? = null,
 ) {
     var refreshVersion by remember { mutableStateOf(0) }
     var query by remember { mutableStateOf("") }
@@ -234,6 +237,7 @@ internal fun DesktopPcManagerScreen(
     var v11ProofVariant by remember(selectedId) { mutableStateOf(PcSheetV11Variant.A) }
     var exportBusy by remember { mutableStateOf(false) }
     val exportService = remember { DesktopPcSheetExportService() }
+    val deliverToClipboard = copyFileToClipboard ?: exportService::copyFileToClipboard
     val coroutineScope = rememberCoroutineScope()
 
     if (activeCampaign == null) {
@@ -345,7 +349,7 @@ internal fun DesktopPcManagerScreen(
                         .orEmpty()
 
                 fun savePcSheetPdf() {
-                    val target = choosePcSheetSaveTarget(
+                    val target = chooseSaveTarget(
                         exportService.suggestedFileName(
                             selectedDetails.character.name,
                             exportOptions.visualFamily,
@@ -392,7 +396,7 @@ internal fun DesktopPcManagerScreen(
                                     characterName = selectedDetails.character.name,
                                 )
                             }
-                            exportService.copyFileToClipboard(shareFile)
+                            deliverToClipboard(shareFile)
                             statusMessage =
                                 "PDF copiado al portapapeles como archivo; puedes pegarlo en correo, chat o destino compatible." +
                                     exportNoticeText(generated)
@@ -406,7 +410,7 @@ internal fun DesktopPcManagerScreen(
                 }
 
                 fun saveV11ProofPdf() {
-                    val target = choosePcSheetSaveTarget(
+                    val target = chooseSaveTarget(
                         exportService.suggestedV11ProofFileName(
                             selectedDetails.character.name, v11ProofVariant,
                         ),
@@ -461,7 +465,7 @@ internal fun DesktopPcManagerScreen(
                                     proof, selectedDetails.character.name,
                                 )
                             }
-                            exportService.copyFileToClipboard(file)
+                            deliverToClipboard(file)
                             statusMessage = "PDF de PRUEBA INTERNA copiado como archivo; todavía NO aprobado."
                             onQaEvent("PC Manager: PDF V11 interno compartido para " + selectedDetails.character.id)
                         } catch (error: Throwable) {

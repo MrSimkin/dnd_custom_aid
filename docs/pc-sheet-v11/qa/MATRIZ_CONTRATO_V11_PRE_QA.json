@@ -3872,10 +3872,10 @@
     {
       "id": "P306",
       "area": "P3",
-      "obligation": "No imprimir imágenes de Trasfondo; dos opciones de imagen son retrato P1",
+      "obligation": "No imprimir imágenes de Trasfondo; sin retrato asignado P1 imprime la silueta (propietario, 2026-11-05)",
       "authority": "docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md",
       "method": "PDF imágenes",
-      "scenarios": "Dos retratos",
+      "scenarios": "Imágenes guardadas sin retrato",
       "status": "NOT_VERIFIED",
       "evidence": null,
       "stage_checks": [
@@ -3918,8 +3918,8 @@
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "PASS",
           "evidence": {
-            "test_name": "c393NoPagePrintsAnImageOtherThanTheHeaderLogoAB",
-            "test_result": "PASS on real App PDFs (Ilyra B with Libro, Mara A): every page, P3 included, carries exactly one image, the header logo, nested forms counted.",
+            "test_name": "c393NoPagePrintsAnImageOtherThanTheHeaderLogoAB; c438SavedBackgroundImagesLeaveTheSilhouetteOnP1AB",
+            "test_result": "PASS on real App PDFs: every page, P3 included, carries only the header logo, also for a sheet with primary and secondary background images saved and no portrait, whose P1 keeps the silhouette frame.",
             "source_commit": "9575984ab3125c75521fa812fceee584d09cb59c",
             "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42132696047",
             "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42132696047/artifacts/13463853708",

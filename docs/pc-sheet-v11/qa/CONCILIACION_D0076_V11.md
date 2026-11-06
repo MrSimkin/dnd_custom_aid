@@ -54,7 +54,7 @@
 | 3.42 | Equipo Especial vacío | RETAIN | P210 | El golden trae 8 rótulos; prevalece la decisión escrita |
 | 3.43 | P2 toda vacía | RETAIN | P211 | Sin diferencia |
 | 3.44 | Sin notas, sin C-N3 | RETAIN | CN301 | Sin diferencia |
-| 3.45 | Sin imágenes en P3 | RETAIN | P306 | Las dos «opciones de imagen» del retrato dependen de la App, no del PDF |
+| 3.45 | Sin imágenes en P3 | RETAIN; «dos opciones para el retrato» SUPERSEDED (propietario, 2026-11-05) | P306 | **Decidido por el propietario (2026-11-05):** las imágenes del Trasfondo no van al PDF; sin retrato asignado, P1 imprime la silueta |
 | 3.46 | Libro en dos columnas | RETAIN | BK03 | Sin diferencia |
 | 3.47 | Ficha esencial | RETAIN; posición de NIVEL SUPERSEDED por el golden | BK03, BK06 | Sin diferencia |
 | 3.48 | Ficha unida si cabe | RETAIN | BK04, BK05 | Sin diferencia |
@@ -66,9 +66,9 @@
 - **CN305:** las notas tituladas van antes que las generales (§3.28).
 - **P123:** Dados de Golpe imprime el total del nivel, por decisión del propietario (§3.7).
 
-## Lo que necesita una decisión del propietario
+## Decisiones del propietario tras la conciliación
 
-**Las dos imágenes del Trasfondo (§3.45).** El propietario dijo que «las imágenes son las dos opciones posibles para el retrato». La App las guarda en la pestaña Trasfondo como imagen principal y secundaria, y el PDF no las usa: el retrato sale solo de `portraitRef`. Un PJ con esas imágenes y sin `portraitRef` imprime la silueta. Falta decidir si el retrato debe tomarlas y cuál por defecto.
+**Las dos imágenes del Trasfondo (§3.45).** El propietario había dicho que «las imágenes son las dos opciones posibles para el retrato». Preguntado el 2026-11-05, decide «No, deja la silueta»: el retrato sale solo de `portraitRef` y un PJ con imágenes guardadas y sin `portraitRef` imprime la silueta.
 
 ## Lo que no cubre este documento
 
