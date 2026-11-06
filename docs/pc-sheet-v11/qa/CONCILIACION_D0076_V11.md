@@ -13,7 +13,7 @@
 | § | Tema | Disposición | Regla o decisión que la cubre | Hallazgo |
 |---|---|---|---|---|
 | 3.1 | Logo y nombre en toda página | RETAIN; posición SUPERSEDED (misma línea) | GLB03 | Sin diferencia |
-| 3.2 | Elementos de la cabecera | RETAIN | P102 | La App no guarda jugador ni alineamiento: se imprimen como línea para escribir, sin inventar. Queda visible para el propietario |
+| 3.2 | Elementos de la cabecera | RETAIN | P102 | La App no guarda jugador ni alineamiento: se imprimen como línea para escribir, sin inventar. **Confirmado por el propietario (2026-11-06)** |
 | 3.3 | Retrato, modos, silueta | RETAIN; «cuadrado» SUPERSEDED por el marco del golden | IN04, IN05 | Sin diferencia |
 | 3.4 | Jerarquía y campos | RETAIN; reparto 60/40 SUPERSEDED por el golden | P102, **P121 (nueva)** | **Corregido en C432:** la subraza guardada no se imprimía. **Corregido en C440:** multiclase con `/` |
 | 3.5 | Variantes A y B | RETAIN; «lista separada de salvaciones» SUPERSEDED (fila de atributo, P104) | P106, P107 | Sin diferencia |

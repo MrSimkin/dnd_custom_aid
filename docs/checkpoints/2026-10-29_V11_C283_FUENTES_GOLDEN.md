@@ -181,7 +181,7 @@ Actualizado el 2026-11-05.
 - **Interfaz real**: IN01 e IN06 quedan probados en la pantalla de Desktop (C439). Falta la App Android instalada y el selector y el portapapeles reales: QA03, en G4.
 - **Revisión independiente**: hecha sobre `c6af6cc4`, con hallazgos (ver `qa/HALLAZGOS_REVISION_C6AF6CC4.md`). Debe repetirse sobre el candidato. Las 48 secciones y los 8 golden siguen en NOT_VERIFIED.
 - **Hallazgos abiertos**: F05 (panel B), F06 (municiones), F08 (corte), F09 (`VER C2`), F10 (tramos en C2), F11 G-c (títulos de C2), F12 (letra de recursos).
-- **Preguntas al propietario, de una en una**: P2 a P5 y P8 a P10 del acta.
+- **Preguntas al propietario, de una en una**: P2 a P4 y P8 a P10 del acta.
 - **G4**: QA01–QA08 y GLB12 sin ejecutar, incluida la regresión de los cuatro exportadores anteriores (QA05) y la generación desde la interfaz real (QA03).
 - **C2, composición**: el golden coloca EQUIPO y TESORO en media página cuando sus nombres son cortos; la App los pone a todo el ancho.
 - **Índice y última página del Libro**: quedan columnas libres sin rejilla NOTAS; el golden no tiene un caso igual.

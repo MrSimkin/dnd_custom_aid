@@ -193,3 +193,7 @@ El propietario decide **«Nombre y alcance»**: la primera columna de ATAQUES im
 ## Aclaración del propietario — entradas con bono en ATAQUES (2026-11-06)
 
 El propietario decide **«Sí, a ATAQUES»**: toda entrada de combate con bono de ataque va a la tabla ATAQUES, en su orden, sea cual sea su tipo de acción; lo que no quepa en P1 sigue en la tabla de ATAQUES de C2. Las entradas sin bono y de tipo distinto a Ataque siguen en ACCIONES de C2. La fila no indica el tipo de acción, porque ATAQUES no tiene esa columna. Aplica D-0076 §3.8 (regla P127).
+
+## Aclaración del propietario — JUGADOR y ALINEAMIENTO (2026-11-06)
+
+El propietario decide **«Sí, línea a mano»**: la App no guarda estos dos campos y P1 imprime una línea para escribirlos a mano. Los textos del golden en esas tarjetas son datos de ejemplo. No se agregan campos a la App por este motivo.
