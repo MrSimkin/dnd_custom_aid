@@ -189,3 +189,7 @@ El propietario decide **«No, deja la silueta»**: las imágenes principal y sec
 ## Aclaración del propietario — alcance en ATAQUES de P1 (2026-11-06)
 
 El propietario decide **«Nombre y alcance»**: la primera columna de ATAQUES imprime `Espada larga / 5 pies` cuando cabe en la fila. Se aparta a sabiendas del golden, que imprime solo el nombre, y precisa D-0076 §3.8. Si nombre y alcance no caben juntos, la fila imprime el nombre y el alcance sigue una sola vez en C2 (regla P126).
+
+## Aclaración del propietario — entradas con bono en ATAQUES (2026-11-06)
+
+El propietario decide **«Sí, a ATAQUES»**: toda entrada de combate con bono de ataque va a la tabla ATAQUES, en su orden, sea cual sea su tipo de acción; lo que no quepa en P1 sigue en la tabla de ATAQUES de C2. Las entradas sin bono y de tipo distinto a Ataque siguen en ACCIONES de C2. La fila no indica el tipo de acción, porque ATAQUES no tiene esa columna. Aplica D-0076 §3.8 (regla P127).

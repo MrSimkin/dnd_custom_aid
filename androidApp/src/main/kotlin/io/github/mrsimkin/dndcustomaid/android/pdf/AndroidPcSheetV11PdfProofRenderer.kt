@@ -1079,8 +1079,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // P1 mandatory mechanics: no invented values for absent spell slots.
             // Real attacks receive three fields (attack/range, narrow bonus, damage).
             // Rows whose actual measured text will not fit move intact into C2.
+            // C443 (owner 2026-11-06): any entry with an attack bonus is an ATAQUES row.
             val attackRows = data.combatEntries.filter {
-                it.type == io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK
+                io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11AttackEntries.isAttackRow(it)
             }
             // Shared three-column grammar of the golden C2 ATAQUES table (C323).
             val attackLabelWidth = 121f
@@ -4361,8 +4362,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // prints the three columns on those lines. Notes follow in full
                 // width. Nothing is truncated.
                 val actionEntries = data.combatEntries
-                    .filter { it.id !in p1AttackIds && it.type !=
-                        io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK }
+                    .filter { !io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11AttackEntries.isAttackRow(it) }
                 fun wrapCell(text: String, width: Float): List<String> {
                     val lines = mutableListOf<String>()
                     var current = ""

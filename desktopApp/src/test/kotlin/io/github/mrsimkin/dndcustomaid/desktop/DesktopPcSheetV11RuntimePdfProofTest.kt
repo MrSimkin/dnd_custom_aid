@@ -1093,7 +1093,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                             minOf(s.x0, s.x1) >= gx0 - 0.05f && maxOf(s.x0, s.x1) <= gx1 + 0.05f }
                         val vertical = mine.filter { kotlin.math.abs(it.x0 - it.x1) < 0.01f }
                         val horizontal = mine.filter { kotlin.math.abs(it.y0 - it.y1) < 0.01f }
-                        assertTrue(vertical.size >= 3 && horizontal.size >= 3,
+                        // Inner rules only: a three-row grid in a small gap has two horizontals (C443).
+                        assertTrue(vertical.size >= 3 && horizontal.size >= 2,
                             "NOTAS at ($labelX, $labelY) has a grid on page ${index + 1} ($variant).")
                         val vLengths = vertical.map { kotlin.math.abs(it.y1 - it.y0) }
                         val hLengths = horizontal.map { kotlin.math.abs(it.x1 - it.x0) }
@@ -1381,6 +1382,32 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c443AnyEntryWithAnAttackBonusIsAnAttackRowAB() {
+        // C443 / P127 (owner 2026-11-06, «Sí, a ATAQUES»): Mara's bonus actions join ATAQUES
+        // in source order; the entries with no bonus stay in ACCIONES.
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val proof = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), mara)
+            Loader.loadPDF(proof.bytes).use { pdf ->
+                val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1; sortByPosition = true }.getText(pdf)
+                val rows = listOf("Técnica 1 — Corte de fase / 60 pies", "Técnica 3 — Ancla causal / 60 pies",
+                    "Técnica 5 — Corte de fase / 60 pies", "Técnica 7 — Ancla causal / 60 pies")
+                rows.zipWithNext().forEach { (a, b) ->
+                    assertTrue(p1.indexOf(a) in 0 until p1.indexOf(b), "$a before $b, on P1 ($variant).")
+                }
+                assertTrue(p1.contains("4d6 + 4 daño etérico"), "Its damage prints on the row ($variant).")
+                val rest = (2..pdf.numberOfPages).joinToString(" ") { page ->
+                    PDFTextStripper().apply { startPage = page; endPage = page }.getText(pdf)
+                }.replace(Regex("""\s+"""), " ")
+                assertFalse(rest.contains("Bono +8"), "It is not repeated as an action ($variant).")
+                assertTrue(rest.contains("Técnica 2 — Pulso inverso"), "No bonus: it stays in ACCIONES ($variant).")
+                assertTrue(rest.contains("NOTAS DEL ATAQUE Técnica 3"), "Its notes continue in C2 ($variant).")
+            }
+        }
+    }
+
+    @Test
     fun c441CasesTheReviewCouldNotSeeNowHaveARealPdfAB() {
         // C441: the independent review found no PDF for these decisions. Each one now has
         // a preserved PDF and a check of what the decision asks.
@@ -1400,7 +1427,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             aldren.copy(permanent = aldren.permanent.copy(sheet = changed))
         // §3.38: no attacks keep the ATAQUES module with its writable rows.
         val noAttacks = with(sheet.copy(combatEntries = sheet.combatEntries.filter {
-            it.type != io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK }))
+            !io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11AttackEntries.isAttackRow(it) }))
         // §3.15: more than 20 marks print «____ / X».
         val ammoIds = aldren.permanent.closure.inventoryUsage.filter {
             it.kind == io.github.mrsimkin.dndcustomaid.shared.character.CharacterConsumableKind.AMMUNITION
@@ -8688,9 +8715,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val c2Text = c2Indices.joinToString("\n") { pages[it] }
                 assertTrue(c2Text.contains("Reserva 3"),
                     "Group context may not remove real Mara resource records.")
-                assertEquals(1,
-                    resourceCaption.findAll(c2Text).count(),
-                    "A physical C2 source-group header must not duplicate itself.")
+                // C443: the group may restart in more than one column, once each.
+                assertTrue(resourceCaption.findAll(c2Text).count() >= 1,
+                    "A continued group carries its caption.")
+                for (index in c2Indices) {
+                    assertTrue(resourceCaption.findAll(pages[index]).count() <= 1,
+                        "A physical C2 source-group header must not duplicate itself on a page.")
+                }
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
             }
         }

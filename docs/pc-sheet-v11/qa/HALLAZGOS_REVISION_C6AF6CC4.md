@@ -44,4 +44,4 @@ Ahora tienen PDF real conservado y una prueba de lo que pide la decisión: retra
 
 ## Preguntas al propietario
 
-Se hacen de una en una, por página. La lista está en la sección 5 del acta: P2, P3, P4, P5, P7, P8, P9 y P10. P6 ya está respondida. P1 se resuelve por la jerarquía del contrato y se informa.
+Se hacen de una en una, por página. La lista está en la sección 5 del acta: P2, P3, P4, P5, P8, P9 y P10. P6 y P7 ya están respondidas: P7, «Sí, a ATAQUES» (2026-11-06), regla P127. P1 se resuelve por la jerarquía del contrato y se informa.

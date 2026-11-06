@@ -19,7 +19,7 @@
 | 3.5 | Variantes A y B | RETAIN; «lista separada de salvaciones» SUPERSEDED (fila de atributo, P104) | P106, P107 | Sin diferencia |
 | 3.6 | Atributos y habilidades propios | RETAIN | P108, P109, C204 | **Corregido en C420:** en B las habilidades propias iban a C2 con filas libres en el panel |
 | 3.7 | Combate y supervivencia | RETAIN; PV temporales SUPERSEDED (2026-10-28) | P110, **P123 (nueva)** | **Corregido en C437 por decisión del propietario (2026-11-05):** Dados de Golpe imprime el total del nivel (Guerrero 5 → `5d10`), no los que quedan |
-| 3.8 | Ataques | RETAIN; alcance PRECISADO (2026-11-06) | P111, P119, P120, **P126 (nueva)** | **Mal revisado antes.** El alcance va junto al nombre **por decisión del propietario (2026-11-06)**, regla P126. Ya no se repite en C2 |
+| 3.8 | Ataques | RETAIN; alcance PRECISADO (2026-11-06) | P111, P119, P120, **P126, P127 (nuevas)** | **Mal revisado antes.** El alcance va junto al nombre **por decisión del propietario (2026-11-06)**, regla P126. Ya no se repite en C2 |
 | 3.9 | Rasgos sin descripción | RETAIN | RSG01–RSG06 | Sin diferencia |
 | 3.10 | Reparto Ataques/Rasgos | SUPERSEDED_BY_V11 (P112, 2026-11-03: filas fijas del golden) | P112 | Sin diferencia |
 | 3.11 | Lanzamiento de Conjuros | RETAIN; «casillas siempre» SUPERSEDED (2026-10-26 «mínimo 0»; 2026-10-28 «una por espacio real») | P113–P116 | Conflicto resuelto a favor de lo posterior. La App no tiene dato de reglas épicas: la fila 10–12 no puede activarse; una fila con espacios ≥10 guardados va a C2 |
