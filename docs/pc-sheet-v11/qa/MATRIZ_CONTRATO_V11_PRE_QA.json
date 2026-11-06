@@ -1981,7 +1981,7 @@
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "PASS",
           "evidence": {
-            "test_name": "c360P1FollowsTheGoldenVerticalRhythmInBothVariants; c375P1AttacksStayASummaryAndTheirNotesContinueWholeInC2AB",
+            "test_name": "c360P1FollowsTheGoldenVerticalRhythmInBothVariants; c375P1AttacksStayASummaryAB",
             "test_result": "Composition measured on the real renderer, with the same test as this rule's G3; not a separate shared-code proof. PASS on real App PDFs (A and B): ATAQUES and RASGOS keep the fixed golden cartelas and rows the owner chose (5 attack rows, 7 x 2 trait rows) without pushing either module off P1; spare rows stay writable and the rest continues in C2.",
             "source_commit": "9cd9be1c284f3e5d8ea9121fa4c14c9e8a5fbc53",
             "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42272329391",
@@ -1998,7 +1998,7 @@
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "PASS",
           "evidence": {
-            "test_name": "c360P1FollowsTheGoldenVerticalRhythmInBothVariants; c375P1AttacksStayASummaryAndTheirNotesContinueWholeInC2AB",
+            "test_name": "c360P1FollowsTheGoldenVerticalRhythmInBothVariants; c375P1AttacksStayASummaryAB",
             "test_result": "PASS on real App PDFs (A and B): ATAQUES and RASGOS keep the fixed golden cartelas and rows the owner chose (5 attack rows, 7 x 2 trait rows) without pushing either module off P1; spare rows stay writable and the rest continues in C2.",
             "source_commit": "9cd9be1c284f3e5d8ea9121fa4c14c9e8a5fbc53",
             "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42272329391",
@@ -2389,8 +2389,8 @@
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "PASS",
           "evidence": {
-            "test_name": "c375P1AttacksStayASummaryAndTheirNotesContinueWholeInC2AB",
-            "test_result": "Composition measured on the real renderer, with the same test as this rule's G3; not a separate shared-code proof. PASS on real App PDFs (Mara A and B): the P1 ATAQUES box prints at most its five rows and never an attack note; every long note still prints whole in C2.",
+            "test_name": "c375P1AttacksStayASummaryAB",
+            "test_result": "Composition measured on the real renderer, with the same test as this rule's G3; not a separate shared-code proof. PASS on real App PDFs (Mara A and B): the P1 ATAQUES box prints at most its five rows and never an attack note, and attack notes stay in the App (owner 2026-11-06).",
             "source_commit": "9cd9be1c284f3e5d8ea9121fa4c14c9e8a5fbc53",
             "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42272329391",
             "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42272329391/artifacts/13532546247",
@@ -2406,8 +2406,8 @@
           "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
           "status": "PASS",
           "evidence": {
-            "test_name": "c375P1AttacksStayASummaryAndTheirNotesContinueWholeInC2AB",
-            "test_result": "PASS on real App PDFs (Mara A and B): the P1 ATAQUES box prints at most its five rows and never an attack note; every long note still prints whole in C2.",
+            "test_name": "c375P1AttacksStayASummaryAB",
+            "test_result": "PASS on real App PDFs (Mara A and B): the P1 ATAQUES box prints at most its five rows and never an attack note, and attack notes stay in the App (owner 2026-11-06).",
             "source_commit": "9cd9be1c284f3e5d8ea9121fa4c14c9e8a5fbc53",
             "test_run_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42272329391",
             "pdf_artifact": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42272329391/artifacts/13532546247",
@@ -6187,7 +6187,7 @@
     {
       "id": "C214",
       "area": "C2",
-      "obligation": "ABIERTO: una habilidad que desborda el panel B a C2 lleva la fila del golden",
+      "obligation": "Una habilidad que desborda el panel B a C2 lleva la fila del golden",
       "authority": "CONTRATO_VISUAL_APROBADO.md 2026-10-28; golden",
       "method": "PDF",
       "scenarios": "B con muchas habilidades",
@@ -6206,7 +6206,7 @@
     {
       "id": "C215",
       "area": "C2",
-      "obligation": "ABIERTO: títulos de C2 como los del golden, sin jerga técnica",
+      "obligation": "Títulos de C2 como los del golden, sin jerga técnica",
       "authority": "CONTRATO_VISUAL_APROBADO.md y golden V11",
       "method": "PDF texto",
       "scenarios": "Todos los módulos C2",
@@ -6225,7 +6225,7 @@
     {
       "id": "C216",
       "area": "C2",
-      "obligation": "ABIERTO: recuperación, fuente y notas de recursos en letra pequeña",
+      "obligation": "Recuperación, fuente y notas de recursos en letra pequeña",
       "authority": "CONTRATO_VISUAL_APROBADO.md 2026-10-28",
       "method": "PDF fuente",
       "scenarios": "Recursos",

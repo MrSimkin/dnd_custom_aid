@@ -167,6 +167,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val c2ActionX = listOf(0f, 104f, 158f)
             val c2ActionWidths = listOf(100f, 50f, c2ActionColumn - 158f - 4f)
             val c2ResourceTracks = mutableMapOf<String, Triple<Int, Int, Int>>()
+            val c2ResourceDetails = mutableMapOf<String, Int>()
             val c2SkillTraining = mutableMapOf<String, String>()
             // C240: spellbook card heading length and inline NIVEL label per card.
             val bookHeadingEnds = mutableMapOf<String, Int>()
@@ -1585,7 +1586,6 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 it.id !in p1AttackIds && attackFitsTableRow(it)
             }.associateBy { "combat:row:" + it.id }
             val extraCombatData = buildList {
-                addAll(p1CombatRoutes.mapNotNull { it.continuation })
                 c2AttackTableRows.forEach { (key, attack) ->
                     add(PcSheetV11FlowItem(key, p1AttackLabel(attack), keepTogetherIfFits = true))
                 }
@@ -1597,8 +1597,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             "ATAQUE " + attack.name +
                                 (attack.rangeText?.let { " | ALCANCE " + it } ?: "") +
                                 (attack.attackModifier?.let { " | BONO " + it } ?: "") +
-                                " | DAÑO " + attack.damageEffect +
-                                (attack.notes?.let { " | NOTAS " + it } ?: ""),
+                                " | DAÑO " + attack.damageEffect,
                             keepTogetherIfFits = true,
                         ))
                     } else {
@@ -1608,23 +1607,18 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 "ALCANCE "+attack.name+": "+attack.rangeText,
                                 keepTogetherIfFits=true))
                         }
-                        attack.notes?.takeIf { it.isNotBlank() }?.let { notes ->
-                            add(PcSheetV11FlowItem(
-                                "combat:notes:" + attack.id,
-                                "NOTAS DEL ATAQUE " + attack.name + ": " + notes,
-                                keepTogetherIfFits = true,
-                            ))
-                        }
                     }
                 }
+            }
+            // C452 (golden): each kind of continuation under its own golden title.
+            val extraVitals = p1CombatRoutes.mapNotNull { it.continuation }
+            val extraSlots = buildList {
                 // Values too wide for the frozen 3x3 P1 cells remain complete
                 // on C2 and are never mistaken for absent paper slots.
                 overflowP1SpellSlots.forEach { slots ->
                     add(PcSheetV11FlowItem(
                         "spellcasting:slots:" + slots.level,
-                        "ESPACIOS REALES NIVEL " + slots.level +
-                            ": TOTAL " + slots.totalSlots +
-                            ", GASTADOS " + slots.spentSlots,
+                        "NIVEL " + slots.level + ": " + slots.spentSlots + "/" + slots.totalSlots,
                         keepTogetherIfFits = true,
                     ))
                 }
@@ -1632,8 +1626,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 data.spellSlots.filter { it.level >= (if (epicLevels) 13 else 10) }.forEach { slots ->
                     add(PcSheetV11FlowItem(
                         "spellcasting:epic:" + slots.level,
-                        "ESPACIOS REALES NIVEL " + slots.level +
-                            ": TOTAL " + slots.totalSlots + ", GASTADOS " + slots.spentSlots,
+                        "NIVEL " + slots.level + ": " + slots.spentSlots + "/" + slots.totalSlots,
                     ))
                 }
             }
@@ -4128,6 +4121,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     draw(stream, cell.drawableText, cell.cellPt.leftPt,
                                         body.metrics.baselineIn(cell.cellPt), false)
                                 }
+                            } else if (title == "C2 - Habilidades, acciones y recursos" &&
+                                c2ResourceDetails[cell.sourceKey]?.let { cell.sourceStartOffset >= it } == true) {
+                                // C452 (contract 2026-10-28): recovery, source and notes in small print.
+                                if (cell.drawableText.isNotEmpty()) {
+                                    stream.saveGraphicsState()
+                                    stream.setNonStrokingColor(Color(101, 125, 144))
+                                    stream.beginText()
+                                    stream.setFont(bodyPdfFont, 6.1f)
+                                    stream.newLineAtOffset(cell.cellPt.leftPt + c2TextInset,
+                                        body.metrics.baselineIn(cell.cellPt))
+                                    stream.showText(pcSheetV11PrintableText(cell.drawableText))
+                                    stream.endText()
+                                    stream.restoreGraphicsState()
+                                }
                             } else if (cell.drawableText.isNotEmpty()) {
                                 // C363: a book line with extra air above it keeps its
                                 // baseline at the foot of its taller cell.
@@ -4405,8 +4412,18 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // suffix into C2; the same real font metrics drive both placements.
             // Keep variable-height mechanics beneath the fixed approved identity
             // cartelas, never underneath their labels or beside the portrait.
+            // C452 (golden): a panel B skill that moves to C2 keeps the box and right-hand value.
+            val c2BSkillOverflow = bSkillOverflow.map { item ->
+                val (label, value) = bSkillParts.getValue(item.sourceKey)
+                if (!item.text.startsWith(label)) item else {
+                    val training = bSkillTraining.getValue(item.sourceKey)
+                    c2SkillTraining[item.sourceKey] = trainingLetter(training)
+                    item.copy(text = c2Inset + label + ": " + value.trim().ifEmpty { "sin resolver" } +
+                        " / " + spanishTraining(training))
+                }
+            }
             val p1Unprinted=listOfNotNull(headerNameRoute.continuation)+
-                identityFieldOverflow+bSkillOverflow+identity
+                identityFieldOverflow+c2BSkillOverflow+identity
             addSection("P1 - Personaje / combate / habilidades",
                 PcSheetV11FlowSection.TRAITS,emptyList(),2,alwaysPage=true,
                 area=PcSheetV11RectPt(42f,90f,258f,500f),maxPhysicalPages=1)
@@ -5146,29 +5163,33 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         c2ResourceTracks[key] = Triple(name.length + 1,
                             total!! - resource.currentValue, total)
                     }
+                    val balance = if (boxed) " " else
+                        "Quedan " + resource.currentValue + (total?.let { " de " + it } ?: "")
+                    if (extras.isNotEmpty()) c2ResourceDetails[key] = name.length + 1 + balance.length + 1
                     add(PcSheetV11FlowItem(
                         sourceKey = key,
-                        text = name + "\n" + (if (boxed) " " else
-                            "Quedan " + resource.currentValue + (total?.let { " de " + it } ?: "")) +
+                        text = name + "\n" + balance +
                             (if (extras.isEmpty()) "" else "\n" + extras.joinToString(" · ")),
                         keepTogetherIfFits = true,
                     ))
                 }
-                // C451 (D-0076 3.31, golden): ammunition prints once. What P1 holds has no C2 row;
-                // only what does not fit P1 continues here. Its notes stay in the App (2026-11-06).
-                ammunitionItems.filter { it.id !in p1AmmoIds }.forEach { item ->
-                    add(PcSheetV11FlowItem(
+            }
+            // C451 (D-0076 3.31, golden): ammunition prints once. What P1 holds has no C2 row;
+            // only what does not fit P1 continues here. Its notes stay in the App (2026-11-06).
+            val ammunitionLines = ammunitionItems.filter { it.id !in p1AmmoIds }.flatMap { item ->
+                listOf(
+                    PcSheetV11FlowItem(
                         sourceKey = "ammo:" + item.id,
                         text = "MUNICIÓN " + item.name + " | CANTIDAD " + item.quantity,
                         keepTogetherIfFits = true,
-                    ))
-                    add(PcSheetV11FlowItem(
+                    ),
+                    PcSheetV11FlowItem(
                         sourceKey = "ammo-track:" + item.id,
                         text = if (item.quantity in 0..20) "MARCAS:" else
                             "MARCAS: ____ / " + item.quantity,
                         keepTogetherIfFits = true,
-                    ))
-                }
+                    ),
+                )
             }
             fun unprintedSuffix(
                 inputs: List<PcSheetV11FlowItem>,
@@ -5219,25 +5240,40 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 }
                 if (detachedSkills.isNotEmpty()) {
                     addHeaded(PcSheetV11FlowItem("c2-heading:skills",
-                        "HABILIDADES Y REFERENCIAS", keepTogetherIfFits = true,
+                        "ATRIBUTOS Y HABILIDADES", keepTogetherIfFits = true,
                         lineExtrasPt = c2CartelaExtra), detachedSkills.map { it.copy(text = c2Inset + it.text) })
+                }
+                if (extraVitals.isNotEmpty()) {
+                    addHeaded(PcSheetV11FlowItem("c2-heading:vitals",
+                        "COMBATE Y SUPERVIVENCIA", keepTogetherIfFits = true,
+                        lineExtrasPt = c2CartelaExtra), extraVitals)
                 }
                 if (extraCombatData.isNotEmpty()) {
                     addHeaded(PcSheetV11FlowItem("c2-heading:combat",
-                        "ATAQUES, NOTAS Y ESPACIOS REALES", keepTogetherIfFits = true,
+                        "ATAQUES", keepTogetherIfFits = true,
                         lineExtrasPt = c2CartelaExtra), extraCombatData)
+                }
+                if (extraSlots.isNotEmpty()) {
+                    addHeaded(PcSheetV11FlowItem("c2-heading:slots",
+                        "LANZAMIENTO DE CONJUROS", keepTogetherIfFits = true,
+                        lineExtrasPt = c2CartelaExtra), extraSlots)
                 }
                 if (resourceLines.isNotEmpty()) {
                     addHeaded(PcSheetV11FlowItem("c2-heading:resources",
-                        "RECURSOS Y MUNICIONES", keepTogetherIfFits = true,
+                        "RECURSOS", keepTogetherIfFits = true,
                         lineExtrasPt = c2CartelaExtra), resourceLines)
+                }
+                if (ammunitionLines.isNotEmpty()) {
+                    addHeaded(PcSheetV11FlowItem("c2-heading:ammunition",
+                        "MUNICIONES", keepTogetherIfFits = true,
+                        lineExtrasPt = c2CartelaExtra), ammunitionLines)
                 }
                 if (remainingTraits.isNotEmpty()) {
                     // Source-accurate P2 continuation follows the P1 streams
                     // inside the same TWO-column measured C2. Extra pages are
                     // generated only if actual text requires them.
                     addHeaded(PcSheetV11FlowItem("c2-heading:traits",
-                        "RASGOS / CONTINUACIÓN P2", keepTogetherIfFits = true,
+                        "RASGOS / CONTINUACIÓN", keepTogetherIfFits = true,
                         lineExtrasPt = c2CartelaExtra), remainingTraits)
                 }
                 if (p3StoryOverflow.isNotEmpty()) {
@@ -6034,12 +6070,16 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // physical C2 page (golden "ATRIBUTOS Y HABILIDADES A P. 4 · ATAQUES
             // A P. 4 · MUNICIONES A P. 4"), in the same free band P2 uses.
             val p1HeadingKeys = setOf("c2-heading:p1-overflow", "c2-heading:skills",
-                "c2-heading:combat", "c2-heading:resources")
+                "c2-heading:vitals", "c2-heading:combat", "c2-heading:slots",
+                "c2-heading:resources", "c2-heading:ammunition")
             val p1ModuleLinks = listOf(
                 "c2-heading:p1-overflow" to "PERSONAJE",
                 "c2-heading:skills" to "HABILIDADES",
+                "c2-heading:vitals" to "COMBATE",
                 "c2-heading:combat" to "ATAQUES",
-                "c2-heading:resources" to "RECURSOS Y MUNICIONES",
+                "c2-heading:slots" to "CONJUROS",
+                "c2-heading:resources" to "RECURSOS",
+                "c2-heading:ammunition" to "MUNICIONES",
             ).mapNotNull { (key, module) ->
                 mixedC2HeadingPages[key]?.let { module to it }
             }.let { PcSheetV11ContinuationText.moduleLinks(it) } // C341

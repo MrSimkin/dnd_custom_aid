@@ -122,7 +122,7 @@ El propietario aprobó P1/P3/P4, P2, C2, final y variante B tras revisión V11. 
 - **Número de página, solo el número (vigente, C340):** «me equivoqué, debí mantener los números de páginas para que las referencias de "viene de pág X" o "continúa en pág Y" tengan sentido. Reversa esa decisión, reincorpora los números de página, pero solo número, de una forma estéticamente atractiva y en línea con el contrato». Cada página física excepto la última hoja NOTAS imprime su número sin ceros a la izquierda y sin «/ total» («1», «2» … «10»), en el lugar del contador del golden: alineado a la derecha en x569,48, línea base y32,6, bajo la línea de pie, tinta del golden #264b68, fuente de cabecera a 8,2 pt. Es el mismo número que usan los avisos «CONTINÚA EN PÁG. n» / «VIENE DE PÁG. n» (C341) y el índice del Libro «PÁGINA n»; nunca se imprime «NN / NN».
 - **Avisos de continuación (vigente, C341):** «debería decir más claramente "CONTINÚA EN PÁG. X" y "VIENE DE PÁG. Y"», aplicado «a todas» las continuaciones. Donde un contenido no cabe y sigue en otra hoja, esa hoja dice **«CONTINÚA EN PÁG. X»**; donde llega, **«VIENE DE PÁG. Y»**. Reemplaza las formas abreviadas anteriores («A P. n», «VIENE P. n», «SIG. n», «ANT. n», «CONTINÚA EN C2 PÁG. n», «VIENE DE P2 PÁG. n», «CONTINÚA: …»). En concreto:
   - pie derecho de cada página: «CONTINÚA EN PÁG. X» y/o «VIENE DE PÁG. Y»; si llega de varias páginas, «VIENE DE PÁG. 2 Y 4»;
-  - banda de módulos de P1, P2 y P3: «RASGOS CONTINÚA EN PÁG. 5 · EQUIPO CONTINÚA EN PÁG. 6»; los módulos que siguen en la misma página se agrupan («PERSONAJE, HABILIDADES, ATAQUES, RECURSOS Y MUNICIONES CONTINÚAN EN PÁG. 4»);
+  - banda de módulos de P1, P2 y P3: «RASGOS CONTINÚA EN PÁG. 5 · EQUIPO CONTINÚA EN PÁG. 6»; los módulos que siguen en la misma página se agrupan («PERSONAJE, HABILIDADES, ATAQUES, RECURSOS CONTINÚAN EN PÁG. 4»);
   - cartelas de C2 que retoman un módulo de P1 o P2: «VIENE DE PÁG. n» antes del rombo derecho;
   - rótulo superior de una columna que retoma un grupo, atributo, equipo especial o nivel de conjuros: «IDENTIDAD / VIENE DE PÁG. n» si viene de la hoja anterior, o «IDENTIDAD / CONTINUACIÓN» si viene de la columna de al lado en la misma hoja (como el «TRUCOS 0 / CONTINUACIÓN» del golden);
   - cabecera de una nota C-N3 que sigue: «… / Nota 1 — Hipótesis / VIENE DE PÁG. 9».
@@ -242,3 +242,11 @@ Preguntado si se quita la página de índice del Libro, que no está en los gold
 ## Aclaración técnica del Worker — municiones una sola vez (2026-11-06)
 
 No es una decisión nueva del propietario: aplica D-0076 §3.31 («nada se omite, duplica») y el golden, que imprime las municiones en P1, sigue en C2 solo con lo que no cabe y no las lista en EQUIPO. La munición clasificada ya no se repite en EQUIPO de P2 ni en RECURSOS Y MUNICIONES de C2 si P1 la contiene. Sus notas quedan en la App, como las del equipo común (regla P130). Queda sujeta a la revisión del propietario.
+
+## Aclaración del propietario — notas de ataque (2026-11-06)
+
+Preguntado si las notas de ataque quedan solo en la App, el propietario responde **«Sí, solo en App»**. El PDF no las imprime, tampoco en C2 (regla GLB14). Las notas de acciones y de recursos no cambian.
+
+## Aclaración técnica del Worker — títulos de C2 (2026-11-06)
+
+Aplica el golden, sin decisión nueva del propietario: `ATRIBUTOS Y HABILIDADES`, `COMBATE Y SUPERVIVENCIA`, `ATAQUES`, `LANZAMIENTO DE CONJUROS`, `MUNICIONES` y `RASGOS / CONTINUACIÓN` sustituyen a los títulos técnicos anteriores. `RECURSOS` no existe en el golden, va por la aclaración de recursos de C2, y las municiones que siguen en C2 tienen su propio título. Una habilidad que sale del panel B conserva en C2 su casilla y su valor a la derecha. Recuperación, fuente y notas de recursos van en 6,1 pt.

@@ -16,8 +16,8 @@ Este documento dice qué se hizo con cada hallazgo. **«Corregido» es la lectur
 | F02 | Salvación competente sin marca | **Corregido** | La casilla muestra ✓ según el dato guardado, en P1 y C2 |
 | F03 | Rótulo con el nombre propio de la fuente | **Corregido** | Una fuente de clase se rotula con el nombre de la clase. No se imprime ningún identificador interno |
 | F04 | P4 ocultaba valores con `SEGÚN FUENTE` | **Corregido** | P4 imprime el valor de cada fuente, hasta tres renglones a 5,5 pt. `SEGÚN FUENTE` queda solo si tampoco así cabe; probado hasta seis fuentes |
-| F05 | Habilidades de C2 como prosa | **Corregido en parte** | Filas con casilla, nombre y valor con signo. **Abierto:** una habilidad que desborda el panel B a C2 aún no lleva casilla |
-| F06 | Alcance añadido y datos repetidos | **Corregido en parte** | El alcance ya no se repite en C2. **P6 respondida (2026-11-06):** «Nombre y alcance», se queda en ATAQUES. Las municiones ya salen una sola vez (C451). **Abierto:** decidir las notas de ataque |
+| F05 | Habilidades de C2 como prosa | **Corregido en parte** | Filas con casilla, nombre y valor con signo. La habilidad que desborda el panel B también (C452) |
+| F06 | Alcance añadido y datos repetidos | **Corregido en parte** | El alcance ya no se repite en C2. **P6 respondida (2026-11-06):** «Nombre y alcance», se queda en ATAQUES. Las municiones ya salen una sola vez (C451). Notas de ataque: «Sí, solo en App» (C452) |
 | F07 | C2 de P1 tras P3 | **Sin cambio** | El golden, aprobado después, la pone tras P3, y la jerarquía del contrato le da prioridad. Se le informa al propietario |
 | F08 | Multiclase con comas | **Corregido en parte** | Usa `Guerrero 5 / Mago 3`. **Abierto:** con muchas clases, el corte puede separar un nombre de su nivel |
 | F09 | `VER C2` sin página | **Abierto** | Afecta a nombres muy largos, muchas clases y espacios sin cabida |

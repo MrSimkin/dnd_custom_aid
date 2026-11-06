@@ -50,5 +50,6 @@ object PcSheetV11ContinuationText {
      * the preceding column of the same page.
      */
     fun arrived(identity: String, fromPage: Int?): String =
-        identity + " / " + (fromPage?.let { comesFrom(it) } ?: "CONTINUACIÓN")
+        // C452: a title that already says it continues does not say it twice.
+        identity.removeSuffix(" / CONTINUACIÓN") + " / " + (fromPage?.let { comesFrom(it) } ?: "CONTINUACIÓN")
 }

@@ -15,6 +15,12 @@ class PcSheetV11ContinuationTextTest {
     }
 
     @Test
+    fun aTitleThatAlreadyContinuesDoesNotSayItTwice() {
+        assertEquals("RASGOS / CONTINUACIÓN", PcSheetV11ContinuationText.arrived("RASGOS / CONTINUACIÓN", null))
+        assertEquals("RASGOS / VIENE DE PÁG. 4", PcSheetV11ContinuationText.arrived("RASGOS / CONTINUACIÓN", 4))
+    }
+
+    @Test
     fun moduleLinksGroupModulesThatContinueOnTheSamePage() {
         assertEquals(
             "PERSONAJE, HABILIDADES CONTINÚAN EN PÁG. 4   ·   ATAQUES CONTINÚA EN PÁG. 5",
