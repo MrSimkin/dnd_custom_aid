@@ -1267,19 +1267,15 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val pages = (1..pdf.numberOfPages).map { n ->
                     PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
                 }
-                val shared = pages.indexOfFirst { it.contains("C2 - Equipo y tesoro / EQUIPO + EQUIPO ESPECIAL") }
-                assertTrue(shared > 0, "The shared page exists ($variant).")
-                assertFalse(pages.any { it.contains("C2 - Equipo especial / continuación") },
-                    "No separate special page remains ($variant).")
-                listOf("EQUIPO", "EQUIPO ESPECIAL", "NOTAS").forEach { title ->
-                    assertTrue(pages[shared].lineSequence().any { it.trim().startsWith(title) },
-                        "$title cartela on the shared page ($variant).")
-                }
-                assertTrue(pages[1].contains("EQUIPO, EQUIPO ESPECIAL CONTINÚAN EN PÁG. " + (shared + 1)),
-                    "P2 names both modules with the real page ($variant).")
-                assertTrue(pages[shared].contains("VIENE DE PÁG. 2"), "It names its origin ($variant).")
-                // C428: the golden comparator's label for full-width modules.
-                assertTrue(pages[shared].contains("MÓDULOS COMPARTIDOS · MIXTO"), "Mixed C2 label ($variant).")
+                // C457 (golden comparador): both continue on the shared C2 sheets.
+                val equipment = c2ModulePages(pages, "EQUIPO")
+                val special = c2ModulePages(pages, "EQUIPO ESPECIAL")
+                assertTrue(equipment.isNotEmpty() && special.isNotEmpty(), "Both modules print on C2 ($variant).")
+                assertFalse(pages.any { it.contains("C2 - Equipo y tesoro") }, "No separate equipment sheet ($variant).")
+                val links = pages[1].lineSequence().flatMap { moduleLinksOf(it) }.toMap()
+                assertEquals(equipment.first(), links["EQUIPO"], "P2 names EQUIPO with its real page ($variant).")
+                assertEquals(special.first(), links["EQUIPO ESPECIAL"], "P2 names EQUIPO ESPECIAL with its real page ($variant).")
+                assertTrue(pages[equipment.first() - 1].contains("VIENE DE PÁG. 2"), "It names its origin ($variant).")
                 assertTrue(pages.any { it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") }, "Two-column C2 label ($variant).")
             }
         }
@@ -1369,6 +1365,58 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             }
         }.getText(pdf)
         return found
+    }
+
+    @Test
+    fun c457EquipmentAndTreasureShareC2AndNoSheetHoldsJustOneModuleAB() {
+        // C457 / C217 (golden comparador; §3.29, §3.32): EQUIPO and TESORO flow with the other
+        // C2 modules, and EQUIPO ESPECIAL takes the free foot of the last shared sheet.
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val sheet = aldren.permanent.sheet
+        val template = sheet.inventoryItems.first { !it.special }
+        val coin = sheet.currencies.first()
+        val special = sheet.inventoryItems.first { it.special }
+        val source = aldren.copy(permanent = aldren.permanent.copy(sheet = sheet.copy(
+            inventoryItems = sheet.inventoryItems +
+                (10..39).map { n -> template.copy(id = Uuid.parse("f4570000-0000-4000-8000-0000000000$n"),
+                    name = "QAOBJETO$n", quantity = 700 + n, sortOrder = 100 + n) } +
+                (40..49).map { n -> special.copy(id = Uuid.parse("f4570000-0000-4000-8000-0000000000$n"),
+                    name = "QAESPECIAL$n", sortOrder = 200 + n) },
+            currencies = sheet.currencies + (10..17).map { n -> coin.copy(key = "qa-$n", name = "QAMONEDA$n",
+                amount = 800 + n, isDefault = false, sortOrder = 100 + n) },
+        )))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source).bytes
+            preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-C2-shared-equipment-$variant.pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                assertFalse(pages.any { it.contains("C2 - Equipo y tesoro") }, "No sheet just for equipment ($variant).")
+                val equipment = c2ModulePages(pages, "EQUIPO")
+                val treasure = c2ModulePages(pages, "TESORO")
+                val specialPages = c2ModulePages(pages, "EQUIPO ESPECIAL")
+                assertTrue(equipment.isNotEmpty() && treasure.isNotEmpty() && specialPages.isNotEmpty(), "All continue ($variant).")
+                assertTrue(pages[equipment.first() - 1].contains("RECURSOS"), "EQUIPO shares its sheet ($variant).")
+                val links = pages[1].lineSequence().flatMap { moduleLinksOf(it) }.toMap()
+                assertEquals(equipment.first(), links["EQUIPO"], "P2 names EQUIPO ($variant).")
+                assertEquals(treasure.first(), links["TESORO"], "P2 names TESORO ($variant).")
+                assertEquals(specialPages.first(), links["EQUIPO ESPECIAL"], "P2 names EQUIPO ESPECIAL ($variant).")
+                val whole = pages.joinToString("\n")
+                (10..39).forEach { n ->
+                    assertEquals(1, Regex("QAOBJETO$n\\b").findAll(whole).count(), "QAOBJETO$n prints once ($variant).")
+                    assertEquals(1, Regex("(?<![0-9])" + (700 + n) + "(?![0-9])").findAll(whole).count(), "Its amount prints once ($variant).")
+                }
+                (10..17).forEach { n ->
+                    assertEquals(1, Regex("QAMONEDA$n\\b").findAll(whole).count(), "QAMONEDA$n prints once ($variant).")
+                    assertEquals(1, Regex("(?<![0-9])" + (800 + n) + "(?![0-9])").findAll(whole).count(), "Its amount prints once ($variant).")
+                }
+                (40..49).forEach { n ->
+                    assertEquals(1, Regex("QAESPECIAL$n\\b").findAll(whole).count(), "QAESPECIAL$n prints once ($variant).")
+                }
+            }
+        }
     }
 
     @Test
@@ -2260,10 +2308,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 sources("03_mara_siete_umbrales_custom_extended.json"),
             ).bytes
             Loader.loadPDF(bytes).use { pdf ->
-                val pages = (0 until pdf.numberOfPages).filter { i ->
-                    PDFTextStripper().apply { startPage = i + 1; endPage = i + 1 }.getText(pdf)
-                        .let { it.contains("C2 - Equipo especial") || it.contains("+ EQUIPO ESPECIAL") }
+                val texts = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
                 }
+                val pages = c2ModulePages(texts, "EQUIPO ESPECIAL").map { it - 1 }
                 assertTrue(pages.isNotEmpty(), "Mara has a C2 special page ($variant).")
                 pages.forEach { i ->
                     val text = PDFTextStripper().apply { startPage = i + 1; endPage = i + 1 }.getText(pdf)
@@ -2416,28 +2464,26 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 sources("03_mara_siete_umbrales_custom_extended.json"),
             ).bytes
             Loader.loadPDF(bytes).use { pdf ->
-                val pages = (0 until pdf.numberOfPages).filter { i ->
-                    PDFTextStripper().apply { startPage = i + 1; endPage = i + 1 }.getText(pdf)
-                        .contains("C2 - Equipo y tesoro")
+                val texts = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
                 }
+                val pages = c2ModulePages(texts, "EQUIPO").map { it - 1 }
                 assertTrue(pages.isNotEmpty(), "Mara has a C2 equipment page ($variant).")
                 pages.forEach { i ->
                     val ops = pdf.getPage(i).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
                     val rects = Regex("""(?:^|\s)$number\s+$number\s+$number\s+$number\s+re(?:\s|$)""")
                         .findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }.toList()
-                    val left = rects.filter { (x, _, w, h) -> near(x, 39.69f) && near(w, 261.35f) && near(h, 15.87f) }
-                    val right = rects.filter { (x, _, w, h) -> near(x, 310.96f) && near(w, 261.36f) && near(h, 15.87f) }
-                    assertTrue(left.isNotEmpty() && right.isNotEmpty(),
-                        "Two golden blocks of 15.87 pt rows on page ${i + 1} ($variant).")
+                    // C457 (golden comparador): half-column blocks of list rows.
+                    assertTrue(rects.any { (x, _, w, h) -> (near(x, 39.69f) || near(x, 310.96f)) && near(w, 261.35f) && near(h, 15.7f) },
+                        "Golden half-column rows on page ${i + 1} ($variant).")
                     assertFalse(rects.any { (x, y, w, h) -> near(x, 39.69f) && near(w, 532.63f) && h > 100f && y + h > 655f },
                         "No frame around the C2 table ($variant).")
                     val separators = Regex("""(?:^|\s)$number\s+$number\s+m\s+$number\s+$number\s+l\s+S""")
                         .findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }
                         .filter { (x0, y0, x1, y1) ->
-                            near(x0, x1) && kotlin.math.abs(kotlin.math.abs(y1 - y0) - 15.87f) < 0.05f
+                            near(x0, x1) && kotlin.math.abs(kotlin.math.abs(y1 - y0) - 15.7f) < 0.05f
                         }.toList()
-                    assertTrue(separators.isNotEmpty() &&
-                        separators.all { (x) -> near(x, 268.87f) || near(x, 540.15f) },
+                    assertTrue(separators.any { (x) -> near(x, 268.87f) || near(x, 540.15f) },
                         "Short separators 32.17 pt inside each block ($variant): $separators")
                     assertFalse(Regex("""(?:^|\s)$number\s+$number\s+m\s+$number\s+$number\s+l\s+S""")
                         .findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }
@@ -3572,8 +3618,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val p2C2Physical = pagesByPhysicalNumber.indexOfFirst {
                 (realHeading(it, "C2 - Habilidades, acciones y recursos") &&
                     it.contains("RASGOS / CONTINUACIÓN")) ||
-                    realHeading(it, "C2 - Equipo y tesoro") ||
-                    realHeading(it, "C2 - Equipo especial / continuación")
+                    it in c2ModulePages(pagesByPhysicalNumber, "EQUIPO").map { n -> pagesByPhysicalNumber[n - 1] } ||
+                    it in c2ModulePages(pagesByPhysicalNumber, "EQUIPO ESPECIAL").map { n -> pagesByPhysicalNumber[n - 1] }
             } + 1
             assertTrue(p1Physical > 0 && p2Physical > 0 &&
                 mixedC2Physical > 0 && p2C2Physical > 0)
@@ -3593,8 +3639,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             ), "P1 must point to C2 with skills/actions/resources.")
             assertTrue(p1Physical in cameFromPages(pagesByPhysicalNumber[mixedC2Physical - 1]),
                 "Mixed C2 must link to the true physical P1, never P2.")
-            if (pagesByPhysicalNumber[mixedC2Physical - 1]
-                    .contains("RASGOS / CONTINUACIÓN")) {
+            if (pagesByPhysicalNumber[mixedC2Physical - 1].contains("RASGOS / CONTINUACIÓN") ||
+                mixedC2Physical in c2ModulePages(pagesByPhysicalNumber, "EQUIPO") ||
+                mixedC2Physical in c2ModulePages(pagesByPhysicalNumber, "TESORO")) {
                 assertTrue(p2Physical in cameFromPages(pagesByPhysicalNumber[mixedC2Physical - 1]),
                     "A mixed page with genuine P2 traits needs both source backlinks.")
             } else {
@@ -3624,11 +3671,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(real.permanent.sheet.traits.isNotEmpty())
             assertTrue(printed.contains("RASGOS"),
                 "The owner-approved identification area must still exist.")
-            // C423: a short deferred table shares its page with EQUIPO ESPECIAL.
-            assertTrue(printed.contains("C2 - Equipo especial") || printed.contains("+ EQUIPO ESPECIAL"))
-            val specialContinuation = pagesByPhysicalNumber.filter {
-                realHeading(it, "C2 - Equipo especial / continuación") || it.contains("+ EQUIPO ESPECIAL")
-            }
+            // C457: EQUIPO ESPECIAL continues at the foot of the shared C2, or on its own sheet.
+            val specialContinuation = c2ModulePages(pagesByPhysicalNumber, "EQUIPO ESPECIAL").map { pagesByPhysicalNumber[it - 1] }
             assertTrue(specialContinuation.isNotEmpty())
             // C419: the golden C2 table has no title row; c419 guards its four columns.
             assertTrue(specialContinuation.none { it.contains("UBICACIÓN") },
@@ -4514,8 +4558,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 fun flat(s: String) = s.replace(Regex("\\s+"), " ")
                 assertTrue(flat(pages[1]).contains("Suministros de calígrafo"),
                     "C211: P2 is filled before C2, long names wrap on P2.")
-                assertFalse(pages.any { it.contains("C2 - Equipo y tesoro / EQUIPO") },
-                    "No ordinary object is left for C2.")
+                assertTrue(c2ModulePages(pages, "EQUIPO").isEmpty(), "No ordinary object is left for C2.")
                 // D-0076 §3.21: the Spellbook (location, notes, ACTIVO) now gets a
                 // taller P2 row, so Ilyra needs no equipment C2 at all.
                 assertFalse(pages.any { it.contains("C2 - Equipo especial / continuación") },
@@ -7568,11 +7611,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         // A P. 5": every continued P2 module with its first real physical page.
         val sections = mapOf(
             "RASGOS" to listOf("C2 - Rasgos / continuación", "RASGOS / CONTINUACIÓN"),
-            "EQUIPO Y TESORO" to listOf("C2 - Equipo y tesoro / EQUIPO Y TESORO"),
-            "EQUIPO" to listOf("C2 - Equipo y tesoro / EQUIPO"),
-            "TESORO" to listOf("C2 - Equipo y tesoro / TESORO"),
-            "EQUIPO ESPECIAL" to listOf("C2 - Equipo especial / continuación",
-                "C2 - Equipo y tesoro / EQUIPO + EQUIPO ESPECIAL"),
+            "EQUIPO" to listOf("EQUIPO"),
+            "TESORO" to listOf("TESORO"),
+            "EQUIPO ESPECIAL" to listOf("EQUIPO ESPECIAL"),
         )
         val mara = sources("03_mara_siete_umbrales_custom_extended.json")
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
@@ -7587,15 +7628,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(footer != null, "P2 footer lists continued modules ($variant).")
                 assertFalse(pages[1].contains("OTROS C2"), "Old P2 footer grammar ($variant).")
                 val links = moduleLinksOf(footer!!)
-                assertEquals(listOf("RASGOS", "EQUIPO", "EQUIPO ESPECIAL"), links.map { it.first },
+                assertEquals(setOf("RASGOS", "EQUIPO", "EQUIPO ESPECIAL"), links.map { it.first }.toSet(),
                     "Mara P2 continues traits, equipment and special equipment ($variant).")
                 links.forEach { (module, page) ->
                     val titles = requireNotNull(sections[module]) { "Unknown P2 module $module" }
-                    val first = pages.indexOfFirst { text ->
-                        titles.any { title ->
-                            text.lineSequence().any { it.trim() == title || it.trim().startsWith("$title ") }
-                        }
-                    } + 1
+                    val first = titles.flatMap { c2ModulePages(pages, it) }.minOrNull()
                     assertEquals(first, page, "$module must point to its first real C2 page ($variant).")
                 }
             }
@@ -8014,58 +8051,24 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             ), sources("03_mara_siete_umbrales_custom_extended.json"),
         )
         Loader.loadPDF(proof.bytes).use { pdf ->
-            val pageNumber = (1..pdf.numberOfPages).first { physical ->
-                PDFTextStripper().apply {
-                    startPage = physical
-                    endPage = physical
-                }.getText(pdf).contains("C2 - Equipo y tesoro / EQUIPO")
+            // C457 (golden comparador p1): each row holds two object / quantity pairs.
+            val pagesText = (1..pdf.numberOfPages).map { n ->
+                PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
             }
-            val page = pdf.getPage(pageNumber - 1)
-            val regions = PDFTextStripperByArea().apply {
-                // Top-origin page coords, below the real App header and above
-                // the Notes manuscript grid. Include each source glyph's first
-                // pixels: the PDFBox labels start at x=44 and x=314.
-                // Never count page metadata.
-                addRegion("equipment-left",
-                    Rectangle2D.Float(40f, 95f, 222f, 380f))
-                addRegion("equipment-right",
-                    Rectangle2D.Float(310f, 95f, 222f, 380f))
-                extractRegions(page)
-            }
-            val left = regions.getTextForRegion("equipment-left")
-            val right = regions.getTextForRegion("equipment-right")
-            val persistedNameParts = listOf(
-                "Frasco", "Cuerda", "Llave", "Cuaderno", "Cristal", "Astrolabio",
-            )
-            assertTrue(persistedNameParts.any { left.contains(it) },
-                "Original left paired equipment field may not disappear.")
-            assertTrue(persistedNameParts.any { right.contains(it) },
-                "The unused right C2 paired column must receive authentic Mara " +
-                    "inventory without inventing content or adding a page.")
-            // Verify genuine stroked AND filled clipped cartela path, not
-            // just a background image or the literal EQUIPO heading text.
-            // C361: the golden 22.96 pt band y662.74..685.7, below the header rule y=717.
-            val commands = page.contents.use {
-                it.readBytes().toString(Charsets.ISO_8859_1)
-            }
-            val clippedCartela = Regex(
-                """(?s)(?:^|\s)44\.(?:69|689+)\d*\s+662\.(?:74|739+)\d*\s+m\s+567\.(?:32|319+)\d*\s+662\.(?:74|739+)\d*\s+l\s+572\.(?:32|319+)\d*\s+667\.(?:74|739+)\d*\s+l.*?\s+B(?:\s|$)"""
-            )
-            assertTrue(clippedCartela.containsMatchIn(commands),
-                "A real beveled blue C2 EQUIPO cartela must be filled and stroked " +
-                    "without crossing the fixed page header.")
-            val filledOutlines = Regex("""(?m)(?:^|\s)B(?:\s|$)""")
-                .findAll(commands).count()
-            assertTrue(filledOutlines >= 2,
-                "Real C2 EQUIPO and manuscript NOTAS must each draw " +
-                    "their own filled-and-stroked clipped blue cartela.")
-            val printed = PDFTextStripper().apply {
-                startPage = pageNumber
-                endPage = pageNumber
-            }.getText(pdf)
-            assertTrue(printed.contains("VIENE DE PÁG. 2"))
-            assertTrue(printed.lineSequence().any { it.trim() == "NOTAS" },
-                "Balancing must preserve handwriting on the same physical C2.")
+            val pageNumber = c2ModulePages(pagesText, "EQUIPO").first()
+            val names = listOf("Frasco", "Cuerda", "Llave", "Cuaderno", "Cristal", "Astrolabio")
+            val offsets = mutableListOf<Float>()
+            object : PDFTextStripper() {
+                override fun writeString(text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>) {
+                    val first = textPositions.firstOrNull() ?: return
+                    if (names.any { text.contains(it) }) {
+                        offsets += first.xDirAdj - (if (first.xDirAdj < 305f) 39.69f else 310.96f)
+                    }
+                }
+            }.apply { startPage = pageNumber; endPage = pageNumber }.getText(pdf)
+            assertTrue(offsets.any { it < 60f }, "The left pair of the row holds real items: $offsets")
+            assertTrue(offsets.any { it > 120f }, "The right pair of the row holds real items: $offsets")
+            assertTrue(pagesText[pageNumber - 1].contains("VIENE DE PÁG. 2"))
         }
     }
 
@@ -8118,8 +8121,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 val p2 = pages.first { it.contains("P2 - Equipo y tesoro") }
-                val c2 = pages.filter { it.contains("C2 - Equipo y tesoro / EQUIPO") }
-                    .joinToString("\n")
+                val c2 = c2ModulePages(pages, "EQUIPO").joinToString("\n") { pages[it - 1] }
                 assertTrue(p2.contains("QAPRIMERO") && p2.contains("7131"))
                 // C211 R1: the long identity is no longer deferred; it starts on P2
                 // (wrapped, continuation lines indented). Source order must hold in
@@ -8323,9 +8325,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     endPage = physical
                 }.getText(pdf)
             }
-            val continuation = physicalTexts.filter {
-                it.contains("C2 - Equipo y tesoro / EQUIPO")
-            }
+            val continuation = c2ModulePages(physicalTexts, "EQUIPO").map { physicalTexts[it - 1] }
             assertTrue(continuation.isNotEmpty(),
                 "Overlong equipment must create a physical full-height C2 paired table.")
             assertTrue(continuation.any { it.contains("MATERIAL INVENTARIADO") })
@@ -8334,13 +8334,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             // C211 R1: P2 is filled first; long names wrap there, the rest continues in C2.
             assertTrue(flat(p2).contains("MATERIAL INVENTARIADO 001"),
                 "C211: the first long object starts on P2 instead of leaving it empty.")
-            assertTrue(flat(continuation.joinToString("\n")).contains("MATERIAL INVENTARIADO 100"),
+            // C457: a long name wraps inside its half-column row, so its lines are read by number.
+            assertTrue(Regex("(?<![0-9])100(?![0-9])").containsMatchIn(flat(continuation.joinToString("\n"))),
                 "The last long object continues in the C2 table.")
             val all = flat(physicalTexts.joinToString("\n"))
             for (index in 0 until 100) {
                 val sourceName = "MATERIAL INVENTARIADO " +
                     (index + 1).toString().padStart(3, '0')
-                assertTrue(all.contains(sourceName),
+                assertTrue(Regex("(?<![0-9])" + sourceName.takeLast(3) + "(?![0-9])").containsMatchIn(all),
                     "The original inventory item name must survive P2/C2: $sourceName")
                 val number = (7000 + index).toString()
                 assertEquals(1, Regex("(?<![0-9])" + number + "(?![0-9])")
@@ -8383,12 +8384,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     endPage = page
                 }.getText(pdf)
             }
-            val treasureC2 = pages.filter {
-                // Treasure keeps an independent genuine paired module, even
-                // when it shares a physical C2 page with ordinary Equipment.
-                it.contains("C2 - Equipo y tesoro") &&
-                    it.lineSequence().any { line -> Regex("""^TESORO(\s|$)""").containsMatchIn(line.trim()) } // C361 golden title
-            }
+            val treasureC2 = c2ModulePages(pages, "TESORO").map { pages[it - 1] }
             assertTrue(treasureC2.isNotEmpty(),
                 "Real treasure must remain a distinct C2 paired module even on shared paper.")
             assertTrue(treasureC2.last().contains("DENOMINACIÓN C2"))
@@ -8435,9 +8431,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     endPage = page
                 }.getText(pdf)
             }
-            assertTrue(pages.any {
-                it.contains("C2 - Equipo y tesoro / TESORO")
-            }, "Overflow currencies must move into true full-height C2 paired tables.")
+            assertTrue(c2ModulePages(pages, "TESORO").isNotEmpty(), "Overflow currencies continue on C2.")
             val printed = pages.joinToString("\n")
             supplemental.forEach { coin ->
                 assertTrue(printed.contains(coin.name.substring(0, 13)),
@@ -8803,109 +8797,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         endPage = n
                     }.getText(pdf)
                 }
-                val equipmentPages = pages.indices.filter {
-                    pages[it].contains("C2 - Equipo y tesoro / EQUIPO")
-                }.map { it + 1 }
-                val treasurePages = pages.indices.filter {
-                    pages[it].contains("C2 - Equipo y tesoro / TESORO")
-                }.map { it + 1 }
-                assertTrue(equipmentPages.size >= 2,
-                    "Stress ordinary equipment must span multiple physical C2 pages.")
-                // C207: real C206 source creates a large EMPTY LOWER-RIGHT
-                // pair on the SECOND equipment C2 page, while LEFT source
-                // labels/amounts still run to the printable floor. That
-                // reserved paper must carry a COMPLETE genuine NOTES grid,
-                // not dozens of visually misleading empty EQUIPO rows.
-                // C268: in the golden 18.4 pt rows the stress equipment spans
-                // three pages; the LAST one holds the empty right pair.
-                val secondEquipment = pdf.getPage(equipmentPages.last() - 1)
-                val manuscript = PDFTextStripperByArea().apply {
-                    // C211 R1: wrapped P2 rows shift where the right pair ends, so
-                    // inspect the WHOLE right/left pair height below the header.
-                    addRegion("unused-right-pair",
-                        Rectangle2D.Float(312f, 120f, 258f, 588f))
-                    addRegion("occupied-left-pair",
-                        Rectangle2D.Float(42f, 120f, 258f, 588f))
-                    extractRegions(secondEquipment)
-                }
-                assertTrue(manuscript.getTextForRegion("unused-right-pair")
-                    .contains("NOTAS"),
-                    "Real C2 unused right table cells require a paper NOTES cartela.")
-                // C268: NOTES may sit BELOW the left equipment (bottom grid),
-                // never among its rows: inspect the left pair down to its last row.
-                var lastLeftRowTop = 120f
-                object : PDFTextStripper() {
-                    override fun writeString(
-                        text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>,
-                    ) {
-                        val first = textPositions.firstOrNull() ?: return
-                        if (first.xDirAdj < 300f && text.contains("EQUIPO-C206")) {
-                            lastLeftRowTop = maxOf(lastLeftRowTop, first.yDirAdj)
-                        }
-                    }
-                }.apply {
-                    startPage = equipmentPages.last(); endPage = equipmentPages.last()
-                }.getText(pdf)
-                val leftRows = PDFTextStripperByArea().apply {
-                    addRegion("left-rows",
-                        Rectangle2D.Float(42f, 120f, 258f, lastLeftRowTop - 120f + 4f))
-                    extractRegions(secondEquipment)
-                }.getTextForRegion("left-rows")
-                assertTrue(leftRows.contains("EQUIPO-C206"))
-                assertFalse(leftRows.contains("NOTAS"),
-                    "Handwriting reserve must never replace LEFT persisted equipment.")
-                val secondContent = secondEquipment.contents.use {
-                    it.readBytes().toString(Charsets.ISO_8859_1)
-                }
-                // C268: with the bottom NOTES grid in use, the right grid starts
-                // just above it; it still spans the whole free right pair.
-                // C401: golden grid rules fill the pair; any vertical rule in the right half counts.
-                assertTrue(Regex(
-                    """(?m)(?:^|\s)(\d{3}(?:\.\d+)?)\s+([\d.]+)\s+m\s+(\d{3}(?:\.\d+)?)\s+([\d.]+)\s+l"""
-                ).findAll(secondContent).any { m ->
-                    val (x0, y0, x1, y1) = m.groupValues.drop(1).map { it.toFloat() }
-                    x0 > 305f && kotlin.math.abs(x0 - x1) < 0.01f && y1 - y0 > 150f
-                },
-                    "Right C2 NOTES grid must contain real full-height PDF vectors.")
-                assertTrue(treasurePages.isNotEmpty(),
-                    "The independent treasure stream must also overflow to C2.")
-                assertTrue(equipmentPages.last() < treasurePages.first())
-                assertTrue(pages[1].contains("CONTINÚA EN PÁG. " +
-                    equipmentPages.first()))
-                assertTrue(pages[1].contains("TESORO CONTINÚA EN PÁG. " +
-                    treasurePages.first()),
-                    "P2 must link independently to the physical TESORO start.")
-                val p2Footer = PDFTextStripperByArea().apply {
-                    addRegion("module-forward-links",
-                        Rectangle2D.Float(42f, 734f, 528f, 16f)) // C290: golden band y43.94..56.98
-                    extractRegions(pdf.getPage(1))
-                }.getTextForRegion("module-forward-links")
-                assertTrue(p2Footer.contains("EQUIPO CONTINÚA EN PÁG. " + equipmentPages.first() +
-                    "   ·   TESORO CONTINÚA EN PÁG. " + treasurePages.first()),
-                    "Every distinct P2 module needs a visible source-backed forward cue.")
-
-                for (physical in equipmentPages) {
-                    val footer = pages[physical - 1]
-                    if (physical == equipmentPages.first()) {
-                        assertTrue(footer.contains("VIENE DE PÁG. 2"))
-                        assertEquals(setOf(2), cameFromPages(footer))
-                    }
-                    if (physical == equipmentPages.last()) {
-                        assertFalse(footer.contains("CONTINÚA EN PÁG. " + treasurePages.first()),
-                            "Equipo cannot link to the next DIFFERENT table.")
-                        assertFalse(footer.contains("CONTINÚA EN PÁG."),
-                            "Last Equipo page must not point to Tesoro.")
-                    } else {
-                        assertTrue(footer.contains("CONTINÚA EN PÁG. " + (physical + 1)))
-                    }
-                }
-                val firstTreasure = pages[treasurePages.first() - 1]
-                assertTrue(firstTreasure.contains("VIENE DE PÁG. 2"),
-                    "Independent Tesoro must link to its real P2 parent.")
-                assertFalse(equipmentPages.last() in cameFromPages(firstTreasure),
-                    "First Tesoro must not claim the last Equipo page as a parent.")
-                assertEquals(setOf(2), cameFromPages(firstTreasure),
-                    "Treasure begins a new module, not a continuation of equipment.")
+                // C457 (golden comparador): both continue on the shared C2 sheets, in their order.
+                val equipmentPages = c2ModulePages(pages, "EQUIPO")
+                val treasurePages = c2ModulePages(pages, "TESORO")
+                assertTrue(equipmentPages.isNotEmpty() && treasurePages.isNotEmpty(), "Both continue on C2 ($variant).")
+                assertTrue(equipmentPages.first() <= treasurePages.first())
+                val links = pages[1].lineSequence().flatMap { moduleLinksOf(it) }.toMap()
+                assertEquals(equipmentPages.first(), links["EQUIPO"], "P2 names EQUIPO with its real page.")
+                assertEquals(treasurePages.first(), links["TESORO"], "P2 names TESORO with its real page.")
+                assertTrue(2 in cameFromPages(pages[equipmentPages.first() - 1]), "EQUIPO comes from P2.")
+                assertTrue(2 in cameFromPages(pages[treasurePages.first() - 1]), "TESORO comes from P2.")
                 // C211 R1: names can now wrap on P2; compare whitespace-normalized text.
                 val whole = pages.joinToString("\n").replace(Regex("\\s+"), " ")
                 extraEquipment.forEach { item ->
@@ -9143,15 +9044,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertTrue(p2Physical >= mixedPhysical)
                     assertTrue(pages[1].contains("CONTINÚA EN PÁG. " + p2Physical))
                     assertTrue(2 in cameFromPages(pages[p2Physical - 1]))
-                    val ordinaryC2 = pages.indexOfFirst {
-                        it.contains("C2 - Equipo y tesoro / EQUIPO")
-                    } + 1
-                    // C423: as in the golden, her leftover equipment and special equipment
-                    // share one C2 page, and P2 names both modules with that page.
-                    assertTrue(ordinaryC2 > mixedPhysical)
-                    assertTrue(pages[ordinaryC2 - 1].contains("+ EQUIPO ESPECIAL"),
-                        "Equipment and special equipment share their C2 page.")
-                    assertTrue(pages[1].contains("EQUIPO, EQUIPO ESPECIAL CONTINÚAN EN PÁG. " + ordinaryC2),
+                    val ordinaryC2 = c2ModulePages(pages, "EQUIPO").first()
+                    // C457 (golden comparador): her leftover equipment continues on the shared C2.
+                    assertTrue(ordinaryC2 >= mixedPhysical)
+                    assertEquals(ordinaryC2, pages[1].lineSequence().flatMap { moduleLinksOf(it) }.toMap()["EQUIPO"],
                         "Mara P2 must lead to the shared equipment C2.")
 
                 }
@@ -9314,8 +9210,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "P2 cannot print source numbers outside its fixed 36pt amount cells.")
                 assertEquals(1, Regex(Regex.escape(equipment)).findAll(entire).count())
                 assertEquals(1, Regex(Regex.escape(treasure)).findAll(entire).count())
-                val equipmentC2 = pages.filter { it.contains("C2 - Equipo y tesoro / EQUIPO") }
-                val treasureC2 = pages.filter { it.contains("C2 - Equipo y tesoro / TESORO") }
+                val equipmentC2 = c2ModulePages(pages, "EQUIPO").map { pages[it - 1] }
+                val treasureC2 = c2ModulePages(pages, "TESORO").map { pages[it - 1] }
                 assertTrue(equipmentC2.any { it.contains("EQUIPO_QA_CANTIDAD_COMPLETA") &&
                     it.contains(equipment) }, "An intact equipment amount needs its own C2 pair.")
                 assertTrue(treasureC2.any { it.contains("TESORO_QA_CANTIDAD_COMPLETA") &&
@@ -9381,14 +9277,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val p2 = pages[1]
                 // C211 R1: Aldren ordinary objects now fit P2 (wrapped), so only the
                 // deferred currencies reach C2, on their own TESORO page.
-                val combined = pages.filter {
-                    it.contains("C2 - Equipo y tesoro / TESORO")
-                }
+                val combined = c2ModulePages(pages, "TESORO").map { pages[it - 1] }
                 assertEquals(1, combined.size,
                     "The deferred currencies use one physical C2 page.")
                 assertTrue(combined.single().lineSequence().any { Regex("""^TESORO(\s|$)""").containsMatchIn(it.trim()) }) // C361 golden title
-                assertFalse(pages.any { it.contains("C2 - Equipo y tesoro / EQUIPO") },
-                    "No ordinary object is left for C2.")
+                assertTrue(c2ModulePages(pages, "EQUIPO").isEmpty(), "No ordinary object is left for C2.")
                 assertTrue(combined.single().contains("VIENE DE PÁG. 2"))
                 val c2 = combined.joinToString("\n")
                 val full = pages.joinToString("\n")
@@ -9414,8 +9307,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(combined.single().lineSequence().any {
                     it.trim() == "NOTAS"
                 }, "Unused combined C2 must remain useful manuscript paper.")
-                assertEquals(7, pages.size,
-                    "Compacting two actually short C2 modules must save exactly one page.")
+                assertEquals(6, pages.size,
+                    "C457: the deferred currencies share the C2 sheet, with no page just for them.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
                 deferred.forEach { label ->
                     assertFalse(pages.last().contains(label),
@@ -9515,6 +9408,12 @@ private fun cameFromPages(text: String): Set<Int> =
         .toSet()
 
 // C341: module band «A, B CONTINÚAN EN PÁG. 4   ·   C CONTINÚA EN PÁG. 5».
+/** C457: physical pages (1-based) of the C2 sheets that print this module's cartela. */
+private fun c2ModulePages(pages: List<String>, title: String): List<Int> {
+    val cartela = Regex("(?m)(?:^|\\s)" + Regex.escape(title) + "(?: VIENE| /|\\s*$)")
+    return pages.indices.filter { pages[it].contains("C2 - ") && cartela.containsMatchIn(pages[it]) }.map { it + 1 }
+}
+
 private fun moduleLinksOf(line: String): List<Pair<String, Int>> =
     Regex("""([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ ,]*?) CONTINÚAN? EN PÁG\. (\d+)""").findAll(line)
         .flatMap { match ->

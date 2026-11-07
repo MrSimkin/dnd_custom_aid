@@ -8,17 +8,17 @@
 
 | Id | Hallazgo | Estado | Qué falta |
 |---|---|---|---|
-| N1 | Ataques en C2 como prosa y fuera de orden | Abierto | Decidido, «Sí, en su lugar». Falta corregir |
-| N2 | Título `PERSONAJE, HABILIDADES Y ACCIONES / CONTINUACIÓN` | Abierto | Corregir: atributos y habilidades bajo su título, tabla bajo ACCIONES |
-| N3 | Hojas casi vacías, un módulo por hoja | Abierto | Sin pregunta: el golden comparte hoja y prevalece sobre D-0076. Falta corregir |
-| N4 | Municiones de C2 como prosa | Abierto | Corregir la fila. Más de 20: se queda `____ / X`, porque el contrato escrito prevalece sobre el golden |
-| N5, G-e | Rótulos de Equipo Especial | Abierto | Sin pregunta: el golden prevalece sobre §3.42. Falta corregir |
+| N1 | Ataques en C2 como prosa y fuera de orden | Corregido en C456 | «Sí, en su lugar». Falta que el revisor lo confirme |
+| N2 | Título `PERSONAJE, HABILIDADES Y ACCIONES / CONTINUACIÓN` | Corregido en C456 | Falta que el revisor lo confirme |
+| N3 | Hojas casi vacías, un módulo por hoja | Corregido en C457 | Equipo y Tesoro van en el flujo compartido. Especial, al pie si cabe. Falta que el revisor lo confirme |
+| N4 | Municiones de C2 como prosa | Corregido en C456 | Más de 20: `____ / X`, porque el contrato escrito prevalece sobre el golden. Falta que el revisor lo confirme |
+| N5, G-e | Rótulos de Equipo Especial | Corregido en C456 | El golden prevalece sobre §3.42. Falta que el revisor lo confirme |
 | N6 | Fila larga de P4 | Abierto | Corregir |
 | N7 | Ficha del Libro con nombre largo | Abierto | Corregir |
-| N8 | Línea en ATAQUES vacía | Abierto | Corregir como el golden |
-| N9 | Leyenda añadida en la variante B | Abierto | Corregir como el golden |
-| N10 | Rótulo con una sola fuente | Abierto | Sin pregunta: el golden imprime solo el valor, y la aclaración escrita habla de varias fuentes. Falta corregir |
-| N11 | Nombre largo recortado | Abierto | Decidido: «cortado hasta donde sea que quepa», sin aviso. Falta corregir |
+| N8 | Línea en ATAQUES vacía | Corregido en C456 | Falta que el revisor lo confirme |
+| N9 | Leyenda añadida en la variante B | Corregido en C456 | Falta que el revisor lo confirme |
+| N10 | Rótulo con una sola fuente | Corregido en C456 | Falta que el revisor lo confirme |
+| N11 | Nombre largo recortado | Corregido en C456 | «Cortado hasta donde sea que quepa», sin aviso. Falta que el revisor lo confirme |
 | N12 | Android y Desktop no son idénticos | Registrado | Diferencia invisible; el acta del candidato ya indica su umbral |
 | N13 | Rótulos de continuación y detalles | Abierto | Revisar uno por uno |
 | Notas de objeto especial | Se imprimen | Decidido | «No, se imprimen» (2026-11-06) |

@@ -197,6 +197,15 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val c2ActionWidths = listOf(100f, 50f, c2ActionColumn - 158f - 4f)
             val c2ResourceTracks = mutableMapOf<String, Triple<Int, Int, Int>>()
             val c2ResourceDetails = mutableMapOf<String, Int>()
+            // C457 (golden comparador): EQUIPO and TESORO continue in the shared two-column flow.
+            // Per row and physical line: name and amount of each pair.
+            val c2PairRows = mutableMapOf<String, List<List<String>>>()
+            val c2PairAmountColumn = mutableMapOf<String, Float>()
+            val c2P2HeadingKeys = setOf("c2-heading:traits", "c2-heading:equipment", "c2-heading:treasure")
+            // The last shared C2 page may still take the full-width EQUIPO ESPECIAL at its foot.
+            var mixedC2LastCells: List<io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PlacedLineCell> = emptyList()
+            var mixedC2LastPageIndex: Int? = null
+            var specialSharedMixedPage: Int? = null
             val c2SkillTraining = mutableMapOf<String, String>()
             // C240: spellbook card heading length and inline NIVEL label per card.
             val bookHeadingEnds = mutableMapOf<String, Int>()
@@ -221,16 +230,19 @@ internal class AndroidPcSheetV11PdfProofRenderer {
 
             // C232 step 2: the approved golden alternates two blue-mist tones on every
             // ruled row (#E7F2F7 / #F0F7FA) with a thin line at the bottom of each row.
-            fun fillBand(stream: PDPageContentStream, x: Float, y: Float, w: Float, h: Float, index: Int) {
+            fun fillBand(stream: PDPageContentStream, x: Float, y: Float, w: Float, h: Float, index: Int,
+                rule: Boolean = true) {
                 stream.saveGraphicsState()
                 stream.setNonStrokingColor(if (index % 2 == 0) Color(231, 242, 247) else Color(240, 247, 250))
                 stream.addRect(x, y, w, h)
                 stream.fill()
-                stream.setStrokingColor(Color(148, 176, 193))
-                stream.setLineWidth(0.32f)
-                stream.moveTo(x, y + 0.99f) // C411 golden: 0.99 pt above the row foot
-                stream.lineTo(x + w, y + 0.99f)
-                stream.stroke()
+                if (rule) { // C457: a record of several lines closes once, at its foot.
+                    stream.setStrokingColor(Color(148, 176, 193))
+                    stream.setLineWidth(0.32f)
+                    stream.moveTo(x, y + 0.99f) // C411 golden: 0.99 pt above the row foot
+                    stream.lineTo(x + w, y + 0.99f)
+                    stream.stroke()
+                }
                 stream.restoreGraphicsState()
             }
 
@@ -3275,12 +3287,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 }
                             }
                             val fromP2 = pageCells.any {
-                                it.sourceKey.startsWith("p2-trait:") ||
-                                    it.sourceKey == "c2-heading:traits"
+                                it.sourceKey.startsWith("p2-trait:") || it.sourceKey in c2P2HeadingKeys ||
+                                    it.sourceKey in c2PairRows
                             }
                             val fromP1 = pageCells.any {
                                 !it.sourceKey.startsWith("p2-trait:") &&
-                                    it.sourceKey != "c2-heading:traits" &&
+                                    it.sourceKey !in c2P2HeadingKeys && it.sourceKey !in c2PairRows &&
                                     !it.sourceKey.startsWith("c2-story:") &&
                                     it.sourceKey != "c2-heading:story"
                             }
@@ -3498,7 +3510,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     !c.sourceKey.startsWith("custom-attribute-group:") &&
                                     c.sourceKey != "action-head" &&
                                     c.sourceKey !in c2AttributeCards &&
-                                    c.sourceKey !in c2AttackTableRows
+                                    c.sourceKey !in c2AttackTableRows &&
+                                    c.sourceKey !in c2PairRows
                             }
                             val records = listCells.map { it.sourceKey }.distinct()
                             listCells.groupBy { it.sourceKey to it.columnIndex }.forEach { (key, cells) ->
@@ -3545,7 +3558,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             // C248: golden C2 cartelas carry a small "VIENE P. n"
                             // with the real base page of the module, when it fits.
                             groupHeadings.filter { it.sourceStartOffset == 0 }.forEach { heading ->
-                                val base = if (heading.sourceKey == "c2-heading:traits")
+                                val base = if (heading.sourceKey in c2P2HeadingKeys)
                                     physicalSectionKeys.indexOf("P2 - Equipo y tesoro") + 1
                                 else if (heading.sourceKey == "c2-heading:story") // C447
                                     physicalSectionKeys.indexOf("P3 - Trasfondo / Perfil / Historia") + 1
@@ -3901,6 +3914,42 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                         it.columnIndex == cell.columnIndex }.minOf { it.cellPt.bottomPt })
                                 return@forEach
                             }
+                            c2PairRows[cell.sourceKey]?.let { lines ->
+                                // C457: golden C2 rows of EQUIPO and TESORO, banded, name and bold amount.
+                                val left = cell.cellPt.leftPt
+                                val line = cell.sourceStartOffset / 2
+                                val values = lines[line]
+                                val rowIndex = cell.sourceKey.substringAfterLast(':').toInt()
+                                fillBand(stream, left, cell.cellPt.bottomPt, cell.cellPt.widthPt, cell.cellPt.heightPt,
+                                    rowIndex, rule = line == lines.lastIndex)
+                                val pairs = if (values.size == 4) 2 else 1
+                                val pairWidth = cell.cellPt.widthPt / pairs
+                                val amountColumn = c2PairAmountColumn.getValue(cell.sourceKey)
+                                val baseline = body.metrics.baselineIn(cell.cellPt)
+                                stream.saveGraphicsState()
+                                stream.setStrokingColor(Color(148, 176, 193))
+                                stream.setLineWidth(0.32f)
+                                repeat(pairs) { pair ->
+                                    val pairRight = left + (pair + 1) * pairWidth
+                                    val column = pairRight - amountColumn
+                                    stream.moveTo(column, cell.cellPt.bottomPt)
+                                    stream.lineTo(column, cell.cellPt.topPt)
+                                    if (pair == 0 && pairs == 2) {
+                                        stream.moveTo(pairRight, cell.cellPt.bottomPt)
+                                        stream.lineTo(pairRight, cell.cellPt.topPt)
+                                    }
+                                    stream.stroke()
+                                }
+                                stream.restoreGraphicsState()
+                                repeat(pairs) { pair ->
+                                    val pairRight = left + (pair + 1) * pairWidth
+                                    draw(stream, values[pair * 2], left + pair * pairWidth + 4.54f, baseline, false)
+                                    val amount = values[pair * 2 + 1]
+                                    if (amount.isNotEmpty()) p1Bold(stream, amount,
+                                        pairRight - 4f - p1BoldWidth(amount, 7.2f), baseline, 7.2f, Color(38, 75, 104))
+                                }
+                                return@forEach
+                            }
                             c2AttackTableRows[cell.sourceKey]?.let { attack ->
                                 // Golden C2 ATAQUES row: banded, two inner rules,
                                 // the same label / bonus / damage columns as P1.
@@ -3908,8 +3957,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 val b1 = left + attackLabelWidth
                                 val b2 = b1 + attackBonusWidth
                                 val rowIndex = c2AttackTableRows.keys.indexOf(cell.sourceKey)
-                                fillBand(stream, left, cell.cellPt.bottomPt,
-                                    cell.cellPt.widthPt, cell.cellPt.heightPt, rowIndex)
+                                fillBand(stream, left, cell.cellPt.bottomPt, cell.cellPt.widthPt, cell.cellPt.heightPt,
+                                    rowIndex, rule = cell.sourceStartOffset / 2 ==
+                                        c2AttackLines.getValue(cell.sourceKey).lastIndex)
                                 stream.saveGraphicsState()
                                 stream.setStrokingColor(Color(148, 176, 193))
                                 stream.setLineWidth(0.32f)
@@ -4318,7 +4368,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 }
                             }
                         }
-                        if (title.startsWith("C2 - ")) {
+                        if (title == "C2 - Habilidades, acciones y recursos" && index == pageCount - 1) {
+                            // C457: its free foot is decided once EQUIPO ESPECIAL is measured.
+                            mixedC2LastCells = pageCells
+                            mixedC2LastPageIndex = pdf.numberOfPages - 1
+                        } else if (title.startsWith("C2 - ")) {
                             fillUnusedC2WithNotes(stream, pageCells)
                         }
                         // P3 now draws its own two-column ruled writing grammar,
@@ -5270,6 +5324,70 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     addAll(items)
                 }
             }
+            // Reflow the exact P2-unprinted equipment/treasure suffixes into
+            // FULL-HEIGHT C2 paired tables. Never redraw quantities already
+            // printed on P2; keep every original label code point and source ID.
+            fun remainingPairedRows(
+                complete: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData,
+                placed: PcSheetV11PairedTablePlaced,
+            ): io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData {
+                val p2Eligible = placed.data.rows.map { it.sourceKey }.toSet()
+                val rows = complete.rows.mapNotNull { row ->
+                    if (row.sourceKey !in p2Eligible) return@mapNotNull row
+                    val prefixParts = placed.labelFlow.fragments.filter {
+                        it.localPageIndex == 1 && it.sourceKey == row.sourceKey
+                    }.sortedWith(compareBy({ it.columnIndex }, { it.startOffset }))
+                    val printedPrefix = prefixParts.joinToString("") { it.text }
+                    require(row.label.startsWith(printedPrefix)) {
+                        "P2 equipment must preserve each source label prefix exactly."
+                    }
+                    if (printedPrefix.length == row.label.length) null
+                    else row.copy(label = row.label.substring(printedPrefix.length))
+                }
+                return complete.copy(rows = rows)
+            }
+
+            val pairedRemainders = listOf(
+                Triple("EQUIPO", completeEquipment, inventoryPlaced),
+                Triple("TESORO", completeTreasure, treasurePlaced),
+            ).map { (label, complete, original) ->
+                Triple(label, remainingPairedRows(complete, original), original)
+            }
+            // C457 (golden comparador p1, p5): half-column rows. EQUIPO takes two pairs per row,
+            // left half then right half; TESORO one. Long names wrap, a wide amount takes its room.
+            fun pairedC2Items(
+                label: String,
+                remaining: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData,
+                original: PcSheetV11PairedTablePlaced,
+            ): List<PcSheetV11FlowItem> {
+                val rows = remaining.rows
+                if (rows.isEmpty()) return emptyList()
+                val alreadyOnP2 = original.quantities.filter { it.localPageIndex == 1 }.map { it.sourceKey }.toSet()
+                fun amount(row: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableRow) =
+                    if (row.sourceKey in alreadyOnP2) "" else row.amount.toString()
+                val amountColumn = maxOf(32.17f, rows.maxOf { p1BoldWidth(amount(it), 7.2f) } + 8f)
+                val twoPairs = label == "EQUIPO" && amountColumn <= 32.17f
+                val pairWidth = c2ActionColumn / (if (twoPairs) 2 else 1)
+                val nameRoom = pairWidth - amountColumn - 8f
+                val rowCount = if (twoPairs) (rows.size + 1) / 2 else rows.size
+                return (0 until rowCount).map { index ->
+                    val leftRow = rows[index]
+                    val rightRow = if (twoPairs) rows.getOrNull(index + rowCount) else null
+                    val leftName = wrapPrinted(leftRow.label, 7.2f, nameRoom).ifEmpty { listOf("") }
+                    val rightName = rightRow?.let { wrapPrinted(it.label, 7.2f, nameRoom) }.orEmpty()
+                    val key = "paired:" + label + ":" + index
+                    val lineCount = maxOf(leftName.size, rightName.size)
+                    c2PairRows[key] = (0 until lineCount).map { line ->
+                        val left = listOf(leftName.getOrElse(line) { "" }, if (line == 0) amount(leftRow) else "")
+                        if (!twoPairs) left else left + listOf(rightName.getOrElse(line) { "" },
+                            if (line == 0 && rightRow != null) amount(rightRow) else "")
+                    }
+                    c2PairAmountColumn[key] = amountColumn
+                    PcSheetV11FlowItem(key, List(lineCount) { " " }.joinToString("\n"), keepTogetherIfFits = true)
+                }
+            }
+            val equipmentC2Items = pairedRemainders[0].let { (label, remaining, original) -> pairedC2Items(label, remaining, original) }
+            val treasureC2Items = pairedRemainders[1].let { (label, remaining, original) -> pairedC2Items(label, remaining, original) }
             // C365: golden C2 cartela, 22.96 pt over the 15.7 pt list rows.
             val c2CartelaExtra = mapOf(0 to 22.96f - c2Font.metrics.lineHeightPt)
             val mixedC2 = buildList {
@@ -5312,6 +5430,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         "MUNICIONES", keepTogetherIfFits = true,
                         lineExtrasPt = c2CartelaExtra), ammunitionLines)
                 }
+                if (equipmentC2Items.isNotEmpty()) {
+                    addHeaded(PcSheetV11FlowItem("c2-heading:equipment", "EQUIPO", keepTogetherIfFits = true,
+                        lineExtrasPt = c2CartelaExtra), equipmentC2Items)
+                }
+                if (treasureC2Items.isNotEmpty()) {
+                    addHeaded(PcSheetV11FlowItem("c2-heading:treasure", "TESORO", keepTogetherIfFits = true,
+                        lineExtrasPt = c2CartelaExtra), treasureC2Items)
+                }
                 if (remainingTraits.isNotEmpty()) {
                     // Source-accurate P2 continuation follows the P1 streams
                     // inside the same TWO-column measured C2. Extra pages are
@@ -5348,166 +5474,6 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             if (p3ModuleLinks != null) {
                 require(headerPdfFont.getStringWidth(p3ModuleLinks) * 6.1f / 1000f <= 528f) {
                     "All genuine P3 continuation destinations must fit the footer band."
-                }
-            }
-
-            // Reflow the exact P2-unprinted equipment/treasure suffixes into
-            // FULL-HEIGHT C2 paired tables. Never redraw quantities already
-            // printed on P2; keep every original label code point and source ID.
-            fun remainingPairedRows(
-                complete: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData,
-                placed: PcSheetV11PairedTablePlaced,
-            ): io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData {
-                val p2Eligible = placed.data.rows.map { it.sourceKey }.toSet()
-                val rows = complete.rows.mapNotNull { row ->
-                    if (row.sourceKey !in p2Eligible) return@mapNotNull row
-                    val prefixParts = placed.labelFlow.fragments.filter {
-                        it.localPageIndex == 1 && it.sourceKey == row.sourceKey
-                    }.sortedWith(compareBy({ it.columnIndex }, { it.startOffset }))
-                    val printedPrefix = prefixParts.joinToString("") { it.text }
-                    require(row.label.startsWith(printedPrefix)) {
-                        "P2 equipment must preserve each source label prefix exactly."
-                    }
-                    if (printedPrefix.length == row.label.length) null
-                    else row.copy(label = row.label.substring(printedPrefix.length))
-                }
-                return complete.copy(rows = rows)
-            }
-
-            // C361: the table starts under the golden C2 cartela band (y662.74..685.7).
-            // C414: the golden C2 margins x39.69..572.32.
-            val fullC2PairedArea = PcSheetV11RectPt(39.69f, c2FootPt, 532.63f, 660.76f - c2FootPt)
-            val pairedRemainders = listOf(
-                Triple("EQUIPO", completeEquipment, inventoryPlaced),
-                Triple("TESORO", completeTreasure, treasurePlaced),
-            ).map { (label, complete, original) ->
-                Triple(label, remainingPairedRows(complete, original), original)
-            }
-            fun placeC2Paired(
-                remaining: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedTableData,
-                area: PcSheetV11RectPt,
-            ): PcSheetV11PairedTablePlaced = PcSheetV11PairedTableComposer.place(
-                remaining, area, 9.92f, // C414: golden C2 gutter
-                PcSheetV11PairedAmountRouting.c2AmountWidth(remaining, c2TableFont.width),
-                PcSheetV11PairedAmountRouting.AMOUNT_GAP_PT,
-                c2TableFont.metrics.lineHeightPt, c2TableFont.width,
-                balanceSinglePageC2 = true,
-            )
-            data class CompactPairedC2(
-                val topArea: PcSheetV11RectPt,
-                val bottomArea: PcSheetV11RectPt,
-                val equipment: PcSheetV11PairedTablePlaced,
-                val treasure: PcSheetV11PairedTablePlaced,
-            )
-            // C203/C205: if both genuine continuations fit on one physical
-            // sheet, keep their separate PAIR grammars but stack the two
-            // modules. Formerly even five short equipment items plus three
-            // currencies forced two wasteful C2 pages. Never squeeze font,
-            // move P2 data, truncate labels, or join separate source IDs.
-            // Oversized quantities and dense/multipage tables retain their
-            // existing dedicated full-height C2 path without changes.
-            val compactPaired = if (pairedRemainders.all { it.second.rows.isNotEmpty() } &&
-                pairedRemainders.all { (_, remaining, _) ->
-                    PcSheetV11PairedAmountRouting.c2AmountWidth(remaining, c2TableFont.width) <=
-                        PcSheetV11PairedAmountRouting.BASE_AMOUNT_WIDTH_PT
-                }
-            ) {
-                val equipmentRemainder = pairedRemainders[0].second
-                val treasureRemainder = pairedRemainders[1].second
-                val fullEquipment = placeC2Paired(equipmentRemainder, fullC2PairedArea)
-                val fullTreasure = placeC2Paired(treasureRemainder, fullC2PairedArea)
-                if (fullEquipment.localPageCount == 1 && fullTreasure.localPageCount == 1) {
-                    val occupiedEquipment = (fullEquipment.labels.maxOfOrNull {
-                        it.rowIndex + 1
-                    } ?: 0) * c2TableFont.metrics.lineHeightPt
-                    // 14.5pt blue cartela ABOVE each module, plus a 5.5pt
-                    // physical gap. The two content rectangles never overlap.
-                    val upperHeight = maxOf(70f, occupiedEquipment + 12f)
-                    val lowerTop = fullC2PairedArea.topPt - upperHeight - 24.94f // C361: golden cartela gap
-                    if (lowerTop > fullC2PairedArea.bottomPt + 55f) {
-                        val topArea = PcSheetV11RectPt(
-                            39.69f, fullC2PairedArea.topPt - upperHeight, 532.63f, upperHeight,
-                        )
-                        val bottomArea = PcSheetV11RectPt(
-                            39.69f, fullC2PairedArea.bottomPt, 532.63f,
-                            lowerTop - fullC2PairedArea.bottomPt,
-                        )
-                        val top = placeC2Paired(equipmentRemainder, topArea)
-                        val bottom = placeC2Paired(treasureRemainder, bottomArea)
-                        if (top.localPageCount == 1 && bottom.localPageCount == 1) {
-                            CompactPairedC2(topArea, bottomArea, top, bottom)
-                        } else null
-                    } else null
-                } else null
-            } else null
-            data class DeferredOrdinaryForSpecial(
-                val label: String,
-                val original: PcSheetV11PairedTablePlaced,
-                val expanded: PcSheetV11PairedTablePlaced,
-                val upperHeight: Float,
-            )
-            var deferredOrdinaryForSpecial: DeferredOrdinaryForSpecial? = null
-            fun drawSeparatePairedC2(
-                label: String,
-                original: PcSheetV11PairedTablePlaced,
-                expanded: PcSheetV11PairedTablePlaced,
-            ) {
-                val amountsAlreadyOnP2 = original.quantities.asSequence()
-                    .filter { it.localPageIndex == 1 }
-                    .map { it.sourceKey }.toSet()
-                for (localPage in 1..expanded.localPageCount) {
-                    val page = PDPage(PDRectangle.LETTER)
-                    pdf.addPage(page)
-                    physicalSectionKeys += "C2 - Equipo y tesoro / " + label
-                    PDPageContentStream(pdf, page).use { stream ->
-                        drawFrameAndHeader(stream,
-                            "C2 - Equipo y tesoro / " + label + " / " + localPage)
-                        drawPaired(stream, label + " / CANTIDAD",
-                            fullC2PairedArea, expanded, localPage, amountsAlreadyOnP2,
-                            compactC2 = true, tableFont = c2TableFont)
-                    }
-                }
-            }
-            if (compactPaired != null) {
-                val page = PDPage(PDRectangle.LETTER)
-                pdf.addPage(page)
-                physicalSectionKeys += "C2 - Equipo y tesoro / EQUIPO Y TESORO"
-                PDPageContentStream(pdf, page).use { stream ->
-                    drawFrameAndHeader(stream, "C2 - Equipo y tesoro / EQUIPO Y TESORO")
-                    val equipoAmounts = pairedRemainders[0].third.quantities
-                        .filter { it.localPageIndex == 1 }
-                        .map { it.sourceKey }.toSet()
-                    val tesoroAmounts = pairedRemainders[1].third.quantities
-                        .filter { it.localPageIndex == 1 }
-                        .map { it.sourceKey }.toSet()
-                    drawPaired(stream, "EQUIPO / CANTIDAD", compactPaired.topArea,
-                        compactPaired.equipment, 1, equipoAmounts,
-                        compactC2 = true, tableFont = c2TableFont, writeC2Notes = false)
-                    drawPaired(stream, "TESORO / CANTIDAD", compactPaired.bottomArea,
-                        compactPaired.treasure, 1, tesoroAmounts, compactC2 = true, tableFont = c2TableFont)
-                }
-            } else {
-                // Original independent page path remains authoritative when the
-                // measured physical envelopes do not fit together.
-                for ((label, remaining, original) in pairedRemainders) {
-                    if (remaining.rows.isEmpty()) continue
-                    val expanded = placeC2Paired(remaining, fullC2PairedArea)
-                    val occupied = (expanded.labels.maxOfOrNull { it.rowIndex + 1 }
-                        ?: 0) * c2TableFont.metrics.lineHeightPt
-                    val upperHeight = maxOf(90f, occupied + 18f)
-                    // C423: as in the golden, one table left over from P2 shares its page with
-                    // the deferred EQUIPO ESPECIAL. The real full-width special table is
-                    // measured below before this reservation commits.
-                    val reserveForSpecial =
-                        pairedRemainders.count { it.second.rows.isNotEmpty() } == 1 &&
-                        specialDeferredToC2.isNotEmpty() &&
-                        expanded.localPageCount == 1
-                    if (reserveForSpecial) {
-                        deferredOrdinaryForSpecial =
-                            DeferredOrdinaryForSpecial(label, original, expanded, upperHeight)
-                    } else {
-                        drawSeparatePairedC2(label, original, expanded)
-                    }
                 }
             }
 
@@ -5589,55 +5555,29 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 specialC2Rows.size) {
                 "Every deferred special item must occupy at least one physical C2 row."
             }
-            // Join a genuinely short special record with a genuinely
-            // short ordinary pair only if the already-measured complete
-            // special row fits in its own lower full-width rectangle.
-            // If not, flush the deferred ordinary page unchanged before the
-            // original special continuation pages; never attempt compression.
-            val sharedC2 = deferredOrdinaryForSpecial?.takeIf { pending ->
-                c2SpecialPages.size == 1 &&
-                    c2SpecialPages.single().sumOf { it.heightPt.toDouble() } <
-                        c2SpecialArea.heightPt - pending.upperHeight - 24.94f - 10f
-            }
-            if (deferredOrdinaryForSpecial != null && sharedC2 == null) {
-                val separate = requireNotNull(deferredOrdinaryForSpecial)
-                drawSeparatePairedC2(separate.label, separate.original, separate.expanded)
+            // C457 (golden comparador p5; §3.29): the full-width table takes the free foot of the
+            // last shared C2 sheet when all of it fits there; otherwise it gets its own sheet.
+            val specialFootTop = mixedC2LastPageIndex?.takeIf { c2SpecialPages.size == 1 }?.let {
+                val tableTop = mixedC2LastCells.minOf { cell -> cell.cellPt.bottomPt } - 8f - 24.94f
+                val rowsHeight = c2SpecialPages.single().sumOf { part -> part.heightPt.toDouble() }.toFloat()
+                tableTop.takeIf { top -> top - rowsHeight >= c2FootPt }
             }
             c2SpecialPages.forEachIndexed { pageIndex, fragments ->
-                val shared = sharedC2?.takeIf { pageIndex == 0 }
-                val drawingArea = if (shared != null) PcSheetV11RectPt(
-                    c2SpecialArea.leftPt, c2SpecialArea.bottomPt, c2SpecialArea.widthPt,
-                    c2SpecialArea.heightPt - shared.upperHeight - 24.94f, // C344: cartela gap
-                ) else c2SpecialArea
-                val page = PDPage(PDRectangle.LETTER)
-                pdf.addPage(page)
-                physicalSectionKeys += if (shared != null)
-                    "C2 - Equipo y tesoro / " + shared.label + " + EQUIPO ESPECIAL"
-                    else "C2 - Equipo especial / continuación"
-                PDPageContentStream(pdf, page).use { stream ->
-                    if (shared != null) {
-                        drawFrameAndHeader(stream,
-                            "C2 - Equipo y tesoro / " + shared.label + " + EQUIPO ESPECIAL")
-                        val topArea = PcSheetV11RectPt(
-                            39.69f, c2SpecialArea.topPt - shared.upperHeight,
-                            532.63f, shared.upperHeight,
-                        )
-                        val topPlaced = placeC2Paired(
-                            pairedRemainders.first { it.first == shared.label }.second, topArea,
-                        )
-                        require(topPlaced.localPageCount == 1) {
-                            "Measured shared C2 ordinary equipment cannot fit its top panel."
-                        }
-                        val alreadyP2 = shared.original.quantities
-                            .filter { it.localPageIndex == 1 }
-                            .map { it.sourceKey }.toSet()
-                        drawPaired(stream, shared.label + " / CANTIDAD", topArea,
-                            topPlaced, 1, alreadyP2, compactC2 = true, tableFont = c2TableFont,
-                            writeC2Notes = false)
-                    } else {
-                        drawFrameAndHeader(stream,
-                            "C2 - Equipo especial / continuación / " + (pageIndex + 1))
-                    }
+                val atFoot = specialFootTop != null
+                val drawingArea = if (specialFootTop != null) {
+                    val rowsHeight = fragments.sumOf { it.heightPt.toDouble() }.toFloat()
+                    PcSheetV11RectPt(c2SpecialArea.leftPt, specialFootTop - rowsHeight, c2SpecialArea.widthPt, rowsHeight)
+                } else c2SpecialArea
+                val page = if (atFoot) pdf.getPage(requireNotNull(mixedC2LastPageIndex)) else PDPage(PDRectangle.LETTER)
+                if (atFoot) specialSharedMixedPage = requireNotNull(mixedC2LastPageIndex) + 1
+                else {
+                    pdf.addPage(page)
+                    physicalSectionKeys += "C2 - Equipo especial / continuación"
+                }
+                (if (atFoot) PDPageContentStream(pdf, page, PDPageContentStream.AppendMode.APPEND, true, true)
+                    else PDPageContentStream(pdf, page)).use { stream ->
+                    if (!atFoot) drawFrameAndHeader(stream,
+                        "C2 - Equipo especial / continuación / " + (pageIndex + 1))
                     // C344: golden C2 p5 - the full-width EQUIPO ESPECIAL cartela with
                     // its base page before the right diamond («VIENE DE PÁG. n», C341).
                     drawP2Cartela(stream, "EQUIPO ESPECIAL", drawingArea)
@@ -5783,6 +5723,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     drawUnusedC2NotesGrid(stream, tableBottom)
                 }
             }
+            // C457: without EQUIPO ESPECIAL at its foot, the last shared sheet gets its usual notes.
+            if (specialSharedMixedPage == null) mixedC2LastPageIndex?.let { pageIndex ->
+                PDPageContentStream(pdf, pdf.getPage(pageIndex), PDPageContentStream.AppendMode.APPEND, true, true).use { stream ->
+                    fillUnusedC2WithNotes(stream, mixedC2LastCells)
+                }
+            }
+            specialSharedMixedPage?.let { mixedC2TraitPages += it }
 
             // C209: frozen owner-approved V11 extreme A/B places source-backed
             // C2 continuation pages after P3 and BEFORE P4. D-0076 §3.30
@@ -6058,8 +6005,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val mixedC2Key = "C2 - Habilidades, acciones y recursos"
             val c2FromP1 = mixedC2P1Pages.minOrNull()
             fun isFromP2(key: String): Boolean =
-                key.startsWith("C2 - Equipo y tesoro / ") ||
-                    key == "C2 - Rasgos / continuación" ||
+                key == "C2 - Rasgos / continuación" ||
                     key == "C2 - Equipo especial / continuación"
             val dedicatedC2FromP2 = physicalSectionKeys.indexOfFirst { isFromP2(it) }
                 .takeIf { it >= 0 }?.plus(1)
@@ -6072,20 +6018,17 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // reference and add explicit per-module destinations in the unused
             // footer band, with actual FINAL physical page numbers.
             val p2C2Destinations = buildList {
-                mixedC2TraitPages.minOrNull()?.let { add("RASGOS" to it) }
+                mixedC2HeadingPages["c2-heading:traits"]?.let { add("RASGOS" to it) }
+                mixedC2HeadingPages["c2-heading:equipment"]?.let { add("EQUIPO" to it) }
+                mixedC2HeadingPages["c2-heading:treasure"]?.let { add("TESORO" to it) }
+                specialSharedMixedPage?.let { add("ESPECIAL" to it) }
                 physicalSectionKeys.forEachIndexed { physicalIndex, section ->
-                    val sourceModule = when {
-                        section == "C2 - Rasgos / continuación" -> "RASGOS"
-                        section == "C2 - Equipo y tesoro / EQUIPO Y TESORO" ->
-                            "EQUIPO/TESORO"
-                        section.startsWith("C2 - Equipo y tesoro / EQUIPO") -> "EQUIPO"
-                        section.startsWith("C2 - Equipo y tesoro / TESORO") -> "TESORO"
-                        section == "C2 - Equipo especial / continuación" -> "ESPECIAL"
+                    val sourceModule = when (section) {
+                        "C2 - Rasgos / continuación" -> "RASGOS"
+                        "C2 - Equipo especial / continuación" -> "ESPECIAL"
                         else -> null
                     }
                     if (sourceModule != null) add(sourceModule to (physicalIndex + 1))
-                    // C423: a shared page also holds the deferred EQUIPO ESPECIAL.
-                    if (section.endsWith(" + EQUIPO ESPECIAL")) add("ESPECIAL" to (physicalIndex + 1))
                 }
             }.distinctBy { it.first }.sortedBy { it.second }
             require(p2C2Destinations.minOfOrNull { it.second } == c2FromP2) {
@@ -6098,7 +6041,6 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val p2ModuleLinks = PcSheetV11ContinuationText.moduleLinks(
                 p2C2Destinations.map { (module, physical) ->
                     when (module) {
-                        "EQUIPO/TESORO" -> "EQUIPO Y TESORO"
                         "ESPECIAL" -> "EQUIPO ESPECIAL"
                         else -> module
                     } to physical

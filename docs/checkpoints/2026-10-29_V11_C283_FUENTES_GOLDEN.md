@@ -181,6 +181,8 @@ Evidencia visual: `qa/evidence/c286_c287/` `qa/evidence/c290/` y `qa/evidence/c3
 | C451 | Municiones una sola vez | Aplica D-0076 §3.31 y el golden, sin decisión nueva del propietario. La munición clasificada sale en P1 o, si no cabe, en C2. Deja de repetirse en EQUIPO de P2 y en C2. Sus notas quedan en la App. Regla nueva P130. |
 | C452 | Notas de ataque, títulos y filas de C2 | Decisión del propietario, 2026-11-06: «Sí, solo en App» para las notas de ataque. Títulos de C2 como el golden (C215), habilidad del panel B con su fila (C214), detalles de recursos en 6,1 pt (C216). Cierra esos tres controles. |
 | C453 | Referencias con página real | Aplica D-0076 §3.33. «VER C2» pasa a «CONTINÚA EN PÁG. n», o a «NOMBRE EN PÁG. n» en la cabecera de un nombre muy largo, con la página real; esas hojas se dibujan en dos pasadas. Un módulo que sigue en otra hoja de C2 lo avisa en la banda inferior. Cierra C213, y con él los controles G3. |
+| C457 | Hojas compartidas de C2 | Aplica el golden y §3.29. EQUIPO y TESORO que continúan van en el flujo de dos columnas; EQUIPO ESPECIAL va al pie de la última hoja compartida si cabe. Regla nueva C217. |
+| C456 | Correcciones de la revisión de `preqa.9` | Ataques largos en su fila y tabla en C2, títulos de C2, municiones sin palabras añadidas, rótulos de Especial, nombre largo cortado, una sola fuente. Regla nueva P131. |
 | C455 | V11 reemplaza las cuatro hojas | Decisión del propietario, 2026-11-06. Reglas GLB12, QA05 e IN01 redefinidas. Se retiran al aprobarse V11. |
 | C454 | Candidato V11 | Versión `0.5.0-preqa.9`, build 50900. APK de CI probado en un emulador en solo lectura y sin red. Sus PDF coinciden con los de CI. Ver `qa/ACTA_CANDIDATO_PREQA9.md`. |
 

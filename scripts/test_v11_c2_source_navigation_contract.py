@@ -16,10 +16,9 @@ class C2PhysicalOriginParityTest(unittest.TestCase):
         for file in RENDERERS:
             source = file.read_text(encoding="utf-8")
             self.assertIn("val mixedC2P1Pages = mutableSetOf<Int>()", source)
-            self.assertIn('it.sourceKey == "c2-heading:traits"', source)
+            self.assertIn('it.sourceKey in c2P2HeadingKeys', source)
             self.assertIn("val c2FromP1 = mixedC2P1Pages.minOrNull()", source)
-            self.assertIn('physicalSectionKeys += "C2 - Equipo y tesoro / " + label', source)
-            self.assertIn('key.startsWith("C2 - Equipo y tesoro / ")', source)
+            self.assertNotIn('C2 - Equipo y tesoro', source)
             self.assertEqual(source.count("drawC2ContinuationCartela(stream, column)"), 2,
                 "Every genuine C2 continued source-group or attribute heading needs golden cartela.")
             self.assertIn("stream.fillAndStroke()", source)

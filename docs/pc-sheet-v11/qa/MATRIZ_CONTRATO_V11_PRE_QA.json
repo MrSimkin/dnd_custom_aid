@@ -6109,6 +6109,25 @@
       ]
     },
     {
+      "id": "C217",
+      "area": "C2",
+      "obligation": "EQUIPO y TESORO que continúan comparten hoja con los demás módulos de C2, y EQUIPO ESPECIAL va al pie de la última hoja compartida si cabe",
+      "authority": "golden v11_comparador_C2_extremo; docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md §3.29, §3.32",
+      "method": "PDF texto, por hoja",
+      "scenarios": "Equipo, tesoro y especial que continúan, A y B",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
       "id": "P412",
       "area": "P4",
       "obligation": "Cada cabecera de nivel de P4 dibuja las mismas casillas vacías que P1 (4, 3, 3, 3, 4, 2, 2, 1, 1), en una línea",

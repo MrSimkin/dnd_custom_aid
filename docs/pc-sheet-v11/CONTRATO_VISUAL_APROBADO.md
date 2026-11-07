@@ -264,6 +264,7 @@ Aplica la prioridad de fuentes, sin decisión nueva del propietario, y queda suj
 - **Una sola fuente de conjuros:** la tarjeta imprime solo el valor.
 - **Panel B y ATAQUES vacío:** sin la leyenda de marcas y sin la línea añadida.
 - **PV temporales:** `TEMP` solo se imprime si el personaje los tiene.
+- **Hojas compartidas de C2:** EQUIPO y TESORO que continúan van en el flujo de dos columnas, con los demás módulos: EQUIPO con dos pares por fila si sus cantidades caben, TESORO con uno. EQUIPO ESPECIAL va a todo el ancho al pie de la última hoja compartida si cabe entero; si no, en su propia hoja. Ya no hay hojas solo de Equipo o Tesoro (regla C217).
 
 ## Aclaración del propietario — nombre muy largo en la cabecera (2026-11-06)
 
