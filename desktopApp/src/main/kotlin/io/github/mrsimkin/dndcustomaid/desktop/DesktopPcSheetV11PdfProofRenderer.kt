@@ -210,6 +210,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // C240: spellbook card heading length and inline NIVEL label per card.
             val bookHeadingEnds = mutableMapOf<String, Int>()
             val bookInlineLevels = mutableMapOf<String, String>()
+            val bookNameEnds = mutableMapOf<String, Int>()
+            val bookFullNames = mutableMapOf<String, String>()
             // Q14b: source offset and uppercase text of each card's real school line.
             val bookSchools = mutableMapOf<String, Pair<Int, String>>()
 
@@ -1124,24 +1126,26 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // C456 (owner 2026-11-06, «Sí, en su lugar»): a value that does not fit one line of
             // its cell takes two smaller lines, in its own row and in the order of the sheet.
             val p1AttackTwoLinePt = 5.9f
-            fun wrapPrinted(text: String, pt: Float, width: Float): List<String> {
+            fun wrapMeasured(text: String, width: Float, measure: (String) -> Float): List<String> {
                 val lines = mutableListOf<String>()
                 var current = ""
                 text.replace(Regex("\\s+"), " ").trim().split(" ").filter { it.isNotEmpty() }.forEach { word ->
                     var rest = word
-                    while (printedPt(rest, pt) > width) {
-                        val cut = (1 until rest.length).lastOrNull { printedPt(rest.take(it), pt) <= width } ?: 1
+                    while (measure(rest) > width) {
+                        val cut = (1 until rest.length).lastOrNull { measure(rest.take(it)) <= width } ?: 1
                         if (current.isNotEmpty()) { lines += current; current = "" }
                         lines += rest.take(cut)
                         rest = rest.drop(cut)
                     }
                     val joined = if (current.isEmpty()) rest else current + " " + rest
-                    if (printedPt(joined, pt) <= width) current = joined
+                    if (measure(joined) <= width) current = joined
                     else { lines += current; current = rest }
                 }
                 if (current.isNotEmpty()) lines += current
                 return lines
             }
+            fun wrapPrinted(text: String, pt: Float, width: Float): List<String> =
+                wrapMeasured(text, width) { printedPt(it, pt) }
             // A saved line break or tab is one space on paper: the cell is one physical line.
             fun oneLine(text: String) = text.replace(Regex("\\s+"), " ").trim()
             fun completeAttackLabel(entry: io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry) =
@@ -1957,9 +1961,16 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // persisted CharacterSheet property, so its box stays manuscript-only.
             // The same measured body font decides which source suffix must flow to C2.
             val identityTop = 698.46f // C349: golden identity block top
+            // C458 (F08): a class never parts from its level. Whole classes go on P1 and the
+            // rest follow in the PERSONAJE module of C2, one per line.
+            val classLabels = source.classes.map { oneLine(it.name) + " " + it.level }
+            val classIdentityFont = measurer.resolve(PcSheetV11Typeface.BODY, 9.3f)
+            val classesOnP1 = (classLabels.size downTo 1).firstOrNull { count ->
+                classIdentityFont.width.measurePt(classLabels.take(count).joinToString(" / ")) <= 444.76f - 11.34f
+            } ?: minOf(1, classLabels.size)
             val classIdentity = PcSheetV11FlowItem(
                 "identity:classes",
-                source.classes.joinToString(" / ") { it.name + " " + it.level },
+                classLabels.take(classesOnP1).joinToString(" / "),
             )
             val raceIdentity = PcSheetV11FlowItem("identity:race",
                 io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11RaceLine.of(
@@ -2079,8 +2090,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     ?.filter { it.localPageIndex == 1 && it.sourceKey == item.sourceKey }
                     ?.maxOfOrNull { it.sourceEndExclusive } ?: 0
                 require(consumed in 0..item.text.length)
-                if (consumed == item.text.length) null
-                else item.copy(text = item.text.substring(consumed))
+                val later = if (item.sourceKey == "identity:classes") classLabels.drop(classesOnP1) else emptyList()
+                val continued = listOfNotNull(item.text.substring(consumed).takeIf { it.isNotEmpty() }) + later
+                if (continued.isEmpty()) null else item.copy(text = continued.joinToString("\n"))
             }
 
             // A separate physical combat dashboard replaces the old prose
@@ -2852,6 +2864,27 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     p4SourceFont.width.measurePt(sourceInfo) + 12f <= 167.81f // C309 golden column
                 ) key to sourceInfo else null
             }.toMap()
+            // C458 (N6, contract 2026-10-28): a row that does not fit one line keeps the golden
+            // columns. The name wraps under itself, the source stays in its own lane and the
+            // pencil box stays on the first line.
+            val p4SourceLanePt = 60f
+            val p4InsetPt = quickFont.width.measurePt(quickInset)
+            val p4LongRows: Map<String, List<Pair<String, String>>> = data.spells.flatMap { entry ->
+                p4SpellRows.getValue(entry.spell.id).map { (key, sourceInfo) -> Triple(entry, key, sourceInfo) }
+            }.filter { (entry, key, sourceInfo) ->
+                key !in p4RightSources && (sourceInfo.isNotBlank() ||
+                    entry.spell.name.any { it == '\r' || it == '\n' || it == '\t' } ||
+                    quickFont.width.measurePt(quickInset + entry.spell.name) > 167.81f - 3.4f)
+            }.associate { (entry, key, sourceInfo) ->
+                val sourceLines = wrapMeasured(sourceInfo, p4SourceLanePt) { p4SourceFont.width.measurePt(it) }
+                val lanePt = sourceLines.maxOfOrNull { p4SourceFont.width.measurePt(it) + 10f } ?: 0f
+                val nameLines = wrapMeasured(entry.spell.name, 167.81f - p4InsetPt - 3.4f - lanePt) {
+                    quickFont.width.measurePt(it)
+                }
+                key to List(maxOf(nameLines.size, sourceLines.size, 1)) { line ->
+                    nameLines.getOrElse(line) { "" } to sourceLines.getOrElse(line) { "" }
+                }
+            }
 
                 // C367: x where a C2 column cue may start - clear of the golden
                 // «MÓDULOS COMPARTIDOS · DOS COLUMNAS» label in the first column.
@@ -3142,7 +3175,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             // (C366: golden flow top y692.79, frame y695.62): never
                             // spend a description line.
                             val namesByKey = entries.associate {
-                                it.sourceKey to it.text.substringBefore('\n')
+                                it.sourceKey to (bookFullNames[it.sourceKey] ?: it.text.substringBefore('\n'))
                             }
                             val continuationParts = flow.sourceFlow.fragments.filter {
                                 it.localPageIndex == index + 1 &&
@@ -3315,9 +3348,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     stream.addRect(cell.cellPt.leftPt, cell.cellPt.bottomPt,
                                         cell.cellPt.widthPt, cell.cellPt.heightPt)
                                     stream.fill()
-                                    stream.moveTo(cell.cellPt.leftPt, cell.cellPt.bottomPt + 0.99f)
-                                    stream.lineTo(cell.cellPt.rightPt, cell.cellPt.bottomPt + 0.99f)
-                                    stream.stroke()
+                                    // C458: one rule per row, at the foot of its last line.
+                                    if (p4LongRows[cell.sourceKey]?.let { cell.sourceStartOffset / 2 == it.lastIndex } != false) {
+                                        stream.moveTo(cell.cellPt.leftPt, cell.cellPt.bottomPt + 0.99f)
+                                        stream.lineTo(cell.cellPt.rightPt, cell.cellPt.bottomPt + 0.99f)
+                                        stream.stroke()
+                                    }
                                 }
                             }
                             stream.restoreGraphicsState()
@@ -3859,9 +3895,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     stream.beginText()
                                     stream.setFont(headerPdfFont, 7f)
                                     // C288: golden school baseline, 25.51 pt under the band top.
-                                    stream.newLineAtOffset(cell.cellPt.leftPt,
-                                        if (cell.sourceKey in bookInlineLevels) cell.cellPt.topPt - 15.01f
-                                        else body.metrics.baselineIn(cell.cellPt) - 0.8f)
+                                    stream.newLineAtOffset(cell.cellPt.leftPt, cell.cellPt.topPt - 15.01f)
                                     stream.showText(printable)
                                     stream.endText()
                                     stream.restoreGraphicsState()
@@ -3871,24 +3905,23 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             // C270: golden Libro card name — a larger bold heading
                             // in golden ink (golden: EB Garamond 11.3 pt; the app's
                             // nearest embedded face is Barlow 8.2 pt, which fits the
-                            // 10.5 pt row). Only a name wholly on its first line.
+                            // 10.5 pt row).
                             if (title == "Libro de conjuros" && cell.sourceKey.startsWith("book:") &&
-                                cell.sourceStartOffset == 0 && cell.drawableText.isNotBlank() &&
-                                cell.sourceText.startsWith(cell.drawableText.trimEnd() + "\n")) {
+                                cell.sourceStartOffset < bookNameEnds.getValue(cell.sourceKey) &&
+                                cell.drawableText.isNotBlank()) {
                                 // C287: golden EB Garamond 12 Bold 11.3 pt (accents from
-                                // its fallback); a name too wide for its line keeps body text.
+                                // its fallback).
                                 val namePt = 11.3f
                                 val printable = pcSheetV11PrintableText(cell.drawableText.trimEnd())
-                                val reserved = bookInlineLevels[cell.sourceKey]?.let {
-                                    headerPdfFont.getStringWidth(it) * 6.3f / 1000f + 8f
-                                } ?: 2f
+                                val reserved = headerPdfFont.getStringWidth(bookInlineLevels.getValue(cell.sourceKey)) * 6.3f / 1000f + 8f
                                 if (heroWidthPt(printable, namePt) <= cell.cellPt.widthPt - reserved) {
                                     stream.saveGraphicsState()
                                     stream.setNonStrokingColor(Color(29, 56, 79))
                                     // C288: golden name baseline, 12.76 pt under the band top.
+                                    // C458: a further name line, the same distance from its own foot.
                                     drawHero(stream, printable, cell.cellPt.leftPt,
-                                        if (cell.sourceKey in bookInlineLevels) cell.cellPt.topPt - 12.76f
-                                        else body.metrics.baselineIn(cell.cellPt) - 0.8f, namePt)
+                                        if (cell.sourceStartOffset == 0) cell.cellPt.topPt - 12.76f
+                                        else cell.cellPt.bottomPt - 2.26f, namePt)
                                     stream.restoreGraphicsState()
                                     return@forEach
                                 }
@@ -3912,6 +3945,34 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 if (cell.sourceStartOffset == 0) drawC2AttributeRow(stream, cell,
                                     pageCells.filter { it.sourceKey == cell.sourceKey &&
                                         it.columnIndex == cell.columnIndex }.minOf { it.cellPt.bottomPt })
+                                return@forEach
+                            }
+                            if (title.startsWith("P4 - ")) p4LongRows[cell.sourceKey]?.let { lines ->
+                                val line = cell.sourceStartOffset / 2
+                                val (name, rowSource) = lines[line]
+                                val baseline = body.metrics.baselineIn(cell.cellPt)
+                                if (line == 0) {
+                                    // C317: golden P4 spell box - 8.22 pt, white, #527c96 0.48 pt.
+                                    stream.saveGraphicsState()
+                                    stream.setStrokingColor(Color(82, 124, 150))
+                                    stream.setNonStrokingColor(Color(255, 255, 255))
+                                    stream.setLineWidth(0.48f)
+                                    stream.addRect(cell.cellPt.leftPt + 2.56f, baseline - 1.4f, 8.22f, 8.22f)
+                                    stream.fillAndStroke()
+                                    stream.restoreGraphicsState()
+                                }
+                                if (name.isNotEmpty()) draw(stream, name, cell.cellPt.leftPt + p4InsetPt, baseline, false)
+                                if (rowSource.isNotEmpty()) {
+                                    stream.saveGraphicsState()
+                                    stream.setNonStrokingColor(Color(38, 75, 104))
+                                    stream.beginText()
+                                    stream.setFont(headerPdfFont, 6f)
+                                    stream.newLineAtOffset(
+                                        cell.cellPt.rightPt - p4SourceFont.width.measurePt(rowSource) - 3.4f, baseline)
+                                    stream.showText(pcSheetV11PrintableText(rowSource))
+                                    stream.endText()
+                                    stream.restoreGraphicsState()
+                                }
                                 return@forEach
                             }
                             c2PairRows[cell.sourceKey]?.let { lines ->
@@ -5761,18 +5822,23 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             lineExtrasPt = mapOf(0 to 20.69f - 15.73f)))
                         var firstRow = true
                         val spellsHere = data.spells.filter { it.spell.level == level }
+                        // C458 (N6): the first blank row travels with the last real row, so a blank
+                        // row never opens a column by itself under «NIVEL n / CONTINUACIÓN».
+                        val realKeys = spellsHere.flatMap { entry -> p4SpellRows.getValue(entry.spell.id).map { it.first } }
+                        val tailGroup = if (realKeys.size == 1) levelGroup else levelGroup + ":tail"
                         spellsHere.forEach { entry ->
-                            p4SpellRows.getValue(entry.spell.id).forEach { (key, sourceInfo) ->
+                            p4SpellRows.getValue(entry.spell.id).forEach { (key, _) ->
                                 add(PcSheetV11FlowItem(key,
                                     // Five measured spaces separate the actual first
                                     // spell glyph from the 7pt vector box (verified original
                                     // 3-space result overlapped its border by ~1.8pt).
-                                    // No source name is abbreviated or trimmed.
-                                    quickInset + entry.spell.name +
-                                        (if (sourceInfo.isBlank() || key in p4RightSources) ""
-                                        else " | " + sourceInfo),
+                                    p4LongRows[key]?.joinToString("\n") { " " } ?: (quickInset + entry.spell.name),
                                     keepTogetherIfFits = true,
-                                    groupKey = levelGroup.takeIf { firstRow }))
+                                    groupKey = when {
+                                        firstRow -> levelGroup
+                                        key == realKeys.last() -> tailGroup
+                                        else -> null
+                                    }))
                                 firstRow = false
                             }
                         }
@@ -5786,7 +5852,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 "spell-handwritten:" + level + ":" + row,
                                 "[ ] ______________________",
                                 keepTogetherIfFits = true,
-                                groupKey = levelGroup.takeIf { firstRow },
+                                groupKey = when {
+                                    firstRow -> levelGroup
+                                    row == 0 -> tailGroup
+                                    else -> null
+                                },
                             ))
                             firstRow = false
                         }
@@ -5810,10 +5880,24 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     // beyond it take rows back until the page holds everything.
                     var paper = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11QuickSpellShare
                         .paperRows { level -> data.spells.filter { it.spell.level == level }
-                            .sumOf { p4SpellRows.getValue(it.spell.id).size } }
+                            .sumOf { entry -> p4SpellRows.getValue(entry.spell.id).sumOf { (key, _) -> p4LongRows[key]?.size ?: 1 } } }
                     while (p4Pages(quickRows({ paper.getValue(it) })).sourceFlow.localPageCount > 1) {
                         paper = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11QuickSpellShare
                             .takeOneRow(paper)
+                    }
+                    // C458 (N6): blank rows that would open a column alone are given up.
+                    while (true) {
+                        val opening = p4Pages(quickRows({ paper.getValue(it) })).cells
+                            .groupBy { it.columnIndex }.values
+                            .map { cells -> cells.minBy { it.rowIndex }.sourceKey }
+                            .firstOrNull { it.startsWith("spell-handwritten:") } ?: break
+                        val level = opening.split(":")[1].toInt()
+                        paper = when {
+                            (paper[level] ?: 1) > 1 -> paper + (level to paper.getValue(level) - 1)
+                            paper.values.any { it > 1 } ->
+                                io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11QuickSpellShare.takeOneRow(paper)
+                            else -> break
+                        }
                     }
                     val baseRows = quickRows({ paper.getValue(it) })
                     // Paper left at the foot of the last column goes to level 9.
@@ -5879,25 +5963,24 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     // in the App source and other independently contracted
                     // views; they are NOT printed in this optional card.
                     // C240 (golden V11 book card): NIVEL sits right-aligned on the
-                    // name line and the description follows without a label. A
-                    // name that cannot share its line keeps the previous layout.
+                    // name line and the description follows without a label.
+                    // C458 (N7): a long name keeps that grammar and wraps beside NIVEL.
                     val levelLabel = "NIVEL " + spell.level
-                    val inlineLevel = spell.name.none { it == '\r' || it == '\n' || it == '\t' } &&
-                        bookFont.width.measurePt(spell.name) +
-                        headerPdfFont.getStringWidth(levelLabel) * 7f / 1000f + 10f <= bookColumnPt
+                    val nameLines = wrapMeasured(spell.name,
+                        bookColumnPt - headerPdfFont.getStringWidth(levelLabel) * 6.3f / 1000f - 8.5f) {
+                        heroWidthPt(it, 11.3f)
+                    }.ifEmpty { listOf("") }
                     // Q14b (golden): the real school, uppercase, on its own line under
                     // the name; a spell without a school gets no line at all.
                     val school = spell.school?.trim()?.takeIf { it.isNotEmpty() }?.uppercase()
                     // C288: golden heading band (31.2 pt): name, school and one more
                     // band row, 3 x 10.5 pt; the name and school sit at golden baselines.
-                    val heading = if (inlineLevel) listOfNotNull(spell.name, school, "")
-                        else listOfNotNull(spell.name, levelLabel, school, "DESCRIPCIÓN:")
-                    if (school != null) {
-                        val schoolIndex = if (inlineLevel) 1 else 2
-                        bookSchools["book:" + spell.id] =
-                            heading.take(schoolIndex).sumOf { it.length + 1 } to school
-                    }
-                    if (inlineLevel) bookInlineLevels["book:" + spell.id] = levelLabel
+                    val heading = nameLines + listOfNotNull(school, "")
+                    val nameEnd = nameLines.sumOf { it.length + 1 }
+                    if (school != null) bookSchools["book:" + spell.id] = nameEnd to school
+                    bookInlineLevels["book:" + spell.id] = levelLabel
+                    bookNameEnds["book:" + spell.id] = nameEnd
+                    bookFullNames["book:" + spell.id] = nameLines.joinToString(" ")
                     bookHeadingEnds["book:" + spell.id] = heading.sumOf { it.length + 1 }
                     // C331: the golden card keeps one blank writing row under the
                     // description (its foot sits ~20.5 pt below the last line top).
@@ -5910,7 +5993,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         leadingSeparationLines = 1, // BK08: one REAL measured blank row between cards.
                         // C363: golden air under the heading band - the description's
                         // first baseline sits 45.35 pt under the card top (was 42.18).
-                        lineExtrasPt = mapOf(heading.sumOf { it.length + 1 } to 3.17f),
+                        // C458: the name's 11.3 pt lines need 3 pt more than the 10.5 pt band row.
+                        lineExtrasPt = mapOf(heading.sumOf { it.length + 1 } to 3.17f) +
+                            (1 until nameLines.size).associate { line ->
+                                nameLines.take(line).sumOf { it.length + 1 } to 3f
+                            },
                     )
                 }
                 val contentFlow = bookFont.place(

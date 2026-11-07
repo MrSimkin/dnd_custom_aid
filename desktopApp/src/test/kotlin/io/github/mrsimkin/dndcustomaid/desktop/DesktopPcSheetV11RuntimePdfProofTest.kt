@@ -1368,6 +1368,112 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun p126ARangeThatDoesNotFitContinuesOnceInC2WithTheNameOnP1AB() {
+        // P126: the row prints the name, and the range follows only once in C2.
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val sheet = aldren.permanent.sheet
+        val range = "QARANGO que no cabe en la fila aunque se parta en dos líneas de texto pequeño, de punta a punta del campo de batalla QAFINRANGO"
+        val attack = sheet.combatEntries.first().copy(name = "QANOMBRE", rangeText = range, notes = null)
+        val source = aldren.copy(permanent = aldren.permanent.copy(sheet = sheet.copy(combatEntries = listOf(attack))))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source).bytes
+            preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-P126-range-in-C2-$variant.pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                assertTrue(pages[0].contains("QANOMBRE"), "The name stays on P1 ($variant).")
+                assertFalse(pages[0].contains("QARANGO"), "The range does not fit its row ($variant).")
+                val c2 = pages.filter { it.contains("C2 - ") }.joinToString("\n")
+                assertEquals(1, Regex("QARANGO").findAll(c2).count(), "It starts once in C2 ($variant).")
+                assertEquals(1, Regex("QAFINRANGO").findAll(c2).count(), "And ends once ($variant).")
+            }
+        }
+    }
+
+    @Test
+    fun theStressFixtureForAndroidExportsWholeOnDesktopAB() {
+        // The same file goes through the real Android screens, so both outputs can be compared.
+        val source = sources("04_estres_v11_android.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT, includeSpellDescriptions = true), source).bytes
+            preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-stress-android-$variant.pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val whole = PDFTextStripper().getText(pdf)
+                listOf("QAOBJETO39", "QAMONEDA17", "QAESPECIAL49", "QAFILA7", "QAFINAL", "FIN-LARGO", "QAFINRANGO").forEach {
+                    assertTrue(whole.contains(it), "$it prints ($variant).")
+                }
+            }
+        }
+    }
+
+    @Test
+    fun c458LongRowsKeepTheGoldenColumnsAndAClassKeepsItsLevelAB() {
+        // C458 / P132: P4 name wraps under itself with the source in its lane, no blank row opens a
+        // column, the Libro card keeps its grammar with a long name, and a class keeps its level.
+        val ilyra = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json")
+        val target = ilyra.permanent.sheet.spells.first { it.level == 1 && it.sourceAssociations.isNotEmpty() }
+        val longName = "QALARGO excepcionalmente largo para probar el ajuste de su fila QAFINAL"
+        val classes = (1..16).map { n ->
+            ilyra.permanent.sheet.classes.first().copy(
+                id = Uuid.parse("00000000-0000-4000-8000-" + n.toString().padStart(12, '0')),
+                name = "QACLASE" + (100 + n), level = 200 + n, sortOrder = n)
+        }
+        val source = ilyra.copy(permanent = ilyra.permanent.copy(sheet = ilyra.permanent.sheet.copy(
+            classes = classes,
+            spells = ilyra.permanent.sheet.spells.map { if (it.id == target.id) it.copy(name = longName) else it })))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT, includeSpellDescriptions = true), source).bytes
+            preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-C458-long-rows-$variant.pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                val whole = pages.joinToString("\n")
+                classes.forEach { c ->
+                    assertTrue(Regex(c.name + "\\s+" + c.level + "(?![0-9])").containsMatchIn(whole),
+                        "${c.name} keeps its level ($variant).")
+                }
+                assertFalse(pages.first().trimEnd().lines().any { it.trim().endsWith(" /") && it.contains("QACLASE") },
+                    "P1 ends on a whole class ($variant).")
+                val p4Index = pages.indexOfFirst { it.contains("P4 - Conjuros") }
+                val p4 = pages[p4Index]
+                assertFalse(p4.contains(" | "), "The source is never joined to the name ($variant).")
+                assertTrue(p4.contains("QALARGO") && p4.contains("QAFINAL"), "The whole name prints ($variant).")
+                val words = mutableListOf<Triple<String, Float, Float>>() // text, x, y from the top
+                object : PDFTextStripper() {
+                    init { startPage = p4Index + 1; endPage = p4Index + 1; sortByPosition = false }
+                    override fun writeString(text: String, positions: MutableList<org.apache.pdfbox.text.TextPosition>) {
+                        words += Triple(text, positions.first().xDirAdj, positions.first().yDirAdj)
+                    }
+                }.getText(pdf)
+                val first = words.first { it.first.contains("QALARGO") }
+                val last = words.first { it.first.contains("QAFINAL") }
+                assertTrue(last.third > first.third, "The name wraps ($variant).")
+                assertEquals(first.second, last.second, 0.1f, "Its lines start under the name ($variant).")
+                assertTrue(words.any { it.first.trim() in setOf("Mago", "Trasfondo", "Raza", "Clase") &&
+                    it.second > first.second + 100f && kotlin.math.abs(it.third - first.third) < 0.5f },
+                    "The source stays on the first line, in its own lane ($variant).")
+                // The level bands and real rows: a column never opens with blank paper.
+                val bands = Regex("(TRUCOS 0|NIVEL \\d+) / CONTINUACIÓN").findAll(p4).map { it.value }.toList()
+                bands.forEach { band ->
+                    val level = band.removeSuffix(" / CONTINUACIÓN")
+                    val number = if (level == "TRUCOS 0") 0 else level.removePrefix("NIVEL ").toInt()
+                    assertTrue(source.permanent.sheet.spells.any { it.level == number },
+                        "$band continues a level with real spells ($variant).")
+                }
+                val book = pages.filter { it.contains("Libro de conjuros /") }.joinToString("\n")
+                assertFalse(book.contains("DESCRIPCIÓN:"), "The Libro card has no label ($variant).")
+                assertFalse(Regex("(?m)^NIVEL \\d+\\s*$\\s*DESCRIPCI").containsMatchIn(book), "No old layout ($variant).")
+                assertTrue(book.contains("QALARGO") && book.contains("QAFINAL"), "The whole name in the Libro ($variant).")
+            }
+        }
+    }
+
+    @Test
     fun c457EquipmentAndTreasureShareC2AndNoSheetHoldsJustOneModuleAB() {
         // C457 / C217 (golden comparador; §3.29, §3.32): EQUIPO and TESORO flow with the other
         // C2 modules, and EQUIPO ESPECIAL takes the free foot of the last shared sheet.
@@ -2214,9 +2320,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         val source = original.copy(permanent = original.permanent.copy(successor = original.permanent.successor.copy(
             speciesIdentity = species, subraceIdentity = subrace)))
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
-            Loader.loadPDF(DesktopPcSheetExportService().generateV11Proof(
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
                 PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source,
-            ).bytes).use { pdf ->
+            ).bytes
+            preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-subrace-$variant.pdf")
+            Loader.loadPDF(bytes).use { pdf ->
                 val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf).replace(Regex("""\s+"""), " ")
                 assertTrue(p1.contains("Elfo — Alto elfo"), "Race with its subrace ($variant).")
             }
@@ -4472,6 +4580,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             PcSheetV11ExportRequest(PcSheetV11Variant.A,
                 PcSheetExportStateSelection.PERMANENT), reduced,
         ).bytes
+        preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-six-plus-two-A.pdf")
+        preserveRealApplicationPdf(DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.B, PcSheetExportStateSelection.PERMANENT), reduced,
+        ).bytes, "V11-INTERNAL-PROOF-six-plus-two-B.pdf")
         Loader.loadPDF(bytes).use { pdf ->
             val first = PDFTextStripper().apply {
                 startPage = 1

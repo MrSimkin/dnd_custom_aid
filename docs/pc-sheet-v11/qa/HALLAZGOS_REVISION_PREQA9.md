@@ -13,17 +13,17 @@
 | N3 | Hojas casi vacías, un módulo por hoja | Corregido en C457 | Equipo y Tesoro van en el flujo compartido. Especial, al pie si cabe. Falta que el revisor lo confirme |
 | N4 | Municiones de C2 como prosa | Corregido en C456 | Más de 20: `____ / X`, porque el contrato escrito prevalece sobre el golden. Falta que el revisor lo confirme |
 | N5, G-e | Rótulos de Equipo Especial | Corregido en C456 | El golden prevalece sobre §3.42. Falta que el revisor lo confirme |
-| N6 | Fila larga de P4 | Abierto | Corregir |
-| N7 | Ficha del Libro con nombre largo | Abierto | Corregir |
+| N6 | Fila larga de P4 | Corregido en C458 | Falta que el revisor lo confirme |
+| N7 | Ficha del Libro con nombre largo | Corregido en C458 | Falta que el revisor lo confirme |
 | N8 | Línea en ATAQUES vacía | Corregido en C456 | Falta que el revisor lo confirme |
 | N9 | Leyenda añadida en la variante B | Corregido en C456 | Falta que el revisor lo confirme |
 | N10 | Rótulo con una sola fuente | Corregido en C456 | Falta que el revisor lo confirme |
 | N11 | Nombre largo recortado | Corregido en C456 | «Cortado hasta donde sea que quepa», sin aviso. Falta que el revisor lo confirme |
 | N12 | Android y Desktop no son idénticos | Registrado | Diferencia invisible; el acta del candidato ya indica su umbral |
-| N13 | Rótulos de continuación y detalles | Abierto | Revisar uno por uno |
+| N13 | Rótulos de continuación y detalles | En parte | `TEMP` corregido en C456. La segunda línea de cabecera queda para el propietario, que se reservó ese control. El rótulo `/ CONTINUACIÓN` sigue el contrato |
 | Notas de objeto especial | Se imprimen | Decidido | «No, se imprimen» (2026-11-06) |
 | F03 | Fuente de clase sin clase enlazada | Sin cambio, a propósito | Con «Clase» dos fuentes sin enlazar se leerían igual. Conserva su nombre solo en ese caso |
-| F08 | Corte entre clases | Abierto | Corregir |
+| F08 | Corte entre clases | Corregido en C458 | Clase y nivel juntos; las que no caben siguen en C2. Falta que el revisor lo confirme |
 | §3.3 | Retrato real en Android | Sin demostrar | Probarlo en el emulador |
 | §3.4 | Subraza | Sin demostrar | Crear el caso |
 | §3.12 | Prueba impresa | Sin demostrar | La hace el propietario al final |
