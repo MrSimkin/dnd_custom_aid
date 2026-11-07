@@ -16,7 +16,7 @@
     "build_id": "scaffold-run-42330874169",
     "artifact_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42330874169/artifacts/13557418890",
     "apk_owner_file_name": "dnd-custom-aid-0.5.0-preqa.11-build-51100.apk",
-    "status": "PENDING_INDEPENDENT_REVIEW: not offered to the owner"
+    "status": "REVIEWED_NOT_READY: failed the independent review of 2026-11-07; not offered to the owner"
   },
   "release_gate": "NOT_BUILT",
   "qa_rounds": [

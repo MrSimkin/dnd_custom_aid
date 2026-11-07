@@ -10,12 +10,12 @@
 |---|---|---|---|
 | N1 | Ataques en C2 como prosa y fuera de orden | Corregido en C456 | «Sí, en su lugar». Falta que el revisor lo confirme |
 | N2 | Título `PERSONAJE, HABILIDADES Y ACCIONES / CONTINUACIÓN` | Corregido en C456 | Falta que el revisor lo confirme |
-| N3 | Hojas casi vacías, un módulo por hoja | Corregido en C457 | Equipo y Tesoro van en el flujo compartido. Especial, al pie si cabe. Falta que el revisor lo confirme |
+| N3 | Hojas casi vacías, un módulo por hoja | En parte, según la revisión de `preqa.11`: Especial sigue solo (M2) | Equipo y Tesoro van en el flujo compartido. Especial, al pie si cabe. Falta que el revisor lo confirme |
 | N4 | Municiones de C2 como prosa | Corregido en C456 | Más de 20: `____ / X`, porque el contrato escrito prevalece sobre el golden. Falta que el revisor lo confirme |
 | N5, G-e | Rótulos de Equipo Especial | Corregido en C456 | El golden prevalece sobre §3.42. Falta que el revisor lo confirme |
 | N6 | Fila larga de P4 | Corregido en C458 | Falta que el revisor lo confirme |
 | N7 | Ficha del Libro con nombre largo | Corregido en C458 | Falta que el revisor lo confirme |
-| N8 | Línea en ATAQUES vacía | Corregido en C456 | Falta que el revisor lo confirme |
+| N8 | Línea en ATAQUES vacía | En parte, según la revisión de `preqa.11`: quedan las líneas verticales (M6) | Falta que el revisor lo confirme |
 | N9 | Leyenda añadida en la variante B | Corregido en C456 | Falta que el revisor lo confirme |
 | N10 | Rótulo con una sola fuente | Corregido en C456 | Falta que el revisor lo confirme |
 | N11 | Nombre largo recortado | Corregido en C456 | «Cortado hasta donde sea que quepa», sin aviso. Falta que el revisor lo confirme |

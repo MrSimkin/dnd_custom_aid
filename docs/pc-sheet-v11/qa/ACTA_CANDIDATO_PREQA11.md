@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-11-07. **Hecha por:** el Worker, que también implementa el renderizador, así que **esto no es la revisión independiente**.
 
-**Estado:** falta la revisión independiente. Este binario **no se ofrece al propietario** hasta pasar el control final.
+**Resultado de la revisión independiente:** no pasa (`ACTA_REVISION_INDEPENDIENTE_PREQA11.md`). Este binario **no se ofrece al propietario**.
 
 ## Identidad
 
