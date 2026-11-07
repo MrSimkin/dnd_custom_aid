@@ -6090,6 +6090,25 @@
       ]
     },
     {
+      "id": "P131",
+      "area": "P1",
+      "obligation": "Un ataque de nombre largo va en dos renglones en su fila y en el orden de la ficha; lo que no quepa sigue en la tabla de C2, nunca como texto corrido",
+      "authority": "CONTRATO_VISUAL_APROBADO.md 2026-11-06; docs/decisions/D-0076_PC_SHEET_PDF_REDESIGN_DECISION_LEDGER.md §3.8, §3.30",
+      "method": "PDF texto y tamaño de letra",
+      "scenarios": "Ataques largos y cortos mezclados, A y B",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
       "id": "P412",
       "area": "P4",
       "obligation": "Cada cabecera de nivel de P4 dibuja las mismas casillas vacías que P1 (4, 3, 3, 3, 4, 2, 2, 1, 1), en una línea",

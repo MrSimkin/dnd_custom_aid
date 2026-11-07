@@ -21,8 +21,8 @@
 | N11 | Nombre largo recortado | Abierto | Decidido: «cortado hasta donde sea que quepa», sin aviso. Falta corregir |
 | N12 | Android y Desktop no son idénticos | Registrado | Diferencia invisible; el acta del candidato ya indica su umbral |
 | N13 | Rótulos de continuación y detalles | Abierto | Revisar uno por uno |
-| Notas de objeto especial | Se imprimen sin decisión | Abierto | Pregunta 7 al propietario |
-| F03 | Fuente de clase sin clase enlazada | Abierto | Corregir |
+| Notas de objeto especial | Se imprimen | Decidido | «No, se imprimen» (2026-11-06) |
+| F03 | Fuente de clase sin clase enlazada | Sin cambio, a propósito | Con «Clase» dos fuentes sin enlazar se leerían igual. Conserva su nombre solo en ese caso |
 | F08 | Corte entre clases | Abierto | Corregir |
 | §3.3 | Retrato real en Android | Sin demostrar | Probarlo en el emulador |
 | §3.4 | Subraza | Sin demostrar | Crear el caso |

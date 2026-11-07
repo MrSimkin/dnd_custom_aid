@@ -21,7 +21,7 @@ class SkillsHeadingParity(unittest.TestCase):
             self.assertIn("if (variantA) return", body)
             # C358: golden B cartela under the last attribute row, title 6.8 pt over its foot.
             self.assertIn('drawP1Label(stream, "HABILIDADES", 56.69f, cb + 6.8f, 9.1f)', body)
-            self.assertIn('val skillsLegend = listOf(0xE108 to "COMPETENCIA", 0xE109 to "PERICIA")', body)  # C329
+            self.assertNotIn('skillsLegend', body)  # C456: panel B has no legend, as the golden
             for operator in (
                 "stream.moveTo(44.69f, cb)",
                 "stream.lineTo(255.22f, cb)",

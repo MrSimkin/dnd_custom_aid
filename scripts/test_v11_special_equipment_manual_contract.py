@@ -16,7 +16,7 @@ class SpecialEquipmentPaperContractTest(unittest.TestCase):
             start = value.index("val manualSpecialLocations =")
             end = value.index("PDPage(PDRectangle.LETTER).also", start)
             body = value[start:end]
-            self.assertIn('listOf("Cuello", "Cuerpo", "Mano izquierda", "Mano derecha")', body)
+            self.assertIn('listOf("Cabeza", "Rostro", "Cuello", "Mano izquierda",', body)  # C456: golden ladder
             # D-0076 §3.21: one ACTIVO square per band (real entry or free row).
             self.assertIn("repeat(specialBands.size) { rowIndex ->", body)
             self.assertIn("specialBands[rowIndex] * specialRowHeight / 2f", body)

@@ -1372,6 +1372,44 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c456ALongAttackWrapsInItsOwnRowAndTheRestFollowInTheC2TableAB() {
+        // C456 / P131 (owner 2026-11-06, «Sí, en su lugar»; §3.30).
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val template = aldren.permanent.sheet.combatEntries.first()
+        val long = "QALARGO ataque de fase superextendida con un nombre imposible para una sola fila"
+        val attacks = (1..7).map { n ->
+            template.copy(id = Uuid.parse("f4560000-0000-4000-8000-00000000000$n"), sortOrder = n, rangeText = null,
+                name = if (n == 2 || n == 6) "$long $n" else "QAFILA$n", attackModifier = n, damageEffect = "1d$n+2", notes = null)
+        }
+        val source = aldren.copy(permanent = aldren.permanent.copy(sheet = aldren.permanent.sheet.copy(combatEntries = attacks)))
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), source).bytes
+            preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-P1-long-attack-in-its-row-$variant.pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf).replace(Regex("\\s+"), " ")
+                }
+                val p1 = pages[0]
+                val expected = listOf("QAFILA1", "QALARGO ataque", "QAFILA3", "QAFILA4", "QAFILA5")
+                expected.forEach { assertTrue(p1.contains(it), "$it stays on P1 ($variant).") }
+                assertEquals(expected, expected.sortedBy { p1.indexOf(it) }, "The order of the sheet ($variant).")
+                val rest = pages.drop(1).joinToString(" ")
+                assertTrue(rest.contains("QALARGO") && rest.contains("QAFILA7"), "The rest continue on C2 ($variant).")
+                assertTrue(rest.indexOf("QALARGO") < rest.indexOf("QAFILA7"), "In order ($variant).")
+                listOf("| BONO", "| DAÑO", "ATAQUE QA").forEach { assertFalse(rest.contains(it), "Never running text: $it ($variant).") }
+                val sizes = mutableListOf<Float>()
+                object : PDFTextStripper() {
+                    override fun writeString(text: String, textPositions: MutableList<org.apache.pdfbox.text.TextPosition>) {
+                        if (text.startsWith("QALARGO")) sizes += textPositions.first().fontSizeInPt
+                    }
+                }.apply { startPage = 1; endPage = 1 }.getText(pdf)
+                assertTrue(sizes.isNotEmpty() && sizes.all { it < 6.5f }, "Two smaller lines ($variant): $sizes")
+            }
+        }
+    }
+
+    @Test
     fun c453P1MarkersNameTheRealPageOfTheirC2RowAB() {
         // C453 / C213 (D-0076 3.33, F09): no more «VER C2»; each marker names the real physical page.
         val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
@@ -1399,9 +1437,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             // The full name.
             val name = "Aldren " + "NOMBREQA ".repeat(20) + "FINNOMBREQA"
             check(aldren.copy(permanent = aldren.permanent.copy(sheet = aldren.permanent.sheet.copy(name = name))), "marker-long-name") { pdf, pages ->
-                val header = p1Region(pdf, 155f, 40f, 410f, 30f)
-                val target = Regex("""/ NOMBRE EN PÁG\. (\d+)""").find(header)?.groupValues?.get(1)?.toInt()
-                assertTrue(target != null, "The name names a page ($variant): $header")
+                // Owner 2026-11-06: the header only cuts the name; the band of P1 says where it is.
+                assertFalse(p1Region(pdf, 155f, 40f, 410f, 30f).contains("EN PÁG"), "No notice in the header ($variant).")
+                val target = Regex("""PERSONAJE[A-Z, ]* CONTIN[ÚU]AN? EN PÁG\. (\d+)""").find(pages[0].replace(Regex("\\s+"), " "))
+                    ?.groupValues?.get(1)?.toInt()
+                assertTrue(target != null, "The band of P1 names the page ($variant).")
                 assertTrue(pages[target - 1].contains("NOMBRE COMPLETO DEL PERSONAJE"), "The full name is there ($variant).")
             }
             // The hit dice.
@@ -1476,7 +1516,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), mara).bytes
             preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-C2-golden-titles-$variant.pdf")
             val printed = Loader.loadPDF(bytes).use { PDFTextStripper().getText(it) }
-            listOf("ESPACIOS REALES", "Y REFERENCIAS", "CONTINUACIÓN P2", "RECURSOS Y MUNICIONES", "ATAQUES, NOTAS").forEach {
+            listOf("ESPACIOS REALES", "Y REFERENCIAS", "CONTINUACIÓN P2", "RECURSOS Y MUNICIONES", "ATAQUES, NOTAS",
+                "PERSONAJE, HABILIDADES Y ACCIONES").forEach {
                 assertFalse(printed.contains(it), "$it is gone ($variant).")
             }
             assertTrue(printed.lines().any { it.startsWith("RECURSOS") }, "RECURSOS keeps its own title ($variant).")
@@ -1574,7 +1615,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val third = long.indices.filter { long[it].contains("QATERCERA") }
             assertEquals(1, third.size, "The third prints on one page ($variant).")
             assertTrue(long[third.single()].contains("C2 - "), "It continues in C2 ($variant).")
-            assertEquals(1, long[third.single()].split("MUNICIÓN QATERCERA").size - 1, "Once ($variant).")
+            assertEquals(1, long[third.single()].split("QATERCERA").size - 1, "Once ($variant).")
+            assertFalse(long[third.single()].contains("MUNICIÓN ") || long[third.single()].contains("MARCAS:"),
+                "The golden row, with no added words ($variant).")
         }
     }
 
@@ -2169,7 +2212,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), withSecond(15)).bytes).use { pdf ->
                 assertFalse(PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf).contains("QAFLECHAS"),
                     "With 15 marks it does not stay on P1 ($variant).")
-                assertEquals(1, PDFTextStripper().getText(pdf).split("MUNICIÓN QAFLECHAS").size - 1,
+                assertEquals(1, PDFTextStripper().getText(pdf).split("QAFLECHAS").size - 1,
                     "It continues once in C2 ($variant).")
             }
         }
@@ -2912,8 +2955,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // C256 (owner 2026-10-28): golden INSPIRACIÓN with the real sheet
                 // state; the real temporary hit points ride inside PV ACTUALES.
                 val sheet = sources(fixture).permanent.sheet
-                assertTrue(p1.contains("TEMP " + sheet.tempHp),
+                if (sheet.tempHp != 0) assertTrue(p1.contains("TEMP " + sheet.tempHp),
                     "Real temporary hit points must stay on P1 inside PV ACTUALES.")
+                else assertFalse(p1.contains("TEMP "), "No TEMP without temporary hit points (golden).")
                 assertFalse(p1.contains("PV TEMP"), "PV TEMP no longer replaces INSPIRACIÓN.")
             }
         }
@@ -3866,7 +3910,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
             assertFalse(p1.contains("HABILIDADES BAJO ATRIBUTO"),
                 "Variant B must remain distinct from the attribute-grouped A layout.")
-            assertTrue(p1.contains("HABILIDADES") && p1.contains("\uE109") && p1.contains("PERICIA"), // C310/C329 cartela
+            assertTrue(p1.contains("HABILIDADES") && !p1.contains("PERICIA"), // C456: the golden cartela
                 "B skills must occupy a named physical module, not identity prose.")
             assertTrue(p1.contains("Acrobacias (DES)"),
                 "Persisted B skills must appear with their actual ability abbreviation.")
@@ -4586,9 +4630,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 assertTrue(c2Text.contains("FINNOMBREQA"))
                 pages.forEachIndexed { index, text ->
-                    assertTrue(Regex("/ NOMBRE EN PÁG\\. \\d+").containsMatchIn(text),
-                        "Every physical page needs the same navigable one-line name: " +
-                            (index + 1))
+                    assertFalse(text.contains("NOMBRE EN PÁG"),
+                        "The header adds no notice (owner 2026-11-06): " + (index + 1))
                 }
                 assertTrue(pages.first().contains("CONTINÚA EN PÁG."),
                     "P1 must link to the genuine page containing the full name.")
@@ -4622,8 +4665,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 pages.forEach { page ->
-                    assertTrue(Regex("/ NOMBRE EN PÁG\\. \\d+").containsMatchIn(page),
-                        "Every physical header must navigate to the unmodified name.")
+                    assertFalse(page.contains("NOMBRE EN PÁG"), "The header adds no notice (owner 2026-11-06).")
                 }
                 val c2Body = pdf.pages.mapNotNull { page ->
                     val area = PDFTextStripperByArea().apply {
@@ -6043,14 +6085,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val text = PDFTextStripper().getText(pdf)
             assertTrue(text.contains("C2 - Habilidades, acciones y recursos"))
             assertFalse(text.contains("MUNICIÓN Virotes"), "P1 holds it, so C2 does not repeat it.")
-            assertTrue(text.contains("MARCAS: ____ / 41"),
-                "Large ammunition quantities must be tracked with ____ / X.")
+            assertFalse(text.contains("MARCAS:"), "No added words (golden).")
             val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
-            assertTrue(p1.contains("MARCAS: ____ / 41"),
+            assertTrue(p1.contains("____ / 41"),
                 "The genuine over-20 fraction must be in P1 rather than only in C2.")
-            assertEquals(1, Regex("MARCAS: ____ / 41").findAll(text).count(),
+            assertEquals(1, Regex("____ / 41").findAll(text).count(),
                 "One source item must not create duplicate physical mark tracks.")
-            assertFalse(text.contains("MARCAS: ____ / 20"))
+            assertFalse(text.contains("____ / 20"))
         }
     }
 
@@ -6120,8 +6161,6 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertTrue(c2.contains(marker),
                         "Persisted source item must survive as C2 ammunition: " + marker)
                 }
-                assertTrue(c2.contains("CANTIDAD 7"))
-                assertTrue(c2.contains("CANTIDAD 9"))
                 assertTrue(p1.contains("QASHORTAMMO"),
                     "Eligible ammo should still use a real P1 row.")
                 assertFalse(c2.contains("MUNICIÓN QASHORTAMMO"), "P1 holds it, so C2 does not repeat it.")
@@ -6900,28 +6939,20 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val c2 = pages.filter {
                     it.contains("C2 - Habilidades, acciones y recursos")
                 }.joinToString("\n")
-                (1..4).forEach { number ->
-                    val key = "QALONG" + number
-                    assertFalse(p1.contains(key),
-                        "Overlong source attacks cannot overflow P1 cells.")
-                    assertTrue(c2.contains(key),
-                        "Every deferred source attack must remain intact in C2.")
-                    assertEquals(1, Regex(Regex.escape(key)).findAll(all).count())
+                // C456 (owner 2026-11-06, «Sí, en su lugar»): the long names stay in their own
+                // rows, in the order of the sheet; what exceeds the five rows continues in C2.
+                val onP1 = listOf("QALONG1", "QALONG2", "QALONG3", "QALONG4", "QASHORT5")
+                onP1.forEach { key ->
+                    assertTrue(p1.contains(key), "The first five attacks print on P1: $key")
+                    assertFalse(c2.contains(key), "An attack on P1 never repeats on C2: $key")
                 }
-                // C356: the golden P1 ATAQUES table has five rows; QASHORT10 continues in C2.
-                (5..9).forEach { number ->
+                assertEquals(onP1, onP1.sortedBy { p1.indexOf(it) }, "They keep the order of the sheet.")
+                (6..10).forEach { number ->
                     val key = "QASHORT" + number
-                    assertTrue(p1.contains(key),
-                        "Five later real attacks which fit must fill the five golden P1 rows: " + key)
-                    assertFalse(c2.contains(key),
-                        "An attack printed on P1 must never duplicate to C2: " + key)
-                    assertEquals(1, Regex(Regex.escape(key)).findAll(all).count())
+                    assertFalse(p1.contains(key), "$key continues on C2.")
+                    assertEquals(1, Regex(Regex.escape(key) + "\\b").findAll(c2).count(), "$key prints once on C2.")
                 }
-                assertTrue(p1.indexOf("QASHORT5") < p1.indexOf("QASHORT9"),
-                    "Selected attacks must retain source order.")
-                assertTrue(c2.contains("QASHORT10") && !p1.contains("QASHORT10"),
-                    "The sixth fitting attack continues whole in C2.")
-                assertEquals(1, Regex("QASHORT10").findAll(all).count())
+                assertFalse(c2.contains("BONO") || c2.contains("| DAÑO"), "Never as running text.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
                 assertFalse(pages.last().contains("QALONG") ||
                     pages.last().contains("QASHORT"))
@@ -6930,7 +6961,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
-    fun g3P1AttacksWithPersistedLineBreaksAndTabsAreRoutedLosslesslyToRealC2AB() {
+    fun g3P1AttacksWithPersistedLineBreaksAndTabsPrintLosslesslyInTheirRowAB() {
         val source = sources("01_aldren_vale_srd5_1_champion_fighter.json")
         val template = source.permanent.sheet.combatEntries.first {
             it.type == io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK
@@ -7008,10 +7039,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertFalse(c2.contains("QASAFEP1ROW"),
                     "A fitting attack may not be repeated in C2.")
                 deferredMarkers.forEach { marker ->
-                    assertFalse(p1.contains(marker),
-                        "Multiline source $marker cannot occupy a single physical P1 row.")
-                    assertTrue(c2.contains(marker),
-                        "Full source attack $marker must survive on measured C2.")
+                    assertTrue(p1.contains(marker),
+                        "A saved line break is one space, in its own P1 row (owner 2026-11-06): $marker")
+                    assertFalse(c2.contains(marker), "It does not repeat on C2: $marker")
                     assertEquals(1, Regex(Regex.escape(marker)).findAll(full).count(),
                         "The source segment $marker must appear exactly once.")
                 }
@@ -7498,7 +7528,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         // C246: golden P1 footer "ATRIBUTOS Y HABILIDADES A P. 4 · ATAQUES A P. 4 ·
         // MUNICIONES A P. 4" — every continued module with its real physical page.
         val headings = mapOf(
-            "PERSONAJE" to "PERSONAJE, HABILIDADES Y ACCIONES / CONTINUACIÓN",
+            "PERSONAJE" to "PERSONAJE",
+            "ACCIONES" to "ACCIONES",
             "HABILIDADES" to "ATRIBUTOS Y HABILIDADES",
             "ATAQUES" to "ATAQUES",
             "RECURSOS" to "RECURSOS",
@@ -7702,7 +7733,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                             "$quantity rounds draw $quantity boxes ($variant).")
                         else -> {
                             assertEquals(0, printed, "More than 20 never draws boxes ($variant).")
-                            assertTrue(p1.contains("MARCAS: ____ / $quantity"),
+                            assertTrue(p1.contains("____ / $quantity") && !p1.contains("MARCAS:"),
                                 "More than 20 prints the counter ($quantity, $variant).")
                         }
                     }
@@ -8619,9 +8650,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     endPage = 1
                 }.getText(pdf)
                 assertTrue(page1.contains("HABILIDADES"))
-                // C329: the B legend prints the v8 marks with their meaning.
-                assertTrue(page1.contains("\uE108") && page1.contains("PERICIA"))
-                assertTrue(page1.contains("\uE109"))
+                // C456 (golden): panel B has no legend.
+                assertFalse(page1.contains("PERICIA"))
                 assertTrue(page1.contains("Acrobacias"))
             }
         }
@@ -9444,9 +9474,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         Loader.loadPDF(proof.bytes).use { pdf ->
             val p2 = PDFTextStripper().apply { startPage = 2; endPage = 2 }
                 .getText(pdf)
-            for (location in listOf("Cuello", "Cuerpo", "Mano izquierda", "Mano derecha")) {
+            // C456 (golden): the fixed ladder of eight labels.
+            for (location in listOf("Cabeza", "Rostro", "Cuello", "Mano izquierda", "Mano derecha", "Pecho", "Piernas", "Libre")) {
                 assertTrue(p2.contains(location),
-                    "Missing source-recognized paper location: " + location)
+                    "Missing golden paper location: " + location)
             }
             assertFalse(p2.contains("Cota de malla"),
                 "Do not invent previously removed special objects.")

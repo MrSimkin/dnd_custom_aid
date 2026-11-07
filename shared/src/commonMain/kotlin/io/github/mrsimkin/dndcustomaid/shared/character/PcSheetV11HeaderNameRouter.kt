@@ -12,9 +12,6 @@ data class PcSheetV11HeaderNameRoute(
 )
 
 object PcSheetV11HeaderNameRouter {
-    /** Reserves the width of the real reference; the renderer prints the real page (C453). */
-    const val NAVIGATION_SUFFIX = " / NOMBRE EN PÁG. 00"
-
     fun route(
         sourceName: String,
         availableWidthPt: Float,
@@ -32,19 +29,16 @@ object PcSheetV11HeaderNameRouter {
         if (completeWidth <= availableWidthPt && !hasHardBreak) {
             return PcSheetV11HeaderNameRoute(printable, null)
         }
-        require(width.measurePt(NAVIGATION_SUFFIX) <= routedWidthPt) {
-            "The approved V11 physical header cannot fit even the C2 cue."
-        }
-
         var longestPrefixEnd = 0
         for (end in 1..printable.length) {
             // All text width decisions use the actual embedded Barlow font.
-            val candidate = printable.substring(0, end).trimEnd() + NAVIGATION_SUFFIX
+            val candidate = printable.substring(0, end).trimEnd()
             if (width.measurePt(candidate) > routedWidthPt) break
             longestPrefixEnd = end
         }
         val prefix = printable.substring(0, longestPrefixEnd).trimEnd()
-        val paperName = prefix + NAVIGATION_SUFFIX
+        // Owner 2026-11-06, «cortado hasta donde sea que quepa»: the name alone, no notice.
+        val paperName = prefix
         require(width.measurePt(paperName) <= routedWidthPt)
         return PcSheetV11HeaderNameRoute(
             paperName = paperName,

@@ -138,14 +138,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
             val source = data.source.sheet
             var c2MarkerUsed = false
-            fun c2MarkerPage(headingKey: String): String {
+            fun c2Marker(headingKey: String): String {
                 c2MarkerUsed = true
                 val page = c2Pages[headingKey]
                 require(page != null || c2Pages.isEmpty()) { "A P1 marker has no C2 row: " + headingKey }
                 // The first pass only measures: same width as any real page number.
-                return page?.toString() ?: "00"
+                return "CONTINÚA EN PÁG. " + (page?.toString() ?: "00")
             }
-            fun c2Marker(headingKey: String) = "CONTINÚA EN PÁG. " + c2MarkerPage(headingKey)
             val headerNameRoute =
                 io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11HeaderNameRouter.route(
                     sourceName = source.name,
@@ -157,11 +156,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         heroWidthPt(it, 13.4f)
                     },
                 )
-            val headerName = if (headerNameRoute.continuation == null) headerNameRoute.paperName
-                else headerNameRoute.paperName.removeSuffix(
-                    io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11HeaderNameRouter.NAVIGATION_SUFFIX) +
-                    // Printed on every page, so it says where the name is, not that it continues.
-                    " / NOMBRE EN PÁG. " + c2MarkerPage("c2-heading:p1-overflow")
+            // Owner 2026-11-06, «cortado hasta donde sea que quepa»: same letter, no notice.
+            val headerName = headerNameRoute.paperName
             val texts = PcSheetV11FlowSourceMapper.from(data)
             // C314: titled notes get one more paper row after the title; the title is
             // drawn 6.47 pt lower, so title-to-text is the golden 16.73 pt.
@@ -967,22 +963,6 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 drawCartelaDiamonds(stream, 39.69f, 260.22f, cb, ct)
                 stream.setNonStrokingColor(Color(29, 56, 79))
                 drawP1Label(stream, "HABILIDADES", 56.69f, cb + 6.8f, 9.1f)
-                // C329: the legend shows the v8 marks themselves.
-                val skillsLegend = listOf(0xE108 to "COMPETENCIA", 0xE109 to "PERICIA")
-                fun legendWidth(text: String) = bodyPdfFont.getStringWidth(text) * 6.2f / 1000f
-                var legendX = 260.22f - 17f - skillsLegend.sumOf { (_, text) ->
-                    (6f + 1.5f + legendWidth(text)).toDouble() }.toFloat() - 6f
-                stream.setNonStrokingColor(Color(101, 125, 144))
-                skillsLegend.forEachIndexed { i, (glyph, text) ->
-                    drawStateGlyph(stream, glyph, legendX, cb + 7f, 6.4f, Color(101, 125, 144))
-                    legendX += 7.5f
-                    stream.beginText()
-                    stream.setFont(bodyPdfFont, 6.2f)
-                    stream.newLineAtOffset(legendX, cb + 8.08f)
-                    stream.showText(text)
-                    stream.endText()
-                    legendX += legendWidth(text) + if (i == 0) 6f else 0f
-                }
                 stream.setNonStrokingColor(Color(36, 57, 75))
                 // Golden subcolumn rows: alternating fills and the 0.32 pt rule, every
                 // row on paper whether or not a real skill sits in it (no frame).
@@ -1126,50 +1106,57 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             val p1AttackLabelWidth = 184.15f
             val p1AttackBonusWidth = 36.22f
             val p1AttackDamageWidth = 301.89f - p1AttackLabelWidth - p1AttackBonusWidth
+            // C456: measured with the font the row is printed in.
             fun printedPt(text: String, pt: Float): Float =
-                body.width.measurePt(text) * pt / body.metrics.fontSizePt
-            fun p1AttackLabel(
-                entry:io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry,
-                p1: Boolean = false,
-            ):String {
-                val complete=entry.name+(entry.rangeText?.takeIf{it.isNotBlank()}
-                    ?.let{" / "+it}?:"")
-                val fits = if (p1) printedPt(complete, 7.4f)<=p1AttackLabelWidth-10f
-                    else body.width.measurePt(complete)<=attackLabelWidth-10f
-                return if(fits) complete else entry.name
+                bodyPdfFont.getStringWidth(pcSheetV11PrintableText(text)) * pt / 1000f
+            // C456 (owner 2026-11-06, «Sí, en su lugar»): a value that does not fit one line of
+            // its cell takes two smaller lines, in its own row and in the order of the sheet.
+            val p1AttackTwoLinePt = 5.9f
+            fun wrapPrinted(text: String, pt: Float, width: Float): List<String> {
+                val lines = mutableListOf<String>()
+                var current = ""
+                text.replace(Regex("\\s+"), " ").trim().split(" ").filter { it.isNotEmpty() }.forEach { word ->
+                    var rest = word
+                    while (printedPt(rest, pt) > width) {
+                        val cut = (1 until rest.length).lastOrNull { printedPt(rest.take(it), pt) <= width } ?: 1
+                        if (current.isNotEmpty()) { lines += current; current = "" }
+                        lines += rest.take(cut)
+                        rest = rest.drop(cut)
+                    }
+                    val joined = if (current.isEmpty()) rest else current + " " + rest
+                    if (printedPt(joined, pt) <= width) current = joined
+                    else { lines += current; current = rest }
+                }
+                if (current.isNotEmpty()) lines += current
+                return lines
             }
-            // Fill the six genuine P1 attack rows with the first SIX source-order
-            // entries which physically FIT, not only matches among the first
-            // six source entries. All other UUIDs remain deferred to C2.
+            // A saved line break or tab is one space on paper: the cell is one physical line.
+            fun oneLine(text: String) = text.replace(Regex("\\s+"), " ").trim()
+            fun completeAttackLabel(entry: io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry) =
+                oneLine(entry.name + (entry.rangeText?.takeIf { it.isNotBlank() }?.let { " / " + it } ?: ""))
+            fun p1AttackNameLines(entry: io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry): List<String>? {
+                val room = p1AttackLabelWidth - 10f
+                val complete = completeAttackLabel(entry)
+                if (printedPt(complete, 7.4f) <= room) return listOf(complete)
+                return wrapPrinted(complete, p1AttackTwoLinePt, room).takeIf { it.size <= 2 }
+                    ?: wrapPrinted(entry.name, p1AttackTwoLinePt, room).takeIf { it.size <= 2 }
+            }
+            fun p1AttackDamageLines(entry: io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry): List<String>? {
+                val room = p1AttackDamageWidth - 10f
+                val damage = oneLine(entry.damageEffect)
+                if (printedPt(damage, 6.7f) <= room) return listOf(damage)
+                return wrapPrinted(damage, p1AttackTwoLinePt, room).takeIf { it.size <= 2 }
+            }
             fun attackBonus(entry:io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry):String =
                 entry.attackModifier?.let{if(it>=0)"+"+it else it.toString()}?:""
-            // One physical three-column attack row (P1 and the golden C2 ATAQUES table).
-            fun attackFitsTableRow(
-                entry:io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry,
-                p1: Boolean = false,
-            ):Boolean {
-                // P1 cells are single physical rows. A measured "width" cannot
-                // prove that a source with CR/LF/TAB is safe to print there.
-                // Defer the COMPLETE UUID-backed attack to measured C2 rather
-                // than flattening, clipping, or dropping a source segment.
-                val hasPhysicalBreak = listOfNotNull(
-                    entry.name, entry.rangeText, entry.damageEffect,
-                ).any { field -> field.any { ch ->
-                    ch == '\r' || ch == '\n' || ch == '\t'
-                } }
-                return !hasPhysicalBreak && if (p1) {
-                    printedPt(p1AttackLabel(entry, p1 = true), 7.4f)<=p1AttackLabelWidth-10f &&
-                        printedPt(attackBonus(entry), 7.1f)<=p1AttackBonusWidth-8f &&
-                        printedPt(entry.damageEffect, 6.7f)<=p1AttackDamageWidth-10f
-                } else {
-                    body.width.measurePt(p1AttackLabel(entry))<=attackLabelWidth-10f &&
-                        body.width.measurePt(attackBonus(entry))<=attackBonusWidth-8f &&
-                        body.width.measurePt(entry.damageEffect)<=attackDamageWidth-10f
-                }
-            }
+            // One physical three-column P1 row.
+            fun attackFitsP1Row(entry: io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntry) =
+                p1AttackNameLines(entry) != null && p1AttackDamageLines(entry) != null &&
+                    printedPt(attackBonus(entry), 7.1f) <= p1AttackBonusWidth - 8f
             // C356: the golden P1 ATAQUES table has five rows; the rest continue in C2.
             val p1AttackRowCount = 5
-            val p1Attacks=attackRows.filter{ attackFitsTableRow(it, p1 = true) }.take(p1AttackRowCount)
+            // Never overtaking: from the first entry that cannot fit, the rest continue in C2.
+            val p1Attacks = attackRows.takeWhile(::attackFitsP1Row).take(p1AttackRowCount)
             // Golden ATAQUES row values: bonus and damage right-aligned 4 pt
             // inside their columns (P1 table and C2 continuation rows).
             fun drawAttackValues(
@@ -1181,12 +1168,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 bonusWidth: Float = attackBonusWidth,
                 tableWidth: Float = 258f,
                 centerBonus: Boolean = false,
+                damage: String = entry.damageEffect,
+                showBonus: Boolean = true,
+                damagePt: Float? = null,
             ) {
                 // C262: values follow the size of their table (P1 or golden C2).
                 // C301: golden bonus in Noto Sans Bold #264b68; damage 0.4 pt smaller.
                 fun value(text: String, right: Float, bold: Boolean, centre: Float? = null) {
                     if (text.isEmpty()) return
-                    val size = if (bold) pt else pt - 0.4f
+                    val size = if (bold) pt else (damagePt ?: (pt - 0.4f))
                     val font = if (bold) boldPdfFont else bodyPdfFont
                     val printable = pcSheetV11PrintableText(text)
                     val inkWidth = font.getStringWidth(printable) * size / 1000f
@@ -1200,9 +1190,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.restoreGraphicsState()
                 }
                 // C356: the golden P1 table centres the bonus in its column.
-                value(attackBonus(entry), left + labelWidth + bonusWidth - 4f, true,
+                if (showBonus) value(attackBonus(entry), left + labelWidth + bonusWidth - 4f, true,
                     if (centerBonus) left + labelWidth + bonusWidth / 2f else null)
-                value(entry.damageEffect, left + tableWidth - 4f, false)
+                value(damage, left + tableWidth - 4f, false)
             }
             val p1AttackIds = p1Attacks.map { it.id }.toSet()
 
@@ -1321,17 +1311,34 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.setNonStrokingColor(Color(36, 57, 75))
                 p1Attacks.forEachIndexed { index, entry ->
                     val y = headerBottom - index * pitch - 10.17f
+                    val rowTop = headerBottom - index * pitch
+                    // C456: two smaller lines inside the same 14.74 pt row.
+                    fun twoLineY(line: Int) = rowTop - 6.1f - line * 6.3f
+                    val nameLines = requireNotNull(p1AttackNameLines(entry))
                     // C264: golden P1 attack rows, name 7.4 pt and values 7.1 pt.
-                    stream.beginText()
-                    stream.setFont(bodyPdfFont, 7.4f)
-                    stream.newLineAtOffset(left + 4.53f, y)
-                    stream.showText(pcSheetV11PrintableText(p1AttackLabel(entry, p1 = true)))
-                    stream.endText()
-                    drawAttackValues(stream, entry, left, y, 7.1f,
-                        p1AttackLabelWidth, p1AttackBonusWidth, 301.89f, centerBonus = true)
-                }
-                if (attackRows.isEmpty()) {
-                    draw(stream, "________________", left + 5f, headerBottom - 12f, false)
+                    // One smaller line is also possible: it fits small, but not at the normal size.
+                    val nameFitsNormal = printedPt(nameLines.first(), 7.4f) <= p1AttackLabelWidth - 10f
+                    nameLines.forEachIndexed { line, text ->
+                        stream.beginText()
+                        stream.setFont(bodyPdfFont, if (nameFitsNormal) 7.4f else p1AttackTwoLinePt)
+                        stream.newLineAtOffset(left + 4.53f, if (nameLines.size == 1) y else twoLineY(line))
+                        stream.showText(pcSheetV11PrintableText(text))
+                        stream.endText()
+                    }
+                    val damageLines = requireNotNull(p1AttackDamageLines(entry))
+                    if (damageLines.size == 1 && printedPt(damageLines.single(), 6.7f) <= p1AttackDamageWidth - 10f) {
+                        drawAttackValues(stream, entry, left, y, 7.1f,
+                            p1AttackLabelWidth, p1AttackBonusWidth, 301.89f, centerBonus = true,
+                            damage = damageLines.single())
+                    } else {
+                        drawAttackValues(stream, entry, left, y, 7.1f,
+                            p1AttackLabelWidth, p1AttackBonusWidth, 301.89f, centerBonus = true, damage = "")
+                        damageLines.forEachIndexed { line, text ->
+                            drawAttackValues(stream, entry, left, if (damageLines.size == 1) y else twoLineY(line), 7.1f,
+                                p1AttackLabelWidth, p1AttackBonusWidth, 301.89f, damage = text,
+                                showBonus = false, damagePt = p1AttackTwoLinePt)
+                        }
+                    }
                 }
             }
 
@@ -1615,31 +1622,28 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // three-column row print as table rows (attack / bonus / damage),
             // in source order, before their range/notes lines. The rest keep
             // the lossless text record.
-            val c2AttackTableRows = attackRows.filter {
-                it.id !in p1AttackIds && attackFitsTableRow(it)
-            }.associateBy { "combat:row:" + it.id }
-            val extraCombatData = buildList {
-                c2AttackTableRows.forEach { (key, attack) ->
-                    add(PcSheetV11FlowItem(key, p1AttackLabel(attack), keepTogetherIfFits = true))
+            // C456 (golden, §3.30): what does not fit P1 continues in the C2 table, in order and
+            // never as running text. A long name or damage takes more lines of its own row.
+            val c2AttackPt = 7.2f
+            val c2AttackTableRows = attackRows.filter { it.id !in p1AttackIds }
+                .associateBy { "combat:row:" + it.id }
+            val c2AttackLines = c2AttackTableRows.mapValues { (_, attack) ->
+                val label = wrapPrinted(completeAttackLabel(attack), c2AttackPt, attackLabelWidth - 10f).ifEmpty { listOf("") }
+                val damage = wrapPrinted(attack.damageEffect, c2AttackPt - 0.4f, attackDamageWidth - 10f).ifEmpty { listOf("") }
+                (0 until maxOf(label.size, damage.size)).map { line ->
+                    label.getOrElse(line) { "" } to damage.getOrElse(line) { "" }
                 }
-                attackRows.forEach { attack ->
-                    if (attack.id !in p1AttackIds &&
-                        "combat:row:" + attack.id !in c2AttackTableRows) {
-                        add(PcSheetV11FlowItem(
-                            "combat:deferred:" + attack.id,
-                            "ATAQUE " + attack.name +
-                                (attack.rangeText?.let { " | ALCANCE " + it } ?: "") +
-                                (attack.attackModifier?.let { " | BONO " + it } ?: "") +
-                                " | DAÑO " + attack.damageEffect,
-                            keepTogetherIfFits = true,
-                        ))
-                    } else {
-                        if(attack.rangeText?.isNotBlank()==true &&
-                            p1AttackLabel(attack, p1 = attack.id in p1AttackIds)==attack.name) {
-                            add(PcSheetV11FlowItem("combat:range:"+attack.id,
-                                "ALCANCE "+attack.name+": "+attack.rangeText,
-                                keepTogetherIfFits=true))
-                        }
+            }
+            val extraCombatData = buildList {
+                c2AttackLines.forEach { (key, lines) ->
+                    add(PcSheetV11FlowItem(key, List(lines.size) { " " }.joinToString("\n"), keepTogetherIfFits = true))
+                }
+                p1Attacks.forEach { attack ->
+                    if (attack.rangeText?.isNotBlank() == true &&
+                        requireNotNull(p1AttackNameLines(attack)).joinToString(" ") != completeAttackLabel(attack)) {
+                        add(PcSheetV11FlowItem("combat:range:" + attack.id,
+                            "ALCANCE " + attack.name + ": " + attack.rangeText,
+                            keepTogetherIfFits = true))
                     }
                 }
             }
@@ -1834,7 +1838,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     when {
                         item.quantity == 0 -> p1DrawSmall(stream, "0", 422.08f, baseline)
                         item.quantity <= 20 -> ammoBoxes(item.quantity, rowDrop)
-                        else -> p1DrawSmall(stream, "MARCAS: ____ / " + item.quantity, 422.08f, baseline)
+                        else -> p1DrawSmall(stream, "____ / " + item.quantity, 422.08f, baseline)
                     }
                 }
             }
@@ -2168,7 +2172,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         stream.newLineAtOffset(x + (width - drawn) / 2f, valueBaseline)
                         stream.showText(printable)
                         stream.endText()
-                        if (label == "PV ACTUALES") {
+                        if (label == "PV ACTUALES" && source.tempHp != 0) {
                             val temp = "TEMP " + source.tempHp
                             val tempWidth = headerPdfFont.getStringWidth(temp) * 7f / 1000f
                             require(x + (width + drawn) / 2f + 4f <= x + width - 6f - tempWidth) {
@@ -3916,8 +3920,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 }
                                 stream.restoreGraphicsState()
                                 val baseline = body.metrics.baselineIn(cell.cellPt)
-                                draw(stream, cell.drawableText, left + 4f, baseline, false)
-                                drawAttackValues(stream, attack, left, baseline, font.metrics.fontSizePt)
+                                val line = cell.sourceStartOffset / 2
+                                val (label, damage) = c2AttackLines.getValue(cell.sourceKey)[line]
+                                draw(stream, label, left + 4f, baseline, false)
+                                drawAttackValues(stream, attack, left, baseline, font.metrics.fontSizePt,
+                                    damage = damage, showBonus = line == 0)
                                 return@forEach
                             }
                             // C219: repeat genuinely persisted P1 total/spent
@@ -4282,23 +4289,24 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             if (cell.sourceKey in ammunitionTracks &&
                                 cell.sourceStartOffset == 0) {
                                 val count = ammunitionTracks.getValue(cell.sourceKey)
-                                require(count in 0..20)
-                                if (count <= 20) {
-                                    repeat(count) { mark ->
-                                        // C412: golden marks - 7.94 pt, white, #527c96 0.48 pt.
-                                        val px = cell.cellPt.leftPt + 54f + mark * 9.5f +
-                                            (mark / 5) * 2.83f
-                                        require(px + 7.94f <= cell.cellPt.rightPt) {
-                                            "Ammunition track overflows its physical PDF column."
-                                        }
-                                        stream.saveGraphicsState()
-                                        stream.setNonStrokingColor(Color(255, 255, 255))
-                                        stream.setStrokingColor(Color(82, 124, 150))
-                                        stream.setLineWidth(0.48f)
-                                        stream.addRect(px, cell.cellPt.bottomPt + 1.3f, 7.94f, 7.94f)
-                                        stream.fillAndStroke()
-                                        stream.restoreGraphicsState()
+                                if (count > 20) {
+                                    p1Bold(stream, "____ / " + count, cell.cellPt.leftPt + 78.6f,
+                                        body.metrics.baselineIn(cell.cellPt), 7.2f, Color(38, 75, 104))
+                                } else repeat(count) { mark ->
+                                    // C412: golden marks - 7.94 pt, white, #527c96 0.48 pt, ten per row.
+                                    val column = mark % 10
+                                    val px = cell.cellPt.leftPt + 111.1f + column * 13.75f + (column / 5) * 2.85f
+                                    require(px + 7.94f <= cell.cellPt.rightPt) {
+                                        "Ammunition track overflows its physical PDF column."
                                     }
+                                    stream.saveGraphicsState()
+                                    stream.setNonStrokingColor(Color(255, 255, 255))
+                                    stream.setStrokingColor(Color(82, 124, 150))
+                                    stream.setLineWidth(0.48f)
+                                    stream.addRect(px, cell.cellPt.bottomPt + 1.3f - (mark / 10) * cell.cellPt.heightPt,
+                                        7.94f, 7.94f)
+                                    stream.fillAndStroke()
+                                    stream.restoreGraphicsState()
                                 }
                             }
                             if (cell.sourceKey in specialMarks && cell.sourceStartOffset == 0) {
@@ -4463,8 +4471,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         " / " + spanishTraining(training))
                 }
             }
-            val p1Unprinted=listOfNotNull(headerNameRoute.continuation)+
-                identityFieldOverflow+c2BSkillOverflow+identity
+            val p1CharacterOverflow = listOfNotNull(headerNameRoute.continuation) + identityFieldOverflow
+            val p1ActionRows = identity.filter { it.sourceKey == "action-head" || it.sourceKey.startsWith("action:") }
+            val p1AttributeOverflow = c2BSkillOverflow + identity.filterNot { it in p1ActionRows }
             addSection("P1 - Personaje / combate / habilidades",
                 PcSheetV11FlowSection.TRAITS,emptyList(),2,alwaysPage=true,
                 area=PcSheetV11RectPt(42f,90f,258f,500f),maxPhysicalPages=1)
@@ -5096,16 +5105,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     }
                 }
                 stream.setNonStrokingColor(Color(36, 57, 75))
-                // D-0076 §3.42 / P210: only for zero recorded special items,
-                // preprint locations used by real QA character fixtures.
-                // Leave free rows for arbitrary locations; do not create objects.
-                val manualSpecialLocations = if (data.specialEquipment.isEmpty()) {
-                    listOf("Cuello", "Cuerpo", "Mano izquierda", "Mano derecha")
-                } else emptyList()
-                require(manualSpecialLocations.size < specialCapacity)
+                // C456 (golden, which goes before D-0076 §3.42): a row without an object keeps
+                // the label of its position in the golden ladder. No object is created.
+                val manualSpecialLocations = listOf("Cabeza", "Rostro", "Cuello", "Mano izquierda",
+                    "Mano derecha", "Pecho", "Piernas", "Libre")
                 repeat(specialBands.size) { rowIndex ->
                     val rowTop = specialBandTops[rowIndex]
-                    if (data.specialEquipment.isEmpty()) {
+                    if (rowIndex >= specialP2Rows.size) {
                         manualSpecialLocations.getOrNull(rowIndex)?.let { location ->
                             stream.setNonStrokingColor(Color(38, 75, 104)) // C343 golden ink
                             stream.beginText()
@@ -5180,9 +5186,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         it.sortOrder
                     }.thenBy { it.id.toString() },
                 )
-            val ammunitionTracks = ammunitionItems.filter {
-                it.quantity in 0..20 && it.id !in p1AmmoIds
-            }
+            val ammunitionTracks = ammunitionItems.filter { it.id !in p1AmmoIds }
                 .associate { item -> "ammo-track:" + item.id to item.quantity }
             val resourceLines = buildList {
                 // C259 (owner 2026-10-28, «A casillas vacias y gastados/total
@@ -5217,19 +5221,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
             // C451 (D-0076 3.31, golden): ammunition prints once. What P1 holds has no C2 row;
             // only what does not fit P1 continues here. Its notes stay in the App (2026-11-06).
-            val ammunitionLines = ammunitionItems.filter { it.id !in p1AmmoIds }.flatMap { item ->
-                listOf(
-                    PcSheetV11FlowItem(
-                        sourceKey = "ammo:" + item.id,
-                        text = "MUNICIÓN " + item.name + " | CANTIDAD " + item.quantity,
-                        keepTogetherIfFits = true,
-                    ),
-                    PcSheetV11FlowItem(
-                        sourceKey = "ammo-track:" + item.id,
-                        text = if (item.quantity in 0..20) "MARCAS:" else
-                            "MARCAS: ____ / " + item.quantity,
-                        keepTogetherIfFits = true,
-                    ),
+            // C456 (golden comparador p1): name on the left and up to two rows of ten marks;
+            // above twenty, only ____ / X (contract). No added words.
+            val ammunitionLines = ammunitionItems.filter { it.id !in p1AmmoIds }.map { item ->
+                val name = wrapPrinted(item.name, c2AttackPt, if (item.quantity in 0..20) 100f else 70f).ifEmpty { listOf("") }
+                val rows = if (item.quantity > 10 && item.quantity <= 20) maxOf(2, name.size) else name.size
+                PcSheetV11FlowItem(
+                    sourceKey = "ammo-track:" + item.id,
+                    text = (name + List(rows - name.size) { " " }).joinToString("\n"),
+                    keepTogetherIfFits = true,
                 )
             }
             fun unprintedSuffix(
@@ -5273,16 +5273,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // C365: golden C2 cartela, 22.96 pt over the 15.7 pt list rows.
             val c2CartelaExtra = mapOf(0 to 22.96f - c2Font.metrics.lineHeightPt)
             val mixedC2 = buildList {
-                if (p1Unprinted.isNotEmpty()) {
-                    add(PcSheetV11FlowItem("c2-heading:p1-overflow",
-                        "PERSONAJE, HABILIDADES Y ACCIONES / CONTINUACIÓN",
-                        keepTogetherIfFits = true, lineExtrasPt = c2CartelaExtra))
-                    addAll(p1Unprinted)
+                if (p1CharacterOverflow.isNotEmpty()) {
+                    addHeaded(PcSheetV11FlowItem("c2-heading:p1-overflow", "PERSONAJE",
+                        keepTogetherIfFits = true, lineExtrasPt = c2CartelaExtra), p1CharacterOverflow)
                 }
-                if (detachedSkills.isNotEmpty()) {
+                if (p1AttributeOverflow.isNotEmpty() || detachedSkills.isNotEmpty()) {
                     addHeaded(PcSheetV11FlowItem("c2-heading:skills",
                         "ATRIBUTOS Y HABILIDADES", keepTogetherIfFits = true,
-                        lineExtrasPt = c2CartelaExtra), detachedSkills.map { it.copy(text = c2Inset + it.text) })
+                        lineExtrasPt = c2CartelaExtra),
+                        p1AttributeOverflow + detachedSkills.map { it.copy(text = c2Inset + it.text) })
                 }
                 if (extraVitals.isNotEmpty()) {
                     addHeaded(PcSheetV11FlowItem("c2-heading:vitals",
@@ -5293,6 +5292,10 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     addHeaded(PcSheetV11FlowItem("c2-heading:combat",
                         "ATAQUES", keepTogetherIfFits = true,
                         lineExtrasPt = c2CartelaExtra), extraCombatData)
+                }
+                if (p1ActionRows.isNotEmpty()) {
+                    addHeaded(PcSheetV11FlowItem("c2-heading:actions", "ACCIONES",
+                        keepTogetherIfFits = true, lineExtrasPt = c2CartelaExtra), p1ActionRows)
                 }
                 if (extraSlots.isNotEmpty()) {
                     addHeaded(PcSheetV11FlowItem("c2-heading:slots",
@@ -6111,13 +6114,14 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // physical C2 page (golden "ATRIBUTOS Y HABILIDADES A P. 4 · ATAQUES
             // A P. 4 · MUNICIONES A P. 4"), in the same free band P2 uses.
             val p1HeadingKeys = setOf("c2-heading:p1-overflow", "c2-heading:skills",
-                "c2-heading:vitals", "c2-heading:combat", "c2-heading:slots",
+                "c2-heading:vitals", "c2-heading:combat", "c2-heading:actions", "c2-heading:slots",
                 "c2-heading:resources", "c2-heading:ammunition")
             val p1ModuleLinks = listOf(
                 "c2-heading:p1-overflow" to "PERSONAJE",
                 "c2-heading:skills" to "HABILIDADES",
                 "c2-heading:vitals" to "COMBATE",
                 "c2-heading:combat" to "ATAQUES",
+                "c2-heading:actions" to "ACCIONES",
                 "c2-heading:slots" to "CONJUROS",
                 "c2-heading:resources" to "RECURSOS",
                 "c2-heading:ammunition" to "MUNICIONES",

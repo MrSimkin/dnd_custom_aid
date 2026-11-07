@@ -42,9 +42,9 @@ class P1AttacksStageTripwire(unittest.TestCase):
         regions = []
         for platform in (DESKTOP, ANDROID):
             text = platform.read_text(encoding="utf-8")
-            self.assertIn("val p1Attacks=attackRows.filter{ attackFitsTableRow(it, p1 = true) }.take(p1AttackRowCount)", text)  # C356
+            self.assertIn("val p1Attacks = attackRows.takeWhile(::attackFitsP1Row).take(p1AttackRowCount)", text)  # C356
             self.assertIn("val p1AttackRowCount = 5", text)
-            self.assertIn("it.id !in p1AttackIds && attackFitsTableRow(it)", text)
+            self.assertIn("attackRows.filter { it.id !in p1AttackIds }", text)
             regions.append(text.split("c2AttackTableRows[cell.sourceKey]?.let { attack ->", 1)[1]
                            .split("// C219:", 1)[0])
         self.assertEqual(regions[0], regions[1])

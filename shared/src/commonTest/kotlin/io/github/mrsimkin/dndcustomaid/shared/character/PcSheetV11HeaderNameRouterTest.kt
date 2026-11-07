@@ -21,7 +21,7 @@ class PcSheetV11HeaderNameRouterTest {
         val name = "Aldren de los Siete Reinos y los Incontables Sellos del Alba"
         val actual = PcSheetV11HeaderNameRouter.route(name, 40f, width)
         assertTrue(actual.paperName.startsWith("Aldren"))
-        assertTrue(actual.paperName.endsWith(PcSheetV11HeaderNameRouter.NAVIGATION_SUFFIX))
+        assertTrue(name.startsWith(actual.paperName), "Only cut, with nothing added.")
         assertTrue(width.measurePt(actual.paperName) <= 40f)
         val full = assertNotNull(actual.continuation)
         assertEquals("p1:character-full-name", full.sourceKey)
@@ -40,13 +40,13 @@ class PcSheetV11HeaderNameRouterTest {
         }
         // Even a fitting single-line preview cannot erase original breaks.
         val routed = PcSheetV11HeaderNameRouter.route(rawName, 100f, strictWidth)
-        assertEquals("Ilyra Quill    Crónica" + PcSheetV11HeaderNameRouter.NAVIGATION_SUFFIX, routed.paperName)
+        assertEquals("Ilyra Quill    Crónica", routed.paperName)
         val full = assertNotNull(routed.continuation)
         assertEquals("p1:character-full-name", full.sourceKey)
         assertEquals("NOMBRE COMPLETO DEL PERSONAJE: " + rawName, full.text)
 
         val constrained = PcSheetV11HeaderNameRouter.route(rawName, 30f, strictWidth)
-        assertTrue(constrained.paperName.endsWith(PcSheetV11HeaderNameRouter.NAVIGATION_SUFFIX))
+        assertTrue(constrained.paperName.startsWith("Ilyra"))
         assertTrue(strictWidth.measurePt(constrained.paperName) <= 30f)
         assertEquals(full.text, assertNotNull(constrained.continuation).text)
     }

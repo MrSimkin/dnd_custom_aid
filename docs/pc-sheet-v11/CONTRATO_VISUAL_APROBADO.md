@@ -251,6 +251,20 @@ Preguntado si las notas de ataque quedan solo en la App, el propietario responde
 
 Aplica el golden, sin decisión nueva del propietario: `ATRIBUTOS Y HABILIDADES`, `COMBATE Y SUPERVIVENCIA`, `ATAQUES`, `LANZAMIENTO DE CONJUROS`, `MUNICIONES` y `RASGOS / CONTINUACIÓN` sustituyen a los títulos técnicos anteriores. `RECURSOS` no existe en el golden, va por la aclaración de recursos de C2, y las municiones que siguen en C2 tienen su propio título. Una habilidad que sale del panel B conserva en C2 su casilla y su valor a la derecha. Recuperación, fuente y notas de recursos van en 6,1 pt.
 
+## Aclaración del propietario — notas de objetos especiales (2026-11-06)
+
+Preguntado si las notas de un objeto especial quedan solo en la App, el propietario responde **«No, se imprimen»**. Siguen en la descripción, tras « / NOTAS: ». Las notas del equipo común siguen solo en la App.
+
+## Aclaración técnica del Worker — revisión de `preqa.9` (2026-11-06)
+
+Aplica la prioridad de fuentes, sin decisión nueva del propietario, y queda sujeta a su revisión:
+- **Equipo Especial:** una fila sin objeto conserva el rótulo de su posición en el golden (Cabeza, Rostro, Cuello, Mano izquierda, Mano derecha, Pecho, Piernas, Libre). El golden prevalece sobre §3.42.
+- **C2:** cada bloque bajo su título (PERSONAJE, ATRIBUTOS Y HABILIDADES, COMBATE Y SUPERVIVENCIA, ATAQUES, ACCIONES, LANZAMIENTO DE CONJUROS, RECURSOS, MUNICIONES).
+- **Municiones que siguen en C2:** nombre y hasta dos filas de 10 casillas; más de 20, solo `____ / X`, por la decisión escrita. Sin «MUNICIÓN», «CANTIDAD» ni «MARCAS:».
+- **Una sola fuente de conjuros:** la tarjeta imprime solo el valor.
+- **Panel B y ATAQUES vacío:** sin la leyenda de marcas y sin la línea añadida.
+- **PV temporales:** `TEMP` solo se imprime si el personaje los tiene.
+
 ## Aclaración del propietario — nombre muy largo en la cabecera (2026-11-06)
 
 Preguntado si acepta el corte con «NOMBRE EN PÁG. n», o letra menor, el propietario responde **«Prefiero que el nombre sea cortado hasta donde sea que quepa»**. Sustituye a «NOMBRE EN PÁG. n». **Lectura del Worker, sujeta a su revisión:** la cabecera conserva su tamaño de letra, corta el nombre donde deja de caber antes del rótulo derecho y no agrega ningún aviso. El nombre completo sigue impreso una vez en C2, y la banda de P1 dice dónde.

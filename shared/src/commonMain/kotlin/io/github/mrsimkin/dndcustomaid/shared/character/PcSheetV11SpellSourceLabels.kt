@@ -161,6 +161,8 @@ object PcSheetV11SpellSourceLabels {
             } ?: "—"
             else -> "—"
         }
+        // C456 (golden): a single source has nothing to tell apart, so it prints the value alone.
+        if (sources.size == 1) return listOf(value(sources.single()))
         return sources.map { source ->
             // Source names may carry CR/LF/TAB from user input; the printed
             // reference is a single physical line.
@@ -180,7 +182,8 @@ object PcSheetV11SpellSourceLabels {
         val name = source.sourceName?.trim()?.replace(Regex("\\s+"), " ")
             ?.takeIf { it.isNotEmpty() }
         return when (source.originKind) {
-            // C440: the class name, without subclass; the source's own name only if unlinked.
+            // C440: the class name, without subclass; the source's own name only if unlinked,
+            // because two unlinked class sources would otherwise read the same.
             CharacterSpellcastingOriginKind.CLASS ->
                 source.linkedClassName?.trim()?.replace(Regex("\\s+"), " ")?.takeIf { it.isNotEmpty() }
                     ?: name ?: "Clase"
