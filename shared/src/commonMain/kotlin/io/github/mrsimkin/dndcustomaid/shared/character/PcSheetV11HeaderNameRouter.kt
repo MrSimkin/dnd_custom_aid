@@ -2,9 +2,8 @@ package io.github.mrsimkin.dndcustomaid.shared.character
 
 /**
  * Preserve the owner's one-line V11 logo/name header without overprinting its
- * fixed physical edge. The source name is never truncated in the document:
- * an unusually long one is printed in full once in the measured P1-owned C2.
- * A short source-backed prefix remains beside the logo on every page.
+ * fixed physical edge. C463 (owner 2026-11-07, «solo quiero el nombre en la cabecera»):
+ * a long name is cut where it stops fitting and is printed nowhere else.
  */
 data class PcSheetV11HeaderNameRoute(
     val paperName: String,
@@ -40,13 +39,6 @@ object PcSheetV11HeaderNameRouter {
         // Owner 2026-11-06, «cortado hasta donde sea que quepa»: the name alone, no notice.
         val paperName = prefix
         require(width.measurePt(paperName) <= routedWidthPt)
-        return PcSheetV11HeaderNameRoute(
-            paperName = paperName,
-            continuation = PcSheetV11FlowItem(
-                sourceKey = "p1:character-full-name",
-                text = "NOMBRE COMPLETO DEL PERSONAJE: " + sourceName,
-                keepTogetherIfFits = true,
-            ),
-        )
+        return PcSheetV11HeaderNameRoute(paperName = paperName, continuation = null)
     }
 }

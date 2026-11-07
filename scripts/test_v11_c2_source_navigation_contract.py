@@ -22,8 +22,10 @@ class C2PhysicalOriginParityTest(unittest.TestCase):
             self.assertEqual(source.count("drawC2ContinuationCartela(stream, column)"), 2,
                 "Every genuine C2 continued source-group or attribute heading needs golden cartela.")
             self.assertIn("stream.fillAndStroke()", source)
-            self.assertIn("val bottom = 698.2f", source)  # C367: under the golden rule y709.8
-            self.assertIn("val top = 708.6f", source)
+            # C463 (review of preqa.11, M4): no band in the header strip; the cue sits on the
+            # golden «MÓDULOS COMPARTIDOS» label line, the golden's only text there.
+            self.assertNotIn("val bottom = 698.2f", source)
+            self.assertEqual(source.count("stream.newLineAtOffset(c2CueLeft(column), 691.94f) // C463"), 2)
             # C213 physical paper grouping is sourced from real C2 group keys.
             self.assertIn("val c2CustomGroups = pageCells.mapNotNull", source)
             self.assertIn('sourceGroup?.startsWith("custom-attribute-group:") == true', source)

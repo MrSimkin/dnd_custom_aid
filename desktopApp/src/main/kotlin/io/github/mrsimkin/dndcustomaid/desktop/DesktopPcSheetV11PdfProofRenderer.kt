@@ -45,10 +45,20 @@ internal class DesktopPcSheetV11PdfProofRenderer {
     ) {
         // C453 (D-0076 3.33): a P1 marker names the real page of its C2 row, which is only
         // known once the document is paginated, so such a sheet is drawn twice.
-        val firstPass = java.io.ByteArrayOutputStream()
-        val c2Pages = renderPass(data, firstPass, portraitBytes, emptyMap())
-        if (c2Pages == null) firstPass.writeTo(target)
-        else renderPass(data, target, portraitBytes, c2Pages)
+        // C464: EQUIPO in C2 reads by columns within each stretch, which also needs the layout.
+        var pages: Map<String, Int> = emptyMap()
+        var segments: Map<String, List<Int>> = emptyMap()
+        var last = java.io.ByteArrayOutputStream()
+        for (pass in 0 until 5) {
+            val out = java.io.ByteArrayOutputStream()
+            val (newPages, newSegments) = renderPass(data, out, portraitBytes, pages, segments)
+            last = out
+            val pagesSettled = newPages == null || newPages == pages
+            if (pagesSettled && newSegments == segments) break
+            pages = newPages ?: pages
+            segments = newSegments
+        }
+        last.writeTo(target)
     }
 
     private fun renderPass(
@@ -56,7 +66,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
         target: OutputStream,
         portraitBytes: ByteArray?,
         c2Pages: Map<String, Int>,
-    ): Map<String, Int>? {
+        pairSegments: Map<String, List<Int>>,
+    ): Pair<Map<String, Int>?, Map<String, List<Int>>> {
         return PDDocument().use { pdf ->
             val measurer = DesktopPcSheetV11FontMeasurer(pdf)
             val body = measurer.resolve(PcSheetV11Typeface.BODY, 9f)
@@ -205,6 +216,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             // The last shared C2 page may still take the full-width EQUIPO ESPECIAL at its foot.
             var mixedC2LastCells: List<io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PlacedLineCell> = emptyList()
             var mixedC2LastPageIndex: Int? = null
+            val c2PairPlacement = mutableMapOf<String, Pair<Int, Int>>()
+            var mixedC2LastTopPt: Float? = null
             var specialSharedMixedPage: Int? = null
             val c2SkillTraining = mutableMapOf<String, String>()
             // C240: spellbook card heading length and inline NIVEL label per card.
@@ -557,7 +570,11 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.setNonStrokingColor(Color(29, 56, 79))
                 drawHero(stream, headerName, 161.57f, 735.31f, 13.4f)
                 // Golden module group label: 7.3 pt #264b68, right edge x569.48.
+                // C463 (owner 2026-11-07, «nada»): a continuation sheet says nothing at the right;
+                // only each module that continues says so.
+                val continuationSheet = title.startsWith("C2") || title.startsWith("P3 - Narrativa / continuación")
                 val groupLabel = when {
+                    continuationSheet -> null
                     lastHandwrittenPage -> "NOTAS"
                     title.startsWith("P1") -> "VARIANTE " + data.request.variant.name
                     title.startsWith("P2") -> "EQUIPO Y TESORO"
@@ -572,7 +589,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 // C286: the page title takes the golden secondary header line (5.9 pt
                 // #657d90, right edge x569.48). The last NOTAS sheet shows only its
                 // group label, as the golden.
-                if (!lastHandwrittenPage) {
+                if (!lastHandwrittenPage && !continuationSheet) {
                     val printableTitle = pcSheetV11PrintableText(title)
                     stream.saveGraphicsState()
                     stream.setNonStrokingColor(Color(101, 125, 144))
@@ -977,6 +994,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 drawCartelaDiamonds(stream, 39.69f, 260.22f, cb, ct)
                 stream.setNonStrokingColor(Color(29, 56, 79))
                 drawP1Label(stream, "HABILIDADES", 56.69f, cb + 6.8f, 9.1f)
+                // C463 (golden B p1): «dos subcolumnas», Noto Sans 6.2 pt #657d90 at x192.2.
+                stream.setNonStrokingColor(Color(101, 125, 144))
+                stream.beginText()
+                stream.setFont(bodyPdfFont, 6.2f)
+                stream.newLineAtOffset(192.2f, cb + 8.2f)
+                stream.showText("dos subcolumnas")
+                stream.endText()
                 stream.setNonStrokingColor(Color(36, 57, 75))
                 // Golden subcolumn rows: alternating fills and the 0.32 pt rule, every
                 // row on paper whether or not a real skill sits in it (no frame).
@@ -1097,7 +1121,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     c2SkillTraining["detached-skill:" + index] = trainingLetter(skill.training)
                     PcSheetV11FlowItem(
                         "detached-skill:" + index,
-                        approvedSkillName(skill) + (abbreviation?.let { " (" + it + ")" } ?: "") +
+                        // C463: the attribute is named by its subheading, as in the golden.
+                        approvedSkillName(skill) + (if (data.attributes.any { it.reference == skill.ability }) ""
+                            else abbreviation?.let { " (" + it + ")" } ?: "") +
                             ": " + (skill.total?.let { signedC2(it) } ?: "sin resolver") +
                             " / " + spanishTraining(skill.training),
                     )
@@ -1311,8 +1337,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 stream.saveGraphicsState()
                 stream.setStrokingColor(Color(148, 176, 193))
                 stream.setLineWidth(0.35f)
-                for (x in listOf(b1, b2)) {
-                    stream.moveTo(x, headerBottom - p1AttackRowCount * pitch)
+                // C463 (golden casi vacío and 6+2 A): empty rows have no column rules.
+                if (p1Attacks.isNotEmpty()) for (x in listOf(b1, b2)) {
+                    stream.moveTo(x, headerBottom - p1Attacks.size * pitch)
                     stream.lineTo(x, headerBottom)
                     stream.stroke()
                 }
@@ -2476,6 +2503,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             fun fillUnusedC2WithNotes(
                 stream: PDPageContentStream,
                 cells: List<io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PlacedLineCell>,
+                topPt: Float? = null,
             ) {
                 // C2 is two independent vertical paper columns. A nearly
                 // occupied LEFT column cannot veto useful blank RIGHT paper.
@@ -2484,7 +2512,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     PcSheetV11RectPt(39.69f, c2FootPt, 532.63f, pageArea.topPt - c2FootPt), 2, 9.92f)
                 columns.forEachIndexed { index, column ->
                     val lowestTextBottom = cells.filter { it.columnIndex == index + 1 }
-                        .minOfOrNull { it.cellPt.bottomPt } ?: column.topPt
+                        .minOfOrNull { it.cellPt.bottomPt } ?: minOf(column.topPt, topPt ?: column.topPt)
                     val gridBottom = c2FootPt // C397: golden C2 grid foot (was 78)
                     val gridSize = 16f
                     val maxGridTop = lowestTextBottom - 28f
@@ -2901,27 +2929,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     // C367: the free strip between the C2 columns (top y685.7) and the
                     // golden header rule y709.8; in the first column it starts after
                     // the «MÓDULOS COMPARTIDOS» label. No pagination/content change.
-                    val bottom = 698.2f
-                    val top = 708.6f
-                    require(column.topPt <= 702f && top < 709.8f && bottom > column.topPt)
-                    val cut = 2.5f
-                    val left = c2CueLeft(column)
-                    val right = column.rightPt
-                    stream.saveGraphicsState()
-                    stream.setNonStrokingColor(Color(231, 242, 247))
-                    stream.setStrokingColor(Color(38, 75, 104))
-                    stream.setLineWidth(0.45f)
-                    stream.moveTo(left + cut, bottom)
-                    stream.lineTo(right - cut, bottom)
-                    stream.lineTo(right, bottom + cut)
-                    stream.lineTo(right, top - cut)
-                    stream.lineTo(right - cut, top)
-                    stream.lineTo(left + cut, top)
-                    stream.lineTo(left, top - cut)
-                    stream.lineTo(left, bottom + cut)
-                    stream.closePath()
-                    stream.fillAndStroke()
-                    stream.restoreGraphicsState()
+                    // C463 (review of preqa.11, M4): no band in the header strip. The cue is
+                    // a label on the golden «MÓDULOS COMPARTIDOS» line, the golden's only text there.
+                    require(column.topPt <= 702f)
                 }
 
             // C247: golden C2 "ATRIBUTOS Y HABILIDADES" row inside the item's two
@@ -2960,6 +2970,9 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 font: PcSheetV11ResolvedFont = body,
                 firstPageNumber: Int = 1,
                 gutterPt: Float = if (columns == 1) 0f else 12f,
+                // C464: start on the last page already drawn, below a full-width module.
+                reuseLastPage: Boolean = false,
+                firstPageDropPt: Float = 0f,
             ) {
                 require(maxPhysicalPages == null || maxPhysicalPages > 0)
                 if (!alwaysPage && entries.isEmpty()) return
@@ -2985,7 +2998,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val c2TextInset = if (title == "C2 - Habilidades, acciones y recursos") 4.25f else 0f
                 val flow = (if (c2TextInset > 0f) font.copy(width = PcSheetV11TextWidth { text ->
                     font.width.measurePt(text) + 2f * c2TextInset
-                }) else font).place(section, entries, area, columns, gutterPt)
+                }) else font).place(section, entries, area, columns, gutterPt, firstPageDropPt)
                 val pageCount = maxOf(if (alwaysPage) 1 else 0, flow.sourceFlow.localPageCount)
                 repeat(minOf(pageCount, maxPhysicalPages ?: pageCount)) { index ->
                     val pageCells = flow.cells.filter {
@@ -3052,9 +3065,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 },
                             )
                     } else basicTitle
-                    val page = PDPage(PDRectangle.LETTER)
-                    pdf.addPage(page)
-                    physicalSectionKeys += title
+                    val reused = reuseLastPage && index == 0
+                    val page = if (reused) pdf.getPage(pdf.numberOfPages - 1) else PDPage(PDRectangle.LETTER)
+                    if (!reused) {
+                        pdf.addPage(page)
+                        physicalSectionKeys += title
+                    }
                     if (title == "C2 - Habilidades, acciones y recursos") {
                         pageCells.filter { it.sourceKey.startsWith("c2-heading:") }.forEach {
                             mixedC2HeadingPages.putIfAbsent(it.sourceKey, pdf.numberOfPages)
@@ -3064,7 +3080,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             ?: mixedC2LastModule[pdf.numberOfPages - 1])?.let {
                             mixedC2LastModule[pdf.numberOfPages] = it.trim()
                         }
-                        mixedC2OpensModule[pdf.numberOfPages] =
+                        // C464: a reused sheet keeps how it opened (with the continued module on top).
+                        if (!reused) mixedC2OpensModule[pdf.numberOfPages] =
                             pageCells.firstOrNull()?.sourceKey?.startsWith("c2-heading:") == true
                     }
                     if (title == "P3 - Narrativa / continuación") {
@@ -3072,8 +3089,12 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                             p3FieldHeadingPages.putIfAbsent(it.sourceKey, pdf.numberOfPages)
                         }
                     }
-                    PDPageContentStream(pdf, page).use { stream ->
-                        drawFrameAndHeader(stream, pageTitle)
+                    (if (reused) PDPageContentStream(pdf, page, PDPageContentStream.AppendMode.APPEND, true, true)
+                        else PDPageContentStream(pdf, page)).use { stream ->
+                        if (!reused) drawFrameAndHeader(stream, pageTitle)
+                        // C464: «VIENE DE PÁG. n» of each cartela is written after the page text, so a
+                        // reader of the PDF text never glues it to the title that follows it.
+                        val deferredC2Origins = mutableListOf<() -> Unit>()
                         if (title.startsWith("P4 - ")) drawP4MagicReference(stream)
                         if (title.startsWith("P3 - Narrativa / continuación")) {
                             drawP3ContinuationPaper(stream, font.metrics.lineHeightPt)
@@ -3265,7 +3286,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         stream.setNonStrokingColor(Color(38, 75, 104))
                                         stream.beginText()
                                         stream.setFont(headerPdfFont, fontPt)
-                                        stream.newLineAtOffset(c2CueLeft(column) + 2f, 700.9f) // C367
+                                        stream.newLineAtOffset(c2CueLeft(column), 691.94f) // C463
                                         stream.showText(pcSheetV11PrintableText(context))
                                         stream.endText()
                                         stream.restoreGraphicsState()
@@ -3312,7 +3333,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                         stream.setNonStrokingColor(Color(38, 75, 104))
                                         stream.beginText()
                                         stream.setFont(headerPdfFont, fontPt)
-                                        stream.newLineAtOffset(c2CueLeft(column) + 2f, 700.9f) // C367
+                                        stream.newLineAtOffset(c2CueLeft(column), 691.94f) // C463
                                         stream.showText(pcSheetV11PrintableText(context))
                                         stream.endText()
                                         stream.restoreGraphicsState()
@@ -3598,6 +3619,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     physicalSectionKeys.indexOf("P2 - Equipo y tesoro") + 1
                                 else if (heading.sourceKey == "c2-heading:story") // C447
                                     physicalSectionKeys.indexOf("P3 - Trasfondo / Perfil / Historia") + 1
+                                // C463: ACCIONES and RECURSOS have no module on P1, so they come from no page.
+                                else if (heading.sourceKey in setOf("c2-heading:actions", "c2-heading:resources")) 0
                                 else physicalSectionKeys.indexOfFirst { it.startsWith("P1 - ") } + 1
                                 if (base > 0) {
                                     val origin = pcSheetV11PrintableText(
@@ -3611,13 +3634,19 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                             heading.cellPt.rightPt, heading.cellPt.bottomPt,
                                             heading.cellPt.topPt)
                                         // C365: golden «VIENE P. n» baseline 5.95 pt above the foot.
-                                        drawP1Label(stream, origin,
-                                            heading.cellPt.rightPt - 13f - originWidth,
-                                            heading.cellPt.bottomPt + 5.95f, 6.1f)
+                                        deferredC2Origins += {
+                                            stream.setNonStrokingColor(Color(38, 75, 104))
+                                            drawP1Label(stream, origin,
+                                                heading.cellPt.rightPt - 13f - originWidth,
+                                                heading.cellPt.bottomPt + 5.95f, 6.1f)
+                                        }
                                     } else if (5f + inkWidth + 8f + originWidth + 5f <= heading.cellPt.widthPt) {
-                                        drawP1Label(stream, origin,
-                                            heading.cellPt.rightPt - 5f - originWidth,
-                                            heading.cellPt.bottomPt + 5.95f, 6.1f)
+                                        deferredC2Origins += {
+                                            stream.setNonStrokingColor(Color(38, 75, 104))
+                                            drawP1Label(stream, origin,
+                                                heading.cellPt.rightPt - 5f - originWidth,
+                                                heading.cellPt.bottomPt + 5.95f, 6.1f)
+                                        }
                                     }
                                     stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                                 }
@@ -3975,12 +4004,21 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 }
                                 return@forEach
                             }
+                            if (cell.sourceKey.startsWith("c2-skill-group:")) {
+                                // C463: golden subheading, Noto Sans Display Condensed 7.2 pt #1d384f, 4.8 pt in.
+                                stream.setNonStrokingColor(Color(29, 56, 79))
+                                drawP1Label(stream, cell.drawableText.trimEnd(), cell.cellPt.leftPt + 4.8f,
+                                    body.metrics.baselineIn(cell.cellPt), 7.2f)
+                                stream.setNonStrokingColor(Color(36, 57, 75))
+                                return@forEach
+                            }
                             c2PairRows[cell.sourceKey]?.let { lines ->
                                 // C457: golden C2 rows of EQUIPO and TESORO, banded, name and bold amount.
                                 val left = cell.cellPt.leftPt
                                 val line = cell.sourceStartOffset / 2
                                 val values = lines[line]
                                 val rowIndex = cell.sourceKey.substringAfterLast(':').toInt()
+                                if (line == 0) c2PairPlacement[cell.sourceKey] = pdf.numberOfPages to cell.columnIndex
                                 fillBand(stream, left, cell.cellPt.bottomPt, cell.cellPt.widthPt, cell.cellPt.heightPt,
                                     rowIndex, rule = line == lines.lastIndex)
                                 val pairs = if (values.size == 4) 2 else 1
@@ -4429,12 +4467,15 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                 }
                             }
                         }
+                        deferredC2Origins.forEach { it() }
+                        stream.setNonStrokingColor(Color(36, 57, 75))
                         if (title == "C2 - Habilidades, acciones y recursos" && index == pageCount - 1) {
                             // C457: its free foot is decided once EQUIPO ESPECIAL is measured.
                             mixedC2LastCells = pageCells
                             mixedC2LastPageIndex = pdf.numberOfPages - 1
+                            mixedC2LastTopPt = if (reused) area.topPt - firstPageDropPt else null
                         } else if (title.startsWith("C2 - ")) {
-                            fillUnusedC2WithNotes(stream, pageCells)
+                            fillUnusedC2WithNotes(stream, pageCells, if (reused) area.topPt - firstPageDropPt else null)
                         }
                         // P3 now draws its own two-column ruled writing grammar,
                         // before the source text, including continuation pages.
@@ -5430,10 +5471,23 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 val twoPairs = label == "EQUIPO" && amountColumn <= 32.17f
                 val pairWidth = c2ActionColumn / (if (twoPairs) 2 else 1)
                 val nameRoom = pairWidth - amountColumn - 8f
-                val rowCount = if (twoPairs) (rows.size + 1) / 2 else rows.size
-                return (0 until rowCount).map { index ->
-                    val leftRow = rows[index]
-                    val rightRow = if (twoPairs) rows.getOrNull(index + rowCount) else null
+                // C464 (review of preqa.11, M1; golden): each stretch of the table, in its own
+                // page and column, reads down the left half and then down the right half.
+                val layout: List<Pair<Int, Int?>> = if (!twoPairs) rows.indices.map { it to null } else buildList {
+                    val sizes = pairSegments["paired:" + label].orEmpty().toMutableList()
+                    var start = 0
+                    while (start < rows.size) {
+                        val remaining = rows.size - start
+                        val stretchRows = sizes.removeFirstOrNull()?.takeIf { it * 2 < remaining } ?: ((remaining + 1) / 2)
+                        val count = minOf(remaining, stretchRows * 2)
+                        val half = (count + 1) / 2
+                        for (i in 0 until half) add((start + i) to (start + half + i).takeIf { it < start + count })
+                        start += count
+                    }
+                }
+                return layout.indices.map { index ->
+                    val leftRow = rows[layout[index].first]
+                    val rightRow = layout[index].second?.let { rows[it] }
                     val leftName = wrapPrinted(leftRow.label, 7.2f, nameRoom).ifEmpty { listOf("") }
                     val rightName = rightRow?.let { wrapPrinted(it.label, 7.2f, nameRoom) }.orEmpty()
                     val key = "paired:" + label + ":" + index
@@ -5457,10 +5511,26 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         keepTogetherIfFits = true, lineExtrasPt = c2CartelaExtra), p1CharacterOverflow)
                 }
                 if (p1AttributeOverflow.isNotEmpty() || detachedSkills.isNotEmpty()) {
+                    // C463 (golden extremo B p4, «HABILIDADES DE HONOR»): loose skills sit under
+                    // their attribute's subheading, in the order of the sheet.
+                    val grouped = buildList {
+                        var previous: Any? = null
+                        detachedSkills.forEach { item ->
+                            val skill = data.skills[item.sourceKey.removePrefix("detached-skill:").toInt()]
+                            if (skill.ability != previous) {
+                                val attribute = data.attributes.firstOrNull { it.reference == skill.ability }
+                                if (attribute != null) add(PcSheetV11FlowItem(
+                                    "c2-skill-group:" + item.sourceKey, "HABILIDADES DE " + approvedAbilityName(attribute.name.uppercase()),
+                                    keepTogetherIfFits = true, groupKey = "c2-skill-group:" + item.sourceKey))
+                                previous = skill.ability
+                                add(item.copy(text = c2Inset + item.text, groupKey = "c2-skill-group:" + item.sourceKey))
+                            } else add(item.copy(text = c2Inset + item.text))
+                        }
+                    }
                     addHeaded(PcSheetV11FlowItem("c2-heading:skills",
                         "ATRIBUTOS Y HABILIDADES", keepTogetherIfFits = true,
                         lineExtrasPt = c2CartelaExtra),
-                        p1AttributeOverflow + detachedSkills.map { it.copy(text = c2Inset + it.text) })
+                        p1AttributeOverflow + grouped)
                 }
                 if (extraVitals.isNotEmpty()) {
                     addHeaded(PcSheetV11FlowItem("c2-heading:vitals",
@@ -5512,10 +5582,17 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         keepTogetherIfFits = true, lineExtrasPt = c2CartelaExtra), p3StoryOverflow)
                 }
             }
+            // C464 (golden extremo B p5; review of preqa.11, M2): EQUIPO ESPECIAL that continues
+            // goes after EQUIPO and TESORO, at full width, and RASGOS and HISTORIA follow under it.
+            val afterSpecialStart = mixedC2.indexOfFirst {
+                it.sourceKey == "c2-heading:traits" || it.sourceKey == "c2-heading:story"
+            }.takeIf { specialDeferredToC2.isNotEmpty() && it >= 0 }
+            val mixedAfterSpecial = afterSpecialStart?.let { mixedC2.drop(it) }.orEmpty()
+            val mixedBeforeSpecial = afterSpecialStart?.let { mixedC2.take(it) } ?: mixedC2
             // C323: golden C2 columns 39.69..301.04 and 310.96..572.32 (9.92 pt gutter).
             addSection("C2 - Habilidades, acciones y recursos",
                 PcSheetV11FlowSection.TRAITS,
-                mixedC2, columns = 2, ammunitionTracks = ammunitionTracks,
+                mixedBeforeSpecial, columns = 2, ammunitionTracks = ammunitionTracks,
                 // C324: content starts at the golden first-cartela top (y685.7).
                 area = PcSheetV11RectPt(39.69f, c2FootPt, 532.63f, 685.7f - c2FootPt),
                 gutterPt = 9.92f, font = c2Font)
@@ -5618,6 +5695,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
             }
             // C457 (golden comparador p5; §3.29): the full-width table takes the free foot of the
             // last shared C2 sheet when all of it fits there; otherwise it gets its own sheet.
+            var specialReuse: Pair<Int, Float>? = null
             val specialFootTop = mixedC2LastPageIndex?.takeIf { c2SpecialPages.size == 1 }?.let {
                 val tableTop = mixedC2LastCells.minOf { cell -> cell.cellPt.bottomPt } - 8f - 24.94f
                 val rowsHeight = c2SpecialPages.single().sumOf { part -> part.heightPt.toDouble() }.toFloat()
@@ -5637,8 +5715,13 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
                 (if (atFoot) PDPageContentStream(pdf, page, PDPageContentStream.AppendMode.APPEND, true, true)
                     else PDPageContentStream(pdf, page)).use { stream ->
+                    // C464 (golden extremo B p5): a sheet that also holds the following modules is
+                    // labelled as the shared two-column C2.
+                    val hostsFollowing = pageIndex == c2SpecialPages.lastIndex && mixedAfterSpecial.isNotEmpty() &&
+                        drawingArea.topPt - fragments.sumOf { it.heightPt.toDouble() }.toFloat() - 10f - c2FootPt >= 120f
                     if (!atFoot) drawFrameAndHeader(stream,
-                        "C2 - Equipo especial / continuación / " + (pageIndex + 1))
+                        (if (hostsFollowing) "C2 - Habilidades, acciones y recursos / " else "C2 - Equipo especial / continuación / ") +
+                            (pageIndex + 1))
                     // C344: golden C2 p5 - the full-width EQUIPO ESPECIAL cartela with
                     // its base page before the right diamond («VIENE DE PÁG. n», C341).
                     drawP2Cartela(stream, "EQUIPO ESPECIAL", drawingArea)
@@ -5781,13 +5864,33 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                         stream.restoreGraphicsState()
                     }
                     require(kotlin.math.abs(rowTop - tableBottom) <= 0.5f)
-                    drawUnusedC2NotesGrid(stream, tableBottom)
+                    // C464: RASGOS and HISTORIA take the paper under the table when enough is left.
+                    if (hostsFollowing) {
+                        specialReuse = (pdf.numberOfPages - 1) to tableBottom
+                    } else drawUnusedC2NotesGrid(stream, tableBottom)
                 }
             }
             // C457: without EQUIPO ESPECIAL at its foot, the last shared sheet gets its usual notes.
             if (specialSharedMixedPage == null) mixedC2LastPageIndex?.let { pageIndex ->
                 PDPageContentStream(pdf, pdf.getPage(pageIndex), PDPageContentStream.AppendMode.APPEND, true, true).use { stream ->
                     fillUnusedC2WithNotes(stream, mixedC2LastCells)
+                }
+            }
+            if (mixedAfterSpecial.isNotEmpty()) {
+                val reuse = specialReuse
+                require(reuse == null || reuse.first == pdf.numberOfPages - 1)
+                mixedC2LastPageIndex = null
+                addSection("C2 - Habilidades, acciones y recursos",
+                    PcSheetV11FlowSection.TRAITS,
+                    mixedAfterSpecial, columns = 2, ammunitionTracks = ammunitionTracks,
+                    area = PcSheetV11RectPt(39.69f, c2FootPt, 532.63f, 685.7f - c2FootPt),
+                    gutterPt = 9.92f, font = c2Font,
+                    reuseLastPage = reuse != null,
+                    firstPageDropPt = reuse?.let { 685.7f - (it.second - 10f) } ?: 0f)
+                mixedC2LastPageIndex?.let { pageIndex ->
+                    PDPageContentStream(pdf, pdf.getPage(pageIndex), PDPageContentStream.AppendMode.APPEND, true, true).use { stream ->
+                        fillUnusedC2WithNotes(stream, mixedC2LastCells, mixedC2LastTopPt)
+                    }
                 }
             }
             specialSharedMixedPage?.let { mixedC2TraitPages += it }
@@ -6150,9 +6253,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 "c2-heading:skills" to "HABILIDADES",
                 "c2-heading:vitals" to "COMBATE",
                 "c2-heading:combat" to "ATAQUES",
-                "c2-heading:actions" to "ACCIONES",
                 "c2-heading:slots" to "CONJUROS",
-                "c2-heading:resources" to "RECURSOS",
                 "c2-heading:ammunition" to "MUNICIONES",
             ).mapNotNull { (key, module) ->
                 mixedC2HeadingPages[key]?.let { module to it }
@@ -6275,7 +6376,19 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                 }
             }
             pdf.save(target)
-            if (c2MarkerUsed) mixedC2HeadingPages.toMap() else null
+            // C464: the rows of each paired C2 table, counted by page and column.
+            val segmentsSeen = c2PairPlacement.keys.groupBy { it.substringBeforeLast(':') }.mapValues { (_, keys) ->
+                val ordered = keys.sortedBy { it.substringAfterLast(':').toInt() }
+                val sizes = mutableListOf<Int>()
+                var previous: Pair<Int, Int>? = null
+                ordered.forEach { key ->
+                    val where = c2PairPlacement.getValue(key)
+                    if (where == previous) sizes[sizes.lastIndex]++ else sizes += 1
+                    previous = where
+                }
+                sizes.toList()
+            }.filterValues { it.size > 1 }
+            (if (c2MarkerUsed) mixedC2HeadingPages.toMap() else null) to segmentsSeen
         }
     }
 }

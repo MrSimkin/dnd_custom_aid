@@ -129,6 +129,7 @@ object PcSheetV11MeasuredFlowPlacer {
         gutterPt: Float,
         lineHeightPt: Float,
         textWidth: PcSheetV11TextWidth,
+        firstPageDropPt: Float = 0f,
     ): PcSheetV11PlacedFlow {
         val columns = PcSheetV11ColumnGrid.split(areaPt, columnsPerPage, gutterPt)
         val geometry = PcSheetV11TextColumn(
@@ -142,6 +143,7 @@ object PcSheetV11MeasuredFlowPlacer {
             columnsPerPage = columnsPerPage,
             column = geometry,
             textWidth = textWidth,
+            firstPageDropPt = firstPageDropPt,
         )
         val sourcesByKey = items.associate { it.sourceKey to it.text }
         val cells = buildList {
@@ -170,7 +172,8 @@ object PcSheetV11MeasuredFlowPlacer {
                                 .substring(range.startOffset, range.endExclusive),
                             cellPt = PcSheetV11RectPt(
                                 leftPt = column.leftPt,
-                                bottomPt = column.topPt - (row + 1) * geometry.lineHeightPt - above - own,
+                                bottomPt = column.topPt - (row + 1) * geometry.lineHeightPt - above - own -
+                                    (if (fragment.localPageIndex == 1) firstPageDropPt else 0f),
                                 widthPt = column.widthPt,
                                 heightPt = geometry.lineHeightPt + own,
                             ),

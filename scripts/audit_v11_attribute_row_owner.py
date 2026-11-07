@@ -75,8 +75,7 @@ def inspect_pdf(path: Path) -> dict:
     rows, errors = 0, []
     with fitz.open(stream=data, filetype="pdf") as doc:
         for index, page in enumerate(doc):
-            head = page.get_text()[:200]
-            if index != 0 and "C2 - Habilidades" not in head:
+            if index != 0 and "MÓDULOS COMPARTIDOS · DOS COLUMNAS" not in page.get_text():  # C463
                 continue
             boxes, ovals, saves, labels = page_shapes(page)
             rows += len(boxes)

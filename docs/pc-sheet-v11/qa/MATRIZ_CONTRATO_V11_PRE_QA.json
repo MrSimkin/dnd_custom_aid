@@ -6174,6 +6174,44 @@
       ]
     },
     {
+      "id": "P133",
+      "area": "GLB",
+      "obligation": "Las hojas de continuación no llevan nada a la derecha de la cabecera; el nombre largo solo va cortado en la cabecera; una fuente de clase sin clase enlazada dice Clase; las notas de munición quedan en la App",
+      "authority": "CONTRATO_VISUAL_APROBADO.md, decisiones del propietario 2026-11-07",
+      "method": "PDF texto y posición",
+      "scenarios": "Mara, Aldren con fuente sin enlace, A y B",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
+      "id": "C218",
+      "area": "C2",
+      "obligation": "Equipo Especial que continúa va a todo el ancho con los módulos siguientes debajo; Equipo se lee por tramos; habilidades sueltas bajo su subtítulo; ACCIONES y RECURSOS sin origen en P1; dos subcolumnas en B; sin filetes en ATAQUES vacía; aviso de columna en la línea del rótulo",
+      "authority": "golden v11_extremo_variante_B p1, p4, p5; ACTA_REVISION_INDEPENDIENTE_PREQA11.md M1 a M7",
+      "method": "PDF texto y posición",
+      "scenarios": "Mara A y B, ficha de estrés",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
       "id": "P412",
       "area": "P4",
       "obligation": "Cada cabecera de nivel de P4 dibuja las mismas casillas vacías que P1 (4, 3, 3, 3, 4, 2, 2, 1, 1), en una línea",

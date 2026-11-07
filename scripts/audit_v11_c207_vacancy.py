@@ -18,9 +18,21 @@ import fitz
 BOTTOM = 707.0
 MIN_GAP = 128.0
 
-def role(page):
-    lines = page.get_text().splitlines()
+
+def printed_role(text: str) -> str:
+    """C463 (owner 2026-11-07): continuation sheets print no title at the right of the header,
+    so their role comes from the golden label every one of them carries."""
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if "MÓDULOS COMPARTIDOS · DOS COLUMNAS" in text:
+        return "C2 - Habilidades, acciones y recursos"
+    if "MÓDULOS COMPARTIDOS · MIXTO" in text:
+        return "C2 - Equipo especial / continuación"
+    if "TRASFONDO, PERFIL E HISTORIA / CONTINUACIÓN" in text and not any(l.startswith("P3 - ") for l in lines[:3]):
+        return "P3 - Narrativa / continuación"
     return lines[1] if len(lines) > 1 else ""
+
+def role(page):
+    return printed_role(page.get_text())
 
 def notas_labels(page):
     """(x0, y0, x1, baseline) of each 12 pt NOTAS cartela label."""

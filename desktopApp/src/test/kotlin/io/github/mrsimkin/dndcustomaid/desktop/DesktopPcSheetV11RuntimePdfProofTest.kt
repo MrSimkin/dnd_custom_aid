@@ -791,7 +791,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertFalse(rasgos.contains(text.take(20)),
                         "P2 RASGOS never prints narrative or special-equipment text ($variant): ${text.take(20)}")
                 }
-                val p3 = flat(pages.filter { it.contains("P3 - Trasfondo") || it.contains("P3 - Narrativa") }
+                val p3 = flat(pages.filter { it.contains("P3 - Trasfondo") || it.contains("TRASFONDO, PERFIL E HISTORIA / CONTINUACIÓN") }
                     .joinToString(" "))
                 semantic.traits.map { flat(it.name) }.filter { it.length >= 12 }.forEach { name ->
                     assertFalse(p3.contains(name), "P3 never prints the mechanical trait «$name» ($variant).")
@@ -829,7 +829,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // P2 RASGOS: x309.26..572.32 split at its x440.79 rule, y121..475 from the top.
                 val p2 = columns(p2Index, java.awt.geom.Rectangle2D.Float(309f, 121f, 131.5f, 354f),
                     java.awt.geom.Rectangle2D.Float(440.8f, 121f, 131.5f, 354f))
-                val c2 = pages.indices.filter { pages[it].contains("C2 - Habilidades, acciones y recursos") }
+                val c2 = pages.indices.filter { pages[it].contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") }
                     .flatMap { index ->
                         columns(index, java.awt.geom.Rectangle2D.Float(39f, 90f, 263f, 680f),
                             java.awt.geom.Rectangle2D.Float(310.5f, 90f, 263f, 680f))
@@ -918,7 +918,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     java.awt.geom.Rectangle2D.Float(424.2f, 443f, 148f, 102f)) +
                     columns(p2, java.awt.geom.Rectangle2D.Float(309f, 121f, 131.5f, 354f),
                         java.awt.geom.Rectangle2D.Float(440.8f, 121f, 131.5f, 354f)) +
-                    pages.indices.filter { pages[it].contains("C2 - Habilidades, acciones y recursos") }
+                    pages.indices.filter { pages[it].contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") }
                         .flatMap { i -> columns(i, java.awt.geom.Rectangle2D.Float(39f, 90f, 263f, 680f),
                             java.awt.geom.Rectangle2D.Float(310.5f, 90f, 263f, 680f)) })
                     .joinToString(" ")
@@ -1064,7 +1064,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             Loader.loadPDF(generated.bytes).use { pdf ->
                 for (index in 0 until pdf.numberOfPages) {
                     val text = PDFTextStripper().apply { startPage = index + 1; endPage = index + 1 }.getText(pdf)
-                    if (!text.contains("C2 - ")) continue
+                    if (!text.contains("MÓDULOS COMPARTIDOS")) continue
                     val labels = mutableListOf<Pair<Float, Float>>()
                     object : PDFTextStripper() {
                         override fun writeString(s: String, tp: MutableList<org.apache.pdfbox.text.TextPosition>) {
@@ -1385,7 +1385,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 assertTrue(pages[0].contains("QANOMBRE"), "The name stays on P1 ($variant).")
                 assertFalse(pages[0].contains("QARANGO"), "The range does not fit its row ($variant).")
-                val c2 = pages.filter { it.contains("C2 - ") }.joinToString("\n")
+                val c2 = pages.filter { it.contains("MÓDULOS COMPARTIDOS") }.joinToString("\n")
                 assertEquals(1, Regex("QARANGO").findAll(c2).count(), "It starts once in C2 ($variant).")
                 assertEquals(1, Regex("QAFINRANGO").findAll(c2).count(), "And ends once ($variant).")
             }
@@ -1406,6 +1406,106 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertTrue(whole.contains(it), "$it prints ($variant).")
                 }
             }
+        }
+    }
+
+    @Test
+    fun c463OwnerDecisionsOfTheReviewOfPreqa11AB() {
+        // C463 / P133 (owner 2026-11-07): continuation sheets say nothing at the right of the
+        // header, the long name lives only in the header, and an unlinked class source reads «Clase».
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), mara).bytes
+            Loader.loadPDF(bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                val c2 = pages.indices.filter { pages[it].contains("MÓDULOS COMPARTIDOS") }
+                assertTrue(c2.isNotEmpty(), "Mara has continuation sheets ($variant).")
+                c2.forEach { index ->
+                    val right = PDFTextStripperByArea().apply {
+                        addRegion("right", Rectangle2D.Float(320f, 30f, 260f, 52f))
+                        extractRegions(pdf.getPage(index))
+                    }.getTextForRegion("right").trim()
+                    assertEquals("", right, "Nothing at the right of the header on p${index + 1} ($variant).")
+                }
+                assertFalse(pages.any { it.contains("CONTINUACIONES C2") || it.contains("C2 - ") }, "No sheet says continuation ($variant).")
+                assertFalse(pages.any { it.contains("NOMBRE COMPLETO DEL PERSONAJE") }, "Name only in the header ($variant).")
+            }
+        }
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val sheet = aldren.permanent.sheet
+        val unlinked = Uuid.parse("f4630000-0000-4000-8000-000000000001")
+        val spell = sheet.spells.firstOrNull() ?: sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json").permanent.sheet.spells.first()
+        val source = aldren.copy(permanent = aldren.permanent.copy(sheet = sheet.copy(
+            spellcasterEnabled = true,
+            spellcastingSources = listOf(io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingSource(
+                id = unlinked, name = "QAFUENTEPROPIA", linkedClassId = null, sortOrder = 0,
+                originKind = io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellcastingOriginKind.CLASS)),
+            spells = listOf(spell.copy(sourceAssociations = listOf(
+                io.github.mrsimkin.dndcustomaid.shared.character.CharacterSpellSourceAssociation(unlinked, true)))),
+        )))
+        Loader.loadPDF(DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT), source).bytes).use { pdf ->
+            val printed = PDFTextStripper().getText(pdf)
+            assertFalse(printed.contains("QAFUENTEPROPIA"), "Only the type of an unlinked class source.")
+            assertTrue(printed.contains("Clase"))
+        }
+    }
+
+    @Test
+    fun c464GoldenFixesOfTheReviewOfPreqa11AB() {
+        // C464 / C218 (review of preqa.11, M1-M7; golden extremo B p1, p4, p5).
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), mara).bytes
+            Loader.loadPDF(bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                // M2: EQUIPO ESPECIAL at full width, with the following modules under it.
+                val special = c2ModulePages(pages, "EQUIPO ESPECIAL")
+                assertTrue(special.isNotEmpty(), "Mara's special equipment continues ($variant).")
+                assertTrue(pages[special.last() - 1].contains("RASGOS / CONTINUACIÓN"), "RASGOS shares its sheet ($variant).")
+                // M5: ACCIONES and RECURSOS were never on P1.
+                assertFalse(Regex("(ACCIONES|RECURSOS)[A-Z, ]* CONTIN[ÚU]AN? EN PÁG").containsMatchIn(pages[0].replace(Regex("\\s+"), " ")),
+                    "P1 sends nobody to ACCIONES or RECURSOS ($variant).")
+                if (variant == PcSheetV11Variant.A) {
+                    // M3: loose skills under their attribute's subheading.
+                    assertTrue(pages.any { it.contains("HABILIDADES DE SABIDURÍA") }, "Golden subheading (A).")
+                    assertFalse(pages.any { it.contains("Cartografía imposible (SAB)") }, "No suffix under a subheading (A).")
+                } else {
+                    // M7: golden «dos subcolumnas».
+                    assertTrue(pages[0].contains("dos subcolumnas"), "Golden label (B).")
+                }
+            }
+        }
+        // M1: each stretch of EQUIPO reads down its left half and then its right half.
+        val stress = sources("04_estres_v11_android.json")
+        val bytes = DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT), stress).bytes
+        preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-C464-equipment-order-A.pdf")
+        Loader.loadPDF(bytes).use { pdf ->
+            data class Seen(val number: Int, val page: Int, val column: Int, val half: Int, val y: Float)
+            val seen = mutableListOf<Seen>()
+            (0 until pdf.numberOfPages).forEach { index ->
+                object : PDFTextStripper() {
+                    override fun writeString(text: String, positions: MutableList<org.apache.pdfbox.text.TextPosition>) {
+                        Regex("QAOBJETO(\\d+)").findAll(text).forEach { m ->
+                            val first = positions[m.range.first]
+                            val x = first.xDirAdj
+                            val column = if (x < 306f) 0 else 1
+                            val left = if (column == 0) 39.69f else 310.96f
+                            seen += Seen(m.groupValues[1].toInt(), index, column, if (x < left + 130.7f) 0 else 1, first.yDirAdj)
+                        }
+                    }
+                }.apply { startPage = index + 1; endPage = index + 1 }.getText(pdf)
+            }
+            val c2 = seen.filter { pdfPageHasSharedLabel(pdf, it.page) }
+            val read = c2.sortedWith(compareBy({ it.page }, { it.column }, { it.half }, { it.y })).map { it.number }
+            assertEquals(read.sorted(), read, "EQUIPO reads in order, stretch by stretch.")
         }
     }
 
@@ -1591,12 +1691,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             // The full name.
             val name = "Aldren " + "NOMBREQA ".repeat(20) + "FINNOMBREQA"
             check(aldren.copy(permanent = aldren.permanent.copy(sheet = aldren.permanent.sheet.copy(name = name))), "marker-long-name") { pdf, pages ->
-                // Owner 2026-11-06: the header only cuts the name; the band of P1 says where it is.
+                // Owner 2026-11-06: the header only cuts the name. C463 (owner 2026-11-07,
+                // «solo quiero el nombre en la cabecera»): nowhere else, and no band sends to it.
                 assertFalse(p1Region(pdf, 155f, 40f, 410f, 30f).contains("EN PÁG"), "No notice in the header ($variant).")
-                val target = Regex("""PERSONAJE[A-Z, ]* CONTIN[ÚU]AN? EN PÁG\. (\d+)""").find(pages[0].replace(Regex("\\s+"), " "))
-                    ?.groupValues?.get(1)?.toInt()
-                assertTrue(target != null, "The band of P1 names the page ($variant).")
-                assertTrue(pages[target - 1].contains("NOMBRE COMPLETO DEL PERSONAJE"), "The full name is there ($variant).")
+                assertFalse(Regex("""PERSONAJE[A-Z, ]* CONTIN[ÚU]AN? EN PÁG""").containsMatchIn(pages[0].replace(Regex("\\s+"), " ")),
+                    "The band of P1 sends to no name ($variant).")
+                assertFalse(pages.any { it.contains("NOMBRE COMPLETO DEL PERSONAJE") }, "No full-name row ($variant).")
+                assertFalse(pages.any { it.contains("FINNOMBREQA") }, "The end of the name is cut ($variant).")
             }
             // The hit dice.
             val fighter = aldren.permanent.sheet.classes.first()
@@ -1633,8 +1734,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val pages = (1..pdf.numberOfPages).map { n ->
                     PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
                 }
-                pages.indices.filter { pages[it].contains("C2 - Habilidades, acciones y recursos") }.forEach { i ->
-                    Regex("""(?m)^([A-ZÁÉÍÓÚÑ ]+) / VIENE DE PÁG\. (\d+)""").find(pages[i])?.let { m ->
+                pages.indices.filter { pages[it].contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") }.forEach { i ->
+                    // C463: the cue shares the golden label line.
+                    Regex("""(?m)(?:^|· DOS COLUMNAS )([A-ZÁÉÍÓÚÑ ]+) / VIENE DE PÁG\. (\d+)""").find(pages[i])?.let { m ->
                         val module = m.groupValues[1].trim()
                         val from = m.groupValues[2].toInt()
                         assertTrue(pages[from - 1].contains(module + " CONTINÚA EN PÁG. " + (i + 1)),
@@ -1719,7 +1821,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val pages = (1..pdf.numberOfPages).map { n -> PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf) }
             val moved = extra.filter { !pages[0].contains(it.name + " ") }
             assertTrue(moved.isNotEmpty(), "Some skills leave panel B.")
-            val c2 = pages.indices.filter { pages[it].contains("C2 - Habilidades") }
+            val c2 = pages.indices.filter { pages[it].contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") }
             val boxes = c2.sumOf { i ->
                 val native = pdf.getPage(i).contents.use { it.readBytes().toString(Charsets.ISO_8859_1) }
                 Regex("""(?m)(?:^|\s)[\d.]+\s+[\d.]+\s+7(?:\.0+)?\s+7(?:\.0+)?\s+re(?:\s|$)""").findAll(native).count()
@@ -1768,7 +1870,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertEquals(listOf(0), long.indices.filter { long[it].contains("QASEGUNDA") }, "The second on P1 ($variant).")
             val third = long.indices.filter { long[it].contains("QATERCERA") }
             assertEquals(1, third.size, "The third prints on one page ($variant).")
-            assertTrue(long[third.single()].contains("C2 - "), "It continues in C2 ($variant).")
+            assertTrue(long[third.single()].contains("MÓDULOS COMPARTIDOS"), "It continues in C2 ($variant).")
             assertEquals(1, long[third.single()].split("QATERCERA").size - 1, "Once ($variant).")
             assertFalse(long[third.single()].contains("MUNICIÓN ") || long[third.single()].contains("MARCAS:"),
                 "The golden row, with no added words ($variant).")
@@ -1904,10 +2006,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
                 }
                 assertTrue(pages[2].contains("HISTORIA-INICIO"), "The story starts on P3 ($variant).")
-                assertFalse(pages.any { it.contains("P3 - Narrativa") }, "No sheet just for the story ($variant).")
+                assertFalse(pages.any { it.contains("TRASFONDO, PERFIL E HISTORIA / CONTINUACIÓN") }, "No sheet just for the story ($variant).")
                 val index = pages.indexOfFirst { it.contains("HISTORIA-FIN") }
                 val c2 = pages[index]
-                assertTrue(c2.contains("C2 - Habilidades, acciones y recursos"), "It is a C2 sheet ($variant).")
+                assertTrue(c2.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS"), "It is a C2 sheet ($variant).")
                 assertTrue(c2.contains("RECURSOS"), "It shares the sheet with other modules ($variant).")
                 assertTrue(Regex("""(?m)^HISTORIA$""").containsMatchIn(c2), "It has its own cartela ($variant).")
                 assertTrue(c2.contains("VIENE DE PÁG. 3"), "It names its origin ($variant).")
@@ -3065,8 +3167,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // attack rows continue under the untouched baseline.
                 for (columnX in listOf("""454\.(?:58|579+)\d*""", """490\.(?:8|79+)\d*""")) { // C351 golden
                     assertTrue(Regex(
-                        """(?m)(?:^|\s)""" + columnX +
-                            """\s+374\.(?:74|739+)\d*\s+m\s+""" + columnX + /* C356 golden rows */
+                        """(?m)(?:^|\s)""" + columnX + // C463: down to the last row with an attack
+                            """\s+\d+\.\d+\s+m\s+""" + columnX + /* C356 golden rows */
                             """\s+448\.(?:44|439+)\d*\s+l"""
                     ).containsMatchIn(ops),
                         "Attacks columns must remain at exact original x=$columnX.")
@@ -3475,7 +3577,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 PDFTextStripper().apply {
                     startPage = physical
                     endPage = physical
-                }.getText(pdf).contains("C2 - Habilidades, acciones y recursos")
+                }.getText(pdf).contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
             } ?: error("Source-backed mixed C2 disappeared")
             val page = pdf.getPage(mixedPage - 1)
             val text = PDFTextStripper().apply {
@@ -3690,7 +3792,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertTrue(p1Text.contains(expected.second),
                         "Missing owner-approved P1 standard ability: " + expected.second)
                 }
-            assertTrue(printed.contains("C2 - Habilidades, acciones y recursos"))
+            assertTrue(printed.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS"))
             assertTrue(printed.contains("Reserva 1:"))
             assertTrue(printed.contains("Reserva 10:"))
             assertTrue(printed.contains("RECURSOS"))
@@ -3721,10 +3823,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 realHeading(it, "P2 - Equipo y tesoro")
             } + 1
             val mixedC2Physical = pagesByPhysicalNumber.indexOfFirst {
-                realHeading(it, "C2 - Habilidades, acciones y recursos")
+                it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
             } + 1
             val p2C2Physical = pagesByPhysicalNumber.indexOfFirst {
-                (realHeading(it, "C2 - Habilidades, acciones y recursos") &&
+                (it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") &&
                     it.contains("RASGOS / CONTINUACIÓN")) ||
                     it in c2ModulePages(pagesByPhysicalNumber, "EQUIPO").map { n -> pagesByPhysicalNumber[n - 1] } ||
                     it in c2ModulePages(pagesByPhysicalNumber, "EQUIPO ESPECIAL").map { n -> pagesByPhysicalNumber[n - 1] }
@@ -3735,7 +3837,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 realHeading(it, "P1 - Personaje")
             }, "P1 is exactly one physical page; its overflow belongs in C2.")
             val physicalMixedC2 = pagesByPhysicalNumber.filter {
-                realHeading(it, "C2 - Habilidades, acciones y recursos")
+                it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
             }.joinToString("\n")
             assertTrue((pagesByPhysicalNumber[p1Physical - 1] + physicalMixedC2).replace(Regex("""\s+"""), " ")
                 .contains("Cartografía imposible"),
@@ -4018,7 +4120,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(p1.contains("RASGOS Y ATRIBUTOS"))
             assertTrue(p1.contains("APTITUD MÁGICA"))
             assertTrue(p1.contains("N9"))
-            assertTrue(printed.contains("C2 - Habilidades, acciones y recursos"))
+            assertTrue(printed.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS"))
             assertTrue(printed.contains("Second Wind"))
             assertTrue(printed.contains("RECURSOS"))
             assertTrue(printed.contains("Action Surge"))
@@ -4030,7 +4132,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     startPage = physicalPage
                     endPage = physicalPage
                 }.getText(pdf)
-            }.firstOrNull { it.contains("C2 - Habilidades, acciones y recursos") }
+            }.firstOrNull { it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") }
             assertTrue(resourcePageText != null,
                 "The actual export must contain a C2 resource page.")
             assertTrue(resourcePageText.contains("NOTAS"),
@@ -4121,7 +4223,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             assertTrue(pageTexts[1].contains("EQUIPO ESPECIAL") &&
                 pageTexts[1].contains("Spellbook"),
                 "Ilyra's long persisted special object must be printed on P2.")
-            assertFalse(pageTexts.any { it.contains("C2 - Equipo especial") },
+            assertFalse(pageTexts.any { it.contains("MÓDULOS COMPARTIDOS · MIXTO") },
                 "A special object that fits P2 must not get a C2 page.")
             assertFalse(printed.contains("Índice del Libro de Conjuros"))
             assertAllPhysicalBookReferences(pdf, generated.semantic.spells.map { it.spell.name })
@@ -4248,9 +4350,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     // C218 approved P1/C2 signed-ink grammar. These are
                     // genuine, persisted Mara numbers, NOT computed test
                     // fixtures or a guessed training proficiency state.
-                    val actualC2 = pages.filter { it.contains(
-                        "C2 - Habilidades, acciones y recursos",
-                    ) }.joinToString("\n")
+                    val actualC2 = pages.filter { it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") }.joinToString("\n")
                     // C247: golden C2 attribute row — score box, modifier oval,
                     // name, SALVACIÓN and the real save value, in reading order.
                     val flat = actualC2.replace(Regex("\\s+"), " ")
@@ -4304,7 +4404,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         assertFalse(pages.drop(1).joinToString("\n").contains(key),
                             "An A skill already printed in P1 must not repeat in C2.")
                     } else {
-                        assertTrue(pages.any { text -> text.contains("C2 - ") &&
+                        assertTrue(pages.any { text -> text.contains("MÓDULOS COMPARTIDOS") &&
                             text.contains(attribute.uppercase()) && text.contains(skill) },
                             "Unfitted A source attribute and skill must survive together C2.")
                     }
@@ -4380,18 +4480,19 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 val c2 = (0 until pdf.numberOfPages).filter { index ->
-                    texts[index].contains("C2 - Habilidades, acciones y recursos")
+                    texts[index].contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
                 }.flatMap { pageIndex ->
                     val region = PDFTextStripperByArea().apply {
                         // C367: the context band sits under the golden header rule (y709.8).
+                        // C463: the cue is on the golden label line (baseline y691.94), above the columns.
                         addRegion("left-body",
-                            Rectangle2D.Float(40f, 95f, 262f, 625f))
+                            Rectangle2D.Float(40f, 106.3f, 262f, 613.7f))
                         addRegion("right-body",
-                            Rectangle2D.Float(310f, 95f, 262f, 625f))
+                            Rectangle2D.Float(310f, 106.3f, 262f, 613.7f))
                         addRegion("left-context",
-                            Rectangle2D.Float(40f, 80f, 262f, 15f))
+                            Rectangle2D.Float(40f, 88f, 262f, 18f))
                         addRegion("right-context",
-                            Rectangle2D.Float(310f, 80f, 262f, 15f))
+                            Rectangle2D.Float(310f, 88f, 262f, 18f))
                         extractRegions(pdf.getPage(pageIndex))
                     }
                     listOf(
@@ -4513,7 +4614,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 val c2Areas = (0 until pdf.numberOfPages).filter { index ->
-                    pageTexts[index].contains("C2 - Habilidades, acciones y recursos")
+                    pageTexts[index].contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
                 }.flatMap { index ->
                     val stripper = PDFTextStripperByArea().apply {
                         addRegion("left", Rectangle2D.Float(38f, 85f, 270f, 650f)) // C397: C2 runs to the golden y59.53
@@ -4599,7 +4700,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     startPage = physical
                     endPage = physical
                 }.getText(pdf)
-            }.filter { it.contains("C2 - Habilidades, acciones y recursos") }
+            }.filter { it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") }
                 .joinToString("\n")
             assertFalse(c2.contains("Habilidad Contratos arcanos") ||
                 c2.contains("Habilidad Sincronía"),
@@ -4626,7 +4727,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     startPage = physical
                     endPage = physical
                 }.getText(pdf)
-            }.filter { it.contains("C2 - Habilidades, acciones y recursos") }
+            }.filter { it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") }
                 .joinToString("\n")
             assertTrue(c2.contains("RENOMBRE"), "Unfitted fourth ability must survive C2.")
             for (name in listOf("FORTUNA", "CORDURA", "ÉTER")) {
@@ -4673,7 +4774,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertTrue(c2ModulePages(pages, "EQUIPO").isEmpty(), "No ordinary object is left for C2.")
                 // D-0076 §3.21: the Spellbook (location, notes, ACTIVO) now gets a
                 // taller P2 row, so Ilyra needs no equipment C2 at all.
-                assertFalse(pages.any { it.contains("C2 - Equipo especial / continuación") },
+                assertFalse(pages.any { it.contains("MÓDULOS COMPARTIDOS · MIXTO") },
                     "A special item that fits P2 in a taller row has no C2 page.")
                 val p2 = flat(pages[1])
                 for (required in listOf(
@@ -4707,7 +4808,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val pages = (1..pdf.numberOfPages).map { n ->
                 PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
             }
-            val mixed = pages.first { it.contains("C2 - Habilidades, acciones y recursos") }
+            val mixed = pages.first { it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") }
             assertTrue(mixed.contains("RECURSOS"),
                 "Combining real modules must not delete existing P1 resources.")
             // The owner prohibited full Rasgo descriptions on paper.
@@ -4716,7 +4817,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             // description-overflow test. Check actual source traits survive.
             val p1AndP2AndC2 = pages.filter {
                 it.contains("P1 - Personaje") || it.contains("P2 - Equipo y tesoro") ||
-                    it.contains("C2 - Habilidades, acciones y recursos")
+                    it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
             }.joinToString("\n")
             for (trait in source.permanent.sheet.traits) {
                 assertTrue(p1AndP2AndC2.contains(trait.name),
@@ -4764,7 +4865,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 val c2PageIndices = pages.indices.filter {
-                    pages[it].contains("C2 - Habilidades, acciones y recursos")
+                    pages[it].contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
                 }
                 assertTrue(c2PageIndices.isNotEmpty())
                 // Count persisted data within the actual C2 BODY, not its
@@ -4777,19 +4878,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }
                     area.getTextForRegion("c2-body")
                 }
-                assertTrue(c2Text.contains("NOMBRE COMPLETO DEL PERSONAJE:"),
-                    "The full saved source name must have a real C2 home.")
-                tokens.forEach { token ->
-                    assertEquals(1, Regex(Regex.escape(token)).findAll(c2Text).count(),
-                        "Each source name token must be preserved exactly once: " + token)
-                }
-                assertTrue(c2Text.contains("FINNOMBREQA"))
+                // C463 (owner 2026-11-07, «solo quiero el nombre en la cabecera»).
+                assertFalse(c2Text.contains("NOMBRE COMPLETO DEL PERSONAJE:"), "No full-name row in C2.")
+                assertFalse(pages.any { it.contains("FINNOMBREQA") }, "The name is cut where it stops fitting.")
                 pages.forEachIndexed { index, text ->
                     assertFalse(text.contains("NOMBRE EN PÁG"),
                         "The header adds no notice (owner 2026-11-06): " + (index + 1))
                 }
-                assertTrue(pages.first().contains("CONTINÚA EN PÁG."),
-                    "P1 must link to the genuine page containing the full name.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
                 assertFalse(pages.last().contains("NOMBRE COMPLETO DEL PERSONAJE:"))
             }
@@ -4822,19 +4917,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 pages.forEach { page ->
                     assertFalse(page.contains("NOMBRE EN PÁG"), "The header adds no notice (owner 2026-11-06).")
                 }
-                val c2Body = pdf.pages.mapNotNull { page ->
-                    val area = PDFTextStripperByArea().apply {
-                        addRegion("body", Rectangle2D.Float(38f, 84f, 536f, 629f))
-                        extractRegions(page)
-                    }
-                    area.getTextForRegion("body")
-                        .takeIf { it.contains("NOMBRE COMPLETO DEL PERSONAJE:") }
-                }.joinToString("\n")
-                assertEquals(1, Regex("QACABECERA").findAll(c2Body).count())
-                assertEquals(1, Regex("QANOMBRECOMPLETO").findAll(c2Body).count())
-                assertEquals(1, Regex("DELPC").findAll(c2Body).count())
-                assertTrue(pages.first().contains("CONTINÚA EN PÁG."),
-                    "P1 must link to its actual C2 source body.")
+                // C463 (owner 2026-11-07): the name lives only in the header.
+                assertFalse(pages.any { it.contains("NOMBRE COMPLETO DEL PERSONAJE:") })
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
                 assertTrue(pdf.numberOfPages >= 4)
             }
@@ -4991,7 +5075,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 val p1 = pages.first()
                 val c2 = pages.filter {
-                    it.contains("C2 - Habilidades, acciones y recursos")
+                    it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
                 }.joinToString("\n")
                 assertTrue(Regex("CONTINÚA EN PÁG\\. \\d+").containsMatchIn(p1),
                     "Oversized slot quantities need a visible P1 continuation cue.")
@@ -5054,7 +5138,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 assertFalse(pages.first().contains(expectedDice),
                     "Do not overflow a fixed P1 paper cell.")
                 val c2Pages = pages.filter {
-                    it.contains("C2 - Habilidades, acciones y recursos")
+                    it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
                 }
                 assertTrue(c2Pages.isNotEmpty(), "Real source must continue in C2.")
                 val c2Text = c2Pages.joinToString("\n")
@@ -5159,14 +5243,14 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 // C447: the rest of the story is a C2 module.
                 val continuation = pages.filter {
-                    it.contains("C2 - Habilidades, acciones y recursos") && it.contains("RASTRO")
+                    it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") && it.contains("RASTRO")
                 }
                 assertTrue(continuation.size >= 3,
                     "Three long source paragraphs must span genuine C2 pages.")
                 assertTrue(continuation.drop(1).all {
                     it.contains("HISTORIA / VIENE DE PÁG.")
                 })
-                assertFalse(pages.any { it.contains("P3 - Narrativa / continuación") })
+                assertFalse(pages.any { it.contains("TRASFONDO, PERFIL E HISTORIA / CONTINUACIÓN") })
                 val allText = pages.joinToString("\n")
                 val orderedMarkers = listOf(
                     "P3-PARRAFO-UNO-INICIO", "P3-PARRAFO-UNO-FIN",
@@ -5221,7 +5305,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 // C447: the rest of the story is a C2 module.
                 val continuation = pages.filter {
-                    it.contains("C2 - Habilidades, acciones y recursos") && it.contains("Viaje registrado")
+                    it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") && it.contains("Viaje registrado")
                 }
                 assertTrue(continuation.size >= 2,
                     "Stress fixture must exercise at least TWO C2 story sheets.")
@@ -5264,7 +5348,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.getText(pdf)
             }
             assertTrue(pages[2].contains("INICIO-HISTORIA-P3"))
-            assertTrue(pages.any { it.contains("C2 - Habilidades, acciones y recursos") && it.contains("HISTORIA") },
+            assertTrue(pages.any { it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") && it.contains("HISTORIA") },
                 "Overflowed real history must continue as a C2 module.")
             assertTrue(pages.any { it.contains("FIN-HISTORIA-P3") },
                 "The tail of the real history must survive the measured pagination.")
@@ -5287,7 +5371,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 PDFTextStripper().apply {
                     startPage = index + 1
                     endPage = index + 1
-                }.getText(pdf).contains("C2 - Habilidades, acciones y recursos")
+                }.getText(pdf).contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
             } ?: error("Mara's mixed C2 source page vanished.")
             val rightLowerPaper = PDFTextStripperByArea().apply {
                 // A newly EMPTY right C2 column may place its manuscript
@@ -5999,10 +6083,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 for (token in listOf(
                     "QAP4SOURCEFIRST", "QAP4SOURCESECOND", "QAP4SOURCETHIRD",
                 )) {
-                    // C440: its row plus the three reference cards, which keep each value.
-                    assertEquals(4, Regex(token).findAll(p4).count(),
-                        "Real CR/LF/TAB source token must survive on P4 $variant: $token")
+                    // C463 (owner 2026-11-07, «Solo "Clase"»): an unlinked class source prints its type.
+                    assertEquals(0, Regex(token).findAll(p4).count(), "Only the type on P4 $variant: $token")
                 }
+                assertTrue(p4.contains("Clase"), "The source reads «Clase» ($variant).")
                 assertTrue(p4.contains(spell.name),
                     "The original UUID-backed spell cannot be dropped.")
                 assertFalse(p4.contains("[X]") || p4.contains("[ ] "),
@@ -6238,7 +6322,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         )
         Loader.loadPDF(proof.bytes).use { pdf ->
             val text = PDFTextStripper().getText(pdf)
-            assertTrue(text.contains("C2 - Habilidades, acciones y recursos"))
+            assertTrue(text.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS"))
             assertFalse(text.contains("MUNICIÓN Virotes"), "P1 holds it, so C2 does not repeat it.")
             assertFalse(text.contains("MARCAS:"), "No added words (golden).")
             val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
@@ -6308,7 +6392,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 val p1 = pages.first()
-                val c2 = pages.filter { it.contains("C2 - Habilidades, acciones y recursos") }
+                val c2 = pages.filter { it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") }
                     .joinToString("\n")
                 hardNames.forEach { marker ->
                     assertFalse(p1.contains(marker),
@@ -6965,7 +7049,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     PDFTextStripper().apply { startPage = number; endPage = number }.getText(pdf)
                 }
                 val c2Index = pageTexts.indexOfFirst {
-                    it.contains("C2 - Habilidades, acciones y recursos")
+                    it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
                 }
                 assertTrue(c2Index > 0, "Attacks 7 and 8 must continue on C2 ($variant).")
                 data class Word(val text: String, val x: Float, val y: Float, val end: Float)
@@ -7092,7 +7176,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val p1 = pages.first()
                 val all = pages.joinToString("\n")
                 val c2 = pages.filter {
-                    it.contains("C2 - Habilidades, acciones y recursos")
+                    it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
                 }.joinToString("\n")
                 // C456 (owner 2026-11-06, «Sí, en su lugar»): the long names stay in their own
                 // rows, in the order of the sheet; what exceeds the five rows continues in C2.
@@ -7187,7 +7271,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val p1 = pages.first()
                 val full = pages.joinToString("\n")
                 val c2 = pages.filter {
-                    it.contains("C2 - Habilidades, acciones y recursos")
+                    it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
                 }.joinToString("\n")
                 assertTrue(p1.contains("QASAFEP1ROW"),
                     "Ordinary source attacks should still use P1's real rows.")
@@ -7268,7 +7352,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertEquals(1, Regex(Regex.escape(skill.name)).findAll(all).count(),
                         "Printed source skill must appear exactly once: " + skill.name)
                 }
-                assertTrue(textByPage.any { it.contains("C2 - Habilidades, acciones y recursos") },
+                assertTrue(textByPage.any { it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") },
                     "Crowded real skills must continue into measured two-column C2.")
                 assertTrue(textByPage.last().lineSequence().any { it.trim() == "NOTAS" })
                 assertFalse(textByPage.last().contains("QASKILL"))
@@ -7399,8 +7483,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "The actual trait origin may not be discarded.")
                 assertTrue(entire.contains("SKILLTAB"),
                     "A custom skill's persisted name must survive V11 flow.")
+                // C463 (owner 2026-11-07): an unlinked class source prints its type.
                 assertTrue(pageTexts.any {
-                    it.contains("P4 - Conjuros") && it.contains("SRC7")
+                    it.contains("P4 - Conjuros") && it.contains("Clase")
                 }, "The genuine spell origin must survive its compact P4 row.")
                 assertTrue(pageTexts.first().contains("TRAITTAB"),
                     "P1 summary must show the first small mechanical trait.")
@@ -7542,11 +7627,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
                 }
                 val c2Pages = pages.indices.filter {
-                    pages[it].contains("C2 - Habilidades, acciones y recursos")
+                    pages[it].contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
                 }
                 val c2 = c2Pages.joinToString("\n") { pages[it] }
                 // Text runs (text, x, baseline) of the C2 pages, split at column gaps.
                 val runs = mutableListOf<Triple<String, Float, Float>>()
+                val runPage = mutableListOf<Int>() // C464: the page of each run
                 c2Pages.forEach { index ->
                     object : PDFTextStripper() {
                         override fun writeString(
@@ -7561,6 +7647,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                                 val part = textPositions.subList(start, i)
                                 runs += Triple(part.joinToString("") { it.unicode }.trim(),
                                     part.first().xDirAdj, 792f - part.first().yDirAdj)
+                                runPage += index
                                 start = i
                             }
                         }
@@ -7569,18 +7656,21 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // The label shares its heading baseline, at the right of the same column.
                 fun originOf(heading: String): String? {
                     // C357: skip a column continuation caption («… / CONTINUACIÓN»).
-                    val head = runs.firstOrNull { it.first.startsWith(heading) &&
-                        (it.first == heading || !it.first.endsWith("/ CONTINUACIÓN")) && !it.first.contains("/ VIENE DE PÁG.") } ?: return null
+                    val headIndex = runs.indexOfFirst { it.first.startsWith(heading) &&
+                        (it.first == heading || !it.first.endsWith("/ CONTINUACIÓN")) && !it.first.contains("/ VIENE DE PÁG.") }
+                    if (headIndex < 0) return null
+                    val head = runs[headIndex]
                     // C365: golden title 6.8 pt and «VIENE P. n» 5.95 pt above the foot.
-                    return runs.firstOrNull {
+                    return runs.indices.firstOrNull { k ->
+                        val it = runs[k]
+                        runPage[k] == runPage[headIndex] &&
                         it.first.startsWith("VIENE DE PÁG. ") && kotlin.math.abs(it.third - head.third + 0.85f) < 0.3f &&
                             it.second > head.second && it.second < head.second + 258f
-                    }?.first?.let { Regex("""^VIENE DE PÁG\. \d+""").find(it)?.value } // C420: a same-baseline cartela may follow
+                    }?.let { runs[it] }?.first?.let { Regex("""^VIENE DE PÁG\. \d+""").find(it)?.value } // C420: a same-baseline cartela may follow
                 }
                 assertTrue(c2.contains("RECURSOS"), "Mara C2 has resources ($variant).")
-                listOf("RECURSOS").forEach {
-                    assertEquals("VIENE DE PÁG. 1", originOf(it), "$it comes from P1 ($variant).")
-                }
+                // C463 (review of preqa.11, M5): RECURSOS has no module on P1, so it comes from no page.
+                assertEquals(null, originOf("RECURSOS"), "RECURSOS comes from no page ($variant).")
                 assertEquals("VIENE DE PÁG. 2", originOf("RASGOS / CONTINUACIÓN"),
                     "P2 traits continuation comes from P2 ($variant).")
             }
@@ -7701,13 +7791,18 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
                     }
                     val footer = pages.first().lineSequence().firstOrNull { moduleLinksOf(it).isNotEmpty() }
+                    // C463 (M5): ACCIONES and RECURSOS have no P1 module, so Aldren's P1 lists none.
+                    if (fixture.startsWith("01_")) {
+                        assertTrue(footer == null || moduleLinksOf(footer).none { it.first in setOf("ACCIONES", "RECURSOS") })
+                        return@use
+                    }
                     assertTrue(footer != null, "P1 footer lists continued modules ($fixture $variant).")
                     val links = moduleLinksOf(footer!!)
                     assertTrue(links.isNotEmpty())
                     links.forEach { (module, page) ->
                         val heading = requireNotNull(headings[module]) { "Unknown P1 module $module" }
                         val first = pages.indexOfFirst {
-                            it.contains("C2 - Habilidades, acciones y recursos") && it.contains(heading)
+                            it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") && it.contains(heading)
                         } + 1
                         assertEquals(first, page,
                             "$module must point to its first real C2 page ($fixture $variant).")
@@ -7790,9 +7885,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         // C447: the story continues as a C2 module with its own cartela.
                         val first = pages.indexOfFirst { text ->
                             when (module) {
-                                "HISTORIA" -> text.contains("C2 - Habilidades") &&
+                                "HISTORIA" -> text.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS") &&
                                     Regex("""(?m)^HISTORIA\s*$""").containsMatchIn(text)
-                                else -> text.contains("P3 - Narrativa / continuación") &&
+                                else -> text.contains("TRASFONDO, PERFIL E HISTORIA / CONTINUACIÓN") &&
                                     text.contains("IDEALES / CONTINUACIÓN")
                             }
                         } + 1
@@ -7961,7 +8056,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }
                     fun first(title: String) = pages.indexOfFirst { it.contains(title) }
                     fun last(title: String) = pages.indexOfLast { it.contains(title) }
-                    val order = listOf("P1 - ", "P2 - Equipo y tesoro", "P3 - Trasfondo", "C2 - ",
+                    val order = listOf("P1 - ", "P2 - Equipo y tesoro", "P3 - Trasfondo", "MÓDULOS COMPARTIDOS",
                         "P4 - Conjuros", "C-N3 - Notas digitales",
                         "Libro de conjuros /").filter { first(it) >= 0 }
                     order.zipWithNext().forEach { (a, b) ->
@@ -8300,9 +8395,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         endPage = pageIndex
                     }.getText(pdf)
                 }
-                val specialPages = pages.filter {
-                    it.contains("C2 - Equipo especial / continuación")
-                }
+                // C464: the last sheet of the table may also hold the following modules.
+                val specialPages = c2ModulePages(pages, "EQUIPO ESPECIAL").map { pages[it - 1] }
                 assertTrue(specialPages.size >= 2,
                     "The real source description must cross a physical C2 page.")
                 assertTrue(specialPages.first().contains(label) &&
@@ -8374,7 +8468,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 val c2 = pages.filter {
-                    it.contains("C2 - Equipo especial / continuación")
+                    it.contains("MÓDULOS COMPARTIDOS · MIXTO")
                 }
                 assertTrue(c2.size >= 2,
                     "Persisted oversized description must span physical C2 pages.")
@@ -8992,7 +9086,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 val mixedPage = pages.indexOfFirst {
-                    it.contains("C2 - Habilidades, acciones y recursos")
+                    it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
                 } + 1
                 assertTrue(mixedPage > 3, "P2-only trait overflow must reach C2.")
                 assertFalse(pages[0].contains("CONTINÚA EN PÁG."),
@@ -9033,7 +9127,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 val c2 = pages.indices.filter {
-                    pages[it].contains("C2 - ") &&
+                    pages[it].contains("MÓDULOS COMPARTIDOS") &&
                         !pages[it].contains("C-N3 - Notas digitales")
                 }.map { it + 1 }
                 val spells = pages.indices.filter {
@@ -9049,12 +9143,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     "No unrelated or fabricated page between C2 and P4.")
                 // C259: P2 points to the first C2 page that really holds its traits.
                 val p2TraitsPage = pages.indexOfFirst { it.contains("RASGOS / CONTINUACIÓN") } + 1
-                assertTrue(p2TraitsPage in c2 &&
-                    pages[1].contains("CONTINÚA EN PÁG. " + p2TraitsPage),
+                assertTrue(p2TraitsPage in c2 && p2TraitsPage in continuesToPages(pages[1]),
                     "P2 must use the NEW final physical C2 destination.")
                 assertTrue(pages.last().lineSequence().any { it.trim() == "NOTAS" })
                 assertFalse(pages.last().contains("P4 - Conjuros") ||
-                    pages.last().contains("C2 - "),
+                    pages.last().contains("MÓDULOS COMPARTIDOS"),
                     "Final manuscript page must remain separate from all digital content.")
             }
         }
@@ -9085,11 +9178,12 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // C259: Mara's golden resource boxes and action table take one
                 // more real C2 page; C314: the golden note spacing gives her nine
                 // long notes a second C-N3 page; C423: her equipment and special equipment
-                // share a page, as in the golden (10). The header itself adds none.
-                assertEquals(10, pages.size,
+                // share a page, as in the golden (10). The header itself adds none. C464: in B,
+                // the remaining EQUIPO, EQUIPO ESPECIAL and RASGOS share one sheet (9).
+                assertEquals(if (variant == PcSheetV11Variant.A) 10 else 9, pages.size,
                     "A source-only C2 header must not create or remove pages.")
                 val c2Indices = pages.indices.filter {
-                    pages[it].contains("C2 - Habilidades, acciones y recursos")
+                    pages[it].contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
                 }
                 assertTrue(c2Indices.isNotEmpty(), "Mara's real mixed C2 was lost.")
                 // C259: the continued resource group may now open a column on the
@@ -9145,7 +9239,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     }.getText(pdf)
                 }
                 val mixedPhysical = pages.indexOfFirst {
-                    it.contains("C2 - Habilidades, acciones y recursos")
+                    it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
                 } + 1
                 assertTrue(mixedPhysical > 0)
                 assertTrue(pages[0].contains("CONTINÚA EN PÁG. " + mixedPhysical))
@@ -9154,7 +9248,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     // C259: P2 points to the first mixed C2 page with its traits.
                     val p2Physical = pages.indexOfFirst { it.contains("RASGOS / CONTINUACIÓN") } + 1
                     assertTrue(p2Physical >= mixedPhysical)
-                    assertTrue(pages[1].contains("CONTINÚA EN PÁG. " + p2Physical))
+                    assertTrue(p2Physical in continuesToPages(pages[1]))
                     assertTrue(2 in cameFromPages(pages[p2Physical - 1]))
                     val ordinaryC2 = c2ModulePages(pages, "EQUIPO").first()
                     // C457 (golden comparador): her leftover equipment continues on the shared C2.
@@ -9514,6 +9608,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
 }
 
 // C341 (owner 2026-10-30): pages named by «VIENE DE PÁG. 1, 2 Y 4».
+/** C464: a page of the shared C2. */
+private fun pdfPageHasSharedLabel(pdf: org.apache.pdfbox.pdmodel.PDDocument, index: Int): Boolean =
+    PDFTextStripper().apply { startPage = index + 1; endPage = index + 1 }.getText(pdf).contains("MÓDULOS COMPARTIDOS")
+
+/** C464: every page a «… CONTINÚA(N) EN PÁG. n» of this text points to. */
+private fun continuesToPages(text: String): Set<Int> =
+    Regex("""CONTIN[ÚU]AN? EN PÁG\. (\d+(?:(?:, | Y )\d+)*)""").findAll(text.replace(Regex("\\s+"), " "))
+        .flatMap { match -> Regex("""\d+""").findAll(match.groupValues[1]).map { it.value.toInt() } }
+        .toSet()
+
 private fun cameFromPages(text: String): Set<Int> =
     Regex("""VIENE DE PÁG\. (\d+(?:(?:, | Y )\d+)*)""").findAll(text)
         .flatMap { match -> Regex("""\d+""").findAll(match.groupValues[1]).map { it.value.toInt() } }
@@ -9523,7 +9627,7 @@ private fun cameFromPages(text: String): Set<Int> =
 /** C457: physical pages (1-based) of the C2 sheets that print this module's cartela. */
 private fun c2ModulePages(pages: List<String>, title: String): List<Int> {
     val cartela = Regex("(?m)(?:^|\\s)" + Regex.escape(title) + "(?: VIENE| /|\\s*$)")
-    return pages.indices.filter { pages[it].contains("C2 - ") && cartela.containsMatchIn(pages[it]) }.map { it + 1 }
+    return pages.indices.filter { pages[it].contains("MÓDULOS COMPARTIDOS") && cartela.containsMatchIn(pages[it]) }.map { it + 1 }
 }
 
 private fun moduleLinksOf(line: String): List<Pair<String, Int>> =

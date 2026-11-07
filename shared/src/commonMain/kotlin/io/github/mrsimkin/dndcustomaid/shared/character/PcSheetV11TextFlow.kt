@@ -152,8 +152,11 @@ object PcSheetV11TextFlow {
         columnsPerPage: Int,
         column: PcSheetV11TextColumn,
         textWidth: PcSheetV11TextWidth,
+        // C464: the columns of the first page start this much lower (a full-width module above).
+        firstPageDropPt: Float = 0f,
     ): PcSheetV11FlowResult {
         require(columnsPerPage in 1..3) { "V11 supports one, two or three-column text flows." }
+        require(firstPageDropPt >= 0f && firstPageDropPt < column.heightPt)
         require(items.none { it.sourceKey.isBlank() }) { "Every V11 text item needs a source key." }
         require(items.map { it.sourceKey }.distinct().size == items.size) {
             "V11 source keys cannot repeat within a flow."
@@ -165,9 +168,11 @@ object PcSheetV11TextFlow {
         var extraUsed = 0f
         // C362: whole lines that fit once `extra` points are spent; with no extra
         // this is exactly the column's uniform line capacity.
-        fun capacity(extra: Float) =
-            if (extra == 0f) column.lineCapacity
-            else ((column.heightPt - extra) / column.lineHeightPt).toInt()
+        fun capacity(extra: Float): Int {
+            val drop = if (page == 1) firstPageDropPt else 0f
+            return if (extra == 0f && drop == 0f) column.lineCapacity
+                else ((column.heightPt - drop - extra) / column.lineHeightPt).toInt()
+        }
         fun remaining() = capacity(extraUsed) - used
         fun nextColumn() {
             col += 1
@@ -246,6 +251,7 @@ object PcSheetV11TextFlow {
             }
             var offset = 0
             while (offset < lines.size) {
+                while (capacity(extraUsed + extras[offset]) - used < 1 && page == 1 && firstPageDropPt > 0f) nextColumn()
                 if (capacity(extraUsed + extras[offset]) - used < 1) nextColumn()
                 require(capacity(extras[offset]) >= 1) { "A V11 line extra height leaves no line." }
                 val above = extraUsed

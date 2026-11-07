@@ -285,3 +285,31 @@ Preguntado si un ataque cuyo nombre no cabe en su fila de P1 va en dos renglones
 ## Aclaración técnica del Worker — referencias con página real (2026-11-06)
 
 Aplica D-0076 §3.33 y C341, sin decisión nueva del propietario. Los dados de golpe y los espacios que no caben en P1 ya no dicen «VER C2», sino «CONTINÚA EN PÁG. n», con la página física donde siguen. (El nombre muy largo tiene su propia aclaración, del mismo día.) Un módulo que sigue en otra hoja de C2 lo dice en la banda inferior de esa hoja («RECURSOS CONTINÚA EN PÁG. 5»).
+
+## Decisiones del propietario — revisión de `preqa.11` (2026-11-07)
+
+Preguntas hechas de una en una, con imagen, tras la revisión independiente de `preqa.11`.
+
+- **Nombre muy largo:** preguntado si el nombre completo aparece además una vez en la hoja de continuación, el propietario responde **«solo quiero el nombre en la cabecera»**. El renglón «NOMBRE COMPLETO DEL PERSONAJE: …» desaparece; el nombre queda solo en la cabecera, cortado donde deja de caber. Antes preguntó si ese renglón salía del nombre o de una nota, y dijo: «si es el segundo caso, el nombre no tiene que estar en la hoja de continuación». Sale del campo Nombre.
+- **Fuente de clase sin clase enlazada:** **«Solo "Clase"»**. Sustituye a la lectura del Worker de C440, que imprimía el nombre propio de la fuente. Dos fuentes así se leen igual en papel.
+- **Varias fuentes del mismo tipo y valor:** **«Una vez»**. «Otro 13» sale una sola vez aunque haya tres fuentes «Otro» con ese valor. Coincide con lo dicho el 2026-10-26: «dos fuentes del mismo tipo pueden verse con el mismo rótulo».
+- **Cabecera de las hojas de continuación:** **«las hojas de continuación no deben decir continuación; solo las secciones deben tener continuación si es que las tienen»**. Preguntado qué queda arriba a la derecha, responde **«nada»**. Las hojas de continuación (C2, Equipo Especial que sigue y narrativa que sigue) no llevan rótulo ni título a la derecha de la cabecera, aunque el golden diga «CONTINUACIONES C2». Solo cada módulo dice que continúa.
+- **Notas de las municiones:** **«No, solo en App»**. Confirma la aclaración técnica del Worker del 2026-11-06.
+
+## Aclaración técnica del Worker — revisión de `preqa.11` (2026-11-07)
+
+Aplica el golden, sin decisión nueva del propietario (reglas C218 y P133):
+
+- **Equipo Especial que continúa:** va después de Equipo y Tesoro, a todo el ancho, y Rasgos e Historia siguen debajo en dos columnas, como en el golden extremo B p5. Si no quedan al menos 120 pt debajo, siguen en otra hoja.
+- **Equipo en C2:** cada tramo, en su página y columna, se lee bajando por la mitad izquierda y luego por la derecha.
+- **Habilidades sueltas en C2 (A):** bajo un subtítulo con su atributo («HABILIDADES DE SABIDURÍA»), como «HABILIDADES DE HONOR» del golden, sin la abreviatura al lado.
+- **ACCIONES y RECURSOS:** no tienen módulo en P1, así que no dicen «VIENE DE PÁG. 1» y P1 no los nombra.
+- **Aviso de módulo que sigue en otra columna:** sin banda, en la línea del rótulo «MÓDULOS COMPARTIDOS», su único texto en el golden.
+- **ATAQUES de P1:** los filetes de columna solo en las filas con ataque. **HABILIDADES de B:** «dos subcolumnas», como el golden.
+
+## Corrección del Worker — origen de cuatro reglas de la revisión de `preqa.9` (2026-11-07)
+
+El Worker dijo al propietario y al revisor de `preqa.11` que el propietario había respondido las siete preguntas de la revisión de `preqa.9`. Respondió tres: ataque largo en su fila, nombre cortado y notas de objetos especiales impresas. Las otras cuatro tienen este origen:
+
+- **Más de 20 municiones, solo `____ / X`:** aclaración anterior del propietario, escrita en D-0076 §3.15.
+- **Los 8 rótulos del golden en Equipo Especial vacío, Equipo y Tesoro compartiendo hoja, y una sola fuente con solo el valor:** el golden, que prevalece sobre D-0076 según la jerarquía del contrato. El propietario no las decidió aparte.

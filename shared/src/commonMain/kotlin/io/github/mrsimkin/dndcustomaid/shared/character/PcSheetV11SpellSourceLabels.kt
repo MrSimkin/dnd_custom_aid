@@ -179,14 +179,12 @@ object PcSheetV11SpellSourceLabels {
      * "Tipo de origen"). An association to a missing source record (no stored type) reads "Otro".
      */
     fun sourceLabel(source: PcSheetSpellbookSourceProjection): String {
-        val name = source.sourceName?.trim()?.replace(Regex("\\s+"), " ")
-            ?.takeIf { it.isNotEmpty() }
         return when (source.originKind) {
-            // C440: the class name, without subclass; the source's own name only if unlinked,
-            // because two unlinked class sources would otherwise read the same.
+            // C440: the class name, without subclass. C463 (owner 2026-11-07, «Solo "Clase"»):
+            // an unlinked class source prints only its type.
             CharacterSpellcastingOriginKind.CLASS ->
                 source.linkedClassName?.trim()?.replace(Regex("\\s+"), " ")?.takeIf { it.isNotEmpty() }
-                    ?: name ?: "Clase"
+                    ?: "Clase"
             CharacterSpellcastingOriginKind.TRAIT -> "Rasgo"
             CharacterSpellcastingOriginKind.RACE -> "Raza"
             CharacterSpellcastingOriginKind.BACKGROUND -> "Trasfondo"

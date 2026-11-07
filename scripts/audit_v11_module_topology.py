@@ -15,6 +15,19 @@ ORDER = {"P1": 0, "P2": 1, "P3": 2, "C2": 3, "P4": 4,
          "CN3": 5, "BOOK": 6, "NOTES": 7}
 
 
+
+def printed_role(text: str) -> str:
+    """C463 (owner 2026-11-07): continuation sheets print no title at the right of the header,
+    so their role comes from the golden label every one of them carries."""
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if "MÓDULOS COMPARTIDOS · DOS COLUMNAS" in text:
+        return "C2 - Habilidades, acciones y recursos"
+    if "MÓDULOS COMPARTIDOS · MIXTO" in text:
+        return "C2 - Equipo especial / continuación"
+    if "TRASFONDO, PERFIL E HISTORIA / CONTINUACIÓN" in text and not any(l.startswith("P3 - ") for l in lines[:3]):
+        return "P3 - Narrativa / continuación"
+    return lines[1] if len(lines) > 1 else ""
+
 def classify(title: str) -> str | None:
     if title.startswith("P1 - "):
         return "P1"
@@ -69,7 +82,7 @@ def inspect_pdf(path: Path) -> dict:
                 errors.append(f"p{index}: no printed header/page-role text")
                 titles.append("")
             else:
-                titles.append(lines[1])
+                titles.append(printed_role(page.get_text()))
         errors.extend(inspect_roles(titles))
     return {"pdf": path.name, "sha256": hashlib.sha256(data).hexdigest(),
             "pages": len(titles), "page_titles": titles,

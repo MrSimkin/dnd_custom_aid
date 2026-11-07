@@ -20,6 +20,19 @@ GOLDEN_ROW = (231/255, 242/255, 247/255)
 GOLDEN_LIGHT_ROW = (240/255, 247/255, 250/255)
 
 
+
+def printed_role(text: str) -> str:
+    """C463 (owner 2026-11-07): continuation sheets print no title at the right of the header,
+    so their role comes from the golden label every one of them carries."""
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if "MÓDULOS COMPARTIDOS · DOS COLUMNAS" in text:
+        return "C2 - Habilidades, acciones y recursos"
+    if "MÓDULOS COMPARTIDOS · MIXTO" in text:
+        return "C2 - Equipo especial / continuación"
+    if "TRASFONDO, PERFIL E HISTORIA / CONTINUACIÓN" in text and not any(l.startswith("P3 - ") for l in lines[:3]):
+        return "P3 - Narrativa / continuación"
+    return lines[1] if len(lines) > 1 else ""
+
 def close(a: float, b: float, tolerance: float = 0.16) -> bool:
     return abs(a - b) <= tolerance
 
@@ -32,8 +45,7 @@ def steps_regular(values: list[float], step: float = 16) -> bool:
 
 
 def page_role(page: fitz.Page) -> str:
-    lines = page.get_text().splitlines()
-    return lines[1] if len(lines) > 1 else ""
+    return printed_role(page.get_text())
 
 
 def p3_result(page: fitz.Page) -> tuple[int, int, list[str]]:
@@ -242,49 +254,39 @@ def c2_result(page: fitz.Page) -> tuple[int, int, list[str]]:
 
 
 def c2_context_result(page: fitz.Page) -> tuple[int, int, list[str]]:
-    """Golden C2c continuation bands around existing real source identity ink.
+    """Golden C2 continuation captions of existing real source identity ink.
 
-    Deliberately checks only captions already printed in the reserved header
-    gap; does not invent missing source identities or approve whole C2.
+    C463 (review of preqa.11, M4): the golden has no band in the header strip;
+    its only text there is the «MÓDULOS COMPARTIDOS» label (top-origin 92..102.3).
+    A continued source caption («IDENTIDAD / VIENE DE PÁG. n» or
+    «IDENTIDAD / CONTINUACIÓN») sits on that same line, clear of the label.
     """
-    # C341: a continued source caption is «IDENTIDAD / VIENE DE PÁG. n» or
-    # «IDENTIDAD / CONTINUACIÓN»; check the first word of each such line.
-    # C367: the band sits under the golden header rule y709.8 (top-origin
-    # 83.4..93.8); in the first column it starts after the C2 section label.
-    words = [
-        w for w in page.get_text("words")
-        if 83.0 <= w[1] <= 86.5 and w[3] < 95
-    ]
+    words = [w for w in page.get_text("words") if 91.5 <= w[1] <= 95.0 and w[3] < 103]
+    label_right = max((w[2] for w in words if w[4] in ("COLUMNAS", "MIXTO")), default=0.0)
     lines: dict[tuple[int, int], list] = {}
     for w in words:
+        if w[4] in ("MÓDULOS", "COMPARTIDOS", "·", "DOS", "COLUMNAS", "MIXTO"):
+            continue
         lines.setdefault((w[5], w[6]), []).append(w)
     captions = [
         min(line, key=lambda w: w[0]) for line in lines.values()
         if any(w[4] in ("VIENE", "CONTINUACIÓN") for w in line)
     ]
     color = (231 / 255, 242 / 255, 247 / 255)  # C293 golden cartela fill
-    bands = [
+    strip_bands = [
         dr for dr in page.get_drawings()
         if dr.get("fill") is not None
         and all(close(dr["fill"][j], color[j], .015) for j in range(3))
-        and close(dr["rect"].y0, 83.4, .3)
-        and close(dr["rect"].y1, 93.8, .3)
+        and dr["rect"].y0 >= 82.0 and dr["rect"].y1 <= 95.0
         and dr["rect"].width > 100
-        and dr.get("type") in {"fs", "f"}
     ]
+    failures = [f"C463 band in the header strip at y={dr['rect'].y0:.2f}" for dr in strip_bands]
     matched = 0
-    failures = []
     for word in captions:
-        if any(
-            dr["rect"].x0 <= word[0] - .2 and dr["rect"].x1 >= word[2] + .2
-            for dr in bands
-        ):
+        if word[0] >= label_right + 3.0:
             matched += 1
         else:
-            failures.append(
-                f"C206 continued source identity lacks C2c cartela at "
-                f"x={word[0]:.2f}, y={word[1]:.2f}"
-            )
+            failures.append(f"C206 continued source identity overlaps the label at x={word[0]:.2f}")
     return len(captions), matched, failures
 
 

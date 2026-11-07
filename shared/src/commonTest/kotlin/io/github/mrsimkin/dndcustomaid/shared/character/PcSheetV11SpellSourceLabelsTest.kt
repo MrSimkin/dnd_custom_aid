@@ -57,13 +57,13 @@ class PcSheetV11SpellSourceLabelsTest {
             sourceId = Uuid.parse("12345600-0000-4000-8000-000000000006"),
             sourceName = "Mago", originKind = CharacterSpellcastingOriginKind.CLASS, prepared = true,
             castingAbility = CharacterAbilityReference.builtIn(CharacterAbility.INTELLIGENCE),
-            saveDc = 15, spellAttackModifier = 7,
+            saveDc = 15, spellAttackModifier = 7, linkedClassName = "Mago",
         )
         val hechicero = PcSheetSpellbookSourceProjection(
             sourceId = Uuid.parse("12345600-0000-4000-8000-000000000007"),
             sourceName = "Hechicero", originKind = CharacterSpellcastingOriginKind.CLASS, prepared = false,
             castingAbility = CharacterAbilityReference.builtIn(CharacterAbility.CHARISMA),
-            saveDc = 17, spellAttackModifier = null,
+            saveDc = 17, spellAttackModifier = null, linkedClassName = "Hechicero",
         )
         val entries = listOf(PcSheetSpellbookEntry(spell, listOf(mago, hechicero)))
         fun ref(field: String) =
@@ -326,16 +326,17 @@ class PcSheetV11SpellSourceLabelsTest {
         )
         val names = PcSheetV11SpellSourceLabels.forSpells(listOf(first))
         // C440 (owner 2026-10-26): two sources may read the same; no internal ID is printed.
-        assertEquals("Mago", names.getValue(one))
-        assertEquals("mago", names.getValue(two))
+        // C463 (owner 2026-11-07, «Solo "Clase"»): an unlinked class source prints its type.
+        assertEquals("Clase", names.getValue(one))
+        assertEquals("Clase", names.getValue(two))
         // Non-class sources show only their type, even when two share it (owner decision).
         assertEquals("Dote", names.getValue(three))
         assertEquals("Dote", names.getValue(four))
         // No stored type means no specific name is printed either.
         assertEquals("Otro", names.getValue(five))
         val result = PcSheetV11SpellSourceLabels.perSpell(first, names)
-        assertTrue(result.contains("[X] Mago"))
-        assertTrue(result.contains("[ ] mago"))
+        assertTrue(result.contains("[X] Clase"))
+        assertTrue(result.contains("[ ] Clase"))
         assertTrue(!result.contains("#"))
         assertTrue(result.contains("[ ] Dote / [X] Dote"))
         assertTrue(result.contains("[ ] Otro"))

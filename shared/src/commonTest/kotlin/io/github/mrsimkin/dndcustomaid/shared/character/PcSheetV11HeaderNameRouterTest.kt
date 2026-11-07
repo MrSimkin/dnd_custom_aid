@@ -17,20 +17,18 @@ class PcSheetV11HeaderNameRouterTest {
     }
 
     @Test
-    fun longSourceNameRetainsAReadablePrefixAndCompleteC2Text() {
+    fun longSourceNameIsOnlyCutInTheHeader() {
         val name = "Aldren de los Siete Reinos y los Incontables Sellos del Alba"
         val actual = PcSheetV11HeaderNameRouter.route(name, 40f, width)
         assertTrue(actual.paperName.startsWith("Aldren"))
         assertTrue(name.startsWith(actual.paperName), "Only cut, with nothing added.")
         assertTrue(width.measurePt(actual.paperName) <= 40f)
-        val full = assertNotNull(actual.continuation)
-        assertEquals("p1:character-full-name", full.sourceKey)
-        assertEquals("NOMBRE COMPLETO DEL PERSONAJE: " + name, full.text)
-        assertTrue(full.keepTogetherIfFits)
+        // C463 (owner 2026-11-07, «solo quiero el nombre en la cabecera»).
+        assertNull(actual.continuation)
     }
 
     @Test
-    fun persistedCrLfAndTabsNeverReachOneLineFontButSurviveInC2() {
+    fun persistedCrLfAndTabsNeverReachOneLineFont() {
         val rawName = "Ilyra\r\nQuill\tCrónica"
         val strictWidth = PcSheetV11TextWidth { text ->
             require(text.none { it == '\r' || it == '\n' || it == '\t' }) {
@@ -38,17 +36,15 @@ class PcSheetV11HeaderNameRouterTest {
             }
             text.length.toFloat()
         }
-        // Even a fitting single-line preview cannot erase original breaks.
+        // A saved break or tab is a space on the one-line header.
         val routed = PcSheetV11HeaderNameRouter.route(rawName, 100f, strictWidth)
         assertEquals("Ilyra Quill    Crónica", routed.paperName)
-        val full = assertNotNull(routed.continuation)
-        assertEquals("p1:character-full-name", full.sourceKey)
-        assertEquals("NOMBRE COMPLETO DEL PERSONAJE: " + rawName, full.text)
+        assertNull(routed.continuation)
 
         val constrained = PcSheetV11HeaderNameRouter.route(rawName, 30f, strictWidth)
         assertTrue(constrained.paperName.startsWith("Ilyra"))
         assertTrue(strictWidth.measurePt(constrained.paperName) <= 30f)
-        assertEquals(full.text, assertNotNull(constrained.continuation).text)
+        assertNull(constrained.continuation)
     }
 
 }
