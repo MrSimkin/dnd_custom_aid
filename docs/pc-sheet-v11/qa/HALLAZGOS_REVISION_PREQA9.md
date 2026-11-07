@@ -18,7 +18,7 @@
 | N8 | Línea en ATAQUES vacía | Abierto | Corregir como el golden |
 | N9 | Leyenda añadida en la variante B | Abierto | Corregir como el golden |
 | N10 | Rótulo con una sola fuente | Abierto | Sin pregunta: el golden imprime solo el valor, y la aclaración escrita habla de varias fuentes. Falta corregir |
-| N11 | Nombre largo recortado | Abierto | Pregunta 5 al propietario |
+| N11 | Nombre largo recortado | Abierto | Decidido: «cortado hasta donde sea que quepa», sin aviso. Falta corregir |
 | N12 | Android y Desktop no son idénticos | Registrado | Diferencia invisible; el acta del candidato ya indica su umbral |
 | N13 | Rótulos de continuación y detalles | Abierto | Revisar uno por uno |
 | Notas de objeto especial | Se imprimen sin decisión | Abierto | Pregunta 7 al propietario |

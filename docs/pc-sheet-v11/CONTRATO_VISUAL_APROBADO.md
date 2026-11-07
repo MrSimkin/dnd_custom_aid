@@ -251,6 +251,10 @@ Preguntado si las notas de ataque quedan solo en la App, el propietario responde
 
 Aplica el golden, sin decisión nueva del propietario: `ATRIBUTOS Y HABILIDADES`, `COMBATE Y SUPERVIVENCIA`, `ATAQUES`, `LANZAMIENTO DE CONJUROS`, `MUNICIONES` y `RASGOS / CONTINUACIÓN` sustituyen a los títulos técnicos anteriores. `RECURSOS` no existe en el golden, va por la aclaración de recursos de C2, y las municiones que siguen en C2 tienen su propio título. Una habilidad que sale del panel B conserva en C2 su casilla y su valor a la derecha. Recuperación, fuente y notas de recursos van en 6,1 pt.
 
+## Aclaración del propietario — nombre muy largo en la cabecera (2026-11-06)
+
+Preguntado si acepta el corte con «NOMBRE EN PÁG. n», o letra menor, el propietario responde **«Prefiero que el nombre sea cortado hasta donde sea que quepa»**. Sustituye a «NOMBRE EN PÁG. n». **Lectura del Worker, sujeta a su revisión:** la cabecera conserva su tamaño de letra, corta el nombre donde deja de caber antes del rótulo derecho y no agrega ningún aviso. El nombre completo sigue impreso una vez en C2, y la banda de P1 dice dónde.
+
 ## Aclaración del propietario — ataques de nombre largo (2026-11-06)
 
 Preguntado si un ataque cuyo nombre no cabe en su fila de P1 va en dos renglones en su lugar, el propietario responde **«Sí, en su lugar»**. El nombre se parte en dos renglones más pequeños dentro de su fila y se conserva el orden de la ficha. **Detalle técnico del Worker (no dicho por el propietario):** si aun así no cabe, sigue en la tabla de ATAQUES de C2, sin perder su orden y nunca como texto corrido.
@@ -264,4 +268,4 @@ Preguntado si un ataque cuyo nombre no cabe en su fila de P1 va en dos renglones
 
 ## Aclaración técnica del Worker — referencias con página real (2026-11-06)
 
-Aplica D-0076 §3.33 y C341, sin decisión nueva del propietario. Los dados de golpe y los espacios que no caben en P1 ya no dicen «VER C2», sino «CONTINÚA EN PÁG. n», con la página física donde siguen. El nombre muy largo se repite en la cabecera de todas las hojas, así que dice «NOMBRE EN PÁG. n» y se detiene antes del rótulo derecho. Un módulo que sigue en otra hoja de C2 lo dice en la banda inferior de esa hoja («RECURSOS CONTINÚA EN PÁG. 5»).
+Aplica D-0076 §3.33 y C341, sin decisión nueva del propietario. Los dados de golpe y los espacios que no caben en P1 ya no dicen «VER C2», sino «CONTINÚA EN PÁG. n», con la página física donde siguen. (El nombre muy largo tiene su propia aclaración, del mismo día.) Un módulo que sigue en otra hoja de C2 lo dice en la banda inferior de esa hoja («RECURSOS CONTINÚA EN PÁG. 5»).
