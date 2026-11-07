@@ -251,6 +251,10 @@ Preguntado si las notas de ataque quedan solo en la App, el propietario responde
 
 Aplica el golden, sin decisión nueva del propietario: `ATRIBUTOS Y HABILIDADES`, `COMBATE Y SUPERVIVENCIA`, `ATAQUES`, `LANZAMIENTO DE CONJUROS`, `MUNICIONES` y `RASGOS / CONTINUACIÓN` sustituyen a los títulos técnicos anteriores. `RECURSOS` no existe en el golden, va por la aclaración de recursos de C2, y las municiones que siguen en C2 tienen su propio título. Una habilidad que sale del panel B conserva en C2 su casilla y su valor a la derecha. Recuperación, fuente y notas de recursos van en 6,1 pt.
 
+## Aclaración del propietario — ataques de nombre largo (2026-11-06)
+
+Preguntado si un ataque cuyo nombre no cabe en su fila de P1 va en dos renglones en su lugar, el propietario responde **«Sí, en su lugar»**. El nombre se parte en dos renglones más pequeños dentro de su fila y se conserva el orden de la ficha. **Detalle técnico del Worker (no dicho por el propietario):** si aun así no cabe, sigue en la tabla de ATAQUES de C2, sin perder su orden y nunca como texto corrido.
+
 ## Decisión del propietario — V11 reemplaza las cuatro hojas antiguas (2026-11-06)
 
 **Dicho por el propietario:** «v11 reemplaza las 4 hojas antiguas, porque las 4 hojas antiguas no lograron ser desarrolladas para cumplir su equivalente a "su propio golden" y se evaluó imposible de lograr».
