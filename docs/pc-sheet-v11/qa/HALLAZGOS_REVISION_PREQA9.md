@@ -24,8 +24,8 @@
 | Notas de objeto especial | Se imprimen | Decidido | «No, se imprimen» (2026-11-06) |
 | F03 | Fuente de clase sin clase enlazada | Sin cambio, a propósito | Con «Clase» dos fuentes sin enlazar se leerían igual. Conserva su nombre solo en ese caso |
 | F08 | Corte entre clases | Corregido en C458 | Clase y nivel juntos; las que no caben siguen en C2. Falta que el revisor lo confirme |
-| §3.3 | Retrato real en Android | Sin demostrar | Probarlo en el emulador |
-| §3.4 | Subraza | Sin demostrar | Crear el caso |
+| §3.3 | Retrato real en Android | Probado en `preqa.11` | Los dos modos, sin deformar. Ver `ACTA_CANDIDATO_PREQA11.md`. Falta que el revisor lo confirme |
+| §3.4 | Subraza | Caso creado | `V11-INTERNAL-PROOF-subrace-A.pdf` y `-B`, en CI. Falta que el revisor lo confirme |
 | §3.12 | Prueba impresa | Sin demostrar | La hace el propietario al final |
 | QA05, GLB12 | Hojas antiguas | Redefinidas | El propietario decidió que V11 las reemplaza (2026-11-06). No se comparan ni se reparan. Falta demostrar que V11 no depende de ellas |
 
