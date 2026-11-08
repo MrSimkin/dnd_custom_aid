@@ -9,14 +9,14 @@
     "app_implementation_approved": false
   },
   "active_candidate": {
-    "source_commit": "07e5aca0e1b9add6457d0be2c36a6c407617c94e",
-    "apk_sha256": "9f16b03b2b060667bc6be4f29ddd56920f992f8d514cdfff6a84662619c90cd9",
-    "version_name": "0.5.0-preqa.12",
-    "version_code": 51200,
-    "build_id": "scaffold-run-42401782030",
-    "artifact_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42401782030/artifacts/13585599959",
-    "apk_owner_file_name": "dnd-custom-aid-0.5.0-preqa.12-build-51200.apk",
-    "status": "REVIEWED_NOT_READY: failed the independent review of 2026-11-07 (preqa.12); not offered to the owner"
+    "source_commit": "bdfdaa292e319dc0c5a5a9bce62ad1f619c4b477",
+    "apk_sha256": "6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7",
+    "version_name": "0.5.0-preqa.13",
+    "version_code": 51300,
+    "build_id": "scaffold-run-42493357978",
+    "artifact_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42493357978/artifacts/13622832102",
+    "apk_owner_file_name": "dnd-custom-aid-0.5.0-preqa.13-build-51300.apk",
+    "status": "PENDING_INDEPENDENT_REVIEW: not offered to the owner"
   },
   "release_gate": "NOT_BUILT",
   "qa_rounds": [
