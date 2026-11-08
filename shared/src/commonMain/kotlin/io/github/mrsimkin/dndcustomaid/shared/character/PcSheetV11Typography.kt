@@ -68,9 +68,11 @@ data class PcSheetV11ResolvedFont(
         columnsPerPage: Int,
         gutterPt: Float,
         firstPageDropPt: Float = 0f,
+        pageBottomReservePt: Map<Int, Float> = emptyMap(),
     ): PcSheetV11PlacedFlow =
         PcSheetV11MeasuredFlowPlacer.place(
             firstPageDropPt = firstPageDropPt,
+            pageBottomReservePt = pageBottomReservePt,
             section = section,
             items = items,
             areaPt = areaPt,

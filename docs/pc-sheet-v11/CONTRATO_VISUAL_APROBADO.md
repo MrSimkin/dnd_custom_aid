@@ -313,3 +313,16 @@ El Worker dijo al propietario y al revisor de `preqa.11` que el propietario hab�
 
 - **Más de 20 municiones, solo `____ / X`:** aclaración anterior del propietario, escrita en D-0076 §3.15.
 - **Los 8 rótulos del golden en Equipo Especial vacío, Equipo y Tesoro compartiendo hoja, y una sola fuente con solo el valor:** el golden, que prevalece sobre D-0076 según la jerarquía del contrato. El propietario no las decidió aparte.
+
+## Aclaración técnica del Worker — revisión de `preqa.12` (2026-11-08)
+
+Aplica D-0076 §3.29, §3.32 y §3.48, el contrato C207 y C341 y el golden, sin decisión nueva del propietario (regla C219):
+
+- **Equipo Especial que continúa:** si cabe al pie de la última hoja compartida acortando ahí sus columnas, va al pie y todos los módulos comparten las hojas. Si no cabe, sigue la aclaración del 2026-11-07. Sustituye a «sin módulos que lo sigan, queda en su hoja».
+- **Papel libre sobre ese Especial:** lleva NOTAS (C207).
+- **Ficha del Libro que continúa:** «NOMBRE / VIENE DE PÁG. n» en la primera columna de una hoja y «NOMBRE / CONTINUACIÓN» en la siguiente (C341). Un nombre que no cabe se corta donde deja de caber, como el del personaje. Sustituye a «CONTINUACIÓN: nombre» y al «CONTINUACIÓN» sin nombre.
+- **Banda de P1:** «ATRIBUTOS Y HABILIDADES», el título del golden.
+- **ACCIONES y RECURSOS:** tampoco cuentan para el enlace de pie entre P1 y C2.
+- **Equipo y Tesoro en C2:** no abren con menos de tres filas al pie de una columna.
+- **Filas vacías de Equipo Especial:** los rótulos del golden que ningún objeto usa, en su orden.
+- **«Clase —» en las tarjetas mágicas:** se mantiene. El guion dice que esa fuente no tiene valor guardado; es la regla C221 y su prueba.

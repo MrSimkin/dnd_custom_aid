@@ -22,8 +22,9 @@ class SpellbookContinuationParityTest(unittest.TestCase):
                 "it.continuedFromPrevious",
                 "fragment.startLineIndexInColumn == 0",
                 "col.topPt == 692.79f",  # C366: golden Libro flow top
-                '"CONTINUACIÓN: " + realName',
-                'else "CONTINUACIÓN" // C450',
+                # C468 (§3.48, C341): «NOMBRE / VIENE DE PÁG. n» or «NOMBRE / CONTINUACIÓN», cut to fit.
+                "PcSheetV11ContinuationText.arrived(it, fromPage)",
+                "val fromPage = if (fragment.columnIndex == 1) pdf.numberOfPages - 1 else null",
                 "col.topPt + 8.2f",
                 "fragment.sourceKey",
                 "D-0076 §3.48 / BK05",
@@ -35,7 +36,7 @@ class SpellbookContinuationParityTest(unittest.TestCase):
         self.assertEqual(samples[0], samples[1])
         tests = TEST.read_text(encoding="utf-8")
         self.assertIn("overlongRealSpellCardContinuesLosslesslyAfterPhysicalIndexPage", tests)
-        self.assertIn('contains("CONTINUACIÓN: Fire Bolt")', tests)
+        self.assertIn('Fire Bolt / (CONTINUACIÓN|VIENE DE PÁG', tests)
 
 if __name__ == "__main__":
     unittest.main()

@@ -2504,6 +2504,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream: PDPageContentStream,
                 cells: List<io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PlacedLineCell>,
                 topPt: Float? = null,
+                floorPt: Float = c2FootPt,
             ) {
                 // C2 is two independent vertical paper columns. A nearly
                 // occupied LEFT column cannot veto useful blank RIGHT paper.
@@ -2513,7 +2514,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 columns.forEachIndexed { index, column ->
                     val lowestTextBottom = cells.filter { it.columnIndex == index + 1 }
                         .minOfOrNull { it.cellPt.bottomPt } ?: minOf(column.topPt, topPt ?: column.topPt)
-                    val gridBottom = c2FootPt // C397: golden C2 grid foot (was 78)
+                    val gridBottom = floorPt // C397: golden C2 grid foot (was 78); C468: or above a table
                     val gridSize = 16f
                     val maxGridTop = lowestTextBottom - 28f
                     val completeRows = ((maxGridTop - gridBottom) / gridSize).toInt()
@@ -2973,6 +2974,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // C464: start on the last page already drawn, below a full-width module.
                 reuseLastPage: Boolean = false,
                 firstPageDropPt: Float = 0f,
+                pageBottomReservePt: Map<Int, Float> = emptyMap(),
             ) {
                 require(maxPhysicalPages == null || maxPhysicalPages > 0)
                 if (!alwaysPage && entries.isEmpty()) return
@@ -2998,7 +3000,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 val c2TextInset = if (title == "C2 - Habilidades, acciones y recursos") 4.25f else 0f
                 val flow = (if (c2TextInset > 0f) font.copy(width = PcSheetV11TextWidth { text ->
                     font.width.measurePt(text) + 2f * c2TextInset
-                }) else font).place(section, entries, area, columns, gutterPt, firstPageDropPt)
+                }) else font).place(section, entries, area, columns, gutterPt, firstPageDropPt, pageBottomReservePt)
                 val pageCount = maxOf(if (alwaysPage) 1 else 0, flow.sourceFlow.localPageCount)
                 repeat(minOf(pageCount, maxPhysicalPages ?: pageCount)) { index ->
                     val pageCells = flow.cells.filter {
@@ -3212,12 +3214,16 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     "V11 book continuation label needs the source-free header band."
                                 }
                                 val realName = namesByKey.getValue(fragment.sourceKey)
-                                val titleText = "CONTINUACIÓN: " + realName
                                 val fontSize = 7f
-                                val width = bodyPdfFont.getStringWidth(pcSheetV11PrintableText(titleText)) *
-                                    fontSize / 1000f
-                                val printed = if (width <= col.widthPt - 6f) titleText
-                                    else "CONTINUACIÓN" // C450: the Libro has no index to point at
+                                // C468 (§3.48, C341; review of preqa.12, H3): «NOMBRE / VIENE DE PÁG. n» in a
+                                // page's first column, «NOMBRE / CONTINUACIÓN» in the next; a long name is cut.
+                                val fromPage = if (fragment.columnIndex == 1) pdf.numberOfPages - 1 else null
+                                fun bookFits(text: String) = bodyPdfFont.getStringWidth(pcSheetV11PrintableText(text)) *
+                                    fontSize / 1000f <= col.widthPt - 6f
+                                val cutName = (realName.length downTo 1).map { realName.take(it).trimEnd() }
+                                    .firstOrNull { bookFits(PcSheetV11ContinuationText.arrived(it, fromPage)) }
+                                val printed = cutName?.let { PcSheetV11ContinuationText.arrived(it, fromPage) }
+                                    ?: PcSheetV11ContinuationText.arrived("", fromPage).removePrefix(" / ")
                                 require(bodyPdfFont.getStringWidth(pcSheetV11PrintableText(printed)) *
                                     fontSize / 1000f <= col.widthPt - 6f)
                                 stream.saveGraphicsState()
@@ -3345,6 +3351,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     it.sourceKey in c2PairRows
                             }
                             val fromP1 = pageCells.any {
+                                // C468 (review of preqa.12, H5): ACCIONES and RECURSOS have no P1 module.
+                                !it.sourceKey.startsWith("action") && !it.sourceKey.startsWith("resource:") &&
+                                    it.sourceKey != "c2-heading:actions" && it.sourceKey != "c2-heading:resources" &&
                                 !it.sourceKey.startsWith("p2-trait:") &&
                                     it.sourceKey !in c2P2HeadingKeys && it.sourceKey !in c2PairRows &&
                                     !it.sourceKey.startsWith("c2-story:") &&
@@ -5265,10 +5274,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 // the label of its position in the golden ladder. No object is created.
                 val manualSpecialLocations = listOf("Cabeza", "Rostro", "Cuello", "Mano izquierda",
                     "Mano derecha", "Pecho", "Piernas", "Libre")
+                // C468 (review of preqa.12, H7): a place an object already uses is not repeated.
+                val freeSpecialLocations = manualSpecialLocations.filterNot { label ->
+                    specialP2Rows.any { (item, _) -> item.location?.trim().equals(label, ignoreCase = true) }
+                }
                 repeat(specialBands.size) { rowIndex ->
                     val rowTop = specialBandTops[rowIndex]
                     if (rowIndex >= specialP2Rows.size) {
-                        manualSpecialLocations.getOrNull(rowIndex)?.let { location ->
+                        freeSpecialLocations.getOrNull(rowIndex - specialP2Rows.size)?.let { location ->
                             stream.setNonStrokingColor(Color(38, 75, 104)) // C343 golden ink
                             stream.beginText()
                             stream.setFont(bodyPdfFont, specialColumnFonts[0].metrics.fontSizePt)
@@ -5413,14 +5426,15 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             // golden cartela never stands alone at the foot of a column. Only
             // records without their own source group are joined to it.
             fun MutableList<PcSheetV11FlowItem>.addHeaded(
-                heading: PcSheetV11FlowItem, items: List<PcSheetV11FlowItem>,
+                heading: PcSheetV11FlowItem, items: List<PcSheetV11FlowItem>, keepRows: Int = 1,
             ) {
                 val first = items.firstOrNull()
                 if (first != null && first.groupKey == null) {
                     val key = "c2-keep:" + heading.sourceKey
+                    val kept = items.take(keepRows).takeWhile { it.groupKey == null }
                     add(heading.copy(groupKey = key))
-                    add(first.copy(groupKey = key))
-                    addAll(items.drop(1))
+                    kept.forEach { add(it.copy(groupKey = key)) }
+                    addAll(items.drop(kept.size))
                 } else {
                     add(heading)
                     addAll(items)
@@ -5562,12 +5576,13 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         lineExtrasPt = c2CartelaExtra), ammunitionLines)
                 }
                 if (equipmentC2Items.isNotEmpty()) {
+                    // C468 (review of preqa.12, H6): the table starts with at least three rows together.
                     addHeaded(PcSheetV11FlowItem("c2-heading:equipment", "EQUIPO", keepTogetherIfFits = true,
-                        lineExtrasPt = c2CartelaExtra), equipmentC2Items)
+                        lineExtrasPt = c2CartelaExtra), equipmentC2Items, keepRows = 3)
                 }
                 if (treasureC2Items.isNotEmpty()) {
                     addHeaded(PcSheetV11FlowItem("c2-heading:treasure", "TESORO", keepTogetherIfFits = true,
-                        lineExtrasPt = c2CartelaExtra), treasureC2Items)
+                        lineExtrasPt = c2CartelaExtra), treasureC2Items, keepRows = 3)
                 }
                 if (remainingTraits.isNotEmpty()) {
                     // Source-accurate P2 continuation follows the P1 streams
@@ -5580,38 +5595,6 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 if (p3StoryOverflow.isNotEmpty()) {
                     addHeaded(PcSheetV11FlowItem("c2-heading:story", "HISTORIA",
                         keepTogetherIfFits = true, lineExtrasPt = c2CartelaExtra), p3StoryOverflow)
-                }
-            }
-            // C464 (golden extremo B p5; review of preqa.11, M2): EQUIPO ESPECIAL that continues
-            // goes after EQUIPO and TESORO, at full width, and RASGOS and HISTORIA follow under it.
-            val afterSpecialStart = mixedC2.indexOfFirst {
-                it.sourceKey == "c2-heading:traits" || it.sourceKey == "c2-heading:story"
-            }.takeIf { specialDeferredToC2.isNotEmpty() && it >= 0 }
-            val mixedAfterSpecial = afterSpecialStart?.let { mixedC2.drop(it) }.orEmpty()
-            val mixedBeforeSpecial = afterSpecialStart?.let { mixedC2.take(it) } ?: mixedC2
-            // C323: golden C2 columns 39.69..301.04 and 310.96..572.32 (9.92 pt gutter).
-            addSection("C2 - Habilidades, acciones y recursos",
-                PcSheetV11FlowSection.TRAITS,
-                mixedBeforeSpecial, columns = 2, ammunitionTracks = ammunitionTracks,
-                // C324: content starts at the golden first-cartela top (y685.7).
-                area = PcSheetV11RectPt(39.69f, c2FootPt, 532.63f, 685.7f - c2FootPt),
-                gutterPt = 9.92f, font = c2Font)
-            // C253/C258: golden P3 footer "HISTORIA A P. 6": each continued P3
-            // field by its own name (owner 2026-10-28) and the story, with the
-            // first real physical page of each, on the module-link band.
-            // C341: «IDEALES CONTINÚA EN PÁG. 4 · HISTORIA CONTINÚA EN PÁG. 5».
-            val p3ModuleLinks = PcSheetV11ContinuationText.moduleLinks(
-                p3FieldSpecs.indices.mapNotNull { index ->
-                    p3FieldHeadingPages["p3-field-heading:" + index]?.let {
-                        p3FieldSpecs[index].first to it
-                    }
-                } + listOfNotNull(
-                    mixedC2HeadingPages["c2-heading:story"]?.let { "HISTORIA" to it },
-                ),
-            )
-            if (p3ModuleLinks != null) {
-                require(headerPdfFont.getStringWidth(p3ModuleLinks) * 6.1f / 1000f <= 528f) {
-                    "All genuine P3 continuation destinations must fit the footer band."
                 }
             }
 
@@ -5695,6 +5678,52 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             }
             // C457 (golden comparador p5; §3.29): the full-width table takes the free foot of the
             // last shared C2 sheet when all of it fits there; otherwise it gets its own sheet.
+            // C464 (golden extremo B p5; review of preqa.11, M2): EQUIPO ESPECIAL that continues
+            // goes after EQUIPO and TESORO, at full width, and RASGOS and HISTORIA follow under it.
+            // C468 (§3.32, review of preqa.12, H2): when the table fits at the foot of the last
+            // shared sheet with its columns made shorter there, every module shares the sheets.
+            val c2MixedArea = PcSheetV11RectPt(39.69f, c2FootPt, 532.63f, 685.7f - c2FootPt)
+            fun c2MixedPages(reserve: Map<Int, Float>) = c2Font.copy(width = PcSheetV11TextWidth { text ->
+                c2Font.width.measurePt(text) + 2f * 4.25f
+            }).place(PcSheetV11FlowSection.TRAITS, mixedC2, c2MixedArea, 2, 9.92f, 0f, reserve).sourceFlow.localPageCount
+            val specialFootReserve: Map<Int, Float> = c2SpecialPages.singleOrNull()
+                ?.takeIf { specialDeferredToC2.isNotEmpty() && mixedC2.isNotEmpty() }
+                ?.let { fragments -> fragments.sumOf { it.heightPt.toDouble() }.toFloat() + 24.94f + 8f + 4f }
+                ?.let { need ->
+                    val pages = c2MixedPages(emptyMap())
+                    mapOf(pages to need).takeIf { need < c2MixedArea.heightPt - 60f && c2MixedPages(it) == pages }
+                }.orEmpty()
+            val afterSpecialStart = mixedC2.indexOfFirst {
+                it.sourceKey == "c2-heading:traits" || it.sourceKey == "c2-heading:story"
+            }.takeIf { specialDeferredToC2.isNotEmpty() && it >= 0 && specialFootReserve.isEmpty() }
+            val mixedAfterSpecial = afterSpecialStart?.let { mixedC2.drop(it) }.orEmpty()
+            val mixedBeforeSpecial = afterSpecialStart?.let { mixedC2.take(it) } ?: mixedC2
+            // C323: golden C2 columns 39.69..301.04 and 310.96..572.32 (9.92 pt gutter).
+            addSection("C2 - Habilidades, acciones y recursos",
+                PcSheetV11FlowSection.TRAITS,
+                mixedBeforeSpecial, columns = 2, ammunitionTracks = ammunitionTracks,
+                pageBottomReservePt = specialFootReserve,
+                // C324: content starts at the golden first-cartela top (y685.7).
+                area = PcSheetV11RectPt(39.69f, c2FootPt, 532.63f, 685.7f - c2FootPt),
+                gutterPt = 9.92f, font = c2Font)
+            // C253/C258: golden P3 footer "HISTORIA A P. 6": each continued P3
+            // field by its own name (owner 2026-10-28) and the story, with the
+            // first real physical page of each, on the module-link band.
+            // C341: «IDEALES CONTINÚA EN PÁG. 4 · HISTORIA CONTINÚA EN PÁG. 5».
+            val p3ModuleLinks = PcSheetV11ContinuationText.moduleLinks(
+                p3FieldSpecs.indices.mapNotNull { index ->
+                    p3FieldHeadingPages["p3-field-heading:" + index]?.let {
+                        p3FieldSpecs[index].first to it
+                    }
+                } + listOfNotNull(
+                    mixedC2HeadingPages["c2-heading:story"]?.let { "HISTORIA" to it },
+                ),
+            )
+            if (p3ModuleLinks != null) {
+                require(headerPdfFont.getStringWidth(p3ModuleLinks) * 6.1f / 1000f <= 528f) {
+                    "All genuine P3 continuation destinations must fit the footer band."
+                }
+            }
             var specialReuse: Pair<Int, Float>? = null
             val specialFootTop = mixedC2LastPageIndex?.takeIf { c2SpecialPages.size == 1 }?.let {
                 val tableTop = mixedC2LastCells.minOf { cell -> cell.cellPt.bottomPt } - 8f - 24.94f
@@ -5874,6 +5903,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             if (specialSharedMixedPage == null) mixedC2LastPageIndex?.let { pageIndex ->
                 PDPageContentStream(pdf, pdf.getPage(pageIndex), PDPageContentStream.AppendMode.APPEND, true, true).use { stream ->
                     fillUnusedC2WithNotes(stream, mixedC2LastCells)
+                }
+            } else if (specialFootTop != null) mixedC2LastPageIndex?.let { pageIndex ->
+                // C468 (review of preqa.12, H1; contract C207): free paper above the table gets NOTAS.
+                PDPageContentStream(pdf, pdf.getPage(pageIndex), PDPageContentStream.AppendMode.APPEND, true, true).use { stream ->
+                    fillUnusedC2WithNotes(stream, mixedC2LastCells, floorPt = specialFootTop + 24.94f + 8f)
                 }
             }
             if (mixedAfterSpecial.isNotEmpty()) {
@@ -6250,7 +6284,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 "c2-heading:resources", "c2-heading:ammunition")
             val p1ModuleLinks = listOf(
                 "c2-heading:p1-overflow" to "PERSONAJE",
-                "c2-heading:skills" to "HABILIDADES",
+                "c2-heading:skills" to "ATRIBUTOS Y HABILIDADES", // C468: golden extremo A p1
                 "c2-heading:vitals" to "COMBATE",
                 "c2-heading:combat" to "ATAQUES",
                 "c2-heading:slots" to "CONJUROS",

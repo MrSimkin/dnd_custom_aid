@@ -6230,6 +6230,25 @@
       ]
     },
     {
+      "id": "C219",
+      "area": "C2",
+      "obligation": "Equipo Especial al pie de la última hoja compartida si cabe acortando sus columnas; NOTAS en el papel libre sobre él; la continuación del Libro conserva el nombre del conjuro; la banda de P1 usa el título del golden; ACCIONES y RECURSOS sin enlace con P1; un módulo en pares no abre con menos de tres filas; las filas vacías de Especial no repiten un lugar ocupado",
+      "authority": "D-0076 §3.29, §3.32, §3.48; contrato C207 y C341; golden extremo A p1; ACTA_REVISION_INDEPENDIENTE_PREQA12.md H1 a H7",
+      "method": "PDF texto y posición",
+      "scenarios": "Ficha de estrés A y B, Mara B, Aldren A",
+      "status": "NOT_VERIFIED",
+      "evidence": null,
+      "stage_checks": [
+        {
+          "stage": "G3",
+          "scope": "PDFBox App real: texto físico, geometría, recursos, A/B, Android/Desktop",
+          "test_target": "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt",
+          "status": "NOT_VERIFIED",
+          "evidence": null
+        }
+      ]
+    },
+    {
       "id": "P412",
       "area": "P4",
       "obligation": "Cada cabecera de nivel de P4 dibuja las mismas casillas vacías que P1 (4, 3, 3, 3, 4, 2, 2, 1, 1), en una línea",

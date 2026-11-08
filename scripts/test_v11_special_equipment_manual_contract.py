@@ -20,7 +20,8 @@ class SpecialEquipmentPaperContractTest(unittest.TestCase):
             # D-0076 §3.21: one ACTIVO square per band (real entry or free row).
             self.assertIn("repeat(specialBands.size) { rowIndex ->", body)
             self.assertIn("specialBands[rowIndex] * specialRowHeight / 2f", body)
-            self.assertIn("manualSpecialLocations.getOrNull(rowIndex)", body)
+            # C468 (review of preqa.12, H7): the golden places no object already uses.
+            self.assertIn("freeSpecialLocations.getOrNull(rowIndex - specialP2Rows.size)", body)
             self.assertIn("specialP2Rows.getOrNull(rowIndex)?.first?.active == true", body)
             self.assertIn("stream.addRect(activeX, activeY, activeBox, activeBox)", body)  # C343
             sections.append(re.sub(r"\\s+", " ", body))

@@ -1095,7 +1095,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         assertTrue(steps.max() - steps.min() < 0.05f && steps.first() in 15f..16.5f,
                             "Regular golden grid pitch on page ${index + 1} ($variant): $xs")
                         // Whole cells only: no further 16 pt cell fits above the golden C2 foot (C397: y59.53).
-                        assertTrue(vertical.minOf { minOf(it.y0, it.y1) } - 59.53f < 16f,
+                        // C468: above a full-width EQUIPO ESPECIAL at the foot, the grid stops over its cartela.
+                        assertTrue(vertical.minOf { minOf(it.y0, it.y1) } - 59.53f < 16f || text.contains("EQUIPO ESPECIAL"),
                             "The grid reaches the page-area foot on page ${index + 1} ($variant).")
                         checked++
                     }
@@ -1406,6 +1407,52 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertTrue(whole.contains(it), "$it prints ($variant).")
                 }
             }
+        }
+    }
+
+    @Test
+    fun c468FixesOfTheReviewOfPreqa12AB() {
+        // C468 / C219 (review of preqa.12, H1-H7; §3.29, §3.32, §3.48, C207, C341).
+        val stress = sources("04_estres_v11_android.json")
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val bytes = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT, includeSpellDescriptions = true), stress).bytes
+            preserveRealApplicationPdf(bytes, "V11-INTERNAL-PROOF-C468-review-fixes-$variant.pdf")
+            Loader.loadPDF(bytes).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                // H2: EQUIPO ESPECIAL at the foot of the shared sheet when it fits there.
+                val special = c2ModulePages(pages, "EQUIPO ESPECIAL")
+                assertEquals(c2ModulePages(pages, "TESORO"), special, "EQUIPO ESPECIAL shares the TESORO sheet ($variant).")
+                // H3: every Libro continuation names its spell.
+                val book = pages.filter { it.contains("Libro de conjuros /") }.joinToString("\n")
+                assertFalse(book.lines().any { it.trim() == "CONTINUACIÓN" }, "No continuation without a name ($variant).")
+                assertTrue(Regex("QALARGO[^\\n]* / (CONTINUACIÓN|VIENE DE PÁG\\. \\d+)").containsMatchIn(book), "The long card keeps its name ($variant).")
+            }
+        }
+        val mara = sources("03_mara_siete_umbrales_custom_extended.json")
+        Loader.loadPDF(DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.B, PcSheetExportStateSelection.PERMANENT), mara).bytes).use { pdf ->
+            val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf).replace(Regex("\\s+"), " ")
+            // H1: Mara B's free right column above EQUIPO ESPECIAL is NOTAS.
+            val maraPages = (1..pdf.numberOfPages).map { n -> PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf) }
+            val specialPage = c2ModulePages(maraPages, "EQUIPO ESPECIAL").single()
+            assertTrue(maraPages[specialPage - 1].lines().any { it.trim() == "NOTAS" }, "NOTAS over the free column.")
+            // H4: the golden title of the module that continues.
+            assertTrue(p1.contains("ATRIBUTOS Y HABILIDADES CONTIN"), "P1 band names ATRIBUTOS Y HABILIDADES.")
+        }
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        Loader.loadPDF(DesktopPcSheetExportService().generateV11Proof(
+            PcSheetV11ExportRequest(PcSheetV11Variant.A, PcSheetExportStateSelection.PERMANENT), aldren).bytes).use { pdf ->
+            val pages = (1..pdf.numberOfPages).map { n -> PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf) }
+            // H5: ACCIONES and RECURSOS do not link P1 and C2.
+            assertFalse(pages.any { it.contains("MÓDULOS COMPARTIDOS") && it.contains("VIENE DE PÁG. 1") }, "No P1 origin.")
+            // H7: an empty special row never repeats a place an object uses.
+            val used = aldren.permanent.sheet.inventoryItems.filter { it.special }.mapNotNull { it.location?.trim() }.toSet()
+            val labels = pages[1].lines().map { it.trim() }.filter { it in setOf("Cabeza", "Rostro", "Cuello", "Mano izquierda", "Mano derecha", "Pecho", "Piernas", "Libre") }
+            assertEquals(labels.size, labels.toSet().size, "No place printed twice: $labels")
+            assertTrue(used.isNotEmpty())
         }
     }
 
@@ -1910,7 +1957,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             Loader.loadPDF(long).use { pdf ->
                 val printed = PDFTextStripper().getText(pdf)
                 assertTrue(printed.contains("FIN-LARGO"), "The whole card prints ($variant).")
-                assertTrue(printed.lines().any { it.trim() == "CONTINUACIÓN" }, "It has its plain mark ($variant).")
+                // C468 (§3.48, C341): the name, cut where it stops fitting, and where it comes from.
+                assertTrue(Regex("""Conjuro de nombre[^\n]* / (CONTINUACIÓN|VIENE DE PÁG\. \d+)""").containsMatchIn(printed),
+                    "It keeps the spell's name ($variant).")
                 assertFalse(printed.contains("ÍNDICE"), "No mention of an index ($variant).")
             }
         }
@@ -2168,9 +2217,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val p2 = PDFTextStripper().apply { startPage = 2; endPage = 2 }.getText(pdf)
                     .replace(Regex("""\s+"""), " ")
                 val onBand = Regex("""CONTINÚAN? EN PÁG\. (\d+)""").findAll(p2).map { it.groupValues[1].toInt() }.toSet()
-                assertTrue(onBand.size >= 2, "The fixture continues on several pages ($variant): $p2")
-                val foot = Regex("""CONTINÚA EN PÁG\. ([\d, ]+ Y \d+)""").find(p2)
-                assertTrue(foot != null, "The foot names several pages ($variant).")
+                // C468: Mara's P2 modules may now continue on one shared sheet.
+                assertTrue(onBand.isNotEmpty(), "The fixture continues ($variant): $p2")
+                val foot = Regex("""CONTINÚA EN PÁG\. (\d+(?:(?:, | Y )\d+)*)""").findAll(p2).lastOrNull()
+                assertTrue(foot != null, "The foot names its pages ($variant).")
                 val named = Regex("""\d+""").findAll(foot!!.groupValues[1]).map { it.value.toInt() }.toSet()
                 assertEquals(onBand, named, "Foot and band name the same pages ($variant).")
             }
@@ -3621,8 +3671,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 .containsMatchIn(commands),
                 "Source-backed mixed C2 requires a distinct clipped blue " +
                     "NOTAS heading above a complete physical manuscript grid.")
-            assertTrue(text.contains("VIENE DE PÁG. 1"),
-                "C2 cartelas cannot disturb genuine physical P1 backlinks.")
+            // C468 (review of preqa.12, H5): Ilyra's C2 holds only ACCIONES and RECURSOS, which never were on P1.
+            assertFalse(text.contains("VIENE DE PÁG. 1"),
+                "C2 cartelas cannot invent a P1 backlink.")
             if (text.contains("RASGOS / CONTINUACIÓN")) {
                 assertTrue(2 in cameFromPages(text),
                     "Only a C2 that actually contains deferred P2 Rasgos may cite P2.")
@@ -6486,10 +6537,10 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val realBookPages = sections.filter {
                 it.contains("Libro de conjuros /")
             }
-            assertTrue(realBookPages.joinToString("\n").contains("CONTINUACIÓN: Fire Bolt"),
+            assertTrue(Regex("""Fire Bolt / (CONTINUACIÓN|VIENE DE PÁG\. \d+)""").containsMatchIn(realBookPages.joinToString("\n")),
                 "An oversized source-backed card must identify the real spell in its next column.")
             val continuationMarks = realBookPages.sumOf { pageText ->
-                Regex("CONTINUACIÓN: Fire Bolt").findAll(pageText).count()
+                Regex("""Fire Bolt / (CONTINUACIÓN|VIENE DE PÁG\. \d+)""").findAll(pageText).count()
             }
             assertTrue(continuationMarks >= 2,
                 "A multi-page card must label more than one physical continuation.")
@@ -7492,7 +7543,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val bookPages = pageTexts.filter { it.contains("Libro de conjuros /") }
                 assertTrue(bookPages.any { it.contains("BOOK_TAB_START") })
                 assertTrue(bookPages.any { it.contains("BOOK_TAB_FINISH") })
-                assertTrue(bookPages.any { it.contains("CONTINUACIÓN: QA7") },
+                // C468 (C341, §3.48): «NOMBRE / CONTINUACIÓN» or «NOMBRE / VIENE DE PÁG. n».
+                assertTrue(bookPages.any { Regex("""QA7[^\n]* / (CONTINUACIÓN|VIENE DE PÁG\. \d+)""").containsMatchIn(it) },
                     "A continued source-backed spell name containing a tab needs a safe PDF heading.")
                 assertTrue(pageTexts.last().lineSequence().any { it.trim() == "NOTAS" })
                 assertFalse(pageTexts.last().contains("TRAITTAB") ||
@@ -7775,7 +7827,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         val headings = mapOf(
             "PERSONAJE" to "PERSONAJE",
             "ACCIONES" to "ACCIONES",
-            "HABILIDADES" to "ATRIBUTOS Y HABILIDADES",
+            "ATRIBUTOS Y HABILIDADES" to "ATRIBUTOS Y HABILIDADES", // C468 (golden extremo A p1)
             "ATAQUES" to "ATAQUES",
             "RECURSOS" to "RECURSOS",
         )
@@ -9180,7 +9232,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 // long notes a second C-N3 page; C423: her equipment and special equipment
                 // share a page, as in the golden (10). The header itself adds none. C464: in B,
                 // the remaining EQUIPO, EQUIPO ESPECIAL and RASGOS share one sheet (9).
-                assertEquals(if (variant == PcSheetV11Variant.A) 10 else 9, pages.size,
+                // C468 (§3.32): EQUIPO ESPECIAL at the foot of the last shared sheet saves Mara A one more.
+                assertEquals(9, pages.size,
                     "A source-only C2 header must not create or remove pages.")
                 val c2Indices = pages.indices.filter {
                     pages[it].contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
@@ -9242,8 +9295,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     it.contains("MÓDULOS COMPARTIDOS · DOS COLUMNAS")
                 } + 1
                 assertTrue(mixedPhysical > 0)
-                assertTrue(pages[0].contains("CONTINÚA EN PÁG. " + mixedPhysical))
-                assertTrue(pages[mixedPhysical - 1].contains("VIENE DE PÁG. 1"))
+                // C468 (review of preqa.12, H5): only a sheet with a P1 module comes from P1.
+                if (fixture.contains("mara")) {
+                    assertTrue(pages[0].contains("CONTINÚA EN PÁG. " + mixedPhysical))
+                    assertTrue(pages[mixedPhysical - 1].contains("VIENE DE PÁG. 1"))
+                } else {
+                    assertFalse(pages[mixedPhysical - 1].contains("VIENE DE PÁG. 1"), "ACCIONES and RECURSOS come from no page.")
+                }
                 if (fixture.contains("mara")) {
                     // C259: P2 points to the first mixed C2 page with its traits.
                     val p2Physical = pages.indexOfFirst { it.contains("RASGOS / CONTINUACIÓN") } + 1

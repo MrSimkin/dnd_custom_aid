@@ -8,14 +8,14 @@
 
 | Id | Hallazgo | Estado | Qué falta |
 |---|---|---|---|
-| H1 | Columna en blanco sin NOTAS en hojas de C2 (regresión) | Abierto | Corregir |
-| H2 | Equipo Especial en su propia hoja aunque cabría en la anterior | Abierto | Corregir |
-| H3 | Ficha larga del Libro pierde el nombre al continuar | Abierto | Corregir |
-| H4 | «HABILIDADES CONTINÚA» cuando solo sigue un atributo | Abierto | Corregir |
-| H5 | Enlace de P1 a una hoja que solo tiene ACCIONES y RECURSOS | Abierto | Corregir |
-| H6 | Equipo empieza con una sola fila al pie | Abierto | Corregir |
-| H7 | Fila vacía de Equipo Especial repite una ubicación ocupada | Abierto | Corregir |
-| H8 | «Clase —» en las tarjetas mágicas | Abierto | Corregir |
+| H1 | Columna en blanco sin NOTAS en hojas de C2 (regresión) | Corregido en C468 | Falta que el revisor lo confirme |
+| H2 | Equipo Especial en su propia hoja aunque cabría en la anterior | Corregido en C468 | Mara A y la ficha de estrés usan una hoja menos. Falta que el revisor lo confirme |
+| H3 | Ficha larga del Libro pierde el nombre al continuar | Corregido en C468 | Forma de C341, nombre cortado donde deja de caber. Falta que el revisor lo confirme |
+| H4 | «HABILIDADES CONTINÚA» cuando solo sigue un atributo | Corregido en C468 | Falta que el revisor lo confirme |
+| H5 | Enlace de P1 a una hoja que solo tiene ACCIONES y RECURSOS | Corregido en C468 | Falta que el revisor lo confirme |
+| H6 | Equipo empieza con una sola fila al pie | Corregido en C468 | Al menos tres filas juntas. Falta que el revisor lo confirme |
+| H7 | Fila vacía de Equipo Especial repite una ubicación ocupada | Corregido en C468 | Falta que el revisor lo confirme |
+| H8 | «Clase —» en las tarjetas mágicas | Sin cambio, a propósito | El guion dice que no hay valor guardado (regla C221) |
 | H9 | Nombre largo cortado al mismo ancho en todas las hojas | Informativo | Ver con la cabecera |
 | M2, M5, M9 | Cerrados en parte | Abierto | Siguen en H1, H2, H5 y H8 |
 | M12 | Alcance que sigue en C2 como renglón | Abierto | Sin golden para el caso |
