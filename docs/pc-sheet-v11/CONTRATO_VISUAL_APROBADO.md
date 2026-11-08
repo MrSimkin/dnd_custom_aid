@@ -326,3 +326,10 @@ Aplica D-0076 §3.29, §3.32 y §3.48, el contrato C207 y C341 y el golden, sin 
 - **Equipo y Tesoro en C2:** no abren con menos de tres filas al pie de una columna.
 - **Filas vacías de Equipo Especial:** los rótulos del golden que ningún objeto usa, en su orden.
 - **«Clase —» en las tarjetas mágicas:** se mantiene. El guion dice que esa fuente no tiene valor guardado; es la regla C221 y su prueba.
+
+## Decisión del propietario — QA sin más revisiones independientes (2026-11-08)
+
+**Dicho por el propietario:** «no, estamos dando mil vueltas en revisiones independientes, es hora de; preparar 3 PJs para probar, darme el APK, preparar el QA».
+
+- **Consecuencia:** `0.5.0-preqa.13` (build 51300, `bdfdaa29`) se entrega para el QA del propietario sin revisión independiente de ese candidato y sin pasar el control final (G4). Es una excepción explícita del propietario a la entrada a QA de `PROCEDIMIENTO_QA_SIN_PERDIDA.md` y de G4. No cambia la regla de promoción: la fusión sigue necesitando la aceptación del propietario de cada observación.
+- **Detalle técnico del Worker (no dicho por el propietario):** los tres PJ son Aldren, Ilyra y Mara, las fichas reales de QA, porque cubren la ficha ordinaria, la de conjuros con Libro y la extrema. Ronda: `qa/rondas/QA-PREQA13.md`.

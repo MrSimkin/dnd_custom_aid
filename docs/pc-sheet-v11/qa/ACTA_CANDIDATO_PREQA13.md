@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-11-08. **Hecha por:** el Worker, que también implementa el renderizador, así que **esto no es la revisión independiente**.
 
-**Estado:** falta la revisión independiente. Este binario **no se ofrece al propietario** hasta pasar el control final.
+**Estado:** entregado al propietario para su QA el 2026-11-08, **sin** revisión independiente ni control final, por decisión suya: «no, estamos dando mil vueltas en revisiones independientes, es hora de; preparar 3 PJs para probar, darme el APK, preparar el QA». Guía: `GUIA_QA_PROPIETARIO_PREQA13.md`.
 
 ## Identidad
 
