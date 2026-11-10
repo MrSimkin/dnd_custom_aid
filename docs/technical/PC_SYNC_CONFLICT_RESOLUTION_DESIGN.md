@@ -20,3 +20,4 @@
 | # | Pregunta | Respuesta literal | Regla |
 |---|---|---|---|
 | D1 | Cuando un dato cambió en los dos lados (rojo), ¿cómo se decide? | «Elijo un lado entero» | «Juntar los cambios» toma los azules del aparato y los verdes del servidor. Si hay datos en rojo, pide elegir **aparato o servidor para todos los rojos juntos**; no se elige dato por dato. |
+| D2 | ¿Guardamos una copia de la versión que se descarta? | «Sí, guardar copia» | Al resolver, la versión descartada (entera o sus datos en rojo) se guarda como copia de respaldo local, visible en Ajustes del PJ → Copias anteriores, con Ver, Restaurar y Exportar JSON. Restaurar crea una versión nueva que se sincroniza como un cambio más; no borra nada. |
