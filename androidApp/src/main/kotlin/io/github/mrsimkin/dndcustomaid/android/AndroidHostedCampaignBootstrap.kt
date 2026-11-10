@@ -19,6 +19,10 @@ import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedOutboxRepository
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcPullConflict
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcSnapshot
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcSnapshotPullService
+import io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncResult
+import io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncScope
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedDmContentSyncService
+import io.github.mrsimkin.dndcustomaid.shared.hosted.dmContentSyncScopes
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcSnapshotQueueService
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcSyncBaselineRepository
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRetryState
@@ -43,6 +47,7 @@ internal enum class AndroidHostedSyncPhase {
     QUEUE_LOCAL_PC_SNAPSHOTS,
     SECOND_DELIVERY,
     FINAL_PC_PULL,
+    DM_CONTENT_SYNC,
 }
 
 internal data class AndroidQueuedHostedCampaignCreation(
@@ -68,6 +73,10 @@ internal sealed interface AndroidHostedCampaignBootstrapOutcome {
         val queuedPcSnapshotCount: Int,
         val campaignDiagnostics: List<AndroidHostedCampaignSyncDiagnostic>,
         val pcConflictDiagnostics: List<AndroidHostedPcConflictDiagnostic>,
+        /** Base para DM, package 1: null when the account runs no campaign as DM. */
+        val dmContent: DmContentSyncResult? = null,
+        /** Set when DM content could not sync; PC results above remain valid. */
+        val dmContentError: String? = null,
     ) : AndroidHostedCampaignBootstrapOutcome
 
     data object NoRememberedSession : AndroidHostedCampaignBootstrapOutcome
@@ -116,6 +125,7 @@ internal class AndroidHostedCampaignBootstrapController(
         database = database,
         api = apiClient,
     )
+    private val dmContentSync = HostedDmContentSyncService(database, apiClient)
 
     fun hasRememberedSession(): Boolean =
         Descope.sessionManager.session?.refreshToken?.isExpired == false
@@ -299,7 +309,27 @@ internal class AndroidHostedCampaignBootstrapController(
                 )
             }
 
+            // Base para DM, package 1: the tablet receives (and sends) DM content only for an
+            // account that runs at least one campaign as DM. A failure here never hides the PC
+            // results above; DM content keeps its own durable queue for the next pass.
+            phase = AndroidHostedSyncPhase.DM_CONTENT_SYNC
+            val dmScopes = dmContentSyncScopes(database, campaignResult.account.id)
+            var dmContentResult: DmContentSyncResult? = null
+            var dmContentError: String? = null
+            if (dmScopes.any { it is DmContentSyncScope.Campaign }) {
+                try {
+                    dmContentResult = dmContentSync.synchronize(dmScopes, currentEpochSeconds())
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: Exception) {
+                    dmContentError = (error as? HostedApiException)?.let { "HTTP ${it.statusCode} / ${it.code.name}" }
+                        ?: (error::class.simpleName ?: "Exception")
+                }
+            }
+
             AndroidHostedCampaignBootstrapOutcome.Success(
+                dmContent = dmContentResult,
+                dmContentError = dmContentError,
                 hostedCampaignCount = campaignResult.hostedCampaignCount,
                 eligibleCampaignCount = eligibleCampaignIds.size,
                 appliedCampaignCount = campaignResult.appliedCampaignIds.size,

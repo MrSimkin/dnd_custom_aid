@@ -158,13 +158,13 @@ class HomebrewRuleContentRepository(
         return reusableContent.tombstone(id, expectedRevision, deletedAtEpochSeconds)
     }
 
-    private fun payload(id: Uuid): HomebrewRulePayload? =
+    internal fun payload(id: Uuid): HomebrewRulePayload? =
         database.homebrewRulePayloadQueries.selectHomebrewRulePayloadByContentId(
             content_id = id.toString(),
             mapper = ::mapPayload,
         ).executeAsOneOrNull()
 
-    private fun insertPayload(id: Uuid, payload: HomebrewRulePayload) {
+    internal fun insertPayload(id: Uuid, payload: HomebrewRulePayload) {
         database.homebrewRulePayloadQueries.insertHomebrewRulePayload(
             content_id = id.toString(),
             summary = payload.summary,
@@ -179,7 +179,7 @@ class HomebrewRuleContentRepository(
         )
     }
 
-    private fun updatePayloadRow(id: Uuid, payload: HomebrewRulePayload) {
+    internal fun updatePayloadRow(id: Uuid, payload: HomebrewRulePayload) {
         database.homebrewRulePayloadQueries.updateHomebrewRulePayload(
             summary = payload.summary,
             body = payload.body,

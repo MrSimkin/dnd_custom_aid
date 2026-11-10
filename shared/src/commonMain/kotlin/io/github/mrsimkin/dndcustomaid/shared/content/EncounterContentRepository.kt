@@ -230,13 +230,13 @@ class EncounterContentRepository(
         }
     }
 
-    private fun payload(id: Uuid): EncounterPayload? =
+    internal fun payload(id: Uuid): EncounterPayload? =
         database.encounterPayloadQueries.selectEncounterPayloadByContentId(
             content_id = id.toString(),
             mapper = ::mapPayload,
         ).executeAsOneOrNull()
 
-    private fun insertPayload(id: Uuid, payload: EncounterPayload) {
+    internal fun insertPayload(id: Uuid, payload: EncounterPayload) {
         database.encounterPayloadQueries.insertEncounterPayload(
             content_id = id.toString(),
             summary = payload.summary,
@@ -249,7 +249,7 @@ class EncounterContentRepository(
         )
     }
 
-    private fun updatePayloadRow(id: Uuid, payload: EncounterPayload) {
+    internal fun updatePayloadRow(id: Uuid, payload: EncounterPayload) {
         database.encounterPayloadQueries.updateEncounterPayload(
             summary = payload.summary,
             environment = payload.environment,

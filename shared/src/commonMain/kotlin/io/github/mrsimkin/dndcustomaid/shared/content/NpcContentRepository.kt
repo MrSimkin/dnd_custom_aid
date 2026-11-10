@@ -158,13 +158,13 @@ class NpcContentRepository(
         return reusableContent.tombstone(id, expectedRevision, deletedAtEpochSeconds)
     }
 
-    private fun payload(id: Uuid): NpcPayload? =
+    internal fun payload(id: Uuid): NpcPayload? =
         database.npcPayloadQueries.selectNpcPayloadByContentId(
             content_id = id.toString(),
             mapper = ::mapPayload,
         ).executeAsOneOrNull()
 
-    private fun insertPayload(id: Uuid, payload: NpcPayload) {
+    internal fun insertPayload(id: Uuid, payload: NpcPayload) {
         database.npcPayloadQueries.insertNpcPayload(
             content_id = id.toString(),
             concept_role = payload.conceptRole,
@@ -193,7 +193,7 @@ class NpcContentRepository(
         )
     }
 
-    private fun updatePayloadRow(id: Uuid, payload: NpcPayload) {
+    internal fun updatePayloadRow(id: Uuid, payload: NpcPayload) {
         database.npcPayloadQueries.updateNpcPayload(
             concept_role = payload.conceptRole,
             appearance_first_impression = payload.appearanceFirstImpression,

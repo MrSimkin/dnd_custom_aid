@@ -158,13 +158,13 @@ class ZoneContentRepository(
         return reusableContent.tombstone(id, expectedRevision, deletedAtEpochSeconds)
     }
 
-    private fun payload(id: Uuid): ZonePayload? =
+    internal fun payload(id: Uuid): ZonePayload? =
         database.zonePayloadQueries.selectZonePayloadByContentId(
             content_id = id.toString(),
             mapper = ::mapPayload,
         ).executeAsOneOrNull()
 
-    private fun insertPayload(id: Uuid, payload: ZonePayload) {
+    internal fun insertPayload(id: Uuid, payload: ZonePayload) {
         database.zonePayloadQueries.insertZonePayload(
             content_id = id.toString(),
             summary = payload.summary,
@@ -184,7 +184,7 @@ class ZoneContentRepository(
         )
     }
 
-    private fun updatePayloadRow(id: Uuid, payload: ZonePayload) {
+    internal fun updatePayloadRow(id: Uuid, payload: ZonePayload) {
         database.zonePayloadQueries.updateZonePayload(
             summary = payload.summary,
             area = payload.area,

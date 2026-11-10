@@ -43,4 +43,26 @@ Literal: «A, B y D en ese orden y eso irá en el siguiente QA, que es la Base p
 
 El diseño de la «Base para DM» quedó cerrado con 24 respuestas del propietario (P1–P24) en `docs/technical/BASE_DM_REVISION_Y_PROPUESTAS.md`.
 
-**Siguiente paso:** construir el paquete 1, sincronizar el contenido del DM (App de PC → servidor → tablet), en una rama corta desde `main`. Después siguen los paquetes 2 a 8 de la sección 7 de ese documento, y al final un solo QA del propietario.
+**Paquete 1 (sincronizar el contenido del DM): implementado** en la rama `feature/dm-content-sync`. El detalle está en `docs/technical/DM_CONTENT_SYNC.md`, e incluye:
+
+- migración Neon `0002_dm_content.sql` y su prueba SQL `0008`;
+- rutas del Worker;
+- SQLDelight 28 y el servicio Shared;
+- botón en la App de PC;
+- paso en la sincronización Android.
+
+Pendiente del paquete 1, como paso del propietario en los proveedores (AGENTS §5). En este computador Wrangler no tiene sesión iniciada (2026-11-10):
+
+1. Neon (consola web → proyecto DEV → SQL Editor): pegar y ejecutar completo `database/migrations/0002_dm_content.sql`. Resultado esperado: `COMMIT` sin errores. Evidencia que devolver: la lista de tablas muestra `dm_content`. No compartir la cadena de conexión.
+2. Cloudflare, desde `D:\DnD_Aid\repo\backend`:
+   - `npm install`
+   - `npx wrangler login` (inicia sesión en el navegador)
+   - `npx wrangler deploy`
+
+   Resultado esperado: se publica el Worker existente `dnd-custom-aid-api` con la URL de siempre. No crear un Worker nuevo. Los secretos se conservan. No compartir tokens.
+
+   Evidencia que devolver: la línea «Current Version ID» y que `https://dnd-custom-aid-api.mrsimkin-dev.workers.dev/health` responde `ok`.
+
+Si el paso 1 falla, detenerse y no publicar el paso 2. El orden importa: primero la tabla y después el Worker. Costo: USD $0 (ningún plan nuevo).
+
+**Siguiente paso de ingeniería:** el paquete 2, modo DM en la App Android (una sola App y una sola entrada; según el papel en la campaña abre la Mesa del DM o la ficha del PJ; cubre V11-QA-006), en una rama corta. Después siguen los paquetes 3 a 8 de la sección 7 de `BASE_DM_REVISION_Y_PROPUESTAS.md`, y al final un solo QA del propietario.

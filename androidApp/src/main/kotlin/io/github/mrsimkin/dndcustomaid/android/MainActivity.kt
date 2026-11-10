@@ -1,5 +1,6 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import io.github.mrsimkin.dndcustomaid.shared.hosted.spanishSummary
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -290,6 +291,10 @@ private fun CampaignScreen(
                         deliveryParts += "${outcome.blockedMutationCount} cambio(s) quedaron bloqueados y requieren revisión."
                     }
                     deliveryParts += campaignSummary
+                    outcome.dmContent?.let { deliveryParts += it.spanishSummary() }
+                    if (outcome.dmContentError != null) {
+                        deliveryParts += "El contenido del DM no se pudo sincronizar esta vez; queda guardado para reintentar."
+                    }
                     hostedStatus = deliveryParts.joinToString(" ")
                 }
             }

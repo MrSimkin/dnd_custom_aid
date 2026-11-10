@@ -89,6 +89,22 @@ internal fun hostedQaReport(
             appendLine("Acknowledged mutations: ${outcome.acknowledgedMutationCount}")
             appendLine("Retryable mutations: ${outcome.retryableMutationCount}")
             appendLine("Blocked mutations: ${outcome.blockedMutationCount}")
+            appendLine()
+            val dmContent = outcome.dmContent
+            when {
+                outcome.dmContentError != null -> appendLine("DM content sync: FAILED (${outcome.dmContentError})")
+                dmContent == null -> appendLine("DM content sync: SKIPPED (no DM campaign)")
+                else -> {
+                    appendLine("DM content pushed: ${dmContent.pushedIds.size}")
+                    appendLine("DM content applied: ${dmContent.appliedIds.size}")
+                    appendLine("DM content tombstoned: ${dmContent.tombstonedIds.size}")
+                    appendLine("DM content unchanged: ${dmContent.unchangedCount}")
+                    appendLine("DM content conflicts: ${dmContent.conflicts.size}")
+                    appendLine("DM content unsupported families: ${dmContent.unsupportedFamilyIds.size}")
+                    appendLine("DM content pending: ${dmContent.pendingCount}")
+                    appendLine("DM content offline: ${yesNo(dmContent.offline)}")
+                }
+            }
 
             if (outcome.campaignDiagnostics.isNotEmpty()) {
                 outcome.campaignDiagnostics.forEach { campaign ->
