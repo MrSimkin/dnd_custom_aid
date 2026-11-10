@@ -13,6 +13,9 @@ data class PcSheetV11ExportRequest(
     val stateSelection: PcSheetExportStateSelection,
     val portraitFitMode: PcSheetPortraitFitMode = PcSheetPortraitFitMode.CROP_TO_FILL,
     val includeSpellDescriptions: Boolean = false,
+    /** C473 (owner 2026-11-10): optional, off by default, for A and for B - the numbers that
+     * change as the character grows print in light ink, to be written over in pencil. */
+    val lightInkNumbers: Boolean = false,
 )
 
 /** A built-in ability has no synthetic UUID; a custom ability retains its persisted ID. */

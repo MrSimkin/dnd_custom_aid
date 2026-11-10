@@ -25,8 +25,10 @@ internal data class AndroidPcSheetExportOptions(
         PcSheetCustomStatisticsPresentation.EXTENDED_PAGE,
     val portraitFitMode: PcSheetPortraitFitMode = PcSheetPortraitFitMode.CROP_TO_FILL,
     val includeSpellDescriptions: Boolean = false,
-    /** QA-only opt-in; null preserves all four existing PDF exporters exactly. */
+    /** C473 (owner 2026-11-10): the V11 sheet is the only export; null is kept only for old callers. */
     val v11ProofVariant: PcSheetV11Variant? = null,
+    /** C473 (owner 2026-11-10, V11-QA-010): numbers in light ink, for A and for B. */
+    val lightInkNumbers: Boolean = false,
 ) {
     fun request(): PcSheetPdfExportRequest = PcSheetPdfExportRequest(
         visualFamily = visualFamily,
@@ -132,7 +134,8 @@ internal class AndroidPcSheetExportService(
         val directory = File(appContext.cacheDir, "pc-sheet-pdf/" + purpose)
         directory.mkdirs()
         directory.listFiles()?.forEach { stale -> stale.delete() }
-        val target = File(directory, suggestedV11ProofFileName(characterName, generated.semantic.request.variant))
+        val target = File(directory, suggestedV11ProofFileName(characterName, generated.semantic.request.variant,
+            generated.semantic.request.lightInkNumbers))
         val temporary = File(directory, target.name + ".tmp")
         temporary.writeBytes(generated.bytes)
         if (target.exists()) target.delete()
@@ -143,12 +146,14 @@ internal class AndroidPcSheetExportService(
     fun suggestedV11ProofFileName(
         characterName: String,
         variant: PcSheetV11Variant,
+        lightInkNumbers: Boolean = false,
     ): String {
         val safe = characterName.trim()
             .replace(Regex("""[\\/:*?"<>|]+"""), "_")
             .replace(Regex("""\s+"""), " ")
             .ifBlank { "Personaje" }
-        return "$safe - Hoja de PJ - PREQA V11 $variant.pdf"
+        // C473: the light-ink copy has its own name, so both can sit in Descargas.
+        return "$safe - Hoja de PJ - PREQA V11 $variant" + (if (lightInkNumbers) " tinta clara" else "") + ".pdf"
     }
 
     fun writeToDocument(staged: File, destination: Uri) {

@@ -137,7 +137,7 @@ class DesktopPcSheetV11FontMeasurerTest {
                 measuredWidth = font.width,
             )
             specials.verify()
-            assertEquals(5, specials.activeMarks.size)
+            assertEquals(6, specials.activeMarks.size) // C473: the Mara fixture has a sixth special object
             assertEquals(data.specialEquipment.map { it.sourceId }, specials.inputIds)
             assertTrue(specials.activeMarks.all { it.active == null })
             assertEquals(1, specials.body.columnsPt.size)

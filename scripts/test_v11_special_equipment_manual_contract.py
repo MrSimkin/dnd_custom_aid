@@ -13,15 +13,14 @@ class SpecialEquipmentPaperContractTest(unittest.TestCase):
         sections = []
         for path in (DESKTOP, ANDROID):
             value = path.read_text(encoding="utf-8")
-            start = value.index("val manualSpecialLocations =")
+            start = value.index("// C473 (owner 2026-11-10, replaces C456): a row without an object is 100 % empty,")
             end = value.index("PDPage(PDRectangle.LETTER).also", start)
             body = value[start:end]
-            self.assertIn('listOf("Cabeza", "Rostro", "Cuello", "Mano izquierda",', body)  # C456: golden ladder
+            # C473 (owner 2026-11-10, «Sí, la propuesta»): free rows carry no place label.
+            self.assertNotIn('"Cabeza"', body)
             # D-0076 §3.21: one ACTIVO square per band (real entry or free row).
             self.assertIn("repeat(specialBands.size) { rowIndex ->", body)
-            self.assertIn("specialBands[rowIndex] * specialRowHeight / 2f", body)
-            # C468 (review of preqa.12, H7): the golden places no object already uses.
-            self.assertIn("freeSpecialLocations.getOrNull(rowIndex - specialP2Rows.size)", body)
+            self.assertIn("specialBands[rowIndex] / 2f", body)
             self.assertIn("specialP2Rows.getOrNull(rowIndex)?.first?.active == true", body)
             self.assertIn("stream.addRect(activeX, activeY, activeBox, activeBox)", body)  # C343
             sections.append(re.sub(r"\\s+", " ", body))

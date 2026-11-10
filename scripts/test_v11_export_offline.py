@@ -37,10 +37,14 @@ class ExportOfflineTest(unittest.TestCase):
             hits = NETWORK.findall(path.read_text(encoding="utf-8"))
             self.assertEqual([], hits, path.name)
 
-    def test_android_screen_offers_a_and_b_next_to_the_old_families(self):
+    def test_android_screen_offers_only_v11_a_and_b(self):
+        # C473 (owner 2026-11-10, «Sí, así»): V11 A and B with clear names; the old families are gone.
         text = (ANDROID / "CharacterPcSettingsClosureV4.kt").read_text(encoding="utf-8")
-        for option in ('"OFF" to "Familias anteriores"', '"A" to "V11 prueba interna A"', '"B" to "V11 prueba interna B"'):
+        for option in ('"A · Habilidades por atributo"', '"B · Habilidades en orden alfabético"',
+                       '"Números en tinta clara"', '"Incluir Libro de conjuros"'):
             self.assertIn(option, text)
+        for gone in ('"Familia visual"', '"Familias anteriores"', '"Salida PDF de diagnóstico"'):
+            self.assertNotIn(gone, text)
 
     def test_android_save_and_share_use_one_v11_generation(self):
         text = (ANDROID / "CharacterEditorV4.kt").read_text(encoding="utf-8")

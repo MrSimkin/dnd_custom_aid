@@ -585,13 +585,15 @@ internal fun CharacterEditorScreenV4(
                 withContext(Dispatchers.IO) {
                     val purpose = if (action == PcSheetAndroidExportActionV4.SAVE) "save" else "share"
                     val proofVariant = options.v11ProofVariant
-                    if (proofVariant != null && BuildConfig.DEBUG) {
+                    // C473 (owner 2026-11-10): V11 replaces the old sheets in every build.
+                    if (proofVariant != null) {
                         val proof = pcSheetExportService.generateV11Proof(
                             PcSheetV11ExportRequest(
                                 variant = proofVariant,
                                 stateSelection = options.stateSelection,
                                 portraitFitMode = options.portraitFitMode,
                                 includeSpellDescriptions = options.includeSpellDescriptions,
+                                lightInkNumbers = options.lightInkNumbers,
                             ),
                             sources,
                         )
@@ -639,9 +641,9 @@ internal fun CharacterEditorScreenV4(
                     pendingPcSheetSaveNotice = combinedNotice
                     pcSheetExportBusy = false
                     pcSheetSaveLauncher.launch(
-                        if (options.v11ProofVariant != null && BuildConfig.DEBUG) {
+                        if (options.v11ProofVariant != null) {
                             pcSheetExportService.suggestedV11ProofFileName(
-                                aggregate.sheet.name, options.v11ProofVariant,
+                                aggregate.sheet.name, options.v11ProofVariant, options.lightInkNumbers,
                             )
                         } else {
                             pcSheetExportService.suggestedFileName(

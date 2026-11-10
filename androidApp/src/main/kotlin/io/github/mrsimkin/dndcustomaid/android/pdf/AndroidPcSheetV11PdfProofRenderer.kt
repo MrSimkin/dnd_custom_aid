@@ -26,6 +26,7 @@ import com.tom_roush.pdfbox.pdmodel.PDPage
 import com.tom_roush.pdfbox.pdmodel.PDPageContentStream
 import com.tom_roush.pdfbox.pdmodel.common.PDRectangle
 import com.tom_roush.pdfbox.pdmodel.graphics.image.PDImageXObject
+import com.tom_roush.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState
 import com.tom_roush.harmony.awt.AWTColor as Color
 
 /**
@@ -74,6 +75,21 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             measurer.resolve(PcSheetV11Typeface.LABEL, 12f)
             val bodyPdfFont = measurer.font(PcSheetV11Typeface.BODY)
             val headerPdfFont = measurer.font(PcSheetV11Typeface.LABEL)
+            // C473 (owner 2026-11-10, V11-QA-010): with «Números en tinta clara», every number that
+            // changes as the character grows (attributes, skills, CA, HP, dice, slot and item
+            // counts...) prints at 30 % ink, to be written over in pencil. Words never change.
+            val lightInk = data.request.lightInkNumbers
+            var lightInkPaused = false
+            val lightInkState = PDExtendedGraphicsState().apply { nonStrokingAlphaConstant = 0.3f }
+            val fullInkState = PDExtendedGraphicsState().apply { nonStrokingAlphaConstant = 1f }
+            val variableNumber = Regex("""^[+\-−]?\d+$|^\d+d\d+( / \d+d\d+)*$|^\d+ ?/ ?\d+$""")
+            fun showInk(stream: PDPageContentStream, text: String) {
+                if (lightInk && !lightInkPaused && variableNumber.matches(text.trim())) {
+                    stream.setGraphicsStateParameters(lightInkState)
+                    stream.showText(text)
+                    stream.setGraphicsStateParameters(fullInkState)
+                } else stream.showText(text)
+            }
             // C285 (golden): names in EB Garamond 12 Bold. A character that font has
             // no glyph for (accents, dashes) is drawn from the later EB Garamond Bold
             // of the same project, so no letter is ever dropped.
@@ -110,7 +126,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.setFont(symbolPdfFont, pt)
                 stream.newLineAtOffset(boxX + (box - inkW * unit) / 2f - ink0[0] * unit,
                     boxY + (box - inkH * unit) / 2f - ink0[1] * unit)
-                stream.showText(String(Character.toChars(codePoint)))
+                showInk(stream, String(Character.toChars(codePoint)))
                 stream.endText()
                 stream.restoreGraphicsState()
             }
@@ -142,7 +158,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.beginText()
                     stream.setFont(heroPdfFonts[fontIndex], sizePt)
                     stream.newLineAtOffset(cursor, y)
-                    stream.showText(run)
+                    showInk(stream, run)
                     stream.endText()
                     cursor += heroPdfFonts[fontIndex].getStringWidth(run) * sizePt / 1000f
                 }
@@ -238,7 +254,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.beginText()
                 stream.setFont(if (label) headerPdfFont else bodyPdfFont, if (label) 12f else 9f)
                 stream.newLineAtOffset(x, y)
-                stream.showText(pcSheetV11PrintableText(text))
+                showInk(stream, pcSheetV11PrintableText(text))
                 stream.endText()
                 if (!label) stream.restoreGraphicsState()
             }
@@ -268,7 +284,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.beginText()
                 stream.setFont(headerPdfFont, pt)
                 stream.newLineAtOffset(x, y)
-                stream.showText(pcSheetV11PrintableText(text))
+                showInk(stream, pcSheetV11PrintableText(text))
                 stream.endText()
             }
             // C264: golden P1 figures and labels in Barlow at the measured golden
@@ -294,7 +310,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.beginText()
                 stream.setFont(boldPdfFont, pt)
                 stream.newLineAtOffset(x, y)
-                stream.showText(pcSheetV11PrintableText(text))
+                showInk(stream, pcSheetV11PrintableText(text))
                 stream.endText()
                 stream.restoreGraphicsState()
             }
@@ -597,7 +613,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.setFont(headerPdfFont, 5.9f)
                     stream.newLineAtOffset(569.48f -
                         headerPdfFont.getStringWidth(printableTitle) * 5.9f / 1000f, 724.5f)
-                    stream.showText(printableTitle)
+                    showInk(stream, printableTitle)
                     stream.endText()
                     stream.restoreGraphicsState()
                 }
@@ -609,7 +625,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.beginText()
                     stream.setFont(bodyPdfFont, 6.1f)
                     stream.newLineAtOffset(42.52f, 32.88f)
-                    stream.showText("PRUEBA INTERNA V11 - NO APROBADA")
+                    showInk(stream, "PRUEBA INTERNA V11 - NO APROBADA")
                     stream.endText()
                     stream.restoreGraphicsState()
                 }
@@ -620,7 +636,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.beginText()
                     stream.setFont(headerPdfFont, 7.3f)
                     stream.newLineAtOffset(569.48f - headerPdfFont.getStringWidth(label) * 7.3f / 1000f, 745.8f)
-                    stream.showText(label)
+                    showInk(stream, label)
                     stream.endText()
                 }
                 stream.restoreGraphicsState()
@@ -865,7 +881,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 stream.beginText()
                                 stream.setFont(bodyPdfFont,7f)
                                 stream.newLineAtOffset(x,y)
-                                stream.showText(pcSheetV11PrintableText(value))
+                                showInk(stream, pcSheetV11PrintableText(value))
                                 stream.endText()
                             }
                         }
@@ -907,7 +923,16 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val bPanelAttributes = data.attributes.take(p1PrintedAttributeCount).map { it.reference }
             val bSkillEntries = if (!variantA) data.skills.withIndex()
                 .filter { it.value.builtInKey != null || it.value.ability in bPanelAttributes }
-                .sortedBy { (_, skill) -> bPanelAttributes.indexOf(skill.ability).let { if (it < 0) Int.MAX_VALUE else it } }
+                // C473 (owner 2026-11-10, «Sí, alfabético»): B lists its skills alphabetically;
+                // equal names keep the order of their attribute.
+                .sortedWith { a, b ->
+                    val collator = java.text.Collator.getInstance(java.util.Locale("es"))
+                        .apply { strength = java.text.Collator.PRIMARY }
+                    fun order(skill: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Skill) =
+                        bPanelAttributes.indexOf(skill.ability).let { if (it < 0) Int.MAX_VALUE else it }
+                    collator.compare(approvedSkillName(a.value), approvedSkillName(b.value))
+                        .takeIf { it != 0 } ?: order(a.value).compareTo(order(b.value))
+                }
                 .map { (index, skill) ->
                     printedSkillIndices += index
                     val abbreviation = data.attributes.firstOrNull {
@@ -999,7 +1024,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.beginText()
                 stream.setFont(bodyPdfFont, 6.2f)
                 stream.newLineAtOffset(192.2f, cb + 8.2f)
-                stream.showText("dos subcolumnas")
+                showInk(stream, "dos subcolumnas")
                 stream.endText()
                 stream.setNonStrokingColor(Color(36, 57, 75))
                 // Golden subcolumn rows: alternating fills and the 0.32 pt rule, every
@@ -1046,7 +1071,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             stream.beginText()
                             stream.setFont(bodyPdfFont,pt)
                             stream.newLineAtOffset(x, baseline)
-                            stream.showText(pcSheetV11PrintableText(text))
+                            showInk(stream, pcSheetV11PrintableText(text))
                             stream.endText()
                         }
                         // C241: golden B — value right-aligned inside the band.
@@ -1227,7 +1252,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.beginText()
                     stream.setFont(font, size)
                     stream.newLineAtOffset(centre?.let { it - inkWidth / 2f } ?: (right - inkWidth), y)
-                    stream.showText(printable)
+                    showInk(stream, printable)
                     stream.endText()
                     stream.restoreGraphicsState()
                 }
@@ -1285,7 +1310,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.setFont(bodyPdfFont, 6.2f)
                     stream.newLineAtOffset(right - 17f -
                         bodyPdfFont.getStringWidth(text) * 6.2f / 1000f, bottom + 8.08f)
-                    stream.showText(text)
+                    showInk(stream, text)
                     stream.endText()
                 }
                 stream.setNonStrokingColor(Color(36, 57, 75))
@@ -1365,7 +1390,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         stream.beginText()
                         stream.setFont(bodyPdfFont, if (nameFitsNormal) 7.4f else p1AttackTwoLinePt)
                         stream.newLineAtOffset(left + 4.53f, if (nameLines.size == 1) y else twoLineY(line))
-                        stream.showText(pcSheetV11PrintableText(text))
+                        showInk(stream, pcSheetV11PrintableText(text))
                         stream.endText()
                     }
                     val damageLines = requireNotNull(p1AttackDamageLines(entry))
@@ -1511,7 +1536,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             stream.beginText()
                             stream.setFont(headerPdfFont, pt)
                             stream.newLineAtOffset(x+(magicCard-cardInkWidth(text, pt))/2f, baseline)
-                            stream.showText(pcSheetV11PrintableText(text))
+                            showInk(stream, pcSheetV11PrintableText(text))
                             stream.endText()
                         }
                         val oneLine = perSourceParts?.joinToString(" / ")
@@ -1554,8 +1579,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         stream.setNonStrokingColor(Color(38,75,104)) // C410 golden level ink
                     }
                 magicLevels.forEach{level->
-                    val x=p1MagicColumn((level-1)%3)
-                    val b=p1MagicRowBottom((level-1)/3)
+                    // C473 (owner QA of preqa.13, V11-QA-015): levels go down each column, 1 4 7 / 2 5 8 / 3 6 9;
+                    // N10 to N12 keep their own fourth row (C448, owner 2026-11-06).
+                    val x=p1MagicColumn(if (level > 9) level - 10 else (level-1)/3)
+                    val b=p1MagicRowBottom(if (level > 9) 3 else (level-1)%3)
                     drawP1Label(stream,"N"+level,x+5.1f,b+magicTextFloor) // C356 golden baseline
                     val v = actual[level]
                     if (level in overflowP1SpellLevels) {
@@ -1581,11 +1608,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             5 -> 8f
                             else -> 8.79f
                         }
+                        // C473 (V11-QA-015): one fixed step from the left, whatever the count.
                         val markStep = when (boxes) {
                             6 -> 8.3f
                             5 -> 10f
-                            4 -> 13f
-                            else -> 17.01f
+                            else -> 11.5f
                         }
                         require(x+34.01f+(boxes-1)*markStep+box <= countX-2f) {
                             "P1 spell-slot boxes overlap their real count"
@@ -1722,7 +1749,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.beginText()
                 stream.setFont(bodyPdfFont, 7f)
                 stream.newLineAtOffset(x, y)
-                stream.showText(pcSheetV11PrintableText(content))
+                showInk(stream, pcSheetV11PrintableText(content))
                 stream.endText()
             }
             // Fit complete identities in 12 genuine 10pt paper rows
@@ -1738,7 +1765,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     // C356: the golden 148.11 pt column leaves 140 pt of text.
                     if (p1Font.width.measurePt(word) > 140f) return emptyList()
                     val candidate = if (current.isEmpty()) word else "${current} $word"
-                    if (p1Font.width.measurePt(candidate) <= 140f) {
+                    // C473 (V11-QA-012): a following line is indented like EQUIPO, so it is narrower.
+                    val lineWidth = if (lines.isEmpty()) 140f else
+                        140f - io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedAmountRouting.CONTINUATION_INDENT_PT
+                    if (p1Font.width.measurePt(candidate) <= lineWidth) {
                         current = candidate
                     } else {
                         if (current.isNotEmpty()) lines += current
@@ -1782,7 +1812,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 p1TraitEntries.forEach { (_, lines, firstSlot) ->
                     lines.forEachIndexed { offset, line ->
                         val slot = firstSlot + offset
-                        p1DrawSmall(stream, line, columnLeft[slot / p1TraitRowsPerColumn] + 5.1f,
+                        p1DrawSmall(stream, line, columnLeft[slot / p1TraitRowsPerColumn] + 5.1f +
+                            (if (offset > 0) io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedAmountRouting.CONTINUATION_INDENT_PT else 0f),
                             firstTop - (slot % p1TraitRowsPerColumn) * pitch - 10.26f)
                     }
                 }
@@ -1945,27 +1976,39 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.drawImage(picture, px, py, drawWidth, drawHeight)
                     stream.restoreGraphicsState()
                 } else {
-                    // The original approved paper's absent-portrait symbol is a
-                    // pair of PALE FILLED ellipses, never an outline-only avatar.
-                    // Normalize its original bounds to the existing V11 viewport.
+                    // C473 (owner 2026-11-10, «4 · Silueta de línea», replaces the golden's pale
+                    // filled ellipses): a bust drawn only in a thin line of the sheet's blue ink.
                     stream.saveGraphicsState()
-                    stream.setNonStrokingColor(Color(231, 242, 247))
-                    stream.setStrokingColor(Color(191, 211, 222))
-                    stream.setLineWidth(0.35f)
+                    stream.setStrokingColor(Color(126, 157, 179))
+                    stream.setLineWidth(0.8f)
+                    stream.setLineCapStyle(1)
+                    stream.setLineJoinStyle(1)
                     val k = 0.5522848f
-                    fun filledOval(cx: Float, cy: Float, rx: Float, ry: Float) {
-                        stream.moveTo(cx + rx, cy)
-                        stream.curveTo(cx + rx, cy + k * ry, cx + k * rx, cy + ry, cx, cy + ry)
-                        stream.curveTo(cx - k * rx, cy + ry, cx - rx, cy + k * ry, cx - rx, cy)
-                        stream.curveTo(cx - rx, cy - k * ry, cx - k * rx, cy - ry, cx, cy - ry)
-                        stream.curveTo(cx + k * rx, cy - ry, cx + rx, cy - k * ry, cx + rx, cy)
-                        stream.closePath()
-                        stream.fillAndStroke()
-                    }
                     val cx = frameX + frameWidth / 2f
-                    // C349: golden silhouette - head 11.34 pt, body 21.26 x 15.03 pt.
-                    filledOval(cx, frameY + 55.85f, 11.34f, 11.34f)
-                    filledOval(cx, frameY + 24.67f, 21.26f, 15.03f)
+                    // Head: the golden's 11.34 pt circle, as an outline.
+                    val hy = frameY + 55.85f
+                    val hr = 11.34f
+                    stream.moveTo(cx + hr, hy)
+                    stream.curveTo(cx + hr, hy + k * hr, cx + k * hr, hy + hr, cx, hy + hr)
+                    stream.curveTo(cx - k * hr, hy + hr, cx - hr, hy + k * hr, cx - hr, hy)
+                    stream.curveTo(cx - hr, hy - k * hr, cx - k * hr, hy - hr, cx, hy - hr)
+                    stream.curveTo(cx + k * hr, hy - hr, cx + hr, hy - k * hr, cx + hr, hy)
+                    stream.closePath()
+                    stream.stroke()
+                    // Neck and shoulders, open at the foot like a bust (golden body width 21.26 pt).
+                    stream.moveTo(cx - 4.6f, hy - hr + 0.6f)
+                    stream.lineTo(cx - 5.2f, frameY + 38.2f)
+                    stream.curveTo(cx - 17f, frameY + 35.6f, cx - 21.26f, frameY + 28f, cx - 21.26f, frameY + 12f)
+                    stream.moveTo(cx + 4.6f, hy - hr + 0.6f)
+                    stream.lineTo(cx + 5.2f, frameY + 38.2f)
+                    stream.curveTo(cx + 17f, frameY + 35.6f, cx + 21.26f, frameY + 28f, cx + 21.26f, frameY + 12f)
+                    stream.stroke()
+                    // A collar, in a lighter line.
+                    stream.setStrokingColor(Color(159, 182, 200))
+                    stream.setLineWidth(0.6f)
+                    stream.moveTo(cx - 5.2f, frameY + 38.2f)
+                    stream.curveTo(cx - 2f, frameY + 34.6f, cx + 2f, frameY + 34.6f, cx + 5.2f, frameY + 38.2f)
+                    stream.stroke()
                     stream.restoreGraphicsState()
                 }
                 // Golden's caption is beneath the figure and never covers its head.
@@ -1979,7 +2022,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.setFont(headerPdfFont, captionSize)
                 stream.setNonStrokingColor(Color(101, 125, 144))
                 stream.newLineAtOffset(frameX + (frameWidth - captionWidth) / 2f, frameY + 2.84f)
-                stream.showText(portraitCaption)
+                showInk(stream, portraitCaption)
                 stream.endText()
                 stream.restoreGraphicsState()
             }
@@ -1990,7 +2033,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val identityTop = 698.46f // C349: golden identity block top
             // C458 (F08): a class never parts from its level. Whole classes go on P1 and the
             // rest follow in the PERSONAJE module of C2, one per line.
-            val classLabels = source.classes.map { oneLine(it.name) + " " + it.level }
+            // C473 (owner QA of preqa.13, V11-QA-009): «Guerrero (Champion) 5» when the subclass is saved.
+            val classLabels = source.classes.map {
+                oneLine(it.name) + (it.subclassName?.takeIf { s -> s.isNotBlank() }?.let { s -> " (" + oneLine(s) + ")" } ?: "") +
+                    " " + it.level
+            }
             val classIdentityFont = measurer.resolve(PcSheetV11Typeface.BODY, 9.3f)
             val classesOnP1 = (classLabels.size downTo 1).firstOrNull { count ->
                 classIdentityFont.width.measurePt(classLabels.take(count).joinToString(" / ")) <= 444.76f - 11.34f
@@ -2083,7 +2130,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             stream.setFont(bodyPdfFont, font.metrics.fontSizePt)
                             stream.newLineAtOffset(cell.cellPt.leftPt,
                                 frame.bottomPt + identityBaselineLift.getValue(label))
-                            stream.showText(pcSheetV11PrintableText(cell.drawableText))
+                            showInk(stream, pcSheetV11PrintableText(cell.drawableText))
                             stream.endText()
                         }
                     }
@@ -2192,7 +2239,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.beginText()
                     stream.setFont(headerPdfFont, labelPt)
                     stream.newLineAtOffset(x + 5.66f, top - 10.48f) // C352/C356 golden
-                    stream.showText(pcSheetV11PrintableText(label))
+                    showInk(stream, pcSheetV11PrintableText(label))
                     stream.endText()
                     stream.setNonStrokingColor(Color(29, 56, 79))
                     val valueBaseline = top - (if (narrow) 24.09f else 25.51f) // C356 golden
@@ -2221,7 +2268,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         stream.beginText()
                         stream.setFont(headerPdfFont, valuePt)
                         stream.newLineAtOffset(x + (width - drawn) / 2f, valueBaseline)
-                        stream.showText(printable)
+                        showInk(stream, printable)
                         stream.endText()
                         if (label == "PV ACTUALES" && source.tempHp != 0) {
                             val temp = "TEMP " + source.tempHp
@@ -2351,7 +2398,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.beginText()
                     stream.setFont(headerPdfFont, fieldLabelPt)
                     stream.newLineAtOffset(x + 5.67f, 660.2f) // C421 golden label inset
-                    stream.showText(label)
+                    showInk(stream, label)
                     stream.endText()
                     stream.setNonStrokingColor(Color(29, 56, 79))
                     fun centeredX(text: String, pt: Float) = x + (cardWidth -
@@ -2397,7 +2444,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 stream.beginText()
                                 stream.setFont(headerPdfFont, stackPt)
                                 stream.newLineAtOffset(centeredX(text, stackPt), first - line * pitch)
-                                stream.showText(pcSheetV11PrintableText(text))
+                                showInk(stream, pcSheetV11PrintableText(text))
                                 stream.endText()
                             }
                         } else {
@@ -2405,7 +2452,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             stream.beginText()
                             stream.setFont(headerPdfFont, size ?: 10.7f)
                             stream.newLineAtOffset(centeredX(ink, size ?: 10.7f), 646.6f) // C322 golden
-                            stream.showText(pcSheetV11PrintableText(ink))
+                            showInk(stream, pcSheetV11PrintableText(ink))
                             stream.endText()
                         }
                     }
@@ -2650,7 +2697,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.beginText()
                 stream.setFont(bodyPdfFont, 7f)
                 stream.newLineAtOffset(x, y)
-                stream.showText(pcSheetV11PrintableText(text))
+                showInk(stream, pcSheetV11PrintableText(text))
                 stream.endText()
                 stream.restoreGraphicsState()
             }
@@ -2815,7 +2862,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.beginText()
                     stream.setFont(headerPdfFont, labelPt)
                     stream.newLineAtOffset(rect.leftPt + 4.5f, rect.topPt - p3FieldRowPt + 4.5f)
-                    stream.showText(heading)
+                    showInk(stream, heading)
                     stream.endText()
                     stream.setNonStrokingColor(Color(36, 57, 75))
                     placed.cells.filter { it.localPageIndex == 1 }.forEach { cell ->
@@ -2823,7 +2870,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             stream.beginText()
                             stream.setFont(bodyPdfFont, 7.3f)
                             stream.newLineAtOffset(cell.cellPt.leftPt, cell.cellPt.bottomPt + 4.5f)
-                            stream.showText(pcSheetV11PrintableText(cell.drawableText))
+                            showInk(stream, pcSheetV11PrintableText(cell.drawableText))
                             stream.endText()
                         }
                     }
@@ -2991,7 +3038,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.setFont(if (label) headerPdfFont else bodyPdfFont,
                         if (label) 12f else font.metrics.fontSizePt)
                     stream.newLineAtOffset(x, y)
-                    stream.showText(pcSheetV11PrintableText(text))
+                    showInk(stream, pcSheetV11PrintableText(text))
                     stream.endText()
                     if (!label) stream.restoreGraphicsState()
                 }
@@ -3181,7 +3228,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                         stream.beginText()
                                         stream.setFont(headerPdfFont, 7.6f)
                                         stream.newLineAtOffset(column.leftPt + 3.4f, column.topPt + 3f)
-                                        stream.showText(pcSheetV11PrintableText(context))
+                                        showInk(stream, pcSheetV11PrintableText(context))
                                         stream.endText()
                                         stream.restoreGraphicsState()
                                     }
@@ -3231,7 +3278,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 stream.beginText()
                                 stream.setFont(bodyPdfFont, fontSize)
                                 stream.newLineAtOffset(col.leftPt + 2f, col.topPt + 8.2f)
-                                stream.showText(pcSheetV11PrintableText(printed))
+                                showInk(stream, pcSheetV11PrintableText(printed))
                                 stream.endText()
                                 stream.restoreGraphicsState()
                             }
@@ -3293,7 +3340,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                         stream.beginText()
                                         stream.setFont(headerPdfFont, fontPt)
                                         stream.newLineAtOffset(c2CueLeft(column), 691.94f) // C463
-                                        stream.showText(pcSheetV11PrintableText(context))
+                                        showInk(stream, pcSheetV11PrintableText(context))
                                         stream.endText()
                                         stream.restoreGraphicsState()
                                     }
@@ -3340,7 +3387,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                         stream.beginText()
                                         stream.setFont(headerPdfFont, fontPt)
                                         stream.newLineAtOffset(c2CueLeft(column), 691.94f) // C463
-                                        stream.showText(pcSheetV11PrintableText(context))
+                                        showInk(stream, pcSheetV11PrintableText(context))
                                         stream.endText()
                                         stream.restoreGraphicsState()
                                     }
@@ -3442,7 +3489,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             stream.beginText()
                             stream.setFont(headerPdfFont, 9.1f)
                             stream.newLineAtOffset(56.69f, 679.46f) // C422 golden
-                            stream.showText("NOTAS")
+                            showInk(stream, "NOTAS")
                             stream.endText()
                             val scope = "solo notas digitales"
                             stream.setNonStrokingColor(Color(101, 125, 144))
@@ -3450,7 +3497,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                             stream.setFont(bodyPdfFont, 6.2f)
                             stream.newLineAtOffset(572.32f - 17f -
                                 bodyPdfFont.getStringWidth(scope) * 6.2f / 1000f, 680.7f)
-                            stream.showText(scope)
+                            showInk(stream, scope)
                             stream.endText()
                             stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                             // C296: golden note card - chamfered #264b68 0.65 pt frame
@@ -3551,7 +3598,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 stream.beginText()
                                 stream.setFont(headerPdfFont, 9.1f)
                                 stream.newLineAtOffset(left + 17f, cartelaBottom + 6.8f)
-                                stream.showText("NOTAS MANUSCRITAS")
+                                showInk(stream, "NOTAS MANUSCRITAS")
                                 stream.endText()
                                 stream.setNonStrokingColor(Color(36, 57, 75))
                             }
@@ -3570,7 +3617,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 .map { it.sourceKey }.toSet()
                             val listCells = pageCells.filter { c ->
                                 // Blank lines of an inked record (resource tracks) stay in it.
-                                c.sourceKey in inkedRecords &&
+                                // C473 (owner QA of preqa.13, V11-QA-013): an action is one banded record
+                                // with its notes, with or without them.
+                                (c.sourceKey in inkedRecords || c.sourceKey in c2ActionRows) &&
                                     !c.sourceKey.startsWith("c2-heading:") &&
                                     !c.sourceKey.startsWith("attribute") &&
                                     !c.sourceKey.startsWith("custom-attribute-group:") &&
@@ -3934,7 +3983,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     stream.setFont(headerPdfFont, 7f)
                                     // C288: golden school baseline, 25.51 pt under the band top.
                                     stream.newLineAtOffset(cell.cellPt.leftPt, cell.cellPt.topPt - 15.01f)
-                                    stream.showText(printable)
+                                    showInk(stream, printable)
                                     stream.endText()
                                     stream.restoreGraphicsState()
                                     return@forEach
@@ -4007,7 +4056,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     stream.setFont(headerPdfFont, 6f)
                                     stream.newLineAtOffset(
                                         cell.cellPt.rightPt - p4SourceFont.width.measurePt(rowSource) - 3.4f, baseline)
-                                    stream.showText(pcSheetV11PrintableText(rowSource))
+                                    showInk(stream, pcSheetV11PrintableText(rowSource))
                                     stream.endText()
                                     stream.restoreGraphicsState()
                                 }
@@ -4028,8 +4077,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 val values = lines[line]
                                 val rowIndex = cell.sourceKey.substringAfterLast(':').toInt()
                                 if (line == 0) c2PairPlacement[cell.sourceKey] = pdf.numberOfPages to cell.columnIndex
+                                // C473 (M7): as on P2, a rule under every line of the row.
                                 fillBand(stream, left, cell.cellPt.bottomPt, cell.cellPt.widthPt, cell.cellPt.heightPt,
-                                    rowIndex, rule = line == lines.lastIndex)
+                                    rowIndex, rule = true)
                                 val pairs = if (values.size == 4) 2 else 1
                                 val pairWidth = cell.cellPt.widthPt / pairs
                                 val amountColumn = c2PairAmountColumn.getValue(cell.sourceKey)
@@ -4040,8 +4090,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 repeat(pairs) { pair ->
                                     val pairRight = left + (pair + 1) * pairWidth
                                     val column = pairRight - amountColumn
-                                    stream.moveTo(column, cell.cellPt.bottomPt)
-                                    stream.lineTo(column, cell.cellPt.topPt)
+                                    // C473 (M7): as on P2, the amount column only on the line with the amount.
+                                    if (line == 0) {
+                                        stream.moveTo(column, cell.cellPt.bottomPt)
+                                        stream.lineTo(column, cell.cellPt.topPt)
+                                    }
                                     if (pair == 0 && pairs == 2) {
                                         stream.moveTo(pairRight, cell.cellPt.bottomPt)
                                         stream.lineTo(pairRight, cell.cellPt.topPt)
@@ -4051,7 +4104,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 stream.restoreGraphicsState()
                                 repeat(pairs) { pair ->
                                     val pairRight = left + (pair + 1) * pairWidth
-                                    draw(stream, values[pair * 2], left + pair * pairWidth + 4.54f, baseline, false)
+                                    draw(stream, values[pair * 2], left + pair * pairWidth + 4.54f +
+                                        (if (line > 0) io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedAmountRouting.CONTINUATION_INDENT_PT else 0f), baseline, false)
                                     val amount = values[pair * 2 + 1]
                                     if (amount.isNotEmpty()) p1Bold(stream, amount,
                                         pairRight - 4f - p1BoldWidth(amount, 7.2f), baseline, 7.2f, Color(38, 75, 104))
@@ -4160,7 +4214,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     stream.beginText()
                                     stream.setFont(headerPdfFont, labelPt)
                                     stream.newLineAtOffset(labelX, baseline)
-                                    stream.showText(label)
+                                    showInk(stream, label)
                                     stream.endText()
                                     stream.saveGraphicsState()
                                     stream.setStrokingColor(Color(82, 124, 150)) // C412 golden
@@ -4251,7 +4305,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     stream.beginText()
                                     stream.setFont(headerPdfFont, 6f)
                                     stream.newLineAtOffset(x, baseline)
-                                    stream.showText(pcSheetV11PrintableText(realSource))
+                                    showInk(stream, pcSheetV11PrintableText(realSource))
                                     stream.endText()
                                     stream.restoreGraphicsState()
                                 }
@@ -4285,7 +4339,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                         cell.cellPt.bottomPt + 6.8f
                                     else body.metrics.baselineIn(cell.cellPt),
                                 )
-                                stream.showText(pcSheetV11PrintableText(cell.drawableText))
+                                showInk(stream, pcSheetV11PrintableText(cell.drawableText))
                                 stream.endText()
                                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                             } else if (title == "C2 - Habilidades, acciones y recursos" &&
@@ -4332,12 +4386,14 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 // C452 (contract 2026-10-28): recovery, source and notes in small print.
                                 if (cell.drawableText.isNotEmpty()) {
                                     stream.saveGraphicsState()
-                                    stream.setNonStrokingColor(Color(101, 125, 144))
+                                    // C473 (V11-QA-013): the size the line was measured with, so it
+                                    // fills its line instead of leaving a third of it empty.
+                                    stream.setNonStrokingColor(Color(74, 99, 120))
                                     stream.beginText()
-                                    stream.setFont(bodyPdfFont, 6.1f)
+                                    stream.setFont(bodyPdfFont, body.metrics.fontSizePt)
                                     stream.newLineAtOffset(cell.cellPt.leftPt + c2TextInset,
                                         body.metrics.baselineIn(cell.cellPt))
-                                    stream.showText(pcSheetV11PrintableText(cell.drawableText))
+                                    showInk(stream, pcSheetV11PrintableText(cell.drawableText))
                                     stream.endText()
                                     stream.restoreGraphicsState()
                                 }
@@ -4345,7 +4401,12 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 // C363: a book line with extra air above it keeps its
                                 // baseline at the foot of its taller cell.
                                 draw(stream, cell.drawableText,
-                                    cell.cellPt.leftPt + c2TextInset,
+                                    cell.cellPt.leftPt + c2TextInset +
+                                        // C473 (V11-QA-013): an action's notes start under its name.
+                                        (if (cell.sourceKey.startsWith("action:")) 2f - c2TextInset else 0f) +
+                                        // C473 (V11-QA-012): a trait's following line is indented like EQUIPO.
+                                        (if (cell.sourceKey.startsWith("p2-trait:") && cell.sourceStartOffset > 0)
+                                            io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedAmountRouting.CONTINUATION_INDENT_PT else 0f),
                                     if (title == "Libro de conjuros" &&
                                         cell.cellPt.heightPt > body.metrics.lineHeightPt + 0.01f)
                                         body.metrics.baselineIn(cell.cellPt.copy(
@@ -4407,15 +4468,8 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                             draw(stream, text, cell.cellPt.leftPt + c2ActionX[i] + 2f, base, false)
                                         }
                                     }
-                                    if (line == rows.size - 1) {
-                                        stream.saveGraphicsState()
-                                        stream.setStrokingColor(Color(148, 176, 193))
-                                        stream.setLineWidth(0.35f)
-                                        stream.moveTo(cell.cellPt.leftPt, cell.cellPt.bottomPt)
-                                        stream.lineTo(cell.cellPt.rightPt, cell.cellPt.bottomPt)
-                                        stream.stroke()
-                                        stream.restoreGraphicsState()
-                                    }
+                                    // C473 (V11-QA-013): no rule between an action and its notes; the
+                                    // record band closes it once, at its foot.
                                 }
                             }
                             // C259: resource paper track — empty boxes and the real
@@ -4431,8 +4485,11 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     stream.setStrokingColor(Color(82, 124, 150))
                                     stream.setNonStrokingColor(Color.WHITE)
                                     stream.setLineWidth(0.48f)
+                                    // C473 (V11-QA-013): beside the name, the boxes end just before the count.
+                                    val firstBoxX = if (offset == 0) countX - 6f - total * 11f - ((total - 1) / 5) * 3f
+                                        else cell.cellPt.leftPt + 4f
                                     repeat(total) { n ->
-                                        val px = cell.cellPt.leftPt + 4f + n * 11f + (n / 5) * 3f
+                                        val px = firstBoxX + n * 11f + (n / 5) * 3f
                                         require(px + 8f <= countX - 3f) {
                                             "C2 resource boxes overlap their real count"
                                         }
@@ -4688,7 +4745,9 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 .map { trait ->
                     PcSheetV11FlowItem("p2-trait:" + trait.id,
                         io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11TraitSummary.text(trait),
-                        keepTogetherIfFits = true)
+                        keepTogetherIfFits = true,
+                        // C473 (V11-QA-012): continuation lines indented like EQUIPO.
+                        continuationIndentPt = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedAmountRouting.CONTINUATION_INDENT_PT)
                 }
             // C409: golden RASGOS text starts 5.1 pt inside each block
             // (x309.26..438.8 / 442.77..572.32) and stays 2 pt clear of its right edge.
@@ -4708,9 +4767,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val specialColumns = listOf(106.52f, 133.16f, 247.67f, 45.27f)
             require(kotlin.math.abs(specialColumns.sum() - specialArea.widthPt) < 0.01f)
             val specialHeaderHeight = 15.02f
-            val specialRowHeight = 26.93f
-            val specialCapacity = ((specialArea.heightPt - specialHeaderHeight) /
-                specialRowHeight + 0.001f).toInt()
+            // C473 (owner 2026-11-10, «Sí, la propuesta», V11-QA-011/016): a row is one EQUIPO line
+            // high (golden 16.15 pt); an object takes the height its text needs, no more.
+            val specialRowHeight = 16.15f
+            val specialBodyHeight = specialArea.heightPt - specialHeaderHeight
             // C343: golden first baseline 11.77 pt under the row top; ubicación,
             // nombre and descripción in 7.1 / 6.9 / 6.6 pt on the golden 9 pt pitch.
             val specialFirstBaseline = 11.77f
@@ -4719,10 +4779,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             )
             // One pitch keeps its approved two lines; taller bands keep the
             // golden first baseline and a 4 pt foot so ink never meets a rule.
-            fun specialLinesFor(pitches: Int): Int = maxOf(2,
-                1 + ((pitches * specialRowHeight - specialFirstBaseline - 4f) /
-                    specialFont.metrics.lineHeightPt).toInt())
-            val specialMaxLines = specialLinesFor(specialCapacity)
+            fun specialRowHeightFor(lines: Int): Float = maxOf(specialRowHeight,
+                lines * specialFont.metrics.lineHeightPt + specialFirstBaseline - 5f)
+            val specialMaxLines = ((specialBodyHeight - specialFirstBaseline + 5f) /
+                specialFont.metrics.lineHeightPt + 0.001f).toInt()
             fun specialCellLines(
                 raw: String?,
                 widthPt: Float,
@@ -4751,7 +4811,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
             val specialP2Rows = mutableListOf<Pair<
                 io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Equipment,
                 List<List<String>>>>()
-            val specialP2Pitches = mutableListOf<Int>()
+            val specialP2Pitches = mutableListOf<Float>()
             for (item in data.specialEquipment) {
                 val details = listOfNotNull(
                     item.description?.takeIf { it.isNotBlank() },
@@ -4762,21 +4822,25 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     specialCellLines(field, specialColumns[index], specialColumnFonts[index])
                 }
                 if (lines.any { it == null }) break
-                val needed = lines.maxOf { requireNotNull(it).size }
-                val pitches = (1..specialCapacity).first { specialLinesFor(it) >= needed }
-                if (specialP2Pitches.sum() + pitches > specialCapacity) break
+                val needed = maxOf(1, lines.maxOf { requireNotNull(it).size })
+                val height = specialRowHeightFor(needed)
+                if (specialP2Pitches.sum() + height > specialBodyHeight + 0.01f) break
                 specialP2Rows += item to lines.map { requireNotNull(it) }
-                specialP2Pitches += pitches
+                specialP2Pitches += height
             }
             val specialDeferredToC2 = data.specialEquipment.drop(specialP2Rows.size)
             require(specialP2Rows.size + specialDeferredToC2.size ==
                 data.specialEquipment.size)
-            // One band per real entry, then one-pitch free rows to the foot.
-            val specialBands = specialP2Pitches +
-                List(specialCapacity - specialP2Pitches.sum()) { 1 }
+            // One band per real entry, then free rows one line high to the foot; the few
+            // points left over are shared by the free rows, so they stay equal.
+            val specialFreeRows = ((specialBodyHeight - specialP2Pitches.sum()) / specialRowHeight + 0.001f).toInt()
+            val specialSlack = specialBodyHeight - specialP2Pitches.sum() - specialFreeRows * specialRowHeight
+            val specialBands: List<Float> = if (specialFreeRows > 0)
+                specialP2Pitches + List(specialFreeRows) { specialRowHeight + specialSlack / specialFreeRows }
+            else specialP2Pitches.dropLast(1) + listOfNotNull(specialP2Pitches.lastOrNull()?.plus(specialSlack))
             val specialBandTops = specialBands.runningFold(
-                specialArea.topPt - specialHeaderHeight) { top, pitches ->
-                top - pitches * specialRowHeight
+                specialArea.topPt - specialHeaderHeight) { top, height ->
+                top - height
             }
 
             fun grid(
@@ -4911,7 +4975,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 stream.beginText()
                 stream.setFont(headerPdfFont, 9.1f)
                 stream.newLineAtOffset(left + 17f, bottom + 6.8f) // C421 golden
-                stream.showText(title)
+                showInk(stream, title)
                 stream.endText()
                 stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 // Golden P2 requires an explicit meaning for BOTH small
@@ -4934,7 +4998,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.beginText()
                     stream.setFont(bodyPdfFont, legendSize)
                     stream.newLineAtOffset(x, bottom + 8.08f) // C421 golden
-                    stream.showText(printable)
+                    showInk(stream, printable)
                     stream.endText()
                     stream.setNonStrokingColor(Color(36, 57, 75)) /* C298 golden ink */
                 }
@@ -4964,7 +5028,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.setFont(if (label) headerPdfFont else bodyPdfFont,
                         if (label) 12f else tableFont.metrics.fontSizePt)
                     stream.newLineAtOffset(x, y)
-                    stream.showText(pcSheetV11PrintableText(text))
+                    showInk(stream, pcSheetV11PrintableText(text))
                     stream.endText()
                     if (!label) stream.restoreGraphicsState()
                 }
@@ -5083,7 +5147,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.beginText()
                     stream.setFont(headerPdfFont, 9.1f)
                     stream.newLineAtOffset(left + 17f, bottom + 6.8f)
-                    stream.showText(title.substringBefore(" / "))
+                    showInk(stream, title.substringBefore(" / "))
                     stream.endText()
                     val base = physicalSectionKeys.indexOf("P2 - Equipo y tesoro") + 1
                     if (base > 0) {
@@ -5150,7 +5214,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     stream.newLineAtOffset(amountRight -
                         boldPdfFont.getStringWidth(amountText) * amountPt / 1000f,
                         rowBaseline(cell.rectPt))
-                    stream.showText(amountText)
+                    showInk(stream, amountText)
                     stream.endText()
                     stream.restoreGraphicsState()
                 }
@@ -5188,8 +5252,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     if (cell.drawableText.isNotEmpty()) {
                         stream.beginText()
                         stream.setFont(bodyPdfFont, p2Font.metrics.fontSizePt)
-                        stream.newLineAtOffset(cell.cellPt.leftPt, cell.cellPt.bottomPt + 4.65f) // C409 golden
-                        stream.showText(pcSheetV11PrintableText(cell.drawableText))
+                        stream.newLineAtOffset(cell.cellPt.leftPt + (if (cell.sourceStartOffset > 0)
+                            io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedAmountRouting.CONTINUATION_INDENT_PT else 0f),
+                            cell.cellPt.bottomPt + 4.65f) // C409 golden, C473 indent
+                        showInk(stream, pcSheetV11PrintableText(cell.drawableText))
                         stream.endText()
                     }
                 }
@@ -5263,37 +5329,20 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                 stream.setFont(bodyPdfFont, specialColumnFonts[column].metrics.fontSizePt)
                                 stream.newLineAtOffset(fieldX[column] + 3.4f,
                                     rowTop - specialFirstBaseline - line * specialFont.metrics.lineHeightPt)
-                                stream.showText(pcSheetV11PrintableText(value))
+                                showInk(stream, pcSheetV11PrintableText(value))
                                 stream.endText()
                             }
                         }
                     }
                 }
                 stream.setNonStrokingColor(Color(36, 57, 75))
-                // C456 (golden, which goes before D-0076 §3.42): a row without an object keeps
-                // the label of its position in the golden ladder. No object is created.
-                val manualSpecialLocations = listOf("Cabeza", "Rostro", "Cuello", "Mano izquierda",
-                    "Mano derecha", "Pecho", "Piernas", "Libre")
-                // C468 (review of preqa.12, H7): a place an object already uses is not repeated.
-                val freeSpecialLocations = manualSpecialLocations.filterNot { label ->
-                    specialP2Rows.any { (item, _) -> item.location?.trim().equals(label, ignoreCase = true) }
-                }
+                // C473 (owner 2026-11-10, replaces C456): a row without an object is 100 % empty,
+                // with no location label; only its ACTIVO square.
                 repeat(specialBands.size) { rowIndex ->
                     val rowTop = specialBandTops[rowIndex]
-                    if (rowIndex >= specialP2Rows.size) {
-                        freeSpecialLocations.getOrNull(rowIndex - specialP2Rows.size)?.let { location ->
-                            stream.setNonStrokingColor(Color(38, 75, 104)) // C343 golden ink
-                            stream.beginText()
-                            stream.setFont(bodyPdfFont, specialColumnFonts[0].metrics.fontSizePt)
-                            stream.newLineAtOffset(fieldX[0] + 3.4f, rowTop - specialFirstBaseline)
-                            stream.showText(location)
-                            stream.endText()
-                            stream.setNonStrokingColor(Color(36, 57, 75))
-                        }
-                    }
                     // Each writable row requires a genuine unmarked ACTIVO square.
                     val activeY = rowTop -
-                        specialBands[rowIndex] * specialRowHeight / 2f - activeBox / 2f
+                        specialBands[rowIndex] / 2f - activeBox / 2f
                     stream.saveGraphicsState()
                     stream.setNonStrokingColor(Color(255, 255, 255))
                     stream.setStrokingColor(Color(82, 124, 150))
@@ -5373,16 +5422,21 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     val boxed = total != null && total in 1..20 && resource.currentValue in 0..total
                     val key = "resource:" + resource.id
                     val name = resource.name
+                    // C473 (owner QA of preqa.13, V11-QA-013): the boxes and their count share the
+                    // name's line when the whole fits; otherwise they keep a line of their own.
+                    val boxesBeside = boxed && c2Font.width.measurePt(pcSheetV11PrintableText(name)) + 12f +
+                        total!! * 11f + ((total - 1) / 5) * 3f + 6f + headerPdfFont.getStringWidth("20/20") * 7f / 1000f + 8f <=
+                        c2ActionColumn - 4.25f
                     if (boxed) {
-                        c2ResourceTracks[key] = Triple(name.length + 1,
+                        c2ResourceTracks[key] = Triple(if (boxesBeside) 0 else name.length + 1,
                             total!! - resource.currentValue, total)
                     }
-                    val balance = if (boxed) " " else
+                    val balance = if (boxesBeside) null else if (boxed) " " else
                         "Quedan " + resource.currentValue + (total?.let { " de " + it } ?: "")
-                    if (extras.isNotEmpty()) c2ResourceDetails[key] = name.length + 1 + balance.length + 1
+                    if (extras.isNotEmpty()) c2ResourceDetails[key] = name.length + 1 + (balance?.let { it.length + 1 } ?: 0)
                     add(PcSheetV11FlowItem(
                         sourceKey = key,
-                        text = name + "\n" + balance +
+                        text = name + (balance?.let { "\n" + it } ?: "") +
                             (if (extras.isEmpty()) "" else "\n" + extras.joinToString(" · ")),
                         keepTogetherIfFits = true,
                     ))
@@ -5502,8 +5556,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                 return layout.indices.map { index ->
                     val leftRow = rows[layout[index].first]
                     val rightRow = layout[index].second?.let { rows[it] }
-                    val leftName = wrapPrinted(leftRow.label, 7.2f, nameRoom).ifEmpty { listOf("") }
-                    val rightName = rightRow?.let { wrapPrinted(it.label, 7.2f, nameRoom) }.orEmpty()
+                    // C473 (owner QA of preqa.13, M7 / V11-QA-017): the P2 grammar - wrapped at the
+                    // indented width, every following line indented, one ruled row per line.
+                    val leftName = wrapPrinted(leftRow.label, 7.2f, nameRoom - io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedAmountRouting.CONTINUATION_INDENT_PT).ifEmpty { listOf("") }
+                    val rightName = rightRow?.let { wrapPrinted(it.label, 7.2f, nameRoom - io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11PairedAmountRouting.CONTINUATION_INDENT_PT) }.orEmpty()
                     val key = "paired:" + label + ":" + index
                     val lineCount = maxOf(leftName.size, rightName.size)
                     c2PairRows[key] = (0 until lineCount).map { line ->
@@ -5808,7 +5864,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                         stream.setFont(bodyPdfFont, fontPt)
                         // C344/C367: the free strip above the cartela, under the golden rule.
                         stream.newLineAtOffset(x, 696f)
-                        stream.showText(pcSheetV11PrintableText(label))
+                        showInk(stream, pcSheetV11PrintableText(label))
                         stream.endText()
                         stream.restoreGraphicsState()
                     }
@@ -5860,7 +5916,7 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                                     stream.setFont(bodyPdfFont, specialColumnFonts[column].metrics.fontSizePt)
                                     stream.newLineAtOffset(positions[column] + 3.4f, rowTop -
                                         specialFirstBaseline - index * specialFont.metrics.lineHeightPt)
-                                    stream.showText(pcSheetV11PrintableText(line))
+                                    showInk(stream, pcSheetV11PrintableText(line))
                                     stream.endText()
                                 }
                             }
@@ -6404,8 +6460,10 @@ internal class AndroidPcSheetV11PdfProofRenderer {
                     val label = physicalPage.toString()
                     stream.saveGraphicsState()
                     stream.setNonStrokingColor(Color(38, 75, 104))
+                    lightInkPaused = true // C473: the page number is not a character number.
                     drawP1Label(stream, label, 569.48f -
                         headerPdfFont.getStringWidth(label) * 8.2f / 1000f, 32.6f, 8.2f)
+                    lightInkPaused = false
                     stream.restoreGraphicsState()
                 }
             }

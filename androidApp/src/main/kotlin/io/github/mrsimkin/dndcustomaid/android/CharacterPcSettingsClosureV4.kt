@@ -1,6 +1,10 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.RadioButton
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -466,32 +470,25 @@ private fun PcSettingsPdfExportClosureV4(
     onSave: (AndroidPcSheetExportOptions) -> Unit,
     onShare: (AndroidPcSheetExportOptions) -> Unit,
 ) {
-    var familyName by rememberSaveable { mutableStateOf(PcSheetVisualFamily.CLASSIC_DND_STYLE.name) }
+    // C473 (owner 2026-11-10, «Sí, así», V11-QA-007): the V11 sheet is the only one. The four old
+    // families, the DEBUG section and «Estadísticas personalizadas» are gone.
+    var variantName by rememberSaveable { mutableStateOf(PcSheetV11Variant.A.name) }
+    var lightInkNumbers by rememberSaveable { mutableStateOf(false) }
     var stateName by rememberSaveable { mutableStateOf(PcSheetExportStateSelection.PERMANENT.name) }
-    var customModeName by rememberSaveable {
-        mutableStateOf(PcSheetCustomStatisticsPresentation.EXTENDED_PAGE.name)
-    }
     var portraitModeName by rememberSaveable { mutableStateOf(PcSheetPortraitFitMode.CROP_TO_FILL.name) }
     var includeSpellDescriptions by rememberSaveable { mutableStateOf(false) }
-    var v11ProofName by rememberSaveable { mutableStateOf("OFF") }
 
-    val family = runCatching { PcSheetVisualFamily.valueOf(familyName) }
-        .getOrDefault(PcSheetVisualFamily.CLASSIC_DND_STYLE)
+    val variant = runCatching { PcSheetV11Variant.valueOf(variantName) }.getOrDefault(PcSheetV11Variant.A)
     val state = runCatching { PcSheetExportStateSelection.valueOf(stateName) }
         .getOrDefault(PcSheetExportStateSelection.PERMANENT)
-    val customMode = runCatching { PcSheetCustomStatisticsPresentation.valueOf(customModeName) }
-        .getOrDefault(PcSheetCustomStatisticsPresentation.EXTENDED_PAGE)
     val portraitMode = runCatching { PcSheetPortraitFitMode.valueOf(portraitModeName) }
         .getOrDefault(PcSheetPortraitFitMode.CROP_TO_FILL)
     val options = AndroidPcSheetExportOptions(
-        visualFamily = family,
         stateSelection = state,
-        customStatisticsPresentation = customMode,
         portraitFitMode = portraitMode,
         includeSpellDescriptions = includeSpellDescriptions,
-        v11ProofVariant = if (BuildConfig.DEBUG) runCatching {
-            PcSheetV11Variant.valueOf(v11ProofName)
-        }.getOrNull() else null,
+        v11ProofVariant = variant,
+        lightInkNumbers = lightInkNumbers,
     )
 
     LazyColumn(
@@ -539,50 +536,43 @@ private fun PcSettingsPdfExportClosureV4(
             }
         }
 
-        item(key = "pdf-export-design") {
-            PcSettingsSectionClosureV4("Diseño") {
-                PdfChoiceRowClosureV4(
-                    title = "Familia visual",
-                    value = pcSheetFamilyLabelClosureV4(family),
-                    options = PcSheetVisualFamily.entries.map { it.name to pcSheetFamilyLabelClosureV4(it) },
+        item(key = "pdf-export-sheet") {
+            PcSettingsSectionClosureV4("Hoja") {
+                PdfVariantCardClosureV4(
+                    title = "A · Habilidades por atributo",
+                    subtitle = "cada habilidad bajo su atributo",
+                    selected = variant == PcSheetV11Variant.A,
+                    alphabetical = false,
                     enabled = !busy,
-                    onSelect = { familyName = it },
+                    onClick = { variantName = PcSheetV11Variant.A.name },
+                )
+                PdfVariantCardClosureV4(
+                    title = "B · Habilidades en orden alfabético",
+                    subtitle = "lista aparte, de la A a la Z",
+                    selected = variant == PcSheetV11Variant.B,
+                    alphabetical = true,
+                    enabled = !busy,
+                    onClick = { variantName = PcSheetV11Variant.B.name },
+                )
+                PcToggleRowClosureV4(
+                    title = "Números en tinta clara",
+                    secondary = "para escribir encima a lápiz al subir de nivel",
+                    checked = lightInkNumbers,
+                    enabled = !busy,
+                    onCheckedChange = { lightInkNumbers = it },
+                )
+                PcToggleRowClosureV4(
+                    title = "Incluir Libro de conjuros",
+                    secondary = "páginas con la descripción de cada conjuro",
+                    checked = includeSpellDescriptions,
+                    enabled = !busy,
+                    onCheckedChange = { includeSpellDescriptions = it },
                 )
             }
         }
 
-        if (BuildConfig.DEBUG) {
-            item(key = "pdf-v11-internal-proof") {
-                PcSettingsSectionClosureV4("Prueba de exportación nueva (solo DEBUG)") {
-                    PdfChoiceRowClosureV4(
-                        title = "Salida PDF de diagnóstico",
-                        value = when (v11ProofName) {
-                            "A" -> "V11 prueba interna A"
-                            "B" -> "V11 prueba interna B"
-                            else -> "Cuatro familias anteriores"
-                        },
-                        options = listOf(
-                            "OFF" to "Familias anteriores",
-                            "A" to "V11 prueba interna A",
-                            "B" to "V11 prueba interna B",
-                        ),
-                        enabled = !busy,
-                        onSelect = { v11ProofName = it },
-                    )
-                    if (options.v11ProofVariant != null) {
-                        Text(
-                            "Se generará un PDF real desde la App y se podrá Guardar/Compartir, " +
-                                "pero es una prueba interna incompleta, NO la hoja visual aprobada.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
-        }
-
-        item(key = "pdf-export-state") {
-            PcSettingsSectionClosureV4("Estado exportado") {
+        item(key = "pdf-export-more") {
+            PcSettingsSectionClosureV4("Más opciones") {
                 PdfChoiceRowClosureV4(
                     title = "Estado",
                     value = pcSheetStateLabelClosureV4(state),
@@ -597,30 +587,9 @@ private fun PcSettingsPdfExportClosureV4(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-            }
-        }
-
-        if (hasCustomStatistics) {
-            item(key = "pdf-export-custom") {
-                PcSettingsSectionClosureV4("Estadísticas personalizadas") {
+                if (hasPortrait) {
                     PdfChoiceRowClosureV4(
-                        title = "Presentación",
-                        value = pcSheetCustomModeLabelClosureV4(customMode),
-                        options = PcSheetCustomStatisticsPresentation.entries.map {
-                            it.name to pcSheetCustomModeLabelClosureV4(it)
-                        },
-                        enabled = !busy,
-                        onSelect = { customModeName = it },
-                    )
-                }
-            }
-        }
-
-        if (hasPortrait) {
-            item(key = "pdf-export-portrait") {
-                PcSettingsSectionClosureV4("Retrato") {
-                    PdfChoiceRowClosureV4(
-                        title = "Ajuste",
+                        title = "Ajuste del retrato",
                         value = pcSheetPortraitModeLabelClosureV4(portraitMode),
                         options = PcSheetPortraitFitMode.entries.map {
                             it.name to pcSheetPortraitModeLabelClosureV4(it)
@@ -629,17 +598,6 @@ private fun PcSettingsPdfExportClosureV4(
                         onSelect = { portraitModeName = it },
                     )
                 }
-            }
-        }
-
-        item(key = "pdf-export-spellbook") {
-            PcSettingsSectionClosureV4("Spellbook") {
-                PcToggleRowClosureV4(
-                    title = "Incluir descripciones de conjuros",
-                    checked = includeSpellDescriptions,
-                    enabled = !busy,
-                    onCheckedChange = { includeSpellDescriptions = it },
-                )
             }
         }
 
@@ -820,6 +778,65 @@ private fun PcNavigationRowClosureV4(
             Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Text("›", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun PdfVariantCardClosureV4(
+    title: String,
+    subtitle: String,
+    selected: Boolean,
+    alphabetical: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val accent = MaterialTheme.colorScheme.primary
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(vertical = appSpacingV4(2.dp)),
+        shape = MaterialTheme.shapes.medium,
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+            else MaterialTheme.colorScheme.surface,
+        border = BorderStroke(if (selected) 2.dp else 1.dp,
+            if (selected) accent else MaterialTheme.colorScheme.outlineVariant),
+        onClick = onClick,
+        enabled = enabled,
+    ) {
+        Row(
+            modifier = Modifier.padding(appSpacingV4(6.dp)),
+            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            RadioButton(selected = selected, onClick = onClick, enabled = enabled)
+            // A tiny page: A shows each skill under its attribute (indented short lines),
+            // B one separate list of equal lines.
+            Surface(
+                modifier = Modifier.width(26.dp).height(34.dp),
+                shape = MaterialTheme.shapes.extraSmall,
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            ) {
+                Column(
+                    modifier = Modifier.padding(3.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    val widths = if (alphabetical) listOf(1f, 1f, 1f, 1f, 1f) else listOf(1f, 0.7f, 0.7f, 1f, 0.7f)
+                    widths.forEachIndexed { index, w ->
+                        Box(
+                            modifier = Modifier
+                                .padding(start = if (!alphabetical && w < 1f) 4.dp else 0.dp)
+                                .fillMaxWidth(w)
+                                .height(2.dp)
+                                .background(if (!alphabetical && w == 1f) accent else MaterialTheme.colorScheme.outline),
+                        )
+                    }
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.bodyMedium)
+                Text(subtitle, style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
     }
 }
 

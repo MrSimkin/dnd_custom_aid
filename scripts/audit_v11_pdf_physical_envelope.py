@@ -27,9 +27,11 @@ P2_MODULES = (
     ("Tesoro derecha", 171.92, 364.82, 126.57, (16.0, 19.84)),
     ("Rasgos", 309.26, 121.32, 129.54, (16.0,)),
     ("Rasgos derecha", 442.77, 121.32, 129.55, (16.0,)),
-    # D-0076 §3.21: a multi-line special entry spans whole pitches; C343: the
-    # golden 26.93 pt rows under a 15.02 pt header, full width x39.69..572.31.
-    ("Equipo especial", 39.69, 515.62, 532.62, tuple(26.93 * n for n in range(1, 9))),
+    # C473 (owner 2026-11-10, «Sí, la propuesta»): under the golden 15.02 pt header, full
+    # width x39.69..572.31, an object row is as tall as its lines need (9 pt pitch, one EQUIPO
+    # line at least) and a free row is one EQUIPO line plus its share of the leftover points.
+    ("Equipo especial", 39.69, 515.62, 532.62,
+     tuple([max(16.15, n * 9 + 6.77) for n in range(1, 25)] + [h / 100 for h in range(1615, 3231)])),
 )
 
 
@@ -69,7 +71,7 @@ def p2_special_rows(page: fitz.Page) -> list[str]:
     errors = []
     if len(rules) < 2:
         return ["P2 special table rules not found"]
-    bands = [(a, b) for a, b in zip(rules, rules[1:]) if b - a > 20]
+    bands = [(a, b) for a, b in zip(rules, rules[1:]) if b - a > 12]  # C473: one-line rows too
     for a, b in bands:
         if sum(1 for r in boxes if a < r.y0 and r.y1 < b) != 1:
             errors.append(f"P2 special band {a}-{b} lacks exactly one ACTIVO box")

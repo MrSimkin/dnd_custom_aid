@@ -661,7 +661,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 val equipo = p2Rects.count { (x, y, w, h) -> near(x, 39.69f) && near(w, 126.56f) && (near(h, 16f) || near(h, 16.15f)) && y > 430f }
                 val tesoro = p2Rects.count { (x, y, w, h) -> near(x, 39.69f) && near(w, 126.56f) && (near(h, 16f) || near(h, 19.84f)) && y in 276f..427f }
                 val rasgos = p2Rects.count { (x, _, w, h) -> near(x, 309.26f) && near(w, 129.54f) && near(h, 16f) }
-                val especial = p2Rects.count { (x, _, w, h) -> near(x, 39.69f) && near(w, 532.62f) && near(h, 26.93f) }
+                // C473 (owner 2026-11-10): free special rows are one EQUIPO line high plus their share of the rest.
+                val especial = p2Rects.count { (x, _, w, h) -> near(x, 39.69f) && near(w, 532.62f) && h in 16.1f..32.3f }
                 assertTrue(equipo >= 3 && tesoro >= 2 && rasgos >= 3 && especial >= 2,
                     "Each empty P2 module keeps its own writable rows ($variant): " +
                         "equipo=$equipo tesoro=$tesoro rasgos=$rasgos especial=$especial")
@@ -1081,8 +1082,13 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                             else minOf(first.x0, first.x1) to maxOf(first.x0, first.x1)
                         val mine = strokes.filter { s -> maxOf(s.y0, s.y1) < labelY - 1f &&
                             minOf(s.x0, s.x1) >= gx0 - 0.05f && maxOf(s.x0, s.x1) <= gx1 + 0.05f }
-                        val vertical = mine.filter { kotlin.math.abs(it.x0 - it.x1) < 0.01f }
-                        val horizontal = mine.filter { kotlin.math.abs(it.y0 - it.y1) < 0.01f }
+                        // C473: only this cartela's own grid - its verticals start right under it, so
+                        // a lower full-width NOTAS grid sharing the column is not mixed in.
+                        val gridTop = mine.filter { kotlin.math.abs(it.x0 - it.x1) < 0.01f }.maxOfOrNull { maxOf(it.y0, it.y1) } ?: 0f
+                        val vertical = mine.filter { kotlin.math.abs(it.x0 - it.x1) < 0.01f &&
+                            kotlin.math.abs(maxOf(it.y0, it.y1) - gridTop) < 0.5f }
+                        val gridFoot = vertical.minOfOrNull { minOf(it.y0, it.y1) } ?: 0f
+                        val horizontal = mine.filter { kotlin.math.abs(it.y0 - it.y1) < 0.01f && it.y0 > gridFoot - 0.5f }
                         // Inner rules only: a three-row grid in a small gap has two horizontals (C443).
                         assertTrue(vertical.size >= 3 && horizontal.size >= 2,
                             "NOTAS at ($labelX, $labelY) has a grid on page ${index + 1} ($variant).")
@@ -1125,10 +1131,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             }.apply { startPage = 1; endPage = 1 }.getText(pdf)
             val labels = lines.filter { it.first.endsWith(")") }
                 .sortedWith(compareBy({ it.second > 150f }, { -it.third }))
-            assertEquals("Atletismo (FUE)", labels.first().first, "Strength's skill opens the panel.")
+            // C473 (owner 2026-11-10, «Sí, alfabético»): B reads alphabetically, down each subcolumn.
+            val collator = java.text.Collator.getInstance(java.util.Locale("es")).apply { strength = java.text.Collator.PRIMARY }
+            val names = labels.map { it.first.substringBeforeLast(" (").trimStart { c -> !c.isLetter() || c.isLowerCase() && it.first.length > 1 && false } }
+            assertEquals(names.sortedWith(collator), names, "Skills in alphabetical order: $names")
             val letters = labels.map { it.first.substringAfterLast('(').removeSuffix(")") }
-            val order = listOf("FUE", "DES", "CON", "INT", "SAB", "CAR", "FOR", "COR", "ETE")
-            assertEquals(letters.sortedBy { order.indexOf(it) }, letters, "Skills follow their attribute's order.")
             assertTrue(letters.containsAll(listOf("FOR", "COR", "ETE")), "Custom attributes' skills are in the panel.")
             assertFalse(lines.any { Regex("""^\([A-Z]{3}\)""").containsMatchIn(it.first) },
                 "No label wraps its three letters onto a second row: $lines")
@@ -1411,6 +1418,53 @@ class DesktopPcSheetV11RuntimePdfProofTest {
     }
 
     @Test
+    fun c473OwnerQaOfPreqa13AB() {
+        // C473 (owner QA of preqa.13 and owner decisions of 2026-11-10).
+        val aldren = sources("01_aldren_vale_srd5_1_champion_fighter.json")
+        val collator = java.text.Collator.getInstance(java.util.Locale("es")).apply { strength = java.text.Collator.PRIMARY }
+        for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
+            val plain = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), aldren).bytes
+            val light = DesktopPcSheetExportService().generateV11Proof(
+                PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT, lightInkNumbers = true), aldren).bytes
+            preserveRealApplicationPdf(plain, "V11-INTERNAL-PROOF-C473-owner-qa-$variant.pdf")
+            preserveRealApplicationPdf(light, "V11-INTERNAL-PROOF-C473-owner-qa-$variant-tinta-clara.pdf")
+            fun lightStates(bytes: ByteArray) = Loader.loadPDF(bytes).use { pdf ->
+                pdf.pages.sumOf { page ->
+                    page.resources.extGStateNames.count { name ->
+                        page.resources.getExtGState(name)?.nonStrokingAlphaConstant?.let { it < 0.5f } == true
+                    }
+                }
+            }
+            // V11-QA-010: light ink only when asked, and the same words either way.
+            assertEquals(0, lightStates(plain), "No light ink by default ($variant).")
+            assertTrue(lightStates(light) > 0, "Light ink when asked ($variant).")
+            Loader.loadPDF(plain).use { a -> Loader.loadPDF(light).use { b ->
+                assertEquals(PDFTextStripper().getText(a), PDFTextStripper().getText(b), "Same text with light ink ($variant).")
+            } }
+            Loader.loadPDF(plain).use { pdf ->
+                val pages = (1..pdf.numberOfPages).map { n ->
+                    PDFTextStripper().apply { startPage = n; endPage = n }.getText(pdf)
+                }
+                // V11-QA-009: the saved subclass beside its class.
+                assertTrue(pages[0].contains("Guerrero (Champion) 5"), "Subclass on P1 ($variant).")
+                // V11-QA-011 (owner «Sí, la propuesta»): free special rows carry no place label.
+                val labels = setOf("Cabeza", "Rostro", "Cuello", "Mano izquierda", "Mano derecha", "Pecho", "Piernas", "Libre")
+                val used = aldren.permanent.sheet.inventoryItems.filter { it.special }.mapNotNull { it.location?.trim() }.toSet()
+                val printed = pages[1].lines().map { it.trim() }.filter { it in labels }
+                assertTrue(printed.all { it in used }, "Only real object places on P2: $printed ($variant).")
+                if (variant == PcSheetV11Variant.B) {
+                    // Owner 2026-11-10, «Sí, alfabético»: B lists its skills alphabetically.
+                    val names = Regex("([A-ZÁÉÍÓÚ][^()\\n]*?) \\((FUE|DES|CON|INT|SAB|CAR)\\)")
+                        .findAll(pages[0]).map { it.groupValues[1].trim() }.toList()
+                    assertTrue(names.size >= 18, "All B skills found: $names")
+                    assertEquals(names.sortedWith(collator), names, "B skills in alphabetical order.")
+                }
+            }
+        }
+    }
+
+    @Test
     fun c468FixesOfTheReviewOfPreqa12AB() {
         // C468 / C219 (review of preqa.12, H1-H7; §3.29, §3.32, §3.48, C207, C341).
         val stress = sources("04_estres_v11_android.json")
@@ -1581,7 +1635,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }
                 val whole = pages.joinToString("\n")
                 classes.forEach { c ->
-                    assertTrue(Regex(c.name + "\\s+" + c.level + "(?![0-9])").containsMatchIn(whole),
+                    assertTrue(Regex(c.name + "(\\s+\\([^)]*\\))?\\s+" + c.level + "(?![0-9])").containsMatchIn(whole),
                         "${c.name} keeps its level ($variant).")
                 }
                 assertFalse(pages.first().trimEnd().lines().any { it.trim().endsWith(" /") && it.contains("QACLASE") },
@@ -1843,7 +1897,9 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         if (text.startsWith("Reserva ")) names += size
                     }
                 }.getText(pdf)
-                assertTrue(details.isNotEmpty() && details.all { it < 6.5f }, "Small print ($variant): $details")
+                // C473 (owner QA of preqa.13, V11-QA-013): the detail prints at the size it was
+                // measured with, never larger than the name, so it fills its line.
+                assertTrue(details.isNotEmpty() && details.all { d -> names.all { d <= it + 0.01f } }, "Detail print ($variant): $details")
                 assertTrue(names.isNotEmpty() && names.all { it > 6.5f }, "The name stays larger ($variant): $names")
             }
         }
@@ -1971,7 +2027,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         val mara = sources("03_mara_siete_umbrales_custom_extended.json")
         val appOnly = listOf("Lengua de los Umbrales", "Instrumentos de cartografía planar", "Armas de foco umbral",
             "Daño de paradoja", "Anclas causales", "Paso de umbral", "Sentido custom", "Efecto temporal 1",
-            "Marcador custom 1", "Protocolo de paradoja 1", "Prueba de Extended pages", "Cartógrafa de Paradojas",
+            // C473 (owner QA of preqa.13, V11-QA-009): the subclass now prints beside its class.
+            "Marcador custom 1", "Protocolo de paradoja 1", "Prueba de Extended pages",
             "Baúl", "AGOTAMIENTO", "CONTRA LA MUERTE")
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
             val bytes = DesktopPcSheetExportService().generateV11Proof(
@@ -2106,8 +2163,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                         .findAll(stream).map { it.groupValues[1].toFloat() to it.groupValues[2].toFloat() }.toList()
                     val p1 = PDFTextStripper().apply { startPage = 1; endPage = 1 }.getText(pdf)
                     for (level in 1..9) {
-                        val cx = 270.43f + ((level - 1) % 3) * 101.57f
-                        val cy = 168.94f - ((level - 1) / 3) * 18.99f
+                        val cx = 270.43f + ((level - 1) / 3) * 101.57f // C473 by columns
+                        val cy = 168.94f - ((level - 1) % 3) * 18.99f
                         assertEquals(io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSlotCapacity.maximum(level), squares.count { (x, y) ->
                             x >= cx + 34f && x + 8f <= cx + 98.74f && kotlin.math.abs(y - (cy + 5.53f)) < 0.3f
                         }, "N$level of $name ($variant).")
@@ -2177,7 +2234,7 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             if (it.id in ammoIds) it.copy(quantity = 40) else it }))
         // §3.4 and §3.7: two classes on one line, class by class.
         val twoClasses = with(sheet.copy(classes = listOf(fighter, fighter.copy(
-            id = Uuid.parse("a7a00000-0000-4000-8000-000000000001"), name = "Mago", level = 3,
+            id = Uuid.parse("a7a00000-0000-4000-8000-000000000001"), name = "Mago", level = 3, subclassName = null,
             hitDieSides = 6, hitDiceRemaining = 1, sortOrder = fighter.sortOrder + 1))))
         // §3.35: P4 depends on real spells, not on the class.
         val ilyra = sources("02_ilyra_quill_srd5_2_1_evoker_wizard.json").permanent.sheet
@@ -2213,13 +2270,16 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         for (variant in listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)) {
             val proof = DesktopPcSheetExportService().generateV11Proof(
                 PcSheetV11ExportRequest(variant, PcSheetExportStateSelection.PERMANENT), mara)
+            preserveRealApplicationPdf(proof.bytes, "V11-INTERNAL-PROOF-C441-mara-$variant.pdf")
             Loader.loadPDF(proof.bytes).use { pdf ->
                 val p2 = PDFTextStripper().apply { startPage = 2; endPage = 2 }.getText(pdf)
                     .replace(Regex("""\s+"""), " ")
                 val onBand = Regex("""CONTINÚAN? EN PÁG\. (\d+)""").findAll(p2).map { it.groupValues[1].toInt() }.toSet()
                 // C468: Mara's P2 modules may now continue on one shared sheet.
                 assertTrue(onBand.isNotEmpty(), "The fixture continues ($variant): $p2")
-                val foot = Regex("""CONTINÚA EN PÁG\. (\d+(?:(?:, | Y )\d+)*)""").findAll(p2).lastOrNull()
+                // C473: the page foot is the widest «CONTINÚA EN PÁG.» line, whatever the reading order.
+                val foot = Regex("""CONTINÚA EN PÁG\. (\d+(?:(?:, | Y )\d+)*)""").findAll(p2)
+                    .maxByOrNull { it.groupValues[1].length }
                 assertTrue(foot != null, "The foot names its pages ($variant).")
                 val named = Regex("""\d+""").findAll(foot!!.groupValues[1]).map { it.value.toInt() }.toSet()
                 assertEquals(onBand, named, "Foot and band name the same pages ($variant).")
@@ -3073,8 +3133,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     """(?m)(?:^|\s)([\d.]+)\s+([\d.]+)\s+(8(?:\.0|\.79\d*|\.789\d*)?)\s+(8(?:\.0|\.79\d*|\.789\d*)?)\s+re(?:\s|$)""", // C413
                 ).findAll(native).map { it.groupValues[1].toFloat() to it.groupValues[2].toFloat() }.toList()
                 for (level in 1..9) {
-                    val cellX = 270.43f + ((level - 1) % 3) * 101.57f // C351 golden
-                    val cellY = 168.94f - ((level - 1) / 3) * 18.99f // C356 golden
+                    val cellX = 270.43f + ((level - 1) / 3) * 101.57f // C351 golden; C473 by columns
+                    val cellY = 168.94f - ((level - 1) % 3) * 18.99f // C356 golden; C473 by columns
                     assertTrue(words.any { it.first == "N$level" && near(it, cellX + 5.1f, cellY + 5.96f) },
                         "P1 must print N$level at its fixed 3x3 grid cell, $variant")
                     val inCell = words.filter {
@@ -5010,17 +5070,17 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     kotlin.math.abs(rx - x) < 0.05f && kotlin.math.abs(ry - y) < 0.05f &&
                         kotlin.math.abs(rw - side) < 0.01f && kotlin.math.abs(rh - side) < 0.01f
                 }
-                // C413: golden first box at cell+34.01. N1=4: 8.79 pt, step 13; N2=5: 8 pt, step 10.
-                for (x in listOf(304.44f, 317.44f, 330.44f, 343.44f)) {
+                // C413: golden first box at cell+34.01. C473: N1=4: 8.79 pt, step 11.5; N2=5, under N1: 8 pt, step 10.
+                for (x in listOf(304.44f, 315.94f, 327.44f, 338.94f)) {
                     assertEquals(1, actualSquare(x, 174.47f, 8.79f),
                         "P1 must draw one true usable square for source x=$x.")
                 }
-                for (x in listOf(406.01f, 416.01f, 426.01f, 436.01f, 446.01f)) {
-                    assertEquals(1, actualSquare(x, 174.865f, 8f),
+                for (x in listOf(304.44f, 314.44f, 324.44f, 334.44f, 344.44f)) {
+                    assertEquals(1, actualSquare(x, 155.875f, 8f),
                         "P1 must draw one true usable square for source x=$x.")
                 }
-                assertEquals(0, actualSquare(356.44f, 174.47f, 8.79f), "Do not invent fifth box for N1=4.")
-                assertEquals(0, actualSquare(456.01f, 174.865f, 8f), "Do not invent sixth box for N2=5.")
+                assertEquals(0, actualSquare(350.44f, 174.47f, 8.79f), "Do not invent fifth box for N1=4.")
+                assertEquals(0, actualSquare(354.44f, 155.875f, 8f), "Do not invent sixth box for N2=5.")
                 val pageText = PDFTextStripper().apply {
                     startPage = 1; endPage = 1
                 }.getText(pdf)
@@ -5074,11 +5134,11 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                     assertTrue(kotlin.math.abs(x - (304.44f + n * 8.3f)) < 0.05f && // C413 golden
                         kotlin.math.abs(y - 175.615f) < 0.05f, "N1 square $n at ($x, $y).") // C356
                 }
-                // Unchanged real N2=3: the golden 8.79 pt boxes, step 17.01 (C413).
-                for (x in listOf(406.01f, 423.02f, 440.03f)) {
-                    assertEquals(1, squareAt(x, 174.47f))
+                // Real N2=3, under N1 (C473 by columns): 8.79 pt boxes, one fixed step of 11.5 pt.
+                for (x in listOf(304.44f, 315.94f, 327.44f)) {
+                    assertEquals(1, squareAt(x, 155.48f))
                 }
-                assertEquals(0, squareAt(457.04f, 174.47f),
+                assertEquals(0, squareAt(338.94f, 155.48f),
                     "Existing 1..5 spacing must never switch to six-slot spacing.")
                 val p1Text = PDFTextStripper().apply {
                     startPage = 1
@@ -7764,8 +7824,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 fun expected(level: Int) = io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SpellSlotCapacity.boxes(level, slots.firstOrNull { it.level == level }?.totalSlots)
                 assertEquals((1..9).sumOf { expected(it) }, boxes.size, "Each level's boxes ($variant).")
                 (1..9).forEach { level ->
-                    val cx = 270.43f + ((level - 1) % 3) * 101.57f // C351 golden
-                    val cy = 168.94f - ((level - 1) / 3) * 18.99f // C356 golden
+                    val cx = 270.43f + ((level - 1) / 3) * 101.57f // C351 golden; C473 by columns
+                    val cy = 168.94f - ((level - 1) % 3) * 18.99f // C356 golden; C473 by columns
                     assertEquals(expected(level), boxes.count { (x, y) ->
                         x >= cx + 34f && x + 8f <= cx + 98.74f && kotlin.math.abs(y - (cy + 5.7f)) < 0.3f // C413 golden
                     }, "N$level boxes inside their cell ($variant).")
@@ -7799,8 +7859,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
                 }.apply { startPage = 1; endPage = 1 }.getText(pdf)
                 assertEquals(0, marks.size, "C255: slot boxes are never pre-marked ($variant).")
                 slots.filter { it.totalSlots in 1..6 }.forEach { s ->
-                    val cx = 270.43f + ((s.level - 1) % 3) * 101.57f // C351 golden
-                    val cy = 168.94f - ((s.level - 1) / 3) * 18.99f // C356 golden
+                    val cx = 270.43f + ((s.level - 1) / 3) * 101.57f // C351 golden; C473 by columns
+                    val cy = 168.94f - ((s.level - 1) % 3) * 18.99f // C356 golden
                     assertTrue(labels.any {
                         it.first == "${s.spentSlots}/${s.totalSlots}" &&
                             it.second in cx + 60f..cx + 98.74f && it.third in cy..cy + 18.99f // C356
@@ -8586,7 +8646,8 @@ class DesktopPcSheetV11RuntimePdfProofTest {
             val continuation = c2ModulePages(physicalTexts, "EQUIPO").map { physicalTexts[it - 1] }
             assertTrue(continuation.isNotEmpty(),
                 "Overlong equipment must create a physical full-height C2 paired table.")
-            assertTrue(continuation.any { it.contains("MATERIAL INVENTARIADO") })
+            // C473 (M7): C2 wraps at the indented width like P2, so a name may break after «MATERIAL».
+            assertTrue(continuation.any { it.contains("INVENTARIADO") })
             fun flat(s: String) = s.replace(Regex("\\s+"), " ")
             val p2 = physicalTexts.first { it.contains("P2 - Equipo y tesoro") }
             // C211 R1: P2 is filled first; long names wrap there, the rest continues in C2.
@@ -9631,27 +9692,25 @@ class DesktopPcSheetV11RuntimePdfProofTest {
         Loader.loadPDF(proof.bytes).use { pdf ->
             val p2 = PDFTextStripper().apply { startPage = 2; endPage = 2 }
                 .getText(pdf)
-            // C456 (golden): the fixed ladder of eight labels.
+            // C473 (owner 2026-11-10, «Sí, la propuesta», replaces C456): free rows are 100 % empty.
             for (location in listOf("Cabeza", "Rostro", "Cuello", "Mano izquierda", "Mano derecha", "Pecho", "Piernas", "Libre")) {
-                assertTrue(p2.contains(location),
-                    "Missing golden paper location: " + location)
+                assertFalse(p2.lines().any { it.trim() == location }, "No place label on a free row: " + location)
             }
             assertFalse(p2.contains("Cota de malla"),
                 "Do not invent previously removed special objects.")
             val ops = pdf.getPage(1).contents.use {
                 it.readBytes().toString(Charsets.ISO_8859_1)
             }
-            // C343: the golden v11_extremo p2 ACTIVO boxes - 8.79 pt at x545.28,
-            // centred in eight 26.93 pt rows under the 15.02 pt header.
-            val activoRows = listOf(258.52f, 231.59f, 204.66f, 177.73f, 150.80f, 123.87f, 96.94f, 70.02f)
+            // C343: the golden 8.79 pt ACTIVO boxes at x545.28. C473: the golden 215.44 pt under the
+            // 15.02 pt header holds thirteen rows one EQUIPO line (16.15 pt) high, one box each.
             val paperMarks = Regex("""(?:^|\s)([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\s+re(?:\s|$)""")
                 .findAll(ops).map { m -> m.groupValues.drop(1).map { it.toFloat() } }
                 .count { (x, y, w, h) ->
                     kotlin.math.abs(x - 545.28f) < 0.02f && kotlin.math.abs(w - 8.79f) < 0.02f &&
-                        kotlin.math.abs(h - 8.79f) < 0.02f && activoRows.any { kotlin.math.abs(it - y) < 0.02f }
+                        kotlin.math.abs(h - 8.79f) < 0.02f && y in 55f..290f
                 }
-            assertEquals(8, paperMarks,
-                "Eight genuine golden 8.79 pt ACTIVO squares must be printed in P2.")
+            assertEquals(13, paperMarks,
+                "Thirteen genuine 8.79 pt ACTIVO squares must be printed in P2.")
             assertTrue(p2.contains("UBICACIÓN") && p2.contains("NOMBRE") &&
                 p2.contains("DESCRIPCIÓN") && p2.contains("ACTIVO"))
             assertTrue(pdf.numberOfPages >= 4)

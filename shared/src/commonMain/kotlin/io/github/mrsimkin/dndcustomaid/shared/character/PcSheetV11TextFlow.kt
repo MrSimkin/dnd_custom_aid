@@ -53,6 +53,9 @@ data class PcSheetV11FlowItem(
      * pt over 15.73 pt rows; golden book cards leave more air before the
      * description). The column capacity accounts for every extra. */
     val lineExtrasPt: Map<Int, Float> = emptyMap(),
+    /** C473 (owner QA of preqa.13, V11-QA-012): paper geometry only - every line after the
+     * first starts this many points further in, so it is wrapped that much narrower. */
+    val continuationIndentPt: Float = 0f,
 ) {
     init {
         require(leadingSeparationLines >= 0) {
@@ -201,7 +204,7 @@ object PcSheetV11TextFlow {
                 var groupExtra = 0f
                 while (next < items.size && items[next].groupKey == group) {
                     val groupLines = splitIntoMeasuredLines(
-                        items[next].text, column.widthPt, textWidth,
+                        items[next].text, column.widthPt, textWidth, items[next].continuationIndentPt,
                     )
                     measuredGroupLines += groupLines.size
                     groupExtra += groupLines.sumOf {
@@ -221,7 +224,7 @@ object PcSheetV11TextFlow {
                     nextColumn()
                 }
             }
-            val lines = splitIntoMeasuredLines(item.text, column.widthPt, textWidth)
+            val lines = splitIntoMeasuredLines(item.text, column.widthPt, textWidth, item.continuationIndentPt)
             if (lines.isEmpty()) return@forEachIndexed
             val separation = item.leadingSeparationLines
             if (separation > 0 && remaining() < column.lineCapacity) {
@@ -304,6 +307,7 @@ object PcSheetV11TextFlow {
         text: String,
         widthPt: Float,
         width: PcSheetV11TextWidth,
+        continuationIndentPt: Float = 0f,
     ): List<PcSheetV11TextLine> {
         if (text.isEmpty()) return emptyList()
         val lines = mutableListOf<PcSheetV11TextLine>()
@@ -327,7 +331,7 @@ object PcSheetV11TextFlow {
                 require(measured.isFinite() && measured >= 0f) {
                     "V11 text measurer returned an invalid width."
                 }
-                if (measured > widthPt) {
+                if (measured > (if (start > 0) widthPt - continuationIndentPt else widthPt)) {
                     require(cursor > start) {
                         "V11 glyph cannot fit the chosen font and column width."
                     }
