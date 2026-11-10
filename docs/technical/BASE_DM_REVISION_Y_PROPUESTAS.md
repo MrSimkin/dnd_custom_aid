@@ -90,6 +90,7 @@
 | P20 | Mesa de mazmorra · ¿Los relojes quedan así? | **«Sí, así»**. Un reloj tiene nombre y segmentos (4, 6, 8…). Avanza «+1 por turno de mazmorra» o a mano (− / +). Puede pertenecer a una mazmorra, a un lugar o a la campaña. Al llenarse avisa, pero no aplica consecuencias: decide el DM. |
 | P21 | Mesa de mazmorra · ¿Las notas en vivo funcionan así? | **«Sí, así»**. Un solo tipo de nota, que se pega sola al contexto donde se escribe (zona, criatura, mazmorra…) y se cambia con un toque. Sin etiquetas ni carpetas obligatorias. Una vista reúne las notas con su contexto. Las notas siempre se guardan, sin «borradores» que se pierdan, y viajan al escritorio para ordenarlas después. |
 | P22 | Mesa de mazmorra · ¿Una emboscada exitosa abre el combate con ronda sorpresa? | **«Sí, así»**. Si al cerrar el turno una Emboscada salió bien, la App propone empezar con ronda sorpresa para el grupo. Vienen marcados los PJ que emboscaron, y el DM puede cambiarlo. Los enemigos quedan sorprendidos. Siempre se puede empezar sin sorpresa; el DM confirma. |
+| P23 | Mesa de mazmorra · ¿El mapa de zonas con grupo y criaturas puestos a mano queda así? | **«Sí, así»**.<br>• Mapa tipo diagrama, armado en el Gestor de mazmorras del escritorio: zonas unidas por pasajes, incluidos los secretos, sin cuadrícula.<br>• Cada zona muestra su estado, y un toque abre su ficha.<br>• El grupo y las criaturas se ubican a mano, arrastrando o con un toque.<br>• Nada se mueve solo; los relojes solo avisan. |
 
 ## 5. Orden de trabajo tras P1
 
