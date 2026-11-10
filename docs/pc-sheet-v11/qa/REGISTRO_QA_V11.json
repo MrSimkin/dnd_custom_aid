@@ -42,7 +42,8 @@
       "reported_ids": [
         "V11-QA-003",
         "V11-QA-004",
-        "V11-QA-005"
+        "V11-QA-005",
+        "V11-QA-006"
       ],
       "runtime_pdf": false
     }
@@ -377,6 +378,35 @@
       "expected": "La pantalla DEV (QA / autenticación hospedada DEV) es más clara para el propietario, y mejora la UX de todo lo relacionado con entrar, sincronizar y resolver conflictos.",
       "target_scope": "Android/pantalla DEV y UX de sincronización (no V11 PDF)",
       "page_hint": "Ajustes → Herramientas DEV → Abrir QA / diagnóstico DEV"
+    },
+    {
+      "id": "V11-QA-006",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct request",
+      "source_locator": "Chat de la sesión, 2026-11-10, a continuación de V11-QA-004 y V11-QA-005",
+      "original_text": "y te faltó, una pantalla de login clara, para jugadores y DM, ahi hablaremos los detalles cuando corresponda",
+      "expected": "La App tiene una pantalla de inicio de sesión clara para jugadores y DM. Los detalles se acuerdan con el propietario cuando corresponda.",
+      "target_scope": "Android/inicio de sesión de jugadores y DM (no V11 PDF)",
+      "page_hint": "Hoy solo existe la pantalla de builds debug «QA / autenticación hospedada DEV»",
+      "blocking": false,
+      "status": "OPEN",
+      "related_ids": [
+        "V11-QA-003",
+        "V11-QA-004",
+        "V11-QA-005"
+      ],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ]
     }
   ],
   "rcr_budget": {
