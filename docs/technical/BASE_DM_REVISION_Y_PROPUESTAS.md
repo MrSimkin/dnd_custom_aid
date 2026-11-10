@@ -74,6 +74,8 @@
 | P4 | ¿Las respuestas de reglas muestran siempre el texto del SRD citado, y se agrega la búsqueda sin conexión? | **«Sí, las dos»**. Cada respuesta muestra el texto exacto del SRD con versión (5e / 5.5e) y sección, con enlace a la otra versión. El SRD se guarda también en el aparato y se busca por palabras sin IA ni red. |
 | P5 | ¿Cómo llegan a la tablet los archivos del DM (handouts) y el retrato del PJ? | Tras replantearla con el ejemplo de Bram, el propietario respondió **«Viajan solas»**. Las imágenes (handouts, mapas, retratos de PNJ y de PJ) suben y bajan solas por un servicio de archivos en internet. Antes de activarlo, el Worker hace la revisión de costo USD $0 (D-0075, AGENTS §10): cupo gratis, medio de pago, tope duro o cobro por exceso, región y dependencia. Compara R2 con alternativas sin tarjeta y presenta el resultado. Activar el proveedor es un paso del propietario. |
 
+| P6 | ¿QA parciales en el camino o uno solo al final? | **«Uno solo al final»**. No hay QA parciales del propietario. El Worker verifica cada paquete con pruebas, CI y la App en el emulador, y entrega un único QA «Base para DM» al terminar los 8 paquetes. |
+
 ## 5. Orden de trabajo tras P1
 
 1. **C0 · Sincronización del contenido del DM:**
@@ -89,3 +91,16 @@
 
 - La etapa A suma un **servicio de archivos en internet**. Primero se arma el modelo local de archivos (identidad estable, tipo, tamaño, suma de control, solo DM o apto para jugadores), sin el proveedor; después se conecta el proveedor elegido.
 - Si la revisión USD $0 no encuentra un proveedor sin riesgo de cobro, se vuelve a preguntar al propietario antes de activarlo.
+
+## 7. Los 8 paquetes de la «Base para DM» (orden)
+
+1. Sincronizar el contenido del DM (servidor, escritorio, tablet).
+2. Modo DM en la App Android para tablet.
+3. Pantalla del DM.
+4. Archivos e imágenes (biblioteca y servicio de archivos, tras la revisión USD $0).
+5. Mesa de combate.
+6. Mesa de escena.
+7. Mesa de mazmorra.
+8. Reglas SRD (IA con cita y búsqueda sin conexión).
+
+QA único del propietario al final (P6).
