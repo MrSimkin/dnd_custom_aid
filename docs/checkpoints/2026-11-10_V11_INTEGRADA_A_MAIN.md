@@ -41,4 +41,6 @@ Literal: «A, B y D en ese orden y eso irá en el siguiente QA, que es la Base p
 
 ## Siguiente acción exacta
 
-Revisar la documentación de A, B y D y presentar al propietario las preguntas y propuestas de mejora, de a una, con imágenes cuando ayude. No programar A, B ni D antes de esa conversación.
+El diseño de la «Base para DM» quedó cerrado con 24 respuestas del propietario (P1–P24) en `docs/technical/BASE_DM_REVISION_Y_PROPUESTAS.md`.
+
+**Siguiente paso:** construir el paquete 1, sincronizar el contenido del DM (App de PC → servidor → tablet), en una rama corta desde `main`. Después siguen los paquetes 2 a 8 de la sección 7 de ese documento, y al final un solo QA del propietario.

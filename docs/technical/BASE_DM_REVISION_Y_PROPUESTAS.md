@@ -91,6 +91,32 @@
 | P21 | Mesa de mazmorra · ¿Las notas en vivo funcionan así? | **«Sí, así»**. Un solo tipo de nota, que se pega sola al contexto donde se escribe (zona, criatura, mazmorra…) y se cambia con un toque. Sin etiquetas ni carpetas obligatorias. Una vista reúne las notas con su contexto. Las notas siempre se guardan, sin «borradores» que se pierdan, y viajan al escritorio para ordenarlas después. |
 | P22 | Mesa de mazmorra · ¿Una emboscada exitosa abre el combate con ronda sorpresa? | **«Sí, así»**. Si al cerrar el turno una Emboscada salió bien, la App propone empezar con ronda sorpresa para el grupo. Vienen marcados los PJ que emboscaron, y el DM puede cambiarlo. Los enemigos quedan sorprendidos. Siempre se puede empezar sin sorpresa; el DM confirma. |
 | P23 | Mesa de mazmorra · ¿El mapa de zonas con grupo y criaturas puestos a mano queda así? | **«Sí, así»**.<br>• Mapa tipo diagrama, armado en el Gestor de mazmorras del escritorio: zonas unidas por pasajes, incluidos los secretos, sin cuadrícula.<br>• Cada zona muestra su estado, y un toque abre su ficha.<br>• El grupo y las criaturas se ubican a mano, arrastrando o con un toque.<br>• Nada se mueve solo; los relojes solo avisan. |
+| P24 | ¿Qué nombres en español usa la App? | Respuesta en una tabla editada por el propietario (ver abajo). |
+
+### Nombres en la App (P24, respuesta literal del propietario)
+
+| Nombre de trabajo | En la App |
+|---|---|
+| Workspace (el conjunto de mesas) | **Escritorio DM** |
+| DM Screen | **Pantalla del DM** |
+| Stage Desk | **Mesa de Escena** |
+| Dungeon Desk | **Mesa de Dungeon** |
+| Combat Desk | **Mesa de Combate** |
+| Party Lens | **Vista Grutp**, escrito así; se lee como «Vista Grupo» (error de tipeo evidente) y se usará «Vista Grupo» salvo que el propietario diga otra cosa |
+| Zone Brief | **Ficha de Zona** |
+| Encounter Readiness | **Preparar encuentro** |
+| Quick Rules Question | **Consultar reglas** |
+| Dungeon Turn | **Turno de Dungeon** |
+| Quick reference | **Referencia rápida** |
+| Clocks | **Relojes** |
+| Packages | **Paquetes** |
+
+Aviso de claridad para documentos y conversación: «Escritorio DM» es ahora el conjunto de mesas en la tablet. Para no confundirlo, a la aplicación de computador se la llama **«App de PC»** (antes «escritorio», Desktop App).
+
+## 8. Estado del diseño
+
+Diseño de la «Base para DM» cerrado con P1–P24 (2026-11-10). Siguiente: construir el paquete 1, sincronizar el contenido del DM.
+
 
 ## 5. Orden de trabajo tras P1
 
