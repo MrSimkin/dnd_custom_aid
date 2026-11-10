@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21",
+  "branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "scope": "C216 real-source linked custom C2 skill manual paper boxes, 7 x 7pt vector, Android/Desktop writer parity",
+  "status": "PASS_LOCAL_PHYSICAL_ONLY",
+  "source_sha": "a3b24cafce82f3361831ce85ca3e3fa60196079b",
+  "reference_head": "262d9be6e747851f7616bc6dc9151acc7545da98",
+  "approved_reference": {
+    "zip_sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+    "pdf": "V11_Carta/pdfs/v11_extremo_variante_A.pdf",
+    "page": 4,
+    "note": "Approved skills under Cordura and Honor have individual unselected paper squares"
+  },
+  "ci": {
+    "scaffold_run": 39689107598,
+    "scaffold_conclusion": "success",
+    "qa_traceability_run": 39689107581,
+    "qa_conclusion": "success"
+  },
+  "artifacts": {
+    "baseline": {
+      "run": 39676934860,
+      "id": 12382464137,
+      "zip_sha256": "3b59fe3eddd09a5573915a80c3561955e491e80483bedfc0d3433aa1108fba1b"
+    },
+    "candidate": {
+      "run": 39689107598,
+      "id": 12387592619,
+      "zip_sha256": "9ff8c3cafc61e560e2ea7fa94c6c077c983d6d8d0b70f724d975b7839f933ebf"
+    }
+  },
+  "independent_physical_comparison": {
+    "pdfs_before": 76,
+    "pdfs_after": 76,
+    "identical_pdf_filenames": true,
+    "physical_pages_before": 713,
+    "physical_pages_after": 713,
+    "unchanged_vectors_pages": 679,
+    "changed_C2_pages": 34,
+    "new_actual_skill_box_paths": 490,
+    "removed_previous_paths": 0,
+    "unexpected_additional_paths": 0,
+    "new_box_size_pt": [
+      7,
+      7
+    ],
+    "stroke_width_pt": 0.65,
+    "words_preserved_as_multiset_per_pdf": true,
+    "skill_first_line_source_words": 490,
+    "verified_adjacent_real_boxes": 490,
+    "unmatched": 0,
+    "unexpected_source_loss": 0,
+    "other_pages_unchanged": 502,
+    "method": "PyMuPDF 76-name PDF comparison: full word tokens multiset, physical path counter with width/fill/rect geometry and real word to 7x7 box proximity; only first source fragment counts"
+  },
+  "native_CI_independent_audit": {
+    "file": "desktopApp/build/v11-p3-c2-manuscript-audit.json",
+    "pdf_count": 76,
+    "p3_pages": 96,
+    "c2_pages": 211,
+    "c2_linked_skill_rows": 490,
+    "c2_linked_skill_paper_boxes": 490,
+    "c2_complete_grids": 217,
+    "c2_context_labels": 39,
+    "c2_context_blue_bands": 39,
+    "result": "PASS_LOCAL_PHYSICAL_ONLY",
+    "failures": 0
+  },
+  "visual_inspection": "Mara-A actual PDF physical p4, 1.5x raster; boxes left of Sincronía and Manipulación de éter, no covered names, values or training; golden original p4 compared",
+  "gates": {
+    "G0": "PARTIAL",
+    "G1": "prior semantic PASS",
+    "G2": "PARTIAL",
+    "G3": "PARTIAL",
+    "G4": "BLOCKED; 105 NOT_VERIFIED active_candidate=null",
+    "G5": "PENDING",
+    "G6": "PENDING",
+    "C211": "BLOCKED 3/3 normal, structural RCR-1 0/2",
+    "pr_173": "DRAFT NO MERGE"
+  },
+  "limitations": [
+    "No installed Android-generated PDF proof: Android compile and source parity only",
+    "No full golden visual comparison across eight approved PDFs or C204 global PASS",
+    "No owner technical or visual acceptance of current implementation",
+    "No promotion of G4 105 mandatory rules, G5 or G6"
+  ]
+}

@@ -1,0 +1,33 @@
+# V11 — P2 cuatro módulos: bandas alternas azul-niebla reales
+
+**20-10-2026 | autoridad GitHub**: rama `docs/pc-sheet-v11-approved-implementation-handoff`, PR [#173](https://github.com/MrSimkin/dnd_custom_aid/pull/173) DRAFT NO MERGE; base remota `7762d8c2f0b5c07eb22647db6e0b0683978c8da6`, `main` `0c009f10d5e66880d68fa3732491c6fc3e172f22`. Último HEAD documental [Scaffold #39494971333](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39494971333) y [QA #39494971323](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39494971323) **SUCCESS**.
+
+## Brecha concreta documentada
+
+Contraste visual de P2 real de `V11-INTERNAL-PROOF-Mara-B.pdf`, artefacto [#12296978059](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39493923916/artifacts/12296978059), con el **golden aprobado** `v11_extremo_variante_B.pdf` p2 del ZIP SHA256 `35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a`. Golden tiene filas de escritura azul-niebla alternas en **EQUIPO, TESORO, RASGOS Y ATRIBUTOS y EQUIPO ESPECIAL**; PDF de App presentaba grandes bloques de relleno uniforme (RGB 238/247/251), con líneas horizontales y sin tintado alterno en cuatro tablas. Ningún dato real requiere moverse para lograr el papel aprobado.
+
+## Modificación funcional
+
+En **los dos renderers reales Kotlin V11 (Android y Desktop)**, agregar `alternateP2Rows: Boolean = false` al `grid()` interno y pasar `true` exclusivamente desde P2 Equipo/Tesoro/Rasgos. Pintar `RGB(231,242,247)` cada segunda fila calculada con la altura física **ya medida** de la tabla (si vacío, Equipo 16,5 pt; Tesoro 19,5 pt; con fuente, `body.metrics.lineHeightPt`), antes de trazar las reglas y valores originales. **C2 opt-out** preserva intactas sus cuadrículas y auditorías anteriores. Equipo Especial usa su propia fuente real `specialRowHeight=25pt`, tintando filas pares dentro de la reserva P2 original y antes de cuatro columnas, marcas ACTIVO y texto fuente, sin añadir filas/datos.
+
+Se **amplía el auditor existente** `scripts/audit_v11_pdf_physical_envelope.py`, ya ejecutado por Scaffold, para exigir al menos un primer rectángulo real tintado (posición y color) de cada módulo del segundo folio en todos los PDF genuinos. No crear auditoría alternativa. Scaffolds anteriores de 76 PDF, 711 páginas; el nuevo commit debe verificar que páginas, palabras y posiciones se conservan, y **todas las páginas no P2** siguen con vectores idénticos, en especial C2 con 230 notas físicas. La actualización no altera lógica de fuente, folios, tests previos, las 4 familias legacy ni C211.
+
+**Estado al implementar:** código publicado, **CI/PDF del commit exacto PENDIENTES**. Registrar PASS LOCAL exclusivamente si auditor real, tests y cotejo diferencial pasan; no promocionar ninguna regla de la matriz G4.
+
+**Gates:** G0 PARCIAL; G1 semántico PASS previo; G2/G3 PARCIALES; **G4 BLOCKED 105/105 NOT_VERIFIED, active_candidate=null**; G5/G6 pendientes; Android instalado/QA owner sin aceptación; C211 RCR-1 3/3 normal agotado y 0/2 estructural. PR #173 DRAFT no fusionada.
+
+**Próximo:** validar output exacto, persistir evidencia física, avanzar otra brecha independiente sin reabrir lo que ya pasó.
+
+## Precisión del guard físico (mismo requisito, no cambio visual adicional)
+
+Se comprobó **sobre PDF de base reales** que P2 Equipo sin registros usa renglones manuscritos de **16,5pt** (primera regla y=124,5pt en Mara B), Tesoro sin registros usa **19,5pt**, y con registros las tablas usan **12,42pt** medidos. El auditor de envolvente introducido con esta modificación se ajusta para aceptar **solo ambos ritmos respaldados** para Equipo y Tesoro. Rasgos mantiene 12,42pt; Especial 25pt. No se toca Kotlin ni la geometría fuente. La primera corrida del commit `dbe4791d51497c128a090cc6e12289a198766850` puede fallar porque el guard inicial esperaba 12,42pt para filas vacías: cualquier resultado de esa corrida se registra como prueba del código anterior, NO se interpreta como un fallo de contenido ni como PASS de este guard revisado.
+
+## Resultado físico del commit exacto y rectificación de trazabilidad
+
+El código P2 + auditor refinado en commit 415f5ef938c22b0bca324b6e4d508f50d2d5bf4e terminó [Scaffold #39497528573](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39497528573) **SUCCESS** (compilación Android APK, Desktop, auditor PDF, backend y DB). [76 PDF auténticos App](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39497528573/artifacts/12298907449), ZIP SHA256 67c64f435e89a01a0cfd102bc6ab87a50563d1f19e83143cb801dd0cfe92e4ac; [auditores físicos](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39497528573/artifacts/12298678015), ZIP SHA256 ef33b0434ff4ac0a1f6a6ac899041d3542b3ed16f3e688cf7684b16196a515d3; envelope audit 76/76 PASS, 0 errores.
+
+Comparación independiente PyMuPDF de estos 76 PDF con el artefacto anterior P3, ZIP base SHA256 db6fde5d360c2ab9642c2f9c85ca67914af0e2e19c67907b24babd52645e7d9d: **711/711 páginas mismas palabras y coordenadas; 635/635 no-P2 mismo conjunto de dibujos; 76/76 P2 conserva todos sus trazos originales**. La comparación normaliza el antiguo operador gráfico PDFBox fillAndStroke en su equivalente fill + stroke, sin pérdida de tinta. **304/304** primeras bandas tintadas P2 verificadas (4 módulos x 76). Cero errores. JSON de cotejo local SHA256 e1da0e5b1d73a7bd05f6a38512dbfd77cacd2948b387d4d7b6e31a0d4c904439. PDF Mara B P2 inspeccionado visualmente. **PASS LOCAL P2 bandas, NO G4.**
+
+La ejecución inicial [Scaffold #39497274354](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39497274354) y [owner QA traceability #39497274504](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39497274504) fueron **FAILURE**. El primero corresponde al auditor físico que exigía erróneamente 12,42pt incluso en Equipo/Tesoro vacíos (legítimos 16,5/19,5pt); corregido y Scaffold posterior SUCCESS. El segundo fue **una prueba sintáctica frágil** que buscaba literalmente la llamada antigua de 4 argumentos a grid en ambos renderers, aunque se añadió un parámetro P2. El test test_v11_p2_empty_paper_rhythm_contract.py se actualiza para verificar el requisito real: renglones manuscritos solo en P2 vacío, 16,5/19,5pt, P2 sombreado opt-in, C2 por defecto sin sombreado. Requiere CI de trazabilidad nuevo para confirmar su cierre. No ocultar los fallos previos ni declararlos PASS retroactivamente.
+
+Gates SIN cambios: G0 PARTIAL, G1 PASS semántico previo, G2/G3 PARTIAL, G4 BLOCKED 105/105 NOT_VERIFIED y active_candidate=null, G5/G6 pendientes; QA Android instalado/propietario sin realizar; C211 RCR-1 3/3 intentos ordinarios agotados y 0/2 estructurales. PR #173 DRAFT OPEN sin merge.

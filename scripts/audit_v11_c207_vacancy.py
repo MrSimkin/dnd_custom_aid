@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+"""Independent C207 detection of OMITTED handwriting reserves in real App PDFs.
+
+Complement to the existing drawn-grid auditor: a grid is missing if a genuine
+C2 paper module has >=128pt of unprotected unused BOTTOM height. A four-field
+full-width Equipo Especial table is ONE region, not two independent columns.
+Golden ZIP is inventoried (eight SHA256 and page roles), NOT declared matched.
+No installed Android / owner or global G4 PASS.
+"""
+from __future__ import annotations
+import argparse
+import hashlib
+import json
+import zipfile
+from pathlib import Path
+import fitz
+
+BOTTOM = 707.0
+MIN_GAP = 128.0
+
+
+def printed_role(text: str) -> str:
+    """C463 (owner 2026-11-07): continuation sheets print no title at the right of the header,
+    so their role comes from the golden label every one of them carries."""
+    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if "MÓDULOS COMPARTIDOS · DOS COLUMNAS" in text:
+        return "C2 - Habilidades, acciones y recursos"
+    if "MÓDULOS COMPARTIDOS · MIXTO" in text:
+        return "C2 - Equipo especial / continuación"
+    if "TRASFONDO, PERFIL E HISTORIA / CONTINUACIÓN" in text and not any(l.startswith("P3 - ") for l in lines[:3]):
+        return "P3 - Narrativa / continuación"
+    return lines[1] if len(lines) > 1 else ""
+
+def role(page):
+    return printed_role(page.get_text())
+
+def notas_labels(page):
+    """(x0, y0, x1, baseline) of each 12 pt NOTAS cartela label."""
+    return [(s["bbox"][0], s["bbox"][1], s["bbox"][2], s["origin"][1])
+            for b in page.get_text("dict")["blocks"] for line in b.get("lines", [])
+            for s in line["spans"] if s["text"].strip() == "NOTAS" and abs(s["size"]-7.6)<.05]  # C307
+
+def grids(page):
+    """C401: golden C2 grid - a 0.45 pt stroked frame with 0.27 pt inner rules;
+    the NOTAS cartela rests on the frame, its label baseline 5.1 pt above it."""
+    paths = page.get_drawings()
+    frames = [s["rect"] for s in paths if s.get("width") is not None and abs(s["width"]-.45)<.06
+              and len(s["items"]) == 1 and s["items"][0][0] == "re"
+              and s["rect"].width > 180 and s["rect"].height > 46]
+    inner = [s["rect"] for s in paths if s["type"] == "s" and
+             s.get("width") is not None and abs(s["width"]-.27)<.05 and s["rect"].width < .05]
+    out=[]
+    for w in notas_labels(page):
+        y=w[3]+5.1
+        for frame in frames:
+            if abs(frame.y0-y)<.4 and frame.x0<w[0]+2 and frame.x1>w[2]+50:
+                cols=[c for c in inner if abs(c.y0-frame.y0)<.4 and frame.x0<c.x0<frame.x1]
+                if cols: out.append((frame.x0,frame.x1,frame.y0,frame.y1))
+                break
+    return out
+
+def missing_by_side(page):
+    words = page.get_text("words")
+    valid_grids = grids(page)
+    if role(page).startswith("C2 - Equipo especial"):
+        # The approved four-field table spans the full page: its nominal
+        # left/right fields are not independently available for NOTES.
+        src=[w for w in words if 106<=w[1]<=720 and 42<=w[0] and w[2]<=570]
+        bottom=max((w[3] for w in src),default=105.)
+        gap=BOTTOM-bottom
+        return {"sides":{"full-width":{"source_bottom":round(bottom,2),
+                  "free_height":round(gap,2),"grid_protects":bool(valid_grids)}},
+                "missing":["full-width"] if gap>=MIN_GAP and not valid_grids else [],
+                "detected_grids":len(valid_grids)}
+    sides={}
+    missing=[]
+    labels=notas_labels(page)
+    for left,right,name in ((42,300,"left"),(312,570,"right")):
+        src=[w for w in words if 106<=w[1]<=720 and
+             w[0]>=left and w[2]<=right and
+             not any(w[4]=="NOTAS" and abs(w[0]-n[0])<.5 and abs(w[1]-n[1])<2
+                     for n in labels)]
+        bottom=max((w[3] for w in src),default=105.)
+        gap=BOTTOM-bottom
+        covered=any(x1>=left+100 and x0<=right-100 and
+                    y0>=bottom-5 and y1>y0+46
+                    for x0,x1,y0,y1 in valid_grids)
+        sides[name]={"source_bottom":round(bottom,2),
+                     "free_height":round(gap,2),"grid_protects":covered}
+        if gap>=MIN_GAP and not covered:missing.append(name)
+    return {"sides":sides,"missing":missing,
+            "detected_grids":len(valid_grids)}
+
+def audit(pdf_paths,minimum=48):
+    if len(pdf_paths)<minimum:
+        raise ValueError("Insufficient genuine App PDFs: "+str(len(pdf_paths)))
+    files=[]; problems=[]; c2_pages=0; checked=0; protected=0; dense=0
+    for path in pdf_paths:
+        raw=path.read_bytes()
+        doc=fitz.open(stream=raw,filetype="pdf")
+        issues=[]; n_c2=0
+        for i,page in enumerate(doc):
+            section=role(page)
+            if not section.startswith("C2 - "):continue
+            n_c2+=1;c2_pages+=1
+            state=missing_by_side(page)
+            checked+=len(state["sides"])
+            dense+=sum(x["free_height"]<MIN_GAP for x in state["sides"].values())
+            protected+=sum(x["grid_protects"] for x in state["sides"].values())
+            if state["missing"]:
+                problem={"file":path.name,"physical_page":i+1,
+                         "module":section,**state}
+                problems.append(problem);issues.append(problem)
+        files.append({"file":path.name,"sha256":hashlib.sha256(raw).hexdigest(),
+                      "pages":len(doc),"c2_pages":n_c2,"issues":issues[:4]})
+        doc.close()
+    return {"result":"PASS_SCOPED" if not problems else "FAIL",
+            "scope":"C207 missing usable BOTTOM grids; not all golden/Android/G4",
+            "pdf_count":len(pdf_paths),"c2_pages":c2_pages,
+            "inspected_regions":checked,"small_gaps":dense,
+            "regions_covered_by_existing_grid":protected,
+            "missing_reservations":len(problems),"errors":problems[:12],
+            "pdfs":files}
+
+def golden_inventory(path):
+    with zipfile.ZipFile(path) as z:
+        bad=z.testzip()
+        if bad:raise ValueError("Corrupt approved ZIP: "+bad)
+        names=sorted(n for n in z.namelist() if n.lower().endswith(".pdf"))
+        if len(names)!=8:raise ValueError("Approved golden must contain 8 PDFs")
+        cases=[]
+        for name in names:
+            raw=z.read(name)
+            with fitz.open(stream=raw,filetype="pdf") as doc:
+                pages=[i+1 for i,p in enumerate(doc)
+                       if role(p).startswith("C2 - ")]
+                cases.append({"name":name,
+                              "sha256":hashlib.sha256(raw).hexdigest(),
+                              "pages":len(doc),"c2_title_pages":pages})
+        return {"scope":"Frozen eight-PDF inventory only; not visual G4 PASS",
+                "cases":cases}
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--pdf-dir",type=Path,required=True)
+    p.add_argument("--golden-zip",type=Path)
+    p.add_argument("--minimum-pdfs",type=int,default=48)
+    p.add_argument("--report",type=Path,required=True)
+    a=p.parse_args()
+    result=audit(sorted(a.pdf_dir.glob("V11-INTERNAL-PROOF-*.pdf")),
+                 a.minimum_pdfs)
+    if a.golden_zip:
+        result["golden_inventory"]=golden_inventory(a.golden_zip)
+    a.report.parent.mkdir(parents=True,exist_ok=True)
+    a.report.write_text(json.dumps(result,indent=2,ensure_ascii=False)+"\n",
+                        encoding="utf-8")
+    print(json.dumps({k:v for k,v in result.items()
+                      if k not in ("pdfs","golden_inventory")},ensure_ascii=False))
+    return 0 if result["result"]=="PASS_SCOPED" else 1
+
+if __name__=="__main__":
+    raise SystemExit(main())

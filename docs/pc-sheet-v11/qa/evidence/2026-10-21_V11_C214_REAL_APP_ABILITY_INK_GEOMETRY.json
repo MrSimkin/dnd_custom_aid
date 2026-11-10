@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21",
+  "scope": "C214 compact source-anchored rectangular actual score, Bézier oval modifier, empty save box on V11 C2 attributes only",
+  "status": "PASS_LOCAL_PHYSICAL_ONLY",
+  "full_C204_visual_equivalence": false,
+  "owner_approval": false,
+  "android_installed_pdf_qa": false,
+  "merge": false,
+  "branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "product_sha": "b35cb0edc898ae01d5002462ade748a9e7cffb8f",
+  "baseline_sha": "14c3939fcec31d45acc5bbd6f272c544ad1c3911",
+  "approved_reference": {
+    "source": "docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip",
+    "zip_sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+    "note": "Actual C214 source-text compact outlines do not reproduce the approved large golden card composition"
+  },
+  "ci": {
+    "scaffold_run": 39669461876,
+    "scaffold_conclusion": "success",
+    "owner_traceability_run": 39669462040,
+    "owner_traceability_conclusion": "success",
+    "source_commit": "b35cb0edc898ae01d5002462ade748a9e7cffb8f"
+  },
+  "artifacts": {
+    "baseline": {
+      "scaffold_run": 39663757661,
+      "pdf_artifact_id": 12376971384,
+      "zip_sha256": "391494dc23323c55706a9f0012bbfeeb62ea89a43596e63e5741cfa1b586e4c8"
+    },
+    "candidate": {
+      "scaffold_run": 39669461876,
+      "pdf_artifact_id": 12379791454,
+      "zip_sha256": "e8b41860f969fa28a24ba25f4cdbf9e4a6f87c28ccd4e9c91c7626b96d6d7321"
+    }
+  },
+  "independent_pdf_comparison": {
+    "method": "Offline PyMuPDF zip-to-zip, 76 named genuine Desktop-App PDFs, compare word bounding boxes and PDF vector paths by normalized path signature; assert every new PDF path is blue stroke 0.45pt classified as number enclosure/oval/empty save square, and each numeric enclosed by actual source word, plus empty-square no word collision",
+    "pdfs": 76,
+    "pages": 711,
+    "pages_identical_text_words_and_positions": 711,
+    "pages_identical_vectors": 683,
+    "changed_c2_pages": 28,
+    "new_score_rectangles": 199,
+    "new_modifier_bezier_ovals": 199,
+    "new_blank_saving_boxes": 199,
+    "total_expected_added_vector_paths": 597,
+    "removed_original_vector_paths": 0,
+    "other_additional_vector_paths": 0,
+    "numeric_value_without_badge": 0,
+    "blank_save_square_word_collisions": 0,
+    "errors": 0,
+    "result": "PASS_LOCAL_SCOPED"
+  },
+  "visual_review": "Physical Mara A PDF p4 inspected at enlarged raster; score and modifier badges enclose actual source ink and save box is unmarked, no visible text occlusion",
+  "proven_limitations": [
+    "Same line, compact mini badge, not goldens' large distinct P1-like score/oval card. Full C204 remains pending.",
+    "No pixel-equivalence claim with any eight approved goldens.",
+    "No installed Android physical QA, only Android compile+source parity.",
+    "No owner technical/visual acceptance or G4 PASS.",
+    "C211 blocked 3/3 attempts and 0/2 structural RCR-1."
+  ]
+}

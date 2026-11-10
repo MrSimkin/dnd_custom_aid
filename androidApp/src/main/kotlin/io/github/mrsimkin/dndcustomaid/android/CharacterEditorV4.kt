@@ -73,6 +73,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatDamagePro
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportAggregate
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ExportRequest
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterQuickAccessKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily
@@ -582,14 +583,35 @@ internal fun CharacterEditorScreenV4(
         coroutineScope.launch {
             val result = runCatching {
                 withContext(Dispatchers.IO) {
-                    val generated = pcSheetExportService.generate(options.request(), sources)
                     val purpose = if (action == PcSheetAndroidExportActionV4.SAVE) "save" else "share"
-                    val staged = pcSheetExportService.stage(
-                        generated = generated,
-                        characterName = aggregate.sheet.name,
-                        purpose = purpose,
-                    )
-                    generated to staged
+                    val proofVariant = options.v11ProofVariant
+                    // C473 (owner 2026-11-10): V11 replaces the old sheets in every build.
+                    if (proofVariant != null) {
+                        val proof = pcSheetExportService.generateV11Proof(
+                            PcSheetV11ExportRequest(
+                                variant = proofVariant,
+                                stateSelection = options.stateSelection,
+                                portraitFitMode = options.portraitFitMode,
+                                includeSpellDescriptions = options.includeSpellDescriptions,
+                                lightInkNumbers = options.lightInkNumbers,
+                            ),
+                            sources,
+                        )
+                        val staged = pcSheetExportService.stageV11Proof(
+                            generated = proof,
+                            characterName = aggregate.sheet.name,
+                            purpose = purpose,
+                        )
+                        proof.semantic.notices to staged
+                    } else {
+                        val generated = pcSheetExportService.generate(options.request(), sources)
+                        val staged = pcSheetExportService.stage(
+                            generated = generated,
+                            characterName = aggregate.sheet.name,
+                            purpose = purpose,
+                        )
+                        generated.plan.notices to staged
+                    }
                 }
             }
             val pair = result.getOrElse { error ->
@@ -597,9 +619,8 @@ internal fun CharacterEditorScreenV4(
                 pcSheetExportBusy = false
                 return@launch
             }
-            val generated = pair.first
             val staged = pair.second
-            val notice = generated.plan.notices
+            val notice = pair.first
                 .joinToString(" ") { it.message }
                 .trim()
                 .takeIf { it.isNotEmpty() }
@@ -608,7 +629,11 @@ internal fun CharacterEditorScreenV4(
             } else {
                 null
             }
-            val combinedNotice = listOfNotNull(unsavedNotice, notice).joinToString(" ").takeIf { it.isNotBlank() }
+            val internalQaNotice = if (options.v11ProofVariant != null && BuildConfig.DEBUG) {
+                "PDF V11 de PRUEBA INTERNA, aún NO aprobado visualmente."
+            } else null
+            val combinedNotice = listOfNotNull(unsavedNotice, notice, internalQaNotice)
+                .joinToString(" ").takeIf { it.isNotBlank() }
 
             when (action) {
                 PcSheetAndroidExportActionV4.SAVE -> {
@@ -616,10 +641,15 @@ internal fun CharacterEditorScreenV4(
                     pendingPcSheetSaveNotice = combinedNotice
                     pcSheetExportBusy = false
                     pcSheetSaveLauncher.launch(
-                        pcSheetExportService.suggestedFileName(
-                            aggregate.sheet.name,
-                            options.visualFamily,
-                        ),
+                        if (options.v11ProofVariant != null) {
+                            pcSheetExportService.suggestedV11ProofFileName(
+                                aggregate.sheet.name, options.v11ProofVariant, options.lightInkNumbers,
+                            )
+                        } else {
+                            pcSheetExportService.suggestedFileName(
+                                aggregate.sheet.name, options.visualFamily,
+                            )
+                        },
                     )
                 }
 
@@ -3116,6 +3146,7 @@ internal data class ClassLevelDraftV4(
     val subclassSource: String? = null,
     val subclassCatalogKey: String? = null,
     val subclassRulesFamily: CharacterRulesFamily = CharacterRulesFamily.UNSPECIFIED,
+    val epicLevelsEnabled: Boolean = false,
 ) {
     fun withManualName(value: String): ClassLevelDraftV4 = if (value == name) {
         copy(name = value)
@@ -3316,6 +3347,7 @@ private data class CharacterEditorDraftV4(
                 subclassSource = classDraft.subclassSource,
                 subclassCatalogKey = classDraft.subclassCatalogKey,
                 subclassRulesFamily = classDraft.subclassRulesFamily,
+                epicLevelsEnabled = classDraft.epicLevelsEnabled,
             )
         }
         val parsedSaves = CharacterAbility.entries.map { ability ->
@@ -3426,6 +3458,7 @@ private data class CharacterEditorDraftV4(
                     put("subclassSource", item.subclassSource ?: JSONObject.NULL)
                     put("subclassCatalogKey", item.subclassCatalogKey ?: JSONObject.NULL)
                     put("subclassRulesFamily", item.subclassRulesFamily.name)
+                    put("epicLevelsEnabled", item.epicLevelsEnabled)
                 })
             }
         })
@@ -3497,6 +3530,7 @@ private data class CharacterEditorDraftV4(
                     subclassSource = classLevel.subclassSource,
                     subclassCatalogKey = classLevel.subclassCatalogKey,
                     subclassRulesFamily = classLevel.subclassRulesFamily,
+                    epicLevelsEnabled = classLevel.epicLevelsEnabled,
                 )
             },
             saves = CharacterAbility.entries.map { ability ->
@@ -3541,6 +3575,7 @@ private data class CharacterEditorDraftV4(
                             subclassSource = optionalString("subclassSource"),
                             subclassCatalogKey = optionalString("subclassCatalogKey"),
                             subclassRulesFamily = subclassRulesFamily,
+                            epicLevelsEnabled = item.optBoolean("epicLevelsEnabled", false),
                         ),
                     )
                 }

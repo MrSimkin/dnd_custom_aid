@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "date_chile": "2026-10-21",
+  "scope": "C222 P1 header with CR/LF/TAB source and lossless C2, real Desktop App A/B, PASS LOCAL ONLY",
+  "branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "pr": 173,
+  "baseline_head": "29ff601d086b1744befe924ca19d26e35856dc20",
+  "functional_commit": "7dc9d06974cd686bc1db8f5b915e515118908b55",
+  "ci": {
+    "scaffold": {
+      "run_id": 39709479218,
+      "url": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39709479218",
+      "conclusion": "success",
+      "checks": "Shared Kotlin, Android build, Desktop real-PDF integration and independent physical audits"
+    },
+    "qa_traceability": {
+      "run_id": 39709479111,
+      "conclusion": "success"
+    }
+  },
+  "artifacts": {
+    "before": {
+      "run_id": 39707416839,
+      "artifact_id": 12396081016,
+      "pdf_count": 80,
+      "page_count": 747,
+      "zip_sha256": "ec3736c33aad7f96e0964f8c5a6631bbfb63f68892a540ab59d997009db0f9c1"
+    },
+    "after": {
+      "run_id": 39709479218,
+      "artifact_id": 12396234354,
+      "pdf_count": 82,
+      "page_count": 761,
+      "zip_sha256": "91305d815c5e74eb1540d718791de216c3fe09ea0de04c638dcbaa017d2bdf61"
+    },
+    "independent_audit": {
+      "artifact_id": 12396209765,
+      "zip_sha256": "b8d5841e2571b3fe5bd60708ad335dba8a1cf97dfb7f8086ece84c41e58c5899"
+    }
+  },
+  "independent_comparison": {
+    "tool": "PyMuPDF 1.26.7 local independent read of both actual GitHub Actions artifact ZIPs",
+    "common_pdfs": 80,
+    "old_common_pages": 747,
+    "new_common_pages": 747,
+    "pdfs_with_same_pagination": 80,
+    "pages_with_same_words_and_coordinates": 747,
+    "pages_with_same_vector_drawings": 747,
+    "pages_with_same_image_references": 747,
+    "unexpected_changes": 0,
+    "note": "binary PDF bytes differ due to PDF serialization, not claimed identical; compared actual content and geometry"
+  },
+  "new_pdf_checks": [
+    {
+      "name": "V11-INTERNAL-PROOF-P1-character-name-hard-break-A.pdf",
+      "sha256": "62dd238115fc4fa63acee479c0c5d0129e9c43937998c48926b1e1f24d8ab8a2",
+      "pages": 7,
+      "letter": true,
+      "c2_real_name_once": true,
+      "header_link_each_page": true,
+      "p1_backlink_physical_page_4": true,
+      "final_notas": true,
+      "raster_visual_page_1_and_4": "inspected, no visible overlap"
+    },
+    {
+      "name": "V11-INTERNAL-PROOF-P1-character-name-hard-break-B.pdf",
+      "sha256": "2580fed99d174fee93ca47a483abe195c777a039df9fd5d7831803fa5df5cc24",
+      "pages": 7,
+      "letter": true,
+      "c2_real_name_once": true,
+      "header_link_each_page": true,
+      "p1_backlink_physical_page_4": true,
+      "final_notas": true,
+      "raster_visual_page_4": "inspected, no visible overlap"
+    }
+  ],
+  "independent_CI_physical_audits": {
+    "real_pdf_count": 82,
+    "total_pages": 761,
+    "envelope_errors": 0,
+    "c207_missing_reservations": 0,
+    "double_outer_frame_failed_pages": 0,
+    "logo_visibility_failed_pages": 0,
+    "final_notes_pass": 82,
+    "p1_clipped_cards_valid": 82,
+    "p4_physical_slot_meters_failed_pdfs": 0
+  },
+  "limits": [
+    "Desktop App proof is not owner-installed Android QA",
+    "No full G4 golden/parity signoff",
+    "G4 105/105 NOT_VERIFIED, active_candidate null",
+    "C211 BLOCKED 3/3 normal and 0/2 structural",
+    "Owner original Mara preqa.8 runtime PDFs still unavailable",
+    "P4 per-source numeric presentation owner decision pending"
+  ],
+  "gate": "C222_PASS_LOCAL_PHYSICAL_ONLY"
+}

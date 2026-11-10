@@ -30,11 +30,16 @@ require(editor, 'title = { Text("Exportar cambios sin guardar") }', "unsaved-edi
 require(editor, 'Text("Exportar sin guardar")', "explicit export-without-saving confirmation")
 
 require(settings, "PcSettingsPageClosureV4.PDF_EXPORT", "PC settings PDF surface")
-require(settings, "PcSheetVisualFamily.entries", "all visual-family choices")
+# C473 (owner 2026-11-06 and 2026-11-10, «Sí, así»): V11 replaces the four old families;
+# the screen offers V11 A and B, light ink and the Libro.
+require(settings, "PcSheetV11Variant.A", "V11 variant A choice")
+require(settings, "PcSheetV11Variant.B", "V11 variant B choice")
+require(settings, "Números en tinta clara", "optional light-ink choice")
 require(settings, "PcSheetExportStateSelection.entries", "state selection choices")
-require(settings, "PcSheetCustomStatisticsPresentation.entries", "custom-stat presentation choices")
 require(settings, "PcSheetPortraitFitMode.entries", "portrait fit choices")
-require(settings, "Incluir descripciones de conjuros", "optional Spellbook choice")
+require(settings, "Incluir Libro de conjuros", "optional Spellbook choice")
+if "PcSheetVisualFamily.entries" in settings:
+    raise SystemExit("Android PC sheet PDF delivery guard FAIL: the old visual families are still offered")
 
 require(manifest, 'android:name="androidx.core.content.FileProvider"', "FileProvider declaration")
 require(manifest, 'android:exported="false"', "non-exported FileProvider")

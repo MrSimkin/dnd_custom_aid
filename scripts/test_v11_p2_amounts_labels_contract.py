@@ -1,0 +1,32 @@
+"""C242: golden right-aligned paired amounts and small special-equipment labels on both renderers."""
+from pathlib import Path
+import unittest
+
+ROOT = Path(__file__).resolve().parents[1]
+RENDERERS = [
+    ROOT / "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+    ROOT / "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt",
+]
+TESTS = ROOT / "desktopApp/src/test/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11RuntimePdfProofTest.kt"
+
+
+class P2AmountsLabelsParityTest(unittest.TestCase):
+    def test_both_renderers_follow_the_golden_amount_and_label_grammar(self):
+        for path in RENDERERS:
+            data = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.name):
+                # C292: golden amounts in Noto Sans Bold #264b68; C2 right edge 3 pt inside,
+                # C409: P2 right edge 5.67 pt inside its golden block.
+                self.assertIn("stream.setFont(boldPdfFont, amountPt)", data)
+                self.assertIn("val amountRight = blockRight(cell) - 5.67f", data)
+                self.assertIn("else if (cell.rectPt.leftPt < 170f) 166.25f else 298.49f", data)
+                # C343: golden label insets and baseline on P2; C419: the C2 table has no title row.
+                self.assertEqual(1, data.count(
+                    "drawP1Label(stream, label, headerX + headingInsets[index], headerBottom + 4.25f,"))
+                self.assertNotIn("draw(stream, label, headerX + 5f, specialArea.topPt - 13f, false)", data)
+        self.assertIn("g3P2PairedAmountsAreRightAlignedLikeTheGoldenAB",
+                      TESTS.read_text(encoding="utf-8"))
+
+
+if __name__ == "__main__":
+    unittest.main()

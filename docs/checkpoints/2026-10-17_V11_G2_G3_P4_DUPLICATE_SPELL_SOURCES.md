@@ -1,0 +1,26 @@
+# V11 G1/G2/G3 — Fuentes de lanzamiento homónimas diferenciadas por ID real en P4
+
+**Fecha:** 2026-10-17. **PR:** [#173](https://github.com/MrSimkin/dnd_custom_aid/pull/173), `docs/pc-sheet-v11-approved-implementation-handoff` OPEN/DRAFT/unmerged. **Código + tests:** [`b5e10685013e3ae3470f416d377cddd5a9b228c2`](https://github.com/MrSimkin/dnd_custom_aid/commit/b5e10685013e3ae3470f416d377cddd5a9b228c2). `main` permanece `0c009f10d5e66880d68fa3732491c6fc3e172f22`.
+
+## Brecha y corrección de producción
+
+La lista rápida P4 ya conservaba las asociaciones fuente↔conjuro y preparación individual con nombres diferentes, pero dos fuentes **con UUID distintos y el mismo nombre visible** podían quedar impresas de modo indistinguible (p. ej. `[X] Mago / [ ] Mago`). La obligación P406 exige que preparación permanezca ligada a su fuente verdadera; un rótulo repetido impide distinguirlas. No se atribuye este fixture a un fallo observado por el propietario.
+
+- Nuevo `shared/.../PcSheetV11SpellSourceLabels.kt`: agrupa fuentes efectivamente utilizadas por su nombre visible ignorando espacios exteriores y mayúsculas. Las **únicas** conservan su rótulo anterior sin modificación; las homónimas reciben `(#prefijoUUID)` con **longitud suficiente para evitar colisión entre IDs de igual nombre**. Es un identificador persistido, no un ordinal o dato inventado. Preparado `[X]` / no preparado `[ ]` se mantiene **por asociación concreta** sin mezclar con consumo de slots.
+- Renderizadores `DesktopPcSheetV11PdfProofRenderer.kt` y `AndroidPcSheetV11PdfProofRenderer.kt` consumen la misma proyección Shared. Reutilizan medición tipográfica, columnas/continuaciones y rutas P4 existentes. No se alteraron esquema, datos guardados, páginas de otros módulos, libro opcional ni las cuatro familias legacy.
+- Tests nuevos: `PcSheetV11SpellSourceLabelsTest.equalVisibleNamesKeepDistinctRealIdsAndIndependentPreparation` y `DesktopPcSheetV11RuntimePdfProofTest.g3SameNameDistinctSpellSourcesKeepSourceIdentityAndPreparationOnP4AB`. Este último parte del backup auténtico **Ilyra**, y modifica solamente los registros de lanzamiento/conjuro necesarios para crear **un fixture técnico** de dos fuentes con el mismo nombre visible y UUID independientes, una preparada y otra no. No representa un cambio real en el personaje del propietario.
+
+## Evidencia del mismo código, sin inferir aprobación
+
+- [Scaffold #39080139256](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39080139256): **SUCCESS** sobre `b5e10685013e3ae3470f416d377cddd5a9b228c2`. Kotlin Shared/Desktop + pruebas PDF de App real, compilación Android, backend y hosted DB. **Android instalado y paridad visual Android real no verificados.**
+- [QA traceability #39080139272](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39080139272): **SUCCESS** documental, no aceptación del propietario.
+- [Artefacto 34 PDF App #12118394108](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39080139256/artifacts/12118394108): ZIP SHA-256 `5560efd064892fb5e8933c1ac808ea545793f6dc70eae19be4119e0936cde9f9`; ZIP CRC PASS. **32 PDF preexistentes**, contra [artefacto anterior #12116582703](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39074710117/artifacts/12116582703), conservan **300/300 páginas**, todas las palabras/posiciones (.01pt), tamaño Carta y **conteo de dibujos vectoriales por página**; no es prueba de igualdad binaria ni comparación completa de cada operador vectorial.
+- Nuevo `V11-INTERNAL-PROOF-P4-same-name-distinct-sources-A.pdf`: SHA-256 `22ebf85d29822bf7d344db20be7341bd5d986363e903197119cea507859acbed`, **9 páginas Carta**, P4 p4.
+- Nuevo `V11-INTERNAL-PROOF-P4-same-name-distinct-sources-B.pdf`: SHA-256 `ce84c7ba88f4ef13b0da1b3fcd6eda1976943e1e69daeffcc53516de8678c26f`, **9 páginas Carta**, P4 p4.
+- PDF A/B: aparecen etiquetas distintas `QA FUENTE HOMÓNIMA (#7a2000)` / `QA FUENTE HOMÓNIMA (#abcdef)` asociadas a `[X]` y `[ ]` respectivamente, con conjuro fuente completo. P4 se rasterizó y examinó en ambas variantes; ninguna colisión, desborde ni recorte observado en estas páginas. Última hoja física NOTAS.
+
+## Alcance de gate y próximo paso
+
+**PASS LOCAL ACOTADO G1/G2/G3** en la distinción de identidad de fuente y su salida P4. No se promueven checks de la matriz sin reconciliación/evidencia obligatoria global: `qa/MATRIZ_CONTRATO_V11_PRE_QA.json` conserva **105 reglas globales NOT_VERIFIED y 12 checks históricos PASS**. `active_candidate=null`, **G4 BLOCKED**, G5/G6 sin iniciar. QA V11-QA-001/002, M50800, D-0076 §§3.1–3.48 y ocho golden pendientes de evaluación integral sobre candidato exacto. RCR-1 no activado. Sin QA propietario, aceptación técnica/visual, APK instalado, merge, edición de `main` ni golden.
+
+**Siguiente bloque:** revisar una brecha adicional *con evidencia* del contrato P4 (integridad en continuaciones de conjuro/estado por fuente, especialmente bajo carga de varias asociaciones/filas), o pasar a otra regla aún NOT_VERIFIED si ese comportamiento ya está demostrado. Mantener pruebas proporcionales, producir PDF A/B genuino solo si hay implementación/caso útil; no reabrir este slice sin defecto material. Antes de pedir QA del propietario, completar G4 integral sobre mismo candidato con 105 reglas, 48 decisiones, ocho golden y regresión de cuatro familias legacy. **No fusionar PR #173.**

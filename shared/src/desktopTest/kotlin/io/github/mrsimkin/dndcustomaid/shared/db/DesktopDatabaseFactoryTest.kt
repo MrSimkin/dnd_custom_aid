@@ -66,6 +66,8 @@ class DesktopDatabaseFactoryTest {
                     statement.execute("DROP TABLE npc_payload")
                     statement.execute("DROP TABLE creature_payload")
                     statement.execute("DROP TABLE reusable_content")
+                    statement.execute("ALTER TABLE character_spell DROP COLUMN school")
+                    statement.execute("ALTER TABLE character_class DROP COLUMN epic_levels_enabled")
                     statement.execute("PRAGMA user_version = 0")
                 }
             }

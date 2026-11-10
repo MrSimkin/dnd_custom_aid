@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-20",
+  "feature": "BK07 internal visual slice of existing BK03 spellbook-card obligation",
+  "scope": "V11 BK03 golden card border and header, Desktop App physical comparison; Android source compiles, Android installed not checked",
+  "baseline": {
+    "code_reference": "6a3581784f9f61ec0c8ebc5a506b4ceddd5f93d1",
+    "artifact_id": 12234489577,
+    "run_id": 39355668980,
+    "zip_sha256": "0a4696bdeec0e1cbd53052008c52de552aaf71a5a49cbe829b65fbbc3fceaf48",
+    "book_pdfs": 12,
+    "book_pages": 31,
+    "clipped_card_frames": 0,
+    "mist_title_bands": 0,
+    "mara_b_pdf_sha256": "22e0e676cc14bdeef27a5820a397dce062e88d1119505014d8b4788789f2f5a7"
+  },
+  "candidate": {
+    "code_commit": "72dfab01749df4871ae9c018e33209c56afb9503",
+    "scaffold_run_id": 39454778210,
+    "scaffold_conclusion": "success",
+    "qa_traceability_run_id": 39454778169,
+    "qa_traceability_conclusion": "success",
+    "pdf_artifact_id": 12281106205,
+    "pdf_artifact_zip_sha256": "a3d00991a2327a18a68962bf8fa478a97be27e0a20bb36322dc01e4526f8bbe7",
+    "physical_auditors_artifact_id": 12281570452,
+    "physical_auditors_zip_sha256": "19f42410fa803e740c312d272a60b149381452fe8de8c90095761f0be9d9f63b",
+    "card_audit_json_sha256": "12e8c9f97ded57c01cbd0d30b91e7b63d85af96e9032383c86260f723d8c8e1e",
+    "mara_b_pdf_sha256": "2c953abb7a3bc98deb848c45439403a9756a6caf7de14eb2b126cf23e9a7340d"
+  },
+  "independent_comparison": {
+    "matched_pdf_names": 76,
+    "matched_page_counts": 76,
+    "total_physical_pages": 709,
+    "pages_exact_words_and_coordinate_boxes": 709,
+    "unaffected_nonbook_pages_exact_pdf_vectors": 678,
+    "book_pages_changed_only_visually": 31,
+    "book_pdf_count": 12,
+    "book_card_frames_added": 267,
+    "blue_mist_header_fill_rectangles": 504,
+    "physical_audit": {
+      "pdfs": 76,
+      "books": 12,
+      "book_pages": 31,
+      "failed_books": 0
+    },
+    "comparison_errors": 0,
+    "visual_manual_sample": "Mara B page 10 new clipped borders and pale header present versus original V11 extreme B golden book page 9",
+    "method": "PyMuPDF page-by-page words and 2-decimal geometry; compare nonbook drawing dictionaries/geometry, inspect book drawings 8-segment outlines and fill colors; independent of Kotlin renderer",
+    "comparison_report_local_sha256": "2c2891a87d0a794553a3939b45bc67bbb3edd998e9648c3ee10551bd26a2280c"
+  },
+  "golden": {
+    "zip_sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+    "pdf": "V11_Carta/pdfs/v11_extremo_variante_B.pdf",
+    "physical_book_page": 9
+  },
+  "limitations": "PASS LOCAL visual subfeature BK03 ONLY, not identical complete golden layout; cards do not yet have golden spacing/typographic hierarchy; no mobile installed visual equivalence. All G4 105 rules still NOT_VERIFIED and active_candidate null; no owner QA, G5, G6 or merge",
+  "gate": {
+    "g0": "PARTIAL",
+    "g1": "PASS-semantic-only",
+    "g2": "PARTIAL",
+    "g3": "PARTIAL; BK07 local stage PASS",
+    "g4": "BLOCKED",
+    "not_verified_rules": 105,
+    "g4_active_candidate": null,
+    "g5": "NOT_STARTED",
+    "g6": "NOT_STARTED"
+  },
+  "rcr1": {
+    "c211": "BLOCKED",
+    "normal_attempts": "3/3",
+    "structural_recoveries": "0/2"
+  },
+  "pr_173": {
+    "draft": true,
+    "merged": false
+  }
+}

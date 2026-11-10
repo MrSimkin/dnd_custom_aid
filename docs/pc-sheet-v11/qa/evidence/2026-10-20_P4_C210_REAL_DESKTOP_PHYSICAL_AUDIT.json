@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-20",
+  "kind": "independent_existing_real_pdf_baseline_audit",
+  "source_branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "source_head_last_functional_C210": "6a3581784f9f61ec0c8ebc5a506b4ceddd5f93d1",
+  "source_scaffold_run": 39355668980,
+  "source_artifact_id": 12234489577,
+  "source_artifact_url": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39355668980/artifacts/12234489577",
+  "source_artifact_zip_sha256": "0a4696bdeec0e1cbd53052008c52de552aaf71a5a49cbe829b65fbbc3fceaf48",
+  "golden_reference_sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+  "auditor_added_commit": "80dd055240f2ed30daadceadb9a7a6adf1c6ff97",
+  "auditor_script": "scripts/audit_v11_p4_slot_meters.py",
+  "auditor_tests": "scripts/test_audit_v11_p4_slot_meters.py",
+  "audit_report_local_sha256": "0ed15dbe7005d7c4f42b4e6aa3e2f75321099f421424915142459418c0797301",
+  "independent_pdf_run": {
+    "pdfs": 76,
+    "pdfs_with_p4": 45,
+    "p4_physical_pages": 49,
+    "failures": 0,
+    "levels_0_to_9_once_per_caster": 45,
+    "p4_spell_meters_per_caster": 9,
+    "total_meters": 405,
+    "physical_squares_per_caster": 27,
+    "total_verified_meter_squares": 1215
+  },
+  "auditor_negative_positive_unit_tests": {
+    "run_local_pyMuPDF": "1.26.7",
+    "tests": 5,
+    "passed": 5
+  },
+  "reproduce": "unzip source_artifact ZIP into folder; python3 scripts/audit_v11_p4_slot_meters.py --pdf-dir <folder> --minimum-pdfs 48 --minimum-casters 2 --report <report.json>",
+  "limitations": "C210 genuine Desktop App PDF baseline only. Current HEAD CI pending; no Android installed, no source spell-book completeness proof, no eight-golden full visual parity, no G4/owner PASS.",
+  "current_g4": {
+    "gate": "BLOCKED",
+    "mandatory_rules_not_verified": 105,
+    "active_candidate": null
+  },
+  "rcr1": {
+    "c211_normal_attempts": "3/3 exhausted",
+    "structural_recoveries": "0/2",
+    "c211": "BLOCKED"
+  },
+  "no_merge": true
+}

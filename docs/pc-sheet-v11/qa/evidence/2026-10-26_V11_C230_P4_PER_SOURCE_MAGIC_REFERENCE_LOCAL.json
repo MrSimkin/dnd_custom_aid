@@ -1,0 +1,88 @@
+{
+    "schema_version":  1,
+    "date_chile":  "2026-10-26",
+    "repo":  "MrSimkin/dnd_custom_aid",
+    "pr":  173,
+    "scope":  "C230 P4 per-source magic reference (owner decision): PASS LOCAL FISICO acotado, NO G4",
+    "baseline_commit":  "31d5c574",
+    "functional_commit":  "6ad1fb88 (documentation commit 5cee7050 is the CI HEAD)",
+    "ci":  {
+               "scaffold":  {
+                                "run":  40382631343,
+                                "status":  "SUCCESS",
+                                "head":  "5cee70505cc985a071e232038a252ba731005aea"
+                            },
+               "qa":  {
+                          "run":  40382631470,
+                          "status":  "SUCCESS"
+                      }
+           },
+    "local_environment":  "JDK 17.0.20 / Gradle 9.5.0 / Android platform 36, Windows; DesktopPcSheetV11RuntimePdfProofTest generated both sets",
+    "comparison":  {
+                       "tool":  "PyMuPDF locally (not the CI artifact)",
+                       "common_pdfs":  94,
+                       "only_in_new":  0,
+                       "pagination_identical":  94,
+                       "pages":  859,
+                       "pages_same_words_and_bboxes":  823,
+                       "pages_same_vectors":  859,
+                       "pages_same_image_references":  859,
+                       "pages_changed":  36,
+                       "pdfs_with_changed_pages":  36,
+                       "changed_pages_all_p4_reference_only":  "true: removed tokens are SEGUN FUENTE; added tokens are source names and values; vectors identical on every changed page",
+                       "bytewise_pdf_identity":  "NOT_CLAIMED"
+                   },
+    "visual_inspection":  "raster crops of P4 reference: Ilyra three-source stacked 7pt lines inside the 44pt card; Mara single source one line at 12pt",
+    "owner_decisions":  [
+                            "P4 shows each source value: Mago 15 / Hechicero 17",
+                            "7+ spell slots not applicable"
+                        ],
+    "limits":  [
+                   "Four or more sources keep the SEGUN FUENTE cue",
+                   "P1 keeps SEGUN FUENTE (81pt cell)",
+                   "Unknown source metric prints a dash"
+               ],
+    "gate":  "C230_PASS_LOCAL_ONLY",
+    "g4":  {
+               "rules":  105,
+               "not_verified":  105,
+               "active_candidate":  null
+           },
+    "g0":  "PARTIAL",
+    "g1":  "HISTORICAL_SEMANTIC_PASS",
+    "g2":  "PARTIAL",
+    "g3":  "PARTIAL",
+    "g5":  "PENDING",
+    "g6":  "PENDING",
+    "c211":  "BLOCKED_3_NORMAL_ATTEMPTS_NO_STRUCTURAL_RECOVERY",
+    "owner_installed_android":  "NOT_VERIFIED",
+    "owner_approval":  "NOT_GRANTED",
+    "pr_merged":  false,
+    "ci_artifacts":  {
+                         "new_pdfs":  12679961537,
+                         "previous_pdfs_C229":  12471702417,
+                         "physical_audit":  12678174458,
+                         "pdfs":  94,
+                         "pages":  859
+                     },
+    "ci_comparison":  {
+                          "tool":  "PyMuPDF on the CI artifacts (C229 vs C230)",
+                          "common_pdfs":  94,
+                          "pagination_identical":  94,
+                          "pages_same_vectors":  859,
+                          "pages_same_image_references":  859,
+                          "pages_same_words_and_bboxes":  823,
+                          "pages_changed":  36,
+                          "removed_tokens":  [
+                                                 "SEGUN",
+                                                 "FUENTE"
+                                             ],
+                          "bytewise_pdf_identity":  "NOT_CLAIMED"
+                      },
+    "ci_audits":  {
+                      "physical_envelope":  "94 PDF / 859 pages / errors 0",
+                      "p4_slot_meters":  "failed_pdfs 0, 61 casters",
+                      "p3_c2_manuscript":  "failures 0, PASS_LOCAL_PHYSICAL_ONLY",
+                      "c207_missing_reservations":  0
+                  }
+}

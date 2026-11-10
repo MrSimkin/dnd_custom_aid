@@ -51,6 +51,61 @@ jobs:
         run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
       - name: Build and test Kotlin surfaces
         run: gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
+      - name: Independent V11 physical-envelope audit of real Desktop App PDFs
+        if: github.ref == 'refs/heads/docs/pc-sheet-v11-approved-implementation-handoff'
+        run: |
+          python3 -m pip install --user 'PyMuPDF==1.26.7'
+          python3 scripts/test_audit_v11_pdf_physical_envelope.py
+          python3 scripts/test_audit_v11_module_topology.py
+          python3 scripts/audit_v11_module_topology.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-module-topology.json
+          python3 scripts/audit_v11_p3_c2_manuscript.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-p3-c2-manuscript-audit.json
+          python3 scripts/test_audit_v11_c207_vacancy.py
+          python3 scripts/test_audit_v11_c2_golden_grid.py
+          python3 scripts/audit_v11_c207_vacancy.py --pdf-dir desktopApp/build/pc-sheet-proofs --golden-zip docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip --minimum-pdfs 48 --report desktopApp/build/v11-c207-missing-reservations.json
+          python3 scripts/audit_v11_pdf_physical_envelope.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-physical-envelope-audit.json
+          python3 scripts/audit_v11_final_notes_golden.py --golden-zip docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-final-notes-golden.json
+          python3 scripts/audit_v11_portrait_placeholder_golden.py --golden-zip docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-portrait-placeholder-golden.json
+          python3 scripts/audit_v11_double_outer_frame_golden.py --golden-zip docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 54 --report desktopApp/build/v11-double-outer-frame-golden.json
+          python3 scripts/test_audit_v11_p4_slot_meters.py
+          python3 scripts/audit_v11_p4_slot_meters.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --minimum-casters 2 --report desktopApp/build/v11-p4-physical-slot-meters.json
+          python3 scripts/audit_v11_p1_clipped_cards.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-p1-clipped-cards.json
+          python3 scripts/audit_v11_spellbook_cards.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --minimum-books 4 --report desktopApp/build/v11-spellbook-card-panels.json
+          python3 scripts/test_audit_v11_continuation_cues.py
+          python3 scripts/audit_v11_continuation_cues.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-continuation-cues.json
+          python3 scripts/test_audit_v11_golden_geometry.py
+          python3 scripts/audit_v11_golden_geometry.py --golden-zip docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip --pdf-dir desktopApp/build/pc-sheet-proofs --report desktopApp/build/v11-golden-geometry.json
+          python3 scripts/test_v11_renderer_full_parity.py
+          python3 scripts/test_v11_export_offline.py
+          python3 scripts/test_audit_v11_golden_palette.py
+          python3 scripts/audit_v11_golden_palette.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-golden-palette.json
+          python3 scripts/test_audit_v11_p1_golden_rhythm.py
+          python3 scripts/audit_v11_p1_golden_rhythm.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-p1-golden-rhythm.json
+          python3 scripts/test_audit_v11_attribute_row_owner.py
+          python3 scripts/audit_v11_attribute_row_owner.py --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 48 --report desktopApp/build/v11-attribute-row-owner.json
+          python3 scripts/test_audit_v11_header_logo_visibility.py
+          python3 scripts/audit_v11_header_logo_visibility.py --golden-zip docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip --pdf-dir desktopApp/build/pc-sheet-proofs --minimum-pdfs 54 --report desktopApp/build/v11-header-logo-visibility.json
+      - name: Upload independent V11 physical-envelope audit
+        if: github.ref == 'refs/heads/docs/pc-sheet-v11-approved-implementation-handoff'
+        uses: actions/upload-artifact@v7
+        with:
+          name: v11-independent-physical-envelope-audit
+          path: |
+            desktopApp/build/v11-physical-envelope-audit.json
+            desktopApp/build/v11-module-topology.json
+            desktopApp/build/v11-p3-c2-manuscript-audit.json
+            desktopApp/build/v11-c207-missing-reservations.json
+            desktopApp/build/v11-final-notes-golden.json
+            desktopApp/build/v11-portrait-placeholder-golden.json
+            desktopApp/build/v11-double-outer-frame-golden.json
+            desktopApp/build/v11-header-logo-visibility.json
+            desktopApp/build/v11-spellbook-card-panels.json
+            desktopApp/build/v11-p1-clipped-cards.json
+            desktopApp/build/v11-p4-physical-slot-meters.json
+            desktopApp/build/v11-continuation-cues.json
+            desktopApp/build/v11-p1-golden-rhythm.json
+            desktopApp/build/v11-attribute-row-owner.json
+            docs/pc-sheet-v11/dnd_custom_aid_V11_Carta_revision.zip
+          if-no-files-found: error
       - name: Upload Android debug APK
         uses: actions/upload-artifact@v7
         with:
@@ -70,6 +125,13 @@ jobs:
         with:
           name: pc-sheet-populated-template-proofs
           path: desktopApp/build/pc-sheet-proofs/*
+          if-no-files-found: error
+      - name: Upload V11 PDFs actually generated by the Desktop app
+        if: github.ref == 'refs/heads/docs/pc-sheet-v11-approved-implementation-handoff'
+        uses: actions/upload-artifact@v7
+        with:
+          name: v11-internal-real-app-pdf-proofs
+          path: desktopApp/build/pc-sheet-proofs/V11-INTERNAL-PROOF-*.pdf
           if-no-files-found: error
 
   backend:

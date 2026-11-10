@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21",
+  "branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "source_sha": "cd7607abfd51a42d21ac3b45cea5d5f5960db218",
+  "code_sha": "cf7fe80c41bc8458de573dd85a1672094500a549",
+  "status": "PASS_LOCAL_PHYSICAL_ONLY",
+  "scope": "P4 three upper magical-reference cards must not claim universal numeric/ability values when genuine UUID-backed source profiles disagree, including known versus unknown. Not a per-source card design approval.",
+  "contract": "D-0076 §§3.24–3.25: distinguish casting sources when stats differ; exact multi-source physical card design and preparation/mark behavior remain owner-pending",
+  "ci": {
+    "final_scaffold_run": 39707416839,
+    "final_scaffold_status": "success",
+    "final_qa_traceability_run": 39707416974,
+    "final_qa_traceability_status": "success",
+    "first_scaffold_run": 39706616217,
+    "first_scaffold_status": "failure",
+    "first_failure": "Test fixture expected a four-word source name to remain a single literal PDF extraction substring when P4 source text may naturally wrap; no Kotlin compiler or P4 layout failure. Corrected to one unique source token and independent prep assertion in final SHA."
+  },
+  "artifacts": {
+    "baseline": {
+      "run": 39702383965,
+      "artifact_id": 12393483195,
+      "zip_sha256": "7056283e34ee15d0023c7fe93f67cd080f20e4503d186796138a0b55a2adaf45"
+    },
+    "candidate": {
+      "run": 39707416839,
+      "artifact_id": 12396081016,
+      "zip_sha256": "ec3736c33aad7f96e0964f8c5a6631bbfb63f68892a540ab59d997009db0f9c1"
+    }
+  },
+  "independent_physical_comparison": {
+    "method": "PyMuPDF page-by-page comparison 78 same-name authentic Desktop-App PDFs, exact word bounding boxes and PDF drawing geometry; allowed ONLY text substitution in frozen P4 reference-card row top-origin <192pt; check independent new A/B conflict PDFs and source-prepared flags",
+    "baseline_pdfs": 78,
+    "candidate_pdfs": 80,
+    "added_real_app_stress_pdfs": [
+      "V11-INTERNAL-PROOF-P4-conflicting-magic-reference-A.pdf",
+      "V11-INTERNAL-PROOF-P4-conflicting-magic-reference-B.pdf"
+    ],
+    "baseline_pages": 731,
+    "candidate_pages": 747,
+    "new_A_pages": 8,
+    "new_B_pages": 8,
+    "unchanged_baseline_pdf_count": 74,
+    "changed_baseline_pdfs": 4,
+    "unchanged_wordboxes_pages": 727,
+    "changed_wordboxes_P4_only": 4,
+    "unchanged_vectors_pages": 731,
+    "changed_vectors_pages": 0,
+    "non_P4_changes": 0,
+    "body_ink_changes_below_P4_reference_cards": 0,
+    "fixture_source_name_token": "QAORIGENSINPERFIL",
+    "fixture_source_name_occurrences_per_variant": 1,
+    "fixture_reference_conflict_markers_per_variant": 3,
+    "fixture_has_both_prepared_and_unprepared_states": true,
+    "fixture_reference_card_visual_overlap": false,
+    "errors": 0,
+    "result": "PASS_LOCAL_SCOPED"
+  },
+  "limitations": [
+    "Only a truthful nonnumeric conflict sentinel SEGÚN FUENTE is present; complete per-source numeric/aptitude cards are NOT designed or approved",
+    "Owner-approved preparation checkbox behavior for multiple sources/non-preparable spells remains undecided, not silently changed",
+    "Not full golden comparison or P406/P410 or G4 PASS",
+    "No installed Android-generated PDF physical QA; Android compile and source-parity only",
+    "No owner technical/visual acceptance; PR remains open DRAFT and unmerged",
+    "G4 remains BLOCKED 105/105 NOT_VERIFIED with active_candidate null; C211 blocked normal 3/3 structural RCR-1 0/2"
+  ]
+}

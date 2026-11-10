@@ -148,6 +148,8 @@ data class CharacterClassLevel(
     val subclassSource: String? = null,
     val subclassCatalogKey: String? = null,
     val subclassRulesFamily: CharacterRulesFamily = rulesFamily,
+    /** Owner 2026-11-06: enabled per class; any enabled class adds spell levels 10..12 to the sheet. */
+    val epicLevelsEnabled: Boolean = false,
 )
 
 @Serializable
@@ -286,6 +288,9 @@ data class CharacterSpell(
     val sortOrder: Int,
     val sourceAssociations: List<CharacterSpellSourceAssociation> = emptyList(),
     val pinned: Boolean = false,
+    // Q14b (owner, 2026-10-29): the spell school is a real App field. It is
+    // free text so homebrew schools fit; the SRD import fills it later.
+    val school: String? = null,
 )
 
 @Serializable

@@ -393,7 +393,7 @@ class CharacterClosureRepository(
 
     private fun currentSpellIds(characterId: String): Set<Uuid> =
         database.characterQueries.selectCharacterSpells(characterId) {
-                rowId, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ -> Uuid.parse(rowId)
+                rowId, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _ -> Uuid.parse(rowId)
         }.executeAsList().toSet()
 
     private fun requireDistinctIds(ids: List<Uuid>, label: String) {

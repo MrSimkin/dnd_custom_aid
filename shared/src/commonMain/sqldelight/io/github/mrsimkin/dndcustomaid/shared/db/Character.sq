@@ -54,6 +54,7 @@ CREATE TABLE character_class (
     subclass_source TEXT,
     subclass_catalog_key TEXT,
     subclass_rules_family TEXT NOT NULL DEFAULT 'UNSPECIFIED',
+    epic_levels_enabled INTEGER NOT NULL DEFAULT 0,
     UNIQUE(character_id, sort_order)
 );
 
@@ -192,6 +193,7 @@ CREATE TABLE character_spell (
     notes TEXT,
     sort_order INTEGER NOT NULL,
     pinned INTEGER NOT NULL DEFAULT 0,
+    school TEXT,
     UNIQUE(character_id, spell_level, sort_order)
 );
 
@@ -350,13 +352,15 @@ WHERE id = ?;
 insertCharacterClass:
 INSERT INTO character_class(
     id, character_id, name, level, hit_die_sides, hit_dice_remaining, sort_order,
-    rules_family, source, catalog_key, subclass_name, subclass_source, subclass_catalog_key, subclass_rules_family
+    rules_family, source, catalog_key, subclass_name, subclass_source, subclass_catalog_key, subclass_rules_family,
+    epic_levels_enabled
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectCharacterClasses:
 SELECT id, character_id, name, level, hit_die_sides, hit_dice_remaining, sort_order,
-       rules_family, source, catalog_key, subclass_name, subclass_source, subclass_catalog_key, subclass_rules_family
+       rules_family, source, catalog_key, subclass_name, subclass_source, subclass_catalog_key, subclass_rules_family,
+       epic_levels_enabled
 FROM character_class
 WHERE character_id = ?
 ORDER BY sort_order, id;
@@ -512,14 +516,14 @@ insertCharacterSpell:
 INSERT INTO character_spell(
     id, character_id, name, spell_level, casting_time, range_text,
     has_verbal, has_somatic, has_material, material_text, duration,
-    concentration, ritual, description, notes, sort_order, pinned
+    concentration, ritual, description, notes, sort_order, pinned, school
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectCharacterSpells:
 SELECT id, character_id, name, spell_level, casting_time, range_text,
        has_verbal, has_somatic, has_material, material_text, duration,
-       concentration, ritual, description, notes, sort_order, pinned
+       concentration, ritual, description, notes, sort_order, pinned, school
 FROM character_spell
 WHERE character_id = ?
 ORDER BY spell_level, sort_order, id;

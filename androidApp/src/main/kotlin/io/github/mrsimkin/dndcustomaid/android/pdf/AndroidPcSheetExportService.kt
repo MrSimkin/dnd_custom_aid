@@ -5,12 +5,16 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomStatisticsPresentation
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ExportRequest
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticData
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticMapper
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportPlanner
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPortraitFitMode
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant
 import java.io.File
 import java.net.URI
 
@@ -21,6 +25,10 @@ internal data class AndroidPcSheetExportOptions(
         PcSheetCustomStatisticsPresentation.EXTENDED_PAGE,
     val portraitFitMode: PcSheetPortraitFitMode = PcSheetPortraitFitMode.CROP_TO_FILL,
     val includeSpellDescriptions: Boolean = false,
+    /** C473 (owner 2026-11-10): the V11 sheet is the only export; null is kept only for old callers. */
+    val v11ProofVariant: PcSheetV11Variant? = null,
+    /** C473 (owner 2026-11-10, V11-QA-010): numbers in light ink, for A and for B. */
+    val lightInkNumbers: Boolean = false,
 ) {
     fun request(): PcSheetPdfExportRequest = PcSheetPdfExportRequest(
         visualFamily = visualFamily,
@@ -36,10 +44,40 @@ internal data class AndroidPcSheetGeneratedPdf(
     val bytes: ByteArray,
 )
 
+/** Internal QA-only actual PDF bytes, not a production V11 visual export. */
+internal data class AndroidPcSheetV11PdfProof(
+    val semantic: PcSheetV11SemanticData,
+    val bytes: ByteArray,
+)
+
 internal class AndroidPcSheetExportService(
     context: Context,
 ) {
     private val appContext = context.applicationContext
+
+    /** Internal V11 PDF proof, separate from all four production renderer families. */
+    fun generateV11Proof(
+        request: PcSheetV11ExportRequest,
+        sources: PcSheetExportSources,
+    ): AndroidPcSheetV11PdfProof {
+        AndroidPcSheetAssetLoader.initialize(appContext)
+        val selected = if (request.stateSelection ==
+            io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelection.CURRENT_SNAPSHOT
+        ) sources.currentSnapshot ?: sources.permanent else sources.permanent
+        val portraitRef = selected.closure.portraitRef?.trim()?.takeIf { it.isNotBlank() }
+        val portraitBytes = portraitRef?.let { loadLocalPortraitBytes(it) }
+        val effectiveSources = if (portraitRef != null && portraitBytes != null) {
+            sources.copy(locallyAvailablePortraitRefs =
+                sources.locallyAvailablePortraitRefs + portraitRef)
+        } else sources
+        val semantic = PcSheetV11SemanticMapper.map(request, effectiveSources)
+        val bytes = java.io.ByteArrayOutputStream().use { buffer ->
+            AndroidPcSheetV11PdfProofRenderer().render(semantic, buffer, portraitBytes)
+            buffer.toByteArray()
+        }
+        check(bytes.isNotEmpty())
+        return AndroidPcSheetV11PdfProof(semantic, bytes)
+    }
 
     fun generate(
         request: PcSheetPdfExportRequest,
@@ -85,6 +123,37 @@ internal class AndroidPcSheetExportService(
             "No se pudo preparar el PDF local para $purpose."
         }
         return target
+    }
+
+    /** Explicitly stamped, local debug-preview PDF staged via the SAME Save/Share path. */
+    fun stageV11Proof(
+        generated: AndroidPcSheetV11PdfProof,
+        characterName: String,
+        purpose: String,
+    ): File {
+        val directory = File(appContext.cacheDir, "pc-sheet-pdf/" + purpose)
+        directory.mkdirs()
+        directory.listFiles()?.forEach { stale -> stale.delete() }
+        val target = File(directory, suggestedV11ProofFileName(characterName, generated.semantic.request.variant,
+            generated.semantic.request.lightInkNumbers))
+        val temporary = File(directory, target.name + ".tmp")
+        temporary.writeBytes(generated.bytes)
+        if (target.exists()) target.delete()
+        check(temporary.renameTo(target)) { "No se pudo preparar el PDF de diagnóstico." }
+        return target
+    }
+
+    fun suggestedV11ProofFileName(
+        characterName: String,
+        variant: PcSheetV11Variant,
+        lightInkNumbers: Boolean = false,
+    ): String {
+        val safe = characterName.trim()
+            .replace(Regex("""[\\/:*?"<>|]+"""), "_")
+            .replace(Regex("""\s+"""), " ")
+            .ifBlank { "Personaje" }
+        // C473: the light-ink copy has its own name, so both can sit in Descargas.
+        return "$safe - Hoja de PJ - PREQA V11 $variant" + (if (lightInkNumbers) " tinta clara" else "") + ".pdf"
     }
 
     fun writeToDocument(staged: File, destination: Uri) {

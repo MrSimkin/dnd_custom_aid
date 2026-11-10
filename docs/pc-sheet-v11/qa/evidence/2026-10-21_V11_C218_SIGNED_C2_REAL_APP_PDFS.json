@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-21",
+  "scope": "C218 genuine signed C2 numerical grammar for persisted custom attribute modifiers/saves and real custom+standalone skills, Android+Desktop",
+  "status": "PASS_LOCAL_PHYSICAL_ONLY",
+  "branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "source_commit": "013b71020a658f924555729a787ad05673988303",
+  "ci": {
+    "scaffold_run": 39697902090,
+    "scaffold_conclusion": "success",
+    "qa_traceability_run": 39697902014,
+    "qa_traceability_conclusion": "success",
+    "kotlin_and_android_build": "success",
+    "desktop_real_pdf_generation": "success"
+  },
+  "approved_reference": {
+    "golden_zip_sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+    "pdf": "V11_Carta/pdfs/v11_extremo_variante_A.pdf",
+    "physical_page": 4,
+    "claim": "true nonnegative ability modifier/save and skill totals have visible + sign including +0"
+  },
+  "artifacts": {
+    "baseline": {
+      "run": 39695802858,
+      "id": 12390577095,
+      "zip_sha256": "d243ef1c41c3b0c58ce6a7d713245a488a968c8b6bc07d796678af0b006d59e1"
+    },
+    "candidate": {
+      "run": 39697902090,
+      "id": 12392115480,
+      "zip_sha256": "af222e39307c835d91a37278f9896bc43952c6e6913d119fd3bf5a607de8e449"
+    }
+  },
+  "independent_real_pdf_comparison": {
+    "tool": "PyMuPDF 76 PDF file-by-file, numeric token normalization removing only explicit positive '+' in the new candidate; source word multiset equality for every document, every non-C2 role/text/vector identity, vector path multiset diff classified by actual .45pt four-Bezier modifier oval or unmarked 7x7 saving square",
+    "baseline_pdfs": 76,
+    "candidate_pdfs": 76,
+    "baseline_pages": 713,
+    "candidate_pages": 713,
+    "unchanged_non_C2_pages_all_text_bbox_and_vectors": 623,
+    "unchanged_C2_vector_pages": 58,
+    "changed_C2_vector_pages": 32,
+    "total_unchanged_vector_pages": 681,
+    "source_token_mismatches_after_signed_numeric_normalization": 0,
+    "source_ids_lost_or_duplicates": 0,
+    "actual_custom_attributes_with_plus_signed_modifier": 199,
+    "actual_nonnull_custom_saves_with_plus_sign": 173,
+    "null_custom_saves_preserved_literal": "sin valor (26 source cases)",
+    "true_linked_custom_skill_totals_right_aligned_and_signed": 490,
+    "linked_skill_heads": 490,
+    "removed_old_ovals_only": 199,
+    "added_wider_ovals_only": 199,
+    "removed_old_blank_save_boxes_only": 199,
+    "added_shifted_blank_save_boxes_only": 199,
+    "other_old_or_new_vector_changes": 0,
+    "nonC2_regressions": 0,
+    "errors": 0,
+    "status": "PASS_LOCAL_SCOPED"
+  },
+  "visual_review": {
+    "example": "V11-INTERNAL-PROOF-Mara-A.pdf p4",
+    "rendered_evidence": "C218 true Cordura +1/+0, Éter +4/+8, Renombre +0/sin valor, linked skills +9/+8; 7pt boxes empty and unobstructed",
+    "physical_collisions_detected": 0
+  },
+  "limits": [
+    "No fixture with negative custom C2 values in this 76-PDF physical count, though signedC2 uses Int negative unchanged",
+    "No full eight-golden pixel/visual parity nor C204 module G4 close",
+    "Android installed real PDF not available; Android Kotlin compile and source parity only",
+    "No owner approval of technical or visual implementation",
+    "G4 matrix 105/105 NOT_VERIFIED, active_candidate null; G5/G6 pending; C211 BLOCKED 3/3 normal RCR-1 0/2; PR draft no merge"
+  ]
+}

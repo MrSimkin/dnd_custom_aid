@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "date": "2026-10-22",
+  "scope": "C224 P4 source/global casting aptitude; PASS LOCAL ONLY",
+  "repo": "MrSimkin/dnd_custom_aid",
+  "branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "pr": 173,
+  "product_sha": "07b529d07a4a54eb23a8883412a5f2e4868625d6",
+  "test_fix_sha": "4b0ace1c14faba0b6cace8def28b91d2fe5cf4ac",
+  "ci": {
+    "first": {
+      "run": 39803713129,
+      "conclusion": "failure",
+      "tests": 173,
+      "failures": 1,
+      "reason": "Fixture WIS ability altered DC and attack; corrected offsets +3 without production changes"
+    },
+    "final": {
+      "scaffold_run": 39804358780,
+      "scaffold": "success",
+      "qa_run": 39804358777,
+      "qa": "success"
+    }
+  },
+  "artifacts": {
+    "baseline": {
+      "id": 12398337724,
+      "pdfs": 84,
+      "pages": 777,
+      "sha256": "3fd2e9f3c747edcffe2a677ba4b58685f66a4f402edddd530e293489cacbb5b2"
+    },
+    "candidate": {
+      "id": 12438041282,
+      "pdfs": 86,
+      "pages": 793,
+      "sha256": "dcc98d9d60e0965b4c08d5dc0aec9a5edb8b4f98f27f8c720bf3568d1f285377"
+    },
+    "audits": {
+      "id": 12438096072,
+      "sha256": "392cfa732cb7126673ad9fca74f67da39e37704ded4464a84577ea1e65461370"
+    }
+  },
+  "comparison": {
+    "common_pdfs": 84,
+    "common_pages": 777,
+    "same_pagination_pdfs": 84,
+    "same_words_coordinates_pages": 777,
+    "same_vectors_pages": 777,
+    "same_image_count_pages": 777,
+    "image_bytes_comparison": "NOT_VERIFIED",
+    "unexpected_changes": 0
+  },
+  "new_pdf_proofs": [
+    {
+      "variant": "A",
+      "name": "V11-INTERNAL-PROOF-P4-uniform-source-aptitude-A.pdf",
+      "sha256": "b10c3dcf6b8bb2a15a9c559c0f51846c1c828298b73742f1b3c6fab2b9ba2875",
+      "pages": 8,
+      "p4_page": 6,
+      "reference": "APTITUD SEGÚN FUENTE; CD 15; ATAQUE +7",
+      "visual": "inspected; no visible clipping"
+    },
+    {
+      "variant": "B",
+      "name": "V11-INTERNAL-PROOF-P4-uniform-source-aptitude-B.pdf",
+      "sha256": "add718786d929d8cbb678cd25e5997d0c44d410f257fcce7fb6d9d93071296c5",
+      "pages": 8,
+      "p4_page": 6,
+      "reference": "APTITUD SEGÚN FUENTE; CD 15; ATAQUE +7",
+      "visual": "inspected; no visible clipping"
+    }
+  ],
+  "auditors": {
+    "pdfs": 86,
+    "pages": 793,
+    "envelope_errors": 0,
+    "double_frames_failed_pages": 0,
+    "logo_visibility_failed_pages": 0,
+    "final_notes_pass": 86,
+    "c207_missing_reservations": 0,
+    "p4_failed_pdfs": 0,
+    "spellbook_failed_books": 0,
+    "golden_pixel_parity": "NOT_VERIFIED"
+  },
+  "gate": "C224_PASS_LOCAL_ONLY",
+  "g4": "BLOCKED_105_NOT_VERIFIED_ACTIVE_CANDIDATE_NULL",
+  "c211": "BLOCKED_3_OF_3_NORMAL_0_OF_2_STRUCTURAL",
+  "owner_android": "NOT_VERIFIED",
+  "owner_approval": false,
+  "merge_authorized": false
+}

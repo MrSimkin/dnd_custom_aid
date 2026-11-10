@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-20",
+  "package": "P1 source-preserving C2c 4 identity frames + 8 combat cards",
+  "contract": "CONTRATO_VISUAL_APROBADO.md; G3 P1 visual partial",
+  "baseline": {
+    "commit": "c79ea7754ebf9b30edeb8d28eefc0398d65dd518",
+    "functional_commit": "9d732951a336603297678962fd30eaf5ba02c6e1",
+    "artifact_id": 12292766210,
+    "scaffold_run_id": 39482624205,
+    "zip_sha256": "fc34670f43260d4949b52702a93f7f42b6046e6b9ae6634de9f032e0368273ec",
+    "pdfs": 76,
+    "total_pages": 711,
+    "identity_rectangles": 304,
+    "clipped_combat_cells": 0
+  },
+  "candidate": {
+    "functional_commit": "9c53225a2804ac0bd9dc7ef146d173b371a1d90a",
+    "scaffold_run_id": 39487245834,
+    "scaffold_result": "success",
+    "qa_traceability_run_id": 39487245798,
+    "qa_traceability_result": "success",
+    "pdf_artifact_id": 12294302755,
+    "pdf_zip_sha256": "24c82310fb1e84e168b3c4126b844cc4e79da4643c1f103ba34defac03eb6c80",
+    "independent_auditor_artifact_id": 12293638480,
+    "auditor_zip_sha256": "12c129b496f17f50a973dbfe48be48c6774efe4f98382ed261d0f5f202154018",
+    "auditor_p1_json_sha256": "e6810d325b642a2fd68ffa7c1e19163a814d5a1cdbfb77809dcbd00b16932dca",
+    "pdfs": 76,
+    "pages": 711
+  },
+  "independent_physical_comparison": {
+    "pdfs_matched": 76,
+    "physical_pages": 711,
+    "all_page_words_and_coordinates_preserved": 711,
+    "non_p1_pages_full_vectors_preserved": 635,
+    "identity_clipped_frames": 304,
+    "combat_clipped_cards": 608,
+    "errors": 0,
+    "comparison_report_local_sha256": "a08e8e6cce12a83fee6add544e7511533ed21a17789da7ade430d9d2913cd6a1",
+    "method": "PyMuPDF external file-by-file comparison of exact real Desktop App PDFs; word/coordinates all pages; vector paths and color non-P1; each P1 clipped outline eight segments with expected geometry and ink color; Mara B p1 visually inspected."
+  },
+  "limitations": "Visual C2c frame subfeature ONLY: 2-column combat arrangement remains as source code, not complete golden P1 3-column dashboard. No owner/Android-installed visual approval, no G4 promotion, no semantic rule status changes.",
+  "gates": {
+    "g0": "PARTIAL",
+    "g1": "PASS semantic",
+    "g2": "PARTIAL",
+    "g3": "PARTIAL; this local visual slice PASS",
+    "g4": "BLOCKED",
+    "g4_not_verified": 105,
+    "g4_active_candidate": null,
+    "g5": "NOT_STARTED",
+    "g6": "NOT_STARTED",
+    "c211": "BLOCKED 3/3 normal attempts",
+    "rcr1_structural": "0/2",
+    "pr_draft": true,
+    "pr_merged": false
+  }
+}

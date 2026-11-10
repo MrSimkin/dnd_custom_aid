@@ -1,0 +1,29 @@
+# C211 — intento funcional P2 con nombres largos; auditoría C207 FALLIDA y reversión segura
+
+**Fecha:** 2026-10-20 (Chile local). **Rama exclusiva:** `docs/pc-sheet-v11-approved-implementation-handoff`, [PR #173](https://github.com/MrSimkin/dnd_custom_aid/pull/173) DRAFT SIN MERGE. **Main HEAD:** `0c009f10d5e66880d68fa3732491c6fc3e172f22`. **Último código V11 aprobado solo localmente:** `6a3581784f9f61ec0c8ebc5a506b4ceddd5f93d1` (C210, [Scaffold #39356609601](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39356609601) SUCCESS). **Estado C211: BLOCKED / ABORTADO / NO PASS**, no aceptación técnica o visual del propietario.
+
+## Hallazgo real antes del código
+
+En los PDFs Desktop verdaderos [#12234489577](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39355668980/artifacts/12234489577), Mara A y B P2 p2 tiene **cero palabras de objetos reales** en el área física EQUIPO (x42..300/y105..330), mientras los nombres largos aparecen en C2 p5; el diseño aprobado muestra equipo útil en P2, con parejas etiqueta/cantidad. El motivo en código era `PcSheetV11PairedAmountRouting.p2Eligible` exigiendo **una línea** para todo nombre. La propuesta no pretendía reducir fuentes, alterar UI, cambiar fuentes ni tocar familia legacy: medir el nombre real completo con el compositor existente, conservar una prefija ordenada en P2 y reservar C2 para registros que no quepan enteros. Este síntoma nuevo C211 NO es una observación M50800 declarada corregida; la fuente QA original Mara preqa.8/50800 continúa intacta y sin aprobación owner.
+
+## Ejecución y fallos trazables (sin falsear PASS)
+
+1. [`0970c67`](https://github.com/MrSimkin/dnd_custom_aid/commit/0970c67c11618e1e676b76b29f9e018a7ab18ac8) cambió el selector shared y sus consumidores Android/Desktop, con tests shared y Desktop App de Mara A/B. [Scaffold #39359834042](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39359834042) **FAILED**: 167 pruebas Desktop, 4 expectativas de la antigua página C2; backend/DB SUCCESS.
+2. [`c66a4fc`](https://github.com/MrSimkin/dnd_custom_aid/commit/c66a4fc3d65efdb65d7605e00c7c3615e024a10f) ajustó solo tests para permitir objetos íntegros en P2, C2 solo cuando sobra y cuadrícula según ocupación física. [Scaffold #39360671909](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39360671909) **FAILED**, 1 test Ilyra con extractor que esperaba la frase de un nombre envuelto como texto de una sola línea.
+3. [`88b1e78`](https://github.com/MrSimkin/dnd_custom_aid/commit/88b1e78a667eb51b00e8aabd679907afd408fc14) ajustó solo la verificación de palabras de Ilyra sin tocar Kotlin productivo. [Scaffold #39361133716](https://github.com/MrSimkin/dnd_custom_aid/actions/runs/39361133716) **FAILED** en auditor independiente tras **167/167 tests Desktop** y compilación Android: `audit_v11_p3_c2_manuscript.py` reportó exactamente dos cuadrículas `C207 incomplete/irregular 16pt grid at y=183.00; vertical=17, horizontal=41` en `V11-INTERNAL-PROOF-C206-both-paired-overflow-{A,B}.pdf`, **página física 6**. La auditoría interrumpió el job antes de los uploads; no existe ZIP publicable de ese PDF candidate para inspección visual directa. Logs de job Kotlin del run disponibles; no inventar PDF SHA ni dar por causa raíz una hipótesis sobre mezcla de grillas.
+
+**No se cierran ni la regla C207 ni las 105 reglas G4** (todas `NOT_VERIFIED`, `active_candidate=null`). Ninguna fuente histórica fue reescrita ni se generó QA owner. Es un bloqueo concreto de geometría real que impide promover C211.
+
+## Decisión RCR-1: presupuesto y rollback
+
+Se consumieron **3/3 pasadas normales** de este alcance; RCR-1 permite evaluar recuperación SOLO tras causa raíz verificable, candidato/artefacto exacto y alternativa distinta. Falta PDF genuino de la tercera corrida (no fue subido por el fallo del workflow), luego **NO se autoriza recuperación especulativa**. Recuperaciones estructurales globales gastadas: **0/2**, sin un R1/2 ficticio. C211 se registra `BLOCKED` por falta de imagen/PDF del fallo y revisión de mecanismo de cuadrícula; no se reinicia el contador en otro chat.
+
+**Reversión segura:** este checkpoint se publica en un commit Git ordinario que restaura exactamente los cinco blobs modificados en este intento desde el último árbol `6a3581784f9f61ec0c8ebc5a506b4ceddd5f93d1`: `PcSheetV11PairedTableComposer.kt` shared, su test shared, renderer Desktop, renderer Android, y `DesktopPcSheetV11RuntimePdfProofTest.kt`. Se mantienen todos los commits/fallos en historial, sin reset, force push ni cerrar la PR. C210 sigue siendo última referencia PASS LOCAL (Scaffold #39355668980, posterior documental #39356609601 SUCCESS), sin inferir aprobación G4.
+
+## Continuidad segura
+
+1. Verificar CI exacto del **commit de reversión** y coherencia `scripts/check_resume_route.py`, QA ledger y golden. Si falla, `BLOCKED` en esa comprobación, sin proclamar baseline restablecida.
+2. Para reabrir C211 en futuro, primero recuperar **PDF físico p6 C206 A/B del candidato `88b1e78`** (no existe como Actions artifact); revisar trazos en p6 y determinar causa raíz, escoger implementación **verdaderamente distinta** y documentar replan RCR-1 antes de código. No repetir este `p2Eligible` experimental ni dos ajustes de tests como si fueran nueva ejecución.
+3. **Mientras C211 está bloqueado**, continuar avance seguro **NO dependiente**: conciliación de otros módulos contra los ocho golden y D-0076, encontrar una infracción observable y resolverla solo con pruebas reales del mismo candidato; ninguna autorización de merge, G4, G5, G6 ni owner QA.
+
+**Gates:** G0 histórico PARCIAL; G1 semántico PASS previo; G2/G3 PARCIALES; G4 BLOCKED con 105/105 `NOT_VERIFIED` y `active_candidate=null`; G5/G6 NO INICIADOS; Android instalado/owner QA SIN PASS. Evidencia del último bloque favorable C210 permanece en `docs/checkpoints/2026-10-19_V11_C210_C2_SOURCE_GROUP_COLUMN_IDENTITY.md`.

@@ -1,6 +1,9 @@
 package io.github.mrsimkin.dndcustomaid.desktop
 
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ExportRequest
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticData
+import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticMapper
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportPlanner
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
@@ -26,9 +29,47 @@ internal data class DesktopPcSheetGeneratedPdf(
  * This class deliberately owns no PDF layout. Both Save and Share receive the exact byte stream
  * produced by DesktopPcSheetWholeDraftRenderer from PcSheetPdfRenderPlan.
  */
+/**
+ * QA-only V11 PDF: real local bytes from the app's production PDF backend,
+ * but NOT a visually approved owner candidate. Never feed to the legacy renderer.
+ */
+internal data class DesktopPcSheetV11PdfProof(
+    val semantic: PcSheetV11SemanticData,
+    val bytes: ByteArray,
+)
+
 internal class DesktopPcSheetExportService(
     private val portraitBytesLoader: (String) -> ByteArray? = ::loadLocalPortraitBytes,
 ) {
+
+    /**
+     * Separate owner-authorized V11 route. Generates ACTUAL PDF bytes locally for QA;
+     * the approved visual layout is incomplete, so do not expose in normal export UI.
+     */
+    fun generateV11Proof(
+        request: PcSheetV11ExportRequest,
+        sources: PcSheetExportSources,
+    ): DesktopPcSheetV11PdfProof {
+        val selected = if (request.stateSelection ==
+            io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelection.CURRENT_SNAPSHOT
+        ) sources.currentSnapshot ?: sources.permanent else sources.permanent
+        val portraitRef = selected.closure.portraitRef?.trim()?.takeIf { it.isNotBlank() }
+        val portraitBytes = portraitRef?.let { ref ->
+            runCatching { portraitBytesLoader(ref) }.getOrNull()
+        }
+        val effectiveSources = if (portraitRef != null && portraitBytes != null) {
+            sources.copy(locallyAvailablePortraitRefs =
+                sources.locallyAvailablePortraitRefs + portraitRef)
+        } else sources
+        val semantic = PcSheetV11SemanticMapper.map(request, effectiveSources)
+        val bytes = ByteArrayOutputStream().use { buffer ->
+            DesktopPcSheetV11PdfProofRenderer().render(semantic, buffer, portraitBytes)
+            buffer.toByteArray()
+        }
+        check(bytes.isNotEmpty())
+        return DesktopPcSheetV11PdfProof(semantic, bytes)
+    }
+
     fun generate(
         request: PcSheetPdfExportRequest,
         sources: PcSheetExportSources,
@@ -88,6 +129,52 @@ internal class DesktopPcSheetExportService(
             Files.deleteIfExists(temporary)
         }
         return absolute.toFile()
+    }
+
+    /** Atomically save ONLY the clearly stamped V11 internal PDF proof. */
+    fun saveV11Proof(
+        generated: DesktopPcSheetV11PdfProof,
+        requestedTarget: File,
+    ): File {
+        val target = ensurePdfExtension(requestedTarget)
+        val absolute = target.toPath().toAbsolutePath()
+        val parent = requireNotNull(absolute.parent)
+        Files.createDirectories(parent)
+        val temporary = Files.createTempFile(parent, ".dnd-v11-internal-", ".pdf.tmp")
+        try {
+            Files.write(temporary, generated.bytes)
+            try {
+                Files.move(temporary, absolute,
+                    StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+            } catch (_: AtomicMoveNotSupportedException) {
+                Files.move(temporary, absolute, StandardCopyOption.REPLACE_EXISTING)
+            }
+        } finally {
+            Files.deleteIfExists(temporary)
+        }
+        return absolute.toFile()
+    }
+
+    fun createShareV11Proof(
+        generated: DesktopPcSheetV11PdfProof,
+        characterName: String,
+        directory: File = defaultShareDirectory(),
+    ): File {
+        Files.createDirectories(directory.toPath())
+        val target = File(directory,
+            suggestedV11ProofFileName(characterName, generated.semantic.request.variant))
+        return saveV11Proof(generated, target).also { it.deleteOnExit() }
+    }
+
+    fun suggestedV11ProofFileName(
+        characterName: String,
+        variant: io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant,
+    ): String {
+        val name = characterName.trim()
+            .replace(Regex("""[\\/:*?"<>|]+"""), "_")
+            .replace(Regex("""\s+"""), " ")
+            .ifBlank { "Personaje" }
+        return "$name - Hoja de PJ - PREQA V11 $variant.pdf"
     }
 
     fun createShareFile(

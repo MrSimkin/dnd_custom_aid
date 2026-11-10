@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "date_chile": "2026-10-19",
+  "scope": "C210 real Desktop-App source-group continuation in mixed C2; local evidence, not G4/owner acceptance",
+  "status": "PASS_LOCAL_DESKTOP_AB",
+  "repository": "MrSimkin/dnd_custom_aid",
+  "branch": "docs/pc-sheet-v11-approved-implementation-handoff",
+  "pr": 173,
+  "merged": false,
+  "baseline": {
+    "commit": "2be1da3bad51d38485857b12d1a049dd10427f1e",
+    "scaffold_run": 39348234906,
+    "artifact_id": 12231673955,
+    "pdfs": 74,
+    "pages": 691,
+    "case_sha256": {
+      "A": "8ab8534275b67bf6a01966ccdf3c7fd3e626129a30937b79e3208bc48d742e67",
+      "B": "a184aa211ca25837e34d5a1af8dde86a5890e317b629a4186c715ddbc5329740"
+    },
+    "symptom": "Mara C2 physical page 4 right column has RECURSO Reserva 3 (A) / Reserva 2 (B) but lacks its group identity at column top"
+  },
+  "implementation": {
+    "commit": "8844225e9d4a7f6bf8623a09997e8557cd9273ea",
+    "surfaces": [
+      "DesktopPcSheetV11PdfProofRenderer.kt",
+      "AndroidPcSheetV11PdfProofRenderer.kt"
+    ],
+    "test": "DesktopPcSheetV11RuntimePdfProofTest.g3C210RealMaraABPreservesSourceGroupNameAtC2ColumnBreak",
+    "change": "real preceding C2 source-group cartela as measured continuation label in free physical header band; no new source rows or pagination"
+  },
+  "ci": {
+    "scaffold": {
+      "run_id": 39355668980,
+      "conclusion": "SUCCESS",
+      "pdf_artifact": 12234489577,
+      "physical_audit_artifact": 12235131524,
+      "apk_build_artifact": 12235510879
+    },
+    "owner_qa_traceability": {
+      "run_id": 39355669008,
+      "conclusion": "SUCCESS"
+    },
+    "android_status": "assembleDebug success, not installed or owner reviewed"
+  },
+  "independent_inspection": {
+    "tool": "PyMuPDF 1.26.7 / fitz text-word bounding boxes, vector drawings ignoring seqno, image-list comparison, visible raster crop",
+    "candidate_pdf_count": 76,
+    "candidate_pages": 709,
+    "prior_pdf_count": 74,
+    "matched_prior_pdf_count": 74,
+    "preserved_prior_pdf_page_counts": 74,
+    "preserved_prior_pages": 691,
+    "preserved_source_words_and_exact_coordinates_pages": 691,
+    "preserved_vector_geometry_pages": 691,
+    "preserved_image_lists_pages": 691,
+    "pdfs_with_new_caption": 26,
+    "pages_with_new_caption": 32,
+    "new_caption_word_tokens": 162,
+    "pdfs_without_any_text_coordinate_changes": 48,
+    "removed_or_moved_source_words": 0,
+    "caption_source_collisions": 0,
+    "caption_coordinate_band_top_origin_pt": [
+      73,
+      89
+    ],
+    "pdfs_binary_identical": 0,
+    "binary_note": "Full PDF binaries were newly emitted; compare physical geometry/content, not raw PDF hash equality",
+    "candidate_cases": {
+      "A": {
+        "filename": "V11-INTERNAL-PROOF-C210-source-group-continuation-A.pdf",
+        "sha256": "0ecbcf2b5c9eab3725d498c6de18fac19061e4bf33ccacf4e9686a09a8f57850",
+        "pages": 9,
+        "c2_page": 4,
+        "p4_page": 7,
+        "final_notes": true,
+        "right_header": "CONTINÚA: RECURSOS Y MUNICIONES"
+      },
+      "B": {
+        "filename": "V11-INTERNAL-PROOF-C210-source-group-continuation-B.pdf",
+        "sha256": "a02d132607f90986c65e54c33d3d26b18c42d614dc289e9c62c20628bb46a8d4",
+        "pages": 9,
+        "c2_page": 4,
+        "p4_page": 7,
+        "final_notes": true,
+        "right_header": "CONTINÚA: RECURSOS Y MUNICIONES"
+      }
+    }
+  },
+  "other_auditors": {
+    "physical_envelope_errors": 0,
+    "topology_errors": 0,
+    "c207_missing_usable_lower_grids": 0,
+    "p3_c2_errors": 0,
+    "scope_restriction": "not entire C207; not golden global equivalence"
+  },
+  "global_state": {
+    "G0": "PARTIAL: missing original owner runtime PDFs",
+    "G1": "PASS semantic prior",
+    "G2": "PARTIAL",
+    "G3": "PARTIAL",
+    "G4": "BLOCKED",
+    "G4_rules_NOT_VERIFIED": 105,
+    "active_candidate": null,
+    "G5": "NOT_STARTED",
+    "G6": "NOT_STARTED",
+    "owner_approved": false,
+    "installed_android_qa": false,
+    "RCR1_structural_recoveries_used": 0,
+    "RCR1_global_limit": 2
+  },
+  "reproduce": "Download workflow artifacts 12231673955 and 12234489577, open homonymous C209 V11 PDFs with PyMuPDF, compare get_text('words') and get_drawings() without non-geometric seqno across 691 pages; inspect physical C2 page 4 of C210 A/B, crop right header x=310..570 y=73..89 (PDF top-origin). Review CI 39355668980 and JSON independent auditors artifact 12235131524."
+}

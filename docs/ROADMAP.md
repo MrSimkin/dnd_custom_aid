@@ -230,6 +230,8 @@ Do not start the next Wave 7 package until that smoke result is recorded. After 
 
 Freeze/unfreeze remains an approved requirement but is not implementation-ready: no current freeze field/contract exists and D-0072 does not define what PC operations freezing blocks. Do not invent this behavior.
 
+**2026-11-10:** the V11 PC sheet (A/B) is integrated into `main` and replaces the four older families on Android (owner decision; `docs/checkpoints/2026-11-10_V11_INTEGRADA_A_MAIN.md`). Before Media / Handouts, the owner asked for PC sync conflict resolution, a clear login screen and a clearer DEV screen; the V11 export is polished in between.
+
 #### Later Wave 7 packages
 
 After the remaining bounded PC Manager responsibilities, continue with the remaining approved concrete surfaces in dependency order:

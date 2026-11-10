@@ -1,0 +1,1066 @@
+{
+  "schema_version": 1,
+  "project": "MrSimkin/dnd_custom_aid",
+  "authority": "Owner-approved V11, D-0076 superseded only for explicit later corrections; AGENTS.md §6.3 and M50800 retained",
+  "visual_baseline": {
+    "artifact": "dnd_custom_aid_V11_Carta_revision.zip",
+    "sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+    "owner_visual_approved": true,
+    "app_implementation_approved": false
+  },
+  "active_candidate": {
+    "source_commit": "930812da7353b443c7d141b78d15dbdd0b85e74c",
+    "apk_sha256": "4995334b5a66b18d14b1c928cab24b57b6490dd2b56def73d551fe4527bc3f63",
+    "version_name": "0.5.0-preqa.14",
+    "version_code": 51400,
+    "build_id": "scaffold-run-42889592329",
+    "artifact_ref": "https://github.com/MrSimkin/dnd_custom_aid/actions/runs/42889592329/artifacts/13797998051",
+    "apk_owner_file_name": "dnd-custom-aid-0.5.0-preqa.14-build-51400.apk",
+    "status": "OWNER_QA_BY_OWNER_EXCEPTION: delivered 2026-11-10 without the release gate, as for preqa.13 (owner decision 2026-11-08); see qa/ACTA_CANDIDATO_PREQA14.md"
+  },
+  "release_gate": "NOT_BUILT",
+  "qa_rounds": [
+    {
+      "id": "V11-VISUAL-2026-10-09",
+      "kind": "visual_mockup",
+      "artifact_sha256": "35a1c6ea6257279799bfa97e64f024a413a7b29e2a45232e4088eeaa1d364e6a",
+      "owner_disposition": "VISUAL_APPROVED_WITH_TWO_PENDING_IMPLEMENTATION_ADJUSTMENTS",
+      "reported_ids": [
+        "V11-QA-001",
+        "V11-QA-002"
+      ],
+      "runtime_pdf": false
+    },
+    {
+      "id": "QA-PREQA13",
+      "kind": "owner_qa_blocked_before_pdf",
+      "candidate_version": "0.5.0-preqa.13 build 51300",
+      "source_commit": "bdfdaa292e319dc0c5a5a9bce62ad1f619c4b477",
+      "apk_sha256": "6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7",
+      "round_record": "docs/pc-sheet-v11/qa/rondas/QA-PREQA13.md",
+      "owner_disposition": "STOPPED_AT_LOGIN: no V11 PDF was produced or reviewed",
+      "reported_ids": [
+        "V11-QA-003",
+        "V11-QA-004",
+        "V11-QA-005",
+        "V11-QA-006",
+        "V11-QA-007",
+        "V11-QA-008",
+        "V11-QA-009",
+        "V11-QA-010",
+        "V11-QA-011",
+        "V11-QA-012",
+        "V11-QA-013",
+        "V11-QA-014",
+        "V11-QA-015",
+        "V11-QA-016",
+        "V11-QA-017",
+        "V11-QA-018"
+      ],
+      "runtime_pdf": false
+    }
+  ],
+  "legacy_acceptance_matrix": {
+    "path": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md",
+    "items": [
+      {
+        "id": "M50800-01",
+        "area": "Candidate provenance",
+        "historical_status": "FIXED — PROVENANCE RESOLVED",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-02",
+        "area": "Custom v1 generation",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-03",
+        "area": "Template/source underlay",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-04",
+        "area": "Custom Statistics visual grammar",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-05",
+        "area": "Custom Statistics capacity",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-06",
+        "area": "Phantom custom attributes",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-07",
+        "area": "Éter presentation",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-08",
+        "area": "Traits/Rasgos source reuse",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-09",
+        "area": "Traits ordering",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-10",
+        "area": "Traits packing",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-11",
+        "area": "Trasfondo/Historia and similar modules",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-12",
+        "area": "Custom-v2 Combat/Actions",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-13",
+        "area": "Fantasy Combat/Actions",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-14",
+        "area": "Resources/Options packing",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-15",
+        "area": "Ordinary Equipment design",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-16",
+        "area": "Ordinary Equipment content",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-17",
+        "area": "Ordinary Equipment readability",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-18",
+        "area": "Equipo Especial design",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-19",
+        "area": "Equipo Especial custom locations",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-20",
+        "area": "Redundant Equipment scaffolds",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-21",
+        "area": "Notes design",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-22",
+        "area": "Notes record boundaries",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-23",
+        "area": "Notes continuation identity",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-24",
+        "area": "Notes packing",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-25",
+        "area": "Character-name ribbon",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-26",
+        "area": "Semantic ellipsis",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-27",
+        "area": "Adaptive continuation architecture",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-28",
+        "area": "Page count interpretation",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-29",
+        "area": "Data preservation",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-30",
+        "area": "Pre-fix comprehension gate",
+        "historical_status": "REQUIRED BEFORE CODE",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-31",
+        "area": "Candidate acceptance gate",
+        "historical_status": "REQUIRED BEFORE HANDOFF",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      },
+      {
+        "id": "M50800-32",
+        "area": "Cross-family generation",
+        "historical_status": "OPEN",
+        "source_file": "docs/checkpoints/2026-09-28_PC_SHEET_MARA_50800_PRE_FIX_ACCEPTANCE_MATRIX.md"
+      }
+    ],
+    "handling": "HISTORICAL_OPEN_NOT_AUTOMATICALLY_CLOSED; CHECK_NO_NEW_REGRESSION_ON_ALL_FOUR_LEGACY_FAMILIES SUPERSEDED 2026-11-06: the owner decided that V11 replaces the four old sheets; these items stay as history, not as pending work.",
+    "note": "M50800-01 resolved old APK provenance only, not V11 pass"
+  },
+  "observations": [
+    {
+      "id": "V11-QA-001",
+      "session_id": "V11-VISUAL-2026-10-09",
+      "source": "owner direct observation",
+      "source_locator": "review V11 Etapa 1 item 1",
+      "original_text": "casi casi, un poco mas arriba y a la ferecha y estamos perfectos",
+      "expected": "Mover la etiqueta Salvación ligeramente arriba y hacia la derecha con respecto al rectángulo de atributo, sin cambios de la estética aprobada.",
+      "target_scope": "V11/P1/A+B",
+      "page_hint": "P1",
+      "blocking": true,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-10-09",
+          "candidate": "V11 approved visual mockup"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-002",
+      "session_id": "V11-VISUAL-2026-10-09",
+      "source": "owner direct observation",
+      "source_locator": "review V11 Etapa 2 item 1",
+      "original_text": "si, aunque todavia hay espacios vacios, ver pagina 5, no hay que hacer otra prueba para este en particular, pero solo asegurarse que cuando se haga la pieza, no deje huecos",
+      "expected": "Compositor C2 debe rellenar espacio realmente disponible con cartela Notas y cuadrícula completa; no generar página adicional solo para llenar.",
+      "target_scope": "V11/C2/A+B",
+      "page_hint": "V11 extremo A página 5",
+      "blocking": true,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-10-09",
+          "candidate": "V11 approved visual mockup"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-003",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, P2 «Entrar y sincronizar» (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "No puedo loguearme, no recibo ningun correo, ni en Outlook ni en GMail. Deberé terminar el QA aqui hasta resolver esto.",
+      "expected": "Con el APK preqa.13, «Enviar código» en «QA / autenticación hospedada DEV» hace llegar el código de un solo uso de Descope al correo, y el propietario entra y sincroniza la campaña de QA.",
+      "target_scope": "Android/autenticación hospedada DEV (no V11 PDF)",
+      "page_hint": "Ajustes → Herramientas DEV → Abrir QA / diagnóstico DEV",
+      "blocking": true,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "OPEN",
+          "kind": "OWNER_NOTE",
+          "date": "2026-11-10",
+          "note": "En el resumen final del QA el propietario marcó «P2 Entrar y sincronizar: BIEN»."
+        }
+      ]
+    },
+    {
+      "session_id": "QA-PREQA13",
+      "source": "owner direct request",
+      "source_locator": "Chat de la sesión, 2026-11-10, tras el conflicto de Aldren (V11-QA-003 y log QA)",
+      "original_text": "ok, haré eso, pero anota que debemos agregar a la App, resolución de conflictos y poder importar desde servidor viendo diferencias y todo lo involucrado junto a lo que corresponda a la QA que estamos viendo y desarrollar de inmediato un buen QA y mejorar la UX de todo lo relacionado y mejorar el UX del DEV screen para que sea mas claro.",
+      "blocking": false,
+      "status": "OPEN",
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ],
+      "id": "V11-QA-004",
+      "related_ids": [
+        "V11-QA-003",
+        "V11-QA-005"
+      ],
+      "expected": "La App permite resolver un conflicto de PJ entre el teléfono y el servidor: ver las diferencias entre las dos versiones y elegir, incluida la opción de traer la versión del servidor, con todo lo que eso involucre; con su propio QA y una UX clara.",
+      "target_scope": "Android/sincronización hospedada de PJ (no V11 PDF)",
+      "page_hint": "Conflicto LOCAL_AND_HOSTED_CHANGED de Aldren Vale en la sincronización del 2026-11-10"
+    },
+    {
+      "session_id": "QA-PREQA13",
+      "source": "owner direct request",
+      "source_locator": "Chat de la sesión, 2026-11-10, tras el conflicto de Aldren (V11-QA-003 y log QA)",
+      "original_text": "ok, haré eso, pero anota que debemos agregar a la App, resolución de conflictos y poder importar desde servidor viendo diferencias y todo lo involucrado junto a lo que corresponda a la QA que estamos viendo y desarrollar de inmediato un buen QA y mejorar la UX de todo lo relacionado y mejorar el UX del DEV screen para que sea mas claro.",
+      "blocking": false,
+      "status": "OPEN",
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ],
+      "id": "V11-QA-005",
+      "related_ids": [
+        "V11-QA-003",
+        "V11-QA-004"
+      ],
+      "expected": "La pantalla DEV (QA / autenticación hospedada DEV) es más clara para el propietario, y mejora la UX de todo lo relacionado con entrar, sincronizar y resolver conflictos.",
+      "target_scope": "Android/pantalla DEV y UX de sincronización (no V11 PDF)",
+      "page_hint": "Ajustes → Herramientas DEV → Abrir QA / diagnóstico DEV"
+    },
+    {
+      "id": "V11-QA-006",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct request",
+      "source_locator": "Chat de la sesión, 2026-11-10, a continuación de V11-QA-004 y V11-QA-005",
+      "original_text": "y te faltó, una pantalla de login clara, para jugadores y DM, ahi hablaremos los detalles cuando corresponda",
+      "expected": "La App tiene una pantalla de inicio de sesión clara para jugadores y DM. Los detalles se acuerdan con el propietario cuando corresponda.",
+      "target_scope": "Android/inicio de sesión de jugadores y DM (no V11 PDF)",
+      "page_hint": "Hoy solo existe la pantalla de builds debug «QA / autenticación hospedada DEV»",
+      "blocking": false,
+      "status": "OPEN",
+      "related_ids": [
+        "V11-QA-003",
+        "V11-QA-004",
+        "V11-QA-005"
+      ],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-007",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "Chat de la sesión, 2026-11-10, con dos capturas de «Hoja de personaje PDF» de Aldren Vale en preqa.13",
+      "original_text": "ok, la nueva pantalla de exportación me confunde, ya no sé como sacar las hojas A y B, especialmente porque aun aparecen los nombres antiguos",
+      "expected": "La pantalla de exportación deja claro cómo sacar la hoja V11 A y B, sin que las hojas antiguas aparezcan como opción principal (V11 las reemplaza, decisión del propietario del 2026-11-06).",
+      "target_scope": "Android/pantalla «Hoja de personaje PDF» (exportación V11)",
+      "page_hint": "Ajustes del PJ → Hoja de personaje PDF: «Familia visual» muestra Fantasy Sheet, Custom v1, Custom v2 · Atributo y · Habilidad; V11 está escondida en «Salida PDF de diagnóstico»",
+      "blocking": true,
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "related_ids": [
+        "V11-QA-005"
+      ],
+      "plan": {
+        "cause": "La pantalla ofrecía las cuatro familias antiguas y escondía V11 en una sección DEBUG.",
+        "reproducer": "PDF del propietario de preqa.13 y la página indicada en page_hint",
+        "red_test": "scripts/test_v11_export_offline.py::test_android_screen_offers_only_v11_a_and_b",
+        "acceptance": "Pantalla con A y B de nombre claro, sin familias antiguas (maqueta aprobada «Sí, así»).",
+        "target_gate": "QA del propietario de preqa.14",
+        "production_paths": [
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterPcSettingsClosureV4.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetExportService.kt",
+          "shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContract.kt"
+        ]
+      },
+      "implementation": {
+        "commit": "ed7b2de332bae895175162411af28ef0bae0715a",
+        "changed_production_paths": [
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterPcSettingsClosureV4.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetExportService.kt",
+          "shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContract.kt"
+        ],
+        "diff_ref": "git show ed7b2de3 (C473)",
+        "red_test_result": "PDF real del propietario de preqa.13 (D:\\DnD_Aid\\PDF Check) muestra el defecto; la prueba se escribió junto con el arreglo, sin corrida roja separada.",
+        "green_test_result": "748 pruebas de escritorio y compartidas en verde; PDF de Android revisado a la vista"
+      },
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "OPEN",
+          "kind": "OWNER_DECISION",
+          "date": "2026-11-10",
+          "note": "Literal: «aprovecho de decir, debemos sacar las opciones antiguas, (ajustemos todo eso), darles los nombres correctos a A y B (habilidades por atributo, por orden alfabetico)»"
+        },
+        {
+          "state": "OPEN",
+          "kind": "OWNER_DECISION",
+          "date": "2026-11-10",
+          "note": "Ante la imagen de B por atributo frente a B alfabético: «Sí, alfabético». B ordena las habilidades alfabéticamente; nombres «A · Habilidades por atributo» y «B · Habilidades en orden alfabético»."
+        },
+        {
+          "state": "OPEN",
+          "kind": "OWNER_DECISION",
+          "date": "2026-11-10",
+          "note": "Mostrada la maqueta de la pantalla nueva, el propietario respondió «Sí, así». Ver CONTRATO_VISUAL_APROBADO.md."
+        },
+        {
+          "state": "IMPLEMENTED_UNVERIFIED",
+          "kind": "IMPLEMENTED",
+          "date": "2026-11-10",
+          "commit": "ed7b2de332bae895175162411af28ef0bae0715a"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-008",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba A1 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "A1 Número y orden de páginas: NO APLICA — Adicional:\nMientras estamos en debug que diga Variante A o B está bien o P1 -- XXXX. Pero despues eso debe salir.\nPrefiero un mejor retrato de salida, algo mas \"lindo\" y acorde.",
+      "expected": "Mientras sea debug, «VARIANTE A/B» o «P1 - …» en la cabecera está bien, pero en la versión final debe salir. El marco de retrato de salida (sin foto) es más «lindo» y acorde.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Aldren, todas las páginas (cabecera) y P1 RETRATO",
+      "blocking": false,
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "related_ids": [],
+      "plan": {
+        "cause": "El retrato sin foto eran dos óvalos grises rellenos.",
+        "reproducer": "PDF del propietario de preqa.13 y la página indicada en page_hint",
+        "red_test": "Revisión visual de P1 en el PDF de Android (cand14/Aldren-A-tinta.pdf)",
+        "acceptance": "Silueta de busto en línea fina, sin relleno («4 · Silueta de línea»).",
+        "target_gate": "QA del propietario de preqa.14",
+        "production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt"
+        ]
+      },
+      "implementation": {
+        "commit": "ed7b2de332bae895175162411af28ef0bae0715a",
+        "changed_production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt"
+        ],
+        "diff_ref": "git show ed7b2de3 (C473)",
+        "red_test_result": "PDF real del propietario de preqa.13 (D:\\DnD_Aid\\PDF Check) muestra el defecto; la prueba se escribió junto con el arreglo, sin corrida roja separada.",
+        "green_test_result": "748 pruebas de escritorio y compartidas en verde; PDF de Android revisado a la vista"
+      },
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "OPEN",
+          "kind": "OWNER_DECISION",
+          "date": "2026-11-10",
+          "note": "Ante cuatro opciones de retrato sin foto el propietario respondió «4 · Silueta de línea»: busto en línea fina, sin relleno. Ver CONTRATO_VISUAL_APROBADO.md."
+        },
+        {
+          "state": "IMPLEMENTED_UNVERIFIED",
+          "kind": "IMPLEMENTED",
+          "date": "2026-11-10",
+          "commit": "ed7b2de332bae895175162411af28ef0bae0715a"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-009",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba A2 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "A2 Cabecera y clase: BIEN — No recuerdo si la App guarda la sub clase, si la guarda deberia ser Clase \"Guerrero (sub clase) 5\" por ejemplo. Si no lo guarda, debemos guardarlo.",
+      "expected": "Si la App guarda la subclase, CLASE / NIVEL la muestra, por ejemplo «Guerrero (subclase) 5». Si no la guarda, la App debe guardarla.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Aldren P1, CLASE / NIVEL",
+      "blocking": false,
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "related_ids": [],
+      "plan": {
+        "cause": "El renderer imprimía solo nombre y nivel; la subclase guardada se omitía.",
+        "reproducer": "PDF del propietario de preqa.13 y la página indicada en page_hint",
+        "red_test": "DesktopPcSheetV11RuntimePdfProofTest.c473OwnerQaOfPreqa13AB",
+        "acceptance": "CLASE / NIVEL «Guerrero (Champion) 5».",
+        "target_gate": "QA del propietario de preqa.14",
+        "production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt"
+        ]
+      },
+      "implementation": {
+        "commit": "ed7b2de332bae895175162411af28ef0bae0715a",
+        "changed_production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt"
+        ],
+        "diff_ref": "git show ed7b2de3 (C473)",
+        "red_test_result": "PDF real del propietario de preqa.13 (D:\\DnD_Aid\\PDF Check) muestra el defecto; la prueba se escribió junto con el arreglo, sin corrida roja separada.",
+        "green_test_result": "748 pruebas de escritorio y compartidas en verde; PDF de Android revisado a la vista"
+      },
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "IMPLEMENTED_UNVERIFIED",
+          "kind": "IMPLEMENTED",
+          "date": "2026-11-10",
+          "commit": "ed7b2de332bae895175162411af28ef0bae0715a"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-010",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba A3 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "A3 Atributos y salvaciones: BIEN — Observacion adicional, deberiamos considerar una versión de exportación que muestre los numeros variables (en toda la hoja), como atributos, habilidades, CA, etc en un color mas \"transparente\" para que el jugador pueda escribir encima y \"borrarlo\" y sobre escribir (a mano)",
+      "expected": "Considerar una versión de exportación con los números variables en un color más transparente, para que el jugador escriba encima a mano.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Toda la hoja: atributos, habilidades, CA y demás números variables",
+      "blocking": false,
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "related_ids": [],
+      "plan": {
+        "cause": "No existía la opción.",
+        "reproducer": "PDF del propietario de preqa.13 y la página indicada en page_hint",
+        "red_test": "DesktopPcSheetV11RuntimePdfProofTest.c473OwnerQaOfPreqa13AB",
+        "acceptance": "Opción apagada por defecto, para A y B; números variables al 30 % de tinta, mismo texto.",
+        "target_gate": "QA del propietario de preqa.14",
+        "production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt",
+          "shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContract.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterPcSettingsClosureV4.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetExportService.kt"
+        ]
+      },
+      "implementation": {
+        "commit": "ed7b2de332bae895175162411af28ef0bae0715a",
+        "changed_production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt",
+          "shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11SemanticContract.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterPcSettingsClosureV4.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/CharacterEditorV4.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetExportService.kt"
+        ],
+        "diff_ref": "git show ed7b2de3 (C473)",
+        "red_test_result": "PDF real del propietario de preqa.13 (D:\\DnD_Aid\\PDF Check) muestra el defecto; la prueba se escribió junto con el arreglo, sin corrida roja separada.",
+        "green_test_result": "748 pruebas de escritorio y compartidas en verde; PDF de Android revisado a la vista"
+      },
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "OPEN",
+          "kind": "OWNER_DECISION",
+          "date": "2026-11-10",
+          "note": "Literal: «Ahora, en preqa.14, pero para que quede claro, el poner los numeros en tinta clara, debe ser una opción, no el predeterminado ni unica opción, solo una opcion adicional para que despues de imprimir y usar en mesa, la hoja sea siendo util para siguientes niveles o evolución del PJ. (y eso es paralelo a A y B, no una tercera opcion C)»"
+        },
+        {
+          "state": "IMPLEMENTED_UNVERIFIED",
+          "kind": "IMPLEMENTED",
+          "date": "2026-11-10",
+          "commit": "ed7b2de332bae895175162411af28ef0bae0715a"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-011",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba A8 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "A8 Equipo, tesoro y Equipo Especial: NO APLICA — Hay solo 6 objetos, Ballesta ligera, Mochila de explorador, Libro de oraciones, Incienso, Vestiduras, Ropa comun. Usa 7 lineas, pero solo 6 objetos, verifica que eso está bien.\nFaltan espacios vacios en el equipo especial para \"lugares sin llenar\", es decir, linea 100% vacía, y creo que son espacios MUY altos.",
+      "expected": "Verificar que EQUIPO use una línea por objeto (6 objetos, no 7 líneas). EQUIPO ESPECIAL tiene filas 100 % vacías para lugares sin llenar, y sus filas no son tan altas.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Aldren P2: EQUIPO y EQUIPO ESPECIAL",
+      "blocking": true,
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "related_ids": [
+        "V11-QA-016"
+      ],
+      "plan": {
+        "cause": "Filas libres rotuladas y de banda completa (26,93 pt) por C456.",
+        "reproducer": "PDF del propietario de preqa.13 y la página indicada en page_hint",
+        "red_test": "DesktopPcSheetV11RuntimePdfProofTest.c473OwnerQaOfPreqa13AB y g3RealP2NoSpecialEquipment...",
+        "acceptance": "Filas libres 100 % vacías de una línea de EQUIPO (16,15 pt), 13 en P2 vacía.",
+        "target_gate": "QA del propietario de preqa.14",
+        "production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt"
+        ]
+      },
+      "implementation": {
+        "commit": "ed7b2de332bae895175162411af28ef0bae0715a",
+        "changed_production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt"
+        ],
+        "diff_ref": "git show ed7b2de3 (C473)",
+        "red_test_result": "PDF real del propietario de preqa.13 (D:\\DnD_Aid\\PDF Check) muestra el defecto; la prueba se escribió junto con el arreglo, sin corrida roja separada.",
+        "green_test_result": "748 pruebas de escritorio y compartidas en verde; PDF de Android revisado a la vista"
+      },
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "OPEN",
+          "kind": "OWNER_DECISION",
+          "date": "2026-11-10",
+          "note": "Ante la imagen hoy/propuesta el propietario respondió «Sí, la propuesta»: objetos a la altura que necesitan y filas libres 100 % vacías, sin rótulo, con la altura de una línea de EQUIPO. Ver CONTRATO_VISUAL_APROBADO.md."
+        },
+        {
+          "state": "IMPLEMENTED_UNVERIFIED",
+          "kind": "IMPLEMENTED",
+          "date": "2026-11-10",
+          "commit": "ed7b2de332bae895175162411af28ef0bae0715a"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-012",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba A9 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "A9 Rasgos: BIEN — te corrijo en tu notacion, son 8 rasgos, entre la pagina 1 y 2, los rasgos no tienen la sangria que usamos en Equipo, para entender que es parte del mismo texto.",
+      "expected": "Los 8 rasgos, repartidos entre P1 y P2, usan la sangría de continuación de EQUIPO, para ver que una línea siguiente es parte del mismo rasgo.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Aldren P1 y P2: RASGOS",
+      "blocking": true,
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "related_ids": [],
+      "plan": {
+        "cause": "RASGOS dibujaba las líneas siguientes sin sangría.",
+        "reproducer": "PDF del propietario de preqa.13 y la página indicada en page_hint",
+        "red_test": "Revisión visual de P1, P2 y C2 en los PDF de Android (cand14)",
+        "acceptance": "Líneas siguientes de un rasgo con la sangría de 8 pt de EQUIPO.",
+        "target_gate": "QA del propietario de preqa.14",
+        "production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt",
+          "shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11TextFlow.kt"
+        ]
+      },
+      "implementation": {
+        "commit": "ed7b2de332bae895175162411af28ef0bae0715a",
+        "changed_production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt",
+          "shared/src/commonMain/kotlin/io/github/mrsimkin/dndcustomaid/shared/character/PcSheetV11TextFlow.kt"
+        ],
+        "diff_ref": "git show ed7b2de3 (C473)",
+        "red_test_result": "PDF real del propietario de preqa.13 (D:\\DnD_Aid\\PDF Check) muestra el defecto; la prueba se escribió junto con el arreglo, sin corrida roja separada.",
+        "green_test_result": "748 pruebas de escritorio y compartidas en verde; PDF de Android revisado a la vista"
+      },
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "IMPLEMENTED_UNVERIFIED",
+          "kind": "IMPLEMENTED",
+          "date": "2026-11-10",
+          "commit": "ed7b2de332bae895175162411af28ef0bae0715a"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-013",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba A12 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "A12 Parecido con el golden: BIEN — se ve bien, arreglaria quizas \"QUIZAS\", esteticamente levemente la pagina 4 por el coloreado del interlineado de recursos y acciones, algo raro hay alli, y el uso del espacio en recursos, parece mucho espacio desperdiciado en cada accion y parece caber mas texto, y parece un poco pequeña la descripcion, aqui lo dejo a tu criterio.",
+      "expected": "A criterio del Worker: revisar el coloreado del interlineado de ACCIONES y RECURSOS, el espacio desaprovechado en cada recurso y el tamaño de la descripción.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Aldren p4: ACCIONES y RECURSOS",
+      "blocking": false,
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "related_ids": [],
+      "plan": {
+        "cause": "Regla entre acción y notas; detalle de recursos medido a 7 pt y dibujado a 6,1 pt; casillas en línea propia.",
+        "reproducer": "PDF del propietario de preqa.13 y la página indicada en page_hint",
+        "red_test": "DesktopPcSheetV11RuntimePdfProofTest.c452ResourceDetailsPrintInSmallLetterAB",
+        "acceptance": "Una franja por registro; casillas junto al nombre; detalle al tamaño medido.",
+        "target_gate": "QA del propietario de preqa.14",
+        "production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt"
+        ]
+      },
+      "implementation": {
+        "commit": "ed7b2de332bae895175162411af28ef0bae0715a",
+        "changed_production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt"
+        ],
+        "diff_ref": "git show ed7b2de3 (C473)",
+        "red_test_result": "PDF real del propietario de preqa.13 (D:\\DnD_Aid\\PDF Check) muestra el defecto; la prueba se escribió junto con el arreglo, sin corrida roja separada.",
+        "green_test_result": "748 pruebas de escritorio y compartidas en verde; PDF de Android revisado a la vista"
+      },
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "IMPLEMENTED_UNVERIFIED",
+          "kind": "IMPLEMENTED",
+          "date": "2026-11-10",
+          "commit": "ed7b2de332bae895175162411af28ef0bae0715a"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-014",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba I1 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "I1 Número y orden de páginas: BIEN — A y B tienen 9 paginas. A no tiene solo 7, pero creo que eso está bien",
+      "expected": "Información: A salió con Libro (9 páginas), lo que el propietario considera bien.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Ilyra A y B: número de páginas",
+      "blocking": false,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "OPEN",
+          "kind": "WORKER_NOTE",
+          "date": "2026-11-10",
+          "note": "Información: sin cambio."
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-015",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba I3 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "I3 Lanzamiento de conjuros en la página 1: BIEN — Los espacios de los cuadros dentro de Lanzamiento de conjuro no me parecen bien distribuidos, los haria alineados a la izquierda y el orden de los niveles lo tienes a lo \"telefono\". Lo haria hacia abajo.\n1 4 7\n2 5 8\n3 6 9",
+      "expected": "Las casillas de cada nivel alineadas a la izquierda, y los niveles ordenados hacia abajo por columnas: 1 4 7 / 2 5 8 / 3 6 9.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Ilyra P1: LANZAMIENTO DE CONJUROS, casillas de espacios",
+      "blocking": true,
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "related_ids": [],
+      "plan": {
+        "cause": "Niveles por filas y paso de casillas variable según cantidad.",
+        "reproducer": "PDF del propietario de preqa.13 y la página indicada en page_hint",
+        "red_test": "Pruebas de casillas P1 (g3P1..., c445...) con posiciones por columnas",
+        "acceptance": "Niveles por columnas 1 4 7 / 2 5 8 / 3 6 9, casillas desde la izquierda con paso fijo.",
+        "target_gate": "QA del propietario de preqa.14",
+        "production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt"
+        ]
+      },
+      "implementation": {
+        "commit": "ed7b2de332bae895175162411af28ef0bae0715a",
+        "changed_production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt"
+        ],
+        "diff_ref": "git show ed7b2de3 (C473)",
+        "red_test_result": "PDF real del propietario de preqa.13 (D:\\DnD_Aid\\PDF Check) muestra el defecto; la prueba se escribió junto con el arreglo, sin corrida roja separada.",
+        "green_test_result": "748 pruebas de escritorio y compartidas en verde; PDF de Android revisado a la vista"
+      },
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "IMPLEMENTED_UNVERIFIED",
+          "kind": "IMPLEMENTED",
+          "date": "2026-11-10",
+          "commit": "ed7b2de332bae895175162411af28ef0bae0715a"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-016",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba I7 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "I7 Equipo y rasgos: BIEN — la descripcion del spellbook, tiene especio adicional innecesario (abajo en la línea)",
+      "expected": "Sin espacio adicional innecesario debajo de la descripción.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Ilyra: descripción en el Libro (spellbook)",
+      "blocking": true,
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "related_ids": [],
+      "plan": {
+        "cause": "La fila crecía de banda en banda (26,93 pt).",
+        "reproducer": "PDF del propietario de preqa.13 y la página indicada en page_hint",
+        "red_test": "Revisión visual de P2 de Ilyra en el PDF de Android (cand14/Ilyra-A.pdf)",
+        "acceptance": "La fila del Spellbook mide lo que necesitan sus 3 líneas.",
+        "target_gate": "QA del propietario de preqa.14",
+        "production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt"
+        ]
+      },
+      "implementation": {
+        "commit": "ed7b2de332bae895175162411af28ef0bae0715a",
+        "changed_production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt"
+        ],
+        "diff_ref": "git show ed7b2de3 (C473)",
+        "red_test_result": "PDF real del propietario de preqa.13 (D:\\DnD_Aid\\PDF Check) muestra el defecto; la prueba se escribió junto con el arreglo, sin corrida roja separada.",
+        "green_test_result": "748 pruebas de escritorio y compartidas en verde; PDF de Android revisado a la vista"
+      },
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "IMPLEMENTED_UNVERIFIED",
+          "kind": "IMPLEMENTED",
+          "date": "2026-11-10",
+          "commit": "ed7b2de332bae895175162411af28ef0bae0715a"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-017",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba M7 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "M7 Equipo que continúa: FALLA — El equipo no tiene el mismo formato del equipo de pagina normal, lineas con sangrias",
+      "expected": "EQUIPO en continuación con el mismo formato que EQUIPO de P2, incluidas las líneas con sangría.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Mara: EQUIPO en la hoja de continuación",
+      "blocking": true,
+      "status": "IMPLEMENTED_UNVERIFIED",
+      "related_ids": [],
+      "plan": {
+        "cause": "EQUIPO en C2 ponía cada objeto en una celda alta sin sangría.",
+        "reproducer": "PDF del propietario de preqa.13 y la página indicada en page_hint",
+        "red_test": "DesktopPcSheetV11RuntimePdfProofTest.overflowingOrdinaryInventory... y revisión visual de Mara pág. 5",
+        "acceptance": "Una fila con regla por línea, sangría y columna de cantidad solo en la primera.",
+        "target_gate": "QA del propietario de preqa.14",
+        "production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt"
+        ]
+      },
+      "implementation": {
+        "commit": "ed7b2de332bae895175162411af28ef0bae0715a",
+        "changed_production_paths": [
+          "desktopApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/desktop/DesktopPcSheetV11PdfProofRenderer.kt",
+          "androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android/pdf/AndroidPcSheetV11PdfProofRenderer.kt"
+        ],
+        "diff_ref": "git show ed7b2de3 (C473)",
+        "red_test_result": "PDF real del propietario de preqa.13 (D:\\DnD_Aid\\PDF Check) muestra el defecto; la prueba se escribió junto con el arreglo, sin corrida roja separada.",
+        "green_test_result": "748 pruebas de escritorio y compartidas en verde; PDF de Android revisado a la vista"
+      },
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "IMPLEMENTED_UNVERIFIED",
+          "kind": "IMPLEMENTED",
+          "date": "2026-11-10",
+          "commit": "ed7b2de332bae895175162411af28ef0bae0715a"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-018",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba X4 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "X4 Niveles épicos: NO APLICA — no se como activar niveles epicos, porque creo que no lo hemos implementado",
+      "expected": "Información: el propietario no sabe cómo activar los niveles épicos y cree que no están implementados.",
+      "target_scope": "Android/niveles épicos",
+      "page_hint": "Niveles épicos",
+      "blocking": false,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "OPEN",
+          "kind": "WORKER_NOTE",
+          "date": "2026-11-10",
+          "note": "Los niveles épicos existen: casilla «Habilitar niveles épicos» en el editor de cada clase. Se indica al propietario para el QA de preqa.14."
+        }
+      ]
+    }
+  ],
+  "rcr_budget": {
+    "global_structural_recoveries_used": 0,
+    "max_global": 2,
+    "per_gate_attempts": {},
+    "recoveries": []
+  },
+  "runtime_qa_records": [],
+  "regression_suite": {
+    "status": "NOT_RUN",
+    "latest_candidate_commit": null,
+    "legacy_family_evidence": [],
+    "v11_evidence": [],
+    "independent_pdf_inspection": null
+  },
+  "notes": [
+    "Owner visual approval is not APK acceptance",
+    "Do not fabricate OWNER_ACCEPTED until exact candidate tested and owner explicitly approves",
+    "Legacy M50800 statuses are historical; do not override",
+    "2026-10-11 G0 remote-source review: CharacterSheet/closure/successor/planner and Android/Desktop UI/services inspected at PR #173 HEAD 62ac252; see G0_VERIFICACION_MODELOS_UI_2026-10-11.md. G0 NO PASS: owner 50800 PDF/screenshot bytes unavailable and no local Gradle; V11-QA-001/002 OPEN, 32 M50800 preserved; RCR-1 0/2. No product candidate or QA acceptance."
+  ]
+}

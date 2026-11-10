@@ -1,0 +1,351 @@
+package io.github.mrsimkin.dndcustomaid.shared.character
+
+import kotlin.math.min
+
+/**
+ * G2 foundation: measured, lossless line flow shared by Android and Desktop.
+ * A real PDF font measurer and final physical-page compositor are NOT implemented here.
+ * Geometry is supplied by the caller; no synthetic widths or guessed page positions.
+ */
+data class PcSheetV11TextColumn(
+    val widthPt: Float,
+    val heightPt: Float,
+    val lineHeightPt: Float,
+) {
+    init {
+        require(widthPt.isFinite() && widthPt > 0f) { "A usable column width is required." }
+        require(heightPt.isFinite() && heightPt > 0f) { "A usable column height is required." }
+        require(lineHeightPt.isFinite() && lineHeightPt > 0f) { "A usable line height is required." }
+        require(lineCapacity > 0) { "A column must fit at least one complete line." }
+    }
+
+    val lineCapacity: Int
+        get() = (heightPt / lineHeightPt).toInt()
+}
+
+/**
+ * Expand persisted tabs only for visual PDF measurement/drawing.
+ * Preserve source text, IDs and original UTF-16 offsets for reconciliation.
+ */
+fun pcSheetV11PrintableText(text: String): String = text.replace("\t", "    ")
+
+/** Measured width in points with the exact font that the future PDF backend uses. */
+fun interface PcSheetV11TextWidth {
+    fun measurePt(text: String): Float
+}
+
+/** Caller must supply a stable, unique source key; never infer one from display text. */
+data class PcSheetV11FlowItem(
+    val sourceKey: String,
+    val text: String,
+    val keepTogetherIfFits: Boolean = false,
+    /** Optional CONTIGUOUS source group. Keep whole groups in one column only
+     * when their genuine measured lines fit; never invent or duplicate records. */
+    val groupKey: String? = null,
+    /** Whitespace is PAPER GEOMETRY, never source text. Reserve this many
+     * whole measured line cells before an item IF the current physical
+     * column already contains another item. Never reserve it at a new
+     * column start or for a continued fragment. Default remains zero.
+     * The approved V11 spellbook uses one line between real cards. */
+    val leadingSeparationLines: Int = 0,
+    /** C362/C363: paper geometry only - extra points added on top of the line
+     * cell that starts at a given source offset (the golden P4 level band is 20.69
+     * pt over 15.73 pt rows; golden book cards leave more air before the
+     * description). The column capacity accounts for every extra. */
+    val lineExtrasPt: Map<Int, Float> = emptyMap(),
+    /** C473 (owner QA of preqa.13, V11-QA-012): paper geometry only - every line after the
+     * first starts this many points further in, so it is wrapped that much narrower. */
+    val continuationIndentPt: Float = 0f,
+) {
+    init {
+        require(leadingSeparationLines >= 0) {
+            "A V11 leading separation cannot have a negative line count."
+        }
+        require(lineExtrasPt.all { (offset, pt) -> offset >= 0 && pt.isFinite() && pt >= 0f }) {
+            "A V11 line extra height must be finite and nonnegative."
+        }
+    }
+}
+
+enum class PcSheetV11FlowSection {
+    NARRATIVE,
+    DIGITAL_NOTES,
+    TRAITS,
+    ORDINARY_EQUIPMENT,
+    SPECIAL_EQUIPMENT,
+    QUICK_SPELLS,
+    SPELLBOOK,
+}
+
+data class PcSheetV11TextLine(
+    val startOffset: Int,
+    val endExclusive: Int,
+) {
+    init {
+        require(startOffset >= 0 && endExclusive > startOffset)
+    }
+}
+
+data class PcSheetV11FlowFragment(
+    val sourceKey: String,
+    /** Index within this flow section only, not the physical PDF page number. */
+    val localPageIndex: Int,
+    val columnIndex: Int,
+    /** 0-based starting line cell within this physical column; prevents consecutive blocks overlapping. */
+    val startLineIndexInColumn: Int,
+    /** Exact UTF-16 indices into the source item; bounds also cover explicit newlines. */
+    val startOffset: Int,
+    val endExclusive: Int,
+    val text: String,
+    val lineRanges: List<PcSheetV11TextLine>,
+    val continuedFromPrevious: Boolean,
+    val continuesOnNext: Boolean,
+    /** C362: extra points already used above this fragment in its column. */
+    val extraAbovePt: Float = 0f,
+    /** C363: extra points of each line, parallel to [lineRanges]; empty = none. */
+    val lineExtrasPt: List<Float> = emptyList(),
+)
+
+data class PcSheetV11FlowResult(
+    val section: PcSheetV11FlowSection,
+    val columnCount: Int,
+    val fragments: List<PcSheetV11FlowFragment>,
+) {
+    val localPageCount: Int get() = fragments.lastOrNull()?.localPageIndex ?: 0
+
+    /** Assert no source bytes were skipped, repeated, normalized, or silently reordered. */
+    fun verifyLosslessAgainst(items: List<PcSheetV11FlowItem>) {
+        val expected = items.filter { it.text.isNotEmpty() }
+        require(fragments.map { it.sourceKey }.distinct().all { key ->
+            expected.any { it.sourceKey == key }
+        }) { "Unrecognized source key in V11 text flow." }
+        expected.forEach { item ->
+            val parts = fragments.filter { it.sourceKey == item.sourceKey }
+            require(parts.isNotEmpty()) { "Missing V11 flow item: ${item.sourceKey}" }
+            require(parts.first().startOffset == 0 && parts.last().endExclusive == item.text.length) {
+                "Missing text boundary for ${item.sourceKey}"
+            }
+            parts.zipWithNext().forEach { (a, b) ->
+                require(a.endExclusive == b.startOffset) {
+                    "Text gap or duplication in ${item.sourceKey}"
+                }
+            }
+            require(parts.joinToString("") { it.text } == item.text) {
+                "Text changed during V11 flow: ${item.sourceKey}"
+            }
+            parts.forEachIndexed { index, part ->
+                require(part.continuedFromPrevious == (index > 0))
+                require(part.continuesOnNext == (index < parts.lastIndex))
+                require(part.startLineIndexInColumn >= 0) { "Negative column line offset" }
+                require(part.lineRanges.first().startOffset == part.startOffset)
+                require(part.lineRanges.last().endExclusive == part.endExclusive)
+            }
+        }
+    }
+}
+
+/**
+ * Deterministic line/column partitioner. No fallback to undersized type, ellipsis, truncation
+ * or fake PDF coordinates. A glyph that cannot fit at the requested font/width fails explicitly.
+ */
+object PcSheetV11TextFlow {
+    fun paginate(
+        section: PcSheetV11FlowSection,
+        items: List<PcSheetV11FlowItem>,
+        columnsPerPage: Int,
+        column: PcSheetV11TextColumn,
+        textWidth: PcSheetV11TextWidth,
+        // C464: the columns of the first page start this much lower (a full-width module above).
+        firstPageDropPt: Float = 0f,
+        // C468: paper kept free at the foot of a page (a full-width module goes there).
+        pageBottomReservePt: Map<Int, Float> = emptyMap(),
+    ): PcSheetV11FlowResult {
+        require(columnsPerPage in 1..3) { "V11 supports one, two or three-column text flows." }
+        require(firstPageDropPt >= 0f && firstPageDropPt < column.heightPt)
+        require(items.none { it.sourceKey.isBlank() }) { "Every V11 text item needs a source key." }
+        require(items.map { it.sourceKey }.distinct().size == items.size) {
+            "V11 source keys cannot repeat within a flow."
+        }
+
+        var page = 1
+        var col = 1
+        var used = 0
+        var extraUsed = 0f
+        // C362: whole lines that fit once `extra` points are spent; with no extra
+        // this is exactly the column's uniform line capacity.
+        fun dropOn(onPage: Int) = (if (onPage == 1) firstPageDropPt else 0f) + (pageBottomReservePt[onPage] ?: 0f)
+        fun capacity(extra: Float): Int {
+            val drop = dropOn(page)
+            return if (extra == 0f && drop == 0f) column.lineCapacity
+                else ((column.heightPt - drop - extra) / column.lineHeightPt).toInt()
+        }
+        fun remaining() = capacity(extraUsed) - used
+        fun nextColumn() {
+            col += 1
+            if (col > columnsPerPage) {
+                page += 1
+                col = 1
+            }
+            used = 0
+            extraUsed = 0f
+        }
+
+        val fragments = mutableListOf<PcSheetV11FlowFragment>()
+        items.forEachIndexed { index, item ->
+            // Real V11 C2 attribute + dependent skills are one visual unit.
+            // Moving the *whole fitting group* to the next physical column
+            // prevents a stranded attribute heading with its first skill on
+            // another sheet/column. Oversized groups retain the existing
+            // lossless fragmentation path; no compressed text or fake labels.
+            val group = item.groupKey
+            if (group != null && (index == 0 || items[index - 1].groupKey != group)) {
+                var next = index
+                var measuredGroupLines = 0
+                var groupExtra = 0f
+                while (next < items.size && items[next].groupKey == group) {
+                    val groupLines = splitIntoMeasuredLines(
+                        items[next].text, column.widthPt, textWidth, items[next].continuationIndentPt,
+                    )
+                    measuredGroupLines += groupLines.size
+                    groupExtra += groupLines.sumOf {
+                        (items[next].lineExtrasPt[it.startOffset] ?: 0f).toDouble()
+                    }.toFloat()
+                    next++
+                    if (measuredGroupLines > column.lineCapacity) break
+                }
+                if (measuredGroupLines in 1..column.lineCapacity &&
+                    measuredGroupLines > remaining()) {
+                    nextColumn()
+                }
+                // C365: a group whose line extras (golden C2 cartela) no longer fit
+                // here, but would fit a fresh column, moves on whole.
+                if (groupExtra > 0f && measuredGroupLines in 1..capacity(groupExtra) &&
+                    measuredGroupLines > capacity(extraUsed + groupExtra) - used) {
+                    nextColumn()
+                }
+            }
+            val lines = splitIntoMeasuredLines(item.text, column.widthPt, textWidth, item.continuationIndentPt)
+            if (lines.isEmpty()) return@forEachIndexed
+            val separation = item.leadingSeparationLines
+            if (separation > 0 && remaining() < column.lineCapacity) {
+                // A real manuscript gap must not steal a source line or
+                // split a card that fits completely in a fresh column.
+                // If the gap cannot precede at least one source line
+                // (or a keep-together card), begin the next column
+                // and omit this leading-only gap there.
+                val wholeFitsFresh = lines.size <= column.lineCapacity
+                if (remaining() <= separation ||
+                    (item.keepTogetherIfFits && wholeFitsFresh &&
+                        lines.size + separation > remaining())
+                ) {
+                    nextColumn()
+                } else {
+                    used += separation
+                }
+            }
+            if (item.keepTogetherIfFits && lines.size <= column.lineCapacity &&
+                lines.size > remaining()
+            ) {
+                nextColumn()
+            }
+            val extras = lines.map { item.lineExtrasPt[it.startOffset] ?: 0f }
+            val extraSum = extras.sum()
+            if (extraSum > 0f && item.keepTogetherIfFits && lines.size <= capacity(extraSum) &&
+                lines.size > capacity(extraUsed + extraSum) - used
+            ) {
+                nextColumn()
+            }
+            var offset = 0
+            while (offset < lines.size) {
+                while (capacity(extraUsed + extras[offset]) - used < 1 && dropOn(page) > 0f) nextColumn()
+                if (capacity(extraUsed + extras[offset]) - used < 1) nextColumn()
+                require(capacity(extras[offset]) >= 1) { "A V11 line extra height leaves no line." }
+                val above = extraUsed
+                // C363: take every following line whose own extra still fits.
+                var taken = 0
+                var added = 0f
+                while (offset + taken < lines.size &&
+                    capacity(extraUsed + added + extras[offset + taken]) - used - taken >= 1) {
+                    added += extras[offset + taken]
+                    taken++
+                }
+                check(taken > 0) { "V11 text flow made no progress." }
+                extraUsed += added
+                val slice = lines.subList(offset, offset + taken)
+                val start = slice.first().startOffset
+                val end = slice.last().endExclusive
+                fragments += PcSheetV11FlowFragment(
+                    sourceKey = item.sourceKey,
+                    localPageIndex = page,
+                    columnIndex = col,
+                    startLineIndexInColumn = used,
+                    startOffset = start,
+                    endExclusive = end,
+                    text = item.text.substring(start, end),
+                    lineRanges = slice.toList(),
+                    continuedFromPrevious = offset > 0,
+                    continuesOnNext = offset + taken < lines.size,
+                    extraAbovePt = above,
+                    lineExtrasPt = if (added > 0f) extras.subList(offset, offset + taken).toList()
+                        else emptyList(),
+                )
+                used += taken
+                offset += taken
+            }
+        }
+        return PcSheetV11FlowResult(section, columnsPerPage, fragments).also {
+            it.verifyLosslessAgainst(items)
+        }
+    }
+
+    /**
+     * Source offsets include soft-wrap whitespace and explicit CR/LF; the renderer may choose
+     * a line-break drawing operation, but must not change the text provenance.
+     * Surrogate pairs are never split. Grapheme shaping and real font measuring remain G2/G3 work.
+     */
+    private fun splitIntoMeasuredLines(
+        text: String,
+        widthPt: Float,
+        width: PcSheetV11TextWidth,
+        continuationIndentPt: Float = 0f,
+    ): List<PcSheetV11TextLine> {
+        if (text.isEmpty()) return emptyList()
+        val lines = mutableListOf<PcSheetV11TextLine>()
+        var start = 0
+        while (start < text.length) {
+            var cursor = start
+            var lastSpaceBoundary = -1
+            var end = -1
+            while (cursor < text.length) {
+                val ch = text[cursor]
+                if (ch == '\n' || ch == '\r') {
+                    end = if (ch == '\r' && cursor + 1 < text.length &&
+                        text[cursor + 1] == '\n'
+                    ) cursor + 2 else cursor + 1
+                    break
+                }
+                val next = if (ch.isHighSurrogate() && cursor + 1 < text.length &&
+                    text[cursor + 1].isLowSurrogate()
+                ) cursor + 2 else cursor + 1
+                val measured = width.measurePt(pcSheetV11PrintableText(text.substring(start, next)))
+                require(measured.isFinite() && measured >= 0f) {
+                    "V11 text measurer returned an invalid width."
+                }
+                if (measured > (if (start > 0) widthPt - continuationIndentPt else widthPt)) {
+                    require(cursor > start) {
+                        "V11 glyph cannot fit the chosen font and column width."
+                    }
+                    end = if (lastSpaceBoundary > start) lastSpaceBoundary else cursor
+                    break
+                }
+                if (ch == ' ' || ch == '\t') lastSpaceBoundary = next
+                cursor = next
+            }
+            if (end < 0) end = text.length
+            check(end > start && end <= text.length)
+            lines += PcSheetV11TextLine(start, end)
+            start = end
+        }
+        return lines
+    }
+}

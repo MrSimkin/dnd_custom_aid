@@ -197,6 +197,133 @@ class PcSheetQaCharacterFixturesTest {
         ))
     }
 
+    @Test
+    fun v11SemanticInputsKeepAllThreeRealQaFixturesAndMaraRelationships() {
+        // These are the actual checked-in backup v2 fixtures; no invented stand-in for Mara.
+        fixtureNames.forEach { name ->
+            val document = fixture(name)
+            val sheet = document.character
+            val aggregate = PcSheetExportAggregate(sheet, document.closureState, document.successorState)
+            val sources = PcSheetExportSources(permanent = aggregate)
+            val variants = listOf(PcSheetV11Variant.A, PcSheetV11Variant.B)
+            variants.forEach { variant ->
+                val mapped = PcSheetV11SemanticMapper.map(
+                    request = PcSheetV11ExportRequest(
+                        variant = variant,
+                        stateSelection = PcSheetExportStateSelection.PERMANENT,
+                        includeSpellDescriptions = true,
+                    ),
+                    sources = sources,
+                )
+                assertEquals(sheet.id, mapped.characterId, "$name / $variant")
+                assertEquals(sheet.campaignId, mapped.campaignId, "$name / $variant")
+                assertEquals(sheet.spells.isNotEmpty(), mapped.hasQuickSpellList, "$name / $variant")
+                assertEquals(sheet.spells.isNotEmpty(), mapped.spellbookEntries != null, "$name / $variant")
+                assertEquals(sheet.spellSlots, mapped.spellSlots, "$name / $variant")
+                assertEquals(sheet.currencies, mapped.currencies, "$name / $variant")
+                assertEquals(sheet.background, mapped.background, "$name / $variant")
+
+                fun ids(values: List<Uuid>) = values.sortedBy { it.toString() }
+                fun assertInputs(kind: PcSheetV11InputKind, expected: List<Uuid>) {
+                    val actual = mapped.inputRecords().filter { it.kind == kind }.map { it.sourceId }
+                    assertEquals(ids(expected), ids(actual), "$name / $variant / $kind")
+                }
+                assertInputs(PcSheetV11InputKind.CLASS, sheet.classes.map { it.id })
+                assertInputs(PcSheetV11InputKind.CUSTOM_ATTRIBUTE,
+                    document.successorState.customAttributes.map { it.id })
+                assertInputs(PcSheetV11InputKind.CUSTOM_SKILL,
+                    document.closureState.customSkills.map { it.id })
+                assertInputs(PcSheetV11InputKind.COMBAT_ENTRY, sheet.combatEntries.map { it.id })
+                assertInputs(PcSheetV11InputKind.TRAIT, sheet.traits.map { it.id })
+                assertInputs(PcSheetV11InputKind.ORDINARY_EQUIPMENT,
+                    sheet.inventoryItems.filterNot { it.special }.map { it.id })
+                assertInputs(PcSheetV11InputKind.SPECIAL_EQUIPMENT,
+                    sheet.inventoryItems.filter { it.special }.map { it.id })
+                assertInputs(PcSheetV11InputKind.SPELL, sheet.spells.map { it.id })
+                assertInputs(PcSheetV11InputKind.SPELLCASTING_SOURCE,
+                    sheet.spellcastingSources.map { it.id })
+                assertInputs(PcSheetV11InputKind.DIGITAL_NOTE,
+                    sheet.noteCards.filter { it.title.isNotBlank() || it.content.isNotBlank() }.map { it.id })
+                assertInputs(PcSheetV11InputKind.PROFICIENCY, sheet.proficiencies.map { it.id })
+                assertInputs(PcSheetV11InputKind.WEAPON_MASTERY, sheet.weaponMasteries.map { it.id })
+                assertInputs(PcSheetV11InputKind.RESOURCE, sheet.resources.map { it.id })
+                assertInputs(PcSheetV11InputKind.CLASS_OPTION, sheet.classOptions.map { it.id })
+                assertInputs(PcSheetV11InputKind.FORM, sheet.forms.map { it.id })
+                assertInputs(PcSheetV11InputKind.COMPANION, sheet.companions.map { it.id })
+                assertInputs(PcSheetV11InputKind.CUSTOM_MARKER,
+                    document.successorState.customMarkers.map { it.id })
+
+                // Association identities + prepared flags cannot collapse into a spell-wide boolean.
+                sheet.spells.forEach { spell ->
+                    val mappedSpell = mapped.spells.single { it.spell.id == spell.id }
+                    val original = spell.sourceAssociations
+                        .map { it.sourceId to it.prepared }.sortedBy { it.first.toString() }
+                    val projected = mappedSpell.sources
+                        .map { it.sourceId to it.prepared }.sortedBy { it.first.toString() }
+                    assertEquals(original, projected, "$name / $variant / spell ${spell.id}")
+                    assertEquals(spell.description, mappedSpell.spell.description)
+                }
+                // Original-backed projections are in-memory and must never save changes.
+                assertEquals(sheet, sources.permanent.sheet, "$name / $variant source unchanged")
+            }
+        }
+    }
+
+    @Test
+    fun v11FlowSourceSectionsRespectMaraOriginalContent() {
+        val original = fixture(fixtureNames[2])
+        val mapped = PcSheetV11SemanticMapper.map(
+            PcSheetV11ExportRequest(
+                variant = PcSheetV11Variant.B,
+                stateSelection = PcSheetExportStateSelection.PERMANENT,
+                includeSpellDescriptions = true,
+            ),
+            PcSheetExportSources(
+                PcSheetExportAggregate(original.character, original.closureState, original.successorState),
+            ),
+        )
+        val sections = PcSheetV11FlowSourceMapper.from(mapped)
+        assertEquals(original.character.spells.size, sections.spellbookDescriptions.size)
+        assertEquals(
+            mapped.digitalNotes.size,
+            sections.digitalNotes.size,
+            "Every non-blank general/titled note must reach an exclusive notes flow.",
+        )
+        assertEquals(
+            mapped.traits.count { it.description.isNotBlank() },
+            sections.traitDescriptions.size,
+        )
+        assertTrue(sections.narrative.all { it.sourceKey.startsWith("narrative:") })
+        assertFalse(sections.narrative.any { it.sourceKey.startsWith("trait:") })
+        assertTrue(sections.spellbookDescriptions.all { it.sourceKey.startsWith("spellbook:") })
+        sections.spellbookDescriptions.forEach { item ->
+            val spell = original.character.spells.single { "spellbook:${it.id}" == item.sourceKey }
+            assertEquals(spell.description, item.text)
+        }
+        sections.digitalNotes.forEach { item ->
+            assertTrue(item.sourceKey.startsWith("digital-note:"))
+            assertTrue(item.text.isNotEmpty())
+        }
+
+        val width = PcSheetV11TextWidth { it.length.toFloat() }
+        val column = PcSheetV11TextColumn(widthPt = 38f, heightPt = 80f, lineHeightPt = 10f)
+        val sectionKinds = listOf(
+            PcSheetV11FlowSection.NARRATIVE,
+            PcSheetV11FlowSection.DIGITAL_NOTES,
+            PcSheetV11FlowSection.TRAITS,
+            PcSheetV11FlowSection.SPECIAL_EQUIPMENT,
+            PcSheetV11FlowSection.SPELLBOOK,
+        )
+        sectionKinds.forEach { section ->
+            val items = sections.forSection(section)
+            val result = PcSheetV11TextFlow.paginate(
+                section, items, columnsPerPage = 2, column = column, textWidth = width,
+            )
+            result.verifyLosslessAgainst(items)
+            assertTrue(result.fragments.all { it.lineRanges.size <= column.lineCapacity })
+        }
+    }
+
     private fun assertCanApplyAsAuthoritativeHostedCurrentState(name: String) {
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         try {
