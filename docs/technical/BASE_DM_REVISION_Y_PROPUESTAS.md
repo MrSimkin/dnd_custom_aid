@@ -72,7 +72,7 @@
 | P2 | ¿Qué mesas entran en la «Base para DM»? | **«Las cuatro»**: Pantalla del DM, Mesa de combate, Mesa de escena y Mesa de mazmorra. La propuesta 2 (partir la Mesa del DM) queda descartada. Antes de programar escena, mazmorra y el detalle de combate hay que conversar sus puntos abiertos (D-0068 §18, D-0069 §13) con el propietario, de a uno. |
 | P3 | ¿En este QA los jugadores deben recibir handouts en sus teléfonos, o basta con mostrarlos desde la pantalla del DM? | **«En la tablet del DM»**. El handout se muestra a pantalla completa en la tablet. No se envía a los teléfonos en este QA, ni se elige todavía el proveedor de almacenamiento. Pendiente aparte: cómo viajan los archivos del escritorio a la tablet, y el retrato del PJ (P5). |
 | P4 | ¿Las respuestas de reglas muestran siempre el texto del SRD citado, y se agrega la búsqueda sin conexión? | **«Sí, las dos»**. Cada respuesta muestra el texto exacto del SRD con versión (5e / 5.5e) y sección, con enlace a la otra versión. El SRD se guarda también en el aparato y se busca por palabras sin IA ni red. |
-| P5 | ¿Cómo llegan a la tablet los archivos del DM (handouts) y el retrato del PJ? | Pendiente |
+| P5 | ¿Cómo llegan a la tablet los archivos del DM (handouts) y el retrato del PJ? | Tras replantearla con el ejemplo de Bram, el propietario respondió **«Viajan solas»**. Las imágenes (handouts, mapas, retratos de PNJ y de PJ) suben y bajan solas por un servicio de archivos en internet. Antes de activarlo, el Worker hace la revisión de costo USD $0 (D-0075, AGENTS §10): cupo gratis, medio de pago, tope duro o cobro por exceso, región y dependencia. Compara R2 con alternativas sin tarjeta y presenta el resultado. Activar el proveedor es un paso del propietario. |
 
 ## 5. Orden de trabajo tras P1
 
@@ -84,3 +84,8 @@
 2. **A · Media / Handouts:** según P3.
 3. **B · Mesa del DM en la tablet:** según P2.
 4. **D · Reglas SRD y consultas:** según P4.
+
+## 6. Consecuencias de P5
+
+- La etapa A suma un **servicio de archivos en internet**. Primero se arma el modelo local de archivos (identidad estable, tipo, tamaño, suma de control, solo DM o apto para jugadores), sin el proveedor; después se conecta el proveedor elegido.
+- Si la revisión USD $0 no encuentra un proveedor sin riesgo de cobro, se vuelve a preguntar al propietario antes de activarlo.
