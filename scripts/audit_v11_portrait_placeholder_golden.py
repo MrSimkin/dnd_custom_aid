@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Independent, scoped V11 P1 no-image portrait check against approved golden."""
+"""Independent, scoped V11 P1 no-image portrait check.
+
+C473 (owner 2026-11-10, «4 · Silueta de línea»): the golden's two pale filled ovals become a bust
+drawn only in a thin line of golden rule ink. The head keeps the golden head's place and size;
+nothing in the frame is filled."""
 import argparse
 import hashlib
 import json
@@ -10,6 +14,31 @@ import fitz
 
 GOLDEN = "V11_Carta/pdfs/v11_ordinario_6mas3_variante_B.pdf"
 PALE = (231 / 255, 242 / 255, 247 / 255)
+LINE = (148 / 255, 176 / 255, 193 / 255)
+
+
+def detect_line_bust(page):
+    """The App's no-photo portrait: one chamfered frame, no filled shape, a stroked head."""
+    frames, heads, filled = [], [], 0
+    for item in page.get_drawings():
+        r = item["rect"]
+        if not (35 <= r.x0 < 160 and r.x1 <= 160 and 85 <= r.y0 < 230 and r.y1 <= 235):
+            continue
+        if len(item["items"]) == 8 and 70 <= r.width <= 110 and 70 <= r.height <= 110:
+            frames.append(r)
+            continue
+        fill = item.get("fill")
+        if fill is not None and all(abs(v - e) < .026 for v, e in zip(fill, PALE)) and r.width < 68:
+            filled += 1
+        colour = item.get("color")
+        if (item["type"] == "s" and colour is not None and all(abs(v - e) < .026 for v, e in zip(colour, LINE))
+                and 18 < r.width < 28 and 18 < r.height < 28):
+            heads.append(r)
+    if len(frames) != 1 or filled or len(heads) != 1:
+        raise ValueError(f"expected 1 frame, 0 filled ovals and 1 line head, got {len(frames)}/{filled}/{len(heads)}")
+    frame, head = frames[0], heads[0]
+    return ((head.x0-frame.x0)/frame.width, (head.y0-frame.y0)/frame.height,
+            (head.x1-frame.x0)/frame.width, (head.y1-frame.y0)/frame.height)
 
 
 def detect(page):
@@ -57,11 +86,11 @@ def main():
             errors = []
             if not portrait_present:
                 try:
-                    measured = detect(pdf[0])
-                    for pair_index, (actual, expected) in enumerate(zip(measured, approved)):
-                        for coord, (observed, gold) in enumerate(zip(actual, expected)):
-                            if abs(observed-gold) > .035:
-                                errors.append(f"oval {pair_index}, normalized bound {coord}: {observed:.4f} vs {gold:.4f}")
+                    measured = detect_line_bust(pdf[0])
+                    # The golden head is the narrower oval.
+                    for coord, (observed, gold) in enumerate(zip(measured, approved[0])):
+                        if abs(observed-gold) > .035:
+                            errors.append(f"line head, normalized bound {coord}: {observed:.4f} vs {gold:.4f}")
                 except ValueError as exc:
                     errors.append(str(exc))
         results.append({"file": path.name, "sha256": hashlib.sha256(payload).hexdigest(),

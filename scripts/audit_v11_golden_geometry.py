@@ -7,7 +7,9 @@ excused, each one a written decision and not a tolerance:
 
 * the header logo and its rule (the App prints the owner's original logo);
 * the attribute rows of P1 (owner row, P104, approved 2026-11-03);
-* the spell-slot boxes of P1 and the rows of an absent level (contract: never invent boxes).
+* the spell-slot boxes of P1 and the rows of an absent level (contract: never invent boxes);
+* the P1 portrait without photo, a thin-line bust (owner 2026-11-10, «4 · Silueta de línea»);
+* the free rows of EQUIPO ESPECIAL on P2, one EQUIPO line high (owner 2026-11-10, «Sí, la propuesta»).
 """
 from __future__ import annotations
 
@@ -56,6 +58,10 @@ def excused(shape, page_number):
             return True  # owner attribute row: score box, oval and save box
         if 300 < x0 and x1 < 552 and 130 < y0 and y1 < 185 and x1 - x0 < 10:
             return True  # slot boxes of an absent spell level
+        if 42 <= x0 and x1 <= 120 and 620 <= y0 and y1 <= 700:
+            return True  # C473: the portrait's golden ovals, now a thin-line bust
+    if page_number == 1 and x0 >= 39 and x1 <= 573 and y0 >= 50 and y1 <= 278:
+        return True  # C473: EQUIPO ESPECIAL rows below its header, one EQUIPO line high
     return False
 
 

@@ -1979,7 +1979,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     // C473 (owner 2026-11-10, «4 · Silueta de línea», replaces the golden's pale
                     // filled ellipses): a bust drawn only in a thin line of the sheet's blue ink.
                     stream.saveGraphicsState()
-                    stream.setStrokingColor(Color(126, 157, 179))
+                    stream.setStrokingColor(Color(148, 176, 193)) // golden rule ink #94b0c1
                     stream.setLineWidth(0.8f)
                     stream.setLineCapStyle(1)
                     stream.setLineJoinStyle(1)
@@ -2003,8 +2003,8 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                     stream.lineTo(cx + 5.2f, frameY + 38.2f)
                     stream.curveTo(cx + 17f, frameY + 35.6f, cx + 21.26f, frameY + 28f, cx + 21.26f, frameY + 12f)
                     stream.stroke()
-                    // A collar, in a lighter line.
-                    stream.setStrokingColor(Color(159, 182, 200))
+                    // A collar, in a lighter line (golden #bfd3de).
+                    stream.setStrokingColor(Color(191, 211, 222))
                     stream.setLineWidth(0.6f)
                     stream.moveTo(cx - 5.2f, frameY + 38.2f)
                     stream.curveTo(cx - 2f, frameY + 34.6f, cx + 2f, frameY + 34.6f, cx + 5.2f, frameY + 38.2f)
@@ -4388,7 +4388,7 @@ internal class DesktopPcSheetV11PdfProofRenderer {
                                     stream.saveGraphicsState()
                                     // C473 (V11-QA-013): the size the line was measured with, so it
                                     // fills its line instead of leaving a third of it empty.
-                                    stream.setNonStrokingColor(Color(74, 99, 120))
+                                    stream.setNonStrokingColor(Color(101, 125, 144)) // golden label ink
                                     stream.beginText()
                                     stream.setFont(bodyPdfFont, body.metrics.fontSizePt)
                                     stream.newLineAtOffset(cell.cellPt.leftPt + c2TextInset,
