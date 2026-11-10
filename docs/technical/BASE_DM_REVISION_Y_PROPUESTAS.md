@@ -43,6 +43,17 @@
 3. **Corpus SRD en español.** D-0041 da por hecho un SRD 5.1 y un SRD 5.2.1 oficiales en español. Hay que confirmar que existen, su licencia (CC BY 4.0) y su formato antes de construir. Si alguno no existe en español, cambia el diseño.
 4. **Costo de Workers AI.** D-0075 lo mantiene «si sigue dentro del cupo gratis y falla sin cobrar al agotarse». Hay que comprobarlo con las condiciones vigentes antes de activarlo.
 
+### Verificación inicial en la web (2026-11-10, sin acceso de proveedor)
+
+- **SRD:**
+  - D&D Beyond publica el SRD 5.2.1 bajo CC BY 4.0, con una sección de descargas traducidas; no se pudo confirmar desde la búsqueda que incluya el español ([dndbeyond.com/srd](https://dndbeyond.com/srd)).
+  - Hay indicios de un SRD 5.1 oficial en español, citado por un módulo comunitario ([foundryvtt.com](https://foundryvtt.com/packages/ravanno-dnd5e-es)).
+  - Hay que confirmarlo descargando los archivos antes de construir la etapa D.
+- **Cloudflare R2:**
+  - Su página de precios describe un cupo gratis mensual ([developers.cloudflare.com](https://developers.cloudflare.com/r2/pricing/index.md)).
+  - Varias guías de terceros dicen que pide registrar un medio de pago antes de crear el primer bucket ([tech-insider.org](https://tech-insider.org/how-to-set-up-cloudflare-r2-2026/), [freetier.co](https://freetier.co/directory/products/cloudflare-r2)).
+  - Con tarjeta registrada, un exceso puede cobrarse: eso choca con D-0075 si no hay un tope duro.
+
 ## 3. Propuestas de mejora
 
 1. **Empezar la Mesa del DM en el escritorio.** El contenido ya está ahí, así que la «Base para DM» puede probarse sin construir antes la sincronización de todo el contenido. La tablet viene después, con esa sincronización como paquete propio.
