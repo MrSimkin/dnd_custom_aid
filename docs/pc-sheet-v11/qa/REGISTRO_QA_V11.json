@@ -1062,5 +1062,11 @@
     "Do not fabricate OWNER_ACCEPTED until exact candidate tested and owner explicitly approves",
     "Legacy M50800 statuses are historical; do not override",
     "2026-10-11 G0 remote-source review: CharacterSheet/closure/successor/planner and Android/Desktop UI/services inspected at PR #173 HEAD 62ac252; see G0_VERIFICACION_MODELOS_UI_2026-10-11.md. G0 NO PASS: owner 50800 PDF/screenshot bytes unavailable and no local Gradle; V11-QA-001/002 OPEN, 32 M50800 preserved; RCR-1 0/2. No product candidate or QA acceptance."
-  ]
+  ],
+  "owner_overall_qa_decision": {
+    "date": "2026-11-10",
+    "original_text": "si, muestramelo, pero estamos aprobando la QA, excepto por las observaciones dadas y anotadas que vamos a ir arreglando para las siguientes etapas de desarrollo.",
+    "meaning": "El propietario aprueba el QA de la hoja V11 en conjunto. Las observaciones ya dadas y anotadas (V11-QA-003 a V11-QA-018) siguen abiertas y se arreglan en las siguientes etapas de desarrollo. Ninguna observación pasa a OWNER_ACCEPTED por esta frase: cada una se cierra cuando el propietario la vea arreglada.",
+    "candidate": "0.5.0-preqa.14 build 51400, commit 930812da (integrada a main en f710138a)"
+  }
 }

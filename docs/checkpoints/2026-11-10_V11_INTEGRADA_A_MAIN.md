@@ -7,6 +7,8 @@
 - 2026-11-10, tras entregar `preqa.14`: «vamos a hacer un pequeño alto, dado el criterio de bueno es lo enemigo de lo perfecto. Veamos que es lo que continua, y sigamos con los siguientes desarrollos de la App y vamos perfeccionando la exportación entremedio, porque porfin logramos suficiencia para continuar y solo hay que pulir detalles, te parece?»
 - Preguntado si se integra primero la V11 a `main` antes de empezar lo nuevo: **«Sí, integrar primero»**.
 
+- Tras la integración: «si, muestramelo, pero estamos aprobando la QA, excepto por las observaciones dadas y anotadas que vamos a ir arreglando para las siguientes etapas de desarrollo.» El QA de la hoja V11 queda aprobado en conjunto; las observaciones anotadas siguen abiertas y se arreglan entre medio (`owner_overall_qa_decision` en `docs/pc-sheet-v11/qa/REGISTRO_QA_V11.json`).
+
 Estas decisiones reemplazan la regla anterior de la ruta V11 («no fusionar antes de G4 completo»). Antes, el 2026-11-08, el propietario ya había decidido pasar al QA sin más revisiones independientes.
 
 ## Estado de la hoja V11 al integrarse
