@@ -76,6 +76,7 @@
 | P6 | ¿QA parciales en el camino o uno solo al final? | **«Uno solo al final»**. No hay QA parciales del propietario. El Worker verifica cada paquete con pruebas, CI y la App en el emulador, y entrega un único QA «Base para DM» al terminar los 8 paquetes. |
 | P7 | ¿Una sola App con modo DM según la campaña, o una App aparte para el DM? | **«Una sola App»**. Una pantalla de entrada para jugadores y DM (cumple V11-QA-006). Luego se elige la campaña, y la App abre la Mesa del DM o la ficha del PJ según el papel en esa campaña. Un mismo usuario puede ser DM en una campaña y jugador en otra. |
 | P8 | ¿Las preguntas de detalle de cada mesa, ahora o justo antes de construirla? | **«Todas ahora»**. El diseño de las cuatro mesas se cierra antes de programar (P9 en adelante). |
+| P9 | Pantalla del DM · ¿Party Lens queda con estos datos? | **«Sí, así»**. Una fila por dato (CA, PV máximos, Percepción, Perspicacia e Investigación pasivas, velocidad, sentidos, idiomas) y una columna por PJ. El mejor valor de cada fila se destaca. Solo datos fijos de la ficha, sin PV actuales. |
 
 ## 5. Orden de trabajo tras P1
 
