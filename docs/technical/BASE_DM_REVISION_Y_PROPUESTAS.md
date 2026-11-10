@@ -79,6 +79,7 @@
 | P9 | Pantalla del DM · ¿Party Lens queda con estos datos? | **«Sí, así»**. Una fila por dato (CA, PV máximos, Percepción, Perspicacia e Investigación pasivas, velocidad, sentidos, idiomas) y una columna por PJ. El mejor valor de cada fila se destaca. Solo datos fijos de la ficha, sin PV actuales. |
 | P10 | Pantalla del DM · ¿La referencia rápida queda con estas 10 fichas? | **«Sí, así»**. Condiciones, cobertura, concentración, CD típicas, luz y visión, caídas y asfixia, agarrar y derribar, ocultarse, descansos y viaje. El texto es del SRD en español, en la versión de la campaña, con un toque para ver la otra; sale del mismo corpus que la consulta de reglas. |
 | P11 | Mesa de combate · ¿La App lleva los PV de los PJ? | **«Tambien los PJs, solo como anotación, no obligatoria, para referencia, el control principal se llevará en papel, pero como anotación ayuda»**. Los monstruos llevan sus PV en la App. Cada PJ tiene un campo de PV opcional para anotar; puede quedar vacío y nunca se exige. Se presenta como anotación de referencia, distinta del control de papel, y no cambia la ficha del PJ. |
+| P12 | Mesa de combate · ¿La iniciativa de los monstruos la tira la App? | Primero respondió «La escribo yo»; antes de que se registrara, corrigió: **«quiero ambas opciones disponibles»**. Cada monstruo tiene su casilla para escribir la iniciativa y un botón «Tirar por mí» (d20 + DES), por monstruo y para todos a la vez. Lo tirado se puede corregir a mano. Los PJ se escriben. |
 
 ## 5. Orden de trabajo tras P1
 
