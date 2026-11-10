@@ -539,7 +539,9 @@
       "page_hint": "Aldren P2: EQUIPO y EQUIPO ESPECIAL",
       "blocking": true,
       "status": "OPEN",
-      "related_ids": [],
+      "related_ids": [
+        "V11-QA-016"
+      ],
       "plan": null,
       "implementation": null,
       "proof": null,
@@ -550,6 +552,12 @@
           "kind": "OWNER_REPORTED",
           "date": "2026-11-10",
           "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "OPEN",
+          "kind": "OWNER_DECISION",
+          "date": "2026-11-10",
+          "note": "Ante la imagen hoy/propuesta el propietario respondió «Sí, la propuesta»: objetos a la altura que necesitan y filas libres 100 % vacías, sin rótulo, con la altura de una línea de EQUIPO. Ver CONTRATO_VISUAL_APROBADO.md."
         }
       ]
     },

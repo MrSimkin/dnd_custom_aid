@@ -255,6 +255,14 @@ Aplica el golden, sin decisión nueva del propietario: `ATRIBUTOS Y HABILIDADES`
 
 Preguntado si las notas de un objeto especial quedan solo en la App, el propietario responde **«No, se imprimen»**. Siguen en la descripción, tras « / NOTAS: ». Las notas del equipo común siguen solo en la App.
 
+## Decisión del propietario — Equipo Especial, filas libres (2026-11-10)
+
+Ante su comentario del QA de preqa.13 (V11-QA-011) se le mostró una imagen: arriba la hoja de hoy (filas libres rotuladas y de banda completa), abajo la propuesta. Respuesta literal: **«Sí, la propuesta»**.
+
+- Cada objeto especial ocupa solo la altura que su texto necesita (contrato §157; corrige también V11-QA-016).
+- Debajo de los objetos quedan filas libres **100 % vacías**, sin rótulo de ubicación, con la altura de una línea de EQUIPO y su casilla ACTIVO.
+- Reemplaza la aclaración técnica del Worker de 2026-11-06 sobre rótulos de filas libres (C456): la decisión escrita del propietario prevalece sobre el golden.
+
 ## Aclaración técnica del Worker — revisión de `preqa.9` (2026-11-06)
 
 Aplica la prioridad de fuentes, sin decisión nueva del propietario, y queda sujeta a su revisión:
