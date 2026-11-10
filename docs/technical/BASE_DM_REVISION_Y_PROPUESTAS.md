@@ -78,6 +78,7 @@
 | P8 | ¿Las preguntas de detalle de cada mesa, ahora o justo antes de construirla? | **«Todas ahora»**. El diseño de las cuatro mesas se cierra antes de programar (P9 en adelante). |
 | P9 | Pantalla del DM · ¿Party Lens queda con estos datos? | **«Sí, así»**. Una fila por dato (CA, PV máximos, Percepción, Perspicacia e Investigación pasivas, velocidad, sentidos, idiomas) y una columna por PJ. El mejor valor de cada fila se destaca. Solo datos fijos de la ficha, sin PV actuales. |
 | P10 | Pantalla del DM · ¿La referencia rápida queda con estas 10 fichas? | **«Sí, así»**. Condiciones, cobertura, concentración, CD típicas, luz y visión, caídas y asfixia, agarrar y derribar, ocultarse, descansos y viaje. El texto es del SRD en español, en la versión de la campaña, con un toque para ver la otra; sale del mismo corpus que la consulta de reglas. |
+| P11 | Mesa de combate · ¿La App lleva los PV de los PJ? | **«Tambien los PJs, solo como anotación, no obligatoria, para referencia, el control principal se llevará en papel, pero como anotación ayuda»**. Los monstruos llevan sus PV en la App. Cada PJ tiene un campo de PV opcional para anotar; puede quedar vacío y nunca se exige. Se presenta como anotación de referencia, distinta del control de papel, y no cambia la ficha del PJ. |
 
 ## 5. Orden de trabajo tras P1
 
