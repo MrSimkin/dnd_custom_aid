@@ -59,3 +59,15 @@ Todas las demás pruebas, A1 a X5, quedaron «NO APLICA» (la A2 no figura en el
 **Diagnóstico inicial del Worker, sin enviar correos:** la App usa el mismo proyecto de Descope y el mismo servidor que en el login verificado del 2026-09-15 (`AndroidHostedAuth.kt` sin cambios desde `bf5f8430`). El proyecto de Descope responde y publica sus claves (HTTP 200), y el servidor responde 401 sin credenciales, como corresponde. La falla está en el envío del correo de Descope o en el mensaje que mostró la pantalla; falta saber cuál.
 
 **Dato del propietario (2026-11-10):** al tocar «Enviar código», la pantalla mostró «Código enviado a…». Descope aceptó la solicitud de código; lo que falla es la entrega del correo. El siguiente paso es del propietario, en su buzón y en la consola de Descope, porque el Worker no tiene acceso autenticado a Descope (AGENTS §5).
+
+**Dato del propietario (2026-11-10, después):** el código llegó a Gmail con mucho retraso, ya vencido; a Outlook no llegó nada.
+
+**Revisión de Descope por el Worker** (consola abierta en el navegador integrado con la sesión que inició el propietario; solo lectura, nada cambiado):
+
+- **Proyecto:** `dnd-custom-aid-dev`, plan gratuito. Uso del mes: 0 de 7.500 usuarios activos y 0 de 100 envíos SMS o de voz; ningún límite alcanzado.
+- **Auditoría, últimas 24 h:** dos `LoginStarted` del 2026-11-10, a las 11:55 y 12:00 (hora local), de dos usuarios distintos, y ningún inicio completado. Un tercer evento es la entrada del propietario a la consola.
+- **Troubleshooting, últimas 24 h:** ningún registro de error.
+- **Conectores:** ninguno configurado. El correo sale por el servicio compartido de Descope («Connector: Descope», plantilla «System»).
+- **Código de un solo uso:** vence a los **3 minutos**; 3 intentos cada 60 s; «Allow unverified recipient addresses» desactivado.
+
+**Lectura:** Descope envía sin errores, pero su remitente compartido llega tarde a Gmail (más de 3 minutos, así que el código vence) y Outlook no lo recibe o lo filtra en silencio. No es un defecto de la App ni de V11. Las soluciones tocan la configuración de Descope y las decide el propietario.
