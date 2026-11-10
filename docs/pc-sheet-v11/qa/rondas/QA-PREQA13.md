@@ -57,3 +57,5 @@ P3 Sacar los 6 PDF: NO APLICA
 Todas las demás pruebas, A1 a X5, quedaron «NO APLICA» (la A2 no figura en el resumen). Ninguna prueba de la hoja V11 se ejecutó: el QA se detuvo en el inicio de sesión.
 
 **Diagnóstico inicial del Worker, sin enviar correos:** la App usa el mismo proyecto de Descope y el mismo servidor que en el login verificado del 2026-09-15 (`AndroidHostedAuth.kt` sin cambios desde `bf5f8430`). El proyecto de Descope responde y publica sus claves (HTTP 200), y el servidor responde 401 sin credenciales, como corresponde. La falla está en el envío del correo de Descope o en el mensaje que mostró la pantalla; falta saber cuál.
+
+**Dato del propietario (2026-11-10):** al tocar «Enviar código», la pantalla mostró «Código enviado a…». Descope aceptó la solicitud de código; lo que falla es la entrega del correo. El siguiente paso es del propietario, en su buzón y en la consola de Descope, porque el Worker no tiene acceso autenticado a Descope (AGENTS §5).
