@@ -475,6 +475,12 @@
           "kind": "OWNER_REPORTED",
           "date": "2026-11-10",
           "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "OPEN",
+          "kind": "OWNER_DECISION",
+          "date": "2026-11-10",
+          "note": "Ante cuatro opciones de retrato sin foto el propietario respondió «4 · Silueta de línea»: busto en línea fina, sin relleno. Ver CONTRATO_VISUAL_APROBADO.md."
         }
       ]
     },

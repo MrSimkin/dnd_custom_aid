@@ -255,6 +255,14 @@ Aplica el golden, sin decisión nueva del propietario: `ATRIBUTOS Y HABILIDADES`
 
 Preguntado si las notas de un objeto especial quedan solo en la App, el propietario responde **«No, se imprimen»**. Siguen en la descripción, tras « / NOTAS: ». Las notas del equipo común siguen solo en la App.
 
+## Decisión del propietario — retrato sin foto en P1 (2026-11-10)
+
+Ante su comentario del QA de preqa.13 (V11-QA-008) se le mostraron cuatro retratos: 1 la silueta gris de hoy (igual al golden), 2 marco ornamental vacío, 3 escudo, 4 silueta de línea fina sin relleno. Respuesta literal: **«4 · Silueta de línea»**.
+
+- Si el personaje no tiene foto, el marco RETRATO dibuja una silueta de busto solo con línea fina en la tinta azul de la hoja, sin relleno gris. Con foto, se imprime la foto como hoy.
+- Reemplaza la silueta gris del golden: la decisión escrita del propietario prevalece.
+- Las etiquetas de prueba de la cabecera («VARIANTE A/B», «P1 - …», «PRUEBA INTERNA V11») siguen mientras sea debug y salen en la versión final (V11-QA-008).
+
 ## Decisión del propietario — Equipo Especial, filas libres (2026-11-10)
 
 Ante su comentario del QA de preqa.13 (V11-QA-011) se le mostró una imagen: arriba la hoja de hoy (filas libres rotuladas y de banda completa), abajo la propuesta. Respuesta literal: **«Sí, la propuesta»**.
