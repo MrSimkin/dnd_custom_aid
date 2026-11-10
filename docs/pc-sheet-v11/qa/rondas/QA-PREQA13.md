@@ -19,10 +19,19 @@ Pendiente: se copian aquí, literales y numerados, todos los comentarios del pro
 
 ## Carga de los PJ en la base DEV alojada (2026-11-10)
 
-El propietario pidió los PJ por SQL. Script para el SQL Editor de Neon (proyecto `dnd-custom-aid-dev`, rama `production`, base `dnd-custom-aid-dev`), el mismo camino probado el 2026-09-24: `D:\DnD_Aid\APKs\QA preqa.13\qa_pj_preqa13_neon_sql_editor.sql`, SHA-256 `701ef26897860f0fdc9d84bdc2790e08723fe359ce264db1b11ff5a174061fe7`.
+El propietario pidió los PJ por SQL y después eligió que el Worker lo ejecutara con la herramienta `neon` de su PC, con una sesión que él mismo inició (`neon auth`). El Worker no vio ni pidió credenciales.
 
-- **Qué hace:** crea o actualiza la campaña `QA - PC Sheet PDF Runtime` (`7a000000-…-0001`), deja a Outlook como DM activo y crea o actualiza Aldren (`…-0101`), Ilyra (`…-0102`) y Mara (`…-0103`) con las fichas exactas del repositorio, con el mismo `ON CONFLICT` que `database/qa/seed_pc_sheet_runtime_characters.sql`.
-- **Qué no toca:** dueño ni controlador de cada PJ, ni la membresía de Gmail.
-- **Cambio esperado:** Aldren e Ilyra coinciden con lo cargado el 2026-09-24 (mismos blobs `498a47e9` y `9b980847`), así que su revisión no debería subir. Mara se cargó entonces con el blob `d33dd0aa`; el repositorio tiene `ed919c6e` (commit `559cae9d`, «make Mara binary QA markers persistence-valid»), así que su revisión debería subir en 1.
-- **No ejecutado por el Worker:** no hay acceso autenticado a Neon desde esta sesión ni PostgreSQL local; el script se revisó a mano y sigue el patrón ya ejecutado con éxito.
-- **Evidencia a devolver:** la tabla final (id, nombre, revisión, dueño, controlador, versión, fecha y `outlook_dm_activo`).
+- **Destino:** Neon, proyecto `holy-meadow-19010740` (`dnd-custom-aid-dev`), rama `production`, base `dnd-custom-aid-dev`. Organización `MrSimkin_Org`.
+- **Script:** `D:\DnD_Aid\APKs\QA preqa.13\qa_pj_preqa13_neon_sql_editor.sql`, SHA-256 `48fc7d518c399631c3e582e8be60702bc13f6688dff811a3d55ba71c279a5abe`. Solo caracteres ASCII: los acentos van como `\uXXXX` dentro del JSON, para que ningún cliente pueda volver a dañarlos. Mismo `ON CONFLICT` que `database/qa/seed_pc_sheet_runtime_characters.sql`; no toca dueño, controlador ni la membresía de Gmail.
+- **Hallazgo antes de ejecutar (solo lectura):** los tres PJ de QA tenían los acentos dañados en la base desde la carga del 2026-09-24 («Acólito» guardado como «AcÃ³lito»): 3 de los 4 PJ de la base. Su última modificación era del 2026-09-24, así que no había ediciones del propietario que perder. Las revisiones eran Aldren 1, Ilyra 1 y Mara 2.
+- **Ejecución:** `BEGIN`, comprobación de Outlook, campaña, membresía DM, tres `INSERT … ON CONFLICT`, comprobación final y `COMMIT`. Sin errores.
+- **Resultado devuelto por Neon:**
+
+| id | PJ | revisión | dueño y controlador | versión |
+|---|---|---|---|---|
+| `7a000000-0000-4000-8000-000000000101` | Aldren Vale | 2 | Gmail `4ba0f476-…` | 2 |
+| `7a000000-0000-4000-8000-000000000102` | Ilyra Quill | 2 | Gmail `4ba0f476-…` | 2 |
+| `7a000000-0000-4000-8000-000000000103` | Mara de los Siete Umbrales | 3 | Gmail `4ba0f476-…` | 2 |
+
+- **Membresía de la campaña:** Outlook `f34bc5f0-…` DM ACTIVE; Gmail `4ba0f476-…` PLAYER ACTIVE.
+- **Verificación posterior:** 0 PJ con acentos dañados en toda la base. Cada ficha guardada se leyó en base64 y es igual a su fixture del repositorio (blobs `498a47e9`, `9b980847`, `ed919c6e`).
