@@ -71,3 +71,7 @@ Todas las demás pruebas, A1 a X5, quedaron «NO APLICA» (la A2 no figura en el
 - **Código de un solo uso:** vence a los **3 minutos**; 3 intentos cada 60 s; «Allow unverified recipient addresses» desactivado.
 
 **Lectura:** Descope envía sin errores, pero su remitente compartido llega tarde a Gmail (más de 3 minutos, así que el código vence) y Outlook no lo recibe o lo filtra en silencio. No es un defecto de la App ni de V11. Las soluciones tocan la configuración de Descope y las decide el propietario.
+
+**Cambio autorizado en Descope (2026-11-10):** el propietario dijo «si, hazlo. pero, no sigas adelante con Descope». El Worker subió la vigencia del código de un solo uso de **3 a 10 minutos** en el proyecto `dnd-custom-aid-dev` (Authentication Methods → One-time Password) y guardó. Tras recargar la página, `expirationTime = 10 minutes`; intentos (3 cada 60 s), dominio, destinatarios no verificados y conectores quedaron igual. Un primer intento de escribir el valor no llegó a ningún campo (se comprobó que nada cambió) y se repitió sobre el campo correcto. No se hizo nada más en Descope.
+
+**Login del propietario:** con capturas de la App, «Autenticación completa. Worker respondió para la cuenta f34bc5f0-4d35-4d09-b771-505b3851440c» (Outlook, DM de la campaña de QA). El propietario no sabe por qué falló al principio y sigue con el QA. V11-QA-003 queda OPEN como observación del propietario hasta que él diga si el login le quedó resuelto.
