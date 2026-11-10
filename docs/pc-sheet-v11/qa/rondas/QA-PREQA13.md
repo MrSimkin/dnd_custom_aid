@@ -174,3 +174,21 @@ X5 Impresión en papel: BIEN
 ```
 
 Cada comentario quedó como observación propia, de V11-QA-008 a V11-QA-018. **Control de completitud:** 11 pruebas con comentario y 11 observaciones nuevas; las demás marcas (BIEN, NO APLICA sin comentario) quedan en esta cita. M7 es la única FALLA.
+
+## Diagnóstico Q2 (2026-11-10), antes de tocar código
+
+Revisado sobre los PDF reales del propietario (`D:\DnD_Aid\PDF Check`, candidato preqa.13) y sobre el golden (`v11_ordinario_6mas2_variante_A`, `v11_extremo_variante_A`).
+
+| ID | Qué se ve en el PDF real | Golden | Causa / superficie | Decisión |
+|---|---|---|---|---|
+| V11-QA-008 | Cabecera «VARIANTE A» y «P1 - Personaje / …»; retrato gris genérico | El golden tiene el mismo retrato gris | Etiquetas de prueba; dibujo del marco de retrato | Etiquetas: se quedan mientras sea debug y salen en la versión final. Retrato: pedido del propietario contra el golden; se le muestran opciones |
+| V11-QA-009 | «Guerrero 5» sin subclase | — | La App **sí guarda** la subclase (`subclassName`: Champion, Evoker, Cartógrafa de Paradojas); el renderer no la imprime | Arreglo técnico: «Guerrero (Champion) 5» |
+| V11-QA-010 | — | — | Función nueva (números variables en tinta clara) | Pregunta al propietario: ahora o después |
+| V11-QA-011 | EQUIPO: 7 líneas para 6 objetos porque «Mochila de explorador» no cabe y sigue con sangría en la línea 2 (correcto). EQUIPO ESPECIAL: filas sin objeto llevan rótulo (Cabeza, Rostro…) y altura de banda completa | El golden rotula las filas libres (…Pecho, Piernas, Libre) con la misma altura | Pedido del propietario contra el golden (C456) | Pregunta al propietario con imagen |
+| V11-QA-012 | RASGOS en P1, P2 y continuación: la línea siguiente de un rasgo empieza sin sangría | EQUIPO usa sangría de continuación | Dibujo de RASGOS | Arreglo técnico: misma sangría que EQUIPO |
+| V11-QA-013 | Pág. 4: ACCIONES con filas de notas en otro tono; RECURSOS con una franja por cada línea de texto pequeño y gris, mucho espacio libre | Sin golden para este caso | Dibujo de ACCIONES/RECURSOS en C2 | A criterio del Worker: una franja por acción/recurso, texto de descripción más grande, menos espacio perdido |
+| V11-QA-014 | — | — | Información (A con Libro, 9 páginas) | Sin cambio |
+| V11-QA-015 | Casillas de N1–N9 con separación distinta según la cantidad; orden N1 N2 N3 por filas | El golden ordena por filas | Pedido explícito del propietario, que prevalece sobre el golden | Arreglo: casillas alineadas a la izquierda con paso fijo; orden por columnas 1 4 7 / 2 5 8 / 3 6 9 |
+| V11-QA-016 | Ilyra P2, EQUIPO ESPECIAL «Spellbook»: 3 líneas de descripción ocupan 2 bandas y queda una línea vacía debajo | — | La fila crece de banda en banda en vez de a la altura que necesita (contrato §157) | Arreglo técnico: la fila mide lo que su texto necesita |
+| V11-QA-017 | Mara pág. 5: EQUIPO en continuación pone cada objeto en una celda alta, sin sangría | P2 usa una fila por línea con sangría | Dibujo de EQUIPO en C2 | Arreglo técnico: misma forma que P2 |
+| V11-QA-018 | — | — | La casilla «Habilitar niveles épicos» existe en el editor de cada clase, junto a los dados de golpe | Indicarlo al propietario; probar en el próximo QA |
