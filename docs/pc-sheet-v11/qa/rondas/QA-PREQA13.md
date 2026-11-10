@@ -91,3 +91,18 @@ Todas las demás pruebas, A1 a X5, quedaron «NO APLICA» (la A2 no figura en el
 **Pedido del propietario (2026-11-10):** cita literal en V11-QA-004, V11-QA-005 y V11-QA-006 (pantalla de login para jugadores y DM; sus detalles se hablan con el propietario cuando corresponda). Entra en el próximo lote de desarrollo, junto con las correcciones de este QA. Antes de programar se presenta el diseño de la resolución de conflictos con imágenes, y las decisiones de comportamiento se le preguntan al propietario de una en una.
 
 **Indicación dada al propietario para seguir el QA (V11-QA-007):** en «Prueba de exportación nueva (solo DEBUG)», tocar «Cuatro familias anteriores» y elegir «V11 prueba interna A» o «B»; con eso «Familia visual» deja de contar.
+
+## PDF del propietario (2026-11-10)
+
+El Worker trajo con `adb pull "/sdcard/Download/." "."` todo lo que había en Descargas del emulador del propietario (`emulator-5554`, App `0.5.0-preqa.13`) a `D:\DnD_Aid\PDF Check`. Los archivos anteriores del propietario ya estaban en la subcarpeta `2026-09-28`; no se pisó nada.
+
+| Archivo | Páginas | Variante | Libro | SHA-256 (inicio) | Frente a la prueba del Worker con el mismo APK |
+|---|---|---|---|---|---|
+| `Aldren Vale - Hoja de PJ - PREQA V11 A.pdf` | 6 | A | no | `02929709b264` | Igual salvo P2: Cobre 12 en vez de 0 |
+| `Aldren Vale - Hoja de PJ - PREQA V11 B.pdf` | 6 | B | no | `db7af8ee9733` | Igual salvo P2: Cobre 12 en vez de 0 |
+| `Ilyra Quill - Hoja de PJ - PREQA V11 A.pdf` | 9 | A | sí, 2 páginas | `22401060f3f9` | Exportada con Libro; la prueba del Worker de A no lo llevaba |
+| `Ilyra Quill - Hoja de PJ - PREQA V11 B.pdf` | 9 | B | sí, 2 páginas | `7d4b20c5b359` | Texto idéntico |
+| `Mara de los Siete Umbrales - Hoja de PJ - PREQA V11 A.pdf` | 11 | A | sí, 2 páginas | `98ca5e0f0f72` | Exportada con Libro; la prueba del Worker de A no lo llevaba |
+| `Mara de los Siete Umbrales - Hoja de PJ - PREQA V11 B.pdf` | 11 | B | sí, 2 páginas | `536a871466e4` | Texto idéntico |
+
+Ningún PDF tiene acentos dañados. El Aldren exportado es la copia local en conflicto: su única diferencia con la ficha alojada es Cobre 12, que explica el `LOCAL_AND_HOSTED_CHANGED`.
