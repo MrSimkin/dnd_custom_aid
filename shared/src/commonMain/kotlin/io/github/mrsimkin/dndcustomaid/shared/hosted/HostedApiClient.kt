@@ -8,6 +8,7 @@ import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignRole
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
@@ -165,6 +166,30 @@ private data class PutPcSnapshotResponse(
     val applied: Boolean,
 )
 
+@Serializable
+private data class DmContentListResponse(
+    val content: List<HostedDmContent>,
+)
+
+@Serializable
+private data class PutDmContentRequest(
+    val mutationId: Uuid,
+    val expectedRevision: Long,
+    val snapshot: DmContentSnapshotDocument,
+)
+
+@Serializable
+private data class DeleteDmContentRequest(
+    val mutationId: Uuid,
+    val expectedRevision: Long,
+)
+
+@Serializable
+private data class DmContentMutationResponse(
+    val content: HostedDmContent,
+    val applied: Boolean,
+)
+
 data class HostedCampaignCreation(
     val campaign: HostedCampaign,
     val created: Boolean,
@@ -179,7 +204,7 @@ class HostedApiClient(
     baseUrl: String,
     private val accessTokens: HostedAccessTokenProvider,
     private val httpClient: HttpClient = createHostedHttpClient(),
-) {
+) : HostedDmContentTransport {
     private val apiBaseUrl = normalizeBaseUrl(baseUrl)
 
     suspend fun currentAccount(): HostedAccount = authenticatedGet<MeResponse>("/v1/me").account
@@ -246,6 +271,48 @@ class HostedApiClient(
         ensureSuccess(response.status.value, response)
         val body = response.body<PutPcSnapshotResponse>()
         return HostedPcSnapshotPut(body.pc, body.applied)
+    }
+
+    override suspend fun campaignDmContent(campaignId: Uuid): List<HostedDmContent> =
+        authenticatedGet<DmContentListResponse>("/v1/campaigns/$campaignId/content").content
+
+    override suspend fun personalDmContent(): List<HostedDmContent> =
+        authenticatedGet<DmContentListResponse>("/v1/me/content").content
+
+    override suspend fun putDmContent(
+        mutationId: Uuid,
+        contentId: Uuid,
+        expectedRevision: Long,
+        snapshot: DmContentSnapshotDocument,
+    ): HostedDmContentMutation {
+        require(expectedRevision >= 0) { "Expected DM content revision must not be negative." }
+        require(snapshot.content.id == contentId) { "DM content snapshot identity must match the requested content." }
+        val token = requireAccessToken()
+        val response = httpClient.put("$apiBaseUrl/v1/content/$contentId") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody(PutDmContentRequest(mutationId, expectedRevision, snapshot))
+        }
+        ensureSuccess(response.status.value, response)
+        val body = response.body<DmContentMutationResponse>()
+        return HostedDmContentMutation(body.content, body.applied)
+    }
+
+    override suspend fun deleteDmContent(
+        mutationId: Uuid,
+        contentId: Uuid,
+        expectedRevision: Long,
+    ): HostedDmContentMutation {
+        require(expectedRevision >= 0) { "Expected DM content revision must not be negative." }
+        val token = requireAccessToken()
+        val response = httpClient.delete("$apiBaseUrl/v1/content/$contentId") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody(DeleteDmContentRequest(mutationId, expectedRevision))
+        }
+        ensureSuccess(response.status.value, response)
+        val body = response.body<DmContentMutationResponse>()
+        return HostedDmContentMutation(body.content, body.applied)
     }
 
     fun close() {

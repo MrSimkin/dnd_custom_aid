@@ -180,7 +180,9 @@ jobs:
             sudo apt-get install --yes postgresql-client
           fi
       - name: Apply hosted database migrations
-        run: psql -v ON_ERROR_STOP=1 -f database/migrations/0001_integrated_mvp_spine.sql
+        run: |
+          psql -v ON_ERROR_STOP=1 -f database/migrations/0001_integrated_mvp_spine.sql
+          psql -v ON_ERROR_STOP=1 -f database/migrations/0002_dm_content.sql
       - name: Verify hosted database contracts
         run: |
           psql -v ON_ERROR_STOP=1 -f database/tests/0001_integrated_mvp_spine_contract.sql
@@ -190,3 +192,4 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f database/tests/0005_membership_revoke_authorization_contract.sql
           psql -v ON_ERROR_STOP=1 -f database/tests/0006_campaign_membership_administration_contract.sql
           psql -v ON_ERROR_STOP=1 -f database/tests/0007_pc_authority_administration_contract.sql
+          psql -v ON_ERROR_STOP=1 -f database/tests/0008_dm_content_contract.sql

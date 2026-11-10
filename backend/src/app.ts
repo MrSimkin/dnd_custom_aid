@@ -3,6 +3,11 @@ import {
   type CampaignAdministrationStore,
   type CampaignModerationAction,
 } from "./campaignAdministrationStore.ts";
+import {
+  DmContentIdentityError,
+  type DmContentScopeKind,
+  type DmContentStore,
+} from "./dmContentStore.ts";
 import type { ApiErrorBody, ApiErrorCode, Uuid } from "./contracts/spine.ts";
 import {
   HostedAuthorizationError,
@@ -14,11 +19,15 @@ import {
 } from "./store.ts";
 
 const CHARACTER_BACKUP_FORMAT = "dnd-custom-aid.character-backup";
+const DM_CONTENT_FORMAT = "dnd-custom-aid.dm-content";
+const DM_CONTENT_MAX_SNAPSHOT_BYTES = 1_000_000;
+const DM_CONTENT_FAMILY_PATTERN = /^[A-Z][A-Z0-9_]{0,63}$/;
 
 export interface ApiDependencies {
   auth: AuthVerifier;
   campaigns: CampaignStore;
   campaignAdministration?: CampaignAdministrationStore;
+  dmContent?: DmContentStore;
 }
 
 export type ApiHandler = (request: Request) => Promise<Response>;
@@ -40,8 +49,11 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
       const campaignPcsMatch = /^\/v1\/campaigns\/([^/]+)\/pcs$/.exec(path);
       const pcAuthorityMatch = /^\/v1\/pcs\/([^/]+)\/authority$/.exec(path);
       const pcSnapshotMatch = /^\/v1\/pcs\/([^/]+)$/.exec(path);
+      const campaignContentMatch = /^\/v1\/campaigns\/([^/]+)\/content$/.exec(path);
+      const contentMatch = /^\/v1\/content\/([^/]+)$/.exec(path);
       const knownFixedPath =
         path === "/v1/me" ||
+        path === "/v1/me/content" ||
         path === "/v1/campaigns" ||
         path === "/v1/campaign-memberships";
 
@@ -51,7 +63,9 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         campaignMemberModerationMatch == null &&
         campaignPcsMatch == null &&
         pcAuthorityMatch == null &&
-        pcSnapshotMatch == null
+        pcSnapshotMatch == null &&
+        campaignContentMatch == null &&
+        contentMatch == null
       ) {
         throw new ApiProblem(404, "NOT_FOUND", "Route not found.");
       }
@@ -67,6 +81,83 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
             displayName: user.displayName,
           },
         });
+      }
+
+      if (path === "/v1/me/content") {
+        requireMethod(request, "GET");
+        const content = await requireDmContent(dependencies).listPersonalContent(user.id);
+        return jsonResponse({ content });
+      }
+
+      if (campaignContentMatch != null) {
+        requireMethod(request, "GET");
+        const campaignId = requireUuid(campaignContentMatch[1], "campaignId");
+        const content = await requireDmContent(dependencies).listCampaignContent(user.id, campaignId);
+        return jsonResponse({ content });
+      }
+
+      if (contentMatch != null) {
+        const contentId = requireUuid(contentMatch[1], "contentId");
+        const body = await readJsonObject(request);
+        const mutationId = requireUuid(body.mutationId, "mutationId");
+        const expectedRevision = requireNonNegativeInteger(body.expectedRevision, "expectedRevision");
+        const store = requireDmContent(dependencies);
+
+        if (request.method === "DELETE") {
+          const result = await store.deleteContent({
+            actorUserId: user.id,
+            mutationId,
+            contentId,
+            expectedRevision,
+          });
+          return jsonResponse({ content: result.content, applied: result.applied });
+        }
+        if (request.method !== "PUT") {
+          throw methodNotAllowed(["PUT", "DELETE"]);
+        }
+
+        const snapshot = requireJsonObject(body.snapshot, "snapshot");
+        const snapshotFormat = requireNonBlankString(snapshot.format, "snapshot.format");
+        const snapshotVersion = requirePositiveInteger(snapshot.version, "snapshot.version");
+        if (snapshotFormat !== DM_CONTENT_FORMAT) {
+          throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot.format is not a supported DM content format.", {
+            field: "snapshot.format",
+          });
+        }
+        if (JSON.stringify(snapshot).length > DM_CONTENT_MAX_SNAPSHOT_BYTES) {
+          throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot is too large.", { field: "snapshot" });
+        }
+        const content = requireJsonObject(snapshot.content, "snapshot.content");
+        if (requireUuid(content.id, "snapshot.content.id") !== contentId) {
+          throw new ApiProblem(400, "VALIDATION_FAILED", "Snapshot identity must match the requested content.", {
+            field: "snapshot.content.id",
+          });
+        }
+        const family = requireNonBlankString(content.family, "snapshot.content.family");
+        if (!DM_CONTENT_FAMILY_PATTERN.test(family)) {
+          throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot.content.family is invalid.", {
+            field: "snapshot.content.family",
+          });
+        }
+        const displayName = requireNonBlankString(content.displayName, "snapshot.content.displayName");
+        const scope = requireJsonObject(content.scope, "snapshot.content.scope");
+        const scopeKind = requireDmContentScopeKind(scope.kind);
+        const scopeRef = requireUuid(scope.ref, "snapshot.content.scope.ref");
+
+        const result = await store.putContent({
+          actorUserId: user.id,
+          mutationId,
+          contentId,
+          expectedRevision,
+          scopeKind,
+          scopeRef,
+          family,
+          displayName,
+          snapshotFormat,
+          snapshotVersion,
+          snapshot,
+        });
+        return jsonResponse({ content: result.content, applied: result.applied });
       }
 
       if (path === "/v1/campaign-memberships") {
@@ -246,6 +337,23 @@ function requireCampaignAdministration(dependencies: ApiDependencies): CampaignA
   return administration;
 }
 
+function requireDmContent(dependencies: ApiDependencies): DmContentStore {
+  const store = dependencies.dmContent;
+  if (store == null) {
+    throw new Error("DM content API dependency is not configured.");
+  }
+  return store;
+}
+
+function requireDmContentScopeKind(value: unknown): DmContentScopeKind {
+  if (value === "PERSONAL" || value === "CAMPAIGN") {
+    return value;
+  }
+  throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot.content.scope.kind must be PERSONAL or CAMPAIGN.", {
+    field: "snapshot.content.scope.kind",
+  });
+}
+
 function requireMethod(request: Request, method: string): void {
   if (request.method !== method) {
     throw methodNotAllowed([method]);
@@ -334,6 +442,9 @@ function requirePositiveInteger(value: unknown, field: string): number {
 function errorResponse(error: unknown): Response {
   if (error instanceof ApiProblem) {
     return jsonError(error.status, error.code, error.message, error.details, error.headers);
+  }
+  if (error instanceof DmContentIdentityError) {
+    return jsonError(400, "VALIDATION_FAILED", error.message);
   }
   if (error instanceof AuthenticationError) {
     return jsonError(401, "UNAUTHENTICATED", error.message, undefined, {

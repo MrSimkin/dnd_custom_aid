@@ -12,6 +12,9 @@ import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignMember
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignMemberRoster
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignModerationAction
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignModerationResult
+import io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncResult
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedDmContentSyncService
+import io.github.mrsimkin.dndcustomaid.shared.hosted.dmContentSyncScopes
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcAuthorityAdministrationClient
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcAuthorityUpdate
 import io.github.mrsimkin.dndcustomaid.shared.spine.AccountIdentity
@@ -48,8 +51,18 @@ internal class DesktopHostedCampaignAdministrationController(
 ) {
     private val bootstrapService = HostedCampaignBootstrapService(database, apiClient)
     private val spine = IntegratedSpineRepository(database)
+    private val dmContentSync = HostedDmContentSyncService(database, apiClient)
 
     suspend fun bootstrap(): HostedCampaignBootstrapResult = bootstrapService.refresh()
+
+    /**
+     * Base para DM, package 1: sends this App de PC's DM content (personal library and every
+     * campaign where the account is an active DM) and receives changes made on the tablet.
+     */
+    suspend fun syncDmContent(nowEpochSeconds: Long = System.currentTimeMillis() / 1000): DmContentSyncResult {
+        val account = bootstrapService.refresh().account
+        return dmContentSync.synchronize(dmContentSyncScopes(database, account.id), nowEpochSeconds)
+    }
 
     fun membership(campaignId: Uuid, accountId: Uuid): CampaignMembership? =
         spine.membership(campaignId, accountId)

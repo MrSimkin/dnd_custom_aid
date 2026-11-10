@@ -158,13 +158,13 @@ class SceneContentRepository(
         return reusableContent.tombstone(id, expectedRevision, deletedAtEpochSeconds)
     }
 
-    private fun payload(id: Uuid): ScenePayload? =
+    internal fun payload(id: Uuid): ScenePayload? =
         database.scenePayloadQueries.selectScenePayloadByContentId(
             content_id = id.toString(),
             mapper = ::mapPayload,
         ).executeAsOneOrNull()
 
-    private fun insertPayload(id: Uuid, payload: ScenePayload) {
+    internal fun insertPayload(id: Uuid, payload: ScenePayload) {
         database.scenePayloadQueries.insertScenePayload(
             content_id = id.toString(),
             purpose = payload.purpose,
@@ -174,7 +174,7 @@ class SceneContentRepository(
         )
     }
 
-    private fun updatePayloadRow(id: Uuid, payload: ScenePayload) {
+    internal fun updatePayloadRow(id: Uuid, payload: ScenePayload) {
         database.scenePayloadQueries.updateScenePayload(
             purpose = payload.purpose,
             possible_next_scenes_json = encodeStringList(payload.possibleNextScenes),

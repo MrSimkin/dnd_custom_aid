@@ -27,6 +27,42 @@ Cada paquete sale de `main` en una rama corta propia. La exportación V11 se pul
 3. **Pantalla DEV más clara (V11-QA-005).**
 4. **Wave 7: Media / Handouts** (`docs/ROADMAP.md`), con revisión de costo USD $0 antes de elegir almacenamiento.
 
+## Decisión del propietario sobre las etapas siguientes (2026-11-10)
+
+Literal: «A, B y D en ese orden y eso irá en el siguiente QA, que es la Base para DM. Esto fue visto con otra IA, asique te pediré que leas la documentación y me hagas preguntas que estimes pertinente para aclarar puntos y propongas correcciones y mejoras a las ideas antes de proceder y lo hablemos».
+
+- **Orden:**
+  - A · Media / Handouts (cierre de la Ola 7);
+  - B · Mesa del DM en vivo (Ola 8);
+  - D · Reglas SRD y consultas (Ola 10).
+- **QA:** las tres van juntas en el siguiente QA del propietario, la **«Base para DM»**.
+- **Antes de programar:** leer la documentación aprobada (D-0041, D-0068 a D-0073, D-0075 y `docs/PRODUCT.md`), hacer al propietario las preguntas pertinentes y proponer correcciones y mejoras. Se conversan una por una y se registran antes de implementar.
+- **Diseño de conflictos de sincronización:** queda cerrado (D1–D4) en `docs/technical/PC_SYNC_CONFLICT_RESOLUTION_DESIGN.md`, en la rama `feature/pc-sync-conflict-resolution`, y se implementa en el carril de correcciones.
+
 ## Siguiente acción exacta
 
-Presentar al propietario el diseño de la resolución de conflictos (paso 1), con imágenes y una pregunta por vez. No programar antes de su respuesta.
+El diseño de la «Base para DM» quedó cerrado con 24 respuestas del propietario (P1–P24) en `docs/technical/BASE_DM_REVISION_Y_PROPUESTAS.md`.
+
+**Paquete 1 (sincronizar el contenido del DM): implementado** en la rama `feature/dm-content-sync`. El detalle está en `docs/technical/DM_CONTENT_SYNC.md`, e incluye:
+
+- migración Neon `0002_dm_content.sql` y su prueba SQL `0008`;
+- rutas del Worker;
+- SQLDelight 28 y el servicio Shared;
+- botón en la App de PC;
+- paso en la sincronización Android.
+
+Pendiente del paquete 1, como paso del propietario en los proveedores (AGENTS §5). En este computador Wrangler no tiene sesión iniciada (2026-11-10):
+
+1. Neon (consola web → proyecto DEV → SQL Editor): pegar y ejecutar completo `database/migrations/0002_dm_content.sql`. Resultado esperado: `COMMIT` sin errores. Evidencia que devolver: la lista de tablas muestra `dm_content`. No compartir la cadena de conexión.
+2. Cloudflare, desde `D:\DnD_Aid\repo\backend`:
+   - `npm install`
+   - `npx wrangler login` (inicia sesión en el navegador)
+   - `npx wrangler deploy`
+
+   Resultado esperado: se publica el Worker existente `dnd-custom-aid-api` con la URL de siempre. No crear un Worker nuevo. Los secretos se conservan. No compartir tokens.
+
+   Evidencia que devolver: la línea «Current Version ID» y que `https://dnd-custom-aid-api.mrsimkin-dev.workers.dev/health` responde `ok`.
+
+Si el paso 1 falla, detenerse y no publicar el paso 2. El orden importa: primero la tabla y después el Worker. Costo: USD $0 (ningún plan nuevo).
+
+**Siguiente paso de ingeniería:** el paquete 2, modo DM en la App Android (una sola App y una sola entrada; según el papel en la campaña abre la Mesa del DM o la ficha del PJ; cubre V11-QA-006), en una rama corta. Después siguen los paquetes 3 a 8 de la sección 7 de `BASE_DM_REVISION_Y_PROPUESTAS.md`, y al final un solo QA del propietario.

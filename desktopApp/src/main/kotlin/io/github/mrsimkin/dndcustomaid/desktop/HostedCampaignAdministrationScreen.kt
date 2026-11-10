@@ -37,6 +37,7 @@ import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedCampaignModerationAct
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembership
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembershipStatus
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignRole
+import io.github.mrsimkin.dndcustomaid.shared.hosted.spanishSummary
 import kotlinx.coroutines.launch
 
 private data class PendingModeration(
@@ -109,6 +110,19 @@ internal fun HostedCampaignAdministrationScreen(
             onQaEvent(
                 "Bootstrap alojado: campañas=${result.hostedCampaignCount}; " +
                     "aplicadas=${result.appliedCampaignIds.size}; conflictos=${result.conflicts.size}",
+            )
+        }
+    }
+
+    fun syncDmContent() {
+        launchHostedOperation {
+            val result = hostedController.syncDmContent()
+            onLocalCampaignsChanged()
+            statusMessage = result.spanishSummary()
+            onQaEvent(
+                "Contenido DM: enviados=${result.pushedIds.size}; recibidos=${result.appliedIds.size}; " +
+                    "borrados=${result.tombstonedIds.size}; conflictos=${result.conflicts.size}; " +
+                    "pendientes=${result.pendingCount}; sinConexion=${result.offline}",
             )
         }
     }
@@ -308,6 +322,7 @@ internal fun HostedCampaignAdministrationScreen(
                 busy = busy,
                 onOpenCampaigns = onOpenCampaigns,
                 onRefreshRoster = ::refreshRoster,
+                onSyncDmContent = ::syncDmContent,
             )
         }
 
@@ -439,6 +454,7 @@ private fun HostedCampaignContextCard(
     busy: Boolean,
     onOpenCampaigns: () -> Unit,
     onRefreshRoster: () -> Unit,
+    onSyncDmContent: () -> Unit,
 ) {
     Card(
         modifier = Modifier
@@ -485,10 +501,20 @@ private fun HostedCampaignContextCard(
                     Text("La membresía no está activa; el servidor no debe permitir administración de esta campaña.")
                 membership.role != CampaignRole.DM ->
                     Text("La cuenta tiene rol Jugador. La administración de miembros requiere una membresía DM activa.")
-                else ->
-                    Button(enabled = !busy, onClick = onRefreshRoster) {
-                        Text(if (busy) "Actualizando…" else "Actualizar miembros alojados")
+                else -> {
+                    Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
+                        Button(enabled = !busy, onClick = onRefreshRoster) {
+                            Text(if (busy) "Actualizando…" else "Actualizar miembros alojados")
+                        }
+                        Button(enabled = !busy, onClick = onSyncDmContent) {
+                            Text("Sincronizar contenido del DM")
+                        }
                     }
+                    Text(
+                        "Envía tus criaturas, PNJ, lugares, zonas, encuentros y reglas al servidor, y recibe lo que cambiaste en la tablet.",
+                        style = MaterialTheme.typography.caption,
+                    )
+                }
             }
         }
     }

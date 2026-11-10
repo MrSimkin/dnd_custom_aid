@@ -1,0 +1,95 @@
+CREATE TABLE dm_content_sync_baseline (
+    content_id TEXT NOT NULL PRIMARY KEY REFERENCES reusable_content(id) ON DELETE CASCADE,
+    hosted_revision INTEGER NOT NULL CHECK (hosted_revision >= 0),
+    hosted_deleted INTEGER NOT NULL DEFAULT 0 CHECK (hosted_deleted IN (0, 1)),
+    snapshot_json TEXT NOT NULL CHECK (length(trim(snapshot_json)) > 0)
+);
+
+CREATE TABLE hosted_dm_content_outbox (
+    mutation_id TEXT NOT NULL PRIMARY KEY,
+    content_id TEXT NOT NULL REFERENCES reusable_content(id) ON DELETE CASCADE,
+    mutation_type TEXT NOT NULL CHECK (mutation_type IN ('CONTENT_PUT', 'CONTENT_DELETE')),
+    expected_revision INTEGER NOT NULL CHECK (expected_revision >= 0),
+    payload_json TEXT NOT NULL CHECK (length(trim(payload_json)) > 0),
+    retry_state TEXT NOT NULL DEFAULT 'READY' CHECK (retry_state IN ('READY', 'BLOCKED')),
+    attempt_count INTEGER NOT NULL DEFAULT 0 CHECK (attempt_count >= 0),
+    created_at_epoch_seconds INTEGER NOT NULL CHECK (created_at_epoch_seconds >= 0),
+    last_attempt_at_epoch_seconds INTEGER CHECK (
+        last_attempt_at_epoch_seconds IS NULL OR last_attempt_at_epoch_seconds >= 0
+    ),
+    last_error_code TEXT,
+    last_error_message TEXT
+);
+
+CREATE INDEX hosted_dm_content_outbox_content_idx
+ON hosted_dm_content_outbox(content_id, created_at_epoch_seconds, mutation_id);
+
+upsertBaseline:
+INSERT OR REPLACE INTO dm_content_sync_baseline(content_id, hosted_revision, hosted_deleted, snapshot_json)
+VALUES (?, ?, ?, ?);
+
+selectBaseline:
+SELECT content_id, hosted_revision, hosted_deleted, snapshot_json
+FROM dm_content_sync_baseline
+WHERE content_id = ?;
+
+insertMutation:
+INSERT INTO hosted_dm_content_outbox(
+    mutation_id,
+    content_id,
+    mutation_type,
+    expected_revision,
+    payload_json,
+    retry_state,
+    attempt_count,
+    created_at_epoch_seconds
+)
+VALUES (?, ?, ?, ?, ?, 'READY', 0, ?);
+
+selectMutationsForContent:
+SELECT *
+FROM hosted_dm_content_outbox
+WHERE content_id = ?
+ORDER BY created_at_epoch_seconds, mutation_id;
+
+selectAllMutations:
+SELECT *
+FROM hosted_dm_content_outbox
+ORDER BY created_at_epoch_seconds, mutation_id;
+
+recordAttemptFailure:
+UPDATE hosted_dm_content_outbox
+SET retry_state = ?,
+    attempt_count = attempt_count + 1,
+    last_attempt_at_epoch_seconds = ?,
+    last_error_code = ?,
+    last_error_message = ?
+WHERE mutation_id = ?;
+
+markReady:
+UPDATE hosted_dm_content_outbox
+SET retry_state = 'READY',
+    last_error_code = NULL,
+    last_error_message = NULL
+WHERE mutation_id = ?;
+
+acknowledgeMutation:
+DELETE FROM hosted_dm_content_outbox
+WHERE mutation_id = ?;
+
+updateHostedReusableContent:
+UPDATE reusable_content
+SET display_name = ?,
+    source_object_id = ?,
+    source_scope_kind = ?,
+    source_scope_ref = ?,
+    copied_at_epoch_seconds = ?,
+    created_at_epoch_seconds = ?,
+    updated_at_epoch_seconds = ?
+WHERE id = ?;
+
+selectContentIdsByScope:
+SELECT id
+FROM reusable_content
+WHERE scope_kind = ? AND scope_ref = ?
+ORDER BY id;

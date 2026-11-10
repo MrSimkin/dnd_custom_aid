@@ -158,13 +158,13 @@ class PlaceContentRepository(
         return reusableContent.tombstone(id, expectedRevision, deletedAtEpochSeconds)
     }
 
-    private fun payload(id: Uuid): PlacePayload? =
+    internal fun payload(id: Uuid): PlacePayload? =
         database.placePayloadQueries.selectPlacePayloadByContentId(
             content_id = id.toString(),
             mapper = ::mapPayload,
         ).executeAsOneOrNull()
 
-    private fun insertPayload(id: Uuid, payload: PlacePayload) {
+    internal fun insertPayload(id: Uuid, payload: PlacePayload) {
         database.placePayloadQueries.insertPlacePayload(
             content_id = id.toString(),
             kind = payload.kind.name,
@@ -182,7 +182,7 @@ class PlaceContentRepository(
         )
     }
 
-    private fun updatePayloadRow(id: Uuid, payload: PlacePayload) {
+    internal fun updatePayloadRow(id: Uuid, payload: PlacePayload) {
         database.placePayloadQueries.updatePlacePayload(
             kind = payload.kind.name,
             summary = payload.summary,

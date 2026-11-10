@@ -151,13 +151,13 @@ class CreatureContentRepository(
         return reusableContent.tombstone(id, expectedRevision, deletedAtEpochSeconds)
     }
 
-    private fun payload(id: Uuid): CreaturePayload? =
+    internal fun payload(id: Uuid): CreaturePayload? =
         database.creaturePayloadQueries.selectCreaturePayloadByContentId(
             content_id = id.toString(),
             mapper = ::mapPayload,
         ).executeAsOneOrNull()
 
-    private fun insertPayload(id: Uuid, payload: CreaturePayload) {
+    internal fun insertPayload(id: Uuid, payload: CreaturePayload) {
         database.creaturePayloadQueries.insertCreaturePayload(
             content_id = id.toString(),
             size = payload.size,
@@ -195,7 +195,7 @@ class CreatureContentRepository(
         )
     }
 
-    private fun updatePayloadRow(id: Uuid, payload: CreaturePayload) {
+    internal fun updatePayloadRow(id: Uuid, payload: CreaturePayload) {
         database.creaturePayloadQueries.updateCreaturePayload(
             size = payload.size,
             creature_type = payload.creatureType,
