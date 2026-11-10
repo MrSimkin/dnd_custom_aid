@@ -16,6 +16,7 @@ Pendiente: se copian aquí, literales y numerados, todos los comentarios del pro
 
 | ID | Cita literal | Artefacto/Página | Defecto observado | Esperado | Estado |
 |---|---|---|---|---|---|
+| V11-QA-003 | «No puedo loguearme, no recibo ningun correo, ni en Outlook ni en GMail. Deberé terminar el QA aqui hasta resolver esto.» | P2 Entrar y sincronizar (pantalla QA / autenticación hospedada DEV) | No llega el código de acceso a Outlook ni a Gmail; no puede entrar ni sincronizar | El código llega y el propietario entra | OPEN |
 
 ## Carga de los PJ en la base DEV alojada (2026-11-10)
 
@@ -41,3 +42,18 @@ El propietario pidió los PJ por SQL y después eligió que el Worker lo ejecuta
 Página de QA: https://claude.ai/artifact/KCcKT6bxKiwXd5t4WPFwGi (privada del propietario). Tiene 41 pruebas: preparación P1–P3, Aldren A1–A12, Ilyra I1–I8, Mara M1–M13 y extras X1–X5. Cada una dice qué hacer y qué debe verse, con los valores esperados tomados de las fichas y del número de páginas medido en Android con `preqa.13` (Aldren 6 y 6; Ilyra 7 y 9 con Libro; Mara 9 y 11 con Libro).
 
 El propietario marca Bien, Falla o No aplica y escribe su comentario. Cada resultado se guarda en la colección `resultados` de la página (un documento por prueba: `estado`, `nota`, `actualizado`). El Worker la lee al recibir el QA y copia cada comentario literal a la sección 1 de esta ronda y al registro, sin resumirlo.
+
+## Resultados recibidos (2026-11-10)
+
+El propietario pegó en el chat el resumen de la página de QA, literal:
+
+```
+QA hoja V11 preqa.13
+P1 Instalar el APK: BIEN
+P2 Entrar y sincronizar: FALLA — No puedo loguearme, no recibo ningun correo, ni en Outlook ni en GMail. Deberé terminar el QA aqui hasta resolver esto.
+P3 Sacar los 6 PDF: NO APLICA
+```
+
+Todas las demás pruebas, A1 a X5, quedaron «NO APLICA» (la A2 no figura en el resumen). Ninguna prueba de la hoja V11 se ejecutó: el QA se detuvo en el inicio de sesión.
+
+**Diagnóstico inicial del Worker, sin enviar correos:** la App usa el mismo proyecto de Descope y el mismo servidor que en el login verificado del 2026-09-15 (`AndroidHostedAuth.kt` sin cambios desde `bf5f8430`). El proyecto de Descope responde y publica sus claves (HTTP 200), y el servidor responde 401 sin credenciales, como corresponde. La falla está en el envío del correo de Descope o en el mensaje que mostró la pantalla; falta saber cuál.

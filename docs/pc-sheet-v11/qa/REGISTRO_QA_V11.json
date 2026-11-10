@@ -30,6 +30,19 @@
         "V11-QA-002"
       ],
       "runtime_pdf": false
+    },
+    {
+      "id": "QA-PREQA13",
+      "kind": "owner_qa_blocked_before_pdf",
+      "candidate_version": "0.5.0-preqa.13 build 51300",
+      "source_commit": "bdfdaa292e319dc0c5a5a9bce62ad1f619c4b477",
+      "apk_sha256": "6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7",
+      "round_record": "docs/pc-sheet-v11/qa/rondas/QA-PREQA13.md",
+      "owner_disposition": "STOPPED_AT_LOGIN: no V11 PDF was produced or reviewed",
+      "reported_ids": [
+        "V11-QA-003"
+      ],
+      "runtime_pdf": false
     }
   ],
   "legacy_acceptance_matrix": {
@@ -279,6 +292,31 @@
           "kind": "OWNER_REPORTED",
           "date": "2026-10-09",
           "candidate": "V11 approved visual mockup"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-003",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, P2 «Entrar y sincronizar» (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "No puedo loguearme, no recibo ningun correo, ni en Outlook ni en GMail. Deberé terminar el QA aqui hasta resolver esto.",
+      "expected": "Con el APK preqa.13, «Enviar código» en «QA / autenticación hospedada DEV» hace llegar el código de un solo uso de Descope al correo, y el propietario entra y sincroniza la campaña de QA.",
+      "target_scope": "Android/autenticación hospedada DEV (no V11 PDF)",
+      "page_hint": "Ajustes → Herramientas DEV → Abrir QA / diagnóstico DEV",
+      "blocking": true,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
         }
       ]
     }
