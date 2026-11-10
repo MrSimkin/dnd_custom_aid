@@ -462,6 +462,12 @@
           "kind": "OWNER_DECISION",
           "date": "2026-11-10",
           "note": "Ante la imagen de B por atributo frente a B alfabético: «Sí, alfabético». B ordena las habilidades alfabéticamente; nombres «A · Habilidades por atributo» y «B · Habilidades en orden alfabético»."
+        },
+        {
+          "state": "OPEN",
+          "kind": "OWNER_DECISION",
+          "date": "2026-11-10",
+          "note": "Mostrada la maqueta de la pantalla nueva, el propietario respondió «Sí, así». Ver CONTRATO_VISUAL_APROBADO.md."
         }
       ]
     },
