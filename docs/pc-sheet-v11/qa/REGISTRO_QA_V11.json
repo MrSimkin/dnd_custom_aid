@@ -43,7 +43,8 @@
         "V11-QA-003",
         "V11-QA-004",
         "V11-QA-005",
-        "V11-QA-006"
+        "V11-QA-006",
+        "V11-QA-007"
       ],
       "runtime_pdf": false
     }
@@ -393,6 +394,33 @@
       "related_ids": [
         "V11-QA-003",
         "V11-QA-004",
+        "V11-QA-005"
+      ],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-007",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "Chat de la sesión, 2026-11-10, con dos capturas de «Hoja de personaje PDF» de Aldren Vale en preqa.13",
+      "original_text": "ok, la nueva pantalla de exportación me confunde, ya no sé como sacar las hojas A y B, especialmente porque aun aparecen los nombres antiguos",
+      "expected": "La pantalla de exportación deja claro cómo sacar la hoja V11 A y B, sin que las hojas antiguas aparezcan como opción principal (V11 las reemplaza, decisión del propietario del 2026-11-06).",
+      "target_scope": "Android/pantalla «Hoja de personaje PDF» (exportación V11)",
+      "page_hint": "Ajustes del PJ → Hoja de personaje PDF: «Familia visual» muestra Fantasy Sheet, Custom v1, Custom v2 · Atributo y · Habilidad; V11 está escondida en «Salida PDF de diagnóstico»",
+      "blocking": true,
+      "status": "OPEN",
+      "related_ids": [
         "V11-QA-005"
       ],
       "plan": null,
