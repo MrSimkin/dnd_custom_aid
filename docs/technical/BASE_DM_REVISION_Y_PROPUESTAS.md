@@ -81,6 +81,7 @@
 | P11 | Mesa de combate · ¿La App lleva los PV de los PJ? | **«Tambien los PJs, solo como anotación, no obligatoria, para referencia, el control principal se llevará en papel, pero como anotación ayuda»**. Los monstruos llevan sus PV en la App. Cada PJ tiene un campo de PV opcional para anotar; puede quedar vacío y nunca se exige. Se presenta como anotación de referencia, distinta del control de papel, y no cambia la ficha del PJ. |
 | P12 | Mesa de combate · ¿La iniciativa de los monstruos la tira la App? | Primero respondió «La escribo yo»; antes de que se registrara, corrigió: **«quiero ambas opciones disponibles»**. Cada monstruo tiene su casilla para escribir la iniciativa y un botón «Tirar por mí» (d20 + DES), por monstruo y para todos a la vez. Lo tirado se puede corregir a mano. Los PJ se escriben. |
 | P13 | Mesa de combate · ¿Los PV de cada monstruo parten con el promedio, editable y con «Tirar»? | **«Sí, así»**. Cada monstruo parte con el promedio de su bloque de estadísticas; el DM puede escribir otro número o tocar «Tirar» para que la App tire sus dados de PV. |
+| P14 | Mesa de combate · ¿Un combate empieza desde un encuentro preparado, improvisado o de ambas formas? | **«Ambas formas»**. Desde un encuentro preparado (entra entero con un toque) o improvisado: buscando en el bestiario con cantidad, o con un nombre libre y PV y CA a mano. Se pueden sumar criaturas a un combate ya empezado. |
 
 ## 5. Orden de trabajo tras P1
 
