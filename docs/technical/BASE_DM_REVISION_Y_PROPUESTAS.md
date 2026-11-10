@@ -73,9 +73,9 @@
 | P3 | ¿En este QA los jugadores deben recibir handouts en sus teléfonos, o basta con mostrarlos desde la pantalla del DM? | **«En la tablet del DM»**. El handout se muestra a pantalla completa en la tablet. No se envía a los teléfonos en este QA, ni se elige todavía el proveedor de almacenamiento. Pendiente aparte: cómo viajan los archivos del escritorio a la tablet, y el retrato del PJ (P5). |
 | P4 | ¿Las respuestas de reglas muestran siempre el texto del SRD citado, y se agrega la búsqueda sin conexión? | **«Sí, las dos»**. Cada respuesta muestra el texto exacto del SRD con versión (5e / 5.5e) y sección, con enlace a la otra versión. El SRD se guarda también en el aparato y se busca por palabras sin IA ni red. |
 | P5 | ¿Cómo llegan a la tablet los archivos del DM (handouts) y el retrato del PJ? | Tras replantearla con el ejemplo de Bram, el propietario respondió **«Viajan solas»**. Las imágenes (handouts, mapas, retratos de PNJ y de PJ) suben y bajan solas por un servicio de archivos en internet. Antes de activarlo, el Worker hace la revisión de costo USD $0 (D-0075, AGENTS §10): cupo gratis, medio de pago, tope duro o cobro por exceso, región y dependencia. Compara R2 con alternativas sin tarjeta y presenta el resultado. Activar el proveedor es un paso del propietario. |
-
 | P6 | ¿QA parciales en el camino o uno solo al final? | **«Uno solo al final»**. No hay QA parciales del propietario. El Worker verifica cada paquete con pruebas, CI y la App en el emulador, y entrega un único QA «Base para DM» al terminar los 8 paquetes. |
 
+| P7 | ¿Una sola App con modo DM según la campaña, o una App aparte para el DM? | **«Una sola App»**. Una pantalla de entrada para jugadores y DM (cumple V11-QA-006). Luego se elige la campaña, y la App abre la Mesa del DM o la ficha del PJ según el papel en esa campaña. Un mismo usuario puede ser DM en una campaña y jugador en otra. |
 ## 5. Orden de trabajo tras P1
 
 1. **C0 · Sincronización del contenido del DM:**
