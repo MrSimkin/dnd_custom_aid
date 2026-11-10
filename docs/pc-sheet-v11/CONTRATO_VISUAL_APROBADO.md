@@ -255,6 +255,16 @@ Aplica el golden, sin decisión nueva del propietario: `ATRIBUTOS Y HABILIDADES`
 
 Preguntado si las notas de un objeto especial quedan solo en la App, el propietario responde **«No, se imprimen»**. Siguen en la descripción, tras « / NOTAS: ». Las notas del equipo común siguen solo en la App.
 
+## Decisión del propietario — números en tinta clara y pantalla de exportación (2026-11-10)
+
+Literal: «Ahora, en preqa.14, pero para que quede claro, el poner los numeros en tinta clara, debe ser una opción, no el predeterminado ni unica opción, solo una opcion adicional para que despues de imprimir y usar en mesa, la hoja sea siendo util para siguientes niveles o evolución del PJ. (y eso es paralelo a A y B, no una tercera opcion C)»
+
+Literal: «aprovecho de decir, debemos sacar las opciones antiguas, (ajustemos todo eso), darles los nombres correctos a A y B (habilidades por atributo, por orden alfabetico)»
+
+- **Tinta clara (V11-QA-010), en preqa.14:** opción adicional, apagada por defecto, combinable con A y con B (no es una variante C). Los números variables de toda la hoja salen en tinta clara para escribir encima a mano en niveles siguientes.
+- **Pantalla de exportación (V11-QA-007):** se sacan las opciones antiguas (Fantasy, Custom v1, Custom v2 y lo que dependa de ellas) y A y B llevan nombres claros.
+- **Nombres de A y B:** pendiente de una aclaración. A pone cada habilidad bajo su atributo. B, en el golden y en la App, pone las habilidades en un bloque aparte, ordenadas por atributo (FUE, DES, INT, SAB, CAR), no alfabéticamente.
+
 ## Decisión del propietario — retrato sin foto en P1 (2026-11-10)
 
 Ante su comentario del QA de preqa.13 (V11-QA-008) se le mostraron cuatro retratos: 1 la silueta gris de hoy (igual al golden), 2 marco ornamental vacío, 3 escudo, 4 silueta de línea fina sin relleno. Respuesta literal: **«4 · Silueta de línea»**.

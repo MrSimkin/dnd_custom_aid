@@ -450,6 +450,12 @@
           "kind": "OWNER_REPORTED",
           "date": "2026-11-10",
           "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "OPEN",
+          "kind": "OWNER_DECISION",
+          "date": "2026-11-10",
+          "note": "Literal: «aprovecho de decir, debemos sacar las opciones antiguas, (ajustemos todo eso), darles los nombres correctos a A y B (habilidades por atributo, por orden alfabetico)»"
         }
       ]
     },
@@ -531,6 +537,12 @@
           "kind": "OWNER_REPORTED",
           "date": "2026-11-10",
           "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "OPEN",
+          "kind": "OWNER_DECISION",
+          "date": "2026-11-10",
+          "note": "Literal: «Ahora, en preqa.14, pero para que quede claro, el poner los numeros en tinta clara, debe ser una opción, no el predeterminado ni unica opción, solo una opcion adicional para que despues de imprimir y usar en mesa, la hoja sea siendo util para siguientes niveles o evolución del PJ. (y eso es paralelo a A y B, no una tercera opcion C)»"
         }
       ]
     },
