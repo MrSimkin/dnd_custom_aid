@@ -456,6 +456,12 @@
           "kind": "OWNER_DECISION",
           "date": "2026-11-10",
           "note": "Literal: «aprovecho de decir, debemos sacar las opciones antiguas, (ajustemos todo eso), darles los nombres correctos a A y B (habilidades por atributo, por orden alfabetico)»"
+        },
+        {
+          "state": "OPEN",
+          "kind": "OWNER_DECISION",
+          "date": "2026-11-10",
+          "note": "Ante la imagen de B por atributo frente a B alfabético: «Sí, alfabético». B ordena las habilidades alfabéticamente; nombres «A · Habilidades por atributo» y «B · Habilidades en orden alfabético»."
         }
       ]
     },

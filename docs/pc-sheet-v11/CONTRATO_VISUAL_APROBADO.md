@@ -264,6 +264,7 @@ Literal: «aprovecho de decir, debemos sacar las opciones antiguas, (ajustemos t
 - **Tinta clara (V11-QA-010), en preqa.14:** opción adicional, apagada por defecto, combinable con A y con B (no es una variante C). Los números variables de toda la hoja salen en tinta clara para escribir encima a mano en niveles siguientes.
 - **Pantalla de exportación (V11-QA-007):** se sacan las opciones antiguas (Fantasy, Custom v1, Custom v2 y lo que dependa de ellas) y A y B llevan nombres claros.
 - **Nombres de A y B:** pendiente de una aclaración. A pone cada habilidad bajo su atributo. B, en el golden y en la App, pone las habilidades en un bloque aparte, ordenadas por atributo (FUE, DES, INT, SAB, CAR), no alfabéticamente.
+- **Aclaración (2026-11-10):** mostrada la imagen de B hoy (por atributo) y B alfabético, el propietario respondió **«Sí, alfabético»**. B ordena sus habilidades alfabéticamente (prevalece sobre el golden). Nombres: «A · Habilidades por atributo» y «B · Habilidades en orden alfabético».
 
 ## Decisión del propietario — retrato sin foto en P1 (2026-11-10)
 
