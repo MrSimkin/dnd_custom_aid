@@ -40,7 +40,9 @@
       "round_record": "docs/pc-sheet-v11/qa/rondas/QA-PREQA13.md",
       "owner_disposition": "STOPPED_AT_LOGIN: no V11 PDF was produced or reviewed",
       "reported_ids": [
-        "V11-QA-003"
+        "V11-QA-003",
+        "V11-QA-004",
+        "V11-QA-005"
       ],
       "runtime_pdf": false
     }
@@ -319,6 +321,62 @@
           "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
         }
       ]
+    },
+    {
+      "session_id": "QA-PREQA13",
+      "source": "owner direct request",
+      "source_locator": "Chat de la sesión, 2026-11-10, tras el conflicto de Aldren (V11-QA-003 y log QA)",
+      "original_text": "ok, haré eso, pero anota que debemos agregar a la App, resolución de conflictos y poder importar desde servidor viendo diferencias y todo lo involucrado junto a lo que corresponda a la QA que estamos viendo y desarrollar de inmediato un buen QA y mejorar la UX de todo lo relacionado y mejorar el UX del DEV screen para que sea mas claro.",
+      "blocking": false,
+      "status": "OPEN",
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ],
+      "id": "V11-QA-004",
+      "related_ids": [
+        "V11-QA-003",
+        "V11-QA-005"
+      ],
+      "expected": "La App permite resolver un conflicto de PJ entre el teléfono y el servidor: ver las diferencias entre las dos versiones y elegir, incluida la opción de traer la versión del servidor, con todo lo que eso involucre; con su propio QA y una UX clara.",
+      "target_scope": "Android/sincronización hospedada de PJ (no V11 PDF)",
+      "page_hint": "Conflicto LOCAL_AND_HOSTED_CHANGED de Aldren Vale en la sincronización del 2026-11-10"
+    },
+    {
+      "session_id": "QA-PREQA13",
+      "source": "owner direct request",
+      "source_locator": "Chat de la sesión, 2026-11-10, tras el conflicto de Aldren (V11-QA-003 y log QA)",
+      "original_text": "ok, haré eso, pero anota que debemos agregar a la App, resolución de conflictos y poder importar desde servidor viendo diferencias y todo lo involucrado junto a lo que corresponda a la QA que estamos viendo y desarrollar de inmediato un buen QA y mejorar la UX de todo lo relacionado y mejorar el UX del DEV screen para que sea mas claro.",
+      "blocking": false,
+      "status": "OPEN",
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ],
+      "id": "V11-QA-005",
+      "related_ids": [
+        "V11-QA-003",
+        "V11-QA-004"
+      ],
+      "expected": "La pantalla DEV (QA / autenticación hospedada DEV) es más clara para el propietario, y mejora la UX de todo lo relacionado con entrar, sincronizar y resolver conflictos.",
+      "target_scope": "Android/pantalla DEV y UX de sincronización (no V11 PDF)",
+      "page_hint": "Ajustes → Herramientas DEV → Abrir QA / diagnóstico DEV"
     }
   ],
   "rcr_budget": {

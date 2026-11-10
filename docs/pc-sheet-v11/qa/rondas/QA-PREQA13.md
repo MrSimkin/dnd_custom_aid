@@ -17,6 +17,8 @@ Pendiente: se copian aquí, literales y numerados, todos los comentarios del pro
 | ID | Cita literal | Artefacto/Página | Defecto observado | Esperado | Estado |
 |---|---|---|---|---|---|
 | V11-QA-003 | «No puedo loguearme, no recibo ningun correo, ni en Outlook ni en GMail. Deberé terminar el QA aqui hasta resolver esto.» | P2 Entrar y sincronizar (pantalla QA / autenticación hospedada DEV) | No llega el código de acceso a Outlook ni a Gmail; no puede entrar ni sincronizar | El código llega y el propietario entra | OPEN |
+| V11-QA-004 | «ok, haré eso, pero anota que debemos agregar a la App, resolución de conflictos y poder importar desde servidor viendo diferencias y todo lo involucrado junto a lo que corresponda a la QA que estamos viendo y desarrollar de inmediato un buen QA y mejorar la UX de todo lo relacionado y mejorar el UX del DEV screen para que sea mas claro.» | Sincronización de PJ (conflicto de Aldren) | La App no deja ver diferencias ni traer la versión del servidor al resolver un conflicto | Resolver conflictos viendo diferencias, con opción de traer la del servidor; con su QA y buena UX | OPEN |
+| V11-QA-005 | (misma cita) | Pantalla «QA / autenticación hospedada DEV» | La pantalla DEV no es clara | Pantalla DEV más clara y mejor UX de entrar y sincronizar | OPEN |
 
 ## Carga de los PJ en la base DEV alojada (2026-11-10)
 
@@ -83,3 +85,5 @@ Todas las demás pruebas, A1 a X5, quedaron «NO APLICA» (la A2 no figura en el
 - **Aldren Vale** (`7a000000-…-0101`): `LOCAL_AND_HOSTED_CHANGED`. Revisión local 1, alojada 2, base 1. La copia local difiere de la base y no es igual a la alojada. Ninguna mutación pendiente en la cola de salida.
 
 **Indicación al propietario:** no usar «Resolver conflicto: conservar PC local» (subiría la copia vieja) ni borrar el Aldren local (podría propagar el borrado). Para el QA de Aldren, importar `PJ-QA-1-Aldren-Vale.json`, que es la misma ficha que está alojada. El conflicto queda intacto para decidirlo después del QA.
+
+**Pedido del propietario (2026-11-10):** cita literal en V11-QA-004 y V11-QA-005. Entra en el próximo lote de desarrollo, junto con las correcciones de este QA. Antes de programar se presenta el diseño de la resolución de conflictos con imágenes, y las decisiones de comportamiento se le preguntan al propietario de una en una.
