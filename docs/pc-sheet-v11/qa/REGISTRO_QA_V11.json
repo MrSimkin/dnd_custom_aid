@@ -44,7 +44,18 @@
         "V11-QA-004",
         "V11-QA-005",
         "V11-QA-006",
-        "V11-QA-007"
+        "V11-QA-007",
+        "V11-QA-008",
+        "V11-QA-009",
+        "V11-QA-010",
+        "V11-QA-011",
+        "V11-QA-012",
+        "V11-QA-013",
+        "V11-QA-014",
+        "V11-QA-015",
+        "V11-QA-016",
+        "V11-QA-017",
+        "V11-QA-018"
       ],
       "runtime_pdf": false
     }
@@ -321,6 +332,12 @@
           "kind": "OWNER_REPORTED",
           "date": "2026-11-10",
           "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        },
+        {
+          "state": "OPEN",
+          "kind": "OWNER_NOTE",
+          "date": "2026-11-10",
+          "note": "En el resumen final del QA el propietario marcó «P2 Entrar y sincronizar: BIEN»."
         }
       ]
     },
@@ -423,6 +440,281 @@
       "related_ids": [
         "V11-QA-005"
       ],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-008",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba A1 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "A1 Número y orden de páginas: NO APLICA — Adicional:\nMientras estamos en debug que diga Variante A o B está bien o P1 -- XXXX. Pero despues eso debe salir.\nPrefiero un mejor retrato de salida, algo mas \"lindo\" y acorde.",
+      "expected": "Mientras sea debug, «VARIANTE A/B» o «P1 - …» en la cabecera está bien, pero en la versión final debe salir. El marco de retrato de salida (sin foto) es más «lindo» y acorde.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Aldren, todas las páginas (cabecera) y P1 RETRATO",
+      "blocking": false,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-009",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba A2 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "A2 Cabecera y clase: BIEN — No recuerdo si la App guarda la sub clase, si la guarda deberia ser Clase \"Guerrero (sub clase) 5\" por ejemplo. Si no lo guarda, debemos guardarlo.",
+      "expected": "Si la App guarda la subclase, CLASE / NIVEL la muestra, por ejemplo «Guerrero (subclase) 5». Si no la guarda, la App debe guardarla.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Aldren P1, CLASE / NIVEL",
+      "blocking": false,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-010",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba A3 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "A3 Atributos y salvaciones: BIEN — Observacion adicional, deberiamos considerar una versión de exportación que muestre los numeros variables (en toda la hoja), como atributos, habilidades, CA, etc en un color mas \"transparente\" para que el jugador pueda escribir encima y \"borrarlo\" y sobre escribir (a mano)",
+      "expected": "Considerar una versión de exportación con los números variables en un color más transparente, para que el jugador escriba encima a mano.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Toda la hoja: atributos, habilidades, CA y demás números variables",
+      "blocking": false,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-011",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba A8 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "A8 Equipo, tesoro y Equipo Especial: NO APLICA — Hay solo 6 objetos, Ballesta ligera, Mochila de explorador, Libro de oraciones, Incienso, Vestiduras, Ropa comun. Usa 7 lineas, pero solo 6 objetos, verifica que eso está bien.\nFaltan espacios vacios en el equipo especial para \"lugares sin llenar\", es decir, linea 100% vacía, y creo que son espacios MUY altos.",
+      "expected": "Verificar que EQUIPO use una línea por objeto (6 objetos, no 7 líneas). EQUIPO ESPECIAL tiene filas 100 % vacías para lugares sin llenar, y sus filas no son tan altas.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Aldren P2: EQUIPO y EQUIPO ESPECIAL",
+      "blocking": true,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-012",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba A9 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "A9 Rasgos: BIEN — te corrijo en tu notacion, son 8 rasgos, entre la pagina 1 y 2, los rasgos no tienen la sangria que usamos en Equipo, para entender que es parte del mismo texto.",
+      "expected": "Los 8 rasgos, repartidos entre P1 y P2, usan la sangría de continuación de EQUIPO, para ver que una línea siguiente es parte del mismo rasgo.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Aldren P1 y P2: RASGOS",
+      "blocking": true,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-013",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba A12 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "A12 Parecido con el golden: BIEN — se ve bien, arreglaria quizas \"QUIZAS\", esteticamente levemente la pagina 4 por el coloreado del interlineado de recursos y acciones, algo raro hay alli, y el uso del espacio en recursos, parece mucho espacio desperdiciado en cada accion y parece caber mas texto, y parece un poco pequeña la descripcion, aqui lo dejo a tu criterio.",
+      "expected": "A criterio del Worker: revisar el coloreado del interlineado de ACCIONES y RECURSOS, el espacio desaprovechado en cada recurso y el tamaño de la descripción.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Aldren p4: ACCIONES y RECURSOS",
+      "blocking": false,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-014",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba I1 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "I1 Número y orden de páginas: BIEN — A y B tienen 9 paginas. A no tiene solo 7, pero creo que eso está bien",
+      "expected": "Información: A salió con Libro (9 páginas), lo que el propietario considera bien.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Ilyra A y B: número de páginas",
+      "blocking": false,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-015",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba I3 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "I3 Lanzamiento de conjuros en la página 1: BIEN — Los espacios de los cuadros dentro de Lanzamiento de conjuro no me parecen bien distribuidos, los haria alineados a la izquierda y el orden de los niveles lo tienes a lo \"telefono\". Lo haria hacia abajo.\n1 4 7\n2 5 8\n3 6 9",
+      "expected": "Las casillas de cada nivel alineadas a la izquierda, y los niveles ordenados hacia abajo por columnas: 1 4 7 / 2 5 8 / 3 6 9.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Ilyra P1: LANZAMIENTO DE CONJUROS, casillas de espacios",
+      "blocking": true,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-016",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba I7 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "I7 Equipo y rasgos: BIEN — la descripcion del spellbook, tiene especio adicional innecesario (abajo en la línea)",
+      "expected": "Sin espacio adicional innecesario debajo de la descripción.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Ilyra: descripción en el Libro (spellbook)",
+      "blocking": true,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-017",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba M7 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "M7 Equipo que continúa: FALLA — El equipo no tiene el mismo formato del equipo de pagina normal, lineas con sangrias",
+      "expected": "EQUIPO en continuación con el mismo formato que EQUIPO de P2, incluidas las líneas con sangría.",
+      "target_scope": "V11/PDF",
+      "page_hint": "Mara: EQUIPO en la hoja de continuación",
+      "blocking": true,
+      "status": "OPEN",
+      "related_ids": [],
+      "plan": null,
+      "implementation": null,
+      "proof": null,
+      "owner_acceptance": null,
+      "history": [
+        {
+          "state": "OPEN",
+          "kind": "OWNER_REPORTED",
+          "date": "2026-11-10",
+          "candidate": "0.5.0-preqa.13 build 51300, APK 6f586093debc9bd54d5ded260e70b2292b15813f748537ffb07be24f1f226ad7"
+        }
+      ]
+    },
+    {
+      "id": "V11-QA-018",
+      "session_id": "QA-PREQA13",
+      "source": "owner direct observation",
+      "source_locator": "QA-PREQA13 set de pruebas, prueba X4 (resumen pegado en el chat, 2026-11-10)",
+      "original_text": "X4 Niveles épicos: NO APLICA — no se como activar niveles epicos, porque creo que no lo hemos implementado",
+      "expected": "Información: el propietario no sabe cómo activar los niveles épicos y cree que no están implementados.",
+      "target_scope": "Android/niveles épicos",
+      "page_hint": "Niveles épicos",
+      "blocking": false,
+      "status": "OPEN",
+      "related_ids": [],
       "plan": null,
       "implementation": null,
       "proof": null,

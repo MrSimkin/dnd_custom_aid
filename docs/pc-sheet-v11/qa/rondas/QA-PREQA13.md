@@ -21,6 +21,17 @@ Pendiente: se copian aquí, literales y numerados, todos los comentarios del pro
 | V11-QA-005 | (misma cita) | Pantalla «QA / autenticación hospedada DEV» | La pantalla DEV no es clara | Pantalla DEV más clara y mejor UX de entrar y sincronizar | OPEN |
 | V11-QA-006 | «y te faltó, una pantalla de login clara, para jugadores y DM, ahi hablaremos los detalles cuando corresponda» | Inicio de sesión de la App | No hay una pantalla de login clara para jugadores y DM | Pantalla de login clara para jugadores y DM; detalles con el propietario | OPEN |
 | V11-QA-007 | «ok, la nueva pantalla de exportación me confunde, ya no sé como sacar las hojas A y B, especialmente porque aun aparecen los nombres antiguos» | «Hoja de personaje PDF» (capturas de Aldren) | V11 queda escondida en «Salida PDF de diagnóstico» y «Familia visual» sigue ofreciendo las cuatro hojas antiguas | Sacar V11 A y B de forma clara, sin las hojas antiguas como opción principal | OPEN |
+| V11-QA-008 | «A1 Número y orden de páginas: NO APLICA — Adicional: / Mientras estamos en debug que diga Variante A o B está bien o P1 -- XXXX. Pero despues eso debe salir. / Prefiero un mejor retrato de salida, algo mas "lindo" y acorde.» | Aldren, todas las páginas (cabecera) y P1 RETRATO | Ver cita | Mientras sea debug, «VARIANTE A/B» o «P1 - …» en la cabecera está bien, pero en la versión final debe salir. El marco de retrato de salida (sin foto) es más «lindo» y acorde. | OPEN |
+| V11-QA-009 | «A2 Cabecera y clase: BIEN — No recuerdo si la App guarda la sub clase, si la guarda deberia ser Clase "Guerrero (sub clase) 5" por ejemplo. Si no lo guarda, debemos guardarlo.» | Aldren P1, CLASE / NIVEL | Ver cita | Si la App guarda la subclase, CLASE / NIVEL la muestra, por ejemplo «Guerrero (subclase) 5». Si no la guarda, la App debe guardarla. | OPEN |
+| V11-QA-010 | «A3 Atributos y salvaciones: BIEN — Observacion adicional, deberiamos considerar una versión de exportación que muestre los numeros variables (en toda la hoja), como atributos, habilidades, CA, etc en un color mas "transparente" para que el jugador pueda escribir encima y "borrarlo" y sobre escribir (a mano)» | Toda la hoja: atributos, habilidades, CA y demás números variables | Ver cita | Considerar una versión de exportación con los números variables en un color más transparente, para que el jugador escriba encima a mano. | OPEN |
+| V11-QA-011 | «A8 Equipo, tesoro y Equipo Especial: NO APLICA — Hay solo 6 objetos, Ballesta ligera, Mochila de explorador, Libro de oraciones, Incienso, Vestiduras, Ropa comun. Usa 7 lineas, pero solo 6 objetos, verifica que eso está bien. / Faltan espacios vacios en el equipo especial para "lugares sin llenar", es decir, linea 100% vacía, y creo que son espacios MUY altos.» | Aldren P2: EQUIPO y EQUIPO ESPECIAL | Ver cita | Verificar que EQUIPO use una línea por objeto (6 objetos, no 7 líneas). EQUIPO ESPECIAL tiene filas 100 % vacías para lugares sin llenar, y sus filas no son tan altas. | OPEN (bloqueante) |
+| V11-QA-012 | «A9 Rasgos: BIEN — te corrijo en tu notacion, son 8 rasgos, entre la pagina 1 y 2, los rasgos no tienen la sangria que usamos en Equipo, para entender que es parte del mismo texto.» | Aldren P1 y P2: RASGOS | Ver cita | Los 8 rasgos, repartidos entre P1 y P2, usan la sangría de continuación de EQUIPO, para ver que una línea siguiente es parte del mismo rasgo. | OPEN (bloqueante) |
+| V11-QA-013 | «A12 Parecido con el golden: BIEN — se ve bien, arreglaria quizas "QUIZAS", esteticamente levemente la pagina 4 por el coloreado del interlineado de recursos y acciones, algo raro hay alli, y el uso del espacio en recursos, parece mucho espacio desperdiciado en cada accion y parece caber mas texto, y parece un poco pequeña la descripcion, aqui lo dejo a tu criterio.» | Aldren p4: ACCIONES y RECURSOS | Ver cita | A criterio del Worker: revisar el coloreado del interlineado de ACCIONES y RECURSOS, el espacio desaprovechado en cada recurso y el tamaño de la descripción. | OPEN |
+| V11-QA-014 | «I1 Número y orden de páginas: BIEN — A y B tienen 9 paginas. A no tiene solo 7, pero creo que eso está bien» | Ilyra A y B: número de páginas | Ver cita | Información: A salió con Libro (9 páginas), lo que el propietario considera bien. | OPEN |
+| V11-QA-015 | «I3 Lanzamiento de conjuros en la página 1: BIEN — Los espacios de los cuadros dentro de Lanzamiento de conjuro no me parecen bien distribuidos, los haria alineados a la izquierda y el orden de los niveles lo tienes a lo "telefono". Lo haria hacia abajo. / 1 4 7 / 2 5 8 / 3 6 9» | Ilyra P1: LANZAMIENTO DE CONJUROS, casillas de espacios | Ver cita | Las casillas de cada nivel alineadas a la izquierda, y los niveles ordenados hacia abajo por columnas: 1 4 7 / 2 5 8 / 3 6 9. | OPEN (bloqueante) |
+| V11-QA-016 | «I7 Equipo y rasgos: BIEN — la descripcion del spellbook, tiene especio adicional innecesario (abajo en la línea)» | Ilyra: descripción en el Libro (spellbook) | Ver cita | Sin espacio adicional innecesario debajo de la descripción. | OPEN (bloqueante) |
+| V11-QA-017 | «M7 Equipo que continúa: FALLA — El equipo no tiene el mismo formato del equipo de pagina normal, lineas con sangrias» | Mara: EQUIPO en la hoja de continuación | Ver cita | EQUIPO en continuación con el mismo formato que EQUIPO de P2, incluidas las líneas con sangría. | OPEN (bloqueante) |
+| V11-QA-018 | «X4 Niveles épicos: NO APLICA — no se como activar niveles epicos, porque creo que no lo hemos implementado» | Niveles épicos | Ver cita | Información: el propietario no sabe cómo activar los niveles épicos y cree que no están implementados. | OPEN |
 
 ## Carga de los PJ en la base DEV alojada (2026-11-10)
 
@@ -106,3 +117,60 @@ El Worker trajo con `adb pull "/sdcard/Download/." "."` todo lo que había en De
 | `Mara de los Siete Umbrales - Hoja de PJ - PREQA V11 B.pdf` | 11 | B | sí, 2 páginas | `536a871466e4` | Texto idéntico |
 
 Ningún PDF tiene acentos dañados. El Aldren exportado es la copia local en conflicto: su única diferencia con la ficha alojada es Cobre 12, que explica el `LOCAL_AND_HOSTED_CHANGED`.
+
+## Resultado completo del QA (2026-11-10), literal
+
+El propietario pegó en el chat el resumen de la página de QA:
+
+```
+QA hoja V11 preqa.13
+P1 Instalar el APK: BIEN
+P2 Entrar y sincronizar: BIEN
+P3 Sacar los 6 PDF: BIEN
+A1 Número y orden de páginas: NO APLICA — Adicional:
+Mientras estamos en debug que diga Variante A o B está bien o P1 -- XXXX. Pero despues eso debe salir.
+Prefiero un mejor retrato de salida, algo mas "lindo" y acorde.
+A2 Cabecera y clase: BIEN — No recuerdo si la App guarda la sub clase, si la guarda deberia ser Clase "Guerrero (sub clase) 5" por ejemplo. Si no lo guarda, debemos guardarlo.
+A3 Atributos y salvaciones: BIEN — Observacion adicional, deberiamos considerar una versión de exportación que muestre los numeros variables (en toda la hoja), como atributos, habilidades, CA, etc en un color mas "transparente" para que el jugador pueda escribir encima y "borrarlo" y sobre escribir (a mano)
+A4 Habilidades: BIEN
+A5 Ataques: BIEN
+A6 Combate y supervivencia: BIEN
+A7 Municiones: NO APLICA
+A8 Equipo, tesoro y Equipo Especial: NO APLICA — Hay solo 6 objetos, Ballesta ligera, Mochila de explorador, Libro de oraciones, Incienso, Vestiduras, Ropa comun. Usa 7 lineas, pero solo 6 objetos, verifica que eso está bien.
+Faltan espacios vacios en el equipo especial para "lugares sin llenar", es decir, linea 100% vacía, y creo que son espacios MUY altos.
+A9 Rasgos: BIEN — te corrijo en tu notacion, son 8 rasgos, entre la pagina 1 y 2, los rasgos no tienen la sangria que usamos en Equipo, para entender que es parte del mismo texto.
+A10 Trasfondo: BIEN
+A11 Hoja de continuación: BIEN
+A12 Parecido con el golden: BIEN — se ve bien, arreglaria quizas "QUIZAS", esteticamente levemente la pagina 4 por el coloreado del interlineado de recursos y acciones, algo raro hay alli, y el uso del espacio en recursos, parece mucho espacio desperdiciado en cada accion y parece caber mas texto, y parece un poco pequeña la descripcion, aqui lo dejo a tu criterio.
+I1 Número y orden de páginas: BIEN — A y B tienen 9 paginas. A no tiene solo 7, pero creo que eso está bien
+I2 Cabecera, clase y combate: BIEN
+I3 Lanzamiento de conjuros en la página 1: BIEN — Los espacios de los cuadros dentro de Lanzamiento de conjuro no me parecen bien distribuidos, los haria alineados a la izquierda y el orden de los niveles lo tienes a lo "telefono". Lo haria hacia abajo.
+1 4 7
+2 5 8
+3 6 9
+I4 Lista de conjuros: BIEN
+I5 Tarjetas de arriba de la página de conjuros: BIEN
+I6 Libro de conjuros: BIEN
+I7 Equipo y rasgos: BIEN — la descripcion del spellbook, tiene especio adicional innecesario (abajo en la línea)
+I8 Parecido con el golden: BIEN
+M1 Número y orden de páginas: BIEN
+M2 Cabecera y combate: BIEN
+M3 Atributos propios: NO APLICA
+M4 Banda inferior de la página 1: BIEN
+M5 Ataques: BIEN
+M6 Hojas de continuación: BIEN
+M7 Equipo que continúa: FALLA — El equipo no tiene el mismo formato del equipo de pagina normal, lineas con sangrias
+M8 Equipo Especial que continúa: BIEN
+M9 Rasgos: BIEN
+M10 Recursos: BIEN
+M11 Conjuros y Libro: BIEN
+M12 Notas digitales: BIEN
+M13 Parecido con el golden: BIEN
+X1 Retrato: BIEN
+X2 Compartir: BIEN
+X3 Personaje nuevo vacío: BIEN
+X4 Niveles épicos: NO APLICA — no se como activar niveles epicos, porque creo que no lo hemos implementado
+X5 Impresión en papel: BIEN
+```
+
+Cada comentario quedó como observación propia, de V11-QA-008 a V11-QA-018. **Control de completitud:** 11 pruebas con comentario y 11 observaciones nuevas; las demás marcas (BIEN, NO APLICA sin comentario) quedan en esta cita. M7 es la única FALLA.
