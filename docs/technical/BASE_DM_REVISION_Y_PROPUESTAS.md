@@ -57,7 +57,18 @@
 
 | # | Pregunta | Estado |
 |---|---|---|
-| P1 | ¿Dónde diriges la partida para la «Base para DM»: escritorio (notebook) o tablet Android? | Pendiente |
+| P1 | ¿Dónde diriges la partida para la «Base para DM»: escritorio (notebook) o tablet Android? | **«Tablet desde ya»**. La propuesta 1 (escritorio primero) queda descartada. La «Base para DM» necesita antes un paquete nuevo: **sincronizar el contenido del DM** (criaturas, PNJ, lugares, zonas, encuentros, reglas caseras) entre el escritorio, el servidor y la tablet, y un **modo DM en la App Android** para tablet. |
 | P2 | ¿Qué mesas entran en la «Base para DM»? | Pendiente |
 | P3 | ¿En este QA los jugadores deben recibir handouts en sus teléfonos, o basta con mostrarlos desde la pantalla del DM? | Pendiente |
 | P4 | ¿Las respuestas de reglas muestran siempre el texto del SRD citado, y se agrega la búsqueda sin conexión? | Pendiente |
+
+## 5. Orden de trabajo tras P1
+
+1. **C0 · Sincronización del contenido del DM:**
+   - endpoints y tablas en el servidor;
+   - outbox y conflictos en Shared;
+   - el escritorio sube su contenido y la tablet lo recibe.
+   Usa las mismas reglas que los PJ: revisiones, borrados que no reviven, autoridad del DM de la campaña.
+2. **A · Media / Handouts:** según P3.
+3. **B · Mesa del DM en la tablet:** según P2.
+4. **D · Reglas SRD y consultas:** según P4.
