@@ -27,6 +27,18 @@ Cada paquete sale de `main` en una rama corta propia. La exportación V11 se pul
 3. **Pantalla DEV más clara (V11-QA-005).**
 4. **Wave 7: Media / Handouts** (`docs/ROADMAP.md`), con revisión de costo USD $0 antes de elegir almacenamiento.
 
+## Decisión del propietario sobre las etapas siguientes (2026-11-10)
+
+Literal: «A, B y D en ese orden y eso irá en el siguiente QA, que es la Base para DM. Esto fue visto con otra IA, asique te pediré que leas la documentación y me hagas preguntas que estimes pertinente para aclarar puntos y propongas correcciones y mejoras a las ideas antes de proceder y lo hablemos».
+
+- **Orden:**
+  - A · Media / Handouts (cierre de la Ola 7);
+  - B · Mesa del DM en vivo (Ola 8);
+  - D · Reglas SRD y consultas (Ola 10).
+- **QA:** las tres van juntas en el siguiente QA del propietario, la **«Base para DM»**.
+- **Antes de programar:** leer la documentación aprobada (D-0041, D-0068 a D-0073, D-0075 y `docs/PRODUCT.md`), hacer al propietario las preguntas pertinentes y proponer correcciones y mejoras. Se conversan una por una y se registran antes de implementar.
+- **Diseño de conflictos de sincronización:** queda cerrado (D1–D4) en `docs/technical/PC_SYNC_CONFLICT_RESOLUTION_DESIGN.md`, en la rama `feature/pc-sync-conflict-resolution`, y se implementa en el carril de correcciones.
+
 ## Siguiente acción exacta
 
-Presentar al propietario el diseño de la resolución de conflictos (paso 1), con imágenes y una pregunta por vez. No programar antes de su respuesta.
+Revisar la documentación de A, B y D y presentar al propietario las preguntas y propuestas de mejora, de a una, con imágenes cuando ayude. No programar A, B ni D antes de esa conversación.
