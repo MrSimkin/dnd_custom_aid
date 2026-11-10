@@ -82,6 +82,7 @@
 | P12 | Mesa de combate · ¿La iniciativa de los monstruos la tira la App? | Primero respondió «La escribo yo»; antes de que se registrara, corrigió: **«quiero ambas opciones disponibles»**. Cada monstruo tiene su casilla para escribir la iniciativa y un botón «Tirar por mí» (d20 + DES), por monstruo y para todos a la vez. Lo tirado se puede corregir a mano. Los PJ se escriben. |
 | P13 | Mesa de combate · ¿Los PV de cada monstruo parten con el promedio, editable y con «Tirar»? | **«Sí, así»**. Cada monstruo parte con el promedio de su bloque de estadísticas; el DM puede escribir otro número o tocar «Tirar» para que la App tire sus dados de PV. |
 | P14 | Mesa de combate · ¿Un combate empieza desde un encuentro preparado, improvisado o de ambas formas? | **«Ambas formas»**. Desde un encuentro preparado (entra entero con un toque) o improvisado: buscando en el bestiario con cantidad, o con un nombre libre y PV y CA a mano. Se pueden sumar criaturas a un combate ya empezado. |
+| P15 | Mesa de escena · ¿Queda con la versión recomendada? | Tras pedir la recomendación del Worker: **«Sí, esta»**. Buscador; fijados y recientes; recorrido por zona, por función y por aventura (secuencia de escenas); tiendas con qué venden y cuánto cuesta, lo destacado y quién atiende, sin llevar existencias; referencia al papel («Carpeta B, pág. 17»); ficha rápida de PNJ con «para jugadores» / «solo DM»; camino a la vista. Quedan para después: marcar dónde está el grupo y el PNJ improvisado en dos toques. |
 
 ## 5. Orden de trabajo tras P1
 
