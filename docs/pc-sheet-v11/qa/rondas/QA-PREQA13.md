@@ -75,3 +75,11 @@ Todas las demás pruebas, A1 a X5, quedaron «NO APLICA» (la A2 no figura en el
 **Cambio autorizado en Descope (2026-11-10):** el propietario dijo «si, hazlo. pero, no sigas adelante con Descope». El Worker subió la vigencia del código de un solo uso de **3 a 10 minutos** en el proyecto `dnd-custom-aid-dev` (Authentication Methods → One-time Password) y guardó. Tras recargar la página, `expirationTime = 10 minutes`; intentos (3 cada 60 s), dominio, destinatarios no verificados y conectores quedaron igual. Un primer intento de escribir el valor no llegó a ningún campo (se comprobó que nada cambió) y se repitió sobre el campo correcto. No se hizo nada más en Descope.
 
 **Login del propietario:** con capturas de la App, «Autenticación completa. Worker respondió para la cuenta f34bc5f0-4d35-4d09-b771-505b3851440c» (Outlook, DM de la campaña de QA). El propietario no sabe por qué falló al principio y sigue con el QA. V11-QA-003 queda OPEN como observación del propietario hasta que él diga si el login le quedó resuelto.
+
+**Sincronización del propietario (2026-11-10):** «2 campaña(s) conciliada(s); 0 conflicto(s) de campaña y 1 conflicto(s) de PC fueron preservados sin sobrescribir». El log QA de `0.5.0-preqa.13 (51300)`, sin secretos, muestra:
+
+- 2 campañas conciliadas (`Hosted Batch Test` y `QA - PC Sheet PDF Runtime`), sin conflictos de campaña.
+- 4 PJ alojados: 3 sin cambios en esa pasada (Ilyra y Mara ya estaban al día por la sincronización anterior) y 1 en conflicto.
+- **Aldren Vale** (`7a000000-…-0101`): `LOCAL_AND_HOSTED_CHANGED`. Revisión local 1, alojada 2, base 1. La copia local difiere de la base y no es igual a la alojada. Ninguna mutación pendiente en la cola de salida.
+
+**Indicación al propietario:** no usar «Resolver conflicto: conservar PC local» (subiría la copia vieja) ni borrar el Aldren local (podría propagar el borrado). Para el QA de Aldren, importar `PJ-QA-1-Aldren-Vale.json`, que es la misma ficha que está alojada. El conflicto queda intacto para decidirlo después del QA.
