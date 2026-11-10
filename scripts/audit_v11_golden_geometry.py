@@ -60,8 +60,9 @@ def excused(shape, page_number):
             return True  # slot boxes of an absent spell level
         if 42 <= x0 and x1 <= 120 and 620 <= y0 and y1 <= 700:
             return True  # C473: the portrait's golden ovals, now a thin-line bust
-    if page_number == 1 and x0 >= 39 and x1 <= 573 and y0 >= 50 and y1 <= 278:
-        return True  # C473: EQUIPO ESPECIAL rows below its header, one EQUIPO line high
+    if page_number == 1 and y0 >= 50 and y1 <= 278 and (
+            (x0 < 41 and x1 > 571) or (544 < x0 < 547 and x1 - x0 < 10)):
+        return True  # C473: EQUIPO ESPECIAL full-width rows and ACTIVO boxes, one EQUIPO line high
     return False
 
 
