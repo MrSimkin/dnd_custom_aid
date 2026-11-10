@@ -19,6 +19,8 @@ Fresh-context authority/navigation order:
 
 If a user says only **"see/resume repo dnd_custom_aid"**, do not walk historical waves/PRs first. Verify current remote `main`, then follow the route above.
 
+**Comando de continuidad:** una vez identificado este repositorio, **«sigue» / «continúa»** significa ejecutar el siguiente paso seguro indicado por `RESUME.md → docs/checkpoints/LATEST.md → checkpoint canónico` y dejar evidencia de trabajo real en Git. No reiniciar diseño, observaciones QA o gate; no interpretar «sigue» como autorización para fusionar una PR de producto o saltar los controles de no-regresión.
+
 Historical checkpoints remain evidence; do not follow old `next` instructions when newer authority supersedes them.
 
 Route changes are incomplete unless the same coherent repository change updates the checkpoint and `docs/checkpoints/LATEST.md` canonical pointer. Keep `RESUME.md` stable; move the pointer, not the entry route.

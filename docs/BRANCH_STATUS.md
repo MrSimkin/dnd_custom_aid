@@ -1,3 +1,5 @@
+**2026-11-10 — V11 integrada a `main` por decisión del propietario («Sí, integrar primero»).** Exportación V11 A/B como única hoja; último candidato `0.5.0-preqa.14` (QA del propietario pendiente). Sigue: resolución de conflictos de sincronización (diseño primero), login, pantalla DEV y Media / Handouts. [Checkpoint](checkpoints/2026-11-10_V11_INTEGRADA_A_MAIN.md).
+
 **2026-10-30 — C286–C316 V11, fidelidad al golden por módulo (encabezado, pie, cartelas, tinta, números, P3, P4, C2, C-N3), CI exacta SUCCESS.** [Checkpoint](checkpoints/2026-10-29_V11_C283_FUENTES_GOLDEN.md).
 
 **2026-10-29 — C283–C285 V11, fuentes del golden (Noto Sans, EB Garamond), campos de P3 y nombre del encabezado como el golden.** [Checkpoint](checkpoints/2026-10-29_V11_C283_FUENTES_GOLDEN.md).
