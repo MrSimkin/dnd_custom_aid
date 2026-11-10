@@ -35,3 +35,9 @@ El propietario pidió los PJ por SQL y después eligió que el Worker lo ejecuta
 
 - **Membresía de la campaña:** Outlook `f34bc5f0-…` DM ACTIVE; Gmail `4ba0f476-…` PLAYER ACTIVE.
 - **Verificación posterior:** 0 PJ con acentos dañados en toda la base. Cada ficha guardada se leyó en base64 y es igual a su fixture del repositorio (blobs `498a47e9`, `9b980847`, `ed919c6e`).
+
+## Set de pruebas del propietario (2026-11-10)
+
+Página de QA: https://claude.ai/artifact/KCcKT6bxKiwXd5t4WPFwGi (privada del propietario). Tiene 41 pruebas: preparación P1–P3, Aldren A1–A12, Ilyra I1–I8, Mara M1–M13 y extras X1–X5. Cada una dice qué hacer y qué debe verse, con los valores esperados tomados de las fichas y del número de páginas medido en Android con `preqa.13` (Aldren 6 y 6; Ilyra 7 y 9 con Libro; Mara 9 y 11 con Libro).
+
+El propietario marca Bien, Falla o No aplica y escribe su comentario. Cada resultado se guarda en la colección `resultados` de la página (un documento por prueba: `estado`, `nota`, `actualizado`). El Worker la lee al recibir el QA y copia cada comentario literal a la sección 1 de esta ronda y al registro, sin resumirlo.
