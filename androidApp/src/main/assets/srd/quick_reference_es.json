@@ -1,0 +1,326 @@
+{
+ "format": "dnd-custom-aid.srd-quick-reference",
+ "formatVersion": 1,
+ "language": "es",
+ "attribution": {
+  "5.1": "Esta obra incluye materiales extraídos del Documento de referencia del sistema 5.1 (“SRD 5.1”) de Wizards of the Coast LLC, que está disponible en https://dnd.wizards.com/es/resources/systems-reference-document. El SRD 5.1 tiene la licencia Creative Commons Atribución/Reconocimiento 4.0 Licencia Pública Internacional, que está disponible en https://creativecommons.org/licenses/by/4.0/legalcode.es.",
+  "5.2.1": "Esta obra incluye material procedente del documento de referencia del sistema 5.2.1 (“SRD 5.2.1”) de Wizards of the Coast LLC, disponible en https://www.dndbeyond.com/srd. La licencia sobre el SRD 5.2.1 se concede de acuerdo con la licencia internacional de atribución/reconocimiento 4.0 de Creative Commons, disponible en https://creativecommons.org/licenses/by/4.0/legalcode."
+ },
+ "cards": [
+  {
+   "id": "estados",
+   "title": "Estados",
+   "versions": {
+    "5.1": [
+     {
+      "heading": "Estados",
+      "page": 389,
+      "text": "Los estados alteran las capacidades de una criatura de diversas formas y pueden deberse a un conjuro, un rasgo de clase, un ataque de un monstruo u otro efecto. La mayoría de los estados (como el de cegado) son perjudiciales, pero unos pocos (como el de invisible) pueden resultar beneficiosos.\nUn estado dura hasta que se contrarresta (el estado de derribado, por ejemplo, se contrarresta poniéndose de pie) o durante el tiempo especificado por el efecto que lo causó.\nSi varios efectos imponen el mismo estado a una criatura, cada efecto tendrá su propia duración, pero sus efectos no empeorarán. O se tiene un estado o no se tiene.\nLas siguientes definiciones describen lo que le ocurre a una criatura mientras está afectada por un estado.\nAgarrado\n• La velocidad de una criatura agarrada pasa a ser 0 y no puede beneficiarse de ningún bonificador a su velocidad.\n• El estado termina si quien agarra queda incapacitado (consulta dicho estado).\n• El estado termina también si algún efecto aleja a la criatura agarrada de quien la agarra o del efecto que causa el agarre, como cuando el conjuro ola atronadora hace que una criatura salga despedida.\nApresado\n• La velocidad de una criatura apresada pasa a ser 0 y no puede beneficiarse de ningún bonificador\n• Las tiradas de ataque contra la criatura tienen ventaja y las tiradas de ataque realizadas por la criatura tienen desventaja.\n• La criatura tiene desventaja en las tiradas de salvación de Destreza.\nAsustado\n• Una criatura asustada tiene desventaja en las pruebas de característica y tiradas de ataque mientras pueda ver a la fuente de su miedo.\n• La criatura no puede acercarse voluntariamente a la fuente de su miedo.\nAturdido\n• Una criatura aturdida está incapacitada (consulta dicho estado), no puede moverse y solo puede hablar con voz entrecortada.\n• La criatura falla automáticamente las tiradas de salvación de Fuerza y Destreza.\n• Las tiradas de ataque contra ella tienen ventaja.\nCegado\n• Una criatura cegada no puede ver y falla automáticamente todas las pruebas de característica que requieran la vista.\n• Las tiradas de ataque contra la criatura tienen ventaja y las tiradas de ataque realizadas por Derribado\n• Una criatura derribada solo podrá moverse arrastrándose, salvo que se levante para concluir este estado.\n• La criatura tiene desventaja en las tiradas de ataque.\n• Las tiradas de ataque contra la criatura tienen ventaja si el atacante está a 1,5 m o menos de ella.\nSi no es así, las tiradas de ataque tienen desventaja.\nEnsordecido\n• Una criatura ensordecida no puede oír y falla automáticamente cualquier prueba de característica que requiera el oído.\nCansancio\nAlgunas capacidades especiales y ciertos peligros ambientales, como la inanición o una larga exposición a los efectos de unas temperaturas particularmente frías o calientes, pueden producir un estado especial llamado “cansancio”. El cansancio se mide con seis niveles. Un efecto puede sumar uno o más niveles de cansancio a una criatura, según se especifique en la descripción de dicho efecto.\nNivel Efecto\n1 Desventaja en pruebas de característica.\n2 Velocidad reducida a la mitad.\n3 Desventaja en tiradas de ataque y de salvación.\n4 Puntos de golpe máximos reducidos a la mitad.\n5 Velocidad reducida a 0.\n6 Muerte.\nSi una criatura que ya está cansada sufre un efecto que provoca cansancio, su nivel de cansancio actual aumentará en la cantidad especificada en la descripción de dicho efecto.\nUna criatura sufre el efecto de su nivel de cansancio actual, pero también el de los niveles inferiores. Por ejemplo, si sufre un nivel de cansancio 2, tendrá su velocidad reducida a la mitad y desventaja en las pruebas de característica.\nLos efectos que eliminan cansancio reducen el nivel de este en la cantidad que especifique su descripción y todos sus efectos desaparecen si el nivel de cansancio de una criatura desciende a menos de 1.\nSi se finaliza un descanso largo, el nivel de cansancio de una criatura se reduce en 1, siempre que haya podido comer y beber algo.\nEnvenenado\n• Una criatura envenenada tiene desventaja en las tiradas de ataque y las pruebas de característica.\nHechizado\n• Una criatura hechizada no puede atacar ni elegir como objetivo de efectos dañinos o mágicos a quien la hechizó.\n• Quien hechizó a la criatura tiene ventaja en las pruebas de característica para interaccionar socialmente con ella.\nIncapacitado\n• Una criatura incapacitada no puede llevar a cabo acciones ni reacciones.\nInconsciente\n• Una criatura inconsciente está incapacitada (consulta el estado), no puede moverse ni hablar y no es consciente de su entorno.\n• La criatura suelta cualquier cosa que esté sujetando y cae derribada.\n• La criatura falla automáticamente las tiradas de salvación de Fuerza y Destreza.\n• Las tiradas de ataque contra ella tienen ventaja.\n• Los ataques que impacten a la criatura serán críticos si el atacante está a 1,5 m o menos.\nInvisible\n• Es imposible ver a una criatura invisible sin la ayuda de magia o sentidos especiales. Respecto a esconderse, la criatura está en una zona muy oscura, pero se puede detectar su ubicación si hace ruido o deja huellas.\n• Las tiradas de ataque contra la criatura tienen desventaja y las tiradas de ataque realizadas por la criatura tienen ventaja.\nParalizado\n• Una criatura paralizada está incapacitada (consulta dicho estado) y no puede moverse ni hablar.\n• La criatura falla automáticamente las tiradas\n• Las tiradas de ataque contra ella tienen ventaja.\n• Los ataques que impacten a la criatura serán críticos si el atacante está a 1,5 m o menos.\nPetrificado\n• Una criatura petrificada se transforma, junto con cualquier objeto no mágico que vista o lleve con ella, en una sustancia inanimada sólida (en general, piedra). Su peso se multiplica por diez y deja de envejecer.\n• Está incapacitada (consulta dicho estado), no puede moverse ni hablar y no es consciente de su entorno.\n• Las tiradas de ataque contra ella tienen ventaja.\n• La criatura falla automáticamente las tiradas\n• Tiene resistencia contra todo el daño.\n• La criatura es inmune a venenos y enfermedades, pero si un veneno o enfermedad ya está en su sistema, queda en suspenso, no neutralizado."
+     }
+    ],
+    "5.2.1": [
+     {
+      "heading": "Agarrado [estado]",
+      "page": 194,
+      "text": "Mientras tengas el estado de agarrado, experimentarás los siguientes efectos:\nVelocidad 0. Tu velocidad es 0 y no puede aumentar.\nAtaques afectados. Tienes desventaja en las tiradas de ataque contra cualquier objetivo que no sea quien te agarra.\nDesplazable. Quien te agarra puede arrastrarte o transportarte al moverse, pero cada metro de movimiento le cuesta 1 m adicional, salvo que seas Diminuto o tu tamaño sea dos o más categorías inferior al suyo."
+     },
+     {
+      "heading": "Apresado [estado]",
+      "page": 195,
+      "text": "Mientras tengas el estado de apresado, experimentarás los siguientes efectos:\nVelocidad 0. Tu velocidad es 0 y no puede aumentar.\nAtaques afectados. Las tiradas de ataque contra ti tienen ventaja y tus tiradas de ataque tienen desventaja.\nTiradas de salvación afectadas. Tienes desventaja en las tiradas de salvación de Destreza."
+     },
+     {
+      "heading": "Asustado [estado]",
+      "page": 196,
+      "text": "Mientras tengas el estado de asustado, experimentarás los siguientes efectos:\nPruebas de característica y ataques afectados.\nTienes desventaja en las pruebas de característica y las tiradas de ataque mientras la fuente de tu miedo esté en tu línea de visión.\nNo puedes acercarte. No puedes acercarte voluntariamente a la fuente de tu miedo."
+     },
+     {
+      "heading": "Aturdido [estado]",
+      "page": 196,
+      "text": "Mientras tengas el estado de aturdido, experimentarás los siguientes efectos:\nIncapacitado. Tienes el estado de incapacitado.\nTiradas de salvación afectadas. Fallas automáticamente las tiradas de salvación de Fuerza y Destreza.\nAtaques afectados. Las tiradas de ataque contra ti tienen ventaja."
+     },
+     {
+      "heading": "Cansancio [estado]",
+      "page": 197,
+      "text": "Mientras tengas el estado de cansancio, experimentarás los siguientes efectos:\nNiveles de cansancio. Este estado es acumulativo.\nCada vez que lo recibas, sumas 1 nivel de cansancio.\nMorirás si tu nivel de cansancio es 6.\nPruebas con d20 afectadas. Cuando hagas una prueba con d20, el resultado se reduce en 2 × tu nivel de cansancio.\nVelocidad reducida. Tu velocidad se reduce en 1,5 m × tu nivel de cansancio.\nEliminar niveles de cansancio. Tras finalizar un descanso largo, resta 1 nivel de cansancio.\nCuando tus niveles de cansancio se reduzcan a 0, el estado terminará."
+     },
+     {
+      "heading": "Cegado [estado]",
+      "page": 197,
+      "text": "Mientras tengas el estado de cegado, experimentarás los siguientes efectos:\nNo puedes ver. No puedes ver y fallas automáticamente todas las pruebas de característica que requieran la vista.\nAtaques afectados. Las tiradas de ataque contra ti tienen ventaja y tus tiradas de ataque tienen desventaja."
+     },
+     {
+      "heading": "Derribado [estado]",
+      "page": 199,
+      "text": "Mientras tengas el estado de derribado, experimentarás los siguientes efectos:\nMovimiento restringido. Tus únicas opciones de movimiento son arrastrarte o gastar una cantidad de movimiento igual a la mitad de tu velocidad (redondeando hacia abajo) para levantarte y, por tanto, poner fin a este estado. Si tu velocidad es 0, no puedes levantarte.\nAtaques afectados. Tienes desventaja en las tiradas de ataque. Las tiradas de ataque contra ti tienen ventaja si el atacante está a 1,5 m o menos de ti. De lo contrario, las tiradas de ataque tienen desventaja."
+     },
+     {
+      "heading": "Ensordecido [estado]",
+      "page": 200,
+      "text": "Mientras tengas el estado de ensordecido, experimentarás el siguiente efecto:\nNo puedes oír. No puedes oír y fallas automáticamente las pruebas de característica que requieran el oído."
+     },
+     {
+      "heading": "Envenenado [estado]",
+      "page": 201,
+      "text": "Mientras tengas el estado de envenenado, experimentarás el siguiente efecto:\nPruebas de característica y ataques afectados.\nTienes desventaja en las tiradas de ataque y las pruebas de característica."
+     },
+     {
+      "heading": "Hechizado [estado]",
+      "page": 202,
+      "text": "Mientras tengas el estado de hechizado, experimentarás los siguientes efectos:\nNo puedes dañar a quien te haya hechizado.\nNo puedes atacar ni elegir como objetivo de efectos dañinos o mágicos a quien te haya hechizado.\nVentaja social. Quien te haya hechizado tiene ventaja en las pruebas de característica para interactuar socialmente contigo."
+     },
+     {
+      "heading": "Incapacitado [estado]",
+      "page": 202,
+      "text": "Mientras tengas el estado de incapacitado, experimentarás los siguientes efectos:\nInactivo. No puedes llevar a cabo ninguna acción, acción adicional o reacción.\nPérdida de concentración. Pierdes la concentración.\nMudo. No puedes hablar.\nSorprendido. Si tienes el estado de incapacitado cuando tiras iniciativa, tendrás desventaja en la tirada."
+     },
+     {
+      "heading": "Inconsciente [estado]",
+      "page": 202,
+      "text": "Mientras tengas el estado de inconsciente, experimentarás los siguientes efectos:\nInerte. Tienes los estados de derribado e incapacitado y sueltas lo que estés sujetando. Cuando concluya este estado, permanecerás derribado.\nVelocidad 0. Tu velocidad es 0 y no puede aumentar.\nAtaques afectados. Las tiradas de ataque contra ti tienen ventaja.\nTiradas de salvación afectadas. Fallas automáticamente las tiradas de salvación de Fuerza y Destreza.\nCríticos automáticos. Cualquier tirada de ataque que te acierte es un crítico si el atacante está a 1,5 m o menos de ti.\nIgnorante. No eres consciente de tu entorno."
+     },
+     {
+      "heading": "Invisible [estado]",
+      "page": 203,
+      "text": "Mientras tengas el estado de invisible, experimentarás los siguientes efectos:\nSorpresa. Si tienes el estado de invisible cuando tiras iniciativa, tendrás ventaja en la tirada.\nOculto. No te afecta ningún efecto que requiera ver a su objetivo, salvo que el creador del efecto pueda verte de alguna forma. Cualquier equipo que vistas o lleves contigo también se oculta.\nAtaques afectados. Las tiradas de ataque contra ti tienen desventaja y tus tiradas de ataque tienen ventaja. Si una criatura puede verte de alguna forma, no obtienes este beneficio contra esa criatura."
+     },
+     {
+      "heading": "Paralizado [estado]",
+      "page": 204,
+      "text": "Mientras tengas el estado de paralizado, experimentarás los siguientes efectos:\nIncapacitado. Tienes el estado de incapacitado.\nVelocidad 0. Tu velocidad es 0 y no puede aumentar.\nTiradas de salvación afectadas. Fallas automáticamente las tiradas de salvación de Fuerza y Destreza.\nAtaques afectados. Las tiradas de ataque contra ti tienen ventaja.\nCríticos automáticos. Cualquier tirada de ataque que te acierte es un crítico si el atacante está a 1,5 m o menos de ti."
+     },
+     {
+      "heading": "Petrificado [estado]",
+      "page": 205,
+      "text": "Mientras tengas el estado de petrificado, experimentarás los siguientes efectos:\nTransformación en sustancia inanimada. Te transformas, junto con cualquier objeto no mágico que vistas o lleves contigo, en una sustancia sólida e inanimada (normalmente piedra). Tu peso se multiplica por diez y dejas de envejecer.\nIncapacitado. Tienes el estado de incapacitado.\nVelocidad 0. Tu velocidad es 0 y no puede aumentar.\nAtaques afectados. Las tiradas de ataque contra ti tienen ventaja.\nTiradas de salvación afectadas. Fallas automáticamente las tiradas de salvación de Fuerza y Destreza.\nResistencia al daño. Tienes resistencia a todo el daño.\nInmunidad al veneno. Tienes inmunidad al estado de envenenado."
+     }
+    ]
+   }
+  },
+  {
+   "id": "cobertura",
+   "title": "Cobertura",
+   "versions": {
+    "5.1": [
+     {
+      "heading": "Cobertura",
+      "page": 102,
+      "text": "Los árboles, los muros, las criaturas y otros obstáculos pueden proporcionar cobertura durante un combate y hacer que un objetivo sea más difícil de dañar. Este solo puede beneficiarse de la cobertura si el ataque o el efecto proceden del lado opuesto de la cobertura.\nExisten tres niveles de cobertura. Si un objetivo está detrás de varios obstáculos que le ofrecen cobertura, solo se aplica el nivel más alto (los niveles no se suman). Por ejemplo, si tu objetivo está tras una criatura, que le proporciona cobertura media, y el tronco de un árbol, que le proporciona cobertura tres cuartos, el objetivo disfrutará de cobertura tres cuartos.\nUn objetivo con cobertura media posee un bonificador de +2 a su CA y a sus tiradas de salvación de Destreza. Para tener cobertura media, el obstáculo debe tapar al menos la mitad del cuerpo del objetivo. Dicho obstáculo puede ser un muro bajo, un mueble grande, un tronco estrecho o una criatura, ya sea amiga o enemiga.\nUn objetivo con cobertura tres cuartos disfruta de un bonificador de +5 a su CA y a sus tiradas de salvación de Destreza. Para tener cobertura tres cuartos, el obstáculo debe cubrir aproximadamente tres cuartas partes del cuerpo. Ese obstáculo puede ser una verja levadiza, una aspillera o un tronco grueso.\nUna criatura que posea cobertura completa no puede ser el objetivo directo de un ataque ni de un conjuro, aunque algunos conjuros pueden alcanzarla por su área de efecto. Para disfrutar de cobertura completa, el obstáculo debe ocultar totalmente al objetivo."
+     }
+    ],
+    "5.2.1": [
+     {
+      "heading": "Cobertura",
+      "page": 198,
+      "text": "La cobertura proporciona un grado de protección a un objetivo situado tras ella. Hay tres niveles de cobertura, cada uno de los cuales otorga un beneficio diferente al objetivo: cobertura media (bonificador de +2 a la CA y las tiradas de salvación de Destreza), cobertura tres cuartos (bonificador de +5 a la CA y las tiradas de salvación de Destreza) y cobertura completa (no puede ser el objetivo directo). Si un objetivo está detrás de más de un grado de cobertura, solo se beneficia del que le proporciona más protección. Consulta también el capítulo “Cómo jugar” (“Combate”)."
+     }
+    ]
+   }
+  },
+  {
+   "id": "concentracion",
+   "title": "Concentración",
+   "versions": {
+    "5.1": [
+     {
+      "heading": "Concentración",
+      "page": 108,
+      "text": "Algunos conjuros exigen mantener la concentración si se quiere que su magia permanezca activa. Los conjuros de este tipo terminan si el personaje pierde la concentración.\nEn el apartado “Duración” de los conjuros se indica si estos exigen concentración o no, así como el tiempo que se puede pasar concentrado. Puedes dejar de concentrarte en cualquier momento (no requiere acción).\nLa actividad habitual de un combate, como moverse o atacar, no interfiere en la concentración, pero los siguientes sucesos sí que pueden romperla:\n• Lanzar otro conjuro que necesite concentración. Dejarás de tener concentración en un conjuro si lanzas otro que también la requiera.\nPor tanto, no puedes concentrarte en dos conjuros a la vez.\n• Recibir daño. Cada vez que sufras daño mientras te concentras en un conjuro, tendrás que hacer una tirada de salvación de Constitución para mantener la concentración. La CD será de 10 o la mitad del daño sufrido, lo que sea mayor.\nSi recibes daño de varias fuentes, como una flecha y el aliento de un dragón, deberás hacer una tirada de salvación distinta para cada fuente de daño.\n• Quedar incapacitado o morir. Perderás la concentración si te incapacitan o mueres.\nAdemás, tu GM podría decidir que ciertas circunstancias, como recibir el golpe de una ola mientras estás en un navío agitado por una tempestad, también te obliguen a superar una tirada de salvación de Constitución con CD 10 para mantener la concentración."
+     }
+    ],
+    "5.2.1": [
+     {
+      "heading": "Concentración",
+      "page": 198,
+      "text": "Algunos conjuros y otros efectos requieren concentración para permanecer activos, según se especifique en sus descripciones. Si el creador del efecto pierde la concentración, el efecto concluye. Si el efecto tiene una duración máxima, la descripción detalla cuánto tiempo puede concentrarse el creador en él: hasta 1 minuto, 1 hora u otra duración.\nEl creador puede dejar de concentrarse en cualquier momento (no requiere acción). Los siguientes factores rompen la concentración:\nOtro efecto de concentración. Pierdes la concentración en un efecto en cuanto comienzas a lanzar un conjuro que también requiere concentración o activas otro efecto que requiere concentración.\nDaño. Si sufres daño, debes superar una tirada de salvación de Constitución para mantener la concentración. La CD es de 10 o la mitad del daño sufrido (redondeando hacia abajo), lo que sea mayor, hasta un máximo de 30.\nIncapacitado o muerto. Tu concentración acaba si tienes el estado de incapacitado o mueres."
+     }
+    ]
+   }
+  },
+  {
+   "id": "cd_tipicas",
+   "title": "CD típicas",
+   "versions": {
+    "5.1": [
+     {
+      "heading": "Clases de Dificultad típicas",
+      "page": 80,
+      "text": "Dificultad de la tarea CD\nMuy fácil 5\nFácil 10\nDificultad media 15\nDifícil 20\nMuy difícil 25\nCasi imposible 30\nPara hacer una prueba de característica, tira 1d20 y añade el modificador por característica pertinente.\nAl igual que sucede con el resto de tiradas de d20, aplica los bonificadores y penalizadores y compara el total con la CD. Si el total es mayor o igual a la CD, la prueba de característica tiene éxito: es decir, la criatura supera el desafío al que se enfrenta.\nEn caso contrario, se habrá fallado la prueba, lo que significa que el personaje o el monstruo no consigue su objetivo o, si lo consigue, a cambio sufre una complicación elegida por el GM."
+     }
+    ],
+    "5.2.1": [
+     {
+      "heading": "Clases de dificultad típicas",
+      "page": 7,
+      "text": "Dificultad de la tarea CD\nMuy fácil 5\nFácil 10\nDificultad media 15\nDifícil 20\nMuy difícil 25\nCasi imposible 30"
+     }
+    ]
+   }
+  },
+  {
+   "id": "luz_vision",
+   "title": "Luz y visión",
+   "versions": {
+    "5.1": [
+     {
+      "heading": "Visión e iluminación",
+      "page": 90,
+      "text": "Las tareas fundamentales cuando uno se embarca en una aventura, como detectar el peligro, encontrar objetos escondidos, golpear a un enemigo en combate o elegir el objetivo de un conjuro, dependen en gran medida de la capacidad para ver de los personajes. La oscuridad y otros efectos que entorpecen la visión pueden convertirse en un obstáculo importante.\nUna zona concreta puede estar ligeramente o muy oscura. En una zona ligeramente oscura (con luz tenue, neblinas dispersas o follaje moderado), las criaturas tienen desventaja en las pruebas de Sabiduría (Percepción) que dependan de la vista.\nEn una zona muy oscura (a oscuras o con niebla espesa o follaje denso), la visión queda bloqueada por completo. Una criatura estará bajo los efectos del estado “cegado” (consulta el apéndice MJ-A) cuando trate de ver algo en esa zona.\nLa presencia o ausencia de luz en un entorno establece tres categorías de iluminación: luz brillante, luz tenue y oscuridad.\nLa luz brillante permite a la mayoría de criaturas ver con normalidad. Incluso los días encapotados proporcionan luz brillante, al igual que lo hacen las antorchas, linternas, hogueras y otras fuentes de iluminación dentro de un radio específico.\nLa luz tenue, también llamada “sombras”, hace que la zona esté ligeramente oscura. Una zona de este tipo suele hacer de frontera entre una fuente de luz brillante, como una antorcha, y la oscuridad circundante. La luz suave del ocaso o del amanecer se considera luz tenue. Una noche de luna llena especialmente brillante bañará la tierra de luz tenue.\nLa oscuridad hace que una zona esté muy oscura.\nLos personajes se enfrentan a la oscuridad cuando están en exteriores por la noche (incluso en la mayoría de noches con la luna visible), en el interior de una mazmorra sin iluminar o una cripta subterránea, o en una zona de oscuridad mágica.\nVisión ciega\nUna criatura con visión ciega puede percibir su entorno sin tener que recurrir a la vista dentro de un radio específico. Las criaturas sin ojos, como los cienos, así como las que poseen ecolocalización o sentidos agudizados, como los murciélagos y los verdaderos dragones, tienen este sentido.\nVisión en la oscuridad\nEn los mundos de los juegos de fantasía, muchas criaturas poseen visión en la oscuridad, especialmente las que habitan bajo tierra.\nUna criatura con visión en la oscuridad podrá ver en la oscuridad, dentro de un alcance especificado, como si fuera luz tenue, por lo que las zonas de oscuridad solo estarán ligeramente oscuras para ella. Sin embargo, no podrá distinguir los colores, solo distintos tonos de gris.\nVisión verdadera\nUna criatura con visión verdadera puede, dentro de un alcance específico, ver en condiciones de oscuridad normal y mágica, ver criaturas y objetos invisibles, detectar automáticamente las ilusiones visuales y superar las tiradas de salvación contra ellas automáticamente, y percibir la forma original de un cambiaformas o una criatura transformada por la magia. Además, esa criatura también verá en el Plano Etéreo."
+     }
+    ],
+    "5.2.1": [
+     {
+      "heading": "Visión e iluminación",
+      "page": 12,
+      "text": "Algunas tareas, como percibir el peligro, acertar a un enemigo y elegir el objetivo de ciertos conjuros, dependen de la capacidad de ver de tu personaje.\nPor ello, los efectos que dificultan la visión pueden convertirse en un obstáculo importante, como se explica a continuación.\nZonas oscuras\nUna zona puede estar ligeramente oscura o muy oscura. En una zona ligeramente oscura (con luz tenue, neblinas dispersas o follaje moderado), tienes desventaja en las pruebas de Sabiduría (Percepción) que dependan de la vista.\nUna zona muy oscura (con oscuridad, niebla espesa o follaje denso) resulta opaca y tendrás el estado de cegado (consulta el capítulo “Glosario de reglas”) cuando trates de ver algo en ella.\nIluminación\nLa presencia o ausencia de luz determina la categoría de iluminación de una zona, como se define a continuación.\nLuz brillante. La luz brillante permite a la mayoría de criaturas ver con normalidad. Incluso los días encapotados proporcionan luz brillante, al igual que lo hacen las antorchas, linternas, hogueras y otras fuentes de iluminación dentro de un radio específico.\nLuz tenue. La luz tenue, también llamada “sombras”, hace que la zona esté ligeramente oscura.\nUna zona con luz tenue suele ser la frontera entre una luz brillante y la oscuridad que la rodea. La luz suave del ocaso o del amanecer se considera luz tenue. Una noche de luna llena bañará la tierra de luz tenue.\nOscuridad. La oscuridad hace que una zona esté muy oscura. Los personajes se enfrentan a la oscuridad cuando están en exteriores por la noche (incluso en la mayoría de noches con la luna visible), en el interior de una mazmorra sin iluminar o en una zona de oscuridad mágica."
+     },
+     {
+      "heading": "Visión ciega",
+      "page": 210,
+      "text": "Si tienes visión ciega, puedes ver dentro de un alcance determinado sin recurrir a la vista. Dentro de ese alcance, puedes ver cualquier cosa que no esté tras una cobertura completa, incluso si tienes el estado de cegado o te encuentras en la oscuridad.\nAsimismo, en ese alcance puedes ver cosas que tengan el estado de invisibles."
+     },
+     {
+      "heading": "Visión en la oscuridad",
+      "page": 210,
+      "text": "Si tienes visión en la oscuridad dentro de un alcance específico, puedes ver con luz tenue como si hubiera luz brillante y, en la oscuridad, como si hubiera luz tenue. En esa oscuridad, solo disciernes los colores como tonos de gris. Consulta también el capítulo “Cómo jugar” (“Exploración”)."
+     },
+     {
+      "heading": "Visión verdadera",
+      "page": 210,
+      "text": "Si tienes visión verdadera, tu visión mejora dentro de un alcance especificado. En él, tu visión es capaz de atravesar lo siguiente:\nOscuridad. Puedes ver en la oscuridad normal y mágica.\nInvisibilidad. Puedes ver criaturas y objetos que tengan el estado de invisibles.\nIlusiones visuales. Las ilusiones visuales te parecen transparentes y superas automáticamente las tiradas de salvación contra ellas.\nTransformaciones. Distingues la forma verdadera de cualquier criatura u objeto que veas y que esté transformado por un efecto mágico.\nPlano Etéreo. Puedes ver en el Plano Etéreo."
+     }
+    ]
+   }
+  },
+  {
+   "id": "caidas_asfixia",
+   "title": "Caídas y asfixia",
+   "versions": {
+    "5.1": [
+     {
+      "heading": "Caídas",
+      "page": 90,
+      "text": "Uno de los riesgos más frecuentes para un aventurero es caer desde gran altura. Una criatura recibirá 1d6 de daño contundente por cada 3 m que haya caído antes de golpearse contra el suelo, hasta un máximo de 20d6. La criatura caerá de bruces y quedará derribada salvo que, de alguna forma, evite recibir daño de la caída.\nAsfixia\nUna criatura puede aguantar la respiración durante tantos minutos como 1 + su modificador por Constitución (mínimo de 30 segundos).\nUna vez que se quede sin aire, o si se está ahogando, podrá sobrevivir una cantidad de asaltos igual a su modificador por Constitución (mínimo de 1 asalto). Al comienzo de su siguiente turno, sus puntos de golpe bajarán a 0, estará agonizando y no podrá recuperar puntos de golpe o ser estabilizada hasta que logre respirar de nuevo.\nPor ejemplo, una criatura con una Constitución de 14 puede aguantar la respiración durante 3 minutos. Si empieza a asfixiarse, tiene 2 asaltos para conseguir aire antes de que sus puntos de golpe se reduzcan a 0."
+     }
+    ],
+    "5.2.1": [
+     {
+      "heading": "Caídas [peligro]",
+      "page": 197,
+      "text": "Una criatura que sufra una caída recibirá 1d6 de daño contundente por cada 3 m que haya caído antes de golpearse contra el suelo, hasta un máximo de 20d6. La criatura caerá de bruces y tendrá el estado de derribada salvo que, de alguna forma, evite recibir daño de la caída.\nToda criatura que caiga al agua u otro líquido podrá usar su reacción y hacer una prueba de Fuerza (Atletismo) o Destreza (Acrobacias) con CD 15 para entrar al agua de cabeza o de pie. Si la supera, cualquier daño que reciba por la caída se reducirá a la mitad."
+     },
+     {
+      "heading": "Asfixia [peligro]",
+      "page": 196,
+      "text": "Una criatura puede aguantar la respiración durante una cantidad de minutos igual a 1 más su modificador por Constitución (mínimo de 30 segundos) antes de que empiece a asfixiarse. Cuando una criatura se quede sin aire o se esté ahogando, sumará 1 nivel de cansancio al final de cada uno de sus turnos. Cuando recupere el aliento, perderá todos los niveles de cansancio sumados por la asfixia."
+     }
+    ]
+   }
+  },
+  {
+   "id": "agarrar_derribar",
+   "title": "Agarrar y derribar",
+   "versions": {
+    "5.1": [
+     {
+      "heading": "Agarrar",
+      "page": 101,
+      "text": "Cuando quieras sujetar a una criatura o forcejear con ella, tendrás que usar tu acción de atacar para hacer un tipo especial de ataque cuerpo a cuerpo: un agarre. Si puedes realizar varios ataques con la acción de atacar, este reemplaza a uno de ellos.\nEl objetivo de tu agarre debe estar dentro de tu alcance y tener un tamaño que esté, como mucho, una categoría por encima de la tuya. Utilizando al menos una mano libre, intentas sujetar al objetivo mediante una prueba de agarrar en lugar de una tirada de ataque: haz una prueba de Fuerza (Atletismo) enfrentada a una prueba de Fuerza (Atletismo) o Destreza (Acrobacias) del objetivo (este último elige qué característica usar). Si tienes éxito, sometes a la víctima al estado de “agarrado” (consulta el apéndice MJ-A). El propio estado especifica bajo qué circunstancias termina, aunque puedes liberar al objetivo cuando quieras, sin necesidad de invertir una acción.\nEscapar de un agarre. Una criatura agarrada puede utilizar su acción para intentar escapar.\nLo logrará si tiene éxito en una prueba de Fuerza (Atletismo) o Destreza (Acrobacias) enfrentada a una prueba de Fuerza (Atletismo) de quien la tiene agarrada.\nMover a una criatura agarrada. Cuando te muevas, puedes arrastrar o transportar a la criatura agarrada, pero tu velocidad se reducirá a la mitad, salvo si dicha criatura está dos o más categorías de tamaño por debajo de la tuya."
+     },
+     {
+      "heading": "Empujar a una criatura",
+      "page": 101,
+      "text": "Puedes utilizar tu acción de atacar para hacer un tipo especial de ataque cuerpo a cuerpo: empujar a una criatura, ya sea para derribarla o para alejarla de ti. Si puedes realizar varios ataques con la acción de atacar, este reemplaza a uno de ellos.\nEl objetivo debe estar dentro de tu alcance y tener un tamaño que esté, como mucho, una categoría por encima de la tuya. En lugar de una tirada de ataque, deberás hacer una prueba de Fuerza (Atletismo) enfrentada a una prueba de Fuerza (Atletismo) o Destreza (Acrobacias) del objetivo (este último elige qué característica usar). Si ganas la tirada enfrentada, podrás escoger entre derribar a la criatura o empujarla para alejarla 1,5 m de ti."
+     }
+    ],
+    "5.2.1": [
+     {
+      "heading": "Agarrar",
+      "page": 194,
+      "text": "Una criatura puede agarrar a otra. Por lo general, los personajes realizan agarres usando un ataque sin armas. Muchos monstruos poseen ataques especiales que les permiten agarrar a sus presas rápidamente. Cuando se inicia un agarre, este sigue las siguientes reglas. Consulta también “Agarrado” y “Ataque sin armas”.\nEstado de agarrada. Agarrar a una criatura le impone el estado de agarrada.\nUn agarre por mano. Una criatura debe tener una mano libre para agarrar a otra criatura. Algunos perfiles y efectos del juego permiten que una criatura agarre a otra usando un tentáculo, sus fauces u otra parte del cuerpo. Independientemente de la parte del cuerpo que emplee, podrá agarrar solo a una criatura a la vez con esa parte y no podrá usar esa parte para hacer objetivo a otra criatura salvo que ponga fin al agarre.\nPoner fin a un agarre. Una criatura agarrada puede emplear su acción para hacer una prueba de Fuerza (Atletismo) o Destreza (Acrobacias) contra la CD para escapar del agarre; si la supera, pondrá fin a su estado. El estado también termina si quien agarra tiene el estado de incapacitado o si la distancia entre el objetivo agarrado y quien lo agarra supera el alcance del agarre. Además, quien agarra puede soltar al objetivo en cualquier momento (no requiere acción)."
+     },
+     {
+      "heading": "Ataque sin armas",
+      "page": 196,
+      "text": "En lugar de utilizar un arma para realizar un ataque cuerpo a cuerpo, puedes dar un puñetazo, una patada, un cabezazo o cualquier otro golpe enérgico. En la terminología del juego, esto se denomina un ataque sin armas: un ataque cuerpo a cuerpo en el que usas tu cuerpo para dañar, agarrar o empujar a un objetivo a 1,5 m o menos de ti.\nCuando uses tu ataque sin armas, elige una de las siguientes opciones para su efecto.\nDaño. Haces una tirada de ataque contra el objetivo. Tu bonificador a la tirada es igual a tu modificador por Fuerza más tu bonificador por competencia. Si acierta, el objetivo sufre una cantidad de daño contundente igual a 1 más tu modificador por Fuerza.\nAgarre. El objetivo deberá superar una tirada de salvación de Fuerza o Destreza (a su elección) o tendrá el estado de agarrado. La CD para la tirada de salvación y cualquier intento de escapar será igual a 8 más tu modificador por Fuerza y tu bonificador por competencia. Solo se puede ejecutar este agarre si el tamaño del objetivo está, como mucho, una categoría por encima de la tuya y si tienes una mano libre para agarrarlo. Consulta también “Agarrar”.\nEmpujón. El objetivo deberá superar una tirada de salvación de Fuerza o Destreza (a su elección); de lo contrario, lo empujarás 1,5 m respecto a ti o harás que tenga el estado de derribado. La CD para la tirada de salvación será igual a 8 más tu modificador por Fuerza y tu bonificador por competencia. Solo se puede dar este empujón si el tamaño del objetivo está, como mucho, una categoría por encima de la tuya."
+     }
+    ]
+   }
+  },
+  {
+   "id": "ocultarse",
+   "title": "Ocultarse",
+   "versions": {
+    "5.1": [
+     {
+      "heading": "Esconderse",
+      "page": 84,
+      "text": "Tu GM decide si las circunstancias son adecuadas para esconderse. Cuando intentes esconderte, haz una prueba de Destreza (Sigilo). Hasta que te descubran o dejes de esconderte, se realizarán tiradas enfrentadas entre el resultado de tu prueba y la prueba de Sabiduría (Percepción) de cualquier criatura que te esté buscando activamente.\nNo puedes esconderte de una criatura que te esté viendo y delatarás tu posición si haces ruido, como al gritar para dar un aviso o al tirar un jarrón.\nLas criaturas invisibles siempre pueden intentar esconderse. Sin embargo, se pueden detectar las señales que dejen a su paso y también deberán permanecer en silencio.\nEn el combate, la mayoría de las criaturas se mantienen alerta ante cualquier indicio de peligro, por lo que, si abandonas tu escondite y te acercas a una, lo más normal es que te vea. Sin embargo, en casos concretos, tu GM podría dejar que tu personaje siga escondido mientras se aproxima a una criatura distraída, lo que le permitirá obtener ventaja en una tirada de ataque antes de que lo vean.\nPercepción pasiva. Mientras estás escondido, existe la posibilidad de que te detecten, incluso aunque no te estén buscando. Para determinar si una criatura te detecta, tu GM compara tu prueba de Destreza (Sigilo) con la puntuación de Sabiduría (Percepción) pasiva de la criatura. Esta última equivale a 10 + su modificador por Sabiduría y otros bonificadores o penalizadores que tenga. Si la criatura tiene ventaja, sumará 5. Si tiene desventaja, restará 5.\nPor ejemplo, si un personaje de nivel 1 (con bonificador por competencia de +2) tiene una Sabiduría de 15 (un modificador de +2) y es competente en Percepción, tendrá una Sabiduría (Percepción) pasiva de 14.\n¿Qué puedes ver? Uno de los factores principales para determinar si puedes encontrar a una criatura o un objeto escondido es tu capacidad de visión en las inmediaciones, que pueden estar ligeramente oscuras o muy oscuras, como se explica en la sección “El entorno”."
+     }
+    ],
+    "5.2.1": [
+     {
+      "heading": "Esconderse [acción]",
+      "page": 201,
+      "text": "Con la acción de esconderse, tratas de ocultarte.\nPara ello, debes superar una prueba de Destreza (Sigilo) con CD 15 mientras estás en una zona muy oscura o detrás de una cobertura tres cuartos o completa, y deberás estar fuera de la línea de visión de cualquier enemigo; si puedes ver a una criatura, sabrás si te puede ver o no.\nSi la superas, tendrás el estado de invisible mientras permanezcas oculto. Anota el resultado de tu prueba, que es la CD para que una criatura te detecte con una prueba de Sabiduría (Percepción).\nDejas de estar oculto inmediatamente después de que ocurra algo de lo siguiente: haces un ruido más alto que un susurro, un enemigo te detecta, haces una tirada de ataque o lanzas un conjuro con un componente verbal."
+     }
+    ]
+   }
+  },
+  {
+   "id": "descansos",
+   "title": "Descansos",
+   "versions": {
+    "5.1": [
+     {
+      "heading": "Descansar",
+      "page": 91,
+      "text": "Por muy heroicos que sean, los aventureros no pueden pasarse todo el día entre exploraciones, interacciones sociales y combates. Necesitan descansar: tiempo para dormir y comer, curar sus heridas, refrescar la mente y el espíritu para poder lanzar conjuros y prepararse para nuevas aventuras.\nLos personajes pueden realizar descansos cortos durante un día de aventuras y un descanso largo al final de este.\nDescanso corto\nUn descanso corto es un periodo de inactividad de al menos 1 hora durante el que un personaje no hace nada que suponga más esfuerzo que comer, beber, leer o tratar sus heridas.\nAl final de un descanso corto, cada personaje puede gastar uno o más Dados de Golpe, hasta su máximo, que equivale a su nivel. Por cada Dado de Golpe que gaste de esta forma, el jugador tirará el dado y le añadirá el modificador por Constitución del personaje. El personaje recuperará una cantidad de puntos de golpe equivalente al total obtenido y el jugador podrá decidir si gasta otro Dado de Golpe tras cada tirada. Los personajes recuperan parte de los Dados de Golpe gastados al finalizar un descanso largo, como se explica a continuación.\nDescanso largo\nUn descanso largo es un periodo de inactividad prolongado, de al menos 8 horas, en el que el personaje duerme o realiza como máximo 2 horas de actividades ligeras, como leer, hablar, comer o montar guardia. Si este descanso se ve interrumpido por un periodo de actividad intensa (al menos 1 hora caminando, luchando, lanzando conjuros o esfuerzos similares), el personaje tendrá que volver a empezar el descanso para beneficiarse de sus efectos.\nAl final de un descanso largo, el personaje recupera todos los puntos de golpe perdidos.\nTambién recupera una cantidad de Dados de Golpe gastados igual a la mitad de su cifra total (un dado como mínimo). Por ejemplo, si un personaje tiene 8 Dados de Golpe, recuperará 4 al finalizar un descanso largo.\nUn personaje no puede beneficiarse de los efectos de más de un descanso largo durante un periodo de 24 horas y, además, debe empezar el descanso con al menos 1 punto de golpe para aprovecharse de sus beneficios."
+     }
+    ],
+    "5.2.1": [
+     {
+      "heading": "Descanso corto",
+      "page": 199,
+      "text": "Un descanso corto es un periodo de inactividad de 1 hora en el que una criatura no hace nada más extenuante que leer, charlar, comer o montar guardia.\nPara comenzar un descanso corto, debes tener al menos 1 punto de golpe.\nBeneficios del descanso. Tras finalizar el descanso obtendrás los siguientes beneficios:\nGastar dados de puntos de golpe. Puedes gastar uno o más dados de puntos de golpe para recuperar puntos de golpe. Por cada dado de puntos de golpe que gastes de esta forma, tira el dado y suma tu modificador por Constitución al resultado. Recuperas una cantidad de puntos de golpe equivalente al total obtenido (con un mínimo de 1). Puedes decidir si gastas otro dado de puntos de golpe tras cada tirada.\nRasgo especial. Algunos rasgos se recargan con un descanso corto. Si tienes uno de estos rasgos, se recargará de la forma que indique su descripción.\nInterrumpir el descanso. Un descanso corto se puede interrumpir de las siguientes formas:\n•  si se tira iniciativa;\n•  si se lanza un conjuro que no sea un truco;\n•  si se sufre daño.\nUn descanso corto interrumpido no otorga ningún beneficio."
+     },
+     {
+      "heading": "Descanso largo",
+      "page": 199,
+      "text": "Un descanso largo es un periodo de inactividad prolongado (al menos 8 horas) a disposición de cualquier criatura. Durante un descanso largo, duermes durante al menos 6 horas y realizas como máximo 2 horas de actividades ligeras, como leer, hablar, comer o montar guardia.\nMientras duermes, tienes el estado de inconsciente. Tras finalizar un descanso largo, deberás esperar al menos 16 horas para comenzar otro.\nBeneficios del descanso. Para comenzar un descanso largo, debes tener al menos 1 punto de golpe.\nTras finalizar el descanso obtendrás los siguientes beneficios:\nPuntos de golpe al máximo. Recuperas todos los puntos de golpe perdidos y todos los dados de puntos de golpe gastados. Si tus puntos de golpe máximos se habían reducido, vuelven a la normalidad.\nPuntuaciones de característica restablecidas.\nSi alguna de tus puntuaciones de característica se había reducido, vuelve a la normalidad.\nCansancio reducido. Si tienes el estado de cansancio, su nivel se reduce en 1.\nRasgo especial. Algunos rasgos se recargan con un descanso largo. Si tienes uno de estos rasgos, se recargará de la forma que indique su descripción.\nInterrumpir el descanso. Un descanso largo se puede interrumpir de las siguientes formas:\n•  si se tira iniciativa;\n•  si se lanza un conjuro que no sea un truco;\n•  si se sufre daño;\n•  si se camina o se hace algún otro ejercicio físico durante 1 hora.\nSi logras descansar al menos 1 hora antes de la interrupción, obtienes los beneficios de un descanso corto. Consulta también “Descanso corto”.\nPuedes reanudar un descanso largo inmediatamente después de una interrupción. Si lo haces, el descanso requerirá 1 hora adicional por cada interrupción para finalizarlo."
+     }
+    ]
+   }
+  },
+  {
+   "id": "viaje",
+   "title": "Viaje",
+   "versions": {
+    "5.1": [
+     {
+      "heading": "Ritmo de viaje",
+      "page": 88,
+      "text": "Mientras viaja, un grupo de aventureros se puede mover a un ritmo lento, normal o rápido, como se muestra en la tabla “Ritmo de viaje”. La tabla indica la distancia que puede recorrer el grupo en un cierto periodo de tiempo y si el ritmo afecta a esto de algún modo. Un ritmo rápido hace que los personajes sean menos perceptivos, mientras que uno lento les permite desplazarse con más sigilo y registrar cualquier zona más detenidamente.\nA marchas forzadas. La tabla “Ritmo de viaje” presupone que los personajes viajan 8 horas al día, aunque pueden hacerlo durante más tiempo, arriesgándose a cansarse.\nA partir de las 8 horas de viaje, cada hora adicional, los personajes recorren la distancia que se muestra en la columna “Hora” de su ritmo y cada uno de ellos debe realizar una tirada de salvación de Constitución al final de dicha hora. La CD es 10 + 1 por cada hora a partir de las 8 horas. Si un personaje falla la tirada de salvación, sumará 1 nivel de cansancio (consulta el apéndice MJ-A).\nMonturas y vehículos. Algunos animales pueden moverse mucho más rápido que los humanoides durante periodos breves de tiempo (de hasta 1 hora).\nUn personaje sobre una montura puede galopar aproximadamente 1 hora, en la que recorrerá el doble de la distancia habitual para un ritmo rápido.\nSi disponen de monturas frescas cada 12-15 km, los aventureros pueden cubrir mayores distancias a este ritmo, pero es algo poco frecuente que solo sucede en zonas muy pobladas.\nLos personajes que viajan en carromatos, carruajes u otros vehículos terrestres eligen su ritmo del modo habitual. Sin embargo, si viajan en vehículos acuáticos se ven limitados a la velocidad de la embarcación, pero no sufren penalizaciones por un ritmo rápido ni obtienen ventajas por un ritmo lento. En función de la embarcación y de la tripulación, los barcos pueden llegar a viajar durante 24 horas al día.\nAlgunas monturas especiales, como un pegaso o un grifo, o vehículos especiales, como una alfombra voladora, permiten viajar a mayor velocidad.\nRitmo de viaje\nRitmo Distancia recorrida por…\nMinuto Hora Día Efecto\nRápido 120 m 6 km 45 km Penalizador de −5 a Sabiduría (Percepción) pasiva.\nNormal 90 m 4,5 km 36 km —\nLento 60 m 3 km 27 km Permite usar sigilo."
+     }
+    ],
+    "5.2.1": [
+     {
+      "heading": "Viajar",
+      "page": 13,
+      "text": "Durante una aventura, los personajes pueden recorrer largas distancias en viajes que tal vez duren horas o días. Tu GM puede resumir el viaje sin calcular el tiempo o la distancia exactos, o bien aplicar las reglas del ritmo de viaje que aparecen a continuación.\nSi quieres saber lo rápido que te puedes mover cuando el tiempo apremia, consulta las reglas de movimiento más adelante en el apartado “Combate” de “Cómo jugar”.\nRitmo de viaje\nCuando un grupo de aventureros viaja (fuera del combate), puede moverse a ritmo lento, normal o rápido, como se muestra en la tabla “Ritmo de viaje”.\nEsta indica la distancia que puede recorrer el grupo en un periodo de tiempo determinado. Si van a caballo o en otras monturas, el grupo puede recorrer el doble de distancia durante 1 hora. Después, las monturas necesitarán un descanso corto o largo antes de que puedan moverse a ese ritmo de nuevo (consulta las monturas que hay a la venta en el capítulo “Equipo”). El capítulo “Herramientas del juego” contiene reglas que afectan al ritmo que puedes elegir en determinados tipos de terreno.\nRitmo\nDistancia recorrida por…\nMinuto Hora Día\nRápido 120 m 6 km 45 km\nNormal 90 m 4,5 km 36 km\nLento 60 m 3 km 27 km\nCada ritmo de viaje tiene un efecto en el juego, como se describe a continuación.\nRápido. Viajar a un ritmo rápido impone desventaja en las pruebas de Sabiduría (Percepción o Supervivencia) y Destreza (Sigilo) de los viajeros.\nNormal. Viajar a un ritmo normal impone desventaja en las pruebas de Destreza (Sigilo).\nLento. Viajar a un ritmo lento otorga ventaja en las pruebas de Sabiduría (Percepción o Supervivencia)."
+     },
+     {
+      "heading": "Ritmo de viaje",
+      "page": 211,
+      "text": "Un grupo de personajes puede viajar por tierra a un ritmo normal, rápido o lento, como se describe en “Cómo jugar”. El terreno predominante marca el ritmo máximo de viaje de los personajes en cualquier etapa del mismo, según indica la columna “Ritmo máximo” de la tabla “Terreno de viaje”.\nCiertos factores pueden afectar al ritmo de viaje del grupo."
+     },
+     {
+      "heading": "Viaje largo",
+      "page": 211,
+      "text": "Los personajes pueden esforzarse y viajar más de 8 horas al día, pero correrán el riesgo de cansarse.\nAl final de cada hora extra que hagan tras las 8 horas, los personajes deberán superar una tirada de salvación de Constitución o sumarán 1 nivel de cansancio. La CD es 10 más 1 por cada hora a partir de las 8 horas."
+     }
+    ]
+   }
+  }
+ ]
+}

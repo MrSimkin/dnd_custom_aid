@@ -116,6 +116,7 @@ class MainActivity : ComponentActivity() {
 private enum class AppScreen {
     ENTRY,
     DM_DESK,
+    DM_SCREEN,
     CAMPAIGNS,
     CHARACTERS,
     CHARACTER_EDITOR,
@@ -155,6 +156,8 @@ private fun DndCustomAidApp(
     var screenName by rememberSaveable { mutableStateOf(initialScreen.name) }
     var dmCampaignIdText by rememberSaveable { mutableStateOf(initialDmCampaignId?.toString()) }
     var selectedCharacterId by rememberSaveable { mutableStateOf<String?>(null) }
+    // Where Back from a PC sheet returns: the player's PC list or the Pantalla del DM.
+    var editorReturnName by rememberSaveable { mutableStateOf(AppScreen.CHARACTERS.name) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
 
     val screen = runCatching { AppScreen.valueOf(screenName) }.getOrDefault(AppScreen.CHARACTERS)
@@ -174,9 +177,12 @@ private fun DndCustomAidApp(
         entryStore.lastDmCampaignId = null
         screenName = AppScreen.CAMPAIGNS.name
     }
+    BackHandler(enabled = !showSettings && screen == AppScreen.DM_SCREEN) {
+        screenName = AppScreen.DM_DESK.name
+    }
     BackHandler(enabled = !showSettings && screen == AppScreen.CHARACTER_EDITOR) {
         selectedCharacterId = null
-        screenName = AppScreen.CHARACTERS.name
+        screenName = editorReturnName
     }
 
     val directory: @Composable () -> Unit = {
@@ -192,6 +198,7 @@ private fun DndCustomAidApp(
             onOpenSettings = { showSettings = true },
             onEdit = { character ->
                 selectedCharacterId = character.id.toString()
+                editorReturnName = AppScreen.CHARACTERS.name
                 screenName = AppScreen.CHARACTER_EDITOR.name
             },
         )
@@ -232,6 +239,28 @@ private fun DndCustomAidApp(
                             screenName = AppScreen.CAMPAIGNS.name
                         },
                         onOpenSettings = { showSettings = true },
+                        onOpenDmScreen = { screenName = AppScreen.DM_SCREEN.name },
+                    )
+                }
+            }
+
+            AppScreen.DM_SCREEN -> {
+                val campaign = dmCampaignIdText
+                    ?.let { runCatching { Uuid.parse(it) }.getOrNull() }
+                    ?.let(campaignRepository::campaign)
+                if (campaign == null) {
+                    LaunchedEffect(Unit) { screenName = AppScreen.CAMPAIGNS.name }
+                } else {
+                    DmScreen(
+                        campaign = campaign,
+                        database = database,
+                        onBack = { screenName = AppScreen.DM_DESK.name },
+                        onOpenSettings = { showSettings = true },
+                        onOpenCharacter = { character ->
+                            selectedCharacterId = character.id.toString()
+                            editorReturnName = AppScreen.DM_SCREEN.name
+                            screenName = AppScreen.CHARACTER_EDITOR.name
+                        },
                     )
                 }
             }
@@ -291,7 +320,7 @@ private fun DndCustomAidApp(
                             onOpenApplicationSettings = { showSettings = true },
                             onBack = {
                                 selectedCharacterId = null
-                                screenName = AppScreen.CHARACTERS.name
+                                screenName = editorReturnName
                             },
                         )
                     }
