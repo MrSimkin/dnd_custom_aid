@@ -1,3 +1,5 @@
+**2026-11-10 — Base para DM, paquete 3 (Pantalla del DM) implementado en `feature/dm-screen`.** Hojas de PJ, Vista Grupo, Referencia rápida (10 fichas, 5e/5.5e) y búsqueda sin conexión; los SRD 5.1 y 5.2.1 en español van completos en la App. Detalle en [DM_SCREEN.md](technical/DM_SCREEN.md).
+
 **2026-11-10 — Base para DM, paquete 2 (modo DM en la App Android) implementado en `feature/dm-mode-android`.** Entrada con cuenta opcional (P25), «Tus campañas» con la marca DM o Jugador, y el Escritorio DM. Detalle en [DM_MODE_ANDROID.md](technical/DM_MODE_ANDROID.md).
 
 **2026-11-10 — Base para DM, paquete 1 (sincronizar el contenido del DM) implementado en `feature/dm-content-sync`.** Worker + migración Neon 0002 + SQLDelight 28 + servicio Shared + botón en la App de PC + paso Android. Pendiente: paso del propietario en Neon y Cloudflare. Detalle en [DM_CONTENT_SYNC.md](technical/DM_CONTENT_SYNC.md) y en el [checkpoint](checkpoints/2026-11-10_V11_INTEGRADA_A_MAIN.md).

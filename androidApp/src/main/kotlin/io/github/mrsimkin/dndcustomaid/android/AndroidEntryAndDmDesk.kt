@@ -260,10 +260,10 @@ internal fun ReusableContentFamily.spanishPlural(): String = when (this) {
     ReusableContentFamily.SCENE -> "Escenas"
 }
 
-private data class DmDeskTable(val name: String, val purpose: String)
+private data class DmDeskTable(val name: String, val purpose: String, val ready: Boolean = false)
 
 private val dmDeskTables = listOf(
-    DmDeskTable("Pantalla del DM", "Hojas de PJ, Vista Grupo, Referencia rápida y Consultar reglas."),
+    DmDeskTable("Pantalla del DM", "Hojas de PJ, Vista Grupo, Referencia rápida y Consultar reglas.", ready = true),
     DmDeskTable("Mesa de Combate", "Preparar encuentro, iniciativa, PV de monstruos y paquetes."),
     DmDeskTable("Mesa de Escena", "Ficha de Zona, relojes y notas en vivo."),
     DmDeskTable("Mesa de Dungeon", "Turno de Dungeon, actividades y mapa de zonas."),
@@ -281,6 +281,7 @@ internal fun DmDeskScreen(
     accountId: Uuid?,
     onOpenCampaigns: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenDmScreen: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     var refreshVersion by remember { mutableIntStateOf(0) }
@@ -352,12 +353,20 @@ internal fun DmDeskScreen(
                     ) {
                         Text("Mesas", style = MaterialTheme.typography.titleMedium)
                         dmDeskTables.forEach { table ->
-                            Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(1.dp))) {
-                                Text(table.name, style = MaterialTheme.typography.titleSmall)
-                                Text(
-                                    text = "${table.purpose} En preparación.",
-                                    style = MaterialTheme.typography.bodySmall,
-                                )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Column(
+                                    modifier = Modifier.weight(1f),
+                                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(1.dp)),
+                                ) {
+                                    Text(table.name, style = MaterialTheme.typography.titleSmall)
+                                    Text(
+                                        text = if (table.ready) table.purpose else "${table.purpose} En preparación.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                    )
+                                }
+                                if (table.ready) {
+                                    Button(onClick = onOpenDmScreen) { Text("Abrir") }
+                                }
                             }
                         }
                     }

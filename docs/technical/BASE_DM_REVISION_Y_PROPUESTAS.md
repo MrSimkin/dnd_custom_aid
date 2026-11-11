@@ -93,6 +93,7 @@
 | P23 | Mesa de mazmorra · ¿El mapa de zonas con grupo y criaturas puestos a mano queda así? | **«Sí, así»**.<br>• Mapa tipo diagrama, armado en el Gestor de mazmorras del escritorio: zonas unidas por pasajes, incluidos los secretos, sin cuadrícula.<br>• Cada zona muestra su estado, y un toque abre su ficha.<br>• El grupo y las criaturas se ubican a mano, arrastrando o con un toque.<br>• Nada se mueve solo; los relojes solo avisan. |
 | P24 | ¿Qué nombres en español usa la App? | Respuesta en una tabla editada por el propietario (ver abajo). |
 | P25 | Pantalla de entrada (V11-QA-006) · ¿Se puede usar la App sin cuenta? | **«A · Opcional»**, la recomendada. La entrada ofrece «Recibir código» (correo y código) y «Seguir sin cuenta»; sin cuenta, los PJ quedan solo en ese aparato y se puede entrar después. Con cuenta: «Tus campañas» con la marca DM o Jugador, y la App abre el Escritorio DM o los PJ según el papel (P7). |
+| P26 | Referencia rápida · ¿Se descargan los SRD oficiales en español (5.1 y 5.2.1, CC BY 4.0) para sacar el texto? | **«Si, descargalos, pero todo debe ir en la App, usaremos todo lo que esté disponible»**. Los dos SRD completos van dentro de la App (por página, con atribución), no solo las diez fichas; de ahí salen la Referencia rápida y la búsqueda sin conexión. |
 
 ### Nombres en la App (P24, respuesta literal del propietario)
 

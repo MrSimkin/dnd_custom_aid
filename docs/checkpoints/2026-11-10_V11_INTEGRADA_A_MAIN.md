@@ -70,4 +70,14 @@ Si el paso 1 falla, detenerse y no publicar el paso 2. El orden importa: primero
 - Incluye la entrada para jugadores y DM, con la cuenta opcional (P25 «A · Opcional», cubre V11-QA-006), «Tus campañas» con la marca DM o Jugador y el Escritorio DM con sus cuatro mesas y el contenido sincronizado.
 - V11-QA-006 sigue OPEN hasta el QA del propietario.
 
-**Siguiente paso de ingeniería:** el paquete 3, la Pantalla del DM (hojas de PJ, Vista Grupo según P9, Referencia rápida según P10, y la entrada a Consultar reglas), en una rama corta sobre el paquete 2. Después siguen los paquetes 4 a 8 de la sección 7 de `BASE_DM_REVISION_Y_PROPUESTAS.md`, y al final un solo QA del propietario. El paso del propietario en los proveedores, descrito arriba, sigue pendiente; se hará antes del QA.
+**Paquete 3 (Pantalla del DM): implementado** en la rama `feature/dm-screen`, construida sobre el paquete 2. El detalle está en `docs/technical/DM_SCREEN.md`.
+
+- Incluye Hojas de PJ, la Vista Grupo (P9), la Referencia rápida con 10 fichas en 5e y 5.5e (P10) y Consultar reglas con búsqueda sin conexión (P4).
+- Los dos SRD oficiales en español van completos dentro de la App (P26).
+
+**Siguiente paso de ingeniería:** el paquete 4, Archivos e imágenes (P3, P5).
+
+- Primero va el modelo local de archivos: identidad estable, tipo, tamaño, suma de control, y si es solo del DM o apto para jugadores. Sigue el handout a pantalla completa en la tablet.
+- Antes de conectar un proveedor hay que hacer la revisión de costo USD $0 (D-0075, AGENTS §10) y presentarla al propietario. Activar el proveedor es un paso del propietario.
+- Después siguen los paquetes 5 a 8 de la sección 7 de `BASE_DM_REVISION_Y_PROPUESTAS.md`, y al final un solo QA del propietario.
+- El paso del propietario en Neon y Cloudflare del paquete 1 sigue pendiente; se hará antes del QA.
