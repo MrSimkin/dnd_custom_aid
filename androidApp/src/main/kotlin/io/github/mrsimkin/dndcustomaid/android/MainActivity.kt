@@ -231,7 +231,7 @@ private fun DndCustomAidApp(
                 if (campaign == null) {
                     LaunchedEffect(Unit) { screenName = AppScreen.CAMPAIGNS.name }
                 } else {
-                    DmWorkspaceScreen(
+                    AndroidDmWorkspaceScreen(
                         campaign = campaign,
                         database = database,
                         mediaBlobs = mediaBlobs,

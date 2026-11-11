@@ -1,4 +1,4 @@
-package io.github.mrsimkin.dndcustomaid.android
+package io.github.mrsimkin.dndcustomaid.dmui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,7 +43,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
@@ -91,9 +90,7 @@ import kotlin.uuid.Uuid
 /** Values that belong to this combatant only (P32: «lo propio va en naranja»). */
 private val OwnValueColor = Color(0xFFE8730C)
 
-private fun nowSeconds(): Long = System.currentTimeMillis() / 1000
 
-private fun signed(value: Int) = if (value >= 0) "+$value" else value.toString()
 
 private fun d20(): Int = Random.nextInt(1, 21)
 
@@ -133,13 +130,12 @@ internal fun CombatDesk(
     onChanged: () -> Unit,
     onEnded: () -> Unit,
 ) {
-    val context = LocalContext.current
+    val platform = LocalDmPlatform.current
     val repository = remember { DmCombatRepository(database) }
     var sourcesVersion by remember { mutableStateOf(0) }
     val sources = remember(campaign.id, accountId, sourcesVersion) { CombatSources(database, campaign.id, accountId) }
     var doc by remember(combatId) { mutableStateOf(repository.combat(combatId)) }
     val undo = remember(combatId) { mutableStateListOf<CombatDocument>() }
-    val diceMode = remember { UiPreferencesStore(context).load().diceResultMode }
     var showInitiative by remember { mutableStateOf(false) }
     var editor by remember { mutableStateOf<Pair<Uuid, Boolean>?>(null) }
     var addMode by remember { mutableStateOf<AddMode?>(null) }
@@ -152,7 +148,7 @@ internal fun CombatDesk(
     }
 
     fun save(next: CombatDocument) {
-        doc = repository.save(next, nowSeconds())
+        doc = repository.save(next, nowEpochSeconds())
         onChanged()
     }
 
@@ -221,7 +217,6 @@ internal fun CombatDesk(
     if (showInitiative) {
         InitiativeDialog(
             doc = current,
-            visibleDice = diceMode == DiceResultModeChoice.VISIBLE_DICE,
             onChange = ::changeQuiet,
             onDismiss = { showInitiative = false },
             onConfirm = {
@@ -243,7 +238,7 @@ internal fun CombatDesk(
                 onChange = ::changeQuiet,
                 onUndo = { if (undo.isNotEmpty()) save(undo.last()) },
                 onSaveAsCreature = { name, payload ->
-                    CreatureContentRepository(database).createCampaign(campaign.id, name, payload, nowSeconds())
+                    CreatureContentRepository(database).createCampaign(campaign.id, name, payload, nowEpochSeconds())
                     sourcesVersion += 1
                     notice = "«$name» quedó en el bestiario de la campaña; llega a la App de PC al sincronizar."
                 },
@@ -276,7 +271,7 @@ internal fun CombatDesk(
             confirmButton = {
                 Button(onClick = {
                     confirmClose = false
-                    if (preparing) repository.delete(current.id) else repository.save(CombatEngine.end(current), nowSeconds())
+                    if (preparing) repository.delete(current.id) else repository.save(CombatEngine.end(current), nowEpochSeconds())
                     onEnded()
                 }) { Text(if (preparing) "Borrar" else "Terminar") }
             },
@@ -564,11 +559,12 @@ private fun EncounterGuide(doc: CombatDocument, sources: CombatSources) {
 @Composable
 private fun InitiativeDialog(
     doc: CombatDocument,
-    visibleDice: Boolean,
     onChange: (CombatDocument) -> Unit,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
+    val platform = LocalDmPlatform.current
+    val visibleDice = platform.visibleDice
     var lastRoll by remember { mutableStateOf<Pair<String, CharacterResolvedD20Roll>?>(null) }
     val groups = doc.combatants.filter { !it.reserve }.groupBy { it.groupId }
     val missing = doc.turnOrder.count { it.initiative == null }
@@ -600,7 +596,7 @@ private fun InitiativeDialog(
                 }
                 lastRoll?.let { (who, roll) ->
                     Text(who, style = MaterialTheme.typography.labelMedium)
-                    if (visibleDice) CharacterVisibleDiceResultCardV4(roll) else CharacterD20ResultCardV4(roll)
+                    platform.D20Result(roll)
                 }
                 Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     val pcs = doc.turnOrder.filter { it.kind == CombatantKind.PC }.sortedBy { it.label.lowercase() }
@@ -1015,7 +1011,7 @@ private fun CreatureEditorDialog(
                             EditorSection.PACKAGES -> PackageChips(doc, c, whole, sources, onChange)
                             EditorSection.NAME -> {
                                 TextFieldSmall(c.label, "Nombre", 280) { onChange(CombatEngine.setLabel(doc, id, it)) }
-                                CharacterCompactOutlinedTextFieldV4(
+                                DmTextField(
                                     value = c.notes,
                                     onValueChange = { onChange(CombatEngine.setNotes(doc, id, it)) },
                                     label = { Text("Nota") },
@@ -1111,7 +1107,7 @@ private fun AttackEditor(attacks: List<CombatAttack>, baseActions: String, sourc
 @Composable
 private fun OwnText(label: String, own: String?, base: String, lines: Int = 1, onValue: (String?) -> Unit) {
     val isOwn = own != null && own != base
-    CharacterCompactOutlinedTextFieldV4(
+    DmTextField(
         value = own ?: base,
         onValueChange = { onValue(it.takeIf { v -> v != base }) },
         label = { Text(label, color = if (isOwn) OwnValueColor else Color.Unspecified) },
@@ -1227,7 +1223,7 @@ private fun CreaturePicker(
 @Composable
 private fun NumberField(value: Int?, label: String, width: Int, own: Boolean = false, onValue: (Int?) -> Unit) {
     var text by remember(value) { mutableStateOf(value?.toString().orEmpty()) }
-    CharacterCompactOutlinedTextFieldV4(
+    DmTextField(
         value = text,
         onValueChange = { raw ->
             val cleaned = raw.filter { it.isDigit() || it == '-' }.take(4)
@@ -1243,7 +1239,7 @@ private fun NumberField(value: Int?, label: String, width: Int, own: Boolean = f
 
 @Composable
 private fun TextFieldSmall(value: String, label: String, width: Int, numeric: Boolean = false, own: Boolean = false, onValue: (String) -> Unit) {
-    CharacterCompactOutlinedTextFieldV4(
+    DmTextField(
         value = value,
         onValueChange = onValue,
         label = { Text(label, color = if (own) OwnValueColor else Color.Unspecified) },

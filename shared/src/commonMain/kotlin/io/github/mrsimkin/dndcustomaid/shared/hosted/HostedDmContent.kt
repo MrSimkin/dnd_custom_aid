@@ -16,6 +16,8 @@ import io.github.mrsimkin.dndcustomaid.shared.content.NpcContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.NpcPayload
 import io.github.mrsimkin.dndcustomaid.shared.content.PlaceContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.PlacePayload
+import io.github.mrsimkin.dndcustomaid.shared.content.ContentLinks
+import io.github.mrsimkin.dndcustomaid.shared.content.ContentLinksRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentFamily
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentItem
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentRepository
@@ -149,6 +151,8 @@ interface HostedDmContentTransport {
     suspend fun mediaContent(sha256: String, contentId: Uuid): ByteArray
 }
 
+private const val LINKS_KEY = "links"
+
 internal fun dmContentJson(): Json = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true
@@ -174,6 +178,7 @@ class DmContentSnapshotCodec(
     private val scenes = SceneContentRepository(database, reusableContent)
     private val handouts = HandoutContentRepository(database, reusableContent)
     private val packages = PackageContentRepository(database, reusableContent)
+    private val links = ContentLinksRepository(database)
 
     fun supportsFamily(family: String): Boolean = ReusableContentFamily.entries.any { it.name == family }
 
@@ -195,7 +200,7 @@ class DmContentSnapshotCodec(
             ReusableContentFamily.SCENE -> encode(ScenePayload.serializer(), scenes.payload(id))
             ReusableContentFamily.HANDOUT -> encode(HandoutPayload.serializer(), handouts.payload(id))
             ReusableContentFamily.PACKAGE -> encode(PackagePayload.serializer(), packages.payload(id))
-        }
+        }.withLinks(links.links(id))
         val provenance = item.identity.provenance?.let {
             val (kind, ref) = encodeScope(it.sourceScope)
             DmContentProvenanceDocument(
@@ -295,7 +300,21 @@ class DmContentSnapshotCodec(
         }
     }
 
-    private fun canonicalPayload(family: ReusableContentFamily, payload: JsonObject): JsonObject = when (family) {
+    /** Package 6: structured links travel inside the payload under "links"; none means no key. */
+    private fun JsonObject.withLinks(value: ContentLinks): JsonObject {
+        val clean = value.normalized()
+        if (clean.isEmpty) return JsonObject(this - LINKS_KEY)
+        return JsonObject(this + (LINKS_KEY to json.encodeToJsonElement(ContentLinks.serializer(), clean)))
+    }
+
+    private fun linksOf(payload: JsonObject): ContentLinks =
+        (payload[LINKS_KEY] as? JsonObject)?.let { runCatching { json.decodeFromJsonElement(ContentLinks.serializer(), it) }.getOrNull() }
+            ?: ContentLinks()
+
+    private fun canonicalPayload(family: ReusableContentFamily, payload: JsonObject): JsonObject =
+        familyCanonicalPayload(family, payload).withLinks(linksOf(payload))
+
+    private fun familyCanonicalPayload(family: ReusableContentFamily, payload: JsonObject): JsonObject = when (family) {
         ReusableContentFamily.CREATURE -> roundTrip(CreaturePayload.serializer(), payload)
         ReusableContentFamily.NPC -> roundTrip(NpcPayload.serializer(), payload)
         ReusableContentFamily.HOMEBREW_RULE -> roundTrip(HomebrewRulePayload.serializer(), payload)
@@ -308,6 +327,7 @@ class DmContentSnapshotCodec(
     }
 
     private fun writePayload(family: ReusableContentFamily, id: Uuid, payload: JsonObject) {
+        links.save(id, linksOf(payload))
         when (family) {
             ReusableContentFamily.CREATURE -> json.decodeFromJsonElement(CreaturePayload.serializer(), payload).let {
                 if (creatures.payload(id) == null) creatures.insertPayload(id, it) else creatures.updatePayloadRow(id, it)

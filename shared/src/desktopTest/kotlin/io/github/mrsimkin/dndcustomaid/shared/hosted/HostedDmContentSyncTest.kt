@@ -2,7 +2,15 @@ package io.github.mrsimkin.dndcustomaid.shared.hosted
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.ContentLinks
+import io.github.mrsimkin.dndcustomaid.shared.content.ContentLinksRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.CreatureAbilityScores
+import io.github.mrsimkin.dndcustomaid.shared.content.NpcContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.NpcPayload
+import io.github.mrsimkin.dndcustomaid.shared.content.PlaceContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.PlaceKind
+import io.github.mrsimkin.dndcustomaid.shared.content.PlacePayload
+import io.github.mrsimkin.dndcustomaid.shared.content.ShopItem
 import io.github.mrsimkin.dndcustomaid.shared.content.CreatureContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.CreaturePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterContentRepository
@@ -84,6 +92,29 @@ class HostedDmContentSyncTest {
         assertTrue(quietPc.pushedIds.isEmpty() && quietPc.appliedIds.isEmpty())
         assertTrue(quietTablet.pushedIds.isEmpty() && quietTablet.appliedIds.isEmpty())
         assertEquals(4, quietTablet.unchangedCount)
+    }
+
+    @Test
+    fun structuredLinksTravelWithTheirContentAndALinkEditIsAnEdit() = scenario { _, pc, tablet ->
+        val shop = PlaceContentRepository(pc.database).createCampaign(campaignId, "Herrería", PlacePayload(kind = PlaceKind.SHOP), 100)
+        val smith = NpcContentRepository(pc.database).createCampaign(campaignId, "Bruna", NpcPayload(conceptRole = "Herrera"), 100)
+        val shopId = shop.item.identity.id
+        val smithId = smith.item.identity.id
+        val pcLinks = ContentLinksRepository(pc.database)
+        pcLinks.save(smithId, ContentLinks(placeIds = listOf(shopId), groups = listOf(" Gremio ", "gremio")))
+        pcLinks.save(shopId, ContentLinks(npcIds = listOf(smithId), shopItems = listOf(ShopItem("Cota de malla", "75 po", highlighted = true))))
+
+        assertEquals(2, pc.sync().pushedIds.size)
+        assertEquals(2, tablet.sync().appliedIds.size)
+        val tabletLinks = ContentLinksRepository(tablet.database)
+        assertEquals(ContentLinks(placeIds = listOf(shopId), groups = listOf("Gremio")), tabletLinks.links(smithId), "groups arrive cleaned")
+        assertEquals("75 po", tabletLinks.links(shopId).shopItems.single().price)
+
+        pcLinks.save(shopId, pcLinks.links(shopId).copy(shopItems = listOf(ShopItem("Cota de malla", "70 po"))))
+        assertEquals(listOf(shopId), pc.sync().pushedIds, "changing only a link sends the place again")
+        tablet.sync()
+        assertEquals("70 po", tabletLinks.links(shopId).shopItems.single().price)
+        assertTrue(tablet.sync().appliedIds.isEmpty() && pc.sync().pushedIds.isEmpty(), "nothing moves without edits")
     }
 
     @Test

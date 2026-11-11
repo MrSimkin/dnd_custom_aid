@@ -42,6 +42,8 @@ import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.DesktopDatabaseFactory
 import io.github.mrsimkin.dndcustomaid.shared.content.FileMediaBlobStore
+import io.github.mrsimkin.dndcustomaid.shared.content.MediaBlobStore
+import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import java.io.File
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
@@ -58,6 +60,11 @@ fun main() {
     // Base para DM, package 4: images are stored next to the database, by checksum.
     val mediaBlobs = FileMediaBlobStore(File(DesktopDatabaseFactory.defaultDatabaseFile().parentFile, "media"))
     val handoutManagerController = DesktopHandoutManagerController(databaseHandle.database, mediaBlobs)
+    // Base para DM: the live desks, shared with the Android tablet (module dmUi).
+    val contentLinksController = DesktopContentLinksController(databaseHandle.database, mediaBlobs)
+    val dmPlatform = DesktopDmPlatform(
+        DesktopDmKeyValueStore(File(DesktopDatabaseFactory.defaultDatabaseFile().parentFile, "dm_workspace.properties")),
+    )
     val preferencesStore = DesktopPreferencesStore()
     val hostedAuthController = DesktopHostedAuthController()
     val hostedCampaignController = DesktopHostedCampaignAdministrationController(
@@ -75,7 +82,11 @@ fun main() {
                 var preferences by remember { mutableStateOf(preferencesStore.load()) }
 
                 DesktopAppTheme(preferences) {
+                    ProvideDesktopContentLinks(contentLinksController) {
                     DesktopWorkbench(
+                        database = databaseHandle.database,
+                        mediaBlobs = mediaBlobs,
+                        dmPlatform = dmPlatform,
                         campaignRepository = campaignRepository,
                         creatureManagerController = creatureManagerController,
                         npcManagerController = npcManagerController,
@@ -91,6 +102,7 @@ fun main() {
                             preferencesStore.save(updated)
                         },
                     )
+                    }
                 }
             }
         }
@@ -103,11 +115,11 @@ fun main() {
 
 private enum class DesktopDestination(val label: String) {
     DASHBOARD("Dashboard"),
+    DM_DESK("Escritorio DM (mesa en vivo)"),
     CAMPAIGNS("Campañas"),
     PLAYER_CHARACTERS("Personajes jugadores"),
     MEDIA_HANDOUTS("Medios / Handouts"),
     MANAGERS("Gestores"),
-    COMBAT("Combate"),
     CAMPAIGN_ADMINISTRATION("Administración de campaña"),
     SYSTEM_ADMINISTRATION("Administración del sistema"),
     EXPORT_BACKUP("Exportar / Backup"),
@@ -117,6 +129,9 @@ private enum class DesktopDestination(val label: String) {
 
 @Composable
 private fun DesktopWorkbench(
+    database: AppDatabase,
+    mediaBlobs: MediaBlobStore,
+    dmPlatform: DesktopDmPlatform,
     campaignRepository: CampaignRepository,
     creatureManagerController: DesktopCreatureManagerController,
     npcManagerController: DesktopNpcManagerController,
@@ -154,6 +169,21 @@ private fun DesktopWorkbench(
             destination = next
             logQa("Navegación: ${next.label}")
         }
+    }
+
+    // The Escritorio DM takes the whole window, like on the tablet; «← Campañas» comes back here.
+    val deskCampaign = activeCampaign
+    if (destination == DesktopDestination.DM_DESK && deskCampaign != null) {
+        DesktopDmWorkspaceScreen(
+            campaign = deskCampaign,
+            database = database,
+            mediaBlobs = mediaBlobs,
+            platform = dmPlatform,
+            hostedController = hostedCampaignController,
+            onExit = { selectDestination(DesktopDestination.DASHBOARD) },
+            onOpenAppSettings = { selectDestination(DesktopDestination.APPLICATION_SETTINGS) },
+        )
+        return
     }
 
     Scaffold(
@@ -243,6 +273,14 @@ private fun DesktopWorkbench(
                         preferences = preferences,
                         onPreferencesChange = onPreferencesChange,
                     )
+
+                    DesktopDestination.DM_DESK -> Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp))) {
+                        WorkbenchHeading(
+                            title = "Escritorio DM",
+                            subtitle = "Elige primero la campaña activa: el Escritorio DM abre sus mesas en vivo.",
+                        )
+                        Button(onClick = { selectDestination(DesktopDestination.CAMPAIGNS) }) { Text("Ir a Campañas") }
+                    }
 
                     DesktopDestination.QA_DIAGNOSTICS -> QaDiagnosticsScreen(
                         campaigns = campaigns,

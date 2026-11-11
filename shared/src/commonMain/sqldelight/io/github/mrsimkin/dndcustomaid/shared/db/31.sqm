@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS dm_content_links (
+    content_id TEXT NOT NULL PRIMARY KEY REFERENCES reusable_content(id) ON DELETE CASCADE,
+    links_json TEXT NOT NULL CHECK (length(trim(links_json)) > 0)
+);

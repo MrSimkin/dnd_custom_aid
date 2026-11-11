@@ -300,6 +300,7 @@ private fun HandoutEditor(
             }) { Text("Guardar") }
             TextButton(onClick = onDelete) { Text("Borrar") }
         }
+        DesktopContentLinksSection(handout.item, handoutKind = kind)
     }
 }
 

@@ -461,6 +461,7 @@ private fun ZoneEditor(
         item { ZoneField("Guía DM", draft.dmGuidance, false, 5) { onDraftChange(draft.copy(dmGuidance = it)) } }
         item { ZoneField("Referencias de papel (una por línea)", draft.paperReferences, false, 3) { onDraftChange(draft.copy(paperReferences = it)) } }
         item { ZoneField("Etiquetas (coma o línea)", draft.tags, false, 3) { onDraftChange(draft.copy(tags = it)) } }
+        item { DesktopContentLinksSection(content.item) }
     }
 }
 

@@ -47,6 +47,8 @@ android {
     }
 
     sourceSets.getByName("main").assets.srcDir(rootProject.file("assets"))
+    // Base para DM: the desks shared with the Windows app, compiled here with this App's own Compose.
+    sourceSets.getByName("main").kotlin.srcDir(rootProject.file("dmUi/src/kotlin"))
 }
 
 dependencies {

@@ -1,6 +1,5 @@
-package io.github.mrsimkin.dndcustomaid.android
+package io.github.mrsimkin.dndcustomaid.dmui
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -37,7 +36,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -81,30 +79,25 @@ import kotlin.uuid.Uuid
 
 /** Loads the SRD assets once per process; parsing 3 MB of JSON stays off the main thread. */
 internal object SrdAssets {
-    @Volatile private var quick: SrdQuickReference? = null
-    @Volatile private var corpora: List<SrdCorpus>? = null
+    private var quick: SrdQuickReference? = null
+    private var corpora: List<SrdCorpus>? = null
 
-    suspend fun quickReference(context: Context): SrdQuickReference = quick ?: withContext(Dispatchers.IO) {
-        parseSrdQuickReference(read(context, "srd/quick_reference_es.json")).also { quick = it }
+    suspend fun quickReference(platform: DmPlatform): SrdQuickReference = quick ?: withContext(Dispatchers.Default) {
+        parseSrdQuickReference(platform.readSrd("quick_reference_es.json")).also { quick = it }
     }
 
-    suspend fun corpora(context: Context): List<SrdCorpus> = corpora ?: withContext(Dispatchers.IO) {
-        listOf("srd/srd_5_1_es.json", "srd/srd_5_2_1_es.json").map { parseSrdCorpus(read(context, it)) }.also { corpora = it }
+    suspend fun corpora(platform: DmPlatform): List<SrdCorpus> = corpora ?: withContext(Dispatchers.Default) {
+        listOf("srd_5_1_es.json", "srd_5_2_1_es.json").map { parseSrdCorpus(platform.readSrd(it)) }.also { corpora = it }
     }
-
-    private fun read(context: Context, path: String): String =
-        context.assets.open(path).bufferedReader(Charsets.UTF_8).use { it.readText() }
 }
 
 /** The campaign's rules version for the reference, remembered per campaign on this device. */
-internal class DmScreenPreferences(context: Context) {
-    private val prefs = context.applicationContext.getSharedPreferences("dnd_custom_aid_dm_screen", Context.MODE_PRIVATE)
-
+internal class DmScreenPreferences(private val store: DmKeyValueStore) {
     fun campaignVersion(campaignId: Uuid): SrdVersion =
-        SrdVersion.fromKey(prefs.getString("srd_version_$campaignId", null)) ?: SrdVersion.SRD_5_2_1
+        SrdVersion.fromKey(store.getString("srd_version_$campaignId")) ?: SrdVersion.SRD_5_2_1
 
     fun setCampaignVersion(campaignId: Uuid, version: SrdVersion) {
-        prefs.edit().putString("srd_version_$campaignId", version.key).apply()
+        store.putString("srd_version_$campaignId", version.key)
     }
 }
 
@@ -112,22 +105,22 @@ private fun partyLensFor(database: AppDatabase, characters: List<CharacterSheet>
     val closures = CharacterClosureRepository(database)
     return partyLens(
         members = characters.map { sheet -> PartyLensMember(sheet, runCatching { closures.state(sheet.id).senses }.getOrDefault(emptyList())) },
-        formatFeet = ::formatCharacterDistanceFeetV4,
+        formatFeet = ::formatFeet,
     )
 }
 
 @Composable
 internal fun DmScreenDesk(campaign: Campaign, database: AppDatabase, onOpenPanel: (DeskPanel) -> Unit) {
-    val context = LocalContext.current
+    val platform = LocalDmPlatform.current
     val characters = remember(campaign.id) { CharacterRepository(database).listCharacters(campaign.id) }
     val lens = remember(characters) { partyLensFor(database, characters) }
     var tableView by rememberSaveable { mutableStateOf(false) }
-    val screenPrefs = remember { DmScreenPreferences(context) }
-    val workspacePrefs = remember { DmWorkspacePreferences(context) }
+    val screenPrefs = remember { DmScreenPreferences(platform.store) }
+    val workspacePrefs = remember { DmWorkspacePreferences(platform.store) }
     var version by remember(campaign.id) { mutableStateOf(screenPrefs.campaignVersion(campaign.id)) }
     var quick by remember { mutableStateOf<SrdQuickReference?>(null) }
     var recent by remember { mutableStateOf(workspacePrefs.recentReferenceCards()) }
-    LaunchedEffect(Unit) { quick = SrdAssets.quickReference(context) }
+    LaunchedEffect(Unit) { quick = SrdAssets.quickReference(platform) }
 
     fun openCard(id: String) {
         workspacePrefs.pushRecentReferenceCard(id)
@@ -272,7 +265,6 @@ private fun PartyLensTable(lens: PartyLens) {
     }
 }
 
-private fun signed(value: Int) = if (value >= 0) "+$value" else value.toString()
 
 @Composable
 private fun SheetLine(label: String, value: String) {
@@ -295,14 +287,14 @@ internal fun PcQuickSheetPanel(database: AppDatabase, characterId: Uuid, onOpenF
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(pc.name, style = MaterialTheme.typography.titleLarge)
         Text(pc.classes.joinToString(" / ") { "${it.name} ${it.level}" }, style = MaterialTheme.typography.bodySmall)
-        SheetLine("CA · PV máx · Velocidad", "${pc.armorClass} · ${pc.maxHp} · ${formatCharacterDistanceFeetV4(pc.speed)}")
+        SheetLine("CA · PV máx · Velocidad", "${pc.armorClass} · ${pc.maxHp} · ${formatFeet(pc.speed)}")
         SheetLine(
             "Salvaciones destacadas",
             CharacterAbility.entries.filter { a -> pc.savingThrows.any { it.ability == a && it.proficient } }
                 .joinToString(" · ") { "${characterAbilityAbbreviation(it)} ${signed(pc.savingThrowTotal(it))}" },
         )
         SheetLine("Pasivas", "Percepción ${pc.passivePerception} · Perspicacia ${pc.passiveInsight} · Investigación ${pc.passiveInvestigation}")
-        SheetLine("Sentidos", senses.sortedBy { it.sortOrder }.joinToString(", ") { s -> s.rangeFeet?.let { "${s.name} ${formatCharacterDistanceFeetV4(it)}" } ?: s.name })
+        SheetLine("Sentidos", senses.sortedBy { it.sortOrder }.joinToString(", ") { s -> s.rangeFeet?.let { "${s.name} ${formatFeet(it)}" } ?: s.name })
         SheetLine("Idiomas", pc.proficiencies.filter { it.type == CharacterProficiencyType.LANGUAGE }.joinToString(", ") { it.name })
         SheetLine(
             "Ataques principales",
@@ -375,11 +367,11 @@ internal fun PcFullSheetPanel(database: AppDatabase, characterId: Uuid) {
 
 @Composable
 internal fun ReferenceCardPanel(campaignId: Uuid, cardId: String) {
-    val context = LocalContext.current
-    val prefs = remember { DmScreenPreferences(context) }
+    val platform = LocalDmPlatform.current
+    val prefs = remember { DmScreenPreferences(platform.store) }
     var quick by remember { mutableStateOf<SrdQuickReference?>(null) }
     var showingOther by remember(cardId) { mutableStateOf(false) }
-    LaunchedEffect(Unit) { quick = SrdAssets.quickReference(context) }
+    LaunchedEffect(Unit) { quick = SrdAssets.quickReference(platform) }
     val reference = quick ?: run {
         Text("Cargando el SRD…", modifier = Modifier.padding(vertical = 12.dp))
         return
@@ -409,15 +401,15 @@ internal fun ReferenceCardPanel(campaignId: Uuid, cardId: String) {
 /** «Pregunta una regla»: offline word search over both SRDs (P4); the AI answer is package 8. */
 @Composable
 internal fun RulesPanel(campaignId: Uuid, onOpenCard: (String) -> Unit) {
-    val context = LocalContext.current
+    val platform = LocalDmPlatform.current
     var query by rememberSaveable { mutableStateOf("") }
     var searched by rememberSaveable { mutableStateOf("") }
     var corpora by remember { mutableStateOf<List<SrdCorpus>?>(null) }
     var quick by remember { mutableStateOf<SrdQuickReference?>(null) }
     var hits by remember { mutableStateOf<List<SrdSearchHit>>(emptyList()) }
     LaunchedEffect(Unit) {
-        quick = SrdAssets.quickReference(context)
-        corpora = SrdAssets.corpora(context)
+        quick = SrdAssets.quickReference(platform)
+        corpora = SrdAssets.corpora(platform)
     }
     LaunchedEffect(searched, corpora) {
         val loaded = corpora ?: return@LaunchedEffect
@@ -426,7 +418,7 @@ internal fun RulesPanel(campaignId: Uuid, onOpenCard: (String) -> Unit) {
     LazyColumn(contentPadding = PaddingValues(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                CharacterCompactOutlinedTextFieldV4(
+                DmTextField(
                     value = query,
                     onValueChange = { query = it },
                     label = { Text("Pregunta una regla") },

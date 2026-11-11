@@ -1,148 +1,63 @@
 package io.github.mrsimkin.dndcustomaid.android
 
 import android.content.Context
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import android.graphics.BitmapFactory
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
+import io.github.mrsimkin.dndcustomaid.dmui.DmKeyValueStore
+import io.github.mrsimkin.dndcustomaid.dmui.DmPlatform
+import io.github.mrsimkin.dndcustomaid.dmui.DmSyncResult
+import io.github.mrsimkin.dndcustomaid.dmui.DmWorkspaceScreen
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
-import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
-import io.github.mrsimkin.dndcustomaid.shared.content.HandoutContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResolvedD20Roll
 import io.github.mrsimkin.dndcustomaid.shared.content.MediaBlobStore
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
-import io.github.mrsimkin.dndcustomaid.shared.dm.CombatDocument
-import io.github.mrsimkin.dndcustomaid.shared.dm.CombatEngine
-import io.github.mrsimkin.dndcustomaid.shared.dm.CombatStatus
-import io.github.mrsimkin.dndcustomaid.shared.dm.DmCombatRepository
-import io.github.mrsimkin.dndcustomaid.shared.dm.effective
-import kotlinx.coroutines.launch
 import kotlin.uuid.Uuid
 
 /*
- * Base para DM · Escritorio DM (approved design DM_UX_APROBADA.md §1, owner decisions P28-P31).
- *
- * A fixed side rail with every open desk (one tap to switch; each desk remembers where it was),
- * the overview with a card per desk, tools that open as a side panel over the current desk, and
- * the sync status. Settings offer top tabs instead of the rail. Phones get a bottom bar.
+ * Base para DM on the Android tablet. The desks themselves live in the shared `dmUi` module (the
+ * same ones the Windows app shows); this file supplies what is Android's own: settings storage, the
+ * bundled SRD assets, the PC sheet's dice cards and the hosted sync.
  */
 
-/** Which desk is on screen. Encoded as text so it survives rotation and is remembered per campaign. */
-internal sealed interface DeskRef {
-    val key: String
+private class AndroidDmPlatform(context: Context) : DmPlatform {
+    private val appContext = context.applicationContext
+    private val prefs = appContext.getSharedPreferences("dnd_custom_aid_dm_workspace", Context.MODE_PRIVATE)
 
-    data object Overview : DeskRef { override val key = "overview" }
-    data object DmScreen : DeskRef { override val key = "dm" }
-    data object Scene : DeskRef { override val key = "scene" }
-    data object Dungeon : DeskRef { override val key = "dungeon" }
-    data class Combat(val id: Uuid) : DeskRef { override val key = "combat:$id" }
+    override val store = object : DmKeyValueStore {
+        override fun getString(key: String): String? = prefs.getString(key, null)
 
-    companion object {
-        fun parse(key: String?): DeskRef = when {
-            key == null -> Overview
-            key == "dm" -> DmScreen
-            key == "scene" -> Scene
-            key == "dungeon" -> Dungeon
-            key.startsWith("combat:") -> runCatching { Combat(Uuid.parse(key.removePrefix("combat:"))) }.getOrDefault(Overview)
-            else -> Overview
+        override fun putString(key: String, value: String?) {
+            prefs.edit().apply { if (value == null) remove(key) else putString(key, value) }.apply()
         }
     }
-}
 
-/** What the side panel shows (P30): a tool, a PC quick sheet, a reference card or a full sheet. */
-internal sealed interface DeskPanel {
-    data object Rules : DeskPanel
-    data object Handouts : DeskPanel
-    data object Notes : DeskPanel
-    data object Clocks : DeskPanel
-    data class PcQuickSheet(val characterId: Uuid) : DeskPanel
-    data class PcFullSheet(val characterId: Uuid) : DeskPanel
-    data class ReferenceCard(val cardId: String) : DeskPanel
-}
+    override fun readSrd(fileName: String): String =
+        appContext.assets.open("srd/$fileName").bufferedReader(Charsets.UTF_8).use { it.readText() }
 
-internal enum class DmNavStyle(val label: String) {
-    RAIL("Barra lateral"),
-    TOP_TABS("Pestañas arriba"),
-}
-
-/** Per-device presentation state (D-0068 §2: kept apart from shared campaign state). */
-internal class DmWorkspacePreferences(context: Context) {
-    private val prefs = context.applicationContext.getSharedPreferences("dnd_custom_aid_dm_workspace", Context.MODE_PRIVATE)
-
-    var navStyle: DmNavStyle
-        get() = runCatching { DmNavStyle.valueOf(prefs.getString("nav_style", null) ?: "") }.getOrDefault(DmNavStyle.RAIL)
-        set(value) = prefs.edit().putString("nav_style", value.name).apply()
-
-    fun lastDesk(campaignId: Uuid): String? = prefs.getString("last_desk_$campaignId", null)
-
-    fun setLastDesk(campaignId: Uuid, key: String) = prefs.edit().putString("last_desk_$campaignId", key).apply()
-
-    var lastSyncEpochSeconds: Long
-        get() = prefs.getLong("last_sync", 0L)
-        set(value) = prefs.edit().putLong("last_sync", value).apply()
-
-    fun recentReferenceCards(): List<String> = prefs.getString("recent_reference", "").orEmpty().split(',').filter { it.isNotBlank() }
-
-    fun pushRecentReferenceCard(id: String) {
-        val list = (listOf(id) + recentReferenceCards().filter { it != id }).take(4)
-        prefs.edit().putString("recent_reference", list.joinToString(",")).apply()
+    /** Sampled down so a thumbnail never holds a full-size bitmap. */
+    override fun decodeImage(bytes: ByteArray, maxSide: Int): ImageBitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        var sample = 1
+        while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= maxSide) sample *= 2
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })?.asImageBitmap()
     }
-}
 
-private fun nowEpochSeconds(): Long = System.currentTimeMillis() / 1000
+    override val visibleDice: Boolean
+        get() = UiPreferencesStore(appContext).load().diceResultMode == DiceResultModeChoice.VISIBLE_DICE
 
-internal fun syncAgoText(lastSync: Long): String {
-    if (lastSync <= 0L) return "Sin sincronizar"
-    val minutes = (nowEpochSeconds() - lastSync) / 60
-    return when {
-        minutes < 1 -> "Sincronizado recién"
-        minutes < 60 -> "Sincronizado hace $minutes min"
-        minutes < 60 * 24 -> "Sincronizado hace ${minutes / 60} h"
-        else -> "Sincronizado hace ${minutes / (60 * 24)} d"
+    @Composable
+    override fun D20Result(roll: CharacterResolvedD20Roll) {
+        if (visibleDice) CharacterVisibleDiceResultCardV4(roll) else CharacterD20ResultCardV4(roll)
     }
 }
 
 @Composable
-internal fun DmWorkspaceScreen(
+internal fun AndroidDmWorkspaceScreen(
     campaign: Campaign,
     database: AppDatabase,
     mediaBlobs: MediaBlobStore,
@@ -152,520 +67,22 @@ internal fun DmWorkspaceScreen(
     onOpenAppSettings: () -> Unit,
 ) {
     val context = LocalContext.current
-    val prefs = remember { DmWorkspacePreferences(context) }
-    val scope = rememberCoroutineScope()
-    var deskKey by rememberSaveable(campaign.id.toString()) { mutableStateOf(prefs.lastDesk(campaign.id) ?: DeskRef.Overview.key) }
-    var panel by remember { mutableStateOf<DeskPanel?>(null) }
-    var navStyle by remember { mutableStateOf(prefs.navStyle) }
-    var showDeskSettings by remember { mutableStateOf(false) }
-    var version by remember { mutableIntStateOf(0) }
-    var syncing by remember { mutableStateOf(false) }
-    var lastSync by remember { mutableStateOf(prefs.lastSyncEpochSeconds) }
-    var syncMessage by remember { mutableStateOf<String?>(null) }
-
-    val combatRepository = remember { DmCombatRepository(database) }
-    val combats = remember(version, campaign.id) { combatRepository.list(campaign.id) }
-    val openCombats = combats.filter { it.status != CombatStatus.ENDED }.sortedBy { it.createdAtEpochSeconds }
-    var desk = DeskRef.parse(deskKey)
-    if (desk is DeskRef.Combat && openCombats.none { it.id == (desk as DeskRef.Combat).id }) desk = DeskRef.Overview
-
-    fun open(target: DeskRef) {
-        deskKey = target.key
-        prefs.setLastDesk(campaign.id, target.key)
-    }
-
-    fun newCombat() {
-        val pcs = CharacterRepository(database).listCharacters(campaign.id)
-        val created = CombatEngine.addPcs(CombatEngine.new(campaign.id, "Combate ${combats.size + 1}", nowEpochSeconds()), pcs)
-        combatRepository.save(created, nowEpochSeconds())
-        version += 1
-        open(DeskRef.Combat(created.id))
-    }
-
-    fun sync() {
-        if (syncing) return
-        syncing = true
-        scope.launch {
-            try {
-                syncMessage = when (val outcome = hostedBootstrap.refresh()) {
-                    is AndroidHostedCampaignBootstrapOutcome.Success -> {
-                        prefs.lastSyncEpochSeconds = nowEpochSeconds()
-                        lastSync = prefs.lastSyncEpochSeconds
-                        outcome.dmContentError?.let { "El contenido del DM quedó guardado para reintentar." }
-                    }
-                    AndroidHostedCampaignBootstrapOutcome.NoRememberedSession -> "Entra con tu cuenta para sincronizar."
-                    is AndroidHostedCampaignBootstrapOutcome.Failure -> outcome.message
-                }
-                version += 1
-            } finally {
-                syncing = false
+    val platform = remember { AndroidDmPlatform(context) }
+    DmWorkspaceScreen(
+        campaign = campaign,
+        database = database,
+        mediaBlobs = mediaBlobs,
+        platform = platform,
+        accountId = accountId,
+        onSync = {
+            when (val outcome = hostedBootstrap.refresh()) {
+                is AndroidHostedCampaignBootstrapOutcome.Success ->
+                    DmSyncResult(synced = true, message = outcome.dmContentError?.let { "El contenido del DM quedó guardado para reintentar." })
+                AndroidHostedCampaignBootstrapOutcome.NoRememberedSession -> DmSyncResult(false, "Entra con tu cuenta para sincronizar.")
+                is AndroidHostedCampaignBootstrapOutcome.Failure -> DmSyncResult(false, outcome.message)
             }
-        }
-    }
-
-    val deskTitle = when (desk) {
-        DeskRef.Overview -> "Escritorio"
-        DeskRef.DmScreen -> "Pantalla del DM"
-        DeskRef.Scene -> "Mesa de Escena"
-        DeskRef.Dungeon -> "Mesa de Dungeon"
-        is DeskRef.Combat -> openCombats.firstOrNull { it.id == (desk as DeskRef.Combat).id }?.name ?: "Combate"
-    }
-
-    val content: @Composable () -> Unit = {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(deskTitle, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
-                TextButton(onClick = { showDeskSettings = true }) { Text("⚙") }
-            }
-            Box(modifier = Modifier.fillMaxSize()) {
-                when (val current = desk) {
-                    DeskRef.Overview -> OverviewDesk(
-                        campaign = campaign,
-                        database = database,
-                        combats = openCombats,
-                        version = version,
-                        onOpen = ::open,
-                        onNewCombat = ::newCombat,
-                    )
-                    DeskRef.DmScreen -> DmScreenDesk(
-                        campaign = campaign,
-                        database = database,
-                        onOpenPanel = { panel = it },
-                    )
-                    DeskRef.Scene -> UpcomingDesk(
-                        title = "Mesa de Escena",
-                        lines = listOf(
-                            "Buscador con filtros por tipo, fijados y recientes.",
-                            "PNJ por idea o por contexto; «PNJ aquí» en cada ficha.",
-                            "Recorrer por zona, por función, por aventura o en el mapa.",
-                        ),
-                        packageNumber = 6,
-                    )
-                    DeskRef.Dungeon -> UpcomingDesk(
-                        title = "Mesa de Dungeon",
-                        lines = listOf(
-                            "Mapa de zonas con el grupo y las criaturas puestos a mano.",
-                            "Fichas de zona como papeles, con marcas de un toque.",
-                            "Turno de Dungeon, relojes, notas y emboscada con ronda sorpresa.",
-                        ),
-                        packageNumber = 7,
-                    )
-                    is DeskRef.Combat -> CombatDesk(
-                        campaign = campaign,
-                        database = database,
-                        accountId = accountId,
-                        combatId = current.id,
-                        onChanged = { version += 1 },
-                        onEnded = {
-                            version += 1
-                            open(DeskRef.Overview)
-                        },
-                    )
-                }
-            }
-        }
-    }
-
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val compact = maxWidth < 600.dp
-            val panelContent: @Composable (DeskPanel) -> Unit = { shown ->
-                DeskPanelContent(
-                    panel = shown,
-                    campaign = campaign,
-                    database = database,
-                    mediaBlobs = mediaBlobs,
-                    onOpenPanel = { panel = it },
-                    onClose = { panel = null },
-                )
-            }
-            when {
-                compact -> Column(modifier = Modifier.fillMaxSize()) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        content()
-                        panel?.let { shown ->
-                            Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface, tonalElevation = 3.dp) { panelContent(shown) }
-                        }
-                    }
-                    PhoneDeskBar(
-                        desk = desk,
-                        openCombats = openCombats,
-                        onOpen = { panel = null; open(it) },
-                        onRules = { panel = DeskPanel.Rules },
-                        onHandouts = { panel = DeskPanel.Handouts },
-                        onExit = onExitToCampaigns,
-                    )
-                }
-                navStyle == DmNavStyle.TOP_TABS -> Column(modifier = Modifier.fillMaxSize()) {
-                    DeskTabs(
-                        campaign = campaign,
-                        desk = desk,
-                        openCombats = openCombats,
-                        syncText = if (syncing) "Sincronizando…" else syncAgoText(lastSync),
-                        onOpen = ::open,
-                        onNewCombat = ::newCombat,
-                        onPanel = { panel = if (panel == it) null else it },
-                        onSync = ::sync,
-                        onExit = onExitToCampaigns,
-                    )
-                    Row(modifier = Modifier.fillMaxSize()) {
-                        Box(modifier = Modifier.weight(1f).fillMaxHeight()) { content() }
-                        panel?.let { SidePanel { panelContent(it) } }
-                    }
-                }
-                else -> Row(modifier = Modifier.fillMaxSize()) {
-                    DeskRail(
-                        campaign = campaign,
-                        desk = desk,
-                        openCombats = openCombats,
-                        syncText = if (syncing) "Sincronizando…" else syncAgoText(lastSync),
-                        onOpen = ::open,
-                        onNewCombat = ::newCombat,
-                        onPanel = { panel = if (panel == it) null else it },
-                        onSync = ::sync,
-                        onExit = onExitToCampaigns,
-                    )
-                    Box(modifier = Modifier.weight(1f).fillMaxHeight()) { content() }
-                    panel?.let { SidePanel { panelContent(it) } }
-                }
-            }
-        }
-    }
-
-    syncMessage?.let { message ->
-        AlertDialog(
-            onDismissRequest = { syncMessage = null },
-            text = { Text(message) },
-            confirmButton = { TextButton(onClick = { syncMessage = null }) { Text("Entendido") } },
-        )
-    }
-
-    if (showDeskSettings) {
-        AlertDialog(
-            onDismissRequest = { showDeskSettings = false },
-            title = { Text("Escritorio") },
-            text = {
-                Column {
-                    Text("Cómo se muestran las mesas", style = MaterialTheme.typography.titleSmall)
-                    DmNavStyle.entries.forEach { style ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth().clickable {
-                                navStyle = style
-                                prefs.navStyle = style
-                            },
-                        ) {
-                            RadioButton(selected = navStyle == style, onClick = { navStyle = style; prefs.navStyle = style })
-                            Text(style.label)
-                        }
-                    }
-                }
-            },
-            confirmButton = { TextButton(onClick = { showDeskSettings = false }) { Text("Cerrar") } },
-            dismissButton = {
-                TextButton(onClick = {
-                    showDeskSettings = false
-                    onOpenAppSettings()
-                }) { Text("Configuración general") }
-            },
-        )
-    }
+        },
+        onExitToCampaigns = onExitToCampaigns,
+        onOpenAppSettings = onOpenAppSettings,
+    )
 }
-
-@Composable
-private fun RailItem(title: String, subtitle: String? = null, selected: Boolean, onClick: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
-                MaterialTheme.shapes.small,
-            )
-            .clickable(onClick = onClick)
-            .heightIn(min = 44.dp)
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            title,
-            style = MaterialTheme.typography.titleSmall,
-            color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        subtitle?.let {
-            Text(
-                it,
-                style = MaterialTheme.typography.bodySmall,
-                color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-}
-
-internal fun combatRailSubtitle(doc: CombatDocument): String = when (doc.status) {
-    CombatStatus.PREPARING -> "preparando"
-    CombatStatus.ACTIVE -> {
-        // A group with one shared initiative acts as one turn (P33): «Goblin ×3».
-        val acting = doc.actingIds.mapNotNull(doc::combatant)
-        "ronda ${doc.round}" + when {
-            acting.size > 1 -> " · ${acting.first().label.replace(Regex("""\s+\d+$"""), "")} ×${acting.size}"
-            acting.size == 1 -> " · ${acting.first().label}"
-            else -> ""
-        }
-    }
-    CombatStatus.ENDED -> "terminado"
-}
-
-@Composable
-private fun DeskRail(
-    campaign: Campaign,
-    desk: DeskRef,
-    openCombats: List<CombatDocument>,
-    syncText: String,
-    onOpen: (DeskRef) -> Unit,
-    onNewCombat: () -> Unit,
-    onPanel: (DeskPanel) -> Unit,
-    onSync: () -> Unit,
-    onExit: () -> Unit,
-) {
-    var menu by remember { mutableStateOf(false) }
-    Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 1.dp, modifier = Modifier.width(196.dp).fillMaxHeight()) {
-        Column(
-            modifier = Modifier.fillMaxHeight().verticalScroll(rememberScrollState()).padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            TextButton(onClick = onExit) { Text("← Campañas", maxLines = 1) }
-            Text(campaign.name, style = MaterialTheme.typography.labelMedium, maxLines = 2, modifier = Modifier.padding(horizontal = 10.dp))
-            RailItem("🏠 Escritorio", "vista general", desk == DeskRef.Overview) { onOpen(DeskRef.Overview) }
-            HorizontalDivider()
-            RailItem("Pantalla del DM", null, desk == DeskRef.DmScreen) { onOpen(DeskRef.DmScreen) }
-            RailItem("Escena", "en construcción", desk == DeskRef.Scene) { onOpen(DeskRef.Scene) }
-            RailItem("Dungeon", "en construcción", desk == DeskRef.Dungeon) { onOpen(DeskRef.Dungeon) }
-            HorizontalDivider()
-            openCombats.forEach { doc ->
-                RailItem("⚔ ${doc.name}", combatRailSubtitle(doc), desk == DeskRef.Combat(doc.id)) { onOpen(DeskRef.Combat(doc.id)) }
-            }
-            Box {
-                TextButton(onClick = { menu = true }) { Text("＋ Nueva mesa") }
-                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(text = { Text("Nuevo combate") }, onClick = { menu = false; onNewCombat() })
-                    DropdownMenuItem(text = { Text("Segunda Dungeon (llega con la Mesa de Dungeon)") }, enabled = false, onClick = {})
-                }
-            }
-            Spacer(modifier = Modifier.heightIn(min = 12.dp))
-            HorizontalDivider()
-            RailItem("📖 Reglas", null, false) { onPanel(DeskPanel.Rules) }
-            RailItem("🖼 Handouts", null, false) { onPanel(DeskPanel.Handouts) }
-            RailItem("📝 Notas", null, false) { onPanel(DeskPanel.Notes) }
-            RailItem("⏱ Relojes", null, false) { onPanel(DeskPanel.Clocks) }
-            RailItem("☁ Sincronizar", syncText, false, onSync)
-        }
-    }
-}
-
-@Composable
-private fun DeskTabs(
-    campaign: Campaign,
-    desk: DeskRef,
-    openCombats: List<CombatDocument>,
-    syncText: String,
-    onOpen: (DeskRef) -> Unit,
-    onNewCombat: () -> Unit,
-    onPanel: (DeskPanel) -> Unit,
-    onSync: () -> Unit,
-    onExit: () -> Unit,
-) {
-    @Composable
-    fun tab(label: String, selected: Boolean, onClick: () -> Unit) {
-        Text(
-            label,
-            style = MaterialTheme.typography.titleSmall,
-            color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier
-                .background(if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface, MaterialTheme.shapes.small)
-                .clickable(onClick = onClick)
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-        )
-    }
-    Surface(tonalElevation = 1.dp) {
-        Row(
-            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(6.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TextButton(onClick = onExit) { Text("←") }
-            tab("🏠", desk == DeskRef.Overview) { onOpen(DeskRef.Overview) }
-            tab("Pantalla del DM", desk == DeskRef.DmScreen) { onOpen(DeskRef.DmScreen) }
-            tab("Escena", desk == DeskRef.Scene) { onOpen(DeskRef.Scene) }
-            tab("Dungeon", desk == DeskRef.Dungeon) { onOpen(DeskRef.Dungeon) }
-            openCombats.forEach { doc -> tab("⚔ ${doc.name} · ${combatRailSubtitle(doc)}", desk == DeskRef.Combat(doc.id)) { onOpen(DeskRef.Combat(doc.id)) } }
-            TextButton(onClick = onNewCombat) { Text("＋ Combate") }
-            Spacer(modifier = Modifier.width(16.dp))
-            TextButton(onClick = { onPanel(DeskPanel.Rules) }) { Text("📖") }
-            TextButton(onClick = { onPanel(DeskPanel.Handouts) }) { Text("🖼") }
-            TextButton(onClick = { onPanel(DeskPanel.Notes) }) { Text("📝") }
-            TextButton(onClick = { onPanel(DeskPanel.Clocks) }) { Text("⏱") }
-            TextButton(onClick = onSync) { Text("☁ $syncText") }
-            Text(campaign.name, style = MaterialTheme.typography.labelMedium)
-        }
-    }
-}
-
-@Composable
-private fun PhoneDeskBar(
-    desk: DeskRef,
-    openCombats: List<CombatDocument>,
-    onOpen: (DeskRef) -> Unit,
-    onRules: () -> Unit,
-    onHandouts: () -> Unit,
-    onExit: () -> Unit,
-) {
-    var menu by remember { mutableStateOf(false) }
-    Surface(tonalElevation = 3.dp) {
-        Row(modifier = Modifier.fillMaxWidth().padding(4.dp), horizontalArrangement = Arrangement.SpaceAround) {
-            TextButton(onClick = { onOpen(DeskRef.Overview) }) { Text(if (desk == DeskRef.Overview) "● 🏠" else "🏠") }
-            TextButton(onClick = onRules) { Text("📖") }
-            TextButton(onClick = onHandouts) { Text("🖼") }
-            Box {
-                TextButton(onClick = { menu = true }) { Text("☰ Mesas") }
-                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(text = { Text("Pantalla del DM") }, onClick = { menu = false; onOpen(DeskRef.DmScreen) })
-                    DropdownMenuItem(text = { Text("Escena") }, onClick = { menu = false; onOpen(DeskRef.Scene) })
-                    DropdownMenuItem(text = { Text("Dungeon") }, onClick = { menu = false; onOpen(DeskRef.Dungeon) })
-                    openCombats.forEach { doc ->
-                        DropdownMenuItem(text = { Text("⚔ ${doc.name}") }, onClick = { menu = false; onOpen(DeskRef.Combat(doc.id)) })
-                    }
-                    DropdownMenuItem(text = { Text("← Campañas") }, onClick = { menu = false; onExit() })
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SidePanel(content: @Composable () -> Unit) {
-    Surface(tonalElevation = 3.dp, modifier = Modifier.width(400.dp).fillMaxHeight()) { content() }
-}
-
-@Composable
-private fun OverviewDesk(
-    campaign: Campaign,
-    database: AppDatabase,
-    combats: List<CombatDocument>,
-    version: Int,
-    onOpen: (DeskRef) -> Unit,
-    onNewCombat: () -> Unit,
-) {
-    val pcs = remember(version, campaign.id) { CharacterRepository(database).listCharacters(campaign.id) }
-    val bestPerception = pcs.maxByOrNull { it.passivePerception }
-    val packages = remember(version, campaign.id) {
-        io.github.mrsimkin.dndcustomaid.shared.content.PackageContentRepository(database).listCampaign(campaign.id).associateBy { it.item.identity.id }
-    }
-
-    @Composable
-    fun deskCard(title: String, lines: List<String>, highlighted: Boolean = false, onClick: () -> Unit) {
-        Card(
-            onClick = onClick,
-            modifier = Modifier.width(260.dp).heightIn(min = 110.dp),
-            colors = if (highlighted) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer) else CardDefaults.cardColors(),
-        ) {
-            Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Medium)
-                lines.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
-            }
-        }
-    }
-
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            deskCard(
-                "Pantalla del DM",
-                listOfNotNull(
-                    "${pcs.size} PJ",
-                    bestPerception?.let { "Mejor Percepción pasiva ${it.passivePerception} (${it.name})" },
-                ),
-            ) { onOpen(DeskRef.DmScreen) }
-            deskCard("Escena", listOf("En construcción (paquete 6)")) { onOpen(DeskRef.Scene) }
-            deskCard("Dungeon", listOf("En construcción (paquete 7)")) { onOpen(DeskRef.Dungeon) }
-            combats.forEach { doc ->
-                val wounded = doc.combatants.count { c ->
-                    val max = c.effective(packages).maxHp
-                    c.currentHp != null && max != null && !c.defeated && c.currentHp!! * 2 < max
-                }
-                deskCard(
-                    "⚔ ${doc.name}",
-                    listOfNotNull(
-                        combatRailSubtitle(doc).replaceFirstChar { it.uppercase() },
-                        "${doc.combatants.size} participantes",
-                        wounded.takeIf { it > 0 }?.let { "$it con menos de la mitad de PV" },
-                    ),
-                    highlighted = doc.status == CombatStatus.ACTIVE,
-                ) { onOpen(DeskRef.Combat(doc.id)) }
-            }
-            deskCard("＋ Nueva mesa", listOf("Combate: desde un encuentro, del bestiario o improvisado")) { onNewCombat() }
-        }
-    }
-}
-
-@Composable
-private fun UpcomingDesk(title: String, lines: List<String>, packageNumber: Int) {
-    Column(modifier = Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("$title · en construcción", style = MaterialTheme.typography.titleMedium)
-        Text("Llega con el paquete $packageNumber, según el diseño aprobado:", style = MaterialTheme.typography.bodyMedium)
-        lines.forEach { Text("• $it", style = MaterialTheme.typography.bodyMedium) }
-    }
-}
-
-@Composable
-private fun DeskPanelContent(
-    panel: DeskPanel,
-    campaign: Campaign,
-    database: AppDatabase,
-    mediaBlobs: MediaBlobStore,
-    onOpenPanel: (DeskPanel) -> Unit,
-    onClose: () -> Unit,
-) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(modifier = Modifier.fillMaxWidth().padding(start = 14.dp, end = 4.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                when (panel) {
-                    DeskPanel.Rules -> "📖 Reglas"
-                    DeskPanel.Handouts -> "🖼 Handouts"
-                    DeskPanel.Notes -> "📝 Notas"
-                    DeskPanel.Clocks -> "⏱ Relojes"
-                    is DeskPanel.PcQuickSheet -> "Hoja rápida"
-                    is DeskPanel.PcFullSheet -> "Hoja completa (lectura)"
-                    is DeskPanel.ReferenceCard -> "Referencia rápida"
-                },
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f),
-            )
-            TextButton(onClick = onClose) { Text("Cerrar ✕") }
-        }
-        HorizontalDivider()
-        Box(modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp)) {
-            when (panel) {
-                DeskPanel.Rules -> RulesPanel(campaign.id, onOpenCard = { onOpenPanel(DeskPanel.ReferenceCard(it)) })
-                DeskPanel.Handouts -> {
-                    val handouts = remember(campaign.id) { HandoutContentRepository(database).listCampaign(campaign.id) }
-                    Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(vertical = 10.dp)) {
-                        Text("Toca una imagen para mostrarla a pantalla completa.", style = MaterialTheme.typography.bodySmall)
-                        HandoutStrip(handouts, mediaBlobs)
-                    }
-                }
-                DeskPanel.Notes -> Text("Las notas llegan con la Mesa de Dungeon (paquete 7): se pegan solas a donde estás.", modifier = Modifier.padding(vertical = 12.dp))
-                DeskPanel.Clocks -> Text("Los relojes llegan con la Mesa de Dungeon (paquete 7).", modifier = Modifier.padding(vertical = 12.dp))
-                is DeskPanel.PcQuickSheet -> PcQuickSheetPanel(database, panel.characterId, onOpenFull = { onOpenPanel(DeskPanel.PcFullSheet(panel.characterId)) })
-                is DeskPanel.PcFullSheet -> PcFullSheetPanel(database, panel.characterId)
-                is DeskPanel.ReferenceCard -> ReferenceCardPanel(campaign.id, panel.cardId)
-            }
-        }
-    }
-}
-

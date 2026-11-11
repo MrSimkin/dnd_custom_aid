@@ -1,0 +1,20 @@
+-- Base para DM, package 6: structured links between DM content (P35, P36), synced with the payload.
+CREATE TABLE dm_content_links (
+    content_id TEXT NOT NULL PRIMARY KEY REFERENCES reusable_content(id) ON DELETE CASCADE,
+    links_json TEXT NOT NULL CHECK (length(trim(links_json)) > 0)
+);
+
+selectLinks:
+SELECT links_json FROM dm_content_links WHERE content_id = ?;
+
+selectAllLinks:
+SELECT content_id, links_json FROM dm_content_links;
+
+insertLinks:
+INSERT INTO dm_content_links(content_id, links_json) VALUES (?, ?);
+
+updateLinks:
+UPDATE dm_content_links SET links_json = ? WHERE content_id = ?;
+
+deleteLinks:
+DELETE FROM dm_content_links WHERE content_id = ?;

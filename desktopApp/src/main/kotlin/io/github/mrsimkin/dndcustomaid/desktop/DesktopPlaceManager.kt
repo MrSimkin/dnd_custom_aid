@@ -484,6 +484,7 @@ private fun PlaceEditor(
         item { PlaceField("Notas DM", draft.dmNotes, false, 4) { onDraftChange(draft.copy(dmNotes = it)) } }
         item { PlaceField("Referencias de papel (una por línea)", draft.paperReferences, false, 3) { onDraftChange(draft.copy(paperReferences = it)) } }
         item { PlaceField("Etiquetas (coma o línea)", draft.tags, false, 3) { onDraftChange(draft.copy(tags = it)) } }
+        item { DesktopContentLinksSection(content.item) }
     }
 }
 

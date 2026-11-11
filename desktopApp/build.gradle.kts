@@ -10,6 +10,10 @@ kotlin {
     sourceSets {
         main {
             resources.srcDir(rootProject.file("assets"))
+            // The SRD bundled with the App (Base para DM), shared with the Android assets.
+            resources.srcDir(rootProject.file("androidApp/src/main/assets"))
+            // Base para DM: the desks shared with the Android tablet.
+            kotlin.srcDir(rootProject.file("dmUi/src/kotlin"))
         }
     }
 }
@@ -18,6 +22,7 @@ dependencies {
     implementation(projects.shared)
     implementation(compose.desktop.currentOs)
     implementation(libs.compose.multiplatform.material)
+    implementation(compose.material3)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.ktor.client.core)
     implementation(libs.pdfbox)
