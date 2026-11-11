@@ -1,3 +1,5 @@
+**2026-11-10 — Base para DM, paquete 2 (modo DM en la App Android) implementado en `feature/dm-mode-android`.** Entrada con cuenta opcional (P25), «Tus campañas» con la marca DM o Jugador, y el Escritorio DM. Detalle en [DM_MODE_ANDROID.md](technical/DM_MODE_ANDROID.md).
+
 **2026-11-10 — Base para DM, paquete 1 (sincronizar el contenido del DM) implementado en `feature/dm-content-sync`.** Worker + migración Neon 0002 + SQLDelight 28 + servicio Shared + botón en la App de PC + paso Android. Pendiente: paso del propietario en Neon y Cloudflare. Detalle en [DM_CONTENT_SYNC.md](technical/DM_CONTENT_SYNC.md) y en el [checkpoint](checkpoints/2026-11-10_V11_INTEGRADA_A_MAIN.md).
 
 **2026-11-10 — V11 integrada a `main` por decisión del propietario («Sí, integrar primero»).** Exportación V11 A/B como única hoja; último candidato `0.5.0-preqa.14` (QA del propietario pendiente). Sigue: resolución de conflictos de sincronización (diseño primero), login, pantalla DEV y Media / Handouts. [Checkpoint](checkpoints/2026-11-10_V11_INTEGRADA_A_MAIN.md).

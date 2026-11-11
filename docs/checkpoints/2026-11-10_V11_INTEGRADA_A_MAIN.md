@@ -65,4 +65,9 @@ Pendiente del paquete 1, como paso del propietario en los proveedores (AGENTS §
 
 Si el paso 1 falla, detenerse y no publicar el paso 2. El orden importa: primero la tabla y después el Worker. Costo: USD $0 (ningún plan nuevo).
 
-**Siguiente paso de ingeniería:** el paquete 2, modo DM en la App Android (una sola App y una sola entrada; según el papel en la campaña abre la Mesa del DM o la ficha del PJ; cubre V11-QA-006), en una rama corta. Después siguen los paquetes 3 a 8 de la sección 7 de `BASE_DM_REVISION_Y_PROPUESTAS.md`, y al final un solo QA del propietario.
+**Paquete 2 (modo DM en la App Android): implementado** en la rama `feature/dm-mode-android`, construida sobre el paquete 1. El detalle está en `docs/technical/DM_MODE_ANDROID.md`.
+
+- Incluye la entrada para jugadores y DM, con la cuenta opcional (P25 «A · Opcional», cubre V11-QA-006), «Tus campañas» con la marca DM o Jugador y el Escritorio DM con sus cuatro mesas y el contenido sincronizado.
+- V11-QA-006 sigue OPEN hasta el QA del propietario.
+
+**Siguiente paso de ingeniería:** el paquete 3, la Pantalla del DM (hojas de PJ, Vista Grupo según P9, Referencia rápida según P10, y la entrada a Consultar reglas), en una rama corta sobre el paquete 2. Después siguen los paquetes 4 a 8 de la sección 7 de `BASE_DM_REVISION_Y_PROPUESTAS.md`, y al final un solo QA del propietario. El paso del propietario en los proveedores, descrito arriba, sigue pendiente; se hará antes del QA.

@@ -28,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterProvenanceRepos
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AndroidDatabaseFactory
+import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignRole
 import kotlinx.coroutines.launch
 import kotlin.uuid.Uuid
 
@@ -64,6 +67,8 @@ class MainActivity : ComponentActivity() {
     private val hostedCampaignBootstrapController by lazy {
         AndroidHostedCampaignBootstrapController(database)
     }
+    private val hostedAuthController by lazy { AndroidHostedAuthController() }
+    private val appEntryStore by lazy { AppEntryStore(applicationContext) }
     private val uiPreferencesStore by lazy { UiPreferencesStore(applicationContext) }
     private val hapticPreferencesStore by lazy { CharacterHapticPreferencesStore(applicationContext) }
     private val characterNavigationPreferenceStore by lazy { CharacterNavigationPreferenceStore(applicationContext) }
@@ -81,6 +86,9 @@ class MainActivity : ComponentActivity() {
             DndCustomAidTheme(preferences = preferences) {
                 CharacterHapticSettingsProviderV4(store = hapticPreferencesStore) {
                     DndCustomAidApp(
+                        database = database,
+                        hostedAuthController = hostedAuthController,
+                        entryStore = appEntryStore,
                         campaignRepository = campaignRepository,
                         hostedCampaignBootstrapController = hostedCampaignBootstrapController,
                         characterRepository = characterRepository,
@@ -100,11 +108,14 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         hostedCampaignBootstrapController.close()
+        hostedAuthController.close()
         super.onDestroy()
     }
 }
 
 private enum class AppScreen {
+    ENTRY,
+    DM_DESK,
     CAMPAIGNS,
     CHARACTERS,
     CHARACTER_EDITOR,
@@ -112,6 +123,9 @@ private enum class AppScreen {
 
 @Composable
 private fun DndCustomAidApp(
+    database: AppDatabase,
+    hostedAuthController: AndroidHostedAuthController,
+    entryStore: AppEntryStore,
     campaignRepository: CampaignRepository,
     hostedCampaignBootstrapController: AndroidHostedCampaignBootstrapController,
     characterRepository: CharacterRepository,
@@ -124,7 +138,22 @@ private fun DndCustomAidApp(
     preferences: UiPreferences,
     onPreferencesChange: (UiPreferences) -> Unit,
 ) {
-    var screenName by rememberSaveable { mutableStateOf(AppScreen.CHARACTERS.name) }
+    val initialDmCampaignId = remember {
+        entryStore.lastDmCampaignId?.takeIf { id ->
+            hostedCampaignBootstrapController.hasRememberedSession() &&
+                campaignRepository.campaign(id) != null &&
+                campaignRoleFor(database, id, entryStore.accountId) == CampaignRole.DM
+        }
+    }
+    val initialScreen = remember {
+        when {
+            !hostedCampaignBootstrapController.hasRememberedSession() && !entryStore.localOnlyChosen -> AppScreen.ENTRY
+            initialDmCampaignId != null -> AppScreen.DM_DESK
+            else -> AppScreen.CHARACTERS
+        }
+    }
+    var screenName by rememberSaveable { mutableStateOf(initialScreen.name) }
+    var dmCampaignIdText by rememberSaveable { mutableStateOf(initialDmCampaignId?.toString()) }
     var selectedCharacterId by rememberSaveable { mutableStateOf<String?>(null) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
 
@@ -136,6 +165,14 @@ private fun DndCustomAidApp(
     BackHandler(enabled = !showSettings && screen == AppScreen.CAMPAIGNS) {
         selectedCharacterId = null
         screenName = AppScreen.CHARACTERS.name
+    }
+    // Entry reached from «Entrar con mi cuenta»: Back returns to the campaigns, not out of the App.
+    BackHandler(enabled = !showSettings && screen == AppScreen.ENTRY && entryStore.localOnlyChosen) {
+        screenName = AppScreen.CAMPAIGNS.name
+    }
+    BackHandler(enabled = !showSettings && screen == AppScreen.DM_DESK) {
+        entryStore.lastDmCampaignId = null
+        screenName = AppScreen.CAMPAIGNS.name
     }
     BackHandler(enabled = !showSettings && screen == AppScreen.CHARACTER_EDITOR) {
         selectedCharacterId = null
@@ -162,14 +199,71 @@ private fun DndCustomAidApp(
 
     Box(modifier = Modifier.fillMaxSize()) {
         when (screen) {
+            AppScreen.ENTRY -> AppEntryScreen(
+                authController = hostedAuthController,
+                onSignedIn = {
+                    entryStore.localOnlyChosen = false
+                    val outcome = hostedCampaignBootstrapController.refresh()
+                    if (outcome is AndroidHostedCampaignBootstrapOutcome.Success) {
+                        entryStore.accountId = outcome.accountId
+                    }
+                    screenName = AppScreen.CAMPAIGNS.name
+                },
+                onContinueWithoutAccount = {
+                    entryStore.localOnlyChosen = true
+                    screenName = AppScreen.CHARACTERS.name
+                },
+            )
+
+            AppScreen.DM_DESK -> {
+                val campaign = dmCampaignIdText
+                    ?.let { runCatching { Uuid.parse(it) }.getOrNull() }
+                    ?.let(campaignRepository::campaign)
+                if (campaign == null) {
+                    LaunchedEffect(Unit) { screenName = AppScreen.CAMPAIGNS.name }
+                } else {
+                    DmDeskScreen(
+                        campaign = campaign,
+                        database = database,
+                        hostedBootstrap = hostedCampaignBootstrapController,
+                        accountId = entryStore.accountId,
+                        onOpenCampaigns = {
+                            entryStore.lastDmCampaignId = null
+                            screenName = AppScreen.CAMPAIGNS.name
+                        },
+                        onOpenSettings = { showSettings = true },
+                    )
+                }
+            }
+
             AppScreen.CAMPAIGNS -> CampaignScreen(
+                database = database,
                 repository = campaignRepository,
                 hostedBootstrap = hostedCampaignBootstrapController,
+                entryStore = entryStore,
                 onBack = {
                     selectedCharacterId = null
                     screenName = AppScreen.CHARACTERS.name
                 },
                 onOpenSettings = { showSettings = true },
+                onOpenCampaign = { campaign, role ->
+                    campaignRepository.setActiveCampaign(campaign.id)
+                    if (role == CampaignRole.DM) {
+                        entryStore.lastDmCampaignId = campaign.id
+                        dmCampaignIdText = campaign.id.toString()
+                        screenName = AppScreen.DM_DESK.name
+                    } else {
+                        entryStore.lastDmCampaignId = null
+                        selectedCharacterId = null
+                        screenName = AppScreen.CHARACTERS.name
+                    }
+                },
+                onSignIn = { screenName = AppScreen.ENTRY.name },
+                onSignOut = {
+                    hostedAuthController.signOut()
+                    entryStore.clearAccount()
+                    screenName = AppScreen.ENTRY.name
+                },
             )
 
             AppScreen.CHARACTERS -> directory()
@@ -217,11 +311,18 @@ private fun DndCustomAidApp(
 
 @Composable
 private fun CampaignScreen(
+    database: AppDatabase,
     repository: CampaignRepository,
     hostedBootstrap: AndroidHostedCampaignBootstrapController,
+    entryStore: AppEntryStore,
     onBack: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenCampaign: (Campaign, CampaignRole?) -> Unit,
+    onSignIn: () -> Unit,
+    onSignOut: suspend () -> Unit,
 ) {
+    var accountId by remember { mutableStateOf(entryStore.accountId) }
+    var signingOut by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     var campaigns by remember { mutableStateOf(repository.listCampaigns()) }
     var activeCampaignId by remember { mutableStateOf(repository.activeCampaign()?.id) }
@@ -268,6 +369,10 @@ private fun CampaignScreen(
     ) {
         when (outcome) {
             is AndroidHostedCampaignBootstrapOutcome.Success -> {
+                outcome.accountId?.let {
+                    entryStore.accountId = it
+                    accountId = it
+                }
                 reload()
                 val campaignSummary = hostedCampaignSummary(outcome)
                 if (focusedCreation != null) {
@@ -383,11 +488,11 @@ private fun CampaignScreen(
                             verticalArrangement = Arrangement.spacedBy(appSpacingV4(2.dp)),
                         ) {
                             Text(
-                                text = "Campañas",
+                                text = "Tus campañas",
                                 style = MaterialTheme.typography.headlineMedium,
                             )
                             Text(
-                                text = "La campaña activa se usa localmente. La sincronización revisa todas las campañas hospedadas elegibles.",
+                                text = "Abre una campaña: como DM entras al Escritorio DM; como jugador, a tus PJ.",
                                 style = MaterialTheme.typography.bodySmall,
                             )
                         }
@@ -411,11 +516,37 @@ private fun CampaignScreen(
                                 text = hostedStatus,
                                 style = MaterialTheme.typography.bodySmall,
                             )
-                            Button(
-                                onClick = { syncHostedCampaigns() },
-                                enabled = !hostedRefreshing,
-                            ) {
-                                Text(if (hostedRefreshing) "Sincronizando…" else "Sincronizar campañas hospedadas")
+                            if (hostedBootstrap.hasRememberedSession()) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Button(
+                                        onClick = { syncHostedCampaigns() },
+                                        enabled = !hostedRefreshing && !signingOut,
+                                    ) {
+                                        Text(if (hostedRefreshing) "Sincronizando…" else "Sincronizar")
+                                    }
+                                    TextButton(
+                                        onClick = {
+                                            signingOut = true
+                                            coroutineScope.launch {
+                                                try {
+                                                    onSignOut()
+                                                } finally {
+                                                    signingOut = false
+                                                }
+                                            }
+                                        },
+                                        enabled = !hostedRefreshing && !signingOut,
+                                    ) {
+                                        Text("Cerrar sesión")
+                                    }
+                                }
+                            } else {
+                                Button(onClick = onSignIn) {
+                                    Text("Entrar con mi cuenta")
+                                }
                             }
                         }
                     }
@@ -433,13 +564,16 @@ private fun CampaignScreen(
                         items = campaigns,
                         key = { campaign -> campaign.id.toString() },
                     ) { campaign ->
+                        val role = campaignRoleFor(database, campaign.id, accountId)
                         CampaignCard(
                             campaign = campaign,
                             isActive = campaign.id == activeCampaignId,
+                            role = role,
                             onSelect = {
                                 repository.setActiveCampaign(campaign.id)
                                 reload()
                             },
+                            onOpen = { onOpenCampaign(campaign, role) },
                         )
                     }
                 }
@@ -472,7 +606,9 @@ private fun CampaignScreen(
 private fun CampaignCard(
     campaign: Campaign,
     isActive: Boolean,
+    role: CampaignRole?,
     onSelect: () -> Unit,
+    onOpen: () -> Unit,
 ) {
     Card(
         onClick = onSelect,
@@ -503,6 +639,10 @@ private fun CampaignCard(
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
+            }
+            role?.let { CampaignRoleBadge(it) }
+            TextButton(onClick = onOpen) {
+                Text(if (role == CampaignRole.DM) "Abrir Escritorio DM" else "Abrir")
             }
         }
     }
