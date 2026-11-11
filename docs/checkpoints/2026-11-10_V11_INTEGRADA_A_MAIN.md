@@ -96,10 +96,16 @@ El paso del propietario en los proveedores ahora suma la creación del espacio K
 - Se revisaron y **aprobaron una a una** cinco propuestas (P28 a P37): Escritorio con barra lateral, Pantalla del DM, Mesa de Combate en 4 pasos con editor completo, Mesa de Escena y Mesa de Dungeon.
 - El diseño aprobado está en `docs/technical/DM_UX_APROBADA.md` y manda sobre las pantallas actuales.
 
-**Siguiente paso de ingeniería:** corregir las pantallas ya hechas según `DM_UX_APROBADA.md`, en una rama nueva sobre `feature/dm-combat`, en este orden:
+**Corrección de las pantallas hecha (2026-11-11, rama `feature/dm-ux-redesign`).** Las tres pantallas ya construidas siguen ahora `DM_UX_APROBADA.md`:
 
-1. el Escritorio, con barra lateral, vista general, paneles, sincronización y la opción de pestañas;
-2. la Pantalla del DM, con hoja de grupo, hoja rápida y hoja completa en lectura;
-3. la Mesa de Combate, con sus 4 pasos y el editor completo.
+1. **Escritorio:** barra lateral con vista general, mesas fijas, combates abiertos, «＋ Nueva mesa», herramientas como panel al costado y estado de sincronización; pestañas arriba como opción en ⚙.
+2. **Pantalla del DM:** hoja de grupo (Fichas | Vista Grupo), hoja rápida y hoja completa en lectura al costado, «Pregunta una regla…» y Referencia rápida con «Consultadas hace poco».
+3. **Mesa de Combate en 4 pasos:**
+   - Preparar, con bloques − y +, «aplicar a: los N | uno» y lo propio en naranja;
+   - Iniciativa, una vez, con «Una para el grupo» o «Cada uno la suya»;
+   - En curso, con orden, criatura tocada y «Ahora actúa»;
+   - el editor completo, con ataques estructurados y «Guardar como criatura nueva».
 
-Después se construyen la Mesa de Escena (paquete 6) y la Mesa de Dungeon (paquete 7) sobre ese diseño. Luego viene el paquete 8, y al final un solo QA del propietario. El paso del propietario en Neon y Cloudflare sigue pendiente, para antes del QA.
+Probado en el emulador de tablet (solo lectura).
+
+**Siguiente paso de ingeniería:** construir la Mesa de Escena (paquete 6) sobre este diseño, con sus partes en la App de PC. Luego vienen la Mesa de Dungeon (paquete 7) y el paquete 8, y al final un solo QA del propietario. El paso del propietario en Neon y Cloudflare sigue pendiente, para antes del QA.

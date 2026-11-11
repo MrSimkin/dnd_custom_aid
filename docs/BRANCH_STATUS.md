@@ -1,3 +1,5 @@
+**2026-11-11 — Base para DM: pantallas corregidas según el diseño aprobado, en `feature/dm-ux-redesign`.** Escritorio con barra lateral y paneles, Pantalla del DM con hoja rápida y hoja completa en lectura, y Mesa de Combate en 4 pasos con editor completo. Diseño en [DM_UX_APROBADA.md](technical/DM_UX_APROBADA.md).
+
 **2026-11-11 — Base para DM, paquete 5 (Mesa de Combate) implementado en `feature/dm-combat`.** Preparar encuentro, paquetes (armados en la App de PC), iniciativa, PV, estados y turnos en la tablet. Detalle en [DM_COMBAT.md](technical/DM_COMBAT.md).
 
 **2026-11-10 — Base para DM, paquete 4 (Archivos e imágenes) implementado en `feature/dm-media`.** Workers KV (P27, revisión USD $0), handouts como contenido del DM con imagen por SHA-256, importación en la App de PC y pantalla completa en la tablet. Detalle en [DM_MEDIA.md](technical/DM_MEDIA.md).

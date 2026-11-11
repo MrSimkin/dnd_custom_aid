@@ -121,8 +121,6 @@ class MainActivity : ComponentActivity() {
 private enum class AppScreen {
     ENTRY,
     DM_DESK,
-    DM_SCREEN,
-    DM_COMBAT,
     CAMPAIGNS,
     CHARACTERS,
     CHARACTER_EDITOR,
@@ -184,12 +182,6 @@ private fun DndCustomAidApp(
         entryStore.lastDmCampaignId = null
         screenName = AppScreen.CAMPAIGNS.name
     }
-    BackHandler(enabled = !showSettings && screen == AppScreen.DM_COMBAT) {
-        screenName = AppScreen.DM_DESK.name
-    }
-    BackHandler(enabled = !showSettings && screen == AppScreen.DM_SCREEN) {
-        screenName = AppScreen.DM_DESK.name
-    }
     BackHandler(enabled = !showSettings && screen == AppScreen.CHARACTER_EDITOR) {
         selectedCharacterId = null
         screenName = editorReturnName
@@ -239,57 +231,17 @@ private fun DndCustomAidApp(
                 if (campaign == null) {
                     LaunchedEffect(Unit) { screenName = AppScreen.CAMPAIGNS.name }
                 } else {
-                    DmDeskScreen(
+                    DmWorkspaceScreen(
                         campaign = campaign,
                         database = database,
                         mediaBlobs = mediaBlobs,
                         hostedBootstrap = hostedCampaignBootstrapController,
                         accountId = entryStore.accountId,
-                        onOpenCampaigns = {
+                        onExitToCampaigns = {
                             entryStore.lastDmCampaignId = null
                             screenName = AppScreen.CAMPAIGNS.name
                         },
-                        onOpenSettings = { showSettings = true },
-                        onOpenDmScreen = { screenName = AppScreen.DM_SCREEN.name },
-                        onOpenCombat = { screenName = AppScreen.DM_COMBAT.name },
-                    )
-                }
-            }
-
-            AppScreen.DM_COMBAT -> {
-                val campaign = dmCampaignIdText
-                    ?.let { runCatching { Uuid.parse(it) }.getOrNull() }
-                    ?.let(campaignRepository::campaign)
-                if (campaign == null) {
-                    LaunchedEffect(Unit) { screenName = AppScreen.CAMPAIGNS.name }
-                } else {
-                    CombatDeskScreen(
-                        campaign = campaign,
-                        database = database,
-                        accountId = entryStore.accountId,
-                        onBack = { screenName = AppScreen.DM_DESK.name },
-                        onOpenSettings = { showSettings = true },
-                    )
-                }
-            }
-
-            AppScreen.DM_SCREEN -> {
-                val campaign = dmCampaignIdText
-                    ?.let { runCatching { Uuid.parse(it) }.getOrNull() }
-                    ?.let(campaignRepository::campaign)
-                if (campaign == null) {
-                    LaunchedEffect(Unit) { screenName = AppScreen.CAMPAIGNS.name }
-                } else {
-                    DmScreen(
-                        campaign = campaign,
-                        database = database,
-                        onBack = { screenName = AppScreen.DM_DESK.name },
-                        onOpenSettings = { showSettings = true },
-                        onOpenCharacter = { character ->
-                            selectedCharacterId = character.id.toString()
-                            editorReturnName = AppScreen.DM_SCREEN.name
-                            screenName = AppScreen.CHARACTER_EDITOR.name
-                        },
+                        onOpenAppSettings = { showSettings = true },
                     )
                 }
             }
