@@ -73,6 +73,8 @@ internal sealed interface AndroidHostedCampaignBootstrapOutcome {
         val queuedPcSnapshotCount: Int,
         val campaignDiagnostics: List<AndroidHostedCampaignSyncDiagnostic>,
         val pcConflictDiagnostics: List<AndroidHostedPcConflictDiagnostic>,
+        /** Hosted account that ran this sync (package 2 uses it for the campaign roles). */
+        val accountId: Uuid? = null,
         /** Base para DM, package 1: null when the account runs no campaign as DM. */
         val dmContent: DmContentSyncResult? = null,
         /** Set when DM content could not sync; PC results above remain valid. */
@@ -328,6 +330,7 @@ internal class AndroidHostedCampaignBootstrapController(
             }
 
             AndroidHostedCampaignBootstrapOutcome.Success(
+                accountId = campaignResult.account.id,
                 dmContent = dmContentResult,
                 dmContentError = dmContentError,
                 hostedCampaignCount = campaignResult.hostedCampaignCount,
