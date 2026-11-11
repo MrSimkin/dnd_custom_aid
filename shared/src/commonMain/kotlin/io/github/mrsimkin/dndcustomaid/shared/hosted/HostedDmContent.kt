@@ -7,6 +7,8 @@ import io.github.mrsimkin.dndcustomaid.shared.content.EncounterPayload
 import io.github.mrsimkin.dndcustomaid.shared.content.HandoutContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.HandoutPayload
 import io.github.mrsimkin.dndcustomaid.shared.content.MediaBlobStore
+import io.github.mrsimkin.dndcustomaid.shared.content.PackageContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.PackagePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.sha256Hex
 import io.github.mrsimkin.dndcustomaid.shared.content.HomebrewRuleContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.HomebrewRulePayload
@@ -171,6 +173,7 @@ class DmContentSnapshotCodec(
     private val encounters = EncounterContentRepository(database, reusableContent)
     private val scenes = SceneContentRepository(database, reusableContent)
     private val handouts = HandoutContentRepository(database, reusableContent)
+    private val packages = PackageContentRepository(database, reusableContent)
 
     fun supportsFamily(family: String): Boolean = ReusableContentFamily.entries.any { it.name == family }
 
@@ -191,6 +194,7 @@ class DmContentSnapshotCodec(
             ReusableContentFamily.ENCOUNTER -> encode(EncounterPayload.serializer(), encounters.payload(id))
             ReusableContentFamily.SCENE -> encode(ScenePayload.serializer(), scenes.payload(id))
             ReusableContentFamily.HANDOUT -> encode(HandoutPayload.serializer(), handouts.payload(id))
+            ReusableContentFamily.PACKAGE -> encode(PackagePayload.serializer(), packages.payload(id))
         }
         val provenance = item.identity.provenance?.let {
             val (kind, ref) = encodeScope(it.sourceScope)
@@ -300,6 +304,7 @@ class DmContentSnapshotCodec(
         ReusableContentFamily.ENCOUNTER -> roundTrip(EncounterPayload.serializer(), payload)
         ReusableContentFamily.SCENE -> roundTrip(ScenePayload.serializer(), payload)
         ReusableContentFamily.HANDOUT -> roundTrip(HandoutPayload.serializer(), payload)
+        ReusableContentFamily.PACKAGE -> roundTrip(PackagePayload.serializer(), payload)
     }
 
     private fun writePayload(family: ReusableContentFamily, id: Uuid, payload: JsonObject) {
@@ -327,6 +332,9 @@ class DmContentSnapshotCodec(
             }
             ReusableContentFamily.HANDOUT -> json.decodeFromJsonElement(HandoutPayload.serializer(), payload).let {
                 if (handouts.payload(id) == null) handouts.insertPayload(id, it) else handouts.updatePayloadRow(id, it)
+            }
+            ReusableContentFamily.PACKAGE -> json.decodeFromJsonElement(PackagePayload.serializer(), payload).let {
+                if (packages.payload(id) == null) packages.insertPayload(id, it) else packages.updatePayloadRow(id, it)
             }
         }
     }

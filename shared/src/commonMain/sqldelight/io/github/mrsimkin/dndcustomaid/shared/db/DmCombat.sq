@@ -1,0 +1,22 @@
+CREATE TABLE dm_combat (
+    id TEXT NOT NULL PRIMARY KEY,
+    campaign_id TEXT NOT NULL REFERENCES campaign(id) ON DELETE CASCADE,
+    status TEXT NOT NULL CHECK (status IN ('PREPARING', 'ACTIVE', 'ENDED')),
+    updated_at_epoch_seconds INTEGER NOT NULL CHECK (updated_at_epoch_seconds >= 0),
+    document_json TEXT NOT NULL CHECK (length(trim(document_json)) > 0)
+);
+
+CREATE INDEX dm_combat_campaign_idx ON dm_combat(campaign_id, updated_at_epoch_seconds);
+
+upsertCombat:
+INSERT OR REPLACE INTO dm_combat(id, campaign_id, status, updated_at_epoch_seconds, document_json)
+VALUES (?, ?, ?, ?, ?);
+
+selectCombatsByCampaign:
+SELECT document_json FROM dm_combat WHERE campaign_id = ? ORDER BY updated_at_epoch_seconds DESC, id;
+
+selectCombat:
+SELECT document_json FROM dm_combat WHERE id = ?;
+
+deleteCombat:
+DELETE FROM dm_combat WHERE id = ?;
