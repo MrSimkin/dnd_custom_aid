@@ -108,4 +108,20 @@ El paso del propietario en los proveedores ahora suma la creación del espacio K
 
 Probado en el emulador de tablet (solo lectura).
 
-**Siguiente paso de ingeniería:** construir la Mesa de Escena (paquete 6) sobre este diseño, con sus partes en la App de PC. Luego vienen la Mesa de Dungeon (paquete 7) y el paquete 8, y al final un solo QA del propietario. El paso del propietario en Neon y Cloudflare sigue pendiente, para antes del QA.
+**Tablet y Windows con las mismas mesas (2026-11-11).** El propietario pidió que todo lo del DM esté también en la App de Windows.
+
+- Las mesas están en `dmUi/src/kotlin` y las compilan las dos Apps, cada una con su Compose.
+- En Windows se abren desde «Escritorio DM (mesa en vivo)».
+- Detalle en `docs/technical/DM_ESCENA.md`.
+
+**Paquete 6, Mesa de Escena (2026-11-11), en la tablet y en Windows:**
+
+- búsqueda por tipo y por idea;
+- 📌 Fijados y 🕘 Recientes;
+- recorrer por zona, por función, por aventura y en el mapa;
+- ficha con partes para jugadores o solo DM, la tienda con precios y ⭐, y «PNJ aquí»;
+- lo relacionado a la derecha.
+
+En la App de PC, los vínculos se eligen de una lista (P36) y las marcas se ponen sobre el mapa (P35). Se probó con pruebas automáticas y con imágenes de la App de Windows.
+
+**Siguiente paso de ingeniería:** construir la Mesa de Dungeon (paquete 7) en la tablet y en Windows, con sus partes en la App de PC. Luego viene el paquete 8, y al final un solo QA del propietario, de la APK y de la App de Windows. El paso del propietario en Neon y Cloudflare sigue pendiente, para antes del QA.

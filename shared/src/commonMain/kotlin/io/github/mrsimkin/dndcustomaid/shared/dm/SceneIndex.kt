@@ -148,6 +148,17 @@ class SceneIndex(
         return (linked + reverse).distinct().ifEmpty { listOfNotNull(npc.payload.places.trim().takeIf { it.isNotEmpty() }) }
     }
 
+    /** Places of an NPC, linked from either side (the NPC's «dónde está» or the place's «quién atiende»). */
+    fun placesOf(npc: NpcContent): List<PlaceContent> {
+        val id = npc.item.identity.id
+        return (links(id).placeIds.mapNotNull(placeById::get) + places.filter { id in links(it.item.identity.id).npcIds }).distinctBy { it.item.identity.id }
+    }
+
+    fun zonesOf(npc: NpcContent): List<ZoneContent> {
+        val id = npc.item.identity.id
+        return (links(id).zoneIds.mapNotNull(zoneById::get) + zones.filter { id in links(it.item.identity.id).npcIds }).distinctBy { it.item.identity.id }
+    }
+
     fun scenesOf(npc: NpcContent): List<SceneContent> {
         val id = npc.item.identity.id
         return (links(id).sceneIds.mapNotNull(sceneById::get) + scenes.filter { id in links(it.item.identity.id).npcIds }).distinctBy { it.item.identity.id }

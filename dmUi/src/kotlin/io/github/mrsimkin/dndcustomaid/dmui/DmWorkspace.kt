@@ -248,14 +248,11 @@ private fun DmWorkspaceContent(
                         database = database,
                         onOpenPanel = { panel = it },
                     )
-                    DeskRef.Scene -> UpcomingDesk(
-                        title = "Mesa de Escena",
-                        lines = listOf(
-                            "Buscador con filtros por tipo, fijados y recientes.",
-                            "PNJ por idea o por contexto; «PNJ aquí» en cada ficha.",
-                            "Recorrer por zona, por función, por aventura o en el mapa.",
-                        ),
-                        packageNumber = 6,
+                    DeskRef.Scene -> SceneDesk(
+                        campaign = campaign,
+                        database = database,
+                        mediaBlobs = mediaBlobs,
+                        version = version,
                     )
                     DeskRef.Dungeon -> UpcomingDesk(
                         title = "Mesa de Dungeon",
@@ -448,6 +445,8 @@ private fun DeskRail(
     onExit: () -> Unit,
 ) {
     var menu by remember { mutableStateOf(false) }
+    // The rail says where the Mesa de Escena was left (§1: each desk remembers where it was).
+    val sceneSubtitle = SceneDeskPreferences(LocalDmPlatform.current.store, campaign.id).openName ?: "buscar o recorrer"
     Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 1.dp, modifier = Modifier.width(196.dp).fillMaxHeight()) {
         Column(
             modifier = Modifier.fillMaxHeight().verticalScroll(rememberScrollState()).padding(8.dp),
@@ -458,7 +457,7 @@ private fun DeskRail(
             RailItem("🏠 Escritorio", "vista general", desk == DeskRef.Overview) { onOpen(DeskRef.Overview) }
             HorizontalDivider()
             RailItem("Pantalla del DM", null, desk == DeskRef.DmScreen) { onOpen(DeskRef.DmScreen) }
-            RailItem("Escena", "en construcción", desk == DeskRef.Scene) { onOpen(DeskRef.Scene) }
+            RailItem("Escena", sceneSubtitle, desk == DeskRef.Scene) { onOpen(DeskRef.Scene) }
             RailItem("Dungeon", "en construcción", desk == DeskRef.Dungeon) { onOpen(DeskRef.Dungeon) }
             HorizontalDivider()
             openCombats.forEach { doc ->
@@ -576,6 +575,7 @@ private fun OverviewDesk(
     onNewCombat: () -> Unit,
 ) {
     val pcs = remember(version, campaign.id) { CharacterRepository(database).listCharacters(campaign.id) }
+    val sceneSubtitle = SceneDeskPreferences(LocalDmPlatform.current.store, campaign.id).openName
     val bestPerception = pcs.maxByOrNull { it.passivePerception }
     val packages = remember(version, campaign.id) {
         io.github.mrsimkin.dndcustomaid.shared.content.PackageContentRepository(database).listCampaign(campaign.id).associateBy { it.item.identity.id }
@@ -604,7 +604,7 @@ private fun OverviewDesk(
                     bestPerception?.let { "Mejor Percepción pasiva ${it.passivePerception} (${it.name})" },
                 ),
             ) { onOpen(DeskRef.DmScreen) }
-            deskCard("Escena", listOf("En construcción (paquete 6)")) { onOpen(DeskRef.Scene) }
+            deskCard("Escena", listOf(sceneSubtitle?.let { "Último: $it" } ?: "Buscar PNJ, tiendas, lugares y escenas")) { onOpen(DeskRef.Scene) }
             deskCard("Dungeon", listOf("En construcción (paquete 7)")) { onOpen(DeskRef.Dungeon) }
             combats.forEach { doc ->
                 val wounded = doc.combatants.count { c ->
