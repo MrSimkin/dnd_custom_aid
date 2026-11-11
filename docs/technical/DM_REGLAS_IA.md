@@ -1,6 +1,6 @@
 # Base para DM · Consultar reglas con IA (paquete 8)
 
-**Estado:** implementado el 2026-11-11 en la tablet, en Windows y en el Worker. Falta el paso del propietario en los proveedores (sección 4); lo verifica el QA único de la «Base para DM».
+**Estado:** implementado el 2026-11-11 en la tablet, en Windows y en el Worker, que ya está publicado con IA (evidencia en la sección 5). Lo verifica el QA único de la «Base para DM».
 
 ## Cómo funciona (D-0041, D-0070, P4)
 
@@ -55,3 +55,23 @@ Este paquete reemplaza los pasos sueltos anteriores (checkpoint y `DM_MEDIA.md` 
    - el paso 1 falla: no publicar el paso 2;
    - Cloudflare pide elegir o pagar un plan: no aceptar.
 5. **No compartir:** tokens, contraseñas ni cadenas de conexión.
+
+## 5. Evidencia: paso de proveedores hecho (2026-11-11)
+
+El propietario autorizó en su navegador las sesiones de Cloudflare (`wrangler login`) y de Neon (`neonctl auth`). El Worker hizo el resto desde la consola. Ninguna clave se mostró, se pidió ni se guardó.
+
+**Neon**, proyecto `dnd-custom-aid-dev` (`holy-meadow-19010740`), rama `production`, base `dnd-custom-aid-dev`:
+- **Antes:** la migración 0001 estaba y `dm_content` no existía.
+- **Qué se hizo:** se aplicó `database/migrations/0002_dm_content.sql`. La conexión pasó directo de `neonctl` al controlador de Neon, sin mostrarse.
+- **Después:** existen `dm_content` y sus 5 funciones `dm_content_*`.
+
+**Cloudflare:**
+- **Espacio KV:** `dnd-custom-aid-media`, con id `3a1023324c2e4a13b070a97a5995edc3` y enlace `MEDIA`, quedó registrado en `backend/wrangler.jsonc`.
+- **Publicación:** `wrangler deploy` del Worker existente `dnd-custom-aid-api`, con enlaces `MEDIA` (KV) y `AI`. Current Version ID: `a63a59c5-8b27-451c-8bf8-b1185b6aa1f3`.
+- **Claves:** el Worker conserva sus dos secretos (`DATABASE_URL` y `DESCOPE_PROJECT_ID`; solo se leyeron los nombres).
+- **Pruebas desde afuera:**
+  - `/health` responde `{"status":"ok"}`;
+  - `/v1/me`, `/v1/rules/answer` y `/v1/media/…` sin sesión responden 401 `UNAUTHENTICATED`;
+  - `@cf/meta/llama-3.1-8b-instruct-fp8` figura en la lista de modelos de la cuenta, y el modelo retirado ya no.
+
+**Pendiente:** la prueba con una sesión real queda para el QA único del propietario. Cubre la sincronización del contenido del DM, las imágenes y la respuesta con IA.

@@ -147,4 +147,12 @@ En la App de PC: mazmorra, diagrama, pasajes y encuentro de cada zona, y lista d
 
 Los 8 paquetes de la «Base para DM» están construidos en la tablet y en Windows.
 
-**Siguiente paso:** el paso del propietario en los proveedores, todo junto, según `DM_REGLAS_IA.md` §4: Neon 0002, y KV, IA y deploy en Cloudflare. Después viene el QA único del propietario, de la APK y de la App de Windows; antes de entregar la APK se corre el control previo al QA.
+**Paso de proveedores hecho (2026-11-11).** El propietario autorizó las sesiones y el Worker hizo el resto:
+
+- en Neon DEV, la migración 0002 quedó aplicada (`dm_content` y sus 5 funciones);
+- en Cloudflare, se creó el espacio KV `dnd-custom-aid-media` y se publicó `dnd-custom-aid-api` con `MEDIA` y `AI` (versión `a63a59c5-8b27-451c-8bf8-b1185b6aa1f3`);
+- `/health` responde ok y las rutas nuevas piden sesión.
+
+La evidencia está en `DM_REGLAS_IA.md` §5.
+
+**Siguiente paso:** preparar el QA único del propietario, de la APK y de la App de Windows. Antes de entregar la APK se corre el control previo al QA, con su nombre y número de versión nuevos.
