@@ -91,11 +91,15 @@ El paso del propietario en los proveedores ahora suma la creación del espacio K
 - Incluye Preparar encuentro con reserva, ajustes y paquetes, iniciativa escrita o tirada, PV de monstruos con promedio o tirados, la nota de PV de los PJ, estados, turnos y rondas.
 - Los paquetes se arman en la App de PC (Gestores → Paquetes).
 
-**Siguiente paso de ingeniería:** el paquete 6, la Mesa de Escena (P15).
+**Revisión del diseño de uso (2026-11-11).** El propietario detuvo el trabajo al ver en el emulador que las pantallas DM no seguían el diseño de D-0068/D-0069.
 
-- Incluye buscador, fijados y recientes, y recorrido por zona, por función y por aventura (secuencia de escenas).
-- Las tiendas muestran qué venden, cuánto cuesta, lo destacado y quién atiende, sin llevar existencias.
-- Lleva la referencia al papel, la ficha rápida de PNJ («para jugadores» / «solo DM») y el camino a la vista.
-- Antes de programar, releer P15 y D-0069.
+- Se revisaron y **aprobaron una a una** cinco propuestas (P28 a P37): Escritorio con barra lateral, Pantalla del DM, Mesa de Combate en 4 pasos con editor completo, Mesa de Escena y Mesa de Dungeon.
+- El diseño aprobado está en `docs/technical/DM_UX_APROBADA.md` y manda sobre las pantallas actuales.
 
-Después siguen los paquetes 7 y 8, y al final un solo QA del propietario. El paso del propietario en Neon y Cloudflare sigue pendiente, antes del QA.
+**Siguiente paso de ingeniería:** corregir las pantallas ya hechas según `DM_UX_APROBADA.md`, en una rama nueva sobre `feature/dm-combat`, en este orden:
+
+1. el Escritorio, con barra lateral, vista general, paneles, sincronización y la opción de pestañas;
+2. la Pantalla del DM, con hoja de grupo, hoja rápida y hoja completa en lectura;
+3. la Mesa de Combate, con sus 4 pasos y el editor completo.
+
+Después se construyen la Mesa de Escena (paquete 6) y la Mesa de Dungeon (paquete 7) sobre ese diseño. Luego viene el paquete 8, y al final un solo QA del propietario. El paso del propietario en Neon y Cloudflare sigue pendiente, para antes del QA.
