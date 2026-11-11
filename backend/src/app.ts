@@ -8,6 +8,13 @@ import {
   type DmContentScopeKind,
   type DmContentStore,
 } from "./dmContentStore.ts";
+import {
+  MEDIA_MAX_BYTES,
+  MEDIA_TYPES,
+  type MediaAuthorization,
+  type MediaStore,
+  sha256Hex,
+} from "./mediaStore.ts";
 import type { ApiErrorBody, ApiErrorCode, Uuid } from "./contracts/spine.ts";
 import {
   HostedAuthorizationError,
@@ -28,6 +35,9 @@ export interface ApiDependencies {
   campaigns: CampaignStore;
   campaignAdministration?: CampaignAdministrationStore;
   dmContent?: DmContentStore;
+  /** Absent until the owner binds the Workers KV namespace (P27); media routes then answer 503. */
+  media?: MediaStore;
+  mediaAuthorization?: MediaAuthorization;
 }
 
 export type ApiHandler = (request: Request) => Promise<Response>;
@@ -51,6 +61,7 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
       const pcSnapshotMatch = /^\/v1\/pcs\/([^/]+)$/.exec(path);
       const campaignContentMatch = /^\/v1\/campaigns\/([^/]+)\/content$/.exec(path);
       const contentMatch = /^\/v1\/content\/([^/]+)$/.exec(path);
+      const mediaMatch = /^\/v1\/media\/([0-9a-f]{64})$/.exec(path);
       const knownFixedPath =
         path === "/v1/me" ||
         path === "/v1/me/content" ||
@@ -65,7 +76,8 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         pcAuthorityMatch == null &&
         pcSnapshotMatch == null &&
         campaignContentMatch == null &&
-        contentMatch == null
+        contentMatch == null &&
+        mediaMatch == null
       ) {
         throw new ApiProblem(404, "NOT_FOUND", "Route not found.");
       }
@@ -94,6 +106,56 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         const campaignId = requireUuid(campaignContentMatch[1], "campaignId");
         const content = await requireDmContent(dependencies).listCampaignContent(user.id, campaignId);
         return jsonResponse({ content });
+      }
+
+      if (mediaMatch != null) {
+        const sha256 = mediaMatch[1];
+        const media = dependencies.media;
+        const authorization = dependencies.mediaAuthorization;
+        if (media == null || authorization == null) {
+          throw new ApiProblem(503, "TRANSIENT_FAILURE", "Media storage is not configured yet.");
+        }
+
+        if (request.method === "PUT") {
+          if (!(await authorization.isActiveDm(user.id))) {
+            throw new ApiProblem(403, "FORBIDDEN", "Only an active DM may upload images.");
+          }
+          const mediaType = (request.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
+          if (!MEDIA_TYPES.has(mediaType)) {
+            throw new ApiProblem(400, "VALIDATION_FAILED", "Images must be JPEG, PNG or WebP.", { field: "content-type" });
+          }
+          const declared = Number(request.headers.get("content-length") ?? "0");
+          if (declared > MEDIA_MAX_BYTES) {
+            throw new ApiProblem(400, "VALIDATION_FAILED", "Images must be at most 5 MiB.", { field: "body" });
+          }
+          const bytes = await request.arrayBuffer();
+          if (bytes.byteLength === 0 || bytes.byteLength > MEDIA_MAX_BYTES) {
+            throw new ApiProblem(400, "VALIDATION_FAILED", "Images must be between 1 byte and 5 MiB.", { field: "body" });
+          }
+          if ((await sha256Hex(bytes)) !== sha256) {
+            throw new ApiProblem(400, "VALIDATION_FAILED", "Image content does not match its checksum.", { field: "body" });
+          }
+          const stored = await media.put(sha256, mediaType, bytes);
+          return jsonResponse({ sha256, stored }, stored ? 201 : 200);
+        }
+
+        requireMethod(request, "GET");
+        const contentId = requireUuid(url.searchParams.get("content"), "content");
+        // Not readable and not stored look the same, so the API never reveals other campaigns' files.
+        if (!(await authorization.mayReadMedia(user.id, contentId, sha256))) {
+          throw new ApiProblem(404, "NOT_FOUND", "Image not found.");
+        }
+        const stored = await media.get(sha256);
+        if (stored == null) {
+          throw new ApiProblem(404, "NOT_FOUND", "Image not found.");
+        }
+        return new Response(stored.bytes, {
+          status: 200,
+          headers: {
+            "content-type": stored.mediaType,
+            "cache-control": "private, max-age=31536000, immutable",
+          },
+        });
       }
 
       if (contentMatch != null) {

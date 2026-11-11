@@ -13,6 +13,7 @@ enum class ReusableContentFamily {
     ZONE,
     ENCOUNTER,
     SCENE,
+    HANDOUT,
 }
 
 @Serializable

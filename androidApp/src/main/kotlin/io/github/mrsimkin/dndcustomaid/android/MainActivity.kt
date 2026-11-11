@@ -48,6 +48,8 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSuccessorRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AndroidDatabaseFactory
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.content.FileMediaBlobStore
+import io.github.mrsimkin.dndcustomaid.shared.content.MediaBlobStore
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignRole
 import kotlinx.coroutines.launch
 import kotlin.uuid.Uuid
@@ -64,8 +66,10 @@ class MainActivity : ComponentActivity() {
     private val characterClosureRepository by lazy { CharacterClosureRepository(database) }
     private val characterSuccessorRepository by lazy { CharacterSuccessorRepository(database) }
     private val characterProvenanceRepository by lazy { CharacterProvenanceRepository(database) }
+    // Base para DM, package 4: handout images live in the App's private files, by checksum.
+    private val mediaBlobs by lazy { FileMediaBlobStore(java.io.File(filesDir, "media")) }
     private val hostedCampaignBootstrapController by lazy {
-        AndroidHostedCampaignBootstrapController(database)
+        AndroidHostedCampaignBootstrapController(database, mediaBlobs)
     }
     private val hostedAuthController by lazy { AndroidHostedAuthController() }
     private val appEntryStore by lazy { AppEntryStore(applicationContext) }
@@ -87,6 +91,7 @@ class MainActivity : ComponentActivity() {
                 CharacterHapticSettingsProviderV4(store = hapticPreferencesStore) {
                     DndCustomAidApp(
                         database = database,
+                        mediaBlobs = mediaBlobs,
                         hostedAuthController = hostedAuthController,
                         entryStore = appEntryStore,
                         campaignRepository = campaignRepository,
@@ -125,6 +130,7 @@ private enum class AppScreen {
 @Composable
 private fun DndCustomAidApp(
     database: AppDatabase,
+    mediaBlobs: MediaBlobStore,
     hostedAuthController: AndroidHostedAuthController,
     entryStore: AppEntryStore,
     campaignRepository: CampaignRepository,
@@ -232,6 +238,7 @@ private fun DndCustomAidApp(
                     DmDeskScreen(
                         campaign = campaign,
                         database = database,
+                        mediaBlobs = mediaBlobs,
                         hostedBootstrap = hostedCampaignBootstrapController,
                         accountId = entryStore.accountId,
                         onOpenCampaigns = {

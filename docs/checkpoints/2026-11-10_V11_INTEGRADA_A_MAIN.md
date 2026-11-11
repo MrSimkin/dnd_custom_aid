@@ -75,9 +75,22 @@ Si el paso 1 falla, detenerse y no publicar el paso 2. El orden importa: primero
 - Incluye Hojas de PJ, la Vista Grupo (P9), la Referencia rápida con 10 fichas en 5e y 5.5e (P10) y Consultar reglas con búsqueda sin conexión (P4).
 - Los dos SRD oficiales en español van completos dentro de la App (P26).
 
-**Siguiente paso de ingeniería:** el paquete 4, Archivos e imágenes (P3, P5).
+**Paquete 4 (Archivos e imágenes): implementado** en la rama `feature/dm-media`, construida sobre el paquete 3. El detalle está en `docs/technical/DM_MEDIA.md`.
 
-- Primero va el modelo local de archivos: identidad estable, tipo, tamaño, suma de control, y si es solo del DM o apto para jugadores. Sigue el handout a pantalla completa en la tablet.
-- Antes de conectar un proveedor hay que hacer la revisión de costo USD $0 (D-0075, AGENTS §10) y presentarla al propietario. Activar el proveedor es un paso del propietario.
-- Después siguen los paquetes 5 a 8 de la sección 7 de `BASE_DM_REVISION_Y_PROPUESTAS.md`, y al final un solo QA del propietario.
-- El paso del propietario en Neon y Cloudflare del paquete 1 sigue pendiente; se hará antes del QA.
+- El servicio de archivos es Workers KV (P27, tras la revisión USD $0).
+- Los handouts viajan como contenido del DM, y su imagen va por suma de control.
+- En la App de PC se importan desde «Medios / Handouts», y la tablet los muestra a pantalla completa.
+
+El paso del propietario en los proveedores ahora suma la creación del espacio KV (`DM_MEDIA.md` §5). Va todo junto antes del QA:
+
+1. Neon: aplicar la migración 0002.
+2. Cloudflare: `wrangler login`, crear el espacio KV y `wrangler deploy`.
+
+**Siguiente paso de ingeniería:** el paquete 5, la Mesa de Combate (P11 a P16 y P19).
+
+- Preparar encuentro con cantidad, duplicar, reserva, ajustes rápidos y paquetes.
+- Iniciativa, y PV de monstruos en la App, con los PV de los PJ como anotación opcional.
+- Los paquetes de acciones y rasgos se arman en la App de PC.
+- Antes de programar, releer las respuestas P11 a P19 de `BASE_DM_REVISION_Y_PROPUESTAS.md`.
+
+Después siguen los paquetes 6 a 8, y al final un solo QA del propietario.

@@ -1,3 +1,5 @@
+**2026-11-10 — Base para DM, paquete 4 (Archivos e imágenes) implementado en `feature/dm-media`.** Workers KV (P27, revisión USD $0), handouts como contenido del DM con imagen por SHA-256, importación en la App de PC y pantalla completa en la tablet. Detalle en [DM_MEDIA.md](technical/DM_MEDIA.md).
+
 **2026-11-10 — Base para DM, paquete 3 (Pantalla del DM) implementado en `feature/dm-screen`.** Hojas de PJ, Vista Grupo, Referencia rápida (10 fichas, 5e/5.5e) y búsqueda sin conexión; los SRD 5.1 y 5.2.1 en español van completos en la App. Detalle en [DM_SCREEN.md](technical/DM_SCREEN.md).
 
 **2026-11-10 — Base para DM, paquete 2 (modo DM en la App Android) implementado en `feature/dm-mode-android`.** Entrada con cuenta opcional (P25), «Tus campañas» con la marca DM o Jugador, y el Escritorio DM. Detalle en [DM_MODE_ANDROID.md](technical/DM_MODE_ANDROID.md).

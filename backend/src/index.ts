@@ -2,12 +2,15 @@ import { createApiHandler, type ApiHandler } from "./app.ts";
 import { DescopeJwtVerifier } from "./auth.ts";
 import { NeonCampaignAdministrationStore } from "./campaignAdministrationStore.ts";
 import { NeonDmContentStore } from "./dmContentStore.ts";
+import { MediaStore, NeonMediaAuthorization, type MediaKv } from "./mediaStore.ts";
 import { NeonCampaignStore } from "./store.ts";
 
 interface AppEnv {
   DATABASE_URL?: string;
   DESCOPE_PROJECT_ID?: string;
   DESCOPE_BASE_URL?: string;
+  /** Workers KV namespace for handout images (P27); optional so the Worker deploys without it. */
+  MEDIA?: MediaKv;
 }
 
 let cachedHandler: ApiHandler | null = null;
@@ -40,6 +43,8 @@ export default {
         campaigns: new NeonCampaignStore(databaseUrl),
         campaignAdministration: new NeonCampaignAdministrationStore(databaseUrl),
         dmContent: new NeonDmContentStore(databaseUrl),
+        media: env.MEDIA == null ? undefined : new MediaStore(env.MEDIA),
+        mediaAuthorization: env.MEDIA == null ? undefined : new NeonMediaAuthorization(databaseUrl),
       });
     }
 

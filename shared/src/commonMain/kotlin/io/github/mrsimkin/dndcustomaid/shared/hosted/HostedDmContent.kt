@@ -4,6 +4,10 @@ import io.github.mrsimkin.dndcustomaid.shared.content.CreatureContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.CreaturePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterPayload
+import io.github.mrsimkin.dndcustomaid.shared.content.HandoutContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.HandoutPayload
+import io.github.mrsimkin.dndcustomaid.shared.content.MediaBlobStore
+import io.github.mrsimkin.dndcustomaid.shared.content.sha256Hex
 import io.github.mrsimkin.dndcustomaid.shared.content.HomebrewRuleContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.HomebrewRulePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.NpcContentRepository
@@ -135,6 +139,12 @@ interface HostedDmContentTransport {
         contentId: Uuid,
         expectedRevision: Long,
     ): HostedDmContentMutation
+
+    /** Uploads an image file by checksum (package 4). Uploading an existing checksum is a no-op. */
+    suspend fun putMediaContent(sha256: String, mediaType: String, bytes: ByteArray)
+
+    /** Downloads the image of a handout the account may read. */
+    suspend fun mediaContent(sha256: String, contentId: Uuid): ByteArray
 }
 
 internal fun dmContentJson(): Json = Json {
@@ -160,10 +170,14 @@ class DmContentSnapshotCodec(
     private val zones = ZoneContentRepository(database, reusableContent)
     private val encounters = EncounterContentRepository(database, reusableContent)
     private val scenes = SceneContentRepository(database, reusableContent)
+    private val handouts = HandoutContentRepository(database, reusableContent)
 
     fun supportsFamily(family: String): Boolean = ReusableContentFamily.entries.any { it.name == family }
 
     fun item(id: Uuid): ReusableContentItem? = reusableContent.content(id, includeDeleted = true)
+
+    /** The image description of a handout, or null for other families. */
+    fun handoutPayload(id: Uuid): HandoutPayload? = handouts.payload(id)
 
     /** Current local document, or null when the object does not exist locally. */
     fun export(id: Uuid): DmContentSnapshotDocument? {
@@ -176,6 +190,7 @@ class DmContentSnapshotCodec(
             ReusableContentFamily.ZONE -> encode(ZonePayload.serializer(), zones.payload(id))
             ReusableContentFamily.ENCOUNTER -> encode(EncounterPayload.serializer(), encounters.payload(id))
             ReusableContentFamily.SCENE -> encode(ScenePayload.serializer(), scenes.payload(id))
+            ReusableContentFamily.HANDOUT -> encode(HandoutPayload.serializer(), handouts.payload(id))
         }
         val provenance = item.identity.provenance?.let {
             val (kind, ref) = encodeScope(it.sourceScope)
@@ -284,6 +299,7 @@ class DmContentSnapshotCodec(
         ReusableContentFamily.ZONE -> roundTrip(ZonePayload.serializer(), payload)
         ReusableContentFamily.ENCOUNTER -> roundTrip(EncounterPayload.serializer(), payload)
         ReusableContentFamily.SCENE -> roundTrip(ScenePayload.serializer(), payload)
+        ReusableContentFamily.HANDOUT -> roundTrip(HandoutPayload.serializer(), payload)
     }
 
     private fun writePayload(family: ReusableContentFamily, id: Uuid, payload: JsonObject) {
@@ -308,6 +324,9 @@ class DmContentSnapshotCodec(
             }
             ReusableContentFamily.SCENE -> json.decodeFromJsonElement(ScenePayload.serializer(), payload).let {
                 if (scenes.payload(id) == null) scenes.insertPayload(id, it) else scenes.updatePayloadRow(id, it)
+            }
+            ReusableContentFamily.HANDOUT -> json.decodeFromJsonElement(HandoutPayload.serializer(), payload).let {
+                if (handouts.payload(id) == null) handouts.insertPayload(id, it) else handouts.updatePayloadRow(id, it)
             }
         }
     }
@@ -538,6 +557,10 @@ data class DmContentSyncResult(
     val unsupportedFamilyIds: List<Uuid>,
     val pendingCount: Int,
     val offline: Boolean,
+    /** Images uploaded or downloaded in this pass (package 4). */
+    val mediaTransferredCount: Int = 0,
+    /** Handouts whose image is still missing on this device (retried on the next pass). */
+    val mediaMissingCount: Int = 0,
 )
 
 /**
@@ -551,7 +574,10 @@ class HostedDmContentSyncService(
     private val transport: HostedDmContentTransport,
     private val codec: DmContentSnapshotCodec = DmContentSnapshotCodec(database),
     private val outbox: HostedDmContentOutboxRepository = HostedDmContentOutboxRepository(database),
+    private val blobs: MediaBlobStore? = null,
 ) {
+    private var mediaTransferred = 0
+
     suspend fun synchronize(scopes: List<DmContentSyncScope>, nowEpochSeconds: Long): DmContentSyncResult {
         require(nowEpochSeconds >= 0) { "Sync time must not be negative." }
         val conflicts = linkedMapOf<Uuid, DmContentSyncConflictReason>()
@@ -561,6 +587,7 @@ class HostedDmContentSyncService(
         val unsupported = mutableListOf<Uuid>()
         var unchanged = 0
 
+        mediaTransferred = 0
         scopes.distinct().forEach { queueLocalChanges(it, nowEpochSeconds, conflicts) }
 
         var offline = false
@@ -603,7 +630,11 @@ class HostedDmContentSyncService(
             }
         }
 
+        val mediaMissing = if (offline) countMissingMedia(scopes) else downloadMissingMedia(scopes)
+
         return DmContentSyncResult(
+            mediaTransferredCount = mediaTransferred,
+            mediaMissingCount = mediaMissing,
             pushedIds = pushed,
             appliedIds = applied,
             tombstonedIds = tombstoned,
@@ -653,6 +684,7 @@ class HostedDmContentSyncService(
             when (mutation.type) {
                 HostedDmContentMutationType.CONTENT_PUT -> {
                     val payload = outbox.putPayload(mutation)
+                    uploadHandoutImage(payload.snapshot)
                     val result = transport.putDmContent(mutation.mutationId, mutation.contentId, mutation.expectedRevision, payload.snapshot)
                     outbox.acknowledge(mutation, result.content.revision, false, codec.normalizedJson(payload.snapshot))
                 }
@@ -750,6 +782,57 @@ class HostedDmContentSyncService(
         }
     }
 
+    /** A handout's image goes up before its description, so no device receives a dangling reference. */
+    private suspend fun uploadHandoutImage(snapshot: DmContentSnapshotDocument) {
+        val store = blobs ?: return
+        if (snapshot.content.family != ReusableContentFamily.HANDOUT.name) return
+        val payload = dmContentJson().decodeFromJsonElement(HandoutPayload.serializer(), snapshot.payload)
+        val bytes = store.read(payload.sha256) ?: return
+        transport.putMediaContent(payload.sha256, payload.mediaType, bytes)
+        mediaTransferred += 1
+    }
+
+    private fun activeHandoutsMissingImage(scopes: List<DmContentSyncScope>): List<Pair<Uuid, HandoutPayload>> {
+        val store = blobs ?: return emptyList()
+        return scopes.distinct().flatMap { scope ->
+            val (kind, ref) = when (scope) {
+                is DmContentSyncScope.Personal -> SCOPE_PERSONAL to scope.accountId.toString()
+                is DmContentSyncScope.Campaign -> SCOPE_CAMPAIGN to scope.campaignId.toString()
+            }
+            database.dmContentSyncQueries.selectContentIdsByScope(kind, ref).executeAsList().map(Uuid::parse)
+        }.mapNotNull { id ->
+            val item = codec.item(id) ?: return@mapNotNull null
+            if (item.isDeleted || item.family != ReusableContentFamily.HANDOUT) return@mapNotNull null
+            val payload = codec.handoutPayload(id) ?: return@mapNotNull null
+            if (store.has(payload.sha256)) null else id to payload
+        }
+    }
+
+    private fun countMissingMedia(scopes: List<DmContentSyncScope>): Int = activeHandoutsMissingImage(scopes).size
+
+    private suspend fun downloadMissingMedia(scopes: List<DmContentSyncScope>): Int {
+        val store = blobs ?: return 0
+        var missing = 0
+        for ((id, payload) in activeHandoutsMissingImage(scopes)) {
+            if (store.has(payload.sha256)) continue
+            val bytes = try {
+                transport.mediaContent(payload.sha256, id)
+            } catch (error: Exception) {
+                if (error is kotlinx.coroutines.CancellationException) throw error
+                missing += 1
+                continue
+            }
+            // Never keep a file whose content does not match the checksum the DM published.
+            if (bytes.isEmpty() || sha256Hex(bytes) != payload.sha256) {
+                missing += 1
+                continue
+            }
+            store.write(bytes)
+            mediaTransferred += 1
+        }
+        return missing
+    }
+
     private fun isOffline(error: Exception): Boolean = when (error) {
         // NOT_FOUND also counts as "try later": a server that does not have the DM content
         // routes yet must not block the DM's queued changes. Nothing is lost while it waits.
@@ -802,5 +885,7 @@ fun DmContentSyncResult.spanishSummary(): String = buildString {
     if (tombstonedIds.isNotEmpty()) append(" · borrados: ${tombstonedIds.size}")
     if (conflicts.isNotEmpty()) append(" · en conflicto: ${conflicts.size} (no se pisó nada)")
     if (unsupportedFamilyIds.isNotEmpty()) append(" · de una versión más nueva: ${unsupportedFamilyIds.size}")
+    if (mediaTransferredCount > 0) append(" · imágenes: $mediaTransferredCount")
+    if (mediaMissingCount > 0) append(" · imágenes pendientes: $mediaMissingCount")
     append('.')
 }

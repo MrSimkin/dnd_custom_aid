@@ -41,6 +41,8 @@ import androidx.compose.ui.window.application
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.DesktopDatabaseFactory
+import io.github.mrsimkin.dndcustomaid.shared.content.FileMediaBlobStore
+import java.io.File
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 
@@ -53,11 +55,15 @@ fun main() {
     val homebrewRuleManagerController = DesktopHomebrewRuleManagerController(databaseHandle.database)
     val placeManagerController = DesktopPlaceManagerController(databaseHandle.database)
     val pcManagerController = DesktopPcManagerController(databaseHandle.database)
+    // Base para DM, package 4: images are stored next to the database, by checksum.
+    val mediaBlobs = FileMediaBlobStore(File(DesktopDatabaseFactory.defaultDatabaseFile().parentFile, "media"))
+    val handoutManagerController = DesktopHandoutManagerController(databaseHandle.database, mediaBlobs)
     val preferencesStore = DesktopPreferencesStore()
     val hostedAuthController = DesktopHostedAuthController()
     val hostedCampaignController = DesktopHostedCampaignAdministrationController(
         database = databaseHandle.database,
         accessTokens = hostedAuthController,
+        mediaBlobs = mediaBlobs,
     )
 
     try {
@@ -75,6 +81,7 @@ fun main() {
                         npcManagerController = npcManagerController,
                         homebrewRuleManagerController = homebrewRuleManagerController,
                         placeManagerController = placeManagerController,
+                        handoutManagerController = handoutManagerController,
                         pcManagerController = pcManagerController,
                         hostedAuthController = hostedAuthController,
                         hostedCampaignController = hostedCampaignController,
@@ -115,6 +122,7 @@ private fun DesktopWorkbench(
     npcManagerController: DesktopNpcManagerController,
     homebrewRuleManagerController: DesktopHomebrewRuleManagerController,
     placeManagerController: DesktopPlaceManagerController,
+    handoutManagerController: DesktopHandoutManagerController,
     pcManagerController: DesktopPcManagerController,
     hostedAuthController: DesktopHostedAuthController,
     hostedCampaignController: DesktopHostedCampaignAdministrationController,
@@ -207,6 +215,12 @@ private fun DesktopWorkbench(
                         onQaEvent = ::logQa,
                     )
 
+                    DesktopDestination.MEDIA_HANDOUTS -> DesktopHandoutManagerScreen(
+                        controller = handoutManagerController,
+                        activeCampaign = activeCampaign,
+                        onQaEvent = ::logQa,
+                    )
+
                     DesktopDestination.MANAGERS -> DesktopManagersHubScreen(
                         creatureController = creatureManagerController,
                         npcController = npcManagerController,
@@ -248,6 +262,7 @@ private fun DesktopWorkbench(
                 destination == DesktopDestination.CAMPAIGNS ||
                 destination == DesktopDestination.PLAYER_CHARACTERS ||
                 destination == DesktopDestination.MANAGERS ||
+                destination == DesktopDestination.MEDIA_HANDOUTS ||
                 destination == DesktopDestination.CAMPAIGN_ADMINISTRATION
             ) {
                 Divider(
