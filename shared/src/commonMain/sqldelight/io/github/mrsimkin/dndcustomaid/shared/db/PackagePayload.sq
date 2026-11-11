@@ -1,0 +1,13 @@
+CREATE TABLE package_payload (
+    content_id TEXT NOT NULL PRIMARY KEY REFERENCES reusable_content(id) ON DELETE CASCADE,
+    payload_json TEXT NOT NULL CHECK (length(trim(payload_json)) > 0)
+);
+
+insertPackagePayload:
+INSERT INTO package_payload(content_id, payload_json) VALUES (?, ?);
+
+selectPackagePayloadByContentId:
+SELECT payload_json FROM package_payload WHERE content_id = ?;
+
+updatePackagePayload:
+UPDATE package_payload SET payload_json = ? WHERE content_id = ?;

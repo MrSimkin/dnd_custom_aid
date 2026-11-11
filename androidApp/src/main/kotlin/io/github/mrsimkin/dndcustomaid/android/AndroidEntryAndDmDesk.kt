@@ -261,13 +261,16 @@ internal fun ReusableContentFamily.spanishPlural(): String = when (this) {
     ReusableContentFamily.ENCOUNTER -> "Encuentros"
     ReusableContentFamily.SCENE -> "Escenas"
     ReusableContentFamily.HANDOUT -> "Handouts e imágenes"
+    ReusableContentFamily.PACKAGE -> "Paquetes"
 }
 
-private data class DmDeskTable(val name: String, val purpose: String, val ready: Boolean = false)
+private enum class DmDeskTarget { DM_SCREEN, COMBAT }
+
+private data class DmDeskTable(val name: String, val purpose: String, val target: DmDeskTarget? = null)
 
 private val dmDeskTables = listOf(
-    DmDeskTable("Pantalla del DM", "Hojas de PJ, Vista Grupo, Referencia rápida y Consultar reglas.", ready = true),
-    DmDeskTable("Mesa de Combate", "Preparar encuentro, iniciativa, PV de monstruos y paquetes."),
+    DmDeskTable("Pantalla del DM", "Hojas de PJ, Vista Grupo, Referencia rápida y Consultar reglas.", DmDeskTarget.DM_SCREEN),
+    DmDeskTable("Mesa de Combate", "Preparar encuentro, iniciativa, PV de monstruos y paquetes.", DmDeskTarget.COMBAT),
     DmDeskTable("Mesa de Escena", "Ficha de Zona, relojes y notas en vivo."),
     DmDeskTable("Mesa de Dungeon", "Turno de Dungeon, actividades y mapa de zonas."),
 )
@@ -286,6 +289,7 @@ internal fun DmDeskScreen(
     onOpenCampaigns: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenDmScreen: () -> Unit,
+    onOpenCombat: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     var refreshVersion by remember { mutableIntStateOf(0) }
@@ -365,12 +369,12 @@ internal fun DmDeskScreen(
                                 ) {
                                     Text(table.name, style = MaterialTheme.typography.titleSmall)
                                     Text(
-                                        text = if (table.ready) table.purpose else "${table.purpose} En preparación.",
+                                        text = if (table.target != null) table.purpose else "${table.purpose} En preparación.",
                                         style = MaterialTheme.typography.bodySmall,
                                     )
                                 }
-                                if (table.ready) {
-                                    Button(onClick = onOpenDmScreen) { Text("Abrir") }
+                                table.target?.let { target ->
+                                    Button(onClick = if (target == DmDeskTarget.DM_SCREEN) onOpenDmScreen else onOpenCombat) { Text("Abrir") }
                                 }
                             }
                         }

@@ -86,11 +86,16 @@ El paso del propietario en los proveedores ahora suma la creación del espacio K
 1. Neon: aplicar la migración 0002.
 2. Cloudflare: `wrangler login`, crear el espacio KV y `wrangler deploy`.
 
-**Siguiente paso de ingeniería:** el paquete 5, la Mesa de Combate (P11 a P16 y P19).
+**Paquete 5 (Mesa de Combate): implementado** en la rama `feature/dm-combat`, construida sobre el paquete 4. El detalle está en `docs/technical/DM_COMBAT.md`.
 
-- Preparar encuentro con cantidad, duplicar, reserva, ajustes rápidos y paquetes.
-- Iniciativa, y PV de monstruos en la App, con los PV de los PJ como anotación opcional.
-- Los paquetes de acciones y rasgos se arman en la App de PC.
-- Antes de programar, releer las respuestas P11 a P19 de `BASE_DM_REVISION_Y_PROPUESTAS.md`.
+- Incluye Preparar encuentro con reserva, ajustes y paquetes, iniciativa escrita o tirada, PV de monstruos con promedio o tirados, la nota de PV de los PJ, estados, turnos y rondas.
+- Los paquetes se arman en la App de PC (Gestores → Paquetes).
 
-Después siguen los paquetes 6 a 8, y al final un solo QA del propietario.
+**Siguiente paso de ingeniería:** el paquete 6, la Mesa de Escena (P15).
+
+- Incluye buscador, fijados y recientes, y recorrido por zona, por función y por aventura (secuencia de escenas).
+- Las tiendas muestran qué venden, cuánto cuesta, lo destacado y quién atiende, sin llevar existencias.
+- Lleva la referencia al papel, la ficha rápida de PNJ («para jugadores» / «solo DM») y el camino a la vista.
+- Antes de programar, releer P15 y D-0069.
+
+Después siguen los paquetes 7 y 8, y al final un solo QA del propietario. El paso del propietario en Neon y Cloudflare sigue pendiente, antes del QA.

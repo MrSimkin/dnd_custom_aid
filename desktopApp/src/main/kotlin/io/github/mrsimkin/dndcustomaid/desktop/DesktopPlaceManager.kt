@@ -49,6 +49,7 @@ private enum class DesktopManagersHubSection(val label: String) {
     PLACES_SHOPS("Escenarios / Lugares / Tiendas"),
     DUNGEONS_ZONES("Mazmorras / Zonas"),
     ENCOUNTERS("Encuentros"),
+    PACKAGES("Paquetes"),
 }
 
 @Composable
@@ -99,6 +100,11 @@ fun DesktopManagersHubScreen(
                 activeCampaign = activeCampaign,
                 onQaEvent = onQaEvent,
             )
+            DesktopManagersHubSection.PACKAGES -> DesktopPackageManagerScreen(
+                controller = placeController.packageManagerController,
+                activeCampaign = activeCampaign,
+                onQaEvent = onQaEvent,
+            )
         }
     }
 }
@@ -113,6 +119,7 @@ class DesktopPlaceManagerController(
     private val places = PlaceContentRepository(database, reusableContent)
     internal val sceneManagerController = DesktopSceneManagerController(database, nowEpochSeconds)
     internal val zoneManagerController = DesktopZoneManagerController(database, nowEpochSeconds)
+    internal val packageManagerController = DesktopPackageManagerController(database, nowEpochSeconds)
     internal val encounterManagerController = DesktopEncounterManagerController(database, nowEpochSeconds)
 
     fun personalOwnerAccountId(): Uuid? {

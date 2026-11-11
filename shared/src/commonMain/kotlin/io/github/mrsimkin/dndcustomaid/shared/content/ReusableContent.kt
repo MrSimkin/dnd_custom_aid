@@ -14,6 +14,7 @@ enum class ReusableContentFamily {
     ENCOUNTER,
     SCENE,
     HANDOUT,
+    PACKAGE,
 }
 
 @Serializable
