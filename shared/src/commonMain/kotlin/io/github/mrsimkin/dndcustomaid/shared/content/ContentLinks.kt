@@ -1,6 +1,7 @@
 package io.github.mrsimkin.dndcustomaid.shared.content
 
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.dm.DungeonActivity
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.uuid.Uuid
@@ -39,6 +40,14 @@ data class MapPin(
     }
 }
 
+/** A passage between two zones of a dungeon diagram (P23); secret ones are shown only to the DM. */
+@Serializable
+data class ZonePassage(
+    val toZoneId: Uuid,
+    val secret: Boolean = false,
+    val label: String = "",
+)
+
 /**
  * Links of one content item. Which fields matter depends on the family:
  * - NPC: [placeIds], [zoneIds], [sceneIds], [groups] (group or faction) and [portraitHandoutId];
@@ -46,6 +55,9 @@ data class MapPin(
  * - ZONE: [mapHandoutId];
  * - SCENE: [adventure], [order], [detour], [sceneIds] (next scenes), [placeIds] and [zoneIds];
  * - HANDOUT (map): [pins].
+ * Package 7 (Mesa de Dungeon):
+ * - ZONE: [dungeon] (the dungeon it belongs to), [diagramX]/[diagramY] (0-1), [passages], [encounterIds];
+ * - HOMEBREW_RULE: [activities], the DM's own list of Dungeon Turn Activities (P17).
  */
 @Serializable
 data class ContentLinks(
@@ -61,6 +73,12 @@ data class ContentLinks(
     val order: Int? = null,
     val detour: Boolean = false,
     val pins: List<MapPin> = emptyList(),
+    val dungeon: String = "",
+    val diagramX: Double? = null,
+    val diagramY: Double? = null,
+    val passages: List<ZonePassage> = emptyList(),
+    val encounterIds: List<Uuid> = emptyList(),
+    val activities: List<DungeonActivity> = emptyList(),
 ) {
     val isEmpty: Boolean
         get() = this == ContentLinks()
@@ -74,6 +92,12 @@ data class ContentLinks(
         groups = groups.map { it.trim() }.filter { it.isNotEmpty() }.distinctBy { it.lowercase() },
         shopItems = shopItems.filter { it.name.isNotBlank() }.map { it.copy(name = it.name.trim(), price = it.price.trim()) },
         adventure = adventure.trim(),
+        dungeon = dungeon.trim(),
+        diagramX = diagramX?.coerceIn(0.0, 1.0),
+        diagramY = diagramY?.coerceIn(0.0, 1.0),
+        passages = passages.distinctBy { it.toZoneId },
+        encounterIds = encounterIds.distinct(),
+        activities = activities.filter { it.name.isNotBlank() && it.key.isNotBlank() }.distinctBy { it.key },
     )
 }
 

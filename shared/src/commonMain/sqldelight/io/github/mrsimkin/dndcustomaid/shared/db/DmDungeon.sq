@@ -1,0 +1,23 @@
+-- Base para DM, package 7: live Dungeon explorations, kept on the DM's device like combats.
+CREATE TABLE dm_dungeon (
+    id TEXT NOT NULL PRIMARY KEY,
+    campaign_id TEXT NOT NULL REFERENCES campaign(id) ON DELETE CASCADE,
+    ended INTEGER NOT NULL CHECK (ended IN (0, 1)),
+    updated_at_epoch_seconds INTEGER NOT NULL CHECK (updated_at_epoch_seconds >= 0),
+    document_json TEXT NOT NULL CHECK (length(trim(document_json)) > 0)
+);
+
+CREATE INDEX dm_dungeon_campaign_idx ON dm_dungeon(campaign_id, updated_at_epoch_seconds);
+
+upsertDungeon:
+INSERT OR REPLACE INTO dm_dungeon(id, campaign_id, ended, updated_at_epoch_seconds, document_json)
+VALUES (?, ?, ?, ?, ?);
+
+selectDungeonsByCampaign:
+SELECT document_json FROM dm_dungeon WHERE campaign_id = ? ORDER BY updated_at_epoch_seconds DESC, id;
+
+selectDungeon:
+SELECT document_json FROM dm_dungeon WHERE id = ?;
+
+deleteDungeon:
+DELETE FROM dm_dungeon WHERE id = ?;

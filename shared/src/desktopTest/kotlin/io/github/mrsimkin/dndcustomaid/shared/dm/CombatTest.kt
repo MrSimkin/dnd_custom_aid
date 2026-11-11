@@ -197,6 +197,30 @@ class CombatTest {
     }
 
     @Test
+    fun aSuccessfulAmbushOpensWithASurpriseRoundForTheAmbushersOnly() = db { database ->
+        val campaign = CampaignRepository(database).createCampaign("Terramore")
+        val goblin = CreatureContentRepository(database).createCampaign(campaign.id, "Goblin", goblinPayload(), 100)
+        var doc = CombatEngine.addCreature(CombatEngine.new(campaign.id, "Cripta", 200), goblin, 2)
+        doc = CombatEngine.addCustom(doc, "Ana", null, 14)
+        doc = CombatEngine.addCustom(doc, "Bo", null, 12)
+        val ana = doc.combatants.first { it.label == "Ana" }
+        val bo = doc.combatants.first { it.label == "Bo" }
+        listOf(ana.id to 5, bo.id to 18).forEach { (id, value) -> doc = CombatEngine.setInitiative(doc, id, value) }
+        doc.combatants.filter { it.label.startsWith("Goblin") }.forEach { doc = CombatEngine.setInitiative(doc, it.id, 10) }
+
+        doc = CombatEngine.setSurpriseActors(doc, listOf(ana.id))
+        doc = CombatEngine.start(doc)
+        assertEquals(0, doc.round, "round 0 is the surprise round")
+        assertEquals(ana.id, doc.activeCombatantId, "only the ambusher acts, even with a lower initiative")
+        doc = CombatEngine.nextTurn(doc)
+        assertEquals(1, doc.round)
+        assertEquals(bo.id, doc.activeCombatantId, "round 1 starts at the top of the full order")
+
+        val noSurprise = CombatEngine.start(CombatEngine.setSurpriseActors(doc.copy(status = CombatStatus.PREPARING), emptyList()))
+        assertEquals(1, noSurprise.round, "the DM can always start without surprise")
+    }
+
+    @Test
     fun blockQuantityAndAVariantSavedAsANewCreatureLeaveTheBaseUntouched() = db { database ->
         val campaign = CampaignRepository(database).createCampaign("Terramore")
         val creatures = CreatureContentRepository(database)

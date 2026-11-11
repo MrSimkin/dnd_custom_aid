@@ -5,6 +5,9 @@ import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.ContentLinks
 import io.github.mrsimkin.dndcustomaid.shared.content.ContentLinksRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.CreatureAbilityScores
+import io.github.mrsimkin.dndcustomaid.shared.content.NoteContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.NoteContextKind
+import io.github.mrsimkin.dndcustomaid.shared.content.NotePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.NpcContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.NpcPayload
 import io.github.mrsimkin.dndcustomaid.shared.content.PlaceContentRepository
@@ -115,6 +118,23 @@ class HostedDmContentSyncTest {
         tablet.sync()
         assertEquals("70 po", tabletLinks.links(shopId).shopItems.single().price)
         assertTrue(tablet.sync().appliedIds.isEmpty() && pc.sync().pushedIds.isEmpty(), "nothing moves without edits")
+    }
+
+    @Test
+    fun aLiveNoteWrittenOnTheTabletReachesTheAppDePcWithItsContext() = scenario { _, pc, tablet ->
+        val zoneId = Uuid.random()
+        val note = NoteContentRepository(tablet.database).create(
+            campaignId,
+            NotePayload("La puerta norte quedó atrancada.\nVolver con palanca.", NoteContextKind.ZONE, zoneId, "Antesala"),
+            500,
+        )
+        assertEquals("La puerta norte quedó atrancada.", note.item.displayName, "a note is named by its first line")
+        assertEquals(listOf(note.item.identity.id), tablet.sync().pushedIds)
+        pc.sync()
+        val onPc = NoteContentRepository(pc.database).listCampaign(campaignId).single()
+        assertEquals(NoteContextKind.ZONE, onPc.payload.contextKind)
+        assertEquals("Antesala", onPc.payload.contextLabel)
+        assertEquals(zoneId, onPc.payload.contextId)
     }
 
     @Test

@@ -262,4 +262,5 @@ internal fun ReusableContentFamily.spanishPlural(): String = when (this) {
     ReusableContentFamily.SCENE -> "Escenas"
     ReusableContentFamily.HANDOUT -> "Handouts e imágenes"
     ReusableContentFamily.PACKAGE -> "Paquetes"
+    ReusableContentFamily.NOTE -> "Notas"
 }

@@ -131,6 +131,11 @@ data class CombatDocument(
     val sharedInitiativeGroups: List<Uuid> = emptyList(),
     /** The prepared encounter this combat came from, for its guidance (D-0069 §10). */
     val encounterId: Uuid? = null,
+    /**
+     * P22: after a successful ambush, these combatants act in a surprise round (round 0) before
+     * round 1; everyone else is surprised. Empty means no surprise round.
+     */
+    val surpriseActorIds: List<Uuid> = emptyList(),
 ) {
     init {
         require(name.isNotBlank()) { "Combat name must not be blank." }
@@ -555,12 +560,29 @@ object CombatEngine {
 
     /** «Empezar combate»: the prepared state is kept; round 1 starts at the top of the order. */
     fun start(doc: CombatDocument): CombatDocument {
-        val started = doc.copy(status = CombatStatus.ACTIVE, round = 1)
-        return started.copy(activeCombatantId = started.turnSlots.firstNotNullOfOrNull { slot -> slot.firstOrNull { !it.defeated } }?.id)
+        val surprise = doc.surpriseActorIds.any { id -> doc.combatant(id)?.reserve == false }
+        val started = doc.copy(status = CombatStatus.ACTIVE, round = if (surprise) 0 else 1)
+        return started.copy(activeCombatantId = started.slotsThisRound().firstNotNullOfOrNull { slot -> slot.firstOrNull { !it.defeated } }?.id)
     }
+
+    /** P22: who acts in the surprise round, set or changed by the DM (empty = start without surprise). */
+    fun setSurpriseActors(doc: CombatDocument, ids: List<Uuid>): CombatDocument =
+        doc.copy(surpriseActorIds = ids.filter { doc.combatant(it) != null }.distinct())
+
+    /** In the surprise round only its actors take turns; afterwards, everyone. */
+    private fun CombatDocument.slotsThisRound(): List<List<Combatant>> =
+        if (round == 0) turnSlots.filter { slot -> slot.any { it.id in surpriseActorIds } } else turnSlots
 
     /** Next turn with someone still standing (a shared group is one turn); passing the end starts a new round. */
     fun nextTurn(doc: CombatDocument): CombatDocument {
+        if (doc.round == 0) {
+            val surpriseSlots = doc.slotsThisRound()
+            val index = surpriseSlots.indexOfFirst { slot -> slot.any { it.id == doc.activeCombatantId } }
+            val next = surpriseSlots.drop(index + 1).firstOrNull { slot -> slot.any { !it.defeated } }
+            if (next != null) return doc.copy(activeCombatantId = next.first { !it.defeated }.id)
+            val firstOfRoundOne = doc.turnSlots.firstOrNull { slot -> slot.any { !it.defeated } } ?: return doc.copy(activeCombatantId = null, round = 1)
+            return doc.copy(activeCombatantId = firstOfRoundOne.first { !it.defeated }.id, round = 1)
+        }
         val slots = doc.turnSlots.filter { slot -> slot.any { !it.defeated } }
         if (slots.isEmpty()) return doc.copy(activeCombatantId = null)
         val all = doc.turnSlots
