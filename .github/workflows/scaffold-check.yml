@@ -193,3 +193,4 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f database/tests/0006_campaign_membership_administration_contract.sql
           psql -v ON_ERROR_STOP=1 -f database/tests/0007_pc_authority_administration_contract.sql
           psql -v ON_ERROR_STOP=1 -f database/tests/0008_dm_content_contract.sql
+          psql -v ON_ERROR_STOP=1 -f database/tests/0009_media_authorization_contract.sql

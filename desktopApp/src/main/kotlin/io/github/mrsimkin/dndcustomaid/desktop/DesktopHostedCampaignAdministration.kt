@@ -1,5 +1,6 @@
 package io.github.mrsimkin.dndcustomaid.desktop
 
+import io.github.mrsimkin.dndcustomaid.shared.content.MediaBlobStore
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiClient
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiErrorCode
@@ -48,10 +49,11 @@ internal class DesktopHostedCampaignAdministrationController(
             baseUrl = DesktopHostedDevelopmentEnvironment.HOSTED_API_BASE_URL,
             accessTokens = accessTokens,
         ),
+    mediaBlobs: MediaBlobStore? = null,
 ) {
     private val bootstrapService = HostedCampaignBootstrapService(database, apiClient)
     private val spine = IntegratedSpineRepository(database)
-    private val dmContentSync = HostedDmContentSyncService(database, apiClient)
+    private val dmContentSync = HostedDmContentSyncService(database, apiClient, blobs = mediaBlobs)
 
     suspend fun bootstrap(): HostedCampaignBootstrapResult = bootstrapService.refresh()
 

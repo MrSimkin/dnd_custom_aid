@@ -20,6 +20,7 @@ import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcPullConflict
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcSnapshot
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedPcSnapshotPullService
 import io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncResult
+import io.github.mrsimkin.dndcustomaid.shared.content.MediaBlobStore
 import io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncScope
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedDmContentSyncService
 import io.github.mrsimkin.dndcustomaid.shared.hosted.dmContentSyncScopes
@@ -98,6 +99,8 @@ internal sealed interface AndroidHostedCampaignBootstrapOutcome {
  */
 internal class AndroidHostedCampaignBootstrapController(
     private val database: AppDatabase,
+    /** Device store for handout images (package 4); null keeps images out of this sync. */
+    private val mediaBlobs: MediaBlobStore? = null,
     private val apiClient: HostedApiClient = HostedApiClient(
         baseUrl = HostedDevelopmentEnvironment.API_BASE_URL,
         accessTokens = DescopeHostedAccessTokenProvider(),
@@ -127,7 +130,7 @@ internal class AndroidHostedCampaignBootstrapController(
         database = database,
         api = apiClient,
     )
-    private val dmContentSync = HostedDmContentSyncService(database, apiClient)
+    private val dmContentSync = HostedDmContentSyncService(database, apiClient, blobs = mediaBlobs)
 
     fun hasRememberedSession(): Boolean =
         Descope.sessionManager.session?.refreshToken?.isExpired == false

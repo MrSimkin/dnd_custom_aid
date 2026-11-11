@@ -8,7 +8,13 @@ import io.github.mrsimkin.dndcustomaid.shared.content.CreaturePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterParticipant
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterPayload
+import io.github.mrsimkin.dndcustomaid.shared.content.HandoutContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.HandoutKind
+import io.github.mrsimkin.dndcustomaid.shared.content.HandoutPayload
+import io.github.mrsimkin.dndcustomaid.shared.content.HandoutVisibility
 import io.github.mrsimkin.dndcustomaid.shared.content.HomebrewRuleContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.InMemoryMediaBlobStore
+import io.github.mrsimkin.dndcustomaid.shared.content.sha256Hex
 import io.github.mrsimkin.dndcustomaid.shared.content.HomebrewRulePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
@@ -225,9 +231,50 @@ class HostedDmContentSyncTest {
 
     private class Device(val database: AppDatabase, private val server: FakeDmContentServer, private val scopes: List<DmContentSyncScope>) {
         private var clock = 1_000L
+        val blobs = InMemoryMediaBlobStore()
         fun sync(): DmContentSyncResult = runBlocking {
-            HostedDmContentSyncService(database, server).synchronize(scopes, clock++)
+            HostedDmContentSyncService(database, server, blobs = blobs).synchronize(scopes, clock++)
         }
+    }
+
+    @Test
+    fun aHandoutImageTravelsWithItsDescriptionAndIsCheckedOnArrival() = scenario { server, pc, tablet ->
+        val image = ByteArray(2048) { (it % 251).toByte() }
+        val sha = pc.blobs.write(image)
+        val handout = HandoutContentRepository(pc.database).createCampaign(
+            campaignId,
+            "Mapa de la cripta",
+            HandoutPayload(kind = HandoutKind.MAP, mediaType = "image/png", sizeBytes = image.size.toLong(), sha256 = sha,
+                width = 800, height = 600, visibility = HandoutVisibility.PLAYER_SAFE, caption = "Nivel 1"),
+            100,
+        )
+
+        val pushed = pc.sync()
+        assertEquals(1, pushed.mediaTransferredCount, "the image goes up with its description")
+        assertTrue(server.media.containsKey(sha))
+
+        val received = tablet.sync()
+        assertEquals(listOf(handout.item.identity.id), received.appliedIds)
+        assertEquals(1, received.mediaTransferredCount)
+        assertEquals(0, received.mediaMissingCount)
+        assertTrue(tablet.blobs.read(sha)!!.contentEquals(image))
+        val onTablet = HandoutContentRepository(tablet.database).handout(handout.item.identity.id)!!
+        assertEquals(HandoutKind.MAP, onTablet.payload.kind)
+        assertEquals(HandoutVisibility.PLAYER_SAFE, onTablet.payload.visibility)
+
+        // A tampered file on the server is never stored: the handout stays «imagen pendiente».
+        val other = ByteArray(10) { 7 }
+        val otherSha = sha256Hex(other)
+        val second = HandoutContentRepository(pc.database).createCampaign(
+            campaignId, "Carta", HandoutPayload(mediaType = "image/jpeg", sizeBytes = 10, sha256 = otherSha), 110,
+        )
+        pc.blobs.write(other)
+        pc.sync()
+        server.media[otherSha] = ByteArray(10) { 9 }
+        val tampered = tablet.sync()
+        assertEquals(1, tampered.mediaMissingCount)
+        assertTrue(!tablet.blobs.has(otherSha))
+        assertTrue(HandoutContentRepository(tablet.database).handout(second.item.identity.id) != null)
     }
 
     private fun scenario(block: (FakeDmContentServer, Device, Device) -> Unit) {
@@ -332,6 +379,18 @@ private class FakeDmContentServer : HostedDmContentTransport {
         objects[contentId] = stored
         receipts[mutationId] = contentId
         return answer(HostedDmContentMutation(stored, applied = true))
+    }
+
+    val media = linkedMapOf<String, ByteArray>()
+
+    override suspend fun putMediaContent(sha256: String, mediaType: String, bytes: ByteArray) {
+        checkOnline()
+        media.getOrPut(sha256) { bytes.copyOf() }
+    }
+
+    override suspend fun mediaContent(sha256: String, contentId: Uuid): ByteArray {
+        checkOnline()
+        return media[sha256]?.copyOf() ?: throw HostedApiException(404, HostedApiErrorCode.NOT_FOUND, "missing media")
     }
 
     private fun answer(result: HostedDmContentMutation): HostedDmContentMutation {

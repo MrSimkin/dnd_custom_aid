@@ -34,6 +34,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
+import io.github.mrsimkin.dndcustomaid.shared.content.HandoutContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.MediaBlobStore
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentFamily
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
@@ -258,6 +260,7 @@ internal fun ReusableContentFamily.spanishPlural(): String = when (this) {
     ReusableContentFamily.ZONE -> "Zonas"
     ReusableContentFamily.ENCOUNTER -> "Encuentros"
     ReusableContentFamily.SCENE -> "Escenas"
+    ReusableContentFamily.HANDOUT -> "Handouts e imágenes"
 }
 
 private data class DmDeskTable(val name: String, val purpose: String, val ready: Boolean = false)
@@ -277,6 +280,7 @@ private val dmDeskTables = listOf(
 internal fun DmDeskScreen(
     campaign: Campaign,
     database: AppDatabase,
+    mediaBlobs: MediaBlobStore,
     hostedBootstrap: AndroidHostedCampaignBootstrapController,
     accountId: Uuid?,
     onOpenCampaigns: () -> Unit,
@@ -289,6 +293,7 @@ internal fun DmDeskScreen(
     var status by remember { mutableStateOf<String?>(null) }
     val content = remember(refreshVersion, campaign.id) { ReusableContentRepository(database) }
     val campaignItems = remember(refreshVersion, campaign.id) { content.listCampaign(campaign.id) }
+    val handouts = remember(refreshVersion, campaign.id) { HandoutContentRepository(database).listCampaign(campaign.id) }
     val personalCount = remember(refreshVersion, accountId) {
         accountId?.let { content.listPersonal(it).size } ?: 0
     }
@@ -369,6 +374,22 @@ internal fun DmDeskScreen(
                                 }
                             }
                         }
+                    }
+                }
+            }
+
+            item {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
+                    ) {
+                        Text("Handouts e imágenes", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            text = "Toca una imagen para mostrarla a pantalla completa.",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        HandoutStrip(handouts, mediaBlobs)
                     }
                 }
             }

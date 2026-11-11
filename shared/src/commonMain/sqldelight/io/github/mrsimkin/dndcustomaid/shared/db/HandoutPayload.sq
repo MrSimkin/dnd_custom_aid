@@ -1,0 +1,40 @@
+CREATE TABLE handout_payload (
+    content_id TEXT NOT NULL PRIMARY KEY REFERENCES reusable_content(id) ON DELETE CASCADE,
+    kind TEXT NOT NULL CHECK (kind IN ('HANDOUT', 'MAP', 'NPC_PORTRAIT')),
+    media_type TEXT NOT NULL CHECK (media_type IN ('image/jpeg', 'image/png', 'image/webp')),
+    size_bytes INTEGER NOT NULL CHECK (size_bytes > 0),
+    sha256 TEXT NOT NULL CHECK (length(sha256) = 64),
+    width INTEGER CHECK (width IS NULL OR width > 0),
+    height INTEGER CHECK (height IS NULL OR height > 0),
+    visibility TEXT NOT NULL CHECK (visibility IN ('DM_ONLY', 'PLAYER_SAFE')),
+    caption TEXT NOT NULL,
+    notes TEXT NOT NULL
+);
+
+insertHandoutPayload:
+INSERT INTO handout_payload(
+    content_id, kind, media_type, size_bytes, sha256, width, height, visibility, caption, notes
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectHandoutPayloadByContentId:
+SELECT *
+FROM handout_payload
+WHERE content_id = ?;
+
+updateHandoutPayload:
+UPDATE handout_payload
+SET kind = ?,
+    media_type = ?,
+    size_bytes = ?,
+    sha256 = ?,
+    width = ?,
+    height = ?,
+    visibility = ?,
+    caption = ?,
+    notes = ?
+WHERE content_id = ?;
+
+selectAllHandoutHashes:
+SELECT DISTINCT sha256
+FROM handout_payload;

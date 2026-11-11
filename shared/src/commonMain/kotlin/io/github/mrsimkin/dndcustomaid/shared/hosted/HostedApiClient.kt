@@ -9,6 +9,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.delete
+import io.ktor.client.request.parameter
+import io.ktor.client.statement.readRawBytes
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.put
@@ -313,6 +315,28 @@ class HostedApiClient(
         ensureSuccess(response.status.value, response)
         val body = response.body<DmContentMutationResponse>()
         return HostedDmContentMutation(body.content, body.applied)
+    }
+
+    override suspend fun putMediaContent(sha256: String, mediaType: String, bytes: ByteArray) {
+        require(Regex("^[0-9a-f]{64}$").matches(sha256)) { "Media checksum must be a lowercase SHA-256 hex string." }
+        val token = requireAccessToken()
+        val response = httpClient.put("$apiBaseUrl/v1/media/$sha256") {
+            bearerAuth(token)
+            contentType(ContentType.parse(mediaType))
+            setBody(bytes)
+        }
+        ensureSuccess(response.status.value, response)
+    }
+
+    override suspend fun mediaContent(sha256: String, contentId: Uuid): ByteArray {
+        require(Regex("^[0-9a-f]{64}$").matches(sha256)) { "Media checksum must be a lowercase SHA-256 hex string." }
+        val token = requireAccessToken()
+        val response = httpClient.get("$apiBaseUrl/v1/media/$sha256") {
+            bearerAuth(token)
+            parameter("content", contentId.toString())
+        }
+        ensureSuccess(response.status.value, response)
+        return response.readRawBytes()
     }
 
     fun close() {
