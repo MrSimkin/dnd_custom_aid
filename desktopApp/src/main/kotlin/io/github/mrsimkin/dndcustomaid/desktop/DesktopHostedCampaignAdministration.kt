@@ -2,6 +2,7 @@ package io.github.mrsimkin.dndcustomaid.desktop
 
 import io.github.mrsimkin.dndcustomaid.shared.content.MediaBlobStore
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRulesPassage
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiClient
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiErrorCode
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiException
@@ -56,6 +57,10 @@ internal class DesktopHostedCampaignAdministrationController(
     private val dmContentSync = HostedDmContentSyncService(database, apiClient, blobs = mediaBlobs)
 
     suspend fun bootstrap(): HostedCampaignBootstrapResult = bootstrapService.refresh()
+
+    /** Package 8: a rules answer from the SRD passages found on this computer. */
+    suspend fun answerRules(question: String, passages: List<HostedRulesPassage>): String =
+        apiClient.answerRules(question, passages)
 
     /**
      * Base para DM, package 1: sends this App de PC's DM content (personal library and every

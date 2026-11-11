@@ -469,6 +469,7 @@ private fun HomebrewRuleEditor(
             }
         }
         item { HomebrewField("Notas DM", draft.notes, false, 4) { onDraftChange(draft.copy(notes = it)) } }
+        item { DesktopContentLinksSection(content.item) }
     }
 }
 

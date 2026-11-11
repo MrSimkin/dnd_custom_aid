@@ -54,6 +54,10 @@ import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentFamily
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentItem
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.ShopItem
+import io.github.mrsimkin.dndcustomaid.shared.content.ZonePassage
+import io.github.mrsimkin.dndcustomaid.shared.dm.DungeonActivity
+import io.github.mrsimkin.dndcustomaid.shared.dm.DungeonAdvance
+import io.github.mrsimkin.dndcustomaid.shared.dm.DungeonRules
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
 import io.github.mrsimkin.dndcustomaid.shared.spine.ContentScope
 import kotlin.math.roundToInt
@@ -103,6 +107,13 @@ internal class DesktopContentLinksController(
     fun adventures(scope: ContentScope): List<String> =
         candidates(scope, ReusableContentFamily.SCENE).map { links.links(it.identity.id).adventure }
             .filter { it.isNotBlank() }.distinct().sorted()
+
+    fun dungeons(scope: ContentScope): List<String> =
+        candidates(scope, ReusableContentFamily.ZONE).map { links.links(it.identity.id).dungeon }.filter { it.isNotBlank() }.distinctBy { it.lowercase() }.sorted()
+
+    fun zonesOfDungeon(scope: ContentScope, dungeon: String): List<Pair<ReusableContentItem, ContentLinks>> =
+        if (dungeon.isBlank()) emptyList()
+        else candidates(scope, ReusableContentFamily.ZONE).map { it to links.links(it.identity.id) }.filter { it.second.dungeon.equals(dungeon, ignoreCase = true) }
 
     fun isShop(id: Uuid): Boolean = PlaceContentRepository(database).place(id)?.payload?.kind == PlaceKind.SHOP
 
@@ -167,6 +178,8 @@ internal fun DesktopContentLinksSection(item: ReusableContentItem, handoutKind: 
                     }
                 }
                 ReusableContentFamily.ZONE -> {
+                    DungeonFields(controller, item, links) { update(it) }
+                    LinkPicker("Encuentro de la zona («Preparar ▸ ⚔»)", options(ReusableContentFamily.ENCOUNTER), links.encounterIds) { update(links.copy(encounterIds = it)) }
                     LinkPicker("PNJ aquí", options(ReusableContentFamily.NPC), links.npcIds) { update(links.copy(npcIds = it)) }
                     SinglePicker("Mapa", controller.handouts(scope, HandoutKind.MAP).map { it.identity.id to it.displayName }, links.mapHandoutId) {
                         update(links.copy(mapHandoutId = it))
@@ -186,8 +199,113 @@ internal fun DesktopContentLinksSection(item: ReusableContentItem, handoutKind: 
                 } else {
                     Text("Las marcas en el mapa están disponibles cuando el tipo es «Mapa».", style = MaterialTheme.typography.caption)
                 }
+                ReusableContentFamily.HOMEBREW_RULE -> ActivitiesEditor(links.activities) { update(links.copy(activities = it)) }
                 else -> Unit
             }
+        }
+    }
+}
+
+/** P23: which dungeon a zone belongs to, where it sits on the diagram and its passages. */
+@Composable
+private fun DungeonFields(controller: DesktopContentLinksController, item: ReusableContentItem, links: ContentLinks, onChange: (ContentLinks) -> Unit) {
+    val id = item.identity.id
+    var dungeon by remember(id) { mutableStateOf(links.dungeon) }
+    val known = controller.dungeons(item.identity.scope)
+    val sameDungeon = controller.zonesOfDungeon(item.identity.scope, links.dungeon).filter { it.first.identity.id != id }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text("Mazmorra (Mesa de Dungeon)", fontWeight = FontWeight.Medium)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            OutlinedTextField(value = dungeon, onValueChange = { dungeon = it; onChange(links.copy(dungeon = it)) }, label = { Text("Nombre de la mazmorra") }, singleLine = true, modifier = Modifier.width(280.dp))
+            known.filter { it != links.dungeon }.forEach { name -> TextButton(onClick = { dungeon = name; onChange(links.copy(dungeon = name)) }) { Text(name) } }
+        }
+        if (links.dungeon.isNotBlank()) {
+            Text("Ubicación en el diagrama: haz clic donde va esta zona. Las otras zonas de «${links.dungeon}» se ven de referencia.", style = MaterialTheme.typography.caption)
+            BoxWithConstraints(
+                modifier = Modifier.widthIn(max = 640.dp).fillMaxWidth().aspectRatio(2f)
+                    .background(MaterialTheme.colors.onSurface.copy(alpha = 0.06f), MaterialTheme.shapes.small)
+                    .pointerInput(links) {
+                        detectTapGestures { tap ->
+                            onChange(links.copy(diagramX = (tap.x / size.width).toDouble().coerceIn(0.0, 1.0), diagramY = (tap.y / size.height).toDouble().coerceIn(0.0, 1.0)))
+                        }
+                    },
+            ) {
+                val w = constraints.maxWidth.toFloat()
+                val h = constraints.maxHeight.toFloat()
+                sameDungeon.forEach { (other, l) ->
+                    val x = l.diagramX ?: return@forEach
+                    val y = l.diagramY ?: return@forEach
+                    Text(
+                        other.displayName,
+                        style = MaterialTheme.typography.caption,
+                        modifier = Modifier.offset { androidx.compose.ui.unit.IntOffset((x * w).roundToInt(), (y * h).roundToInt()) }
+                            .background(MaterialTheme.colors.surface, MaterialTheme.shapes.small).padding(horizontal = 4.dp),
+                    )
+                }
+                if (links.diagramX != null && links.diagramY != null) {
+                    Text(
+                        "★ ${item.displayName}",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.caption,
+                        modifier = Modifier.offset { androidx.compose.ui.unit.IntOffset((links.diagramX!! * w).roundToInt(), (links.diagramY!! * h).roundToInt()) }
+                            .background(MaterialTheme.colors.primary, MaterialTheme.shapes.small).padding(horizontal = 4.dp),
+                    )
+                }
+            }
+            Text("Pasajes a otras zonas", fontWeight = FontWeight.Medium)
+            links.passages.forEachIndexed { index, passage ->
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("→ ${sameDungeon.firstOrNull { it.first.identity.id == passage.toZoneId }?.first?.displayName ?: "(otra mazmorra)"}")
+                    Checkbox(checked = passage.secret, onCheckedChange = { secret -> onChange(links.copy(passages = links.passages.mapIndexed { i, p -> if (i == index) p.copy(secret = secret) else p })) })
+                    Text("secreto")
+                    TextButton(onClick = { onChange(links.copy(passages = links.passages.filterIndexed { i, _ -> i != index })) }) { Text("Quitar") }
+                }
+            }
+            val free = sameDungeon.filter { (other, _) -> links.passages.none { it.toZoneId == other.identity.id } }
+            if (free.isNotEmpty()) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    free.forEach { (other, _) -> TextButton(onClick = { onChange(links.copy(passages = links.passages + ZonePassage(other.identity.id))) }) { Text("＋ a ${other.displayName}") } }
+                }
+            }
+        }
+    }
+}
+
+/** P17: the Dungeon Turn Activities as DM rules content; starts from the beta list. */
+@Composable
+private fun ActivitiesEditor(activities: List<DungeonActivity>, onChange: (List<DungeonActivity>) -> Unit) {
+    fun set(index: Int, change: (DungeonActivity) -> DungeonActivity) = onChange(activities.mapIndexed { i, a -> if (i == index) change(a) else a })
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text("Actividades del turno de mazmorra", fontWeight = FontWeight.Medium)
+        Text(
+            "Si una regla de la campaña tiene esta lista, la Mesa de Dungeon usa esa en vez de la de la regla beta.",
+            style = MaterialTheme.typography.caption,
+        )
+        if (activities.isEmpty()) {
+            TextButton(onClick = { onChange(DungeonRules.betaActivities) }) { Text("Empezar desde la lista beta (15 + 2 con *)") }
+        }
+        activities.forEachIndexed { index, activity ->
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                OutlinedTextField(value = activity.name, onValueChange = { v -> set(index) { it.copy(name = v) } }, label = { Text("Actividad") }, singleLine = true, modifier = Modifier.width(200.dp))
+                var open by remember { mutableStateOf(false) }
+                Box {
+                    TextButton(onClick = { open = true }) { Text(activity.advance.label) }
+                    DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+                        DungeonAdvance.entries.forEach { a -> DropdownMenuItem(onClick = { open = false; set(index) { it.copy(advance = a) } }) { Text(a.label) } }
+                    }
+                }
+                OutlinedTextField(value = activity.benefit, onValueChange = { v -> set(index) { it.copy(benefit = v) } }, label = { Text("Beneficio") }, singleLine = true, modifier = Modifier.weight(1f))
+                Checkbox(checked = activity.starred, onCheckedChange = { v -> set(index) { it.copy(starred = v) } })
+                Text("*")
+                TextButton(onClick = { onChange(activities.filterIndexed { i, _ -> i != index }) }) { Text("Quitar") }
+            }
+        }
+        if (activities.isNotEmpty()) {
+            TextButton(onClick = {
+                val key = "propia_" + (activities.size + 1)
+                onChange(activities + DungeonActivity(key, "Actividad nueva", DungeonAdvance.NONE, starred = true))
+            }) { Text("＋ Agregar actividad") }
         }
     }
 }

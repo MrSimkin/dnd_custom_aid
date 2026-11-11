@@ -178,7 +178,7 @@ internal fun CombatDesk(
             Text(
                 when (current.status) {
                     CombatStatus.PREPARING -> "Paso 1 · Preparar"
-                    CombatStatus.ACTIVE -> "Ronda ${current.round}" + (actingText?.let { " · Actúa $it" } ?: "")
+                    CombatStatus.ACTIVE -> (if (current.round == 0) "Ronda sorpresa" else "Ronda ${current.round}") + (actingText?.let { " · Actúa $it" } ?: "")
                     CombatStatus.ENDED -> "Terminado"
                 },
                 style = MaterialTheme.typography.titleMedium,
@@ -588,6 +588,21 @@ private fun InitiativeDialog(
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Paso 2 · Iniciativa", style = MaterialTheme.typography.titleLarge)
                         Text("Los PJ se escriben. Cada grupo elige: una para el grupo o cada uno la suya.", style = MaterialTheme.typography.bodySmall)
+                        // P22: after a successful ambush, the DM sees and can change who acts in the surprise round.
+                        if (doc.surpriseActorIds.isNotEmpty()) {
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text("Ronda sorpresa · actúan:", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.align(Alignment.CenterVertically))
+                                doc.combatants.filter { it.kind == CombatantKind.PC }.forEach { pc ->
+                                    val acts = pc.id in doc.surpriseActorIds
+                                    FilterChip(
+                                        selected = acts,
+                                        onClick = { onChange(CombatEngine.setSurpriseActors(doc, if (acts) doc.surpriseActorIds - pc.id else doc.surpriseActorIds + pc.id)) },
+                                        label = { Text(pc.label) },
+                                    )
+                                }
+                                TextButton(onClick = { onChange(CombatEngine.setSurpriseActors(doc, emptyList())) }) { Text("Sin sorpresa") }
+                            }
+                        }
                     }
                     Button(onClick = {
                         onChange(CombatEngine.rollAllCreatureInitiative(doc, ::d20))
@@ -662,7 +677,7 @@ private fun InitiativeDialog(
                         modifier = Modifier.weight(1f),
                     )
                     TextButton(onClick = onDismiss) { Text("Volver a preparar") }
-                    Button(onClick = onConfirm) { Text("Empezar ronda 1 ▸") }
+                    Button(onClick = onConfirm) { Text(if (doc.surpriseActorIds.isNotEmpty()) "Empezar ronda sorpresa ▸" else "Empezar ronda 1 ▸") }
                 }
             }
         }

@@ -1,3 +1,7 @@
+**2026-11-11 — Base para DM, paquete 8 (Consultar reglas con IA), en `feature/dm-ux-redesign`.** La búsqueda sin conexión sigue en el aparato y la respuesta con IA viene de Workers AI, citando el SRD. Falta el paso del propietario en los proveedores ([DM_REGLAS_IA.md](technical/DM_REGLAS_IA.md) §4).
+
+**2026-11-11 — Base para DM, paquete 7 (Mesa de Dungeon), en `feature/dm-ux-redesign`, en la tablet y en Windows.** Incluye turno de mazmorra, mapa de zonas, fichas de zona, relojes, notas sincronizadas y ronda sorpresa tras una emboscada. Detalle en [DM_DUNGEON.md](technical/DM_DUNGEON.md).
+
 **2026-11-11 — Base para DM: mesas también en Windows y paquete 6 (Mesa de Escena), en `feature/dm-ux-redesign`.** Las mesas se comparten entre la tablet y la App de Windows (`dmUi`). Hay vínculos elegidos de listas en la App de PC y marcas en mapas. Detalle en [DM_ESCENA.md](technical/DM_ESCENA.md).
 
 **2026-11-11 — Base para DM: pantallas corregidas según el diseño aprobado, en `feature/dm-ux-redesign`.** Escritorio con barra lateral y paneles, Pantalla del DM con hoja rápida y hoja completa en lectura, y Mesa de Combate en 4 pasos con editor completo. Diseño en [DM_UX_APROBADA.md](technical/DM_UX_APROBADA.md).

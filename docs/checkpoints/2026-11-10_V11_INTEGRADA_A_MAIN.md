@@ -124,4 +124,27 @@ Probado en el emulador de tablet (solo lectura).
 
 En la App de PC, los vínculos se eligen de una lista (P36) y las marcas se ponen sobre el mapa (P35). Se probó con pruebas automáticas y con imágenes de la App de Windows.
 
-**Siguiente paso de ingeniería:** construir la Mesa de Dungeon (paquete 7) en la tablet y en Windows, con sus partes en la App de PC. Luego viene el paquete 8, y al final un solo QA del propietario, de la APK y de la App de Windows. El paso del propietario en Neon y Cloudflare sigue pendiente, para antes del QA.
+**Paquete 7, Mesa de Dungeon (2026-11-11), en la tablet y en Windows:**
+
+- mapa de zonas con pasajes (los secretos, punteados), con su estado, y el grupo y las criaturas puestos a mano;
+- turno de 10 minutos con una actividad por toque (las 15 de la regla beta más dos con *), la anterior de referencia y el avance solo como dato;
+- cerrar turno, separar grupo e interrumpido por combate, con registro automático;
+- fichas de zona en pestañas, con secciones y marcas de un toque, y «Preparar ▸ ⚔»;
+- relojes que solo avisan;
+- notas que se pegan al contexto y viajan a la App de PC;
+- una emboscada exitosa propone la ronda sorpresa en la Mesa de Combate.
+
+En la App de PC: mazmorra, diagrama, pasajes y encuentro de cada zona, y lista de actividades en las reglas caseras. Detalle en `docs/technical/DM_DUNGEON.md`.
+
+**Paquete 8, Consultar reglas con IA (2026-11-11), en la tablet, en Windows y en el Worker.**
+
+- La búsqueda sigue siendo local y sin conexión.
+- «Responder con IA» envía la pregunta y los 6 primeros fragmentos del SRD a `POST /v1/rules/answer`.
+- Workers AI responde en español y cita [1], [2]…
+- Sin IA o sin cupo, la App sigue mostrando el SRD.
+- El costo está revisado: USD $0 en el plan Workers Free.
+- Detalle en `docs/technical/DM_REGLAS_IA.md`.
+
+Los 8 paquetes de la «Base para DM» están construidos en la tablet y en Windows.
+
+**Siguiente paso:** el paso del propietario en los proveedores, todo junto, según `DM_REGLAS_IA.md` §4: Neon 0002, y KV, IA y deploy en Cloudflare. Después viene el QA único del propietario, de la APK y de la App de Windows; antes de entregar la APK se corre el control previo al QA.

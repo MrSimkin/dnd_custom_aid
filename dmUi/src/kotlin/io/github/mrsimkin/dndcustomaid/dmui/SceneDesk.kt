@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.content.HandoutContent
 import io.github.mrsimkin.dndcustomaid.shared.content.MediaBlobStore
+import io.github.mrsimkin.dndcustomaid.shared.content.NoteContextKind
 import io.github.mrsimkin.dndcustomaid.shared.content.NpcContent
 import io.github.mrsimkin.dndcustomaid.shared.content.PlaceContent
 import io.github.mrsimkin.dndcustomaid.shared.content.PlaceKind
@@ -107,6 +108,7 @@ internal class SceneDeskPreferences(private val store: DmKeyValueStore, private 
 internal fun SceneDesk(campaign: Campaign, database: AppDatabase, mediaBlobs: MediaBlobStore, version: Int) {
     val platform = LocalDmPlatform.current
     val prefs = remember(campaign.id) { SceneDeskPreferences(platform.store, campaign.id) }
+    val deskContext = LocalDeskContext.current
     val index = remember(campaign.id, version) { SceneIndex.load(database, campaign.id) }
     var mode by remember { mutableStateOf(SceneMode.SEARCH) }
     var walk by remember { mutableStateOf(WalkMode.ZONE) }
@@ -126,6 +128,14 @@ internal fun SceneDesk(campaign: Campaign, database: AppDatabase, mediaBlobs: Me
         prefs.openName = index.nameOf(id)
         prefs.pushRecent(id)
         recent = prefs.recent()
+        // A note written now sticks to this sheet (P21).
+        val kind = when (index.kindOf(id)) {
+            SceneEntryKind.NPC -> NoteContextKind.NPC
+            SceneEntryKind.ZONE -> NoteContextKind.ZONE
+            SceneEntryKind.SCENE -> NoteContextKind.SCENE
+            else -> NoteContextKind.PLACE
+        }
+        deskContext.value = DeskContext(kind, id, index.nameOf(id).orEmpty())
     }
 
     fun togglePin(id: Uuid) {

@@ -3,6 +3,7 @@ import { DescopeJwtVerifier } from "./auth.ts";
 import { NeonCampaignAdministrationStore } from "./campaignAdministrationStore.ts";
 import { NeonDmContentStore } from "./dmContentStore.ts";
 import { MediaStore, NeonMediaAuthorization, type MediaKv } from "./mediaStore.ts";
+import { RulesAnswerer, type AiRunner } from "./rulesAnswer.ts";
 import { NeonCampaignStore } from "./store.ts";
 
 interface AppEnv {
@@ -11,6 +12,10 @@ interface AppEnv {
   DESCOPE_BASE_URL?: string;
   /** Workers KV namespace for handout images (P27); optional so the Worker deploys without it. */
   MEDIA?: MediaKv;
+  /** Workers AI binding for rules answers (package 8); optional so the Worker deploys without it. */
+  AI?: AiRunner;
+  /** Replaceable model name (D-0070); the default is in rulesAnswer.ts. */
+  AI_MODEL?: string;
 }
 
 let cachedHandler: ApiHandler | null = null;
@@ -45,6 +50,7 @@ export default {
         dmContent: new NeonDmContentStore(databaseUrl),
         media: env.MEDIA == null ? undefined : new MediaStore(env.MEDIA),
         mediaAuthorization: env.MEDIA == null ? undefined : new NeonMediaAuthorization(databaseUrl),
+        rules: env.AI == null ? undefined : new RulesAnswerer(env.AI, env.AI_MODEL?.trim() || undefined),
       });
     }
 

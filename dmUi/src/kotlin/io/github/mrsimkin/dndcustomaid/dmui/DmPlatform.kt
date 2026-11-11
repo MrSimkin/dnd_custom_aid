@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResolvedD20Roll
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRulesPassage
 import kotlin.math.abs
 
 /*
@@ -44,6 +45,14 @@ interface DmPlatform {
 
     /** «Dados visibles» in the App settings (P34); otherwise the compact result. */
     val visibleDice: Boolean
+
+    /** Package 8: whether this App can ask the server for rules answers (it has a hosted connection). */
+    val rulesAiAvailable: Boolean
+        get() = false
+
+    /** Package 8: an AI answer from the SRD passages found on the device; throws when unavailable. */
+    suspend fun answerRules(question: String, passages: List<HostedRulesPassage>): String =
+        throw UnsupportedOperationException("Rules answers are not available in this App.")
 
     /** Shows a d20 result the same way the PC sheet does on this platform (P34). */
     @Composable

@@ -152,7 +152,8 @@ fun DmWorkspaceScreen(
     onExitToCampaigns: () -> Unit,
     onOpenAppSettings: () -> Unit,
 ) {
-    CompositionLocalProvider(LocalDmPlatform provides platform) {
+    val deskContext = remember(campaign.id) { mutableStateOf<DeskContext?>(null) }
+    CompositionLocalProvider(LocalDmPlatform provides platform, LocalDeskContext provides deskContext) {
         DmWorkspaceContent(campaign, database, mediaBlobs, accountId, onSync, onExitToCampaigns, onOpenAppSettings)
     }
 }
@@ -181,6 +182,7 @@ private fun DmWorkspaceContent(
 
     val combatRepository = remember { DmCombatRepository(database) }
     val combats = remember(version, campaign.id) { combatRepository.list(campaign.id) }
+    val dungeonSubtitle = remember(version, campaign.id) { dungeonSubtitle(database, campaign.id) }
     val openCombats = combats.filter { it.status != CombatStatus.ENDED }.sortedBy { it.createdAtEpochSeconds }
     var desk = DeskRef.parse(deskKey)
     if (desk is DeskRef.Combat && openCombats.none { it.id == (desk as DeskRef.Combat).id }) desk = DeskRef.Overview
@@ -254,14 +256,16 @@ private fun DmWorkspaceContent(
                         mediaBlobs = mediaBlobs,
                         version = version,
                     )
-                    DeskRef.Dungeon -> UpcomingDesk(
-                        title = "Mesa de Dungeon",
-                        lines = listOf(
-                            "Mapa de zonas con el grupo y las criaturas puestos a mano.",
-                            "Fichas de zona como papeles, con marcas de un toque.",
-                            "Turno de Dungeon, relojes, notas y emboscada con ronda sorpresa.",
-                        ),
-                        packageNumber = 7,
+                    DeskRef.Dungeon -> DungeonDesk(
+                        campaign = campaign,
+                        database = database,
+                        version = version,
+                        onChanged = { version += 1 },
+                        onStartCombat = { combat ->
+                            combatRepository.save(combat, nowEpochSeconds())
+                            version += 1
+                            open(DeskRef.Combat(combat.id))
+                        },
                     )
                     is DeskRef.Combat -> CombatDesk(
                         campaign = campaign,
@@ -288,6 +292,8 @@ private fun DmWorkspaceContent(
                     campaign = campaign,
                     database = database,
                     mediaBlobs = mediaBlobs,
+                    version = version,
+                    onChanged = { version += 1 },
                     onOpenPanel = { panel = it },
                     onClose = { panel = null },
                 )
@@ -329,6 +335,7 @@ private fun DmWorkspaceContent(
                 else -> Row(modifier = Modifier.fillMaxSize()) {
                     DeskRail(
                         campaign = campaign,
+                        dungeonSubtitle = dungeonSubtitle,
                         desk = desk,
                         openCombats = openCombats,
                         syncText = if (syncing) "Sincronizando…" else syncAgoText(lastSync),
@@ -435,6 +442,7 @@ internal fun combatRailSubtitle(doc: CombatDocument): String = when (doc.status)
 @Composable
 private fun DeskRail(
     campaign: Campaign,
+    dungeonSubtitle: String,
     desk: DeskRef,
     openCombats: List<CombatDocument>,
     syncText: String,
@@ -458,7 +466,7 @@ private fun DeskRail(
             HorizontalDivider()
             RailItem("Pantalla del DM", null, desk == DeskRef.DmScreen) { onOpen(DeskRef.DmScreen) }
             RailItem("Escena", sceneSubtitle, desk == DeskRef.Scene) { onOpen(DeskRef.Scene) }
-            RailItem("Dungeon", "en construcción", desk == DeskRef.Dungeon) { onOpen(DeskRef.Dungeon) }
+            RailItem("Dungeon", dungeonSubtitle, desk == DeskRef.Dungeon) { onOpen(DeskRef.Dungeon) }
             HorizontalDivider()
             openCombats.forEach { doc ->
                 RailItem("⚔ ${doc.name}", combatRailSubtitle(doc), desk == DeskRef.Combat(doc.id)) { onOpen(DeskRef.Combat(doc.id)) }
@@ -467,7 +475,7 @@ private fun DeskRail(
                 TextButton(onClick = { menu = true }) { Text("＋ Nueva mesa") }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(text = { Text("Nuevo combate") }, onClick = { menu = false; onNewCombat() })
-                    DropdownMenuItem(text = { Text("Segunda Dungeon (llega con la Mesa de Dungeon)") }, enabled = false, onClick = {})
+                    DropdownMenuItem(text = { Text("Otra Dungeon (en la Mesa de Dungeon, «＋ Otra»)") }, onClick = { menu = false; onOpen(DeskRef.Dungeon) })
                 }
             }
             Spacer(modifier = Modifier.heightIn(min = 12.dp))
@@ -576,6 +584,7 @@ private fun OverviewDesk(
 ) {
     val pcs = remember(version, campaign.id) { CharacterRepository(database).listCharacters(campaign.id) }
     val sceneSubtitle = SceneDeskPreferences(LocalDmPlatform.current.store, campaign.id).openName
+    val dungeonSubtitle = remember(version, campaign.id) { dungeonSubtitle(database, campaign.id) }
     val bestPerception = pcs.maxByOrNull { it.passivePerception }
     val packages = remember(version, campaign.id) {
         io.github.mrsimkin.dndcustomaid.shared.content.PackageContentRepository(database).listCampaign(campaign.id).associateBy { it.item.identity.id }
@@ -605,7 +614,7 @@ private fun OverviewDesk(
                 ),
             ) { onOpen(DeskRef.DmScreen) }
             deskCard("Escena", listOf(sceneSubtitle?.let { "Último: $it" } ?: "Buscar PNJ, tiendas, lugares y escenas")) { onOpen(DeskRef.Scene) }
-            deskCard("Dungeon", listOf("En construcción (paquete 7)")) { onOpen(DeskRef.Dungeon) }
+            deskCard("Dungeon", listOf(dungeonSubtitle.replaceFirstChar { it.uppercase() })) { onOpen(DeskRef.Dungeon) }
             combats.forEach { doc ->
                 val wounded = doc.combatants.count { c ->
                     val max = c.effective(packages).maxHp
@@ -641,6 +650,8 @@ private fun DeskPanelContent(
     campaign: Campaign,
     database: AppDatabase,
     mediaBlobs: MediaBlobStore,
+    version: Int,
+    onChanged: () -> Unit,
     onOpenPanel: (DeskPanel) -> Unit,
     onClose: () -> Unit,
 ) {
@@ -672,8 +683,8 @@ private fun DeskPanelContent(
                         HandoutStrip(handouts, mediaBlobs)
                     }
                 }
-                DeskPanel.Notes -> Text("Las notas llegan con la Mesa de Dungeon (paquete 7): se pegan solas a donde estás.", modifier = Modifier.padding(vertical = 12.dp))
-                DeskPanel.Clocks -> Text("Los relojes llegan con la Mesa de Dungeon (paquete 7).", modifier = Modifier.padding(vertical = 12.dp))
+                DeskPanel.Notes -> NotesPanel(campaign, database, version, onChanged)
+                DeskPanel.Clocks -> ClocksPanel(campaign, database, version, onChanged)
                 is DeskPanel.PcQuickSheet -> PcQuickSheetPanel(database, panel.characterId, onOpenFull = { onOpenPanel(DeskPanel.PcFullSheet(panel.characterId)) })
                 is DeskPanel.PcFullSheet -> PcFullSheetPanel(database, panel.characterId)
                 is DeskPanel.ReferenceCard -> ReferenceCardPanel(campaign.id, panel.cardId)
@@ -682,3 +693,7 @@ private fun DeskPanelContent(
     }
 }
 
+/** «turno 3 · Catacumbas» for the open exploration, or «explorar». */
+internal fun dungeonSubtitle(database: AppDatabase, campaignId: Uuid): String =
+    io.github.mrsimkin.dndcustomaid.shared.dm.DmDungeonRepository(database).list(campaignId).firstOrNull { !it.ended }
+        ?.let { "turno ${it.turn} · ${it.dungeon}" } ?: "explorar"

@@ -7,6 +7,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupDocument
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRulesPassage
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiClient
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiErrorCode
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiException
@@ -134,6 +135,10 @@ internal class AndroidHostedCampaignBootstrapController(
 
     fun hasRememberedSession(): Boolean =
         Descope.sessionManager.session?.refreshToken?.isExpired == false
+
+    /** Package 8: a rules answer from the SRD passages found on the tablet. */
+    suspend fun answerRules(question: String, passages: List<HostedRulesPassage>): String =
+        apiClient.answerRules(question, passages)
 
     fun pendingMutationCount(): Int = outbox.allMutations().size
 

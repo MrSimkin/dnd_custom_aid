@@ -3,6 +3,11 @@
   "name": "dnd-custom-aid-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-08-30",
+  // Base para DM, package 8: Workers AI for rules answers. On the Workers Free plan it has a daily
+  // free allocation and no overage billing; without it the route answers 503 and the App searches offline.
+  "ai": {
+    "binding": "AI"
+  },
   "secrets": {
     "required": [
       "DATABASE_URL",

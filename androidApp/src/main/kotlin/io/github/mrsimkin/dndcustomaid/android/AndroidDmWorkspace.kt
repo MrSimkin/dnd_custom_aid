@@ -15,6 +15,7 @@ import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterResolvedD20Roll
 import io.github.mrsimkin.dndcustomaid.shared.content.MediaBlobStore
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRulesPassage
 import kotlin.uuid.Uuid
 
 /*
@@ -23,7 +24,7 @@ import kotlin.uuid.Uuid
  * bundled SRD assets, the PC sheet's dice cards and the hosted sync.
  */
 
-private class AndroidDmPlatform(context: Context) : DmPlatform {
+private class AndroidDmPlatform(context: Context, private val hostedBootstrap: AndroidHostedCampaignBootstrapController) : DmPlatform {
     private val appContext = context.applicationContext
     private val prefs = appContext.getSharedPreferences("dnd_custom_aid_dm_workspace", Context.MODE_PRIVATE)
 
@@ -50,6 +51,13 @@ private class AndroidDmPlatform(context: Context) : DmPlatform {
     override val visibleDice: Boolean
         get() = UiPreferencesStore(appContext).load().diceResultMode == DiceResultModeChoice.VISIBLE_DICE
 
+    /** Package 8: only with a signed-in hosted session; otherwise the offline search stands alone. */
+    override val rulesAiAvailable: Boolean
+        get() = hostedBootstrap.hasRememberedSession()
+
+    override suspend fun answerRules(question: String, passages: List<HostedRulesPassage>): String =
+        hostedBootstrap.answerRules(question, passages)
+
     @Composable
     override fun D20Result(roll: CharacterResolvedD20Roll) {
         if (visibleDice) CharacterVisibleDiceResultCardV4(roll) else CharacterD20ResultCardV4(roll)
@@ -67,7 +75,7 @@ internal fun AndroidDmWorkspaceScreen(
     onOpenAppSettings: () -> Unit,
 ) {
     val context = LocalContext.current
-    val platform = remember { AndroidDmPlatform(context) }
+    val platform = remember { AndroidDmPlatform(context, hostedBootstrap) }
     DmWorkspaceScreen(
         campaign = campaign,
         database = database,

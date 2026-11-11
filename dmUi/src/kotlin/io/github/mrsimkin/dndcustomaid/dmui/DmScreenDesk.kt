@@ -32,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -53,6 +54,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.characterSkillSpanishLab
 import io.github.mrsimkin.dndcustomaid.shared.character.passiveInsight
 import io.github.mrsimkin.dndcustomaid.shared.character.passiveInvestigation
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRulesPassage
 import io.github.mrsimkin.dndcustomaid.shared.dm.PartyLens
 import io.github.mrsimkin.dndcustomaid.shared.dm.PartyLensMember
 import io.github.mrsimkin.dndcustomaid.shared.dm.PartyLensRowKind
@@ -66,6 +68,7 @@ import io.github.mrsimkin.dndcustomaid.shared.dm.partyLens
 import io.github.mrsimkin.dndcustomaid.shared.dm.searchSrd
 import io.github.mrsimkin.dndcustomaid.shared.dm.spanishLabel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.uuid.Uuid
 
@@ -407,14 +410,23 @@ internal fun RulesPanel(campaignId: Uuid, onOpenCard: (String) -> Unit) {
     var corpora by remember { mutableStateOf<List<SrdCorpus>?>(null) }
     var quick by remember { mutableStateOf<SrdQuickReference?>(null) }
     var hits by remember { mutableStateOf<List<SrdSearchHit>>(emptyList()) }
+    var answer by remember { mutableStateOf<String?>(null) }
+    var asking by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val campaignVersion = remember(campaignId) { DmScreenPreferences(platform.store).campaignVersion(campaignId) }
     LaunchedEffect(Unit) {
         quick = SrdAssets.quickReference(platform)
         corpora = SrdAssets.corpora(platform)
     }
     LaunchedEffect(searched, corpora) {
         val loaded = corpora ?: return@LaunchedEffect
-        hits = if (searched.isBlank()) emptyList() else withContext(Dispatchers.Default) { searchSrd(loaded, searched) }
+        answer = null
+        // The campaign's version first (P4); the other one stays one tap away below.
+        hits = if (searched.isBlank()) emptyList() else withContext(Dispatchers.Default) {
+            searchSrd(loaded, searched).sortedBy { it.version != campaignVersion }
+        }
     }
+    val cited = hits.take(RULES_PASSAGES_FOR_AI)
     LazyColumn(contentPadding = PaddingValues(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -441,18 +453,53 @@ internal fun RulesPanel(campaignId: Uuid, onOpenCard: (String) -> Unit) {
             }
         } else if (corpora != null && hits.isEmpty()) {
             item { Text("No encontré «$searched» en el SRD. Prueba con otras palabras.") }
+        } else if (hits.isNotEmpty() && platform.rulesAiAvailable) {
+            // Package 8: the AI answers only from the passages below and cites them [1], [2]… (P4).
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(enabled = !asking, onClick = {
+                        asking = true
+                        answer = null
+                        scope.launch {
+                            answer = runCatching {
+                                platform.answerRules(
+                                    searched,
+                                    cited.map { HostedRulesPassage(it.version.key, it.page, it.heading.orEmpty(), it.paragraph) },
+                                )
+                            }.getOrElse { "La respuesta con IA no está disponible ahora. Los fragmentos del SRD de abajo siguen sirviendo." }
+                            asking = false
+                        }
+                    }) { Text(if (asking) "Preguntando…" else "Responder con IA") }
+                    Text("Usa solo los fragmentos [1]–[${cited.size}].", style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            answer?.let { text ->
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text("Respuesta (IA) · revisa el texto citado", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                            Text(text, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
+            }
         }
-        items(hits) { hit ->
+        items(hits.withIndex().toList()) { (i, hit) ->
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                    Text(listOfNotNull(hit.version.spanishLabel, "p. ${hit.page}", hit.heading).joinToString(" · "), style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        listOfNotNull(if (i < cited.size) "[${i + 1}]" else null, hit.version.spanishLabel, "p. ${hit.page}", hit.heading).joinToString(" · "),
+                        style = MaterialTheme.typography.labelMedium,
+                    )
                     Text(hit.paragraph, style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
     }
-    @Suppress("UNUSED_EXPRESSION") campaignId
 }
+
+/** How many SRD passages travel with a rules question (the Worker accepts up to 8). */
+private const val RULES_PASSAGES_FOR_AI = 6
 
 @Composable
 internal fun SrdParagraphs(text: String) {

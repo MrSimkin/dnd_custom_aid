@@ -62,15 +62,16 @@ fun main() {
     val handoutManagerController = DesktopHandoutManagerController(databaseHandle.database, mediaBlobs)
     // Base para DM: the live desks, shared with the Android tablet (module dmUi).
     val contentLinksController = DesktopContentLinksController(databaseHandle.database, mediaBlobs)
-    val dmPlatform = DesktopDmPlatform(
-        DesktopDmKeyValueStore(File(DesktopDatabaseFactory.defaultDatabaseFile().parentFile, "dm_workspace.properties")),
-    )
     val preferencesStore = DesktopPreferencesStore()
     val hostedAuthController = DesktopHostedAuthController()
     val hostedCampaignController = DesktopHostedCampaignAdministrationController(
         database = databaseHandle.database,
         accessTokens = hostedAuthController,
         mediaBlobs = mediaBlobs,
+    )
+    val dmPlatform = DesktopDmPlatform(
+        DesktopDmKeyValueStore(File(DesktopDatabaseFactory.defaultDatabaseFile().parentFile, "dm_workspace.properties")),
+        rules = { question, passages -> hostedCampaignController.answerRules(question, passages) },
     )
 
     try {

@@ -18,6 +18,7 @@ import io.github.mrsimkin.dndcustomaid.dmui.DmWorkspaceScreen
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.content.MediaBlobStore
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRulesPassage
 import io.github.mrsimkin.dndcustomaid.shared.hosted.spanishSummary
 import java.io.File
 import java.util.Properties
@@ -46,7 +47,17 @@ internal class DesktopDmKeyValueStore(private val file: File) : DmKeyValueStore 
     }
 }
 
-internal class DesktopDmPlatform(override val store: DmKeyValueStore) : DmPlatform {
+internal class DesktopDmPlatform(
+    override val store: DmKeyValueStore,
+    /** Package 8: the hosted rules answer; null in tests and without a server connection. */
+    private val rules: (suspend (String, List<HostedRulesPassage>) -> String)? = null,
+) : DmPlatform {
+    override val rulesAiAvailable: Boolean
+        get() = rules != null
+
+    override suspend fun answerRules(question: String, passages: List<HostedRulesPassage>): String =
+        requireNotNull(rules) { "Rules answers are not available." }(question, passages)
+
     override fun readSrd(fileName: String): String =
         checkNotNull(DesktopDmPlatform::class.java.getResourceAsStream("/srd/$fileName")) { "SRD $fileName no está en la App." }
             .bufferedReader(Charsets.UTF_8).use { it.readText() }
