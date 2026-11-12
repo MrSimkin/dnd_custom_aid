@@ -30,7 +30,17 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.focusable
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isAltPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -173,6 +183,9 @@ private fun DmWorkspaceContent(
     val scope = rememberCoroutineScope()
     var deskKey by rememberSaveable(campaign.id.toString()) { mutableStateOf(prefs.lastDesk(campaign.id) ?: DeskRef.Overview.key) }
     var panel by remember { mutableStateOf<DeskPanel?>(null) }
+    // «Atrás»: the desks visited before this one, and the panels opened from inside a panel.
+    var history by remember(campaign.id) { mutableStateOf(listOf<String>()) }
+    var panelHistory by remember { mutableStateOf(listOf<DeskPanel>()) }
     var navStyle by remember { mutableStateOf(prefs.navStyle) }
     var showDeskSettings by remember { mutableStateOf(false) }
     var version by remember { mutableIntStateOf(0) }
@@ -188,8 +201,44 @@ private fun DmWorkspaceContent(
     if (desk is DeskRef.Combat && openCombats.none { it.id == (desk as DeskRef.Combat).id }) desk = DeskRef.Overview
 
     fun open(target: DeskRef) {
+        if (target.key != deskKey) history = (history + deskKey).takeLast(30)
         deskKey = target.key
         prefs.setLastDesk(campaign.id, target.key)
+    }
+
+    fun openPanel(next: DeskPanel) {
+        val current = panel
+        panelHistory = if (current != null && current != next) (panelHistory + current).takeLast(20) else emptyList()
+        panel = next
+    }
+
+    fun togglePanel(next: DeskPanel) {
+        panelHistory = emptyList()
+        panel = if (panel == next) null else next
+    }
+
+    fun closePanel() {
+        panel = null
+        panelHistory = emptyList()
+    }
+
+    fun panelBack() {
+        panel = panelHistory.lastOrNull()
+        panelHistory = panelHistory.dropLast(1)
+    }
+
+    /** «← Atrás», Esc and Alt+←: the panel first, then the previous desk, then out of the DM desks. */
+    fun goBack() {
+        when {
+            panel != null -> if (panelHistory.isNotEmpty()) panelBack() else closePanel()
+            history.isNotEmpty() -> {
+                val previous = history.last()
+                history = history.dropLast(1)
+                deskKey = previous
+                prefs.setLastDesk(campaign.id, previous)
+            }
+            else -> onExitToCampaigns()
+        }
     }
 
     fun newCombat() {
@@ -232,6 +281,9 @@ private fun DmWorkspaceContent(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                if (platform.isDesktop) {
+                    TextButton(onClick = ::goBack, modifier = Modifier.handCursor()) { Text("← Atrás") }
+                }
                 Text(deskTitle, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
                 TextButton(onClick = { showDeskSettings = true }) { Text("⚙") }
             }
@@ -248,7 +300,7 @@ private fun DmWorkspaceContent(
                     DeskRef.DmScreen -> DmScreenDesk(
                         campaign = campaign,
                         database = database,
-                        onOpenPanel = { panel = it },
+                        onOpenPanel = ::openPanel,
                     )
                     DeskRef.Scene -> SceneDesk(
                         campaign = campaign,
@@ -283,7 +335,26 @@ private fun DmWorkspaceContent(
         }
     }
 
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+    val keys = remember { FocusRequester() }
+    if (platform.isDesktop) {
+        LaunchedEffect(Unit) { runCatching { keys.requestFocus() } }
+    }
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .then(
+                if (!platform.isDesktop) Modifier else Modifier
+                    .focusRequester(keys)
+                    .onPreviewKeyEvent { event ->
+                        val back = event.type == KeyEventType.KeyDown &&
+                            (event.key == Key.Escape || (event.isAltPressed && event.key == Key.DirectionLeft))
+                        if (back) goBack()
+                        back
+                    }
+                    .focusable(),
+            ),
+        color = MaterialTheme.colorScheme.background,
+    ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val compact = maxWidth < 600.dp
             val panelContent: @Composable (DeskPanel) -> Unit = { shown ->
@@ -294,8 +365,9 @@ private fun DmWorkspaceContent(
                     mediaBlobs = mediaBlobs,
                     version = version,
                     onChanged = { version += 1 },
-                    onOpenPanel = { panel = it },
-                    onClose = { panel = null },
+                    onOpenPanel = ::openPanel,
+                    onClose = ::closePanel,
+                    onBack = if (panelHistory.isNotEmpty()) ::panelBack else null,
                 )
             }
             when {
@@ -310,8 +382,8 @@ private fun DmWorkspaceContent(
                         desk = desk,
                         openCombats = openCombats,
                         onOpen = { panel = null; open(it) },
-                        onRules = { panel = DeskPanel.Rules },
-                        onHandouts = { panel = DeskPanel.Handouts },
+                        onRules = { togglePanel(DeskPanel.Rules) },
+                        onHandouts = { togglePanel(DeskPanel.Handouts) },
                         onExit = onExitToCampaigns,
                     )
                 }
@@ -323,7 +395,7 @@ private fun DmWorkspaceContent(
                         syncText = if (syncing) "Sincronizando…" else syncAgoText(lastSync),
                         onOpen = ::open,
                         onNewCombat = ::newCombat,
-                        onPanel = { panel = if (panel == it) null else it },
+                        onPanel = ::togglePanel,
                         onSync = ::sync,
                         onExit = onExitToCampaigns,
                     )
@@ -341,7 +413,7 @@ private fun DmWorkspaceContent(
                         syncText = if (syncing) "Sincronizando…" else syncAgoText(lastSync),
                         onOpen = ::open,
                         onNewCombat = ::newCombat,
-                        onPanel = { panel = if (panel == it) null else it },
+                        onPanel = ::togglePanel,
                         onSync = ::sync,
                         onExit = onExitToCampaigns,
                     )
@@ -401,6 +473,7 @@ private fun RailItem(title: String, subtitle: String? = null, selected: Boolean,
                 if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
                 MaterialTheme.shapes.small,
             )
+            .handCursor()
             .clickable(onClick = onClick)
             .heightIn(min = 44.dp)
             .padding(horizontal = 10.dp, vertical = 6.dp),
@@ -457,10 +530,10 @@ private fun DeskRail(
     val sceneSubtitle = SceneDeskPreferences(LocalDmPlatform.current.store, campaign.id).openName ?: "buscar o recorrer"
     Surface(color = MaterialTheme.colorScheme.surface, tonalElevation = 1.dp, modifier = Modifier.width(196.dp).fillMaxHeight()) {
         Column(
-            modifier = Modifier.fillMaxHeight().verticalScroll(rememberScrollState()).padding(8.dp),
+            modifier = Modifier.fillMaxHeight().dmScroll().padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            TextButton(onClick = onExit) { Text("← Campañas", maxLines = 1) }
+            TextButton(onClick = onExit, modifier = Modifier.handCursor()) { Text(LocalDmPlatform.current.exitLabel, maxLines = 1) }
             Text(campaign.name, style = MaterialTheme.typography.labelMedium, maxLines = 2, modifier = Modifier.padding(horizontal = 10.dp))
             RailItem("🏠 Escritorio", "vista general", desk == DeskRef.Overview) { onOpen(DeskRef.Overview) }
             HorizontalDivider()
@@ -604,7 +677,7 @@ private fun OverviewDesk(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(modifier = Modifier.fillMaxSize().dmScroll().padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             deskCard(
                 "Pantalla del DM",
@@ -654,9 +727,12 @@ private fun DeskPanelContent(
     onChanged: () -> Unit,
     onOpenPanel: (DeskPanel) -> Unit,
     onClose: () -> Unit,
+    onBack: (() -> Unit)?,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        Row(modifier = Modifier.fillMaxWidth().padding(start = 14.dp, end = 4.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+            // Back to the panel this one was opened from (full sheet → quick sheet, card → rules).
+            if (onBack != null) TextButton(onClick = onBack, modifier = Modifier.handCursor()) { Text("←") } else Box(modifier = Modifier.width(10.dp))
             Text(
                 when (panel) {
                     DeskPanel.Rules -> "📖 Reglas"
@@ -678,7 +754,7 @@ private fun DeskPanelContent(
                 DeskPanel.Rules -> RulesPanel(campaign.id, onOpenCard = { onOpenPanel(DeskPanel.ReferenceCard(it)) })
                 DeskPanel.Handouts -> {
                     val handouts = remember(campaign.id) { HandoutContentRepository(database).listCampaign(campaign.id) }
-                    Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(vertical = 10.dp)) {
+                    Column(modifier = Modifier.dmScroll().padding(vertical = 10.dp)) {
                         Text("Toca una imagen para mostrarla a pantalla completa.", style = MaterialTheme.typography.bodySmall)
                         HandoutStrip(handouts, mediaBlobs)
                     }

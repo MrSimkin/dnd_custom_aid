@@ -119,8 +119,9 @@ internal fun SceneDesk(campaign: Campaign, database: AppDatabase, mediaBlobs: Me
     var mapId by remember(campaign.id) { mutableStateOf<Uuid?>(null) }
     var pins by remember(campaign.id) { mutableStateOf(prefs.pinned()) }
     var recent by remember(campaign.id) { mutableStateOf(prefs.recent()) }
+    var sheetHistory by remember(campaign.id) { mutableStateOf(listOf<Uuid>()) }
 
-    fun open(id: Uuid) {
+    fun show(id: Uuid) {
         if (index.kindOf(id) == null) return
         openId = id
         mapId = null
@@ -136,6 +137,19 @@ internal fun SceneDesk(campaign: Campaign, database: AppDatabase, mediaBlobs: Me
             else -> NoteContextKind.PLACE
         }
         deskContext.value = DeskContext(kind, id, index.nameOf(id).orEmpty())
+    }
+
+    /** Opens a sheet and remembers the one that was open, for «← Atrás». */
+    fun open(id: Uuid) {
+        val current = openId
+        if (current != null && current != id) sheetHistory = (sheetHistory + current).takeLast(30)
+        show(id)
+    }
+
+    fun sheetBack() {
+        val previous = sheetHistory.lastOrNull() ?: return
+        sheetHistory = sheetHistory.dropLast(1)
+        show(previous)
     }
 
     fun togglePin(id: Uuid) {
@@ -187,7 +201,13 @@ internal fun SceneDesk(campaign: Campaign, database: AppDatabase, mediaBlobs: Me
             val shown = openId
             when {
                 shownMap != null -> MapView(index, shownMap, mediaBlobs, onOpen = ::open, onClose = { mapId = null })
-                shown != null -> EntrySheet(index, shown, shown in pins, mediaBlobs, onOpen = ::open, onTogglePin = { togglePin(shown) }, onMap = { mapId = it })
+                shown != null -> EntrySheet(
+                    index, shown, shown in pins, mediaBlobs,
+                    onOpen = ::open,
+                    onTogglePin = { togglePin(shown) },
+                    onMap = { mapId = it },
+                    onBack = if (sheetHistory.isNotEmpty()) ::sheetBack else null,
+                )
                 else -> Text(
                     "Busca o recorre a la izquierda y toca una ficha para abrirla aquí. Abrir una ficha no mueve al grupo.",
                     style = MaterialTheme.typography.bodyMedium,
@@ -271,7 +291,7 @@ private fun EntryRow(
     Surface(
         color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
         shape = MaterialTheme.shapes.small,
-        modifier = Modifier.fillMaxWidth().combinedClickable(onClick = { onOpen(entry.id) }, onLongClick = { onTogglePin(entry.id) }),
+        modifier = Modifier.fillMaxWidth().handCursor().combinedClickable(onClick = { onOpen(entry.id) }, onLongClick = { onTogglePin(entry.id) }),
     ) {
         Row(modifier = Modifier.padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
             if (entry.kind == SceneEntryKind.NPC) {
@@ -304,7 +324,7 @@ private fun WalkColumn(index: SceneIndex, walk: WalkMode, onWalk: (WalkMode) -> 
     FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         WalkMode.entries.forEach { w -> FilterChip(selected = walk == w, onClick = { onWalk(w) }, label = { Text(w.label) }) }
     }
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(modifier = Modifier.fillMaxSize().dmScroll(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         when (walk) {
             WalkMode.ZONE -> {
                 index.zones.sortedBy { it.item.displayName.lowercase() }.forEach { zone ->
@@ -369,6 +389,7 @@ private fun WalkLine(title: String, subtitle: String, indent: Int, selected: Boo
         modifier = Modifier
             .fillMaxWidth()
             .background(if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent, MaterialTheme.shapes.small)
+            .handCursor()
             .clickable(onClick = onClick)
             .padding(start = (8 + indent * 18).dp, top = 6.dp, bottom = 6.dp, end = 8.dp),
     ) {
@@ -388,9 +409,13 @@ private fun EntrySheet(
     onOpen: (Uuid) -> Unit,
     onTogglePin: () -> Unit,
     onMap: (Uuid) -> Unit,
+    onBack: (() -> Unit)?,
 ) {
     val kind = index.kindOf(id) ?: return
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(modifier = Modifier.fillMaxSize().dmScroll().padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        if (onBack != null) {
+            TextButton(onClick = onBack, modifier = Modifier.handCursor()) { Text("← Atrás") }
+        }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 val path = index.pathOf(id)
@@ -539,7 +564,7 @@ private fun SceneSheet(index: SceneIndex, scene: SceneContent, onOpen: (Uuid) ->
 
 @Composable
 private fun RelatedColumn(index: SceneIndex, id: Uuid, onOpen: (Uuid) -> Unit) {
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(modifier = Modifier.fillMaxSize().dmScroll().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text("Relacionado", style = MaterialTheme.typography.titleMedium)
         val place = index.place(id)
         val zone = index.zone(id) ?: place?.let(index::zoneOf)

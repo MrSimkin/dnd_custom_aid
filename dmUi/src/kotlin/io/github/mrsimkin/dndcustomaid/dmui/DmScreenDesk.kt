@@ -133,7 +133,7 @@ internal fun DmScreenDesk(campaign: Campaign, database: AppDatabase, onOpenPanel
 
     Row(modifier = Modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier.weight(1.25f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(horizontal = 14.dp, vertical = 8.dp),
+            modifier = Modifier.weight(1.25f).fillMaxHeight().dmScroll().padding(horizontal = 14.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -154,7 +154,7 @@ internal fun DmScreenDesk(campaign: Campaign, database: AppDatabase, onOpenPanel
             }
         }
         Column(
-            modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(horizontal = 14.dp, vertical = 8.dp),
+            modifier = Modifier.weight(1f).fillMaxHeight().dmScroll().padding(horizontal = 14.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Surface(
@@ -287,7 +287,7 @@ internal fun PcQuickSheetPanel(database: AppDatabase, characterId: Uuid, onOpenF
         Text("Este PJ ya no está en el aparato.")
         return
     }
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(modifier = Modifier.fillMaxSize().dmScroll().padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(pc.name, style = MaterialTheme.typography.titleLarge)
         Text(pc.classes.joinToString(" / ") { "${it.name} ${it.level}" }, style = MaterialTheme.typography.bodySmall)
         SheetLine("CA · PV máx · Velocidad", "${pc.armorClass} · ${pc.maxHp} · ${formatFeet(pc.speed)}")
@@ -318,7 +318,7 @@ internal fun PcFullSheetPanel(database: AppDatabase, characterId: Uuid) {
         Text("Este PJ ya no está en el aparato.")
         return
     }
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(modifier = Modifier.fillMaxSize().dmScroll().padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(pc.name, style = MaterialTheme.typography.titleLarge)
         Text("Solo lectura. Para cambiar la hoja, el jugador la edita en su App.", style = MaterialTheme.typography.bodySmall)
         Text("Características", style = MaterialTheme.typography.titleSmall)
@@ -382,7 +382,7 @@ internal fun ReferenceCardPanel(campaignId: Uuid, cardId: String) {
     val card = reference.cards.firstOrNull { it.id == cardId } ?: return
     val campaignVersion = prefs.campaignVersion(campaignId)
     val shown = if (showingOther) campaignVersion.other else campaignVersion
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(modifier = Modifier.fillMaxSize().dmScroll().padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(card.title, style = MaterialTheme.typography.titleLarge)

@@ -1,4 +1,4 @@
-# QA único «Base para DM» · candidato 0.6.0-preqa.1
+# QA único «Base para DM» · candidato 0.6.0-preqa.2
 
 Es el QA único acordado en P6. Cubre los 8 paquetes de la «Base para DM», en la tablet (APK) y en la App de Windows, con el servidor DEV ya publicado.
 
@@ -6,18 +6,23 @@ Es el QA único acordado en P6. Cubre los 8 paquetes de la «Base para DM», en 
 
 | Pieza | Archivo | SHA-256 |
 | --- | --- | --- |
-| APK Android (versión `0.6.0-preqa.1`, build `60100`) | `dnd-custom-aid-0.6.0-preqa.1-build-60100.apk` | `b2243e9ff41aa881b175697c76a10ad1bc51a69c827ff25266028f3a5994c3f2` |
-| App de Windows (versión `0.6.1`) | `dnd-custom-aid-windows-0.6.1-preqa.1.zip` | `e714303ef2a57958f68293cca02334003a8415b41b4532ed82871c5013e52062` |
+| APK Android (versión `0.6.0-preqa.2`, build `60200`) | `dnd-custom-aid-0.6.0-preqa.2-build-60200.apk` | `8aade822ea7c32a5c16390bb5d9f8dfa3f317ee542886f87a42b8507cb0f2b0d` |
+| App de Windows (versión `0.6.2`) | `dnd-custom-aid-windows-0.6.2-preqa.2.zip` | `9d01b0386dbadcd3cb9ab0bf35f07dab59264e4f60b7114a2be3990be1390eac` |
 
-- **Carpeta local:** `D:\DnD_Aid\APKs\QA 0.6.0-preqa.1 Base DM`.
-- **Fuente:** rama `feature/dm-ux-redesign`, en el commit que agrega esta guía (PR #181). Se construyó sobre `c3ee8bef` más el cambio de versión y de empaque de Windows, sin otro cambio de código.
+- **Carpeta local:** `D:\DnD_Aid\APKs\QA 0.6.0-preqa.2 Base DM`.
+- **Fuente:** rama `feature/dm-ux-redesign`, en el commit que agrega esta guía (PR #181), construida sobre `4afd19d8`.
+- **Cambio respecto de preqa.1** (pedido del propietario el 2026-11-12):
+  - en Windows, «← Atrás» en cada mesa, Esc y Alt+← para volver, barras de desplazamiento y cursor de mano;
+  - en la tablet y en Windows, «←» dentro del panel lateral y «← Atrás» entre fichas de la Mesa de Escena;
+  - el Escritorio DM de Windows usa el tema y la letra de Configuración, igual que la mesa de trabajo, en vez de sus propios colores.
+- **preqa.1:** reemplazado antes de usarse; no instalarlo.
 - **Servidor:** Worker `dnd-custom-aid-api`, versión `a63a59c5-8b27-451c-8bf8-b1185b6aa1f3`, con KV `MEDIA` e IA (`DM_REGLAS_IA.md` §5).
 
 **Fuera de este QA:** la hoja de PJ V11 no cambió desde preqa.14. El control previo al QA de V11 (`check_v11_pre_qa_gate.py --mode release`) sigue bloqueado por las revisiones pendientes de la hoja de PJ, que no son parte de este QA. Esta entrega usa la misma excepción explícita del propietario que preqa.13 y preqa.14.
 
 ## Ventana de QA
 
-El propietario marca cada prueba (Bien, Falla o No aplica, con un comentario) en la ventana «QA Base DM preqa.1»: https://claude.ai/artifact/KJaAuzENdus3wmHuxGL6Bq. Hay 45 pruebas, en el mismo formato de preqa.14. Las marcas quedan en la colección `resultados`, que Claude lee al recibir el QA.
+El propietario marca cada prueba (Bien, Falla o No aplica, con un comentario) en la ventana «QA Base DM preqa.2»: https://claude.ai/artifact/KJaAuzENdus3wmHuxGL6Bq. Hay 45 pruebas, en el mismo formato de preqa.14. Las marcas quedan en la colección `resultados`, que Claude lee al recibir el QA.
 
 ## Instalar
 
@@ -76,4 +81,4 @@ El propietario marca cada prueba (Bien, Falla o No aplica, con un comentario) en
 
 - Por cada cosa que no esté como en el diseño aprobado: la mesa, qué hiciste, qué esperabas y una captura.
 - Si algo se cae o se cierra solo: qué tocaste justo antes.
-- La versión que ves en la App (`0.6.0-preqa.1` en Android).
+- La versión que ves en la App (`0.6.0-preqa.2` en Android).

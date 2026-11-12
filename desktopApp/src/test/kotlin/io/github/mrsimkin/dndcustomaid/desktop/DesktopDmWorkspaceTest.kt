@@ -8,7 +8,11 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.isRoot
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runDesktopComposeUiTest
@@ -79,7 +83,7 @@ class DesktopDmWorkspaceTest {
         val platform = DesktopDmPlatform(DesktopDmKeyValueStore(dir.resolve("dm.properties").toFile()))
 
         setContent {
-            MaterialTheme(colorScheme = darkColorScheme()) {
+            DeskTheme {
                 DmWorkspaceScreen(
                     campaign = campaign,
                     database = database,
@@ -131,7 +135,7 @@ class DesktopDmWorkspaceTest {
         val platform = DesktopDmPlatform(DesktopDmKeyValueStore(dir.resolve("dm.properties").toFile()))
 
         setContent {
-            MaterialTheme(colorScheme = darkColorScheme()) {
+            DeskTheme {
                 DmWorkspaceScreen(
                     campaign = campaign,
                     database = database,
@@ -220,7 +224,7 @@ class DesktopDmWorkspaceTest {
         val platform = DesktopDmPlatform(DesktopDmKeyValueStore(dir.resolve("dm.properties").toFile()))
 
         setContent {
-            MaterialTheme(colorScheme = darkColorScheme()) {
+            DeskTheme {
                 DmWorkspaceScreen(
                     campaign = campaign,
                     database = database,
@@ -277,7 +281,7 @@ class DesktopDmWorkspaceTest {
         val platform = DesktopDmPlatform(DesktopDmKeyValueStore(dir.resolve("dm.properties").toFile()))
 
         setContent {
-            MaterialTheme(colorScheme = darkColorScheme()) {
+            DeskTheme {
                 DmWorkspaceScreen(
                     campaign = campaign,
                     database = database,
@@ -329,7 +333,7 @@ class DesktopDmWorkspaceTest {
         }
 
         setContent {
-            MaterialTheme(colorScheme = darkColorScheme()) {
+            DeskTheme {
                 DmWorkspaceScreen(
                     campaign = campaign,
                     database = handle.database,
@@ -353,5 +357,52 @@ class DesktopDmWorkspaceTest {
         val roots = onAllNodes(isRoot()).fetchSemanticsNodes().size
         ImageIO.write(onAllNodes(isRoot())[roots - 1].captureToImage().toAwtImage(), "png", out.resolve("w13_reglas_ia.png"))
         handle.close()
+    }
+
+
+    /** On Windows: «← Atrás» goes back to the previous desk, Esc closes the side panel first. */
+    @Test
+    fun backButtonAndEscapeWalkBackOnWindows() = runDesktopComposeUiTest(width = 1600, height = 960) {
+        val dir = Files.createTempDirectory("dnd-custom-aid-back-")
+        val handle = DesktopDatabaseFactory(dir.resolve("back.db").toFile()).create()
+        val campaign = CampaignRepository(handle.database).createCampaign("Terramore")
+        var exited = false
+        val platform = DesktopDmPlatform(DesktopDmKeyValueStore(dir.resolve("dm.properties").toFile()))
+        setContent {
+            DeskTheme {
+                DmWorkspaceScreen(
+                    campaign = campaign,
+                    database = handle.database,
+                    mediaBlobs = InMemoryMediaBlobStore(),
+                    platform = platform,
+                    accountId = null,
+                    onSync = { DmSyncResult(synced = true) },
+                    onExitToCampaigns = { exited = true },
+                    onOpenAppSettings = {},
+                )
+            }
+        }
+        onAllNodesWithText("← Mesa de trabajo")[0].assertExists()
+        onAllNodesWithText("Pantalla del DM")[0].performClick()
+        onNodeWithText("Referencia rápida").assertExists()
+        onAllNodesWithText("📖 Reglas")[0].performClick()
+        onNodeWithText("Pregunta una regla").assertExists()
+        onRoot().performKeyInput { pressKey(Key.Escape) }
+        waitForIdle()
+        assertTrue(onAllNodesWithText("Pregunta una regla").fetchSemanticsNodes().isEmpty(), "Esc closes the side panel first")
+        onNodeWithText("Referencia rápida").assertExists()
+        onAllNodesWithText("← Atrás")[0].performClick()
+        assertTrue(onAllNodesWithText("Referencia rápida").fetchSemanticsNodes().isEmpty(), "back on the Escritorio overview")
+        onAllNodesWithText("← Atrás")[0].performClick()
+        assertTrue(exited, "with no desk to go back to, «← Atrás» leaves for the workbench")
+        handle.close()
+    }
+}
+
+/** The desks as the Windows app shows them: the workbench theme (dark) carried into Material 3. */
+@androidx.compose.runtime.Composable
+private fun DeskTheme(content: @androidx.compose.runtime.Composable () -> Unit) {
+    DesktopAppTheme(DesktopPreferences(themeChoice = DesktopThemeChoice.DARK)) {
+        MaterialTheme(colorScheme = desktopDmColorScheme(), typography = desktopDmTypography(), content = content)
     }
 }

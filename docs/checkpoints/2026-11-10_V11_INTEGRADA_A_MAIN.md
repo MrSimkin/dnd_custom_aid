@@ -157,9 +157,11 @@ La evidencia está en `DM_REGLAS_IA.md` §5.
 
 **QA único «Base para DM» entregado (2026-11-11).** Candidato:
 
-- APK `0.6.0-preqa.1` (build 60100), con SHA-256 `b2243e9f…`;
-- App de Windows `0.6.1`, con SHA-256 `e714303e…`;
-- guía en `docs/technical/QA_BASE_DM_0.6.0-preqa.1.md`.
+- APK `0.6.0-preqa.2` (build 60200), con SHA-256 `8aade822…`;
+- App de Windows `0.6.2`, con SHA-256 `9d01b038…`;
+- guía en `docs/technical/QA_BASE_DM_0.6.0-preqa.2.md`.
+
+Reemplaza a preqa.1 antes de usarlo: en Windows se agregaron «← Atrás», Esc y Alt+←, barras de desplazamiento, cursor de mano y una sola paleta, la del tema de Configuración (pedido del propietario el 2026-11-12).
 
 El control previo al QA de V11 sigue bloqueado por la hoja de PJ, que no cambió y queda fuera de este QA, con la excepción del propietario igual que preqa.13 y preqa.14.
 

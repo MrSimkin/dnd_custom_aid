@@ -63,7 +63,7 @@ internal fun NotesPanel(campaign: Campaign, database: AppDatabase, version: Int,
         onChanged()
     }
 
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(modifier = Modifier.fillMaxSize().dmScroll().padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         DmTextField(value = text, onValueChange = { text = it }, label = { Text("Nota") }, minLines = 3, modifier = Modifier.fillMaxWidth())
         FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             Text("Se pega a:", style = MaterialTheme.typography.labelMedium, modifier = Modifier.align(Alignment.CenterVertically))
@@ -159,7 +159,7 @@ internal fun ClocksPanel(campaign: Campaign, database: AppDatabase, version: Int
         owned = next
     }
 
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(modifier = Modifier.fillMaxSize().dmScroll().padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         dungeons.forEach { doc ->
             if (doc.clocks.isNotEmpty()) {
                 Text("Mazmorra: ${doc.dungeon}", style = MaterialTheme.typography.titleSmall)

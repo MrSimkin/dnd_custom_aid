@@ -43,6 +43,14 @@ interface DmPlatform {
     /** Decodes a stored image, scaled down so its longer side is about [maxSide] pixels. */
     fun decodeImage(bytes: ByteArray, maxSide: Int): ImageBitmap?
 
+    /** True on the Windows app: shows «← Atrás», scroll bars and the Esc / Alt+← keys (owner request 2026-11-12). */
+    val isDesktop: Boolean
+        get() = false
+
+    /** How the rail names the way out of the DM desks. */
+    val exitLabel: String
+        get() = "← Campañas"
+
     /** «Dados visibles» in the App settings (P34); otherwise the compact result. */
     val visibleDice: Boolean
 

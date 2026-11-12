@@ -314,7 +314,7 @@ private fun StartDungeon(index: SceneIndex, hasOpen: Boolean, onStart: (String, 
     val dungeons = index.dungeons()
     var chosen by remember { mutableStateOf(dungeons.firstOrNull()) }
     var startZone by remember { mutableStateOf<Uuid?>(null) }
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(modifier = Modifier.fillMaxSize().dmScroll().padding(24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(if (hasOpen) "Otra mazmorra" else "Empezar a explorar", style = MaterialTheme.typography.titleLarge)
         if (dungeons.isEmpty()) {
             Text("Ninguna zona tiene «Mazmorra» todavía.", style = MaterialTheme.typography.bodyMedium)
@@ -394,6 +394,7 @@ private fun DungeonMapView(map: List<DungeonMapZone>, doc: DungeonDocument, movi
                         MaterialTheme.shapes.small,
                     )
                     .border(if (moving != null) 2.dp else 1.dp, if (moving != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline, MaterialTheme.shapes.small)
+                    .handCursor()
                     .clickable { onZone(id) }
                     .padding(horizontal = 6.dp, vertical = 3.dp),
             ) {
@@ -462,7 +463,7 @@ private fun TurnPanel(
     onChange: (DungeonDocument) -> Unit,
 ) {
     val names = pcs.toMap()
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(modifier = Modifier.fillMaxSize().dmScroll(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Turno de Dungeon · 10 minutos", style = MaterialTheme.typography.titleSmall)
         doc.groups.forEach { group ->
             val advance = DungeonEngine.groupAdvance(doc, activities, group)
@@ -547,7 +548,7 @@ private fun CharacterTurnRow(
 
 @Composable
 private fun LogPanel(doc: DungeonDocument) {
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(modifier = Modifier.fillMaxSize().dmScroll(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text("Registro de turnos", style = MaterialTheme.typography.titleSmall)
         if (doc.log.isEmpty()) Text("Se arma solo al cerrar cada turno.", style = MaterialTheme.typography.bodySmall)
         doc.log.reversed().forEach { record ->
@@ -576,7 +577,7 @@ private fun DungeonClocks(doc: DungeonDocument, onChange: (DungeonDocument) -> U
     var name by remember { mutableStateOf("") }
     var segments by remember { mutableStateOf(4) }
     var perTurn by remember { mutableStateOf(true) }
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(modifier = Modifier.fillMaxSize().dmScroll(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text("Relojes de ${doc.dungeon}", style = MaterialTheme.typography.titleSmall)
         doc.clocks.forEach { clock ->
             ClockRow(clock, onMinus = { onChange(DungeonEngine.tickClock(doc, clock.id, -1)) }, onPlus = { onChange(DungeonEngine.tickClock(doc, clock.id, 1)) }, onRemove = { onChange(DungeonEngine.removeClock(doc, clock.id)) })
@@ -658,7 +659,7 @@ private fun ZonePaper(index: SceneIndex, database: AppDatabase, zone: ZoneConten
             }
         }
         Row(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier.width(120.dp).fillMaxHeight().verticalScroll(rememberScrollState())) {
+            Column(modifier = Modifier.width(120.dp).fillMaxHeight().dmScroll()) {
                 if (sections.isEmpty()) Text("Ficha vacía.", style = MaterialTheme.typography.bodySmall)
                 sections.forEach { s ->
                     Text(
@@ -673,7 +674,7 @@ private fun ZonePaper(index: SceneIndex, database: AppDatabase, zone: ZoneConten
                     )
                 }
             }
-            Column(modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(start = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(modifier = Modifier.weight(1f).fillMaxHeight().dmScroll().padding(start = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 when (section) {
                     ZoneSection.PRESENTATION -> {
                         PaperPart("Para leer", p.playerSafeText.ifBlank { p.presentation }, forPlayers = true)

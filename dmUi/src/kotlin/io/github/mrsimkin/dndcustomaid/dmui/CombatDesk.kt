@@ -301,7 +301,7 @@ private fun PrepareStep(
 
     Row(modifier = Modifier.fillMaxSize()) {
         Column(
-            modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(10.dp),
+            modifier = Modifier.weight(1f).fillMaxHeight().dmScroll().padding(10.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text("Participantes", style = MaterialTheme.typography.titleMedium)
@@ -330,7 +330,7 @@ private fun PrepareStep(
             }
         }
         Column(
-            modifier = Modifier.weight(1.25f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(10.dp),
+            modifier = Modifier.weight(1.25f).fillMaxHeight().dmScroll().padding(10.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (members.isEmpty()) {
@@ -348,7 +348,7 @@ private fun PrepareStep(
             }
         }
         Column(
-            modifier = Modifier.weight(0.9f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(10.dp),
+            modifier = Modifier.weight(0.9f).fillMaxHeight().dmScroll().padding(10.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text("Agregar", style = MaterialTheme.typography.titleMedium)
@@ -613,7 +613,7 @@ private fun InitiativeDialog(
                     Text(who, style = MaterialTheme.typography.labelMedium)
                     platform.D20Result(roll)
                 }
-                Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Column(modifier = Modifier.weight(1f).dmScroll(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     val pcs = doc.turnOrder.filter { it.kind == CombatantKind.PC }.sortedBy { it.label.lowercase() }
                     if (pcs.isNotEmpty()) {
                         Text("Personajes", style = MaterialTheme.typography.titleSmall)
@@ -743,13 +743,13 @@ private fun LiveStep(
             }
         }
         Column(
-            modifier = Modifier.weight(1.15f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(10.dp),
+            modifier = Modifier.weight(1.15f).fillMaxHeight().dmScroll().padding(10.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (selected == null) Text("Toca a alguien del orden.") else LiveTarget(doc, selected, sources, onChange, onChangeQuiet, onEdit)
         }
         Column(
-            modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(10.dp),
+            modifier = Modifier.weight(1f).fillMaxHeight().dmScroll().padding(10.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             GuideColumn(doc, sources)
@@ -982,7 +982,7 @@ private fun CreatureEditorDialog(
                     }
                 }
                 Row(modifier = Modifier.weight(1f)) {
-                    Column(modifier = Modifier.width(190.dp).fillMaxHeight().verticalScroll(rememberScrollState())) {
+                    Column(modifier = Modifier.width(190.dp).fillMaxHeight().dmScroll()) {
                         EditorSection.entries.forEach { s ->
                             val active = s == section
                             Text(
@@ -997,7 +997,7 @@ private fun CreatureEditorDialog(
                         }
                     }
                     Column(
-                        modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(start = 14.dp),
+                        modifier = Modifier.weight(1f).fillMaxHeight().dmScroll().padding(start = 14.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         when (section) {
