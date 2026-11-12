@@ -15,6 +15,10 @@ Es el QA único acordado en P6. Cubre los 8 paquetes de la «Base para DM», en 
 
 **Fuera de este QA:** la hoja de PJ V11 no cambió desde preqa.14. El control previo al QA de V11 (`check_v11_pre_qa_gate.py --mode release`) sigue bloqueado por las revisiones pendientes de la hoja de PJ, que no son parte de este QA. Esta entrega usa la misma excepción explícita del propietario que preqa.13 y preqa.14.
 
+## Ventana de QA
+
+El propietario marca cada prueba (Bien, Falla o No aplica, con un comentario) en la ventana «QA Base DM preqa.1»: https://claude.ai/artifact/KJaAuzENdus3wmHuxGL6Bq. Hay 45 pruebas, en el mismo formato de preqa.14. Las marcas quedan en la colección `resultados`, que Claude lee al recibir el QA.
+
 ## Instalar
 
 - **Tablet:** instala la APK como siempre (en el emulador, arrastrándola).
