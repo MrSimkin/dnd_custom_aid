@@ -123,7 +123,7 @@ Lectura del estado actual para G4 (sin cerrar):
 
 - **Pregunta:** «¿Crear PJ eligiendo raza, clase y lo demás desde el SRD entra en este QA?»
 - **Respuesta, al pie de la letra:** «Sí, entra».
-- **Consecuencia:** se adelanta al QA del rediseño el trabajo de razas, clases, trasfondos, dotes, conjuros y objetos estructurados, que  dejaba para después. La hoja V11 y su PDF no cambian de diseño; solo reciben los datos que se eligen.
+- **Consecuencia:** se adelanta al QA del rediseño el trabajo de razas, clases, trasfondos, dotes, conjuros y objetos estructurados, que `ROADMAP.md` dejaba para después. La hoja V11 y su PDF no cambian de diseño; solo reciben los datos que se eligen.
 
 ## Alcance del rediseño (libro de aceptación)
 
