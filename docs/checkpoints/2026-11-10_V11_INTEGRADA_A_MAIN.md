@@ -165,4 +165,11 @@ Reemplaza a preqa.1 antes de usarlo: en Windows se agregaron «← Atrás», Esc
 
 El control previo al QA de V11 sigue bloqueado por la hoja de PJ, que no cambió y queda fuera de este QA, con la excepción del propietario igual que preqa.13 y preqa.14.
 
-**Siguiente paso:** recibir el resultado del QA del propietario y registrar cada observación antes de corregir (AGENTS §6.3).
+**QA del propietario recibido (2026-11-13).** Resultado: 7 bien, 5 falla y 33 no aplica.
+
+- Casi todo quedó bloqueado porque la tablet solo permitió entrar como jugador (con la cuenta Gmail).
+- El propietario dice que la experiencia lo confunde.
+- Cada observación está al pie de la letra en `docs/technical/QA_BASE_DM_0.6.0-preqa.2_OBSERVACIONES.md`.
+- La ventana de QA (versión 3) suma «A medias», «Otra cosa que viste» y observaciones generales, con las mismas pruebas.
+
+**Siguiente paso:** completar P6 y las observaciones generales con el propietario; resolver una a una sus decisiones (entrada como DM e identidad visible, modelo de dungeon); recién entonces corregir contra ese registro.
