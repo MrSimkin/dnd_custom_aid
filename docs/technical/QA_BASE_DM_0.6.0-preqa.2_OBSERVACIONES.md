@@ -93,7 +93,8 @@ Esta lectura **no** es un diagnóstico cerrado. Solo explica qué falta comprend
 | G2 | «no tengo como enviar handouts a mis jugadores» | ABIERTA |
 | G3 | «la organizacion de campañas es muy "mutante" y lo hace dificil» | ABIERTA |
 | G4 | «no puedo leer el SRD, ni me demostraste que ahora puedo crear PJ con el SRD y se suponia que aunque no esté desarrollado deberia estar el ver el SRD y yo poder agregar cosas homebrew como objetos, clases, dotes, conjuros, etc, si bien no esta desarrollado no está "la maqueta" de aqui va.....» | ABIERTA |
-| G5 | «en el QA me dalta un "A Medias", o "En parte" o "bien, pero no era lo que yo esperaba que se hiciera", y una seccion de "mis comentarios adicionales" sobre la prueba y sobre el total.» | CORREGIDA en la ventana de QA, versión 5: «Bien, pero no lo esperado», «En parte», «Mis comentarios adicionales» por prueba y «sobre todo el QA». |
+| G5 | «en el QA me dalta un "A Medias", o "En parte" o "bien, pero no era lo que yo esperaba que se hiciera", y una seccion de "mis comentarios adicionales" sobre la prueba y sobre el total.» | CORREGIDA en la ventana de QA, versión 5: «Bien, pero no lo esperado», «En parte», «Mis comentarios adicionales» por prueba y «sobre todo el QA».
+| G6 | «Al set de pruebas en pantalla opara ayudarme a hacer el QA le falta un "limpiar botones"» | CORREGIDA en la ventana de QA, versión 6: botón «Limpiar marca» en cada prueba; quita la marca y conserva los comentarios. |
 
 Lectura del estado actual para G4 (sin cerrar):
 
