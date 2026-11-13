@@ -24,6 +24,7 @@
 
 | Paquete | Alcance | Puntos |
 | --- | --- | --- |
+| **R0 · Guía del rediseño** | Antes de construir: guía visual para el propietario con las pantallas nuevas y cómo se usan (D14). Dentro de la App: ayuda corta «¿Cómo se usa?» en cada pantalla. | A14 |
 | **R1 · Entrada, cuenta y campañas** | Windows pide la cuenta al abrir y la recuerda; barra superior con cuenta y rol; «Cerrar sesión» y «Cambiar usuario»; lista estable de campañas con el rol de cada una (tablet y Windows); explicación cuando la cuenta no es DM; Sincronizar en el menú normal; jugador asignable a cada PJ aunque no tenga cuenta. | A1, A2, A3 (sincronizar), A13 |
 | **R2 · Preparar (Windows)** | «Gestores» pasa a «Preparar», agrupado por lo que el DM prepara: Lugares y tiendas, PNJ, Aventuras y escenas, Dungeons, Encuentros y criaturas, Handouts y mapas, Reglas de la casa. Cada sección tiene una línea de propósito, búsqueda y crear arriba. | A3, P6 |
 | **R3 · Dungeons** | Dungeon como objeto propio; editor con plano (maqueta D5): «＋ Zona», arrastrar para ubicar, arrastrar de zona a zona para crear pasajes, pasaje secreto punteado, panel de zona y plano de fondo opcional. La Mesa de Dungeon lee ese dungeon. En toda la App se dice «dungeon». | A4 |

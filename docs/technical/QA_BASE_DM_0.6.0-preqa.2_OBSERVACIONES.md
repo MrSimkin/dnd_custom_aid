@@ -190,6 +190,23 @@ Consecuencias:
   - Silas: dominio sin definir.
 - Retratos de los 4 PJ, otro plano de Campus Celeste y el mapa del mundo (Terramore) quedan en el set privado.
 
+## D14 · Explicar el rediseño y cargar todo para las pruebas (2026-11-13)
+
+Mensaje del propietario, al pie de la letra:
+
+> «Recuerda tambien, dado que vas a hacer un mega rediseño, explicarmelo, quizas hasta con ayuda / Debes cargar todo para las pruebas, no es tanto para el repo como para las pruebas, pero carga al repo lo que necesites»
+
+Consecuencias:
+
+- **Antes de construir**, el agente entrega una guía visual del rediseño (pantallas de ejemplo con explicación) para que el propietario lo entienda y pueda corregir el rumbo temprano.
+- **Dentro de la App**, cada pantalla tiene una ayuda corta y opcional («¿Cómo se usa?») (A14).
+- **El set de prueba se carga completo** en la campaña de prueba (R7):
+  - ciudad, PNJ, baños, ganchos, aventuras, dungeons, handouts;
+  - los 4 PJ con su trasfondo, retrato, armas de leyenda y jugador;
+  - el homebrew de los manuales.
+- **Qué va al repositorio.** Solo el código y las herramientas para cargarlo, por ejemplo un importador que lee la carpeta privada. Como el repositorio es público, el contenido y los nombres reales se quedan en la carpeta privada.
+- Se recibieron los trasfondos de Silas (DOCX), Nerissa (presentación interactiva) y Arruk (TXT). Quedan en la carpeta privada `trasfondos/`.
+
 ## Alcance del rediseño (libro de aceptación)
 
 | # | Qué se hará | Observaciones que cubre |
@@ -206,6 +223,7 @@ Consecuencias:
 | A10 | P6: las escenas en Preparar tienen que ser más claras (comentario menor); lo cubre A3. | P6 |
 | A12 | Selector SRD → homebrew → custom al agregar objetos, armas, ataques, conjuros, dotes y similares a un PJ. | G4, D9 |
 | A13 | Asignar a cada PJ su jugador o jugadora, aunque todavía no tenga cuenta en la App. | D13 |
+| A14 | Ayuda dentro de la App: cada pantalla explica en corto qué es y cómo se usa. | D14 |
 | A11 | Crear PJ eligiendo desde el SRD (especie o raza, clase, subclase, trasfondo, dotes, conjuros y equipo) en el editor de PJ, 5e y 5.5e, y cada lista con su homebrew de A8. | G4, D8 |
 
 ## Próximo paso
