@@ -70,6 +70,8 @@ Esta lectura **no** es un diagnóstico cerrado. Solo explica qué falta comprend
 | # | Fecha | Pregunta | Respuesta, al pie de la letra | Consecuencia |
 | --- | --- | --- | --- | --- |
 | D1 | 2026-11-13 | ¿En la tablet quieres poder ser DM también sin iniciar sesión? (se recomendó que sí) | «No, solo con cuenta» | El Escritorio DM de la tablet exige una sesión con rol DM en la campaña. La corrección no agrega un DM local sin cuenta; debe hacer visible la cuenta y el rol, y explicar por qué no aparece el Escritorio DM. |
+| D2 | 2026-11-13 | ¿La App de Windows debe pedir iniciar sesión al abrirse, igual que la tablet? | «si, al abrirse, y con "recordar" automatico, si quiero cambiar despues, necesito "cerrar sesion" o "cambiar sesion", aunque deberia ser usuario no sesion, tu me entiendes» | Windows pide la cuenta al abrirse y la recuerda sola. Para cambiarla hay «Cerrar sesión» y «Cambiar usuario» (se dice usuario, no sesión). |
+| D3 | 2026-11-13 | (comentario del propietario, sin pregunta) | «entiendo que ahora la sincronizacion está en sebug, pero tiene que estar clarita en menu normal tambien, para probar, hemos avanzado de eso» | Sincronizar sale de Administración de campaña y queda visible en el menú normal de Windows. |
 
 ## Próximo paso
 
