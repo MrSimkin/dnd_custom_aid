@@ -74,6 +74,16 @@ Esta lectura **no** es un diagnóstico cerrado. Solo explica qué falta comprend
 | D3 | 2026-11-13 | (comentario del propietario, sin pregunta) | «entiendo que ahora la sincronizacion está en sebug, pero tiene que estar clarita en menu normal tambien, para probar, hemos avanzado de eso» | Sincronizar sale de Administración de campaña y queda visible en el menú normal de Windows. |
 | D4 | 2026-11-13 | (aclaración del propietario, sin pregunta) | «Gmail es mi cuenta de DM/jugador (mientras hagamos las pruebas) / y Outlook es mi cuenta de jugador» | Reemplaza la identidad canónica de AGENTS §9. En el servidor DEV (lectura del 2026-11-13), en «QA - PC Sheet PDF Runtime» Gmail es PLAYER/ACTIVE y Outlook DM/ACTIVE; «Hosted Batch Test» solo tiene a Outlook como DM. Ninguna campaña tiene contenido DM sincronizado (0 elementos). Esto explica E1 y P8. Cambiar los roles en el servidor necesita el sí del propietario. |
 | D5 | 2026-11-13 | ¿Así quieres crear un dungeon y conectar sus zonas en Windows? (maqueta: lista de dungeons, plano con «＋ Zona», arrastrar para unir zonas, pasaje secreto punteado, panel de zona) | «lo de nuevo dungeon es cuando estoy administrando, el resto en los escritorioa, creo yo / no se si entendi bien la pregunta, la respuesta correcta es si, quizas con ajustes» | Se aprueba la maqueta, con posibles ajustes. Crear y armar un dungeon va en la parte de preparar (lo que hoy se llama Gestores); jugarlo (turnos, marcas, mover el grupo) va en la Mesa de Dungeon de los escritorios. Los ajustes se verán en el próximo QA. |
+| D6 | 2026-11-13 | ¿Cambio en el servidor de pruebas a Gmail como DM y a Outlook como jugador? | «Sí, cámbialo» | Aplicado en Neon DEV (ver evidencia). |
+
+### Evidencia D6 (Neon DEV, 2026-11-13)
+
+- Campaña `7a000000-0000-4000-8000-000000000001` («QA - PC Sheet PDF Runtime»).
+- **Antes:** Gmail `4ba0f476…` PLAYER/ACTIVE; Outlook `f34bc5f0…` DM/ACTIVE; revisión 0.
+- **Después:** Gmail DM/ACTIVE; Outlook PLAYER/ACTIVE; revisión 1.
+- Se hizo en una sola transacción, que se deshacía si no cambiaba exactamente una fila de cada cuenta. La propiedad y el control de los 3 PJ de prueba siguen en Gmail.
+- La conexión pasó de `neonctl` al controlador sin mostrarse ni guardarse.
+- «Hosted Batch Test» no se tocó: Outlook sigue como único DM.
 
 ## Próximo paso
 
