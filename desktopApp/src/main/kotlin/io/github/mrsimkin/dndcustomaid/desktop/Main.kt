@@ -280,6 +280,9 @@ private fun DesktopWorkbench(
                             onPreferencesChange = onPreferencesChange,
                         )
                         DesktopDestination.DIAGNOSTICS -> QaDiagnosticsScreen(
+                            database = database,
+                            mediaBlobs = mediaBlobs,
+                            onLoaded = { accountSession.message = it; refreshCampaigns() },
                             campaigns = campaigns,
                             activeCampaign = activeCampaign,
                             destination = destination,
@@ -520,6 +523,9 @@ private fun DesktopRulesScreen(
 
 @Composable
 private fun QaDiagnosticsScreen(
+    database: AppDatabase,
+    mediaBlobs: MediaBlobStore,
+    onLoaded: (String) -> Unit,
     campaigns: List<Campaign>,
     activeCampaign: Campaign?,
     destination: DesktopDestination,
@@ -541,6 +547,40 @@ private fun QaDiagnosticsScreen(
         verticalArrangement = Arrangement.spacedBy(desktopSpacing(16.dp)),
     ) {
         item { WorkbenchHeading(title = "Diagnóstico", subtitle = DesktopDestination.DIAGNOSTICS.purpose) }
+        item {
+            // Redesign R7: loads a prepared campaign (a content bundle) into the open campaign, once.
+            Card(modifier = Modifier.fillMaxWidth(), elevation = 2.dp) {
+                Column(Modifier.padding(desktopSpacing(16.dp)), verticalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
+                    Text("Cargar paquete de contenido", style = MaterialTheme.typography.h6)
+                    Text(
+                        "Carga en la campaña abierta un paquete preparado (.json): lugares, PNJ, escenas, dungeons, handouts, notas, " +
+                            "homebrew y los PJ. Cargarlo otra vez no duplica nada. Después usa «⟳ Sincronizar» para llevarlo a la tablet.",
+                        style = MaterialTheme.typography.body2,
+                    )
+                    var loading by remember { mutableStateOf(false) }
+                    val loadScope = rememberCoroutineScope()
+                    Button(enabled = activeCampaign != null && !loading, onClick = {
+                        val campaign = activeCampaign ?: return@Button
+                        val file = chooseFileWithExplorer("Elegir paquete de contenido", "bundles", campaign.id.toString(), listOf("json")) ?: return@Button
+                        loading = true
+                        loadScope.launch {
+                            val summary = runCatching {
+                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                    val bundle = io.github.mrsimkin.dndcustomaid.shared.content.parseContentBundle(file.readText())
+                                    io.github.mrsimkin.dndcustomaid.shared.content.ContentBundleImporter(database, mediaBlobs) { System.currentTimeMillis() / 1000L }
+                                        .load(bundle, campaign.id, io.github.mrsimkin.dndcustomaid.shared.content.ContentBundleParts.ALL, accountSession.accountId) { name ->
+                                            File(file.parentFile, name).takeIf { it.isFile }?.readBytes()
+                                        }.spanishSummary()
+                                }
+                            }.getOrElse { "No se pudo leer el paquete: ${it.message}" }
+                            loading = false
+                            onLoaded(summary)
+                        }
+                    }) { Text(if (loading) "Cargando…" else "Elegir paquete y cargar") }
+                    if (activeCampaign == null) Text("Primero abre una campaña.", style = MaterialTheme.typography.caption)
+                }
+            }
+        }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
                 Button(onClick = { copyToClipboard(snapshot) }) { Text("Copiar diagnóstico") }

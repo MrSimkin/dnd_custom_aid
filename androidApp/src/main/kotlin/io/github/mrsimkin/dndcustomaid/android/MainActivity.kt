@@ -417,6 +417,24 @@ private fun CampaignScreen(
 
     var hostedStatus by remember { mutableStateOf(idleHostedStatus()) }
 
+    // Redesign R7: the DM loads the party of a content bundle into one campaign on this tablet.
+    val bundleContext = androidx.compose.ui.platform.LocalContext.current
+    var bundleCampaignId by remember { mutableStateOf<Uuid?>(null) }
+    val bundleLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        val target = bundleCampaignId
+        if (uri == null || target == null) return@rememberLauncherForActivityResult
+        hostedStatus = runCatching {
+            val text = bundleContext.contentResolver.openInputStream(uri)!!.use { it.readBytes().decodeToString() }
+            val bundle = io.github.mrsimkin.dndcustomaid.shared.content.parseContentBundle(text)
+            io.github.mrsimkin.dndcustomaid.shared.content.ContentBundleImporter(database, null) { System.currentTimeMillis() / 1000L }
+                .load(bundle, target, io.github.mrsimkin.dndcustomaid.shared.content.ContentBundleParts.CHARACTERS, entryStore.accountId) { null }
+                .spanishSummary()
+        }.getOrElse { "No se pudo leer el paquete: ${it.message}" }
+        campaigns = repository.listCampaigns()
+    }
+
     fun reload() {
         campaigns = repository.listCampaigns()
         activeCampaignId = repository.activeCampaign()?.id
@@ -666,6 +684,10 @@ private fun CampaignScreen(
                             signedIn = hostedBootstrap.hasRememberedSession(),
                             accountEmail = entryStore.accountEmail,
                             onOpenHandouts = { onOpenHandouts(campaign) },
+                            onLoadParty = {
+                                bundleCampaignId = campaign.id
+                                bundleLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
+                            },
                             onSelect = {
                                 repository.setActiveCampaign(campaign.id)
                                 reload()
@@ -707,6 +729,7 @@ private fun CampaignCard(
     signedIn: Boolean,
     accountEmail: String?,
     onOpenHandouts: () -> Unit,
+    onLoadParty: () -> Unit,
     onSelect: () -> Unit,
     onOpen: () -> Unit,
 ) {
@@ -748,6 +771,9 @@ private fun CampaignCard(
             }
             if (role != null && signedIn) {
                 TextButton(onClick = onOpenHandouts) { Text("🖼 Handouts") }
+            }
+            if (role == CampaignRole.DM) {
+                TextButton(onClick = onLoadParty) { Text("📦 PJ de un paquete") }
             }
             TextButton(onClick = onOpen) {
                 Text(if (role == CampaignRole.DM) "Abrir Escritorio DM" else "Ver mis PJ")
