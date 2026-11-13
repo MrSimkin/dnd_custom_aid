@@ -145,6 +145,25 @@ Se entregó para armar un set de prueba realista. **No entra al repositorio púb
 - `Campus_Celeste_10_ganchos_medallon.docx`.
 - 11 imágenes: mapas de la ciudad, la región con D1 a D5 y el distrito Pórtico Bajo.
 
+## D10 y D11 · Qué entra en el set de prueba (2026-11-13)
+
+- **D10, aventuras.**
+  - Pregunta: «¿qué aventuras de Campus Celeste meto?»
+  - Respuesta: «La Forja (Sitio 021), La Versión No Oficial».
+  - Además, al pie de la letra: «quiero la ciudad como lugares y tambien quiero todo lo de los baños».
+- **D11, PJ.**
+  - Pregunta: «¿Cómo los cargamos?»
+  - Respuesta, al pie de la letra: «Crealos tu, como "placeholder", pero hyo te voy a decir uno por uno, quienes son y como son».
+  - Los PJ Nerissa, Silas Ren, Eilixis y Arruk empiezan como fichas provisionales. Se completan con lo que el propietario describa, uno por uno.
+- **Set resultante.** Una campaña de prueba, con Gmail como DM, que lleva:
+  - la ciudad como lugares (7 distritos, lugares clave, tiendas y servicios con su inventario y sus precios);
+  - los 31 PNJ del escenario y todo el material de los baños (3 establecimientos, personal, variantes, tablas, rumores, invitaciones, carteles e hilos personales);
+  - los 10 ganchos;
+  - La Forja (escenas, Sitio 021 con 12 zonas y 5 combates);
+  - La Versión No Oficial (escenas, La Torre con 13 zonas, 6 encuentros y 4 puzzles);
+  - los mapas e imágenes como handouts.
+- **Dónde queda.** Los archivos del set viven en `D:\DnD_Aid\Set de prueba Campus Celeste`, fuera del repositorio.
+
 ## Alcance del rediseño (libro de aceptación)
 
 | # | Qué se hará | Observaciones que cubre |
