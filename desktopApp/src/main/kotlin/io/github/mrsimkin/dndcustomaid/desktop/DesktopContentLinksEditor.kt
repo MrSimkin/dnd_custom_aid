@@ -2,6 +2,7 @@ package io.github.mrsimkin.dndcustomaid.desktop
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,6 +33,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.testTag
+import io.github.mrsimkin.dndcustomaid.dmui.handCursor
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -449,12 +452,16 @@ private fun MapPinsEditor(image: ImageBitmap?, pins: List<MapPin>, targets: List
             Text("La imagen no está en este computador todavía.", style = MaterialTheme.typography.caption)
             return
         }
-        Text("Haz clic en el mapa para poner una marca.", style = MaterialTheme.typography.caption)
+        Text("Haz clic en el mapa para poner una marca; arrástrala para moverla.", style = MaterialTheme.typography.caption)
+        // Redesign A5 (owner observation P7): a mark follows the mouse while dragged and is saved on release.
+        var dragging by remember { mutableStateOf<Pair<Int, Pair<Double, Double>>?>(null) }
         BoxWithConstraints(
             modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().aspectRatio(image.width.toFloat() / image.height.coerceAtLeast(1)),
         ) {
             val w = constraints.maxWidth.toFloat()
             val h = constraints.maxHeight.toFloat()
+            fun shown(index: Int, pin: MapPin): Pair<Double, Double> =
+                dragging?.takeIf { it.first == index }?.second ?: (pin.x to pin.y)
             Image(
                 bitmap = image,
                 contentDescription = "Mapa",
@@ -468,12 +475,31 @@ private fun MapPinsEditor(image: ImageBitmap?, pins: List<MapPin>, targets: List
                 },
             )
             pins.forEachIndexed { index, pin ->
+                val (px, py) = shown(index, pin)
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .offset { androidx.compose.ui.unit.IntOffset((pin.x * w).roundToInt() - 14, (pin.y * h).roundToInt() - 14) }
+                        .offset { androidx.compose.ui.unit.IntOffset((px * w).roundToInt() - 14, (py * h).roundToInt() - 14) }
                         .size(28.dp)
-                        .background(Color(0xFFC62828), CircleShape),
+                        .background(Color(0xFFC62828), CircleShape)
+                        .handCursor()
+                        .pointerInput(index, pins, w, h) {
+                            detectDragGestures(
+                                onDragStart = { dragging = index to (pin.x to pin.y) },
+                                onDragEnd = {
+                                    dragging?.let { (i, spot) -> set(i) { it.copy(x = spot.first, y = spot.second) } }
+                                    dragging = null
+                                },
+                                onDragCancel = { dragging = null },
+                            ) { change, amount ->
+                                change.consume()
+                                val (cx, cy) = dragging?.second ?: (pin.x to pin.y)
+                                dragging = index to (
+                                    (cx + amount.x / w).coerceIn(0.0, 1.0) to (cy + amount.y / h).coerceIn(0.0, 1.0)
+                                )
+                            }
+                        }
+                        .testTag("map-pin-${index + 1}"),
                 ) { Text("${index + 1}", color = Color.White, fontWeight = FontWeight.Bold) }
             }
         }

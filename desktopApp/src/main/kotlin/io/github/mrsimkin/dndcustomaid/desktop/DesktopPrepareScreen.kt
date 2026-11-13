@@ -40,6 +40,7 @@ internal enum class PrepareSection(val title: String, val purpose: String) {
     ENCOUNTERS("Encuentros", "Combates listos para la Mesa de Combate."),
     CREATURES("Criaturas", "Monstruos y criaturas propias para tus encuentros."),
     HOUSE_RULES("Reglas de la casa", "Tus reglas y aclaraciones para esta mesa."),
+    NOTES("Notas", "Todas las notas de la campaña, agrupadas por dónde las escribiste en la mesa."),
     PACKAGES("Paquetes", "Conjuntos para reutilizar contenido entre campañas."),
 }
 
@@ -51,6 +52,7 @@ internal fun DesktopPrepareScreen(
     homebrewRuleController: DesktopHomebrewRuleManagerController,
     placeController: DesktopPlaceManagerController,
     dungeonController: DesktopDungeonEditorController,
+    database: io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
 ) {
@@ -117,6 +119,7 @@ internal fun DesktopPrepareScreen(
             PrepareSection.ENCOUNTERS -> DesktopEncounterManagerScreen(placeController.encounterManagerController, activeCampaign, onQaEvent)
             PrepareSection.CREATURES -> CreatureManagerScreen(creatureController, activeCampaign, onQaEvent)
             PrepareSection.HOUSE_RULES -> HomebrewRuleManagerScreen(homebrewRuleController, activeCampaign, onQaEvent)
+            PrepareSection.NOTES -> DesktopNotesScreen(database, activeCampaign)
             PrepareSection.PACKAGES -> DesktopPackageManagerScreen(placeController.packageManagerController, activeCampaign, onQaEvent)
         }
     }

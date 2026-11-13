@@ -146,7 +146,7 @@ internal fun DmScreenDesk(campaign: Campaign, database: AppDatabase, onOpenPanel
                 characters.isEmpty() -> Text("Esta campaña aún no tiene PJ en este aparato. Llegan al sincronizar.", style = MaterialTheme.typography.bodyMedium)
                 tableView -> PartyLensTable(lens)
                 else -> characters.sortedBy { it.name.lowercase() }.forEach { pc ->
-                    PcGroupCard(pc, lens, onOpen = { onOpenPanel(DeskPanel.PcQuickSheet(pc.id)) })
+                    PcGroupCard(pc, lens, onOpen = { onOpenPanel(DeskPanel.PcQuickSheet(pc.id)) }, player = remember(pc.id) { io.github.mrsimkin.dndcustomaid.shared.character.CharacterPlayerRepository(database).player(pc.id) })
                 }
             }
             if (!tableView && characters.isNotEmpty()) {
@@ -199,7 +199,7 @@ internal fun DmScreenDesk(campaign: Campaign, database: AppDatabase, onOpenPanel
 }
 
 @Composable
-private fun PcGroupCard(pc: CharacterSheet, lens: PartyLens, onOpen: () -> Unit) {
+private fun PcGroupCard(pc: CharacterSheet, lens: PartyLens, onOpen: () -> Unit, player: String? = null) {
     val column = lens.columns.indexOfFirst { it.characterId == pc.id }
     fun best(kind: PartyLensRowKind) = lens.rows.firstOrNull { it.kind == kind }?.cells?.getOrNull(column)?.best == true
     fun text(kind: PartyLensRowKind) = lens.rows.firstOrNull { it.kind == kind }?.cells?.getOrNull(column)?.text.orEmpty()
@@ -223,6 +223,8 @@ private fun PcGroupCard(pc: CharacterSheet, lens: PartyLens, onOpen: () -> Unit)
                 Text(pc.name, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 Text(pc.classes.joinToString(" / ") { "${it.name} ${it.level}" }.ifBlank { "Sin clase" }, style = MaterialTheme.typography.bodySmall)
             }
+            // Redesign A13: who plays this PC.
+            player?.let { Text("Jugador/a: $it", style = MaterialTheme.typography.bodySmall) }
             FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 stat("CA", PartyLensRowKind.ARMOR_CLASS)
                 stat("PV máx", PartyLensRowKind.MAX_HIT_POINTS)
@@ -290,6 +292,8 @@ internal fun PcQuickSheetPanel(database: AppDatabase, characterId: Uuid, onOpenF
     Column(modifier = Modifier.fillMaxSize().dmScroll().padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(pc.name, style = MaterialTheme.typography.titleLarge)
         Text(pc.classes.joinToString(" / ") { "${it.name} ${it.level}" }, style = MaterialTheme.typography.bodySmall)
+        remember(characterId) { io.github.mrsimkin.dndcustomaid.shared.character.CharacterPlayerRepository(database).player(characterId) }
+            ?.let { Text("Jugador/a: $it", style = MaterialTheme.typography.bodySmall) }
         SheetLine("CA · PV máx · Velocidad", "${pc.armorClass} · ${pc.maxHp} · ${formatFeet(pc.speed)}")
         SheetLine(
             "Salvaciones destacadas",

@@ -25,6 +25,20 @@ interface HostedAccessTokenProvider {
 }
 
 @Serializable
+data class HostedSharedHandout(
+    val id: Uuid,
+    val name: String,
+    val caption: String = "",
+    val kind: String = "HANDOUT",
+    val sha256: String,
+    val mediaType: String,
+    val revision: Long = 0,
+)
+
+@Serializable
+internal data class SharedHandoutsResponse(val handouts: List<HostedSharedHandout>)
+
+@Serializable
 data class HostedAccount(
     val id: Uuid,
     val displayName: String? = null,
@@ -338,6 +352,10 @@ class HostedApiClient(
         ensureSuccess(response.status.value, response)
         return response.readRawBytes()
     }
+
+    /** Redesign A7: the campaign's handouts the DM sent to the players (any active member). */
+    suspend fun sharedHandouts(campaignId: Uuid): List<HostedSharedHandout> =
+        authenticatedGet<SharedHandoutsResponse>("/v1/campaigns/$campaignId/handouts").handouts
 
     /**
      * Package 8: asks the Worker to answer [question] from the SRD [passages] the App found on the

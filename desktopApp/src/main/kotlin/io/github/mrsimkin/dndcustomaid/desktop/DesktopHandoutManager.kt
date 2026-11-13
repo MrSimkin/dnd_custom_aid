@@ -144,10 +144,11 @@ internal fun DesktopHandoutManagerScreen(
             modifier = Modifier.width(360.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text("Handouts e imágenes", style = MaterialTheme.typography.h5)
-            Text(
-                "Handouts, mapas y retratos de PNJ. Viajan a la tablet al sincronizar el contenido del DM.",
-                style = MaterialTheme.typography.caption,
+            WorkbenchHeading(
+                title = "Handouts y mapas",
+                subtitle = "Imágenes para mostrar a los jugadores, mapas con marcas y retratos de PNJ. Viajan a la tablet al sincronizar.",
+                help = "1) «Agregar imagen» elige un archivo; el explorador recuerda tus carpetas. 2) Elige el tipo: Handout, Mapa o Retrato. " +
+                    "3) Visibilidad: «Solo DM» o «Se puede mostrar a los jugadores». 4) En un Mapa, un clic pone una marca y puedes arrastrarla para moverla.",
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(selected = !personal, enabled = activeCampaign != null, onClick = { personal = false })
@@ -158,7 +159,7 @@ internal fun DesktopHandoutManagerScreen(
                 Text("Mi biblioteca personal")
             }
             Button(onClick = {
-                val file = chooseImageFile() ?: return@Button
+                val file = chooseImageFile(activeCampaign?.id?.toString()) ?: return@Button
                 message = try {
                     val created = controller.import(
                         file = file,
@@ -240,6 +241,7 @@ private fun HandoutEditor(
     var name by remember(key) { mutableStateOf(handout.item.displayName) }
     var kind by remember(key) { mutableStateOf(handout.payload.kind) }
     var visibility by remember(key) { mutableStateOf(handout.payload.visibility) }
+    var shared by remember(key) { mutableStateOf(handout.payload.sharedWithPlayers) }
     var caption by remember(key) { mutableStateOf(handout.payload.caption) }
     var notes by remember(key) { mutableStateOf(handout.payload.notes) }
     var error by remember(key) { mutableStateOf<String?>(null) }
@@ -282,6 +284,18 @@ private fun HandoutEditor(
                 Text(option.spanishLabel())
             }
         }
+        // Redesign A7 (owner observation G2): only a PLAYER_SAFE image can be sent; their App shows it after syncing.
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            androidx.compose.material.Checkbox(
+                checked = shared && visibility == HandoutVisibility.PLAYER_SAFE,
+                enabled = visibility == HandoutVisibility.PLAYER_SAFE,
+                onCheckedChange = { shared = it },
+            )
+            Text(
+                if (visibility == HandoutVisibility.PLAYER_SAFE) "Enviar a los jugadores (lo ven en su App al sincronizar)"
+                else "Para enviarla a los jugadores, primero márcala «Se puede mostrar a los jugadores».",
+            )
+        }
         OutlinedTextField(value = caption, onValueChange = { caption = it }, label = { Text("Texto al pie (opcional)") }, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas del DM") }, modifier = Modifier.fillMaxWidth())
         error?.let { Text(it, color = MaterialTheme.colors.error) }
@@ -294,7 +308,13 @@ private fun HandoutEditor(
                 val decision = controller.update(
                     handout,
                     name,
-                    handout.payload.copy(kind = kind, visibility = visibility, caption = caption.trim(), notes = notes.trim()),
+                    handout.payload.copy(
+                        kind = kind,
+                        visibility = visibility,
+                        caption = caption.trim(),
+                        notes = notes.trim(),
+                        sharedWithPlayers = shared && visibility == HandoutVisibility.PLAYER_SAFE,
+                    ),
                 )
                 if (decision is RevisionDecision.Accepted) onSaved() else error = "Otra ventana cambió esta imagen. Vuelve a abrirla."
             }) { Text("Guardar") }
@@ -304,12 +324,9 @@ private fun HandoutEditor(
     }
 }
 
-private fun chooseImageFile(): File? {
-    val chooser = JFileChooser().apply {
-        dialogTitle = "Importar imagen"
-        fileFilter = FileNameExtensionFilter("Imágenes (JPG, PNG, WebP)", "jpg", "jpeg", "png", "webp")
-        isAcceptAllFileFilterUsed = false
-    }
-    if (chooser.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) return null
-    return chooser.selectedFile
-}
+private fun chooseImageFile(campaignKey: String? = null): File? = chooseFileWithExplorer(
+    title = "Agregar imagen",
+    purpose = "handouts",
+    campaignKey = campaignKey,
+    extensions = listOf("jpg", "jpeg", "png", "webp"),
+)

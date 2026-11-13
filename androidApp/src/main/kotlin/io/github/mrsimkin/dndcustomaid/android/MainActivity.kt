@@ -125,6 +125,7 @@ private enum class AppScreen {
     CHARACTERS,
     CHARACTER_EDITOR,
     RULES,
+    PLAYER_HANDOUTS,
 }
 
 @Composable
@@ -165,11 +166,16 @@ private fun DndCustomAidApp(
     // Where Back from a PC sheet returns: the player's PC list or the Pantalla del DM.
     var editorReturnName by rememberSaveable { mutableStateOf(AppScreen.CHARACTERS.name) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    // Redesign A7: the campaign whose shared handouts are open.
+    var handoutsCampaignIdText by rememberSaveable { mutableStateOf<String?>(null) }
 
     val screen = runCatching { AppScreen.valueOf(screenName) }.getOrDefault(AppScreen.CHARACTERS)
 
     BackHandler(enabled = showSettings) {
         showSettings = false
+    }
+    BackHandler(enabled = !showSettings && screen == AppScreen.PLAYER_HANDOUTS) {
+        screenName = AppScreen.CAMPAIGNS.name
     }
     BackHandler(enabled = !showSettings && screen == AppScreen.RULES) {
         screenName = AppScreen.CAMPAIGNS.name
@@ -294,6 +300,10 @@ private fun DndCustomAidApp(
                 },
                 onSignIn = { screenName = AppScreen.ENTRY.name },
                 onOpenRules = { screenName = AppScreen.RULES.name },
+                onOpenHandouts = { campaign ->
+                    handoutsCampaignIdText = campaign.id.toString()
+                    screenName = AppScreen.PLAYER_HANDOUTS.name
+                },
                 onSignOut = {
                     hostedAuthController.signOut()
                     entryStore.clearAccount()
@@ -302,6 +312,22 @@ private fun DndCustomAidApp(
             )
 
             AppScreen.CHARACTERS -> directory()
+
+            AppScreen.PLAYER_HANDOUTS -> {
+                val handoutsCampaign = handoutsCampaignIdText
+                    ?.let { runCatching { Uuid.parse(it) }.getOrNull() }
+                    ?.let(campaignRepository::campaign)
+                if (handoutsCampaign == null) {
+                    LaunchedEffect(Unit) { screenName = AppScreen.CAMPAIGNS.name }
+                } else {
+                    AndroidSharedHandoutsScreen(
+                        campaignName = handoutsCampaign.name,
+                        campaignId = handoutsCampaign.id,
+                        hostedBootstrap = hostedCampaignBootstrapController,
+                        onBack = { screenName = AppScreen.CAMPAIGNS.name },
+                    )
+                }
+            }
 
             AppScreen.RULES -> AndroidRulesLibraryScreen(
                 database = database,
@@ -364,6 +390,7 @@ private fun CampaignScreen(
     onOpenCampaign: (Campaign, CampaignRole?) -> Unit,
     onSignIn: () -> Unit,
     onOpenRules: () -> Unit,
+    onOpenHandouts: (Campaign) -> Unit,
     onSignOut: suspend () -> Unit,
 ) {
     var accountId by remember { mutableStateOf(entryStore.accountId) }
@@ -638,6 +665,7 @@ private fun CampaignScreen(
                             role = role,
                             signedIn = hostedBootstrap.hasRememberedSession(),
                             accountEmail = entryStore.accountEmail,
+                            onOpenHandouts = { onOpenHandouts(campaign) },
                             onSelect = {
                                 repository.setActiveCampaign(campaign.id)
                                 reload()
@@ -678,6 +706,7 @@ private fun CampaignCard(
     role: CampaignRole?,
     signedIn: Boolean,
     accountEmail: String?,
+    onOpenHandouts: () -> Unit,
     onSelect: () -> Unit,
     onOpen: () -> Unit,
 ) {
@@ -716,6 +745,9 @@ private fun CampaignCard(
                 CampaignRoleBadge(role)
             } else {
                 Text("Solo en esta tablet", style = MaterialTheme.typography.labelMedium)
+            }
+            if (role != null && signedIn) {
+                TextButton(onClick = onOpenHandouts) { Text("🖼 Handouts") }
             }
             TextButton(onClick = onOpen) {
                 Text(if (role == CampaignRole.DM) "Abrir Escritorio DM" else "Ver mis PJ")

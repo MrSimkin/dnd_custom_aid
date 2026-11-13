@@ -136,6 +136,14 @@ internal class AndroidHostedCampaignBootstrapController(
     fun hasRememberedSession(): Boolean =
         Descope.sessionManager.session?.refreshToken?.isExpired == false
 
+    /** Redesign A7: the handouts the DM sent to the players of [campaignId]. */
+    suspend fun sharedHandouts(campaignId: Uuid): List<io.github.mrsimkin.dndcustomaid.shared.hosted.HostedSharedHandout> =
+        apiClient.sharedHandouts(campaignId)
+
+    /** The image of a shared handout. */
+    suspend fun sharedHandoutImage(handout: io.github.mrsimkin.dndcustomaid.shared.hosted.HostedSharedHandout): ByteArray =
+        apiClient.mediaContent(handout.sha256, handout.id)
+
     /** Package 8: a rules answer from the SRD passages found on the tablet. */
     suspend fun answerRules(question: String, passages: List<HostedRulesPassage>): String =
         apiClient.answerRules(question, passages)

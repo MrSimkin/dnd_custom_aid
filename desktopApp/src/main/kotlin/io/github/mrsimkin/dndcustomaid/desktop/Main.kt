@@ -262,6 +262,7 @@ private fun DesktopWorkbench(
                             homebrewRuleController = homebrewRuleManagerController,
                             placeController = placeManagerController,
                             dungeonController = dungeonEditorController,
+                            database = database,
                             activeCampaign = activeCampaign,
                             onQaEvent = ::logQa,
                         )
@@ -597,11 +598,35 @@ private fun copyToClipboard(text: String) {
     Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(text), null)
 }
 
+/** Short help for each screen (redesign A14, decision D14): three or four lines, opened on demand. */
+internal val SCREEN_HELP: Map<String, String> = mapOf(
+    "Inicio" to "1) Arriba ves la campaña abierta y tu rol. 2) «Abrir Escritorio DM» lleva a las mesas en vivo. " +
+        "3) «Preparar» es donde armas lugares, PNJ, aventuras y dungeons. 4) «⟳ Sincronizar» envía lo de este equipo a la tablet y trae lo de la tablet.",
+    "Campañas" to "1) Cada campaña muestra tu rol: DM, Jugador o «Solo en este equipo». 2) Toca una para abrirla. " +
+        "3) «＋ Nueva campaña» la crea en el servidor contigo como DM. 4) Si eres Jugador, la App te dice qué cuenta usar.",
+    "Preparar" to "1) Cada tarjeta es algo que preparas antes de jugar. 2) Dentro: busca, crea y edita a la derecha. " +
+        "3) Los vínculos (dónde está, quién atiende, qué escena) se eligen de listas. 4) Todo llega a la tablet al sincronizar.",
+    "Jugadores de la campaña" to "1) Quién está en la campaña abierta y su estado. 2) Solo el DM ve esta lista. " +
+        "3) Expulsar o bloquear pide confirmación y no borra personajes.",
+    "Diagnóstico" to "Datos técnicos para cuando algo falla. «Copiar diagnóstico» los copia para enviarlos; nunca incluyen claves.",
+)
+
 @Composable
-internal fun WorkbenchHeading(title: String, subtitle: String) {
+internal fun WorkbenchHeading(title: String, subtitle: String, help: String? = SCREEN_HELP[title]) {
+    var showHelp by remember(title) { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(4.dp))) {
-        Text(text = title, style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp))) {
+            Text(text = title, style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+            if (help != null) {
+                TextButton(onClick = { showHelp = !showHelp }, modifier = Modifier.handCursor()) { Text("? ¿Cómo se usa?") }
+            }
+        }
         Text(text = subtitle, style = MaterialTheme.typography.body1)
+        if (showHelp && help != null) {
+            Surface(color = MaterialTheme.colors.secondary.copy(alpha = 0.12f), shape = MaterialTheme.shapes.small) {
+                Text(help, style = MaterialTheme.typography.body2, modifier = Modifier.padding(desktopSpacing(10.dp)))
+            }
+        }
     }
 }
 

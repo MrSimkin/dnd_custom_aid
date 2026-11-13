@@ -267,6 +267,7 @@ private fun DmWorkspaceContent(
         }
     }
 
+    var showDeskHelp by remember { mutableStateOf(false) }
     val deskTitle = when (desk) {
         DeskRef.Overview -> "Escritorio"
         DeskRef.DmScreen -> "Pantalla del DM"
@@ -285,7 +286,17 @@ private fun DmWorkspaceContent(
                     TextButton(onClick = ::goBack, modifier = Modifier.handCursor()) { Text("← Atrás") }
                 }
                 Text(deskTitle, style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+                TextButton(onClick = { showDeskHelp = !showDeskHelp }, modifier = Modifier.handCursor()) { Text("? ¿Cómo se usa?") }
                 TextButton(onClick = { showDeskSettings = true }) { Text("⚙") }
+            }
+            if (showDeskHelp) {
+                androidx.compose.material3.Surface(
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp),
+                ) {
+                    Text(deskHelp(desk), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(10.dp))
+                }
             }
             Box(modifier = Modifier.fillMaxSize()) {
                 when (val current = desk) {
@@ -296,6 +307,7 @@ private fun DmWorkspaceContent(
                         version = version,
                         onOpen = ::open,
                         onNewCombat = ::newCombat,
+                        onOpenPanel = ::openPanel,
                     )
                     DeskRef.DmScreen -> DmScreenDesk(
                         campaign = campaign,
@@ -654,6 +666,7 @@ private fun OverviewDesk(
     version: Int,
     onOpen: (DeskRef) -> Unit,
     onNewCombat: () -> Unit,
+    onOpenPanel: (DeskPanel) -> Unit,
 ) {
     val pcs = remember(version, campaign.id) { CharacterRepository(database).listCharacters(campaign.id) }
     val sceneSubtitle = SceneDeskPreferences(LocalDmPlatform.current.store, campaign.id).openName
@@ -677,7 +690,30 @@ private fun OverviewDesk(
         }
     }
 
+    // Redesign A6 (owner observation G1): what a DM does live at the table, one big tap each.
+    @Composable
+    fun quick(label: String, primary: Boolean = false, onClick: () -> Unit) {
+        val modifier = Modifier.width(170.dp).heightIn(min = 64.dp).handCursor()
+        if (primary) {
+            androidx.compose.material3.Button(onClick = onClick, modifier = modifier) { Text(label, style = MaterialTheme.typography.titleMedium) }
+        } else {
+            androidx.compose.material3.OutlinedButton(onClick = onClick, modifier = modifier) { Text(label, style = MaterialTheme.typography.titleMedium) }
+        }
+    }
+
     Column(modifier = Modifier.fillMaxSize().dmScroll().padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("En la mesa, a un toque", style = MaterialTheme.typography.titleSmall)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            quick("⚔ Iniciativa", primary = true) { onNewCombat() }
+            quick("🎭 Escena") { onOpen(DeskRef.Scene) }
+            quick("🏰 Dungeon") { onOpen(DeskRef.Dungeon) }
+            quick("🛡 Grupo") { onOpen(DeskRef.DmScreen) }
+            quick("📖 Reglas") { onOpenPanel(DeskPanel.Rules) }
+            quick("📝 Notas") { onOpenPanel(DeskPanel.Notes) }
+            quick("🖼 Handouts") { onOpenPanel(DeskPanel.Handouts) }
+            quick("⏱ Relojes") { onOpenPanel(DeskPanel.Clocks) }
+        }
+        Text("Tus mesas", style = MaterialTheme.typography.titleSmall)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             deskCard(
                 "Pantalla del DM",
@@ -753,10 +789,24 @@ private fun DeskPanelContent(
             when (panel) {
                 DeskPanel.Rules -> RulesPanel(campaign.id, onOpenCard = { onOpenPanel(DeskPanel.ReferenceCard(it)) })
                 DeskPanel.Handouts -> {
-                    val handouts = remember(campaign.id) { HandoutContentRepository(database).listCampaign(campaign.id) }
+                    var shareVersion by remember { mutableStateOf(0) }
+                    val handouts = remember(campaign.id, shareVersion) { HandoutContentRepository(database).listCampaign(campaign.id) }
                     Column(modifier = Modifier.dmScroll().padding(vertical = 10.dp)) {
-                        Text("Toca una imagen para mostrarla a pantalla completa.", style = MaterialTheme.typography.bodySmall)
-                        HandoutStrip(handouts, mediaBlobs)
+                        Text(
+                            "Toca una imagen para mostrarla a pantalla completa. «Enviar a los jugadores» la hace aparecer en su App al sincronizar.",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        HandoutStrip(handouts, mediaBlobs, onShare = { handout, shared ->
+                            HandoutContentRepository(database).update(
+                                handout.item.identity.id,
+                                handout.item.identity.revision,
+                                handout.item.displayName,
+                                handout.payload.copy(sharedWithPlayers = shared),
+                                nowEpochSeconds(),
+                            )
+                            shareVersion++
+                            onChanged()
+                        })
                     }
                 }
                 DeskPanel.Notes -> NotesPanel(campaign, database, version, onChanged)
@@ -773,3 +823,18 @@ private fun DeskPanelContent(
 internal fun dungeonSubtitle(database: AppDatabase, campaignId: Uuid): String =
     io.github.mrsimkin.dndcustomaid.shared.dm.DmDungeonRepository(database).list(campaignId).firstOrNull { !it.ended }
         ?.let { "turno ${it.turn} · ${it.dungeon}" } ?: "explorar"
+
+
+/** Short help for each desk (redesign A14, decision D14). */
+internal fun deskHelp(desk: DeskRef): String = when (desk) {
+    DeskRef.Overview -> "1) Cada tarjeta es una mesa: toca una para abrirla. 2) La barra lateral cambia de mesa en un toque. " +
+        "3) Abajo: 📖 Reglas, 🖼 Handouts, 📝 Notas, ⏱ Relojes y ☁ Sincronizar. 4) «＋ Nueva mesa» abre un combate."
+    DeskRef.DmScreen -> "1) Una ficha por PJ con CA, PV, pasivas, velocidad y quién lo juega; lo mejor del grupo va resaltado. " +
+        "2) «Vista Grupo» lo muestra como tabla. 3) Toca un PJ para su hoja rápida. 4) La referencia rápida abre reglas a un toque."
+    DeskRef.Scene -> "1) Busca un PNJ, lugar o escena por nombre, papel o idea. 2) Toca una ficha para leerla; «📌» la fija. " +
+        "3) Desde una ficha, sus vínculos abren lo relacionado. 4) «← Atrás» vuelve a la ficha anterior."
+    DeskRef.Dungeon -> "1) Elige el dungeon y la zona de entrada y toca «Empezar». 2) Cada PJ elige su actividad de un toque. " +
+        "3) «Cerrar turno» avanza 10 minutos, relojes y registro. 4) Toca una zona del mapa para su ficha; el grupo se arrastra."
+    is DeskRef.Combat -> "1) Prepara: agrega PJ y criaturas. 2) Iniciativa: tira o escribe. 3) En curso: un toque por daño, curación o estado. " +
+        "4) «Deshacer» corrige el último paso y «Terminar» cierra el combate."
+}

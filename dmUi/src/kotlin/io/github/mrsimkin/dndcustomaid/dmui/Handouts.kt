@@ -58,7 +58,12 @@ private suspend fun loadBitmap(platform: DmPlatform, blobs: MediaBlobStore, sha2
 
 /** Thumbnails of the campaign handouts; tapping one opens it full screen. */
 @Composable
-internal fun HandoutStrip(handouts: List<HandoutContent>, blobs: MediaBlobStore) {
+internal fun HandoutStrip(
+    handouts: List<HandoutContent>,
+    blobs: MediaBlobStore,
+    /** Redesign A7: the DM sends a PLAYER_SAFE handout to the players' App, or stops sending it. */
+    onShare: ((HandoutContent, Boolean) -> Unit)? = null,
+) {
     var open by remember { mutableStateOf<HandoutContent?>(null) }
     if (handouts.isEmpty()) {
         Text("Todavía no hay handouts ni mapas en este aparato.", style = MaterialTheme.typography.bodyMedium)
@@ -68,7 +73,15 @@ internal fun HandoutStrip(handouts: List<HandoutContent>, blobs: MediaBlobStore)
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             handouts.forEach { handout ->
-                HandoutThumbnail(handout, blobs, onOpen = { open = handout })
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    HandoutThumbnail(handout, blobs, onOpen = { open = handout })
+                    if (onShare != null && handout.payload.visibility == HandoutVisibility.PLAYER_SAFE) {
+                        val shared = handout.payload.sharedWithPlayers
+                        TextButton(onClick = { onShare(handout, !shared) }, modifier = Modifier.handCursor()) {
+                            Text(if (shared) "✓ Enviado · dejar de enviar" else "📤 Enviar a los jugadores")
+                        }
+                    }
+                }
             }
         }
     }
@@ -99,7 +112,11 @@ private fun HandoutThumbnail(handout: HandoutContent, blobs: MediaBlobStore, onO
         }
         Text(handout.item.displayName, style = MaterialTheme.typography.titleSmall, maxLines = 1)
         Text(
-            text = handout.payload.kind.spanishLabel() + if (handout.payload.visibility == HandoutVisibility.DM_ONLY) " · Solo DM" else "",
+            text = handout.payload.kind.spanishLabel() + when {
+                handout.payload.visibility == HandoutVisibility.DM_ONLY -> " · Solo DM"
+                handout.payload.sharedWithPlayers -> " · Enviado a los jugadores"
+                else -> ""
+            },
             style = MaterialTheme.typography.bodySmall,
         )
     }

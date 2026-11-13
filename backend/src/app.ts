@@ -71,6 +71,7 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
       const campaignContentMatch = /^\/v1\/campaigns\/([^/]+)\/content$/.exec(path);
       const contentMatch = /^\/v1\/content\/([^/]+)$/.exec(path);
       const mediaMatch = /^\/v1\/media\/([0-9a-f]{64})$/.exec(path);
+      const sharedHandoutsMatch = /^\/v1\/campaigns\/([^/]+)\/handouts$/.exec(path);
       const knownFixedPath =
         path === "/v1/me" ||
         path === "/v1/me/content" ||
@@ -87,7 +88,8 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         pcSnapshotMatch == null &&
         campaignContentMatch == null &&
         contentMatch == null &&
-        mediaMatch == null
+        mediaMatch == null &&
+        sharedHandoutsMatch == null
       ) {
         throw new ApiProblem(404, "NOT_FOUND", "Route not found.");
       }
@@ -137,6 +139,20 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         const campaignId = requireUuid(campaignContentMatch[1], "campaignId");
         const content = await requireDmContent(dependencies).listCampaignContent(user.id, campaignId);
         return jsonResponse({ content });
+      }
+
+      if (sharedHandoutsMatch != null) {
+        requireMethod(request, "GET");
+        const campaignId = requireUuid(sharedHandoutsMatch[1], "campaignId");
+        const authorization = dependencies.mediaAuthorization;
+        if (authorization == null) {
+          throw new ApiProblem(503, "TRANSIENT_FAILURE", "Media storage is not configured yet.");
+        }
+        const handouts = await authorization.listSharedHandouts(user.id, campaignId);
+        if (handouts == null) {
+          throw new ApiProblem(404, "NOT_FOUND", "Campaign not found.");
+        }
+        return jsonResponse({ handouts });
       }
 
       if (mediaMatch != null) {
