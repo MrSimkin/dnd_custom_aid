@@ -24,7 +24,7 @@ import kotlin.uuid.Uuid
  * bundled SRD assets, the PC sheet's dice cards and the hosted sync.
  */
 
-private class AndroidDmPlatform(context: Context, private val hostedBootstrap: AndroidHostedCampaignBootstrapController) : DmPlatform {
+internal class AndroidDmPlatform(context: Context, private val hostedBootstrap: AndroidHostedCampaignBootstrapController) : DmPlatform {
     private val appContext = context.applicationContext
     private val prefs = appContext.getSharedPreferences("dnd_custom_aid_dm_workspace", Context.MODE_PRIVATE)
 

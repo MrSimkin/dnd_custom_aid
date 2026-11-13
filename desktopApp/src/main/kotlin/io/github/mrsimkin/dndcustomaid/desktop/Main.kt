@@ -265,7 +265,7 @@ private fun DesktopWorkbench(
                             activeCampaign = activeCampaign,
                             onQaEvent = ::logQa,
                         )
-                        DesktopDestination.RULES -> DesktopRulesScreen(platform = dmPlatform)
+                        DesktopDestination.RULES -> DesktopRulesScreen(dmPlatform, database, accountSession, activeCampaign)
                         DesktopDestination.PLAYERS -> DesktopCampaignPlayersScreen(
                             activeCampaign = activeCampaign,
                             access = access,
@@ -497,12 +497,23 @@ private fun CampaignsScreen(
     }
 }
 
-/** «Reglas»: placeholder while R4 builds the SRD reader and the homebrew library. */
+/** «Reglas» (redesign R4): the SRD to read and the DM's homebrew library, shared with the tablet. */
 @Composable
-private fun DesktopRulesScreen(platform: DesktopDmPlatform) {
-    Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp))) {
-        WorkbenchHeading(title = "Reglas", subtitle = DesktopDestination.RULES.purpose)
-        Text("Mientras tanto, la búsqueda de reglas está en el Escritorio DM: 📖 Reglas.")
+private fun DesktopRulesScreen(
+    platform: DesktopDmPlatform,
+    database: AppDatabase,
+    accountSession: DesktopAccountSession,
+    activeCampaign: Campaign?,
+) {
+    androidx.compose.material3.MaterialTheme(colorScheme = desktopDmColorScheme(), typography = desktopDmTypography()) {
+        androidx.compose.runtime.CompositionLocalProvider(io.github.mrsimkin.dndcustomaid.dmui.LocalDmPlatform provides platform) {
+            io.github.mrsimkin.dndcustomaid.dmui.RulesLibraryScreen(
+                platform = platform,
+                database = database,
+                ownerAccountId = accountSession.accountId,
+                campaignId = activeCampaign?.id,
+            )
+        }
     }
 }
 

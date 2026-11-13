@@ -124,6 +124,7 @@ private enum class AppScreen {
     CAMPAIGNS,
     CHARACTERS,
     CHARACTER_EDITOR,
+    RULES,
 }
 
 @Composable
@@ -169,6 +170,9 @@ private fun DndCustomAidApp(
 
     BackHandler(enabled = showSettings) {
         showSettings = false
+    }
+    BackHandler(enabled = !showSettings && screen == AppScreen.RULES) {
+        screenName = AppScreen.CAMPAIGNS.name
     }
     BackHandler(enabled = !showSettings && screen == AppScreen.CAMPAIGNS) {
         selectedCharacterId = null
@@ -270,6 +274,7 @@ private fun DndCustomAidApp(
                     }
                 },
                 onSignIn = { screenName = AppScreen.ENTRY.name },
+                onOpenRules = { screenName = AppScreen.RULES.name },
                 onSignOut = {
                     hostedAuthController.signOut()
                     entryStore.clearAccount()
@@ -278,6 +283,14 @@ private fun DndCustomAidApp(
             )
 
             AppScreen.CHARACTERS -> directory()
+
+            AppScreen.RULES -> AndroidRulesLibraryScreen(
+                database = database,
+                hostedBootstrap = hostedCampaignBootstrapController,
+                accountId = entryStore.accountId,
+                campaignId = campaignRepository.activeCampaign()?.id,
+                onBack = { screenName = AppScreen.CAMPAIGNS.name },
+            )
 
             AppScreen.CHARACTER_EDITOR -> {
                 val characterId = selectedCharacterId?.let { runCatching { Uuid.parse(it) }.getOrNull() }
@@ -330,6 +343,7 @@ private fun CampaignScreen(
     onOpenSettings: () -> Unit,
     onOpenCampaign: (Campaign, CampaignRole?) -> Unit,
     onSignIn: () -> Unit,
+    onOpenRules: () -> Unit,
     onSignOut: suspend () -> Unit,
 ) {
     var accountId by remember { mutableStateOf(entryStore.accountId) }
@@ -507,6 +521,7 @@ private fun CampaignScreen(
                                 style = MaterialTheme.typography.bodySmall,
                             )
                         }
+                        TextButton(onClick = onOpenRules) { Text("📖 Reglas") }
                         StableSettingsIconButton(onClick = onOpenSettings)
                     }
                 }
