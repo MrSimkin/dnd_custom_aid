@@ -46,14 +46,15 @@ El set «Campus Celeste», los manuales del propietario y los nombres de sus jug
 
 ## Estado (2026-11-13)
 
+Todos los paquetes están implementados y van juntos al QA de la candidata `0.7.0-preqa.1` (build 70100, Windows 0.7.0). Guía de QA: [QA_REDISENO_DM_0.7.0-preqa.1.md](QA_REDISENO_DM_0.7.0-preqa.1.md).
+
 | Paquete | Estado | Evidencia |
 | --- | --- | --- |
-| R0 | Guía visual publicada para el propietario; falta la ayuda «¿Cómo se usa?» en cada pantalla (el editor de dungeons ya la tiene). | Guía: artefacto «Guía del rediseño DM». |
-| R1 | **Windows hecho:** pide la cuenta al abrir y la recuerda con DPAPI; barra superior con campaña, rol, «⟳ Sincronizar» y menú «Cambiar usuario / Cerrar sesión»; lista de campañas con el rol; «Nueva campaña» creada en el servidor como DM; aviso cuando la cuenta es Jugador; «Jugadores de la campaña». **Tablet:** correo visible, «Cambiar usuario» y rol explicado en cada campaña. Falta A13 (jugador asignable a cada PJ). | `DesktopRememberedAccountTest` (5 pruebas). |
-| R2 | Portada «Preparar» con 8 tarjetas y propósito en una línea; «Gestores» desaparece. | Compila; se cubre en el QA. |
-| R3 | Dungeon como objeto propio (familia `DUNGEON`, migración 33), editor con plano en Windows («＋ Zona», arrastrar, pasajes con ●, secreto punteado, encuentro, ficha completa, plano de fondo). Los nombres antiguos se convierten en dungeons con el mismo id en todos los equipos. «Mazmorra» pasa a «dungeon» en toda la App. | `DungeonContentTest` (5), sincronización PC→tablet (`HostedDmContentSyncTest`) y `DesktopDungeonEditorTest`, con su imagen de prueba. |
-| R4 | Modelo de homebrew de reglas (familia `RULES_ENTRY`, migración 34) con 14 tipos. Faltan el lector del SRD y las pantallas. | Compila. |
-| R5 | Catálogo del SRD estructurado (`scripts/build_srd_catalog.py`): 5e con 316 conjuros, 37 armas, 13 armaduras, 9 especies y 4 subespecies, 12 clases y 12 subclases, 1 trasfondo y 1 dote; 5.5e con 336 conjuros, 38 armas, 13 armaduras, 9 especies, 12 clases y 12 subclases, 4 trasfondos y 17 dotes. Faltan el asistente para crear PJ y los selectores. | `--check` reproduce los archivos. |
-| R6, R7 | Pendientes. | — |
-
-En total pasan 803 pruebas (compartidas, Windows y tablet) y la APK compila.
+| R0 | Guía visual publicada para el propietario y ayuda «? ¿Cómo se usa?» en cada pantalla de Windows y en cada mesa de la tablet. | Artefacto «Guía del rediseño DM». |
+| R1 | Windows pide la cuenta al abrir y la recuerda con DPAPI. Barra superior con campaña, rol, «⟳ Sincronizar» y el menú «Cambiar usuario / Cerrar sesión». Lista de campañas con el rol; «Nueva campaña» se crea en el servidor como DM; aviso cuando la cuenta es Jugador; «Jugadores de la campaña». En la tablet se ve el correo, «Cambiar usuario» y el rol explicado. | `DesktopRememberedAccountTest` (5). |
+| R2 | Portada «Preparar» con tarjetas y propósito en una línea; «Gestores» desaparece; Notas tiene su propio lugar. | Compila; se cubre en el QA. |
+| R3 | Dungeon como objeto propio (familia `DUNGEON`, migración 33) y editor con plano en Windows. «Mazmorra» pasa a «dungeon» en toda la App. | `DungeonContentTest` (5), `HostedDmContentSyncTest`, `DesktopDungeonEditorTest`. |
+| R4 | «Reglas»: el SRD 5e y 5.5e por tipo, el texto completo y el homebrew aparte (familia `RULES_ENTRY`, migración 34, 14 tipos con su lugar reservado). En Windows y en la tablet. | `DesktopRulesLibraryTest` con imágenes de prueba. |
+| R5 | Catálogo del SRD estructurado (`scripts/build_srd_catalog.py`). Crear PJ desde el SRD, y el selector SRD → homebrew → custom en conjuros, objetos, ataques, rasgos, clase, subclase, trasfondo, especie y subespecie. | `RulesPickTest` (4); `--check` reproduce los archivos. |
+| R6 | Jugador o jugadora de cada PJ (migración 35, solo local). Explorador de Windows con carpetas recordadas por campaña. Marcas del mapa que se arrastran. Acciones grandes «En la mesa, a un toque». Handouts enviados a los jugadores: ruta `GET /v1/campaigns/:id/handouts` y vista del jugador en la tablet. | Pruebas del backend (48); `HostedApiClientTest`. Worker publicado, versión `78552ccb-e244-4d31-ac24-ccf06eb5fb7a`: salud 200, la ruta nueva responde 401 sin sesión. |
+| R7 | Paquete de contenido (`dnd-custom-aid.content-bundle`) con ids estables: Windows carga todo desde Diagnóstico y la tablet carga los PJ. El set privado Campus Celeste carga sin problemas. | `ContentBundleImporterTest` (2); `DesktopPrivateBundleSmokeTest` con el set privado. |

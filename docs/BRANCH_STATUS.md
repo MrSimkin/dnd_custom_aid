@@ -1,3 +1,5 @@
+**2026-11-13 — Rediseño DM (R1 a R7) en `feature/dm-ux-redesign`, candidata 0.7.0-preqa.1 (build 70100, Windows 0.7.0).** Cuenta recordada en Windows, Preparar, dungeons con plano, Reglas con SRD y homebrew, PJ desde el SRD, handouts a los jugadores y paquete de contenido. Pendiente: QA del propietario. Detalle en [REDISENO_BASE_DM.md](technical/REDISENO_BASE_DM.md).
+
 **2026-11-11 — Base para DM, paquete 8 (Consultar reglas con IA), en `feature/dm-ux-redesign`.** La búsqueda sin conexión sigue en el aparato y la respuesta con IA viene de Workers AI, citando el SRD. Falta el paso del propietario en los proveedores ([DM_REGLAS_IA.md](technical/DM_REGLAS_IA.md) §4).
 
 **2026-11-11 — Base para DM, paquete 7 (Mesa de Dungeon), en `feature/dm-ux-redesign`, en la tablet y en Windows.** Incluye turno de mazmorra, mapa de zonas, fichas de zona, relojes, notas sincronizadas y ronda sorpresa tras una emboscada. Detalle en [DM_DUNGEON.md](technical/DM_DUNGEON.md).
