@@ -119,6 +119,12 @@ Lectura del estado actual para G4 (sin cerrar):
   - los costos.
 - Las decisiones D1 a D6 de arriba se mantienen.
 
+## D8 · Crear PJ desde el SRD (2026-11-13)
+
+- **Pregunta:** «¿Crear PJ eligiendo raza, clase y lo demás desde el SRD entra en este QA?»
+- **Respuesta, al pie de la letra:** «Sí, entra».
+- **Consecuencia:** se adelanta al QA del rediseño el trabajo de razas, clases, trasfondos, dotes, conjuros y objetos estructurados, que  dejaba para después. La hoja V11 y su PDF no cambian de diseño; solo reciben los datos que se eligen.
+
 ## Alcance del rediseño (libro de aceptación)
 
 | # | Qué se hará | Observaciones que cubre |
@@ -133,9 +139,9 @@ Lectura del estado actual para G4 (sin cerrar):
 | A8 | SRD: lector del SRD para todos, y pantallas de homebrew por familia (objetos, clases, dotes, conjuros…), con su lugar reservado aunque aún estén vacías. | G4 |
 | A9 | Notas: un lugar fijo donde encontrarlas en la tablet y en Windows. | N1 |
 | A10 | P6: pendiente del texto completo del propietario. | P6 |
+| A11 | Crear PJ eligiendo desde el SRD (especie o raza, clase, subclase, trasfondo, dotes, conjuros y equipo) en el editor de PJ, 5e y 5.5e, y cada lista con su homebrew de A8. | G4, D8 |
 
 ## Próximo paso
 
-1. Confirmar con el propietario lo que queda abierto en G4: crear PJ eligiendo desde el SRD.
-2. Recibir el DOCX de contenido para armar una versión parcial de prueba. Ese contenido no entra al repositorio público.
-3. Implementar A1 a A9 y preparar un QA que los cubra todos.
+1. Recibir el DOCX de contenido para armar una versión parcial de prueba. Ese contenido no entra al repositorio público.
+2. Implementar A1 a A9 y A11, y preparar un QA que los cubra todos.

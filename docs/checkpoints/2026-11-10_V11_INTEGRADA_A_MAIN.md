@@ -177,4 +177,4 @@ El control previo al QA de V11 sigue bloqueado por la hoja de PJ, que no cambió
 - Alcance A1 a A10 y decisiones D1 a D7 en `docs/technical/QA_BASE_DM_0.6.0-preqa.2_OBSERVACIONES.md`.
 - Gmail es la cuenta de DM de pruebas; en el servidor DEV ya es DM de «QA - PC Sheet PDF Runtime».
 
-**Siguiente paso:** confirmar G4 (crear PJ desde el SRD), recibir el DOCX de contenido de prueba (no entra al repositorio) e implementar A1 a A9.
+**Siguiente paso:** recibir el DOCX de contenido de prueba (no entra al repositorio) e implementar A1 a A9 y A11 (crear PJ desde el SRD, D8).
