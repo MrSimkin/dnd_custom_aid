@@ -54,6 +54,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.characterDamageSummary
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterUnsignedIntegerInput
 import io.github.mrsimkin.dndcustomaid.shared.character.withQuickAccess
+import io.github.mrsimkin.dndcustomaid.shared.dm.toAttackPick
 import kotlin.uuid.Uuid
 
 private val STANDARD_DIE_SIDES_V4 = listOf(4, 6, 8, 10, 12, 20)
@@ -429,6 +430,36 @@ internal fun CharacterCombatSuccessorTabV4(
             },
             saveEnabled = valid,
         ) {
+            // Redesign R5 (D9): a weapon from the SRD or the homebrew fills name, damage, range and notes.
+            RulesPickButton(
+                kinds = listOf(
+                    io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.WEAPON,
+                    io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.LEGENDARY_ITEM,
+                ),
+                onPick = { option ->
+                    val attack = option.toAttackPick()
+                    editorName = attack.name
+                    editorType = io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK.name
+                    if (attack.rangeText.isNotBlank()) editorRange = attack.rangeText
+                    editorNotes = attack.notes
+                    val dice = Regex("""^(\d+d\d+|\d+)\s*(.*)$""").find(attack.damageEffect.trim())
+                    if (dice != null) {
+                        editorDamageJson = characterDamageComponentsToJsonV4(
+                            listOf(
+                                io.github.mrsimkin.dndcustomaid.shared.character.CharacterDamageComponent(
+                                    kind = if (dice.groupValues[1].contains('d')) {
+                                        io.github.mrsimkin.dndcustomaid.shared.character.CharacterDamageComponentKind.DICE
+                                    } else {
+                                        io.github.mrsimkin.dndcustomaid.shared.character.CharacterDamageComponentKind.FLAT
+                                    },
+                                    expression = dice.groupValues[1],
+                                    typeText = dice.groupValues[2].takeIf { it.isNotBlank() },
+                                ),
+                            ),
+                        )
+                    }
+                },
+            )
             CharacterCompactOutlinedTextFieldV4(
                 value = editorName,
                 onValueChange = { editorName = it },

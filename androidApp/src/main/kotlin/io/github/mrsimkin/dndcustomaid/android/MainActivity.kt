@@ -210,6 +210,25 @@ private fun DndCustomAidApp(
         )
     }
 
+    // Redesign R5 (D8, D9): every «Añadir» of the PC editor can pick from the SRD, then the homebrew.
+    val rulesContext = androidx.compose.ui.platform.LocalContext.current
+    val rulesPlatform = remember { AndroidDmPlatform(rulesContext, hostedCampaignBootstrapController) }
+    val rulesSources = remember {
+        RulesSources(
+            loadCatalogs = { io.github.mrsimkin.dndcustomaid.dmui.SrdCatalogAssets.catalogs(rulesPlatform) },
+            homebrew = {
+                val repository = io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryContentRepository(database)
+                val personal = entryStore.accountId?.let { runCatching { repository.listPersonal(it) }.getOrDefault(emptyList()) }.orEmpty()
+                val campaign = campaignRepository.activeCampaign()?.id?.let { repository.listCampaign(it) }.orEmpty()
+                (personal + campaign).distinctBy { it.item.identity.id }
+            },
+        )
+    }
+
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalRulesSources provides rulesSources,
+        io.github.mrsimkin.dndcustomaid.dmui.LocalDmPlatform provides rulesPlatform,
+    ) {
     Box(modifier = Modifier.fillMaxSize()) {
         when (screen) {
             AppScreen.ENTRY -> AppEntryScreen(
@@ -330,6 +349,7 @@ private fun DndCustomAidApp(
                 onDismiss = { showSettings = false },
             )
         }
+    }
     }
 }
 

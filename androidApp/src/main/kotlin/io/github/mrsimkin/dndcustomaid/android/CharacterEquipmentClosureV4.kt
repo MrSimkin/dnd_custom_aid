@@ -66,6 +66,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterInventor
 import io.github.mrsimkin.dndcustomaid.shared.character.withInventoryUsage
 import java.util.Locale
 import kotlin.math.abs
+import io.github.mrsimkin.dndcustomaid.shared.dm.toItemPick
 import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -733,6 +734,23 @@ private fun EquipmentEditorPanelF3(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
             ) {
+                RulesPickButton(
+                    kinds = listOf(
+                        io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.WEAPON,
+                        io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.ARMOR,
+                        io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.ITEM,
+                        io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.MAGIC_ITEM,
+                        io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.LEGENDARY_ITEM,
+                    ),
+                    onPick = { option ->
+                        val item = option.toItemPick()
+                        onNameChange(item.name)
+                        item.weightLb?.let { onWeightChange(if (it % 1.0 == 0.0) it.toInt().toString() else it.toString()) }
+                        if (item.special) onSpecialChange(true)
+                        onDescriptionChange(item.description)
+                        onNotesChange(item.notes)
+                    },
+                )
                 CharacterCompactOutlinedTextFieldV4(
                     value = name,
                     onValueChange = onNameChange,
@@ -881,6 +899,23 @@ private fun EquipmentEditorF2(
         onSave = onApply,
         saveEnabled = valid,
     ) {
+        RulesPickButton(
+            kinds = listOf(
+                io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.WEAPON,
+                io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.ARMOR,
+                io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.ITEM,
+                io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.MAGIC_ITEM,
+                io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.LEGENDARY_ITEM,
+            ),
+            onPick = { option ->
+                val item = option.toItemPick()
+                onNameChange(item.name)
+                item.weightLb?.let { onWeightChange(if (it % 1.0 == 0.0) it.toInt().toString() else it.toString()) }
+                if (item.special) onSpecialChange(true)
+                onDescriptionChange(item.description)
+                onNotesChange(item.notes)
+            },
+        )
         CharacterCompactOutlinedTextFieldV4(value = name, onValueChange = onNameChange, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
         Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp))) {
             CharacterCompactOutlinedTextFieldV4(
