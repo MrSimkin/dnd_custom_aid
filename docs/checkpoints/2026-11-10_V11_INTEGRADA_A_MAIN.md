@@ -172,4 +172,9 @@ El control previo al QA de V11 sigue bloqueado por la hoja de PJ, que no cambió
 - Cada observación está al pie de la letra en `docs/technical/QA_BASE_DM_0.6.0-preqa.2_OBSERVACIONES.md`.
 - La ventana de QA (versión 3) suma «A medias», «Otra cosa que viste» y observaciones generales, con las mismas pruebas.
 
-**Siguiente paso:** completar P6 y las observaciones generales con el propietario; resolver una a una sus decisiones (entrada como DM e identidad visible, modelo de dungeon); recién entonces corregir contra ese registro.
+**Rediseño delegado (2026-11-13).** El propietario cedió al agente todo el rediseño de la experiencia, los nombres y la organización (D7), para evaluarlo en un solo QA.
+
+- Alcance A1 a A10 y decisiones D1 a D7 en `docs/technical/QA_BASE_DM_0.6.0-preqa.2_OBSERVACIONES.md`.
+- Gmail es la cuenta de DM de pruebas; en el servidor DEV ya es DM de «QA - PC Sheet PDF Runtime».
+
+**Siguiente paso:** confirmar G4 (crear PJ desde el SRD), recibir el DOCX de contenido de prueba (no entra al repositorio) e implementar A1 a A9.

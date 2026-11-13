@@ -85,8 +85,57 @@ Esta lectura **no** es un diagnóstico cerrado. Solo explica qué falta comprend
 - La conexión pasó de `neonctl` al controlador sin mostrarse ni guardarse.
 - «Hosted Batch Test» no se tocó: Outlook sigue como único DM.
 
+## Comentarios generales del propietario (2026-11-13), al pie de la letra
+
+| Id | Texto | Estado |
+| --- | --- | --- |
+| G1 | «la UX es muy confura, los nombres no son ideales, si tuviera mi tablet en la mesa no sabria como rayos operarla de forma rápida» | ABIERTA |
+| G2 | «no tengo como enviar handouts a mis jugadores» | ABIERTA |
+| G3 | «la organizacion de campañas es muy "mutante" y lo hace dificil» | ABIERTA |
+| G4 | «no puedo leer el SRD, ni me demostraste que ahora puedo crear PJ con el SRD y se suponia que aunque no esté desarrollado deberia estar el ver el SRD y yo poder agregar cosas homebrew como objetos, clases, dotes, conjuros, etc, si bien no esta desarrollado no está "la maqueta" de aqui va.....» | ABIERTA |
+| G5 | «en el QA me dalta un "A Medias", o "En parte" o "bien, pero no era lo que yo esperaba que se hiciera", y una seccion de "mis comentarios adicionales" sobre la prueba y sobre el total.» | CORREGIDA en la ventana de QA, versión 5: «Bien, pero no lo esperado», «En parte», «Mis comentarios adicionales» por prueba y «sobre todo el QA». |
+
+Lectura del estado actual para G4 (sin cerrar):
+
+- El SRD está en la App solo como texto para buscar reglas en el Escritorio DM (`SrdCorpus`).
+- No hay un lector del SRD para todos.
+- El editor de PJ no usa listas del SRD: razas, clases, trasfondos, dotes, conjuros y objetos estructurados siguen pendientes en `ROADMAP.md`.
+- No hay pantallas de homebrew para esas familias, ni siquiera vacías.
+
+## D7 · Rediseño delegado (2026-11-13), al pie de la letra
+
+> «no soy diseñador ni programador, asique tendré que confiar en ti en mejoras o rediseños, y asi lo haré, quizas mi diseño era poco optimo, pero sabes que necesito y para que, ademas para eso tienes antecedentes en el repo.
+> Por el momento cederé toda esa parte de rediseño a ti, y lo quiero todo para evaluar en el QA»
+
+**Consecuencias:**
+
+- El agente decide la experiencia, los nombres y la organización. No consulta el estilo ni los detalles de interfaz.
+- Se apoya en los antecedentes del repositorio: `PRODUCT.md`, decisiones, `DM_UX_APROBADA.md` y los diseños aprobados P1 a P37.
+- Todo el rediseño llega junto a un QA del propietario, que lo evalúa allí.
+- Siguen siendo del propietario:
+  - el alcance del MVP cuando agregue una función grande nueva;
+  - la privacidad y la visibilidad hacia los jugadores;
+  - las acciones destructivas;
+  - los costos.
+- Las decisiones D1 a D6 de arriba se mantienen.
+
+## Alcance del rediseño (libro de aceptación)
+
+| # | Qué se hará | Observaciones que cubre |
+| --- | --- | --- |
+| A1 | Entrada y cuenta: Windows pide la cuenta al abrir y la recuerda; la cuenta y el rol se ven siempre; «Cerrar sesión» y «Cambiar usuario»; si una cuenta no es DM, se explica por qué no aparece el Escritorio DM. | P3, P8, E1, W4, D1, D2, D4 |
+| A2 | Campañas: una sola lista estable de campañas con su rol, en la tablet y en Windows, sin pantallas que cambian según el estado. | G3, E1 |
+| A3 | Windows, preparar: «Gestores» se reemplaza por una sección «Preparar» con nombres claros y una línea que dice para qué sirve cada cosa. Sincronizar queda en el menú normal. | P3, P8, D3 |
+| A4 | Dungeons: objeto propio y editor con plano (maqueta D5); en toda la App se dice «dungeon». | P5, D5 |
+| A5 | Archivos y mapas: carpetas favoritas y recientes, la carpeta de la campaña recordada; marcas del mapa que se arrastran. | P7 |
+| A6 | Tablet en la mesa: Escritorio pensado para uso rápido, con acciones grandes y directas y nombres claros. | G1, E1 |
+| A7 | Handouts a los jugadores: el DM elige qué mostrar y el jugador lo ve en su App. | G2 |
+| A8 | SRD: lector del SRD para todos, y pantallas de homebrew por familia (objetos, clases, dotes, conjuros…), con su lugar reservado aunque aún estén vacías. | G4 |
+| A9 | Notas: un lugar fijo donde encontrarlas en la tablet y en Windows. | N1 |
+| A10 | P6: pendiente del texto completo del propietario. | P6 |
+
 ## Próximo paso
 
-1. Completar P6 y las observaciones generales con el propietario.
-2. Resolver, una a la vez, las dudas que son decisión del propietario (entrada como DM e identidad visible, modelo de dungeon).
-3. Recién entonces, corregir.
+1. Confirmar con el propietario lo que queda abierto en G4: crear PJ eligiendo desde el SRD.
+2. Recibir el DOCX de contenido para armar una versión parcial de prueba. Ese contenido no entra al repositorio público.
+3. Implementar A1 a A9 y preparar un QA que los cubra todos.
