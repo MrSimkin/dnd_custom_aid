@@ -162,7 +162,7 @@ data class DungeonDocument(
     val version: Int = 1,
     val id: Uuid,
     val campaignId: Uuid,
-    /** The dungeon being explored: the «Mazmorra» name its zones share (set in the App de PC). */
+    /** The dungeon being explored: the «Dungeon» name its zones share (set in the App de PC). */
     val dungeon: String,
     val turn: Int = 1,
     val zoneMarks: Map<String, List<ZoneMark>> = emptyMap(),
@@ -199,7 +199,7 @@ object DungeonEngine {
         DungeonDocument(
             id = id,
             campaignId = campaignId,
-            dungeon = dungeon.trim().ifBlank { "Mazmorra" },
+            dungeon = dungeon.trim().ifBlank { "Dungeon" },
             groups = listOf(PartyGroup(Uuid.random(), "Grupo", startZoneId, characters.map { it.first })),
             createdAtEpochSeconds = nowEpochSeconds,
             updatedAtEpochSeconds = nowEpochSeconds,
@@ -356,7 +356,7 @@ data class DungeonMapZone(
     val passages: List<ZonePassage>,
 )
 
-/** Dungeons of the campaign: the «Mazmorra» names its zones share (set in the App de PC). */
+/** Dungeons of the campaign: the «Dungeon» names its zones share (set in the App de PC). */
 fun SceneIndex.dungeons(): List<String> =
     zones.map { links(it.item.identity.id).dungeon }.filter { it.isNotBlank() }.distinctBy { it.lowercase() }.sortedBy { it.lowercase() }
 

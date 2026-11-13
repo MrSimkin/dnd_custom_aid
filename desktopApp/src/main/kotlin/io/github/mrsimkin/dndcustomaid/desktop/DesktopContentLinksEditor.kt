@@ -214,9 +214,9 @@ private fun DungeonFields(controller: DesktopContentLinksController, item: Reusa
     val known = controller.dungeons(item.identity.scope)
     val sameDungeon = controller.zonesOfDungeon(item.identity.scope, links.dungeon).filter { it.first.identity.id != id }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Mazmorra (Mesa de Dungeon)", fontWeight = FontWeight.Medium)
+        Text("Dungeon (Mesa de Dungeon)", fontWeight = FontWeight.Medium)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            OutlinedTextField(value = dungeon, onValueChange = { dungeon = it; onChange(links.copy(dungeon = it)) }, label = { Text("Nombre de la mazmorra") }, singleLine = true, modifier = Modifier.width(280.dp))
+            OutlinedTextField(value = dungeon, onValueChange = { dungeon = it; onChange(links.copy(dungeon = it)) }, label = { Text("Nombre de el dungeon") }, singleLine = true, modifier = Modifier.width(280.dp))
             known.filter { it != links.dungeon }.forEach { name -> TextButton(onClick = { dungeon = name; onChange(links.copy(dungeon = name)) }) { Text(name) } }
         }
         if (links.dungeon.isNotBlank()) {
@@ -256,7 +256,7 @@ private fun DungeonFields(controller: DesktopContentLinksController, item: Reusa
             Text("Pasajes a otras zonas", fontWeight = FontWeight.Medium)
             links.passages.forEachIndexed { index, passage ->
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("→ ${sameDungeon.firstOrNull { it.first.identity.id == passage.toZoneId }?.first?.displayName ?: "(otra mazmorra)"}")
+                    Text("→ ${sameDungeon.firstOrNull { it.first.identity.id == passage.toZoneId }?.first?.displayName ?: "(otra dungeon)"}")
                     Checkbox(checked = passage.secret, onCheckedChange = { secret -> onChange(links.copy(passages = links.passages.mapIndexed { i, p -> if (i == index) p.copy(secret = secret) else p })) })
                     Text("secreto")
                     TextButton(onClick = { onChange(links.copy(passages = links.passages.filterIndexed { i, _ -> i != index })) }) { Text("Quitar") }
@@ -277,7 +277,7 @@ private fun DungeonFields(controller: DesktopContentLinksController, item: Reusa
 private fun ActivitiesEditor(activities: List<DungeonActivity>, onChange: (List<DungeonActivity>) -> Unit) {
     fun set(index: Int, change: (DungeonActivity) -> DungeonActivity) = onChange(activities.mapIndexed { i, a -> if (i == index) change(a) else a })
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Actividades del turno de mazmorra", fontWeight = FontWeight.Medium)
+        Text("Actividades del turno de dungeon", fontWeight = FontWeight.Medium)
         Text(
             "Si una regla de la campaña tiene esta lista, la Mesa de Dungeon usa esa en vez de la de la regla beta.",
             style = MaterialTheme.typography.caption,

@@ -114,7 +114,7 @@ class DungeonTest {
         assertEquals(hall.item.identity.id, cryptOnMap.passages.single().toZoneId)
 
         assertEquals(DungeonRules.betaActivities, dungeonActivities(database, campaign.id))
-        val rule = HomebrewRuleContentRepository(database).createCampaign(campaign.id, "Turnos de mazmorra", HomebrewRulePayload(), 100)
+        val rule = HomebrewRuleContentRepository(database).createCampaign(campaign.id, "Turnos de dungeon", HomebrewRulePayload(), 100)
         links.save(rule.item.identity.id, ContentLinks(activities = listOf(DungeonActivity("rezar", "Rezar", DungeonAdvance.NONE))))
         assertEquals(listOf("Rezar"), dungeonActivities(database, campaign.id).map { it.name })
 

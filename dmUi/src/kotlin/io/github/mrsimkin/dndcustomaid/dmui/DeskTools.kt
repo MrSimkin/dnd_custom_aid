@@ -162,7 +162,7 @@ internal fun ClocksPanel(campaign: Campaign, database: AppDatabase, version: Int
     Column(modifier = Modifier.fillMaxSize().dmScroll().padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         dungeons.forEach { doc ->
             if (doc.clocks.isNotEmpty()) {
-                Text("Mazmorra: ${doc.dungeon}", style = MaterialTheme.typography.titleSmall)
+                Text("Dungeon: ${doc.dungeon}", style = MaterialTheme.typography.titleSmall)
                 doc.clocks.forEach { clock ->
                     fun change(next: io.github.mrsimkin.dndcustomaid.shared.dm.DungeonDocument) {
                         dungeonRepo.save(next, nowEpochSeconds())
@@ -198,6 +198,6 @@ internal fun ClocksPanel(campaign: Campaign, database: AppDatabase, version: Int
             saveOwned(owned + CampaignClocks.Owned(DungeonClock(Uuid.random(), name.trim(), segments, perTurn = false), owner))
             name = ""
         }) { Text("Agregar reloj") }
-        Text("Los relojes de una mazmorra avanzan +1 por turno desde la Mesa de Dungeon. Ninguno aplica consecuencias.", style = MaterialTheme.typography.bodySmall)
+        Text("Los relojes de un dungeon avanzan +1 por turno desde la Mesa de Dungeon. Ninguno aplica consecuencias.", style = MaterialTheme.typography.bodySmall)
     }
 }

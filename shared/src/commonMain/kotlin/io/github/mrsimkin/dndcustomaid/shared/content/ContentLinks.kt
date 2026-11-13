@@ -74,6 +74,8 @@ data class ContentLinks(
     val detour: Boolean = false,
     val pins: List<MapPin> = emptyList(),
     val dungeon: String = "",
+    /** The dungeon object this zone belongs to (redesign R3); [dungeon] keeps its name. */
+    val dungeonId: Uuid? = null,
     val diagramX: Double? = null,
     val diagramY: Double? = null,
     val passages: List<ZonePassage> = emptyList(),

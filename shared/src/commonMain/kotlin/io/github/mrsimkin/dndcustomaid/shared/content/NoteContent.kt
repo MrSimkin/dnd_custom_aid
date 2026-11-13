@@ -22,7 +22,7 @@ enum class NoteContextKind(val label: String) {
     PLACE("Lugar"),
     SCENE("Escena"),
     NPC("PNJ"),
-    DUNGEON("Mazmorra"),
+    DUNGEON("Dungeon"),
     COMBAT("Combate"),
 }
 

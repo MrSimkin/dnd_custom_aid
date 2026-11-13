@@ -43,3 +43,17 @@
 ## Contenido privado
 
 El set «Campus Celeste», los manuales del propietario y los nombres de sus jugadores viven en `D:\DnD_Aid\Set de prueba Campus Celeste`, fuera del repositorio público. El repositorio solo guarda código, el SRD (CC BY 4.0) y pruebas con datos inventados.
+
+## Estado (2026-11-13)
+
+| Paquete | Estado | Evidencia |
+| --- | --- | --- |
+| R0 | Guía visual publicada para el propietario; falta la ayuda «¿Cómo se usa?» en cada pantalla (el editor de dungeons ya la tiene). | Guía: artefacto «Guía del rediseño DM». |
+| R1 | **Windows hecho:** pide la cuenta al abrir y la recuerda con DPAPI; barra superior con campaña, rol, «⟳ Sincronizar» y menú «Cambiar usuario / Cerrar sesión»; lista de campañas con el rol; «Nueva campaña» creada en el servidor como DM; aviso cuando la cuenta es Jugador; «Jugadores de la campaña». **Tablet:** correo visible, «Cambiar usuario» y rol explicado en cada campaña. Falta A13 (jugador asignable a cada PJ). | `DesktopRememberedAccountTest` (5 pruebas). |
+| R2 | Portada «Preparar» con 8 tarjetas y propósito en una línea; «Gestores» desaparece. | Compila; se cubre en el QA. |
+| R3 | Dungeon como objeto propio (familia `DUNGEON`, migración 33), editor con plano en Windows («＋ Zona», arrastrar, pasajes con ●, secreto punteado, encuentro, ficha completa, plano de fondo). Los nombres antiguos se convierten en dungeons con el mismo id en todos los equipos. «Mazmorra» pasa a «dungeon» en toda la App. | `DungeonContentTest` (5), sincronización PC→tablet (`HostedDmContentSyncTest`) y `DesktopDungeonEditorTest`, con su imagen de prueba. |
+| R4 | Modelo de homebrew de reglas (familia `RULES_ENTRY`, migración 34) con 14 tipos. Faltan el lector del SRD y las pantallas. | Compila. |
+| R5 | Catálogo del SRD estructurado (`scripts/build_srd_catalog.py`): 5e con 316 conjuros, 37 armas, 13 armaduras, 9 especies y 4 subespecies, 12 clases y 12 subclases, 1 trasfondo y 1 dote; 5.5e con 336 conjuros, 38 armas, 13 armaduras, 9 especies, 12 clases y 12 subclases, 4 trasfondos y 17 dotes. Faltan el asistente para crear PJ y los selectores. | `--check` reproduce los archivos. |
+| R6, R7 | Pendientes. | — |
+
+En total pasan 803 pruebas (compartidas, Windows y tablet) y la APK compila.

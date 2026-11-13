@@ -167,7 +167,7 @@ class DesktopNpcManagerController(
 }
 
 @Composable
-private fun NpcManagerScreen(
+internal fun NpcManagerScreen(
     controller: DesktopNpcManagerController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,

@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -45,35 +46,25 @@ private data class PendingModeration(
     val action: HostedCampaignModerationAction,
 )
 
+/**
+ * «Jugadores de la campaña» (redesign R1): who is in the open campaign and their state, with the
+ * DM's moderation actions. The account and «⟳ Sincronizar» now live in the top bar.
+ */
 @Composable
-internal fun HostedCampaignAdministrationScreen(
+internal fun DesktopCampaignPlayersScreen(
     activeCampaign: Campaign?,
-    authController: DesktopHostedAuthController,
+    access: DesktopCampaignAccess?,
+    accountSession: DesktopAccountSession,
     hostedController: DesktopHostedCampaignAdministrationController,
     onOpenCampaigns: () -> Unit,
-    onLocalCampaignsChanged: () -> Unit,
     onQaEvent: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    var email by remember { mutableStateOf("") }
-    var code by remember { mutableStateOf("") }
-    var authPhase by remember { mutableStateOf(authController.phase) }
-    var account by remember { mutableStateOf<HostedAccount?>(null) }
-    var membership by remember { mutableStateOf<CampaignMembership?>(null) }
     var roster by remember { mutableStateOf<HostedCampaignMemberRoster?>(null) }
-    var bootstrapSummary by remember { mutableStateOf<String?>(null) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var busy by remember { mutableStateOf(false) }
     var pendingModeration by remember { mutableStateOf<PendingModeration?>(null) }
-
-    fun updateMembershipContext() {
-        membership = if (activeCampaign != null && account != null) {
-            hostedController.membership(activeCampaign.id, account!!.id)
-        } else {
-            null
-        }
-    }
 
     fun launchHostedOperation(operation: suspend () -> Unit) {
         if (busy) return
@@ -84,86 +75,24 @@ internal fun HostedCampaignAdministrationScreen(
                 operation()
             } catch (error: Throwable) {
                 errorMessage = desktopHostedErrorMessage(error)
-                onQaEvent("Operación alojada fallida: ${error::class.simpleName ?: "error"}")
+                onQaEvent("Jugadores: operación fallida (${error::class.simpleName ?: "error"})")
             } finally {
-                authPhase = authController.phase
                 busy = false
             }
-        }
-    }
-
-    fun applyBootstrapResult() {
-        launchHostedOperation {
-            val result = hostedController.bootstrap()
-            account = result.account
-            onLocalCampaignsChanged()
-            bootstrapSummary =
-                "Campañas alojadas: ${result.hostedCampaignCount} · aplicadas: ${result.appliedCampaignIds.size} · " +
-                    "conflictos: ${result.conflicts.size}"
-            updateMembershipContext()
-            roster = null
-            statusMessage = if (result.conflicts.isEmpty()) {
-                "Estado alojado actualizado sin conflictos."
-            } else {
-                "La actualización conservó ${result.conflicts.size} conflicto(s) local(es) para resolución explícita."
-            }
-            onQaEvent(
-                "Bootstrap alojado: campañas=${result.hostedCampaignCount}; " +
-                    "aplicadas=${result.appliedCampaignIds.size}; conflictos=${result.conflicts.size}",
-            )
-        }
-    }
-
-    fun syncDmContent() {
-        launchHostedOperation {
-            val result = hostedController.syncDmContent()
-            onLocalCampaignsChanged()
-            statusMessage = result.spanishSummary()
-            onQaEvent(
-                "Contenido DM: enviados=${result.pushedIds.size}; recibidos=${result.appliedIds.size}; " +
-                    "borrados=${result.tombstonedIds.size}; conflictos=${result.conflicts.size}; " +
-                    "pendientes=${result.pendingCount}; sinConexion=${result.offline}",
-            )
         }
     }
 
     fun refreshRoster() {
         val campaign = activeCampaign ?: return
         launchHostedOperation {
-            val refreshed = hostedController.roster(campaign.id)
-            roster = refreshed
-            statusMessage =
-                "Miembros alojados actualizados · revisión de campaña ${refreshed.campaignRevision}."
-            onQaEvent(
-                "Roster alojado actualizado: miembros=${refreshed.members.size}; " +
-                    "revisión=${refreshed.campaignRevision}",
-            )
+            roster = hostedController.roster(campaign.id)
+            statusMessage = null
         }
     }
 
-    LaunchedEffect(activeCampaign?.id, account?.id) {
-        updateMembershipContext()
+    LaunchedEffect(activeCampaign?.id, access) {
         roster = null
-    }
-
-    LaunchedEffect(Unit) {
-        if (authController.hasSession()) {
-            busy = true
-            try {
-                val result = hostedController.bootstrap()
-                account = result.account
-                bootstrapSummary =
-                    "Campañas alojadas: ${result.hostedCampaignCount} · aplicadas: ${result.appliedCampaignIds.size} · " +
-                        "conflictos: ${result.conflicts.size}"
-                onLocalCampaignsChanged()
-                updateMembershipContext()
-            } catch (error: Throwable) {
-                errorMessage = desktopHostedErrorMessage(error)
-            } finally {
-                authPhase = authController.phase
-                busy = false
-            }
-        }
+        if (activeCampaign != null && access == DesktopCampaignAccess.DM) refreshRoster()
     }
 
     pendingModeration?.let { pending ->
@@ -184,30 +113,19 @@ internal fun HostedCampaignAdministrationScreen(
                                 userId = pending.member.userId,
                                 action = pending.action,
                             )
-                            val refreshed = hostedController.roster(campaign.id)
-                            roster = refreshed
+                            roster = hostedController.roster(campaign.id)
                             statusMessage = if (result.applied) {
-                                "${pending.action.spanishLabel()} aplicada y estado del servidor actualizado."
+                                "${pending.action.spanishLabel()}: hecho."
                             } else {
-                                "El servidor confirmó que no era necesario cambiar el estado; roster actualizado."
+                                "No hacía falta cambiar nada."
                             }
-                            onQaEvent(
-                                "Moderación alojada: acción=${pending.action.name}; aplicada=${result.applied}; " +
-                                    "revisión=${refreshed.campaignRevision}",
-                            )
+                            onQaEvent("Jugadores: ${pending.action.name}; aplicada=${result.applied}")
                         }
                     },
-                ) {
-                    Text("Confirmar")
-                }
+                ) { Text("Confirmar") }
             },
             dismissButton = {
-                TextButton(
-                    enabled = !busy,
-                    onClick = { pendingModeration = null },
-                ) {
-                    Text("Cancelar")
-                }
+                TextButton(enabled = !busy, onClick = { pendingModeration = null }) { Text("Cancelar") }
             },
         )
     }
@@ -216,304 +134,46 @@ internal fun HostedCampaignAdministrationScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(desktopSpacing(16.dp)),
     ) {
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(4.dp))) {
-                Text(
-                    text = "Administración de campaña",
-                    style = MaterialTheme.typography.h4,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = "Sesión alojada, contexto canónico de campaña y moderación de membresías.",
-                    style = MaterialTheme.typography.body1,
-                )
+        item { WorkbenchHeading(title = "Jugadores de la campaña", subtitle = "Quién está en la campaña abierta y su estado.") }
+
+        if (activeCampaign == null) {
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
+                    Text("Primero abre una campaña.")
+                    Button(onClick = onOpenCampaigns) { Text("Ir a Campañas") }
+                }
             }
+            return@LazyColumn
         }
 
-        item {
-            HostedSessionCard(
-                authPhase = authPhase,
-                account = account,
-                email = email,
-                code = code,
-                busy = busy,
-                onEmailChange = { email = it },
-                onCodeChange = { code = it },
-                onSendOtp = {
-                    launchHostedOperation {
-                        authController.sendEmailOtp(email)
-                        authPhase = authController.phase
-                        statusMessage = "Código de acceso enviado."
-                        onQaEvent("Código de acceso alojado solicitado")
+        when (access) {
+            DesktopCampaignAccess.LOCAL_ONLY -> item {
+                Text("«${activeCampaign.name}» está solo en este equipo: no tiene jugadores en el servidor.")
+            }
+            DesktopCampaignAccess.PLAYER -> item {
+                NotDmNotice(campaignName = activeCampaign.name, session = accountSession, what = "La lista de jugadores")
+            }
+            else -> {
+                item {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp)),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Button(enabled = !busy, onClick = ::refreshRoster) { Text(if (busy) "Actualizando…" else "Actualizar lista") }
+                        statusMessage?.let { Text(it, style = MaterialTheme.typography.body2) }
                     }
-                },
-                onVerifyOtp = {
-                    launchHostedOperation {
-                        authController.verifyEmailOtp(code)
-                        authPhase = authController.phase
-                        code = ""
-                        val result = hostedController.bootstrap()
-                        account = result.account
-                        onLocalCampaignsChanged()
-                        bootstrapSummary =
-                            "Campañas alojadas: ${result.hostedCampaignCount} · aplicadas: ${result.appliedCampaignIds.size} · " +
-                                "conflictos: ${result.conflicts.size}"
-                        updateMembershipContext()
-                        roster = null
-                        statusMessage = "Sesión iniciada y campañas alojadas actualizadas."
-                        onQaEvent(
-                            "Sesión alojada autenticada; bootstrap campañas=${result.hostedCampaignCount}; " +
-                                "conflictos=${result.conflicts.size}",
+                }
+                errorMessage?.let { message ->
+                    item { Text(message, color = MaterialTheme.colors.error) }
+                }
+                roster?.let { currentRoster ->
+                    items(items = currentRoster.members, key = { it.userId.toString() }) { member ->
+                        HostedMemberCard(
+                            member = member,
+                            busy = busy,
+                            onModerate = { action -> pendingModeration = PendingModeration(member, action) },
                         )
                     }
-                },
-                onRefreshHosted = ::applyBootstrapResult,
-                onSignOut = {
-                    authController.signOut()
-                    authPhase = authController.phase
-                    account = null
-                    membership = null
-                    roster = null
-                    bootstrapSummary = null
-                    statusMessage = "Sesión alojada cerrada. Los datos locales se conservaron."
-                    errorMessage = null
-                    code = ""
-                    onQaEvent("Sesión alojada cerrada")
-                },
-            )
-        }
-
-        bootstrapSummary?.let { summary ->
-            item {
-                Card(modifier = Modifier.fillMaxWidth(), elevation = 1.dp) {
-                    Text(
-                        text = summary,
-                        modifier = Modifier.padding(desktopSpacing(14.dp)),
-                        style = MaterialTheme.typography.body2,
-                    )
-                }
-            }
-        }
-
-        statusMessage?.let { message ->
-            item { Text(message, style = MaterialTheme.typography.body2) }
-        }
-
-        errorMessage?.let { message ->
-            item {
-                Card(modifier = Modifier.fillMaxWidth(), elevation = 2.dp) {
-                    Column(
-                        modifier = Modifier.padding(desktopSpacing(14.dp)),
-                        verticalArrangement = Arrangement.spacedBy(desktopSpacing(6.dp)),
-                    ) {
-                        Text("No se pudo completar la operación", fontWeight = FontWeight.Bold)
-                        Text(message)
-                    }
-                }
-            }
-        }
-
-        item {
-            HostedCampaignContextCard(
-                activeCampaign = activeCampaign,
-                authPhase = authPhase,
-                account = account,
-                membership = membership,
-                busy = busy,
-                onOpenCampaigns = onOpenCampaigns,
-                onRefreshRoster = ::refreshRoster,
-                onSyncDmContent = ::syncDmContent,
-            )
-        }
-
-        roster?.let { currentRoster ->
-            item {
-                Text(
-                    "Miembros alojados · revisión ${currentRoster.campaignRevision}",
-                    style = MaterialTheme.typography.subtitle1,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-            items(
-                items = currentRoster.members,
-                key = { it.userId.toString() },
-            ) { member ->
-                HostedMemberCard(
-                    member = member,
-                    busy = busy,
-                    onModerate = { action ->
-                        pendingModeration = PendingModeration(member, action)
-                    },
-                )
-            }
-        }
-
-        item {
-            Text(
-                "La sesión alojada de Desktop se mantiene sólo mientras la aplicación está abierta. " +
-                    "Cerrar sesión o cerrar la aplicación no elimina campañas, personajes ni otros datos locales.",
-                style = MaterialTheme.typography.caption,
-            )
-        }
-    }
-}
-
-@Composable
-private fun HostedSessionCard(
-    authPhase: DesktopHostedAuthPhase,
-    account: HostedAccount?,
-    email: String,
-    code: String,
-    busy: Boolean,
-    onEmailChange: (String) -> Unit,
-    onCodeChange: (String) -> Unit,
-    onSendOtp: () -> Unit,
-    onVerifyOtp: () -> Unit,
-    onRefreshHosted: () -> Unit,
-    onSignOut: () -> Unit,
-) {
-    Card(modifier = Modifier.fillMaxWidth(), elevation = 2.dp) {
-        Column(
-            modifier = Modifier.padding(desktopSpacing(18.dp)),
-            verticalArrangement = Arrangement.spacedBy(desktopSpacing(10.dp)),
-        ) {
-            Text("Cuenta alojada", style = MaterialTheme.typography.h6)
-
-            when (authPhase) {
-                DesktopHostedAuthPhase.SIGNED_OUT -> {
-                    Text("Desconectado. El trabajo local sigue disponible sin iniciar sesión.")
-                    TextField(
-                        value = email,
-                        onValueChange = onEmailChange,
-                        label = { Text("Correo de la cuenta DEV") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Button(
-                        enabled = !busy && email.isNotBlank(),
-                        onClick = onSendOtp,
-                    ) {
-                        Text(if (busy) "Conectando…" else "Enviar código")
-                    }
-                }
-
-                DesktopHostedAuthPhase.OTP_SENT -> {
-                    Text("Código enviado a ${email.ifBlank { "la cuenta indicada" }}.")
-                    TextField(
-                        value = code,
-                        onValueChange = onCodeChange,
-                        label = { Text("Código de acceso") },
-                        singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
-                        Button(
-                            enabled = !busy && code.isNotBlank(),
-                            onClick = onVerifyOtp,
-                        ) {
-                            Text(if (busy) "Verificando…" else "Verificar e iniciar sesión")
-                        }
-                        TextButton(enabled = !busy, onClick = onSignOut) {
-                            Text("Cancelar")
-                        }
-                    }
-                }
-
-                DesktopHostedAuthPhase.AUTHENTICATED -> {
-                    Text("Conectado")
-                    Text(
-                        account?.displayName?.takeIf { it.isNotBlank() } ?: "Cuenta alojada autenticada",
-                        fontWeight = FontWeight.Bold,
-                    )
-                    account?.let {
-                        SelectionContainer {
-                            Text("ID de cuenta: ${it.id}", style = MaterialTheme.typography.caption)
-                        }
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
-                        Button(enabled = !busy, onClick = onRefreshHosted) {
-                            Text(if (busy) "Actualizando…" else "Actualizar campañas alojadas")
-                        }
-                        TextButton(enabled = !busy, onClick = onSignOut) {
-                            Text("Cerrar sesión")
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun HostedCampaignContextCard(
-    activeCampaign: Campaign?,
-    authPhase: DesktopHostedAuthPhase,
-    account: HostedAccount?,
-    membership: CampaignMembership?,
-    busy: Boolean,
-    onOpenCampaigns: () -> Unit,
-    onRefreshRoster: () -> Unit,
-    onSyncDmContent: () -> Unit,
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .widthIn(max = 900.dp),
-        elevation = 2.dp,
-    ) {
-        Column(
-            modifier = Modifier.padding(desktopSpacing(18.dp)),
-            verticalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp)),
-        ) {
-            Text("Contexto de campaña", style = MaterialTheme.typography.h6)
-
-            if (activeCampaign == null) {
-                Text("No hay una campaña activa seleccionada.")
-                Button(onClick = onOpenCampaigns) { Text("Elegir campaña") }
-                return@Column
-            }
-
-            Text(activeCampaign.name, fontWeight = FontWeight.Bold)
-            SelectionContainer {
-                Text("ID de campaña: ${activeCampaign.id}", style = MaterialTheme.typography.caption)
-            }
-            Divider()
-
-            if (authPhase != DesktopHostedAuthPhase.AUTHENTICATED || account == null) {
-                Text("Esta campaña continúa disponible localmente. Inicia sesión para comprobar su contexto alojado.")
-                return@Column
-            }
-
-            if (membership == null) {
-                Text(
-                    "Esta campaña no tiene una membresía alojada para la cuenta autenticada. " +
-                        "Se mantiene como campaña local y no se simula administración remota.",
-                )
-                return@Column
-            }
-
-            Text("Rol alojado: ${membership.role.spanishLabel()}")
-            Text("Estado de membresía: ${membership.status.spanishLabel()}")
-
-            when {
-                membership.status != CampaignMembershipStatus.ACTIVE ->
-                    Text("La membresía no está activa; el servidor no debe permitir administración de esta campaña.")
-                membership.role != CampaignRole.DM ->
-                    Text("La cuenta tiene rol Jugador. La administración de miembros requiere una membresía DM activa.")
-                else -> {
-                    Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
-                        Button(enabled = !busy, onClick = onRefreshRoster) {
-                            Text(if (busy) "Actualizando…" else "Actualizar miembros alojados")
-                        }
-                        Button(enabled = !busy, onClick = onSyncDmContent) {
-                            Text("Sincronizar contenido del DM")
-                        }
-                    }
-                    Text(
-                        "Envía tus criaturas, PNJ, lugares, zonas, encuentros y reglas al servidor, y recibe lo que cambiaste en la tablet.",
-                        style = MaterialTheme.typography.caption,
-                    )
                 }
             }
         }
@@ -538,9 +198,6 @@ private fun HostedMemberCard(
                 Text("Rol: ${member.role.spanishLabel()}")
                 Text("Estado: ${member.status.spanishLabel()}")
             }
-            SelectionContainer {
-                Text("ID: ${member.userId}", style = MaterialTheme.typography.caption)
-            }
 
             if (actions.isNotEmpty()) {
                 Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
@@ -554,7 +211,7 @@ private fun HostedMemberCard(
                     }
                 }
             } else if (member.role == CampaignRole.DM) {
-                Text("Las acciones de moderación de Jugadores no se aplican a miembros DM.", style = MaterialTheme.typography.caption)
+                Text("Es el DM de la campaña.", style = MaterialTheme.typography.caption)
             }
         }
     }

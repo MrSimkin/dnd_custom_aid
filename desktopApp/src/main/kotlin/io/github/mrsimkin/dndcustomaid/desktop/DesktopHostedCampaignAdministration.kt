@@ -71,6 +71,11 @@ internal class DesktopHostedCampaignAdministrationController(
         return dmContentSync.synchronize(dmContentSyncScopes(database, account.id), nowEpochSeconds)
     }
 
+    /** «Nueva campaña»: created on the server with the open account as its DM. */
+    suspend fun createHostedCampaign(name: String) {
+        apiClient.createCampaign(mutationId = Uuid.random(), campaignId = Uuid.random(), name = name)
+    }
+
     fun membership(campaignId: Uuid, accountId: Uuid): CampaignMembership? =
         spine.membership(campaignId, accountId)
 

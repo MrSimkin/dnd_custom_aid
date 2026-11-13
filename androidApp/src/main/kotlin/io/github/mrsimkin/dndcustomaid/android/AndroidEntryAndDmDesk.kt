@@ -66,19 +66,25 @@ internal class AppEntryStore(context: Context) {
         get() = prefs.getString(KEY_ACCOUNT, null)?.let { runCatching { Uuid.parse(it) }.getOrNull() }
         set(value) = prefs.edit().putString(KEY_ACCOUNT, value?.toString()).apply()
 
+    /** The email typed at sign-in, shown as «Entraste como…» (never sent anywhere else). */
+    var accountEmail: String?
+        get() = prefs.getString(KEY_EMAIL, null)
+        set(value) = prefs.edit().putString(KEY_EMAIL, value).apply()
+
     /** Last DM desk opened, so the App reopens it; null means the player area or none. */
     var lastDmCampaignId: Uuid?
         get() = prefs.getString(KEY_LAST_DM, null)?.let { runCatching { Uuid.parse(it) }.getOrNull() }
         set(value) = prefs.edit().putString(KEY_LAST_DM, value?.toString()).apply()
 
     fun clearAccount() {
-        prefs.edit().remove(KEY_ACCOUNT).remove(KEY_LAST_DM).putBoolean(KEY_LOCAL_ONLY, false).apply()
+        prefs.edit().remove(KEY_ACCOUNT).remove(KEY_EMAIL).remove(KEY_LAST_DM).putBoolean(KEY_LOCAL_ONLY, false).apply()
     }
 
     private companion object {
         const val KEY_LOCAL_ONLY = "local_only_chosen"
         const val KEY_ACCOUNT = "hosted_account_id"
         const val KEY_LAST_DM = "last_dm_campaign_id"
+        const val KEY_EMAIL = "hosted_account_email"
     }
 }
 
@@ -92,7 +98,7 @@ internal fun campaignRoleFor(database: AppDatabase, campaignId: Uuid, accountId:
 @Composable
 internal fun AppEntryScreen(
     authController: AndroidHostedAuthController,
-    onSignedIn: suspend () -> Unit,
+    onSignedIn: suspend (email: String) -> Unit,
     onContinueWithoutAccount: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -190,7 +196,7 @@ internal fun AppEntryScreen(
                     onClick = {
                         run {
                             authController.verifyEmailOtp(email, code)
-                            onSignedIn()
+                            onSignedIn(email.trim())
                         }
                     },
                     enabled = !busy && code.length >= 4,
@@ -263,4 +269,6 @@ internal fun ReusableContentFamily.spanishPlural(): String = when (this) {
     ReusableContentFamily.HANDOUT -> "Handouts e imágenes"
     ReusableContentFamily.PACKAGE -> "Paquetes"
     ReusableContentFamily.NOTE -> "Notas"
+    ReusableContentFamily.DUNGEON -> "Dungeons"
+    ReusableContentFamily.RULES_ENTRY -> "Reglas homebrew"
 }

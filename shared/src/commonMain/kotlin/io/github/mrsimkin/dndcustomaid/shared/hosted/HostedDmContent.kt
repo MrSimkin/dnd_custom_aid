@@ -19,6 +19,8 @@ import io.github.mrsimkin.dndcustomaid.shared.content.PlacePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.ContentLinks
 import io.github.mrsimkin.dndcustomaid.shared.content.ContentLinksRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.NoteContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.DungeonContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.DungeonPayload
 import io.github.mrsimkin.dndcustomaid.shared.content.NotePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentFamily
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentItem
@@ -182,6 +184,8 @@ class DmContentSnapshotCodec(
     private val packages = PackageContentRepository(database, reusableContent)
     private val links = ContentLinksRepository(database)
     private val notes = NoteContentRepository(database, reusableContent)
+    private val dungeons = DungeonContentRepository(database, reusableContent)
+    private val rulesEntries = io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryContentRepository(database, reusableContent)
 
     fun supportsFamily(family: String): Boolean = ReusableContentFamily.entries.any { it.name == family }
 
@@ -204,6 +208,8 @@ class DmContentSnapshotCodec(
             ReusableContentFamily.HANDOUT -> encode(HandoutPayload.serializer(), handouts.payload(id))
             ReusableContentFamily.PACKAGE -> encode(PackagePayload.serializer(), packages.payload(id))
             ReusableContentFamily.NOTE -> encode(NotePayload.serializer(), notes.payload(id))
+            ReusableContentFamily.DUNGEON -> encode(DungeonPayload.serializer(), dungeons.payload(id) ?: DungeonPayload())
+            ReusableContentFamily.RULES_ENTRY -> encode(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryPayload.serializer(), rulesEntries.payload(id))
         }.withLinks(links.links(id))
         val provenance = item.identity.provenance?.let {
             val (kind, ref) = encodeScope(it.sourceScope)
@@ -329,6 +335,8 @@ class DmContentSnapshotCodec(
         ReusableContentFamily.HANDOUT -> roundTrip(HandoutPayload.serializer(), payload)
         ReusableContentFamily.PACKAGE -> roundTrip(PackagePayload.serializer(), payload)
         ReusableContentFamily.NOTE -> roundTrip(NotePayload.serializer(), payload)
+        ReusableContentFamily.DUNGEON -> roundTrip(DungeonPayload.serializer(), payload)
+        ReusableContentFamily.RULES_ENTRY -> roundTrip(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryPayload.serializer(), payload)
     }
 
     private fun writePayload(family: ReusableContentFamily, id: Uuid, payload: JsonObject) {
@@ -363,6 +371,12 @@ class DmContentSnapshotCodec(
             }
             ReusableContentFamily.NOTE -> json.decodeFromJsonElement(NotePayload.serializer(), payload).let {
                 if (notes.payload(id) == null) notes.insertPayload(id, it) else notes.updatePayloadRow(id, it)
+            }
+            ReusableContentFamily.DUNGEON -> json.decodeFromJsonElement(DungeonPayload.serializer(), payload).let {
+                dungeons.updatePayloadRow(id, it)
+            }
+            ReusableContentFamily.RULES_ENTRY -> json.decodeFromJsonElement(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryPayload.serializer(), payload).let {
+                rulesEntries.updatePayloadRow(id, it)
             }
         }
     }

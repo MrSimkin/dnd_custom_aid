@@ -169,13 +169,14 @@ internal fun DesktopZoneManagerScreen(
     controller: DesktopZoneManagerController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
+    initialSelectedId: Uuid? = null,
 ) {
     var refreshVersion by remember { mutableStateOf(0) }
     var query by remember { mutableStateOf("") }
     var areaFilter by remember { mutableStateOf("") }
     var tagFilter by remember { mutableStateOf("") }
     var newName by remember { mutableStateOf("") }
-    var selectedId by remember { mutableStateOf<Uuid?>(null) }
+    var selectedId by remember(initialSelectedId) { mutableStateOf(initialSelectedId) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
 
     val ownerAccountId = remember(refreshVersion, activeCampaign?.id) {
@@ -209,7 +210,7 @@ internal fun DesktopZoneManagerScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de Mazmorras / Zonas", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+            Text("Dungeons", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
             Text(
                 "Prepara cada Zona como un Zone Brief: PRESENTAR, INTERACTUAR y ENCUENTRO. " +
                     "Espacio y exploración conservan la orientación topológica sin convertir el gestor en un VTT.",

@@ -138,7 +138,7 @@ internal fun DungeonDesk(
     fun zoneNames(): Map<Uuid, String> = index.zones.associate { it.item.identity.id to it.item.displayName }
 
     fun startCombat(encounterIds: List<Uuid>, surpriseCharacterIds: List<Uuid>, zoneName: String) {
-        onStartCombat(combatFromDungeon(database, campaign, zoneName.ifBlank { doc?.dungeon ?: "Mazmorra" }, encounterIds, surpriseCharacterIds))
+        onStartCombat(combatFromDungeon(database, campaign, zoneName.ifBlank { doc?.dungeon ?: "Dungeon" }, encounterIds, surpriseCharacterIds))
     }
 
     if (doc == null || starting) {
@@ -315,16 +315,16 @@ private fun StartDungeon(index: SceneIndex, hasOpen: Boolean, onStart: (String, 
     var chosen by remember { mutableStateOf(dungeons.firstOrNull()) }
     var startZone by remember { mutableStateOf<Uuid?>(null) }
     Column(modifier = Modifier.fillMaxSize().dmScroll().padding(24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(if (hasOpen) "Otra mazmorra" else "Empezar a explorar", style = MaterialTheme.typography.titleLarge)
+        Text(if (hasOpen) "Otro dungeon" else "Empezar a explorar", style = MaterialTheme.typography.titleLarge)
         if (dungeons.isEmpty()) {
-            Text("Ninguna zona tiene «Mazmorra» todavía.", style = MaterialTheme.typography.bodyMedium)
+            Text("Esta campaña aún no tiene dungeons con zonas.", style = MaterialTheme.typography.bodyMedium)
             Text(
-                "En la App de PC, en cada zona, la sección «Vínculos» permite poner el nombre de la mazmorra, ubicar la zona en el mapa y unirla con pasajes. " +
+                "En la App de PC, «Preparar → Dungeons» crea un dungeon, le agrega zonas en un plano y las une con pasajes; llega aquí al sincronizar. " +
                     "También puedes empezar ahora sin mapa: el turno, el registro y los relojes funcionan igual.",
                 style = MaterialTheme.typography.bodySmall,
             )
         }
-        Text("Mazmorra", style = MaterialTheme.typography.titleSmall)
+        Text("Dungeon", style = MaterialTheme.typography.titleSmall)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             dungeons.forEach { d -> FilterChip(selected = chosen == d, onClick = { chosen = d; startZone = null }, label = { Text(d) }) }
             FilterChip(selected = chosen == null, onClick = { chosen = null; startZone = null }, label = { Text("Sin mapa") })
@@ -337,7 +337,7 @@ private fun StartDungeon(index: SceneIndex, hasOpen: Boolean, onStart: (String, 
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { onStart(chosen ?: "Mazmorra", startZone) }) { Text("Empezar ▸") }
+            Button(onClick = { onStart(chosen ?: "Dungeon", startZone) }) { Text("Empezar ▸") }
             if (hasOpen) TextButton(onClick = onCancel) { Text("Cancelar") }
         }
     }
@@ -349,7 +349,7 @@ private fun StartDungeon(index: SceneIndex, hasOpen: Boolean, onStart: (String, 
 private fun DungeonMapView(map: List<DungeonMapZone>, doc: DungeonDocument, moving: Uuid?, onZone: (Uuid) -> Unit, modifier: Modifier) {
     if (map.isEmpty()) {
         Box(modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.medium), contentAlignment = Alignment.Center) {
-            Text("Sin mapa: esta mazmorra no tiene zonas ubicadas. El turno funciona igual.", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(16.dp))
+            Text("Sin mapa: este dungeon no tiene zonas ubicadas. El turno funciona igual.", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(16.dp))
         }
         return
     }

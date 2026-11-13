@@ -16,6 +16,8 @@ enum class ReusableContentFamily {
     HANDOUT,
     PACKAGE,
     NOTE,
+    DUNGEON,
+    RULES_ENTRY,
 }
 
 @Serializable

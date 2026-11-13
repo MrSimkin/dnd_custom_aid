@@ -47,7 +47,7 @@ import kotlin.uuid.Uuid
 private enum class DesktopManagersHubSection(val label: String) {
     CREATURES_NPCS_HOMEBREW("Criaturas / PNJ / Homebrew"),
     PLACES_SHOPS("Escenarios / Lugares / Tiendas"),
-    DUNGEONS_ZONES("Mazmorras / Zonas"),
+    DUNGEONS_ZONES("Dungeons"),
     ENCOUNTERS("Encuentros"),
     PACKAGES("Paquetes"),
 }

@@ -168,7 +168,7 @@ internal fun DesktopDmWorkspaceScreen(
                         val attention = result.offline || result.conflicts.isNotEmpty() || result.mediaMissingCount > 0
                         DmSyncResult(synced = !result.offline, message = result.spanishSummary().takeIf { attention })
                     },
-                    onFailure = { DmSyncResult(synced = false, message = "No se pudo sincronizar. Revisa que entraste con tu cuenta en «Administración de campaña».") },
+                    onFailure = { DmSyncResult(synced = false, message = "No se pudo sincronizar: no hay conexión con el servidor o tu cuenta venció. Lo preparado sigue en este equipo.") },
                 )
             },
             onExitToCampaigns = onExit,

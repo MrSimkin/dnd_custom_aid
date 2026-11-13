@@ -168,7 +168,7 @@ class DesktopHomebrewRuleManagerController(
 }
 
 @Composable
-private fun HomebrewRuleManagerScreen(
+internal fun HomebrewRuleManagerScreen(
     controller: DesktopHomebrewRuleManagerController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,

@@ -121,6 +121,27 @@ class HostedDmContentSyncTest {
     }
 
     @Test
+    fun aDungeonDrawnOnTheAppDePcReachesTheTabletWithItsZonesAndPassages() = scenario { _, pc, tablet ->
+        val dungeons = io.github.mrsimkin.dndcustomaid.shared.content.DungeonContentRepository(pc.database)
+        val site = dungeons.create(campaignId, "Sitio 021", io.github.mrsimkin.dndcustomaid.shared.content.DungeonPayload(summary = "Complejo de extracción"), 500)
+        val a1 = dungeons.addZone(campaignId, site, "A1 Explanada", 0.1, 0.1, 500)
+        val a2 = dungeons.addZone(campaignId, site, "A2 Caseta", 0.5, 0.1, 500)
+        dungeons.connect(a1.item.identity.id, a2.item.identity.id, secret = true)
+        pc.sync()
+        tablet.sync()
+        val onTablet = io.github.mrsimkin.dndcustomaid.shared.content.DungeonContentRepository(tablet.database)
+        val received = onTablet.listCampaign(campaignId).single()
+        assertEquals("Sitio 021", received.item.displayName)
+        assertEquals("Complejo de extracción", received.payload.summary)
+        val zones = onTablet.zonesOf(campaignId, received)
+        assertEquals(listOf("A1 Explanada", "A2 Caseta"), zones.map { it.zone.displayName })
+        val passage = zones.first().links.passages.single()
+        assertEquals(a2.item.identity.id, passage.toZoneId)
+        assertTrue(passage.secret, "the secret passage keeps its mark")
+        assertEquals("Sitio 021", zones.first().links.dungeon, "the tablet's Mesa de Dungeon still finds it by name")
+    }
+
+    @Test
     fun aLiveNoteWrittenOnTheTabletReachesTheAppDePcWithItsContext() = scenario { _, pc, tablet ->
         val zoneId = Uuid.random()
         val note = NoteContentRepository(tablet.database).create(

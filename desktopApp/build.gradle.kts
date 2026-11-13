@@ -26,8 +26,11 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.ktor.client.core)
     implementation(libs.pdfbox)
+    // Windows: DPAPI keeps the remembered account encrypted for the current user (owner decision D2).
+    implementation(libs.jna.platform)
     testImplementation(kotlin("test"))
     testImplementation(compose.desktop.uiTestJUnit4)
+    testImplementation(libs.ktor.client.mock)
 }
 
 compose.desktop {

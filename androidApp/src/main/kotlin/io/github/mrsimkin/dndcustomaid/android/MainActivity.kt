@@ -210,8 +210,9 @@ private fun DndCustomAidApp(
         when (screen) {
             AppScreen.ENTRY -> AppEntryScreen(
                 authController = hostedAuthController,
-                onSignedIn = {
+                onSignedIn = { email ->
                     entryStore.localOnlyChosen = false
+                    entryStore.accountEmail = email
                     val outcome = hostedCampaignBootstrapController.refresh()
                     if (outcome is AndroidHostedCampaignBootstrapOutcome.Success) {
                         entryStore.accountId = outcome.accountId
@@ -343,13 +344,13 @@ private fun CampaignScreen(
         val pending = hostedBootstrap.pendingMutationCount()
         return when {
             hostedBootstrap.hasRememberedSession() && pending > 0 ->
-                "Sesión hospedada disponible. Hay $pending cambio(s) local(es) pendiente(s) de sincronizar."
+                "Hay $pending cambio(s) de esta tablet esperando para sincronizar."
             hostedBootstrap.hasRememberedSession() ->
-                "Sesión hospedada disponible. La sincronización revisará todas las campañas hospedadas elegibles."
+                "Sincronizar trae lo que preparaste en Windows y envía lo de esta tablet."
             pending > 0 ->
-                "Sin sesión hospedada. $pending cambio(s) local(es) permanecen guardados y pendientes."
+                "Sin cuenta abierta. $pending cambio(s) siguen guardados en esta tablet."
             else ->
-                "Sin sesión hospedada en este dispositivo."
+                "Sin cuenta abierta: el Escritorio DM y la sincronización necesitan tu cuenta."
         }
     }
 
@@ -519,9 +520,15 @@ private fun CampaignScreen(
                             verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
                         ) {
                             Text(
-                                text = "Servidor",
+                                text = "Tu cuenta",
                                 style = MaterialTheme.typography.titleMedium,
                             )
+                            if (hostedBootstrap.hasRememberedSession()) {
+                                Text(
+                                    text = "Entraste como ${entryStore.accountEmail ?: "tu cuenta"}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
                             Text(
                                 text = hostedStatus,
                                 style = MaterialTheme.typography.bodySmall,
@@ -536,6 +543,21 @@ private fun CampaignScreen(
                                         enabled = !hostedRefreshing && !signingOut,
                                     ) {
                                         Text(if (hostedRefreshing) "Sincronizando…" else "Sincronizar")
+                                    }
+                                    TextButton(
+                                        onClick = {
+                                            signingOut = true
+                                            coroutineScope.launch {
+                                                try {
+                                                    onSignOut()
+                                                } finally {
+                                                    signingOut = false
+                                                }
+                                            }
+                                        },
+                                        enabled = !hostedRefreshing && !signingOut,
+                                    ) {
+                                        Text("Cambiar usuario")
                                     }
                                     TextButton(
                                         onClick = {
@@ -579,6 +601,8 @@ private fun CampaignScreen(
                             campaign = campaign,
                             isActive = campaign.id == activeCampaignId,
                             role = role,
+                            signedIn = hostedBootstrap.hasRememberedSession(),
+                            accountEmail = entryStore.accountEmail,
                             onSelect = {
                                 repository.setActiveCampaign(campaign.id)
                                 reload()
@@ -617,6 +641,8 @@ private fun CampaignCard(
     campaign: Campaign,
     isActive: Boolean,
     role: CampaignRole?,
+    signedIn: Boolean,
+    accountEmail: String?,
     onSelect: () -> Unit,
     onOpen: () -> Unit,
 ) {
@@ -624,6 +650,7 @@ private fun CampaignCard(
         onClick = onSelect,
         modifier = Modifier.fillMaxWidth(),
     ) {
+      Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -645,16 +672,38 @@ private fun CampaignCard(
                 )
                 if (isActive) {
                     Text(
-                        text = "Campaña activa para uso local",
+                        text = "Campaña abierta",
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
             }
-            role?.let { CampaignRoleBadge(it) }
+            if (role != null) {
+                CampaignRoleBadge(role)
+            } else {
+                Text("Solo en esta tablet", style = MaterialTheme.typography.labelMedium)
+            }
             TextButton(onClick = onOpen) {
-                Text(if (role == CampaignRole.DM) "Abrir Escritorio DM" else "Abrir")
+                Text(if (role == CampaignRole.DM) "Abrir Escritorio DM" else "Ver mis PJ")
             }
         }
+        // Owner decision D1: the DM desk opens only with the DM's account, and the App says why.
+        val explanation = when {
+            role == CampaignRole.PLAYER ->
+                "Con ${accountEmail ?: "esta cuenta"} eres Jugador aquí. El Escritorio DM se abre con la cuenta que es DM de esta campaña: usa «Cambiar usuario»."
+            role == null && signedIn ->
+                "Esta campaña está solo en esta tablet: tu cuenta no figura en ella en el servidor."
+            role == null ->
+                "Entra con tu cuenta para ver tu rol en esta campaña."
+            else -> null
+        }
+        explanation?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
+            )
+        }
+      }
     }
 }
 
