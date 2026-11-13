@@ -20,7 +20,7 @@ Este registro es el libro de aceptación de la próxima corrección (AGENTS §6.
 | P3 | Bien | «El nombre gestores es poco claro y la forma del menu es poco clara, no queda claro que es cada funcion. No tuve que loguearme, asique no se que usuario estoy operando» | ABIERTA |
 | P4 | Bien | — | — |
 | P5 | Falla | «quiero que uses el termino dungeon, nunca mazmorra, no me gusta masmorra / no puedo crear un dungeon, solo lugares zonas / Necesito que releas el documento o pienses en un mejor UX, porque no entiendo como crear varias zonas y conectarlas,» | ABIERTA |
-| P6 | Falla | «Necesito que » (el texto quedó cortado en la ventana) | ABIERTA · falta el texto completo |
+| P6 | Falla | «Necesito que » (cortado en la ventana). Completado en el chat el 2026-11-13: «"necesito que sea mas claro", lo siento era un comentario menor» | ABIERTA · lo cubre A3 (Preparar, con nombres y propósito claros) |
 | P7 | Bien | «quiero que el explorador se parezca al de windows, o por lo menos que me permita guardar o setear carpetas tipo, es una joda navegar hasta la carpeta de una campaña, no puedo mover las marcas» | ABIERTA |
 | P8 | Falla | «use gmail / si siquiera veo el botón que me dices» | ABIERTA |
 | E1 | Falla | «Solo pude entrar como jugador, no hay un menu claro y no pude sincronizar nada» | ABIERTA |
@@ -164,6 +164,12 @@ Se entregó para armar un set de prueba realista. **No entra al repositorio púb
   - los mapas e imágenes como handouts.
 - **Dónde queda.** Los archivos del set viven en `D:\DnD_Aid\Set de prueba Campus Celeste`, fuera del repositorio.
 
+## D12 · PJ del set de prueba (2026-11-13)
+
+- Los 4 PJ son de nivel 7. El propietario dio especie, clase, armas de leyenda, trasfondo homebrew y backstory de cada uno, más sus manuales homebrew: Manual Simkin 1.1 y 1.4, Tomo de Magia 1.0 y Fe en el Mundo Fragmentado v2.
+- El detalle, con los nombres reales de los jugadores, queda fuera del repositorio, en `D:\DnD_Aid\Set de prueba Campus Celeste\PJ_del_grupo.md`.
+- El homebrew se extrae de esos manuales para la biblioteca de prueba (A8, A11 y A12). Los conjuros oficiales del Tomo que no están en el SRD solo se usan en datos privados, nunca en el repositorio.
+
 ## Alcance del rediseño (libro de aceptación)
 
 | # | Qué se hará | Observaciones que cubre |
@@ -177,7 +183,7 @@ Se entregó para armar un set de prueba realista. **No entra al repositorio púb
 | A7 | Handouts a los jugadores: el DM elige qué mostrar y el jugador lo ve en su App. | G2 |
 | A8 | SRD: lector del SRD para todos, y pantallas de homebrew por familia (objetos, clases, dotes, conjuros…), con su lugar reservado aunque aún estén vacías. | G4 |
 | A9 | Notas: un lugar fijo donde encontrarlas en la tablet y en Windows. | N1 |
-| A10 | P6: pendiente del texto completo del propietario. | P6 |
+| A10 | P6: las escenas en Preparar tienen que ser más claras (comentario menor); lo cubre A3. | P6 |
 | A12 | Selector SRD → homebrew → custom al agregar objetos, armas, ataques, conjuros, dotes y similares a un PJ. | G4, D9 |
 | A11 | Crear PJ eligiendo desde el SRD (especie o raza, clase, subclase, trasfondo, dotes, conjuros y equipo) en el editor de PJ, 5e y 5.5e, y cada lista con su homebrew de A8. | G4, D8 |
 
