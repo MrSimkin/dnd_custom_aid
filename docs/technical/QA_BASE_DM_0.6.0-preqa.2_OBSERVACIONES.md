@@ -65,6 +65,12 @@ Esta lectura **no** es un diagnóstico cerrado. Solo explica qué falta comprend
 6. **N1.** En Windows la nota se puede crear; en la tablet quedó bloqueada por E1. Falta aclarar dónde buscó las notas y no las encontró.
 7. **Ventana de QA.** Faltaban «A medias», una observación por prueba fuera de la prueba y un cuadro final. Se agregaron en la versión 3 de la ventana, con las mismas pruebas.
 
+## Decisiones del propietario
+
+| # | Fecha | Pregunta | Respuesta, al pie de la letra | Consecuencia |
+| --- | --- | --- | --- | --- |
+| D1 | 2026-11-13 | ¿En la tablet quieres poder ser DM también sin iniciar sesión? (se recomendó que sí) | «No, solo con cuenta» | El Escritorio DM de la tablet exige una sesión con rol DM en la campaña. La corrección no agrega un DM local sin cuenta; debe hacer visible la cuenta y el rol, y explicar por qué no aparece el Escritorio DM. |
+
 ## Próximo paso
 
 1. Completar P6 y las observaciones generales con el propietario.
