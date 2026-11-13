@@ -170,6 +170,26 @@ Se entregó para armar un set de prueba realista. **No entra al repositorio púb
 - El detalle, con los nombres reales de los jugadores, queda fuera del repositorio, en `D:\DnD_Aid\Set de prueba Campus Celeste\PJ_del_grupo.md`.
 - El homebrew se extrae de esos manuales para la biblioteca de prueba (A8, A11 y A12). Los conjuros oficiales del Tomo que no están en el SRD solo se usan en datos privados, nunca en el repositorio.
 
+## D13 · Fuentes de reglas y jugadores asignables (2026-11-13)
+
+Respuesta del propietario, al pie de la letra (sin los nombres reales):
+
+> «y entiendo que no guardes los jugadores en el repo, pero si deben quedar en el set de prueba, listo para yo poder asignarlos / Recuerda que SRD es un prigen de datos de reglas, pero homebrew es otro, asique eso de los hechizos y reglas, va en esa parte / para la raza de Arruk, lee las reglas de semi raza en 1.4, es semi semi / main Orco, semi dragon»
+
+Consecuencias:
+
+- **Dos orígenes de reglas distintos.**
+  - El SRD es uno y solo trae el SRD.
+  - El homebrew del DM es otro, y lleva los manuales del propietario y el Tomo de Magia completo, incluso los conjuros oficiales que no están en el SRD.
+  - En los selectores (A12) se ven como orígenes separados.
+- **Jugadores.** El set incluye a los jugadores por nombre, listos para que el DM asigne cada PJ a su jugador. La App necesita un lugar donde asignar el jugador de cada PJ, aunque ese jugador todavía no tenga cuenta (A13).
+- **Semirraza.** Una especie puede llevar una semirraza (regla «Elige una semi-raza» del Manual 1.4): especie principal más rasgos acordados de otra.
+- **PJ del set.**
+  - Nerissa: Brujo con patrón Hexblade (su arma, Herian).
+  - Arruk: Bárbaro Berserker, Orco con semirraza dracónida.
+  - Silas: dominio sin definir.
+- Retratos de los 4 PJ, otro plano de Campus Celeste y el mapa del mundo (Terramore) quedan en el set privado.
+
 ## Alcance del rediseño (libro de aceptación)
 
 | # | Qué se hará | Observaciones que cubre |
@@ -185,6 +205,7 @@ Se entregó para armar un set de prueba realista. **No entra al repositorio púb
 | A9 | Notas: un lugar fijo donde encontrarlas en la tablet y en Windows. | N1 |
 | A10 | P6: las escenas en Preparar tienen que ser más claras (comentario menor); lo cubre A3. | P6 |
 | A12 | Selector SRD → homebrew → custom al agregar objetos, armas, ataques, conjuros, dotes y similares a un PJ. | G4, D9 |
+| A13 | Asignar a cada PJ su jugador o jugadora, aunque todavía no tenga cuenta en la App. | D13 |
 | A11 | Crear PJ eligiendo desde el SRD (especie o raza, clase, subclase, trasfondo, dotes, conjuros y equipo) en el editor de PJ, 5e y 5.5e, y cada lista con su homebrew de A8. | G4, D8 |
 
 ## Próximo paso
