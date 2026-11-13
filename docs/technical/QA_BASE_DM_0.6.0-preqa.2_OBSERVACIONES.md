@@ -125,6 +125,26 @@ Lectura del estado actual para G4 (sin cerrar):
 - **Respuesta, al pie de la letra:** «Sí, entra».
 - **Consecuencia:** se adelanta al QA del rediseño el trabajo de razas, clases, trasfondos, dotes, conjuros y objetos estructurados, que `ROADMAP.md` dejaba para después. La hoja V11 y su PDF no cambian de diseño; solo reciben los datos que se eligen.
 
+## D9 · Orden de selección en todo el editor (2026-11-13)
+
+- **Respuesta, al pie de la letra:** «no solo entra, pero varias cosas como agregar objetos, ataques, armas y similares, ahora debe por defecto permitir seleccionar desde el SRD, y luego desde homebrew, y luego desde custom».
+- **Consecuencia:** cada vez que se agrega algo a un PJ (objeto, arma, armadura, ataque, conjuro, dote, rasgo y similares), el selector ofrece primero el SRD, después el homebrew de la campaña o personal y al final la entrada libre (custom).
+
+## Material de prueba del propietario (2026-11-13)
+
+Se entregó para armar un set de prueba realista. **No entra al repositorio público.** Se procesa solo en la PC del propietario y en su servidor DEV.
+
+- `Campus_Celeste - Escenario de Campaña v2.docx`, con:
+  - ciudad en 7 distritos;
+  - unas 60 tiendas y servicios con inventario;
+  - 31 PNJ;
+  - 9 aventuras con escenas;
+  - dungeons por zonas (Sitio 021, La Torre, Depósitos Retenidos, Conductos, Capilla del Eco Sellado, Cuarto de Verificación);
+  - 6 diagramas.
+- `Banos_Campus_Celeste_v2_1_Maquetado.docx` y `v2_2_Compacto_A4.docx`, la minisesión de los baños; los dos textos son casi iguales.
+- `Campus_Celeste_10_ganchos_medallon.docx`.
+- 11 imágenes: mapas de la ciudad, la región con D1 a D5 y el distrito Pórtico Bajo.
+
 ## Alcance del rediseño (libro de aceptación)
 
 | # | Qué se hará | Observaciones que cubre |
@@ -139,6 +159,7 @@ Lectura del estado actual para G4 (sin cerrar):
 | A8 | SRD: lector del SRD para todos, y pantallas de homebrew por familia (objetos, clases, dotes, conjuros…), con su lugar reservado aunque aún estén vacías. | G4 |
 | A9 | Notas: un lugar fijo donde encontrarlas en la tablet y en Windows. | N1 |
 | A10 | P6: pendiente del texto completo del propietario. | P6 |
+| A12 | Selector SRD → homebrew → custom al agregar objetos, armas, ataques, conjuros, dotes y similares a un PJ. | G4, D9 |
 | A11 | Crear PJ eligiendo desde el SRD (especie o raza, clase, subclase, trasfondo, dotes, conjuros y equipo) en el editor de PJ, 5e y 5.5e, y cada lista con su homebrew de A8. | G4, D8 |
 
 ## Próximo paso
