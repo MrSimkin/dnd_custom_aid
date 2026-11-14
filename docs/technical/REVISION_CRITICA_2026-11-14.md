@@ -1,0 +1,82 @@
+# Revisión crítica de la App (2026-11-14)
+
+A pedido del propietario («quiero que hagas un análisis sobre toda la App… sin límites ni reservas»), el agente listó 15 problemas y 4 prioridades. Este documento registra las respuestas del propietario, textuales, y lo que se propone o decide para cada punto. Es la fuente de verdad para la etapa que sigue: el refactor va primero.
+
+## Respuestas del propietario y propuesta para cada punto
+
+| # | Problema | Respuesta textual | Propuesta o acción | Estado |
+| --- | --- | --- | --- | --- |
+| 1 | El contenido propio no tiene una forma real de entrar a la App. | «quiero que haya un importador que lea un formato dado, cosa que pueda darle mi material a una IA y lo convierta al formato que pueda importar en la App, pero aun no llegamos a eso.» | Un formato de importación documentado, pensado para que una IA lo produzca a partir de tus DOCX. Se diseña más adelante. | Para después |
+| 2 | El agente entrega candidatas sin haberlas usado en la App real. | «entonces corrigelo y registralo» | Regla nueva en AGENTS §6.4: antes de cada QA, recorrer la App real (Windows y emulador) con datos aparte, con capturas por prueba, y entregar solo lo que se vio funcionar. Windows tendrá una carpeta de datos aparte para esas pruebas. | Registrado; se aplica desde ya |
+| 3 | La sincronización es frágil y opaca, y no se sabe cómo consolidar diferencias. | «tienes razon y tampoco se como consolidar si hay diferencias» · «pero hay varias sincronizaciones, necesitas aclararme como hacerlo, que propones» | Ver «Propuesta de sincronización». | Espera decisión |
+| 4 | «Personal» contra «campaña» confunde. | «solicionalo» | Lo preparado vive en la campaña. Desaparecen los botones «Crear Personal», «Crear en campaña» y «Copiar a campaña». Queda una sola biblioteca del DM, solo para homebrew de reglas, siempre visible con su cuenta. Para reutilizar algo se usa «Copiar a otra campaña». El modelo de datos no cambia, solo lo que se ve. | Va en el refactor |
+| 5 | Lo de un aparato no siempre está en el otro. | «que propones?» | Una tabla pública de qué se hace dónde, aplicada sin excepciones. Windows: preparar todo, las mesas, crear PJ (se lleva el asistente) y cargar contenido. Tablet: las mesas, editar rápido, crear PJ y cargar contenido. Cargar contenido sale de «Diagnóstico» y pasa a «Campañas» en los dos. Preparar sigue en Windows (decisión D5). | Propuesto |
+| 6 | El rediseño quedó como fachada: los editores siguen con lenguaje técnico. | «entonces que propones?» | Cada objeto de Preparar se abre como la ficha que verás en la mesa, con «Editar» por bloque. Se van revisión, IDs, copias y tecnicismos. Personajes de Windows deja las líneas de auditoría («Tombstone», «outbox»), que pasan a Diagnóstico. | Aprobado (prioridad 4: «si») |
+| 7 | La ayuda tapa pantallas que no se explican solas. | «que propones» | Cada pantalla tiene una acción principal clara, y las pantallas vacías enseñan qué hacer («Aún no hay dungeons → ＋ Nuevo dungeon»). La ayuda queda como apoyo. Regla: si una pantalla necesita más de tres pasos de ayuda, se rediseña. | Propuesto |
+| 8 | Dos estilos visuales en Windows. | «entonces corrige» | Un solo estilo (Material 3) y un juego de componentes compartido por Windows y la tablet. | Va en el refactor |
+| 9 | No se ve cómo entra un jugador a la campaña. | «que propones» | En Jugadores de la campaña, «Invitar»: un código de 6 letras que vale 7 días. El jugador lo escribe en «Tus campañas → Unirme con código». Después el DM le asigna su PJ. | Propuesto; la privacidad la decide el propietario |
+| 10 | Los formularios son demasiado largos para la mesa. | «que pro`pones» | Dos vistas por objeto. «Ficha de mesa»: lo esencial en 5 o 6 líneas (qué es, qué quiere, secreto, combate breve), que es lo que muestran las mesas. «Preparación completa»: todo, con «Ver todo». | Propuesto |
+| 11 | Los datos extraídos automáticamente pueden traer errores sin aviso. | «que propones?» | Revisiones automáticas en cada construcción (todo monstruo con CA, PG y acciones; toda clase con 20 niveles…) y un informe de lo incompleto. En la App, «Ver en el SRD, p. X» para comparar con el original. Los conjuros del Tomo se completan cuando exista el importador del punto 1. | Propuesto |
+| 12 | Cargar el paquete otra vez no actualiza lo editado, y no se ve qué quedó viejo. | «entonces que propones» | Una pantalla «Cambios del paquete» lista lo que difiere de lo tuyo. Para cada objeto: «mantener lo mío», «usar lo del paquete» o «ver diferencias». Usa la misma pantalla de diferencias que la sincronización. | Propuesto |
+| 13 | Mucho código viejo y archivos enormes. | «entoncces llego la hora de refactorizar, ahora esto es prioridad antes de continuar» | Ver «Plan de refactor». | Prioridad 1 |
+| 14 | Peso de la APK y del SRD. | «eso no es un problema» | Sin cambios. | Cerrado |
+| 15 | Los topes del servidor gratuito. | «podemos hacer un sistema que dependa de una cuenta gratuita de drive o dropbox? pensemos en planes para cambiar.» | Ver «Planes para el servidor». | Espera decisión |
+
+Respuestas a las prioridades:
+1. Cambiar la forma de entregar: «ok».
+2. Cargar el contenido propio: «tendrémos que discutir como va a funcionar eso».
+3. Sincronización: «pero hay varias sincronizaciones, necesitas aclararme como hacerlo, que propones».
+4. Rehacer los editores de Preparar y llevar el asistente de PJ a Windows: «si».
+
+## Propuesta de sincronización
+
+**Hoy hay cinco sincronizaciones separadas:**
+1. Cuenta, campañas y roles.
+2. PJ (hojas).
+3. Contenido del DM (lugares, PNJ, escenas, dungeons, reglas…).
+4. Imágenes.
+5. Lo enviado a los jugadores.
+
+Cada una tiene su cola y sus reglas, y hay tres botones distintos que no corren todo.
+
+**Propuesta:**
+1. **Un solo «Sincronizar»** que corre las cinco en orden. Además corre solo al abrir la App y cada pocos minutos si hay conexión. El botón queda para forzarla.
+2. **Envío en lotes** de hasta cien objetos por petición. La primera carga de Campus Celeste pasa de unos 15 minutos a segundos, y se gastan cien veces menos peticiones del plan gratis (punto 15).
+3. **Una pantalla «Estado de sincronización»**, en palabras simples:
+   - «todo al día»;
+   - «3 cambios esperando conexión»;
+   - «1 diferencia que decidir»;
+   - «2 imágenes que faltan».
+4. **Regla para las diferencias**, que necesita la decisión del propietario:
+   - Si un objeto cambió en un solo aparato, gana ese cambio, sin preguntar.
+   - Si cambió en los dos, nada se pisa solo: la pantalla muestra las dos versiones lado a lado, con «quedarme con la de este aparato», «quedarme con la otra» o «guardar las dos».
+   - Lo borrado en un aparato y editado en otro se pregunta igual.
+5. **Los PJ siguen la misma regla.** El jugador de cada PJ pasa a viajar con el PJ.
+
+## Planes para el servidor (punto 15)
+
+Hoy el servidor es Cloudflare Worker + base Neon + KV para imágenes + Descope para entrar, todo en plan gratis. Los límites se revisan con los términos vigentes antes de decidir (AGENTS §10).
+
+| Plan | Qué es | A favor | En contra |
+| --- | --- | --- | --- |
+| A, recomendado | Seguir igual, con envío en lotes. | Ya funciona, con roles y permisos; las peticiones bajan unas cien veces. | El límite diario de escrituras de imágenes en KV sigue. |
+| B | A, pero las imágenes en tu Google Drive o Dropbox (una carpeta de la App, gratis), y el texto en el servidor. | Imágenes casi sin límite, en tu propia cuenta. | Una entrada más con Google o Dropbox; compartir imágenes con jugadores requiere enlaces. |
+| C | Todo en Drive o Dropbox, sin servidor propio. | Sin servidor que mantener. | Se pierden roles y permisos propios (invariante de AGENTS §3), los conflictos empeoran y cada jugador necesita acceso a tus carpetas. No recomendado. |
+
+## Plan de refactor (prioridad antes de continuar)
+
+**Regla:** sin cambios de comportamiento. Cada fase se verifica con las pruebas y recorriendo la App real (AGENTS §6.4).
+
+| Fase | Qué |
+| --- | --- |
+| F1 | Sacar código muerto: las hojas antiguas (Fantasy, Custom v1/v2) y sus pruebas, las pruebas de diseño viejas, nombres de etapas pasadas en lo nuevo. La hoja V11 no se toca. |
+| F2 | Un solo estilo: la App de Windows pasa a Material 3 y comparte componentes con la tablet (títulos, campos, tarjetas, ayuda, avisos). |
+| F3 | Dividir los archivos de más de mil líneas por responsabilidad: mesas, editores, sincronización. |
+| F4 | Lo de «Personal / campaña» (punto 4) y Personajes sin auditoría técnica (punto 6). |
+| F5 | Infraestructura de verificación: Windows con carpeta de datos aparte, recorrido guiado con capturas en Windows y en el emulador. |
+
+Después del refactor siguen: la sincronización (cuando se decida la regla), los editores como fichas (punto 6, aprobado), el asistente de PJ en Windows y el resto de los puntos propuestos.
+
+## Efecto sobre la candidata 0.7.0-preqa.3
+
+Se recomienda al propietario no hacer todavía el QA de preqa.3. El refactor produce una nueva candidata que el agente recorre primero en la App real. Las pruebas de la ventana «QA Reparaciones DM» se reutilizan.
