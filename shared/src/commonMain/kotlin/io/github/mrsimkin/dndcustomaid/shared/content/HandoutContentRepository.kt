@@ -89,7 +89,7 @@ class HandoutContentRepository(
 
     internal fun payload(id: Uuid): HandoutPayload? =
         database.handoutPayloadQueries.selectHandoutPayloadByContentId(id.toString()) {
-                _, kind, mediaType, sizeBytes, sha256, width, height, visibility, caption, notes ->
+                _, kind, mediaType, sizeBytes, sha256, width, height, visibility, caption, notes, shared, folder, tagsJson ->
             HandoutPayload(
                 kind = HandoutKind.valueOf(kind),
                 mediaType = mediaType,
@@ -100,6 +100,9 @@ class HandoutContentRepository(
                 visibility = HandoutVisibility.valueOf(visibility),
                 caption = caption,
                 notes = notes,
+                sharedWithPlayers = shared != 0L,
+                folder = folder,
+                tags = runCatching { kotlinx.serialization.json.Json.decodeFromString<List<String>>(tagsJson) }.getOrDefault(emptyList()),
             )
         }.executeAsOneOrNull()
 
@@ -115,6 +118,9 @@ class HandoutContentRepository(
             visibility = payload.visibility.name,
             caption = payload.caption,
             notes = payload.notes,
+            shared_with_players = if (payload.sharedWithPlayers) 1L else 0L,
+            folder = payload.folder,
+            tags_json = kotlinx.serialization.json.Json.encodeToString(payload.tags),
         )
     }
 
@@ -129,6 +135,9 @@ class HandoutContentRepository(
             visibility = payload.visibility.name,
             caption = payload.caption,
             notes = payload.notes,
+            shared_with_players = if (payload.sharedWithPlayers) 1L else 0L,
+            folder = payload.folder,
+            tags_json = kotlinx.serialization.json.Json.encodeToString(payload.tags),
             content_id = id.toString(),
         )
     }

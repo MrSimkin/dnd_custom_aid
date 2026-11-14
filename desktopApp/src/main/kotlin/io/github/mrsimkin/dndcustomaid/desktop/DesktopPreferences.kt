@@ -214,6 +214,7 @@ internal fun desktopSpacing(value: Dp): Dp {
     return value * (1f + signed * 0.70f)
 }
 
+@OptIn(androidx.compose.material.ExperimentalMaterialApi::class)
 @Composable
 internal fun DesktopAppTheme(
     preferences: DesktopPreferences,
@@ -229,6 +230,10 @@ internal fun DesktopAppTheme(
     CompositionLocalProvider(
         LocalDensity provides adjustedDensity,
         LocalDesktopSpacingScale provides preferences.spacingScalePercent,
+        // QA 0.7.0-preqa.2 (general comment): on a computer there is no finger to make room for, so
+        // checkboxes, radio buttons and small buttons drop the 48 dp touch margin around them.
+        androidx.compose.material.LocalMinimumInteractiveComponentEnforcement provides false,
+        androidx.compose.material3.LocalMinimumInteractiveComponentSize provides androidx.compose.ui.unit.Dp.Unspecified,
     ) {
         androidx.compose.material.MaterialTheme(
             colors = desktopColors(preferences.themeChoice),

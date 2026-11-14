@@ -168,7 +168,7 @@ internal fun CharacterBackgroundTabV4(
                         )
                         RulesPickButton(
                             kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.SPECIES),
-                            label = "📖 Elegir la especie del SRD o tu homebrew",
+                            label = "📖 Elegir la raza del SRD o tu homebrew",
                             onPick = { option ->
                                 onBackgroundChange(background.copy(race = option.name))
                                 onCanonicalOriginsChange(canonicalOrigins.withSpeciesName(option.name))
@@ -177,7 +177,7 @@ internal fun CharacterBackgroundTabV4(
                         if (canonicalOrigins.speciesIdentity?.name?.isNotBlank() == true) {
                             RulesPickButton(
                                 kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.SUBSPECIES),
-                                label = "📖 Elegir subespecie o semirraza",
+                                label = "📖 Elegir subraza o semirraza",
                                 onPick = { option -> onCanonicalOriginsChange(canonicalOrigins.withSubraceName(option.name)) },
                             )
                         }

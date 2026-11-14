@@ -250,8 +250,8 @@ class DesktopDmWorkspaceTest {
         shot("w5_escena_pnj_por_idea")
         onAllNodesWithText("📍 La Fragua Roja", useUnmergedTree = true)[0].performClick()
         shot("w6_escena_tienda")
-        onAllNodesWithText("Recorrer")[0].performClick()
-        onAllNodesWithText("Por aventura")[0].performClick()
+        // QA 0.7.0-preqa.2 (S5): «Por aventura» and «Mapa» are visible at once, no «Recorrer» step.
+        onAllNodesWithText("📜 Por aventura")[0].performClick()
         onAllNodesWithText("1. Llegada a la ciudad", useUnmergedTree = true)[0].performClick()
         shot("w7_escena_aventura")
         onAllNodesWithText("🗺 Mapa")[0].performClick()

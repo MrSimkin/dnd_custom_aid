@@ -150,8 +150,8 @@ internal fun DesktopCampaignPlayersScreen(
             DesktopCampaignAccess.LOCAL_ONLY -> item {
                 Text("«${activeCampaign.name}» está solo en este equipo: no tiene jugadores en el servidor.")
             }
-            DesktopCampaignAccess.PLAYER -> item {
-                NotDmNotice(campaignName = activeCampaign.name, session = accountSession, what = "La lista de jugadores")
+            DesktopCampaignAccess.PLAYER, DesktopCampaignAccess.NOT_MEMBER -> item {
+                NotDmNotice(campaignName = activeCampaign.name, session = accountSession, what = "La lista de jugadores", access = access)
             }
             else -> {
                 item {

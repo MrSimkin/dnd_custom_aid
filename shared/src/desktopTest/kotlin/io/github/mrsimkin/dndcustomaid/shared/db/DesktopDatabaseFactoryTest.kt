@@ -68,6 +68,11 @@ class DesktopDatabaseFactoryTest {
                     statement.execute("DROP TABLE reusable_content")
                     statement.execute("ALTER TABLE character_spell DROP COLUMN school")
                     statement.execute("ALTER TABLE character_class DROP COLUMN epic_levels_enabled")
+                    statement.execute("ALTER TABLE handout_payload DROP COLUMN shared_with_players")
+                    statement.execute("ALTER TABLE handout_payload DROP COLUMN folder")
+                    statement.execute("ALTER TABLE handout_payload DROP COLUMN tags_json")
+                    statement.execute("ALTER TABLE character_combat_entry DROP COLUMN linked_item_id")
+                    statement.execute("ALTER TABLE character_combat_entry DROP COLUMN linked_spell_id")
                     statement.execute("PRAGMA user_version = 0")
                 }
             }

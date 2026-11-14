@@ -102,4 +102,37 @@ La evidencia sale del código y de la base local de la App de Windows del propie
 | C1, D6 | No hay criaturas: los encuentros no traen monstruos y no se pueden agregar. | El paquete no crea criaturas y el SRD no ofrece monstruos. | Monstruos del SRD en el catálogo y «Añadir criatura» desde SRD → homebrew → custom. El paquete crea las criaturas de sus encuentros. |
 | S5, S6 | El propietario no encuentra «Recorrer» ni el mapa con marcas. | El botón está escondido en la Mesa de Escena. | «Recorrer» y «Mapa» quedan visibles arriba de la mesa y en la ayuda. |
 | General | Hay demasiado espacio vertical. | Márgenes amplios. | Diseño más compacto en Windows y en la tablet. |
-| D2 | Falla sin comentario. | Desconocida. | Se pregunta al propietario. |
+| D2 | Respuesta del propietario (2026-11-14): «no aparecían ni los PJ, ni las habilidades, no apareció en nada esa opción». | La mesa toma el grupo cuando empieza la exploración. Un PJ que no estaba entonces (por ejemplo, cargado después en la tablet) no aparece, y sin PJ tampoco se ven las actividades. En Windows, Sitio 021 sí tiene los 4 PJ. | Al abrir la mesa, los PJ de la campaña que falten se suman al grupo. Prueba del motor. |
+
+## Estado tras la reparación (candidata 0.7.0-preqa.3)
+
+Todas las observaciones quedan en **REPARADO, pendiente del QA del propietario**. Ninguna se da por cerrada sin su marca en el QA de la candidata. La guía es [QA_REPARACIONES_DM_0.7.0-preqa.3.md](QA_REPARACIONES_DM_0.7.0-preqa.3.md).
+
+| Obs. | Qué cambió | Evidencia automática | Prueba del QA |
+| --- | --- | --- | --- |
+| A2 | Nuevo acceso «No eres parte». Bloquea Escritorio DM, Preparar, Handouts y los PJ de otra cuenta. | `DesktopCampaignAccessTest` | A1 |
+| M4 | Una sola copia de la App en Windows. La cuenta se relee si otra copia la renovó. Una cuenta vencida pide entrar de nuevo. El error dice la causa. | — (comportamiento de proceso) | P3, A2, A3 |
+| L3 | La biblioteca personal dice de qué cuenta es y explica por qué está vacía. | — | A5 |
+| P8 | La lista de PJ de la tablet empieza solo con la campaña abierta. | — | A4 |
+| J8 | Windows exporta solo la hoja V11 A/B. | `DesktopPcSheetV11ExportUiTest` | F4 |
+| Raza | «Raza» y «Subraza» en toda la App. | — | F3 |
+| A5, L1, L2 | El SRD con títulos, tablas, etiquetas en negrita y listas, rehecho desde los PDF oficiales (`scripts/srd/SrdStructured.java`, `scripts/build_srd_layout.py`). | `SrdLayoutTest` | F1, F2 |
+| R3 | El generador privado llena «Mecánicas de combate» (31 PNJ con bloque). | Prueba del paquete privado | R1 |
+| R4 | La escena tiene 16 secciones propias (migración 37). El generador las llena y una nueva carga actualiza lo no editado. | `ContentBundleImporterTest` | P4, R2 |
+| G1 | Zoom, «Ajustar a la ventana» y desplazamiento en el plano. | `DesktopDungeonEditorTest` | R3 |
+| G3 | El arrastre ya no se reinicia al moverse la zona (lee la posición actual). | `DesktopDungeonEditorTest` | R4 |
+| G4 | La ficha de zona muestra sus encuentros con criaturas. El mapa tiene tamaños. | — | R5 |
+| H1 | Búsqueda, filtros, carpetas, etiquetas y miniaturas (migración 36). | `HostedDmContentSyncTest` | R6 |
+| H2 | La prueba se reescribió paso a paso. | — | R7 |
+| H3, H4, H5 | **Defecto encontrado al reparar:** «Enviar a los jugadores» no se guardaba en la base local, así que nunca llegaba al servidor. Ahora se guarda (migración 36). El QA indica la campaña y la cuenta para ver como jugador. | `HostedDmContentSyncTest.aHandoutSentToThePlayersStaysSentWithItsFolderAndTagsOnEveryDevice` | H1, H2, H3 |
+| C1, D6 | Monstruos del SRD (≈280 de 5e y ≈320 de 5.5e, `scripts/build_srd_monsters.py`) en «Agregar criaturas» y en Preparar → Criaturas. El paquete trae 14 criaturas del escenario dentro de sus encuentros. | `ContentBundleImporterTest` | C1, C2, C5 |
+| D2 | Los PJ que falten se suman al grupo al abrir la mesa. | `DungeonTest` | C4 |
+| J1 | Asistente nuevo: raza y subraza, varias clases (multiclase), subclase, trasfondo, características (arreglo, compra de puntos o a mano) con bonos, habilidades y equipo. Llena PV, salvaciones, competencias, rasgos por nivel, dote y monedas (`scripts/build_srd_rules.py`). | `CharacterBuilderTest` | J1, J2, J3 |
+| J4 | Un ataque se vincula a su arma o a un conjuro (migración 38). Hay un selector de conjuros. | — | J4, J5 |
+| S5, S6 | Los cinco modos de la Mesa de Escena están a la vista. | `DesktopDmWorkspaceTest` | W2 |
+| General | Windows sin el margen táctil de 48 dp y con títulos y relleno más compactos. | — | W1 |
+
+**Límites conocidos:**
+- Algunas cabeceras de las tablas de clase del SRD 5.1 salen partidas.
+- Un vínculo de ataque se hace solo con un arma que ya esté en Equipo.
+- Una carga nueva del paquete no actualiza lo que el DM ya editó.

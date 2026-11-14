@@ -22,6 +22,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -62,6 +63,8 @@ internal fun CharacterDirectoryScreen(
     var characters by remember { mutableStateOf(directoryRepository.listAllCharacters()) }
     var showCreateDialog by rememberSaveable { mutableStateOf(false) }
     var showImportCampaignDialog by rememberSaveable { mutableStateOf(false) }
+    // QA 0.7.0-preqa.2 (P8): the list starts with the open campaign's PCs only.
+    var showAllCampaigns by rememberSaveable { mutableStateOf(false) }
     var pendingImportCampaignId by rememberSaveable { mutableStateOf<String?>(null) }
     var importedCharacterId by rememberSaveable { mutableStateOf<String?>(null) }
     var importedCharacterName by rememberSaveable { mutableStateOf<String?>(null) }
@@ -188,7 +191,31 @@ internal fun CharacterDirectoryScreen(
                         )
                     }
 
-                    else -> items(characters, key = { it.id.toString() }) { character ->
+                    else -> {
+                        val openCampaign = defaultCampaignId?.let(campaignById::get)
+                        if (openCampaign != null && campaigns.size > 1) {
+                            item(key = "character-directory-filter") {
+                                Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
+                                    FilterChip(
+                                        selected = !showAllCampaigns,
+                                        onClick = { showAllCampaigns = false },
+                                        label = { Text("Solo «${openCampaign.name}»") },
+                                    )
+                                    FilterChip(
+                                        selected = showAllCampaigns,
+                                        onClick = { showAllCampaigns = true },
+                                        label = { Text("Todas las campañas") },
+                                    )
+                                }
+                            }
+                        }
+                        val visible = if (showAllCampaigns || openCampaign == null) characters else characters.filter { it.campaignId == openCampaign.id }
+                        if (visible.isEmpty()) {
+                            item(key = "character-directory-empty-campaign") {
+                                Text("«${openCampaign?.name}» todavía no tiene PJ en esta tablet.", style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                        items(visible, key = { it.id.toString() }) { character ->
                         CharacterDirectoryCard(
                             character = character,
                             campaignName = campaignById[character.campaignId]?.name ?: "Campaña no disponible",
@@ -196,19 +223,21 @@ internal fun CharacterDirectoryScreen(
                             onClick = { onEdit(character) },
                         )
                     }
+                    }
                 }
             }
         }
     }
 
     if (showCreateDialog && campaigns.isNotEmpty() && defaultCampaignId != null) {
-        CreateCharacterInCampaignDialog(
+        // QA 0.7.0-preqa.2 (J1): the step-by-step wizard fills the sheet from the SRD's rules.
+        CharacterCreationWizard(
             campaigns = campaigns,
             defaultCampaignId = defaultCampaignId,
             onDismiss = { showCreateDialog = false },
-            onCreate = { campaignId, name, start ->
+            onCreate = { campaignId, name, build ->
                 val created = repository.createCharacter(campaignId, name)
-                val character = start?.let { repository.saveCharacter(it.applyTo(created)) } ?: created
+                val character = build?.let { repository.saveCharacter(io.github.mrsimkin.dndcustomaid.shared.dm.buildCharacter(created, it)) } ?: created
                 reload()
                 showCreateDialog = false
                 onEdit(character)
@@ -364,7 +393,7 @@ private fun CreateCharacterInCampaignDialog(
         Text("Empezar desde el SRD o tu homebrew (opcional)", style = MaterialTheme.typography.titleSmall)
         Text(
             listOfNotNull(
-                start.species?.let { "Especie: ${it.name}" },
+                start.species?.let { "Raza: ${it.name}" },
                 start.characterClass?.let { "Clase: ${it.name} ${start.level}" },
                 start.subclass?.let { "Subclase: ${it.name}" },
                 start.background?.let { "Trasfondo: ${it.name}" },
@@ -373,7 +402,7 @@ private fun CreateCharacterInCampaignDialog(
         )
         RulesPickButton(
             kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.SPECIES),
-            label = "📖 Especie",
+            label = "📖 Raza",
             onPick = { start = start.copy(species = it) },
         )
         RulesPickButton(
@@ -431,7 +460,7 @@ private fun ChooseCharacterCampaignDialog(
 }
 
 @Composable
-private fun CampaignSelectorV4(
+internal fun CampaignSelectorV4(
     campaigns: List<Campaign>,
     selected: Campaign,
     onSelect: (Campaign) -> Unit,

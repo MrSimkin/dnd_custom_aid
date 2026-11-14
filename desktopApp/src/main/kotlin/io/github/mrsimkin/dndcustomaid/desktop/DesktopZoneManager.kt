@@ -94,6 +94,14 @@ class DesktopZoneManagerController(
     private val spine = IntegratedSpineRepository(database)
     private val reusableContent = ReusableContentRepository(database)
     private val zones = ZoneContentRepository(database, reusableContent)
+    private val encounters = io.github.mrsimkin.dndcustomaid.shared.content.EncounterContentRepository(database, reusableContent)
+    private val links = io.github.mrsimkin.dndcustomaid.shared.content.ContentLinksRepository(database)
+
+    /** QA 0.7.0-preqa.2 (G4): the encounters linked to a zone, to read them on its sheet. */
+    fun linkedEncounters(zoneId: Uuid): List<io.github.mrsimkin.dndcustomaid.shared.content.EncounterContent> =
+        links.links(zoneId).encounterIds.mapNotNull { encounters.encounter(it) }
+
+    fun participantName(id: Uuid?): String? = id?.let { reusableContent.content(it)?.displayName }
 
     fun personalOwnerAccountId(): Uuid? {
         val activeCampaignId = campaignRepository.activeCampaign()?.id
@@ -321,6 +329,8 @@ internal fun DesktopZoneManagerScreen(
             } else {
                 ZoneEditor(
                     content = selected,
+                    encounters = controller.linkedEncounters(selected.item.identity.id),
+                    participantName = controller::participantName,
                     draft = requireNotNull(draft),
                     activeCampaign = activeCampaign,
                     onDraftChange = { draft = it },
@@ -406,6 +416,8 @@ private fun ZoneList(
 @Composable
 private fun ZoneEditor(
     content: ZoneContent,
+    encounters: List<io.github.mrsimkin.dndcustomaid.shared.content.EncounterContent>,
+    participantName: (Uuid?) -> String?,
     draft: ZoneDraft,
     activeCampaign: Campaign?,
     onDraftChange: (ZoneDraft) -> Unit,
@@ -456,6 +468,29 @@ private fun ZoneEditor(
         item { ZoneField("Consecuencias preparadas (una por línea)", draft.consequences, false, 4) { onDraftChange(draft.copy(consequences = it)) } }
 
         item { ZoneSectionHeading("ENCUENTRO") }
+        if (encounters.isEmpty()) {
+            item { Text("Esta zona no tiene encuentros vinculados. Se vinculan en el plano del dungeon o en «Vínculos».", style = MaterialTheme.typography.caption) }
+        }
+        encounters.forEach { encounter ->
+            item(key = "encounter-${encounter.item.identity.id}") {
+                Card(elevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("⚔ ${encounter.item.displayName}", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+                        if (encounter.payload.summary.isNotBlank()) Text(encounter.payload.summary, style = MaterialTheme.typography.body2)
+                        if (encounter.payload.participants.isEmpty()) {
+                            Text("Sin criaturas todavía: se agregan en Preparar → Encuentros.", style = MaterialTheme.typography.caption)
+                        }
+                        encounter.payload.participants.forEach { participant ->
+                            val name = participantName(participant.sourceContentId) ?: participant.label
+                            Text("• ${participant.quantity} × $name" + participant.condition.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty(), style = MaterialTheme.typography.body2)
+                        }
+                        listOf("Entorno" to encounter.payload.environment, "Contexto" to encounter.payload.context, "Guía DM" to encounter.payload.dmGuidance, "Notas" to encounter.payload.notes)
+                            .filter { it.second.isNotBlank() }
+                            .forEach { (label, text) -> Text("$label: $text", style = MaterialTheme.typography.body2) }
+                    }
+                }
+            }
+        }
         item { ZoneField("Resumen del encuentro", draft.encounterBrief, false, 5) { onDraftChange(draft.copy(encounterBrief = it)) } }
 
         item { ZoneSectionHeading("APOYO DM") }

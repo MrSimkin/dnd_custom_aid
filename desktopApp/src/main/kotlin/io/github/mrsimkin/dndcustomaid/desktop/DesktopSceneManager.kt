@@ -422,7 +422,18 @@ private fun SceneEditor(
         }
 
         item { SceneField("Título", draft.displayName, true) { onDraftChange(draft.copy(displayName = it)) } }
-        item { SceneField("Propósito", draft.purpose, false, 4) { onDraftChange(draft.copy(purpose = it)) } }
+        item { SceneField("Para qué sirve (una o dos líneas)", draft.purpose, false, 2) { onDraftChange(draft.copy(purpose = it)) } }
+        // QA 0.7.0-preqa.2 (R4): every part of the scene has its own space.
+        io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.entries.forEach { section ->
+            item(key = "section-${section.name}") {
+                SceneField(
+                    section.label + if (section.forPlayers) " · para los jugadores" else "",
+                    draft.sections[section.name].orEmpty(),
+                    false,
+                    3,
+                ) { text -> onDraftChange(draft.copy(sections = draft.sections + (section.name to text))) }
+            }
+        }
         item {
             SceneField(
                 "Posibles escenas siguientes (una por línea)",
@@ -468,12 +479,14 @@ private data class SceneDraft(
     val possibleNextScenes: String,
     val references: String,
     val notes: String,
+    val sections: Map<String, String> = emptyMap(),
 ) {
     fun toPayload(): ScenePayload = ScenePayload(
         purpose = purpose,
         possibleNextScenes = parseSceneLines(possibleNextScenes),
         references = parseSceneLines(references),
         notes = notes,
+        sections = sections.mapValues { it.value.trim() }.filterValues { it.isNotEmpty() },
     )
 
     companion object {
@@ -483,6 +496,7 @@ private data class SceneDraft(
             possibleNextScenes = content.payload.possibleNextScenes.joinToString("\n"),
             references = content.payload.references.joinToString("\n"),
             notes = content.payload.notes,
+            sections = content.payload.sections,
         )
     }
 }

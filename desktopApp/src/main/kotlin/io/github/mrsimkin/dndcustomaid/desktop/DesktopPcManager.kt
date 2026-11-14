@@ -424,7 +424,7 @@ internal fun DesktopPcManagerScreen(
                         ),
                     ) ?: return
                     exportBusy = true
-                    statusMessage = "Generando PDF de PRUEBA INTERNA..."
+                    statusMessage = "Generando el PDF…"
                     coroutineScope.launch {
                         try {
                             val proof = withContext(Dispatchers.IO) {
@@ -441,7 +441,7 @@ internal fun DesktopPcManagerScreen(
                             val file = withContext(Dispatchers.IO) {
                                 exportService.saveV11Proof(proof, target)
                             }
-                            statusMessage = "PDF PREQA guardado: " + file.absolutePath +
+                            statusMessage = "PDF guardado: " + file.absolutePath +
                                 ". Es una prueba interna, NO el diseño visual aprobado."
                             onQaEvent("PC Manager: PDF V11 interno guardado para " + selectedDetails.character.id)
                         } catch (error: Throwable) {
@@ -454,7 +454,7 @@ internal fun DesktopPcManagerScreen(
 
                 fun shareV11ProofPdf() {
                     exportBusy = true
-                    statusMessage = "Generando PDF PREQA para compartir..."
+                    statusMessage = "Generando el PDF para compartir…"
                     coroutineScope.launch {
                         try {
                             val proof = withContext(Dispatchers.IO) {
@@ -743,97 +743,19 @@ private fun PcSheetPdfExportPanel(
     onSaveV11Proof: () -> Unit,
     onShareV11Proof: () -> Unit,
 ) {
+    // QA 0.7.0-preqa.2 (J8): V11 is the only sheet, as on the tablet; the old families are gone.
     PcAuditSection("Exportar hoja de PJ (PDF)") {
-        Text(
-            "Generación local/offline usando el mismo renderer aprobado. Guardar y Compartir no alteran el diseño ni el contenido del PDF.",
-            style = MaterialTheme.typography.body2,
-        )
-
+        Text("Hoja V11, la misma de la tablet. Se genera en este equipo, sin conexión.", style = MaterialTheme.typography.body2)
         PcSheetExportChoiceRow(
-            label = "Diseño",
-            values = PcSheetVisualFamily.entries,
-            selected = options.visualFamily,
-            render = ::pcSheetFamilyLabel,
-            onSelect = { onOptionsChange(options.copy(visualFamily = it)) },
-        )
-        PcSheetExportChoiceRow(
-            label = "Estado",
-            values = PcSheetExportStateSelection.entries,
-            selected = options.stateSelection,
-            render = ::pcSheetStateLabel,
-            onSelect = { onOptionsChange(options.copy(stateSelection = it)) },
-        )
-
-        val hasCustomStatistics =
-            details.successor.customAttributes.isNotEmpty() || details.closure.customSkills.isNotEmpty()
-        if (hasCustomStatistics) {
-            PcSheetExportChoiceRow(
-                label = "Estadísticas personalizadas",
-                values = PcSheetCustomStatisticsPresentation.entries,
-                selected = options.customStatisticsPresentation,
-                render = ::pcSheetCustomStatisticsLabel,
-                onSelect = { onOptionsChange(options.copy(customStatisticsPresentation = it)) },
-            )
-        }
-
-        if (!details.closure.portraitRef.isNullOrBlank()) {
-            PcSheetExportChoiceRow(
-                label = "Retrato",
-                values = PcSheetPortraitFitMode.entries,
-                selected = options.portraitFitMode,
-                render = ::pcSheetPortraitFitLabel,
-                onSelect = { onOptionsChange(options.copy(portraitFitMode = it)) },
-            )
-        } else {
-            PcAuditLine("Retrato", "sin retrato asociado")
-        }
-
-        Text("Spellbook", style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
-        if (options.includeSpellDescriptions) {
-            Button(onClick = { onOptionsChange(options.copy(includeSpellDescriptions = false)) }) {
-                Text("Incluir descripciones: sí")
-            }
-        } else {
-            TextButton(onClick = { onOptionsChange(options.copy(includeSpellDescriptions = true)) }) {
-                Text("Incluir descripciones: no")
-            }
-        }
-
-        if (options.stateSelection == PcSheetExportStateSelection.CURRENT_SNAPSHOT) {
-            Text(
-                "Si este Desktop no dispone de un snapshot actual separado, el planner exportará el estado permanente y lo informará.",
-                style = MaterialTheme.typography.caption,
-            )
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(enabled = !busy, onClick = onSave) {
-                Text(if (busy) "Generando…" else "Guardar PDF…")
-            }
-            Button(enabled = !busy, onClick = onShare) {
-                Text(if (busy) "Generando…" else "Compartir PDF")
-            }
-        }
-        Text("PDF V11 — PRUEBA INTERNA (NO aprobado)", style = MaterialTheme.typography.subtitle2)
-        PcSheetExportChoiceRow(
-            label = "Variante de diagnóstico",
+            label = "Hoja",
             values = PcSheetV11Variant.entries,
             selected = v11ProofVariant,
-            render = { it.name },
+            render = { if (it == PcSheetV11Variant.A) "A · Habilidades por atributo" else "B · Habilidades en orden alfabético" },
             onSelect = onV11VariantChange,
         )
-        Text(
-            "Estas opciones generan PDFs reales con el renderer nuevo, pero el diseño aún es incompleto. " +
-                "No reemplazan ninguna de las cuatro familias anteriores.",
-            style = MaterialTheme.typography.caption,
-        )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(enabled = !busy, onClick = onSaveV11Proof) {
-                Text("Guardar PDF PREQA")
-            }
-            Button(enabled = !busy, onClick = onShareV11Proof) {
-                Text("Compartir PDF PREQA")
-            }
+            Button(enabled = !busy, onClick = onSaveV11Proof) { Text(if (busy) "Generando…" else "Guardar PDF…") }
+            Button(enabled = !busy, onClick = onShareV11Proof) { Text(if (busy) "Generando…" else "Compartir PDF") }
         }
         Text(
             "Compartir prepara un PDF temporal y lo coloca en el portapapeles del sistema como archivo; pégalo en un destino compatible.",
@@ -1159,7 +1081,7 @@ private fun PcSuccessorInspection(state: CharacterSuccessorState) {
             },
         )
         PcAuditLine("Configuraciones de recursos", state.resourceConfigurations.size.toString())
-        PcAuditLine("Especie / raza", state.speciesIdentity?.name ?: "—")
+        PcAuditLine("Raza", state.speciesIdentity?.name ?: "—")
         PcAuditLine("Subraza", state.subraceIdentity?.name ?: "—")
         PcAuditLine("Background canónico", state.backgroundIdentity?.name ?: "—")
         PcAuditLine("Subclases con identidad", state.subclassIdentities.size.toString())

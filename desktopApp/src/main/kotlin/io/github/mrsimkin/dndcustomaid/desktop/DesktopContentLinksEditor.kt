@@ -5,6 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Checkbox
 import androidx.compose.material.DropdownMenu
@@ -455,8 +458,17 @@ private fun MapPinsEditor(image: ImageBitmap?, pins: List<MapPin>, targets: List
         Text("Haz clic en el mapa para poner una marca; arrástrala para moverla.", style = MaterialTheme.typography.caption)
         // Redesign A5 (owner observation P7): a mark follows the mouse while dragged and is saved on release.
         var dragging by remember { mutableStateOf<Pair<Int, Pair<Double, Double>>?>(null) }
+        // QA 0.7.0-preqa.2 (G4): the map can be enlarged to read it; it scrolls when it is bigger.
+        var mapZoom by remember { mutableStateOf(1) }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Tamaño del mapa:", style = MaterialTheme.typography.caption)
+            listOf(1 to "Normal", 2 to "Grande", 3 to "Muy grande").forEach { (z, label) ->
+                if (mapZoom == z) Button(onClick = { mapZoom = z }) { Text(label) } else TextButton(onClick = { mapZoom = z }) { Text(label) }
+            }
+        }
+        Box(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
         BoxWithConstraints(
-            modifier = Modifier.widthIn(max = 720.dp).fillMaxWidth().aspectRatio(image.width.toFloat() / image.height.coerceAtLeast(1)),
+            modifier = Modifier.width((760 * mapZoom).dp).aspectRatio(image.width.toFloat() / image.height.coerceAtLeast(1)),
         ) {
             val w = constraints.maxWidth.toFloat()
             val h = constraints.maxHeight.toFloat()
@@ -502,6 +514,7 @@ private fun MapPinsEditor(image: ImageBitmap?, pins: List<MapPin>, targets: List
                         .testTag("map-pin-${index + 1}"),
                 ) { Text("${index + 1}", color = Color.White, fontWeight = FontWeight.Bold) }
             }
+        }
         }
         pins.forEachIndexed { index, pin ->
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {

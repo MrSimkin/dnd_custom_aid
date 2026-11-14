@@ -6,6 +6,7 @@ import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.runDesktopComposeUiTest
@@ -116,26 +117,22 @@ class DesktopPcSheetV11ExportUiTest {
                     events.count { it.contains(fragment) } >= count
                 }
 
-                // V11 is its own opt-in: variant A is selected and saved through its own button.
-                press("Guardar PDF PREQA")
+                // QA 0.7.0-preqa.2 (J8): V11 is the only sheet; the old families are not offered.
+                onAllNodes(hasText("Fantasy Sheet", substring = true)).assertCountEquals(0)
+                onAllNodes(hasText("Custom v1", substring = true)).assertCountEquals(0)
+                press("Guardar PDF…")
                 awaitEvent("PDF V11 interno guardado", 1)
-                onNodeWithText("PDF PREQA guardado", substring = true).assertExists()
+                onNodeWithText("PDF guardado", substring = true).assertExists()
 
                 // B is reachable from the same panel and goes through Save.
-                press("B")
+                press("B · Habilidades en orden alfabético")
                 waitForIdle()
-                press("Guardar PDF PREQA")
+                press("Guardar PDF…")
                 awaitEvent("PDF V11 interno guardado", 2)
 
                 // Share delivers the same document as a file.
-                press("Compartir PDF PREQA")
+                press("Compartir PDF")
                 awaitEvent("PDF V11 interno compartido", 1)
-
-                // The old family keeps its own button and its own file name.
-                press("Guardar PDF…")
-                waitUntil(timeoutMillis = 120_000) {
-                    File(out, "Prueba UI - Hoja de PJ - Fantasy Sheet.pdf").isFile
-                }
                 waitForIdle()
             }
 
@@ -147,8 +144,8 @@ class DesktopPcSheetV11ExportUiTest {
                         includeSpellDescriptions = it.includeSpellDescriptions)
                 }, sources).bytes)
 
-            val savedA = File(out, "Prueba UI - Hoja de PJ - PREQA V11 A.pdf")
-            val savedB = File(out, "Prueba UI - Hoja de PJ - PREQA V11 B.pdf")
+            val savedA = File(out, "Prueba UI - Hoja de PJ V11 A.pdf")
+            val savedB = File(out, "Prueba UI - Hoja de PJ V11 B.pdf")
             assertTrue(savedA.isFile && savedB.isFile, "Both variants were saved: ${out.list()?.toList()}")
             assertEquals(expected(PcSheetV11Variant.A), text(savedA.readBytes()), "Save A wrote variant A.")
             assertEquals(expected(PcSheetV11Variant.B), text(savedB.readBytes()), "Save B wrote variant B.")
@@ -158,8 +155,6 @@ class DesktopPcSheetV11ExportUiTest {
             assertEquals(savedB.name, shareFile.name, "Share keeps the selected variant.")
             assertEquals(text(savedB.readBytes()), text(shareFile.readBytes()), "Share and Save give the same sheet.")
 
-            val old = text(File(out, "Prueba UI - Hoja de PJ - Fantasy Sheet.pdf").readBytes())
-            assertNotEquals(text(savedA.readBytes()), old, "The old family is still a different document.")
         } finally {
             handle.close()
             dir.deleteRecursively()

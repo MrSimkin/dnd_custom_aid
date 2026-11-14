@@ -52,6 +52,10 @@ import java.awt.datatransfer.StringSelection
 import java.io.File
 
 fun main() {
+    if (!DesktopSingleInstance.acquire(DesktopDatabaseFactory.defaultDatabaseFile().parentFile)) {
+        DesktopSingleInstance.tellAlreadyOpen()
+        return
+    }
     val databaseFactory = DesktopDatabaseFactory()
     val databaseHandle = databaseFactory.create()
     val dataDirectory = DesktopDatabaseFactory.defaultDatabaseFile().parentFile
@@ -195,7 +199,7 @@ private fun DesktopWorkbench(
 
     // The Escritorio DM takes the whole window, like on the tablet; «← Mesa de trabajo» comes back here.
     val deskCampaign = activeCampaign
-    if (destination == DesktopDestination.DM_DESK && deskCampaign != null && access != DesktopCampaignAccess.PLAYER) {
+    if (destination == DesktopDestination.DM_DESK && deskCampaign != null && access?.blocksDm != true) {
         DesktopDmWorkspaceScreen(
             campaign = deskCampaign,
             database = database,
@@ -222,14 +226,16 @@ private fun DesktopWorkbench(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .padding(desktopSpacing(24.dp)),
+                    .padding(horizontal = desktopSpacing(20.dp), vertical = desktopSpacing(12.dp)),
             ) {
                 val campaign = activeCampaign
-                val dmOnly = destination == DesktopDestination.PREPARE || destination == DesktopDestination.DM_DESK
+                val dmOnly = destination == DesktopDestination.PREPARE || destination == DesktopDestination.DM_DESK ||
+                    destination == DesktopDestination.HANDOUTS ||
+                    (destination == DesktopDestination.CHARACTERS && access == DesktopCampaignAccess.NOT_MEMBER)
                 when {
                     dmOnly && campaign == null -> ChooseCampaignFirst(destination) { selectDestination(DesktopDestination.CAMPAIGNS) }
-                    dmOnly && campaign != null && access == DesktopCampaignAccess.PLAYER ->
-                        NotDmNotice(campaignName = campaign.name, session = accountSession, what = destination.label)
+                    dmOnly && campaign != null && access?.blocksDm == true ->
+                        NotDmNotice(campaignName = campaign.name, session = accountSession, what = destination.label, access = access)
                     else -> when (destination) {
                         DesktopDestination.HOME -> HomeScreen(
                             activeCampaign = activeCampaign,
@@ -371,8 +377,8 @@ private fun HomeScreen(
             Text(activeCampaign.name, style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
             access?.let { AccessChip(it) }
         }
-        if (access == DesktopCampaignAccess.PLAYER) {
-            NotDmNotice(campaignName = activeCampaign.name, session = accountSession, what = "El Escritorio DM")
+        if (access?.blocksDm == true) {
+            NotDmNotice(campaignName = activeCampaign.name, session = accountSession, what = "El Escritorio DM", access = access)
             return@Column
         }
         Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp))) {
@@ -476,7 +482,9 @@ private fun CampaignsScreen(
                                 AccessChip(access)
                                 if (isActive) Text("· abierta", style = MaterialTheme.typography.caption)
                                 Spacer(Modifier.weight(1f))
-                                if (access == DesktopCampaignAccess.PLAYER) {
+                                if (access == DesktopCampaignAccess.NOT_MEMBER) {
+                                    Unit
+                                } else if (access == DesktopCampaignAccess.PLAYER) {
                                     OutlinedButton(onClick = { onOpenCharacters(campaign) }) { Text("Ver mis PJ") }
                                 } else {
                                     Button(onClick = { onOpenDesk(campaign) }) { Text("Abrir Escritorio DM") }
@@ -489,6 +497,10 @@ private fun CampaignsScreen(
                                 )
                                 DesktopCampaignAccess.LOCAL_ONLY -> Text(
                                     "Esta campaña está solo en este equipo: no llega a la tablet.",
+                                    style = MaterialTheme.typography.caption,
+                                )
+                                DesktopCampaignAccess.NOT_MEMBER -> Text(
+                                    "Con ${accountSession.email ?: "esta cuenta"} no eres parte de esta campaña: es de otra cuenta que usó este equipo.",
                                     style = MaterialTheme.typography.caption,
                                 )
                                 DesktopCampaignAccess.DM -> Unit
@@ -516,6 +528,7 @@ private fun DesktopRulesScreen(
                 database = database,
                 ownerAccountId = accountSession.accountId,
                 campaignId = activeCampaign?.id,
+                ownerLabel = accountSession.email,
             )
         }
     }
@@ -656,7 +669,7 @@ internal fun WorkbenchHeading(title: String, subtitle: String, help: String? = S
     var showHelp by remember(title) { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(4.dp))) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp))) {
-            Text(text = title, style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+            Text(text = title, style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
             if (help != null) {
                 TextButton(onClick = { showHelp = !showHelp }, modifier = Modifier.handCursor()) { Text("? ¿Cómo se usa?") }
             }

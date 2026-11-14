@@ -15,6 +15,11 @@ import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.OutlinedButton
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
@@ -45,7 +50,7 @@ import io.github.mrsimkin.dndcustomaid.shared.spine.RevisionDecision
 import kotlin.uuid.Uuid
 
 class DesktopCreatureManagerController(
-    database: AppDatabase,
+    private val database: AppDatabase,
     private val nowEpochSeconds: () -> Long = { System.currentTimeMillis() / 1000L },
 ) {
     private val campaignRepository = CampaignRepository(database)
@@ -85,6 +90,18 @@ class DesktopCreatureManagerController(
             .mapNotNull { creatures.creature(it.identity.id) }
 
     fun creature(id: Uuid): CreatureContent? = creatures.creature(id)
+
+    /** QA 0.7.0-preqa.2 (C1, D6): the SRD monsters, ready to become the campaign's creatures. */
+    val srdMonsters: List<io.github.mrsimkin.dndcustomaid.shared.dm.SrdMonster> by lazy {
+        runCatching {
+            val text = checkNotNull(DesktopCreatureManagerController::class.java.getResourceAsStream("/srd/${io.github.mrsimkin.dndcustomaid.shared.dm.SRD_MONSTERS_FILE}"))
+                .bufferedReader(Charsets.UTF_8).use { it.readText() }
+            io.github.mrsimkin.dndcustomaid.shared.dm.parseSrdMonsters(text)
+        }.getOrDefault(emptyList())
+    }
+
+    fun adoptSrd(campaignId: Uuid, monster: io.github.mrsimkin.dndcustomaid.shared.dm.SrdMonster): CreatureContent =
+        io.github.mrsimkin.dndcustomaid.shared.dm.adoptSrdMonster(database, campaignId, monster, nowEpochSeconds())
 
     fun createPersonal(ownerAccountId: Uuid, displayName: String): CreatureContent =
         creatures.createPersonal(
@@ -134,6 +151,7 @@ fun CreatureManagerScreen(
     var newName by remember { mutableStateOf("") }
     var selectedId by remember { mutableStateOf<Uuid?>(null) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
+    var choosingSrd by remember { mutableStateOf(false) }
 
     val ownerAccountId = remember(refreshVersion, activeCampaign?.id) {
         controller.personalOwnerAccountId()
@@ -227,6 +245,34 @@ fun CreatureManagerScreen(
                     }.onFailure { error -> statusMessage = error.message ?: "No se pudo crear la criatura de campaña." }
                 },
             ) { Text("Crear en campaña") }
+            OutlinedButton(enabled = activeCampaign != null, onClick = { choosingSrd = true }) { Text("📖 Añadir del SRD…") }
+        }
+        if (choosingSrd && activeCampaign != null) {
+            var srdQuery by remember { mutableStateOf("") }
+            AlertDialog(
+                onDismissRequest = { choosingSrd = false },
+                title = { Text("Monstruos del SRD") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Elige uno: queda como criatura de «${activeCampaign.name}» y puedes ajustarlo.", style = MaterialTheme.typography.caption)
+                        OutlinedTextField(value = srdQuery, onValueChange = { srdQuery = it }, label = { Text("Buscar por nombre o VD") }, singleLine = true)
+                        Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
+                            io.github.mrsimkin.dndcustomaid.shared.dm.searchSrdMonsters(controller.srdMonsters, srdQuery).forEach { monster ->
+                                TextButton(onClick = {
+                                    val created = controller.adoptSrd(activeCampaign.id, monster)
+                                    choosingSrd = false
+                                    statusMessage = "«${created.item.displayName}» quedó en ${activeCampaign.name}."
+                                    onQaEvent("Creature Manager: monstruo del SRD ${monster.name} (${monster.edition})")
+                                    refresh(created.item.identity.id)
+                                }) {
+                                    Text(listOfNotNull(monster.name, "SRD ${monster.edition}", monster.payload.challengeRating.takeIf { it.isNotBlank() }?.let { "VD $it" }, monster.payload.armorClass?.let { "CA $it" }, monster.payload.hitPoints?.let { "PV $it" }).joinToString(" · "))
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = { TextButton(onClick = { choosingSrd = false }) { Text("Cerrar") } },
+            )
         }
 
         if (ownerAccountId == null) {

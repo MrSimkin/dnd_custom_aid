@@ -63,6 +63,16 @@ internal enum class DesktopAccountGate {
     READY,
 }
 
+/**
+ * The open account's access to a campaign. A campaign with nobody on the server is local; one that
+ * has members but not this account belongs to another account (QA 0.7.0-preqa.2, A2).
+ */
+internal fun desktopCampaignAccess(accountId: Uuid?, memberships: List<io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembership>): DesktopCampaignAccess {
+    if (memberships.isEmpty()) return DesktopCampaignAccess.LOCAL_ONLY
+    val mine = accountId?.let { id -> memberships.firstOrNull { it.accountId == id } } ?: return DesktopCampaignAccess.NOT_MEMBER
+    return if (mine.role == CampaignRole.DM && mine.status == CampaignMembershipStatus.ACTIVE) DesktopCampaignAccess.DM else DesktopCampaignAccess.PLAYER
+}
+
 /** The account's role in one campaign, as the App shows it. */
 internal enum class DesktopCampaignAccess(val label: String) {
     DM("DM"),
@@ -70,6 +80,13 @@ internal enum class DesktopCampaignAccess(val label: String) {
 
     /** A campaign that exists only on this computer (made before accounts were required). */
     LOCAL_ONLY("Solo en este equipo"),
+
+    /** QA 0.7.0-preqa.2 (A2): a campaign on the server where the open account is not a member. */
+    NOT_MEMBER("No eres parte"),
+    ;
+
+    /** Escritorio DM, Preparar and the player list are only for the campaign's DM (or local campaigns). */
+    val blocksDm: Boolean get() = this == PLAYER || this == NOT_MEMBER
 }
 
 /**
@@ -107,6 +124,16 @@ internal class DesktopAccountSession(
     /** Bumped whenever campaigns or memberships may have changed, so lists reload. */
     var campaignsVersion by mutableStateOf(0)
         private set
+
+    init {
+        // QA 0.7.0-preqa.2 (M4): a refused account sends the App back to «Entra con tu cuenta» with
+        // a clear reason, instead of failing every sync with a generic message.
+        auth.onAccountExpired = {
+            email = null
+            message = "Tu cuenta venció en este equipo. Vuelve a entrar; lo que preparaste sigue aquí."
+            gate = DesktopAccountGate.SIGN_IN
+        }
+    }
 
     val canRemember: Boolean get() = auth.canRemember
     val pendingEmail: String? get() = auth.pendingLoginEmail()
@@ -199,15 +226,8 @@ internal class DesktopAccountSession(
         gate = DesktopAccountGate.SIGN_IN
     }
 
-    fun access(campaignId: Uuid): DesktopCampaignAccess {
-        val account = accountId ?: return DesktopCampaignAccess.LOCAL_ONLY
-        val membership = hosted.membership(campaignId, account) ?: return DesktopCampaignAccess.LOCAL_ONLY
-        return if (membership.role == CampaignRole.DM && membership.status == CampaignMembershipStatus.ACTIVE) {
-            DesktopCampaignAccess.DM
-        } else {
-            DesktopCampaignAccess.PLAYER
-        }
-    }
+    fun access(campaignId: Uuid): DesktopCampaignAccess =
+        desktopCampaignAccess(accountId, hosted.memberships(campaignId))
 
     /** Short status for the top bar, next to «⟳ Sincronizar». */
     fun syncStatus(): String = when {
@@ -354,6 +374,7 @@ internal fun AccessChip(access: DesktopCampaignAccess) {
         DesktopCampaignAccess.DM -> Color(0xFF2E7D5B).copy(alpha = 0.18f) to Color(0xFF3FA57A)
         DesktopCampaignAccess.PLAYER -> Color(0xFF3D63B8).copy(alpha = 0.18f) to Color(0xFF6F93E0)
         DesktopCampaignAccess.LOCAL_ONLY -> MaterialTheme.colors.onSurface.copy(alpha = 0.10f) to MaterialTheme.colors.onSurface.copy(alpha = 0.75f)
+        DesktopCampaignAccess.NOT_MEMBER -> Color(0xFFB3342B).copy(alpha = 0.16f) to Color(0xFFE07A70)
     }
     Text(
         access.label,
@@ -439,14 +460,20 @@ internal fun NotDmNotice(
     campaignName: String,
     session: DesktopAccountSession,
     what: String,
+    access: DesktopCampaignAccess = DesktopCampaignAccess.PLAYER,
 ) {
     val scope = rememberCoroutineScope()
     Card(elevation = 2.dp, modifier = Modifier.widthIn(max = 720.dp)) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("$what no se abre con esta cuenta", style = MaterialTheme.typography.h6, fontWeight = FontWeight.Bold)
             Text(
-                "En «$campaignName» eres Jugador con ${session.email ?: "esta cuenta"}. " +
-                    "Para prepararla o dirigirla, entra con la cuenta que es DM de esa campaña.",
+                if (access == DesktopCampaignAccess.NOT_MEMBER) {
+                    "Con ${session.email ?: "esta cuenta"} no eres parte de «$campaignName»: la campaña es de otra cuenta. " +
+                        "Lo que está en este equipo no se muestra ni se cambia con esta cuenta. Para prepararla o dirigirla, entra con la cuenta que es DM."
+                } else {
+                    "En «$campaignName» eres Jugador con ${session.email ?: "esta cuenta"}. " +
+                        "Para prepararla o dirigirla, entra con la cuenta que es DM de esa campaña."
+                },
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { scope.launch { session.signOut(changingUser = true) } }) { Text("Cambiar usuario") }

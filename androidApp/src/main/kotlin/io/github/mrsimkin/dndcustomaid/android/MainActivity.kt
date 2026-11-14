@@ -335,6 +335,7 @@ private fun DndCustomAidApp(
                 accountId = entryStore.accountId,
                 campaignId = campaignRepository.activeCampaign()?.id,
                 onBack = { screenName = AppScreen.CAMPAIGNS.name },
+                ownerLabel = entryStore.accountEmail,
             )
 
             AppScreen.CHARACTER_EDITOR -> {

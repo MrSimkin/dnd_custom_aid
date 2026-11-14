@@ -141,6 +141,9 @@ internal class DesktopHostedAuthController(
         }
     }
 
+    /** Called when the remembered account is refused by Descope, so the App asks to sign in again. */
+    var onAccountExpired: (() -> Unit)? = null
+
     override suspend fun accessToken(): String? {
         val current = session ?: return null
         if (!jwtExpiresSoon(current.sessionJwt)) {
@@ -151,6 +154,7 @@ internal class DesktopHostedAuthController(
             refreshSession(current).sessionJwt
         } catch (expired: DesktopLoginExpiredException) {
             forget()
+            onAccountExpired?.invoke()
             null
         } catch (offline: Exception) {
             // No connection: keep the account; the hosted call fails and the App says it is offline.
@@ -189,7 +193,7 @@ internal class DesktopHostedAuthController(
         httpClient.close()
     }
 
-    private suspend fun refreshSession(current: DesktopHostedSession): DesktopHostedSession {
+    private suspend fun refreshSession(current: DesktopHostedSession, retried: Boolean = false): DesktopHostedSession {
         val response = httpClient.post("${descopeBaseUrl.trimEnd('/')}/v1/auth/refresh") {
             bearerAuth("$projectId:${current.refreshJwt}")
             contentType(ContentType.Application.Json)
@@ -197,6 +201,12 @@ internal class DesktopHostedAuthController(
         val body = response.bodyAsText()
         val status = response.status.value
         if (status == 400 || status == 401 || status == 403) {
+            // QA 0.7.0-preqa.2 (M4): another copy of the App may have renewed the account and saved a
+            // newer refresh token. Use the remembered one before giving up.
+            val saved = if (retried) null else runCatching { vault.load() }.getOrNull()
+            if (saved != null && saved.refreshJwt != current.refreshJwt && saved.email == accountEmail) {
+                return refreshSession(DesktopHostedSession(sessionJwt = "", refreshJwt = saved.refreshJwt), retried = true)
+            }
             throw DesktopLoginExpiredException("La cuenta recordada ya no es válida. Vuelve a entrar.")
         }
         requireSuccess(status, body, "La sesión alojada no pudo renovarse.")

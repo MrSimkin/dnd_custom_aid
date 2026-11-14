@@ -55,6 +55,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
 import io.github.mrsimkin.dndcustomaid.shared.character.normalizeCharacterUnsignedIntegerInput
 import io.github.mrsimkin.dndcustomaid.shared.character.withQuickAccess
 import io.github.mrsimkin.dndcustomaid.shared.dm.toAttackPick
+import io.github.mrsimkin.dndcustomaid.shared.dm.toSpellPick
 import kotlin.uuid.Uuid
 
 private val STANDARD_DIE_SIDES_V4 = listOf(4, 6, 8, 10, 12, 20)
@@ -101,10 +102,17 @@ internal fun CharacterCombatSuccessorTabV4(
     var editorRange by rememberSaveable { mutableStateOf("") }
     var editorNotes by rememberSaveable { mutableStateOf("") }
     var editorDamageJson by rememberSaveable { mutableStateOf("[]") }
+    // QA 0.7.0-preqa.2 (J4): the weapon of the equipment or the spell this attack uses.
+    var editorLinkedItem by rememberSaveable { mutableStateOf<String?>(null) }
+    var editorLinkedSpell by rememberSaveable { mutableStateOf<String?>(null) }
     var deleteId by rememberSaveable { mutableStateOf<String?>(null) }
     val haptic = rememberCharacterHapticHookV4(hapticsEnabled)
     val listState = rememberLazyListState()
     val reorderCoordinator = rememberCharacterReorderCoordinatorV4()
+
+    fun attackLinkLabel(entry: CharacterCombatEntry): String? =
+        entry.linkedItemId?.let { id -> sheet.inventoryItems.firstOrNull { it.id == id }?.let { "🗡 ${it.name}" } }
+            ?: entry.linkedSpellId?.let { id -> sheet.spells.firstOrNull { it.id == id }?.let { "✨ ${it.name}" } }
 
     fun damageFor(entryId: Uuid): List<CharacterDamageComponent> =
         damageProfiles.firstOrNull { it.combatEntryId == entryId }?.components.orEmpty()
@@ -118,6 +126,8 @@ internal fun CharacterCombatSuccessorTabV4(
         editorRange = ""
         editorNotes = ""
         editorDamageJson = "[]"
+        editorLinkedItem = null
+        editorLinkedSpell = null
         editorOpen = true
     }
 
@@ -130,6 +140,8 @@ internal fun CharacterCombatSuccessorTabV4(
         editorRange = entry.rangeText.orEmpty()
         editorNotes = entry.notes.orEmpty()
         editorDamageJson = characterDamageComponentsToJsonV4(damageFor(entry.id))
+        editorLinkedItem = entry.linkedItemId?.toString()
+        editorLinkedSpell = entry.linkedSpellId?.toString()
         editorOpen = true
     }
 
@@ -266,6 +278,7 @@ internal fun CharacterCombatSuccessorTabV4(
                             CharacterCombatSuccessorCardV4(
                                 entry = entry,
                                 damageComponents = damageFor(entry.id),
+                                linkLabel = attackLinkLabel(entry),
                                 favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.COMBAT_ENTRY, entry.id),
                                 favoriteEnabled = structuralEditingEnabled && entry.id in persistedEntryIds,
                                 reorderSession = null,
@@ -298,6 +311,7 @@ internal fun CharacterCombatSuccessorTabV4(
                         CharacterCombatSuccessorCardV4(
                             entry = entry,
                             damageComponents = damageFor(entry.id),
+                                linkLabel = attackLinkLabel(entry),
                             favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.COMBAT_ENTRY, entry.id),
                             favoriteEnabled = false,
                             reorderSession = null,
@@ -359,6 +373,7 @@ internal fun CharacterCombatSuccessorTabV4(
                             CharacterCombatSuccessorCardV4(
                                 entry = entry,
                                 damageComponents = damageFor(entry.id),
+                                linkLabel = attackLinkLabel(entry),
                                 favorite = closureState.hasQuickAccess(CharacterQuickAccessKind.COMBAT_ENTRY, entry.id),
                                 favoriteEnabled = structuralEditingEnabled && entry.id in persistedEntryIds,
                                 reorderSession = reorderSession.takeIf { narrowReorderEnabled },
@@ -416,6 +431,8 @@ internal fun CharacterCombatSuccessorTabV4(
                     notes = editorNotes.trim().takeIf { it.isNotEmpty() },
                     sortOrder = existing?.sortOrder ?: entries.size,
                     pinned = existing?.pinned ?: false,
+                    linkedItemId = editorLinkedItem?.let { runCatching { Uuid.parse(it) }.getOrNull() },
+                    linkedSpellId = editorLinkedSpell?.let { runCatching { Uuid.parse(it) }.getOrNull() },
                 )
                 val updatedEntries = if (existing == null) {
                     entries + entry
@@ -438,6 +455,8 @@ internal fun CharacterCombatSuccessorTabV4(
                 ),
                 onPick = { option ->
                     val attack = option.toAttackPick()
+                    // The same weapon in the equipment becomes the attack's weapon.
+                    sheet.inventoryItems.firstOrNull { it.name.equals(attack.name, ignoreCase = true) }?.let { editorLinkedItem = it.id.toString(); editorLinkedSpell = null }
                     editorName = attack.name
                     editorType = io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK.name
                     if (attack.rangeText.isNotBlank()) editorRange = attack.rangeText
@@ -459,6 +478,39 @@ internal fun CharacterCombatSuccessorTabV4(
                         )
                     }
                 },
+            )
+            RulesPickButton(
+                kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.SPELL),
+                label = "✨ Un conjuro como ataque o acción",
+                onPick = { option ->
+                    val spell = option.toSpellPick()
+                    editorName = spell.name
+                    editorRange = spell.rangeText
+                    val text = spell.description
+                    editorType = if (text.contains("ataque de conjuro", ignoreCase = true) || text.contains("tirada de ataque", ignoreCase = true)) {
+                        CharacterCombatEntryType.ATTACK.name
+                    } else {
+                        CharacterCombatEntryType.ACTION.name
+                    }
+                    editorNotes = listOf(spell.castingTime, spell.duration, text.take(400)).filter { it.isNotBlank() }.joinToString(" · ")
+                    Regex("""(\d+d\d+)(?:\s*\+\s*\d+)?\s+de\s+daño\s+(?:de\s+)?([a-záéíóúñ]+)""", RegexOption.IGNORE_CASE).find(text)?.let { m ->
+                        editorDamageJson = characterDamageComponentsToJsonV4(
+                            listOf(io.github.mrsimkin.dndcustomaid.shared.character.CharacterDamageComponent(
+                                kind = io.github.mrsimkin.dndcustomaid.shared.character.CharacterDamageComponentKind.DICE,
+                                expression = m.groupValues[1],
+                                typeText = m.groupValues[2],
+                            )),
+                        )
+                    }
+                    sheet.spells.firstOrNull { it.name.equals(spell.name, ignoreCase = true) }?.let { editorLinkedSpell = it.id.toString(); editorLinkedItem = null }
+                },
+            )
+            CharacterAttackLinkPickerV4(
+                sheet = sheet,
+                linkedItem = editorLinkedItem,
+                linkedSpell = editorLinkedSpell,
+                onItem = { editorLinkedItem = it; if (it != null) editorLinkedSpell = null },
+                onSpell = { editorLinkedSpell = it; if (it != null) editorLinkedItem = null },
             )
             CharacterCompactOutlinedTextFieldV4(
                 value = editorName,
@@ -582,6 +634,7 @@ internal fun CharacterCombatSuccessorTabV4(
 private fun CharacterCombatSuccessorCardV4(
     entry: CharacterCombatEntry,
     damageComponents: List<CharacterDamageComponent>,
+    linkLabel: String? = null,
     favorite: Boolean,
     favoriteEnabled: Boolean,
     reorderSession: CharacterReorderSessionV4?,
@@ -660,6 +713,7 @@ private fun CharacterCombatSuccessorCardV4(
                     listOfNotNull(
                         characterCombatEntryTypeSpanishLabel(entry.type),
                         entry.rangeText?.trim()?.takeIf { it.isNotEmpty() }?.let { "Alcance $it" },
+                        linkLabel,
                     ).joinToString(" · "),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1052,3 +1106,40 @@ private fun characterDamageKindLabelV4(kind: CharacterDamageComponentKind): Stri
 }
 
 private fun formatSignedCombatSuccessorV4(value: Int): String = if (value >= 0) "+$value" else value.toString()
+
+/** QA 0.7.0-preqa.2 (J4): ties an attack to a weapon of the equipment or to a spell of the PC. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun CharacterAttackLinkPickerV4(
+    sheet: CharacterSheet,
+    linkedItem: String?,
+    linkedSpell: String?,
+    onItem: (String?) -> Unit,
+    onSpell: (String?) -> Unit,
+) {
+    Text("Vinculado a", style = MaterialTheme.typography.labelLarge)
+    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        androidx.compose.material3.FilterChip(
+            selected = linkedItem == null && linkedSpell == null,
+            onClick = { onItem(null); onSpell(null) },
+            label = { Text("Sin vínculo") },
+        )
+        sheet.inventoryItems.take(16).forEach { item ->
+            androidx.compose.material3.FilterChip(
+                selected = linkedItem == item.id.toString(),
+                onClick = { onItem(item.id.toString()) },
+                label = { Text("🗡 ${item.name}") },
+            )
+        }
+        sheet.spells.take(16).forEach { spell ->
+            androidx.compose.material3.FilterChip(
+                selected = linkedSpell == spell.id.toString(),
+                onClick = { onSpell(spell.id.toString()) },
+                label = { Text("✨ ${spell.name}") },
+            )
+        }
+    }
+    if (sheet.inventoryItems.isEmpty() && sheet.spells.isEmpty()) {
+        Text("Cuando el PJ tenga armas en Equipo o conjuros, aquí se elige a cuál pertenece este ataque.", style = MaterialTheme.typography.bodySmall)
+    }
+}

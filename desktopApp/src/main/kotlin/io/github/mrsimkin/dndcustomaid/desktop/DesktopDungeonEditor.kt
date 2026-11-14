@@ -23,6 +23,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.Checkbox
@@ -75,6 +77,8 @@ import kotlin.math.roundToInt
 import kotlin.uuid.Uuid
 
 /** Size of a zone box on the plan. */
+private val PLAN_BASE_WIDTH = 1100.dp
+private val PLAN_BASE_HEIGHT = 720.dp
 private val ZONE_WIDTH = 150.dp
 private val ZONE_HEIGHT = 46.dp
 
@@ -261,6 +265,8 @@ private fun DungeonPlanEditor(
     var dragPositions by remember(dungeon.item.identity.id) { mutableStateOf(mapOf<Uuid, Pair<Double, Double>>()) }
     var linkFrom by remember { mutableStateOf<Uuid?>(null) }
     var linkPointer by remember { mutableStateOf<Offset?>(null) }
+    // QA 0.7.0-preqa.2 (G1): the plan can be zoomed and scrolled; null fits it to the window.
+    var zoom by remember(dungeon.item.identity.id) { mutableStateOf<Float?>(null) }
 
     fun refresh() {
         planVersion++
@@ -334,6 +340,13 @@ private fun DungeonPlanEditor(
                 }, modifier = Modifier.handCursor().testTag("add-zone")) { Text("＋ Zona") }
                 OutlinedButton(onClick = { choosingBackground = true }, modifier = Modifier.handCursor()) { Text("Plano de fondo") }
             }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Tamaño del plano:", style = MaterialTheme.typography.caption)
+                OutlinedButton(onClick = { zoom = ((zoom ?: 1f) - 0.25f).coerceAtLeast(0.5f) }, modifier = Modifier.handCursor().testTag("plan-zoom-out")) { Text("−") }
+                Text(zoom?.let { "${(it * 100).roundToInt()} %" } ?: "Ajustado", style = MaterialTheme.typography.caption)
+                OutlinedButton(onClick = { zoom = ((zoom ?: 1f) + 0.25f).coerceAtMost(3f) }, modifier = Modifier.handCursor().testTag("plan-zoom-in")) { Text("＋") }
+                TextButton(onClick = { zoom = null }, modifier = Modifier.handCursor()) { Text("Ajustar a la ventana") }
+            }
             BoxWithConstraints(
                 Modifier
                     .fillMaxWidth()
@@ -343,13 +356,27 @@ private fun DungeonPlanEditor(
                     .testTag("dungeon-plan"),
             ) {
                 val density = LocalDensity.current
-                val widthPx = with(density) { maxWidth.toPx() }
-                val heightPx = with(density) { maxHeight.toPx() }
+                val canvasWidth = zoom?.let { maxOf(maxWidth, PLAN_BASE_WIDTH * it) } ?: maxWidth
+                val canvasHeight = zoom?.let { maxOf(maxHeight, PLAN_BASE_HEIGHT * it) } ?: maxHeight
+                val widthPx = with(density) { canvasWidth.toPx() }
+                val heightPx = with(density) { canvasHeight.toPx() }
+                // QA 0.7.0-preqa.2 (G3): the drag reads the latest positions instead of restarting
+                // every time a zone moves, which used to drop the drag after the first step.
+                val latestPositions by rememberUpdatedState(positions)
+                val latestWidth by rememberUpdatedState(widthPx)
+                val latestHeight by rememberUpdatedState(heightPx)
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .horizontalScroll(rememberScrollState())
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                Box(Modifier.size(canvasWidth, canvasHeight)) {
                 val zoneW = with(density) { ZONE_WIDTH.toPx() }
                 val zoneH = with(density) { ZONE_HEIGHT.toPx() }
                 fun topLeft(id: Uuid): Offset {
-                    val (x, y) = positions.getValue(id)
-                    return Offset((x * (widthPx - zoneW)).toFloat(), (y * (heightPx - zoneH)).toFloat())
+                    val (x, y) = latestPositions[id] ?: (0.0 to 0.0)
+                    return Offset((x * (latestWidth - zoneW)).toFloat(), (y * (latestHeight - zoneH)).toFloat())
                 }
                 fun center(id: Uuid): Offset = topLeft(id) + Offset(zoneW / 2, zoneH / 2)
                 fun zoneAt(point: Offset): Uuid? = ids.firstOrNull { id ->
@@ -402,7 +429,7 @@ private fun DungeonPlanEditor(
                             .border(if (isSelected) 2.dp else 1.dp, if (isSelected) accent else lineColor, RoundedCornerShape(8.dp))
                             .handCursor()
                             .clickable { selectedZoneId = id }
-                            .pointerInput(id, widthPx, heightPx, positions[id]) {
+                            .pointerInput(id) {
                                 detectDragGestures(
                                     onDragStart = { selectedZoneId = id },
                                     onDragEnd = {
@@ -413,9 +440,9 @@ private fun DungeonPlanEditor(
                                     onDragCancel = { dragPositions = dragPositions - id },
                                 ) { change, amount ->
                                     change.consume()
-                                    val (x, y) = dragPositions[id] ?: positions.getValue(id)
-                                    val nx = (x + amount.x / (widthPx - zoneW)).coerceIn(0.0, 1.0)
-                                    val ny = (y + amount.y / (heightPx - zoneH)).coerceIn(0.0, 1.0)
+                                    val (x, y) = dragPositions[id] ?: latestPositions.getValue(id)
+                                    val nx = (x + amount.x / (latestWidth - zoneW)).coerceIn(0.0, 1.0)
+                                    val ny = (y + amount.y / (latestHeight - zoneH)).coerceIn(0.0, 1.0)
                                     dragPositions = dragPositions + (id to (nx to ny))
                                 }
                             }
@@ -438,7 +465,7 @@ private fun DungeonPlanEditor(
                                 .size(14.dp)
                                 .background(accent, CircleShape)
                                 .handCursor()
-                                .pointerInput(id, widthPx, heightPx, positions[id]) {
+                                .pointerInput(id) {
                                     detectDragGestures(
                                         onDragStart = { start ->
                                             linkFrom = id
@@ -462,6 +489,8 @@ private fun DungeonPlanEditor(
                                 .testTag("link-${member.zone.displayName}"),
                         )
                     }
+                }
+                }
                 }
             }
         }

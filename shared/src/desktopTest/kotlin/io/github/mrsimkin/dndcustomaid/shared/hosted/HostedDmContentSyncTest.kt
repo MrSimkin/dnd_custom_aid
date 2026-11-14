@@ -339,6 +339,35 @@ class HostedDmContentSyncTest {
     }
 
     @Test
+    fun aHandoutSentToThePlayersStaysSentWithItsFolderAndTagsOnEveryDevice() = scenario { _, pc, tablet ->
+        val image = ByteArray(512) { (it % 13).toByte() }
+        val sha = pc.blobs.write(image)
+        val repository = HandoutContentRepository(pc.database)
+        val handout = repository.createCampaign(
+            campaignId,
+            "Mapa de la ciudad",
+            HandoutPayload(kind = HandoutKind.MAP, mediaType = "image/png", sizeBytes = image.size.toLong(), sha256 = sha,
+                visibility = HandoutVisibility.PLAYER_SAFE),
+            100,
+        )
+        // QA 0.7.0-preqa.2 (H3-H5): «Enviar a los jugadores» used to be lost on save.
+        assertIs<RevisionDecision.Accepted>(
+            repository.update(handout.item.identity.id, handout.item.identity.revision, "Mapa de la ciudad",
+                handout.payload.copy(sharedWithPlayers = true, folder = "Ciudad", tags = listOf("jugadores", "mapa")), 200),
+        )
+        val saved = repository.handout(handout.item.identity.id)!!.payload
+        assertTrue(saved.sharedWithPlayers)
+        assertEquals("Ciudad", saved.folder)
+        assertEquals(listOf("jugadores", "mapa"), saved.tags)
+
+        pc.sync()
+        tablet.sync()
+        val onTablet = HandoutContentRepository(tablet.database).handout(handout.item.identity.id)!!.payload
+        assertTrue(onTablet.sharedWithPlayers)
+        assertEquals("Ciudad", onTablet.folder)
+    }
+
+    @Test
     fun aHandoutImageTravelsWithItsDescriptionAndIsCheckedOnArrival() = scenario { server, pc, tablet ->
         val image = ByteArray(2048) { (it % 251).toByte() }
         val sha = pc.blobs.write(image)

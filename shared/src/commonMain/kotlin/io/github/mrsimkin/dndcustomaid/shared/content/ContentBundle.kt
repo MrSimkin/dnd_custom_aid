@@ -1,5 +1,8 @@
 package io.github.mrsimkin.dndcustomaid.shared.content
 
+import io.github.mrsimkin.dndcustomaid.shared.spine.Revision
+import io.github.mrsimkin.dndcustomaid.shared.spine.RevisionDecision
+
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackground
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterPlayerRepository
@@ -81,7 +84,20 @@ data class BundleScene(
 )
 
 @Serializable
-data class BundleEncounter(val key: String, val name: String, val payload: EncounterPayload = EncounterPayload())
+data class BundleEncounter(
+    val key: String,
+    val name: String,
+    val payload: EncounterPayload = EncounterPayload(),
+    /** QA 0.7.0-preqa.2 (C1): the creatures of the encounter, by the key of a bundle creature. */
+    val participants: List<BundleParticipant> = emptyList(),
+)
+
+@Serializable
+data class BundleParticipant(val creatureKey: String, val quantity: Int = 1, val condition: String = "")
+
+/** QA 0.7.0-preqa.2 (C1, D6): a creature of the campaign with its stat block. */
+@Serializable
+data class BundleCreature(val key: String, val name: String, val payload: CreaturePayload)
 
 @Serializable
 data class BundleHandout(
@@ -93,6 +109,8 @@ data class BundleHandout(
     val visibility: HandoutVisibility = HandoutVisibility.DM_ONLY,
     val caption: String = "",
     val notes: String = "",
+    val folder: String = "",
+    val tags: List<String> = emptyList(),
 )
 
 @Serializable
@@ -124,6 +142,7 @@ data class ContentBundle(
     val npcs: List<BundleNpc> = emptyList(),
     val dungeons: List<BundleDungeon> = emptyList(),
     val scenes: List<BundleScene> = emptyList(),
+    val creatures: List<BundleCreature> = emptyList(),
     val encounters: List<BundleEncounter> = emptyList(),
     val handouts: List<BundleHandout> = emptyList(),
     val notes: List<BundleNote> = emptyList(),
@@ -184,6 +203,20 @@ class ContentBundleImporter(
         fun attempt(label: String, block: () -> Unit) {
             runCatching(block).onFailure { problems += "$label (${it.message ?: it::class.simpleName})" }
         }
+        /**
+         * QA 0.7.0-preqa.2: loading again brings the bundle's newer version of objects the DM has not
+         * edited since they were loaded (still at their first revision); edited ones are left alone.
+         */
+        fun refreshed(key: String, label: String, update: (Revision) -> RevisionDecision?) {
+            val item = reusable.content(id(key)) ?: run { already++; return }
+            if (item.identity.revision != Revision(0)) { already++; return }
+            attempt(label) {
+                when (update(item.identity.revision)) {
+                    is RevisionDecision.Accepted -> count("actualizados")
+                    else -> already++
+                }
+            }
+        }
 
         if (parts != ContentBundleParts.CHARACTERS) {
             val places = PlaceContentRepository(database, reusable)
@@ -195,17 +228,33 @@ class ContentBundleImporter(
             val notes = NoteContentRepository(database, reusable)
             val rules = RulesEntryContentRepository(database, reusable)
 
+            val creatures = CreatureContentRepository(database, reusable)
             bundle.places.forEach { place ->
-                if (exists(place.key)) already++ else attempt(place.name) { places.createCampaign(campaignId, place.name, place.payload, now, id(place.key)); count("lugares") }
+                if (!exists(place.key)) attempt(place.name) { places.createCampaign(campaignId, place.name, place.payload, now, id(place.key)); count("lugares") }
+                else refreshed(place.key, place.name) { rev -> places.place(id(place.key))?.takeIf { it.payload != place.payload }?.let { places.update(id(place.key), rev, place.name, place.payload, now) } }
             }
             bundle.npcs.forEach { npc ->
-                if (exists(npc.key)) already++ else attempt(npc.name) { npcs.createCampaign(campaignId, npc.name, npc.payload, now, id(npc.key)); count("PNJ") }
+                if (!exists(npc.key)) attempt(npc.name) { npcs.createCampaign(campaignId, npc.name, npc.payload, now, id(npc.key)); count("PNJ") }
+                else refreshed(npc.key, npc.name) { rev -> npcs.npc(id(npc.key))?.takeIf { it.payload != npc.payload }?.let { npcs.update(id(npc.key), rev, npc.name, npc.payload, now) } }
+            }
+            bundle.creatures.forEach { creature ->
+                if (!exists(creature.key)) attempt(creature.name) { creatures.createCampaign(campaignId, creature.name, creature.payload, now, id(creature.key)); count("criaturas") }
+                else refreshed(creature.key, creature.name) { rev -> creatures.creature(id(creature.key))?.takeIf { it.payload != creature.payload }?.let { creatures.update(id(creature.key), rev, creature.name, creature.payload, now) } }
             }
             bundle.encounters.forEach { encounter ->
-                if (exists(encounter.key)) already++ else attempt(encounter.name) { encounters.createCampaign(campaignId, encounter.name, encounter.payload, now, id(encounter.key)); count("encuentros") }
+                val payload = encounter.payload.copy(
+                    participants = encounter.payload.participants + encounter.participants.mapNotNull { p ->
+                        id(p.creatureKey).takeIf { reusable.content(it) != null }?.let {
+                            EncounterParticipant(sourceContentId = it, quantity = p.quantity.coerceAtLeast(1), condition = p.condition)
+                        }
+                    },
+                )
+                if (!exists(encounter.key)) attempt(encounter.name) { encounters.createCampaign(campaignId, encounter.name, payload, now, id(encounter.key)); count("encuentros") }
+                else refreshed(encounter.key, encounter.name) { rev -> encounters.encounter(id(encounter.key))?.takeIf { it.payload != payload }?.let { encounters.update(id(encounter.key), rev, encounter.name, payload, now) } }
             }
             bundle.scenes.forEach { scene ->
-                if (exists(scene.key)) already++ else attempt(scene.name) { scenes.createCampaign(campaignId, scene.name, scene.payload, now, id(scene.key)); count("escenas") }
+                if (!exists(scene.key)) attempt(scene.name) { scenes.createCampaign(campaignId, scene.name, scene.payload, now, id(scene.key)); count("escenas") }
+                else refreshed(scene.key, scene.name) { rev -> scenes.scene(id(scene.key))?.takeIf { it.payload != scene.payload }?.let { scenes.update(id(scene.key), rev, scene.name, scene.payload, now) } }
             }
             bundle.dungeons.forEach { dungeon ->
                 if (exists(dungeon.key)) {
@@ -235,7 +284,12 @@ class ContentBundleImporter(
             }
             bundle.handouts.forEach { handout ->
                 if (exists(handout.key)) {
-                    already++
+                    refreshed(handout.key, handout.name) { rev ->
+                        handouts.handout(id(handout.key))?.let { current ->
+                            val next = current.payload.copy(folder = handout.folder, tags = handout.tags, caption = handout.caption, notes = handout.notes)
+                            if (next == current.payload) null else handouts.update(id(handout.key), rev, current.item.displayName, next, now)
+                        }
+                    }
                     return@forEach
                 }
                 attempt(handout.name) {
@@ -258,6 +312,8 @@ class ContentBundleImporter(
                             visibility = handout.visibility,
                             caption = handout.caption,
                             notes = handout.notes,
+                            folder = handout.folder,
+                            tags = handout.tags,
                         ),
                         now,
                         id(handout.key),

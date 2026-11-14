@@ -82,6 +82,9 @@ internal class DesktopHostedCampaignAdministrationController(
     fun membership(campaignId: Uuid, accountId: Uuid): CampaignMembership? =
         spine.membership(campaignId, accountId)
 
+    /** Everyone known on this computer for the campaign; empty for a campaign that exists only here. */
+    fun memberships(campaignId: Uuid): List<CampaignMembership> = spine.memberships(campaignId)
+
     suspend fun roster(campaignId: Uuid): HostedCampaignMemberRoster {
         val roster = administrationClient.members(campaignId)
         require(roster.campaignId == campaignId) {

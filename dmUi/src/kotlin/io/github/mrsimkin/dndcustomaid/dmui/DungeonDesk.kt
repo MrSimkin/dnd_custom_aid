@@ -30,6 +30,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -121,6 +122,15 @@ internal fun DungeonDesk(
     var confirmEnd by remember { mutableStateOf(false) }
 
     val doc = docs.firstOrNull { it.id == currentId } ?: docs.firstOrNull()
+    // QA 0.7.0-preqa.2 (D2): PCs that are not yet in the party join it when the desk opens.
+    LaunchedEffect(doc?.id, pcs.map { it.id }) {
+        val open = doc ?: return@LaunchedEffect
+        val joined = DungeonEngine.joinMissing(open, pcs.map { it.id })
+        if (joined != open) {
+            repository.save(joined, nowEpochSeconds())
+            docs = repository.list(campaign.id).filter { !it.ended }
+        }
+    }
 
     fun save(next: DungeonDocument) {
         val saved = repository.save(next, nowEpochSeconds())

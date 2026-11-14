@@ -207,6 +207,19 @@ object DungeonEngine {
 
     fun activity(activities: List<DungeonActivity>, key: String): DungeonActivity? = activities.firstOrNull { it.key == key }
 
+    /**
+     * QA 0.7.0-preqa.2 (D2): a PC of the campaign that is in no group (loaded after the exploration
+     * started, or on another device) joins the first group, so the turn always shows the whole party.
+     */
+    fun joinMissing(doc: DungeonDocument, campaignCharacterIds: List<Uuid>): DungeonDocument {
+        val placed = doc.groups.flatMap { it.characterIds }.toSet()
+        val missing = campaignCharacterIds.filter { it !in placed }
+        if (missing.isEmpty()) return doc
+        if (doc.groups.isEmpty()) return doc.copy(groups = listOf(PartyGroup(Uuid.random(), "Grupo", null, missing)))
+        val first = doc.groups.first()
+        return doc.copy(groups = listOf(first.copy(characterIds = first.characterIds + missing)) + doc.groups.drop(1))
+    }
+
     fun declare(doc: DungeonDocument, declaration: ActivityDeclaration): DungeonDocument =
         doc.copy(declarations = doc.declarations.filter { it.characterId != declaration.characterId } + declaration)
 

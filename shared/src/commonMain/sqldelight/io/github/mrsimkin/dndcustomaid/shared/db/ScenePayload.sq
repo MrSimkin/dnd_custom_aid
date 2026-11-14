@@ -3,7 +3,8 @@ CREATE TABLE scene_payload (
     purpose TEXT NOT NULL,
     possible_next_scenes_json TEXT NOT NULL,
     references_json TEXT NOT NULL,
-    notes TEXT NOT NULL
+    notes TEXT NOT NULL,
+    sections_json TEXT NOT NULL DEFAULT '{}'
 );
 
 insertScenePayload:
@@ -12,9 +13,10 @@ INSERT INTO scene_payload(
     purpose,
     possible_next_scenes_json,
     references_json,
-    notes
+    notes,
+    sections_json
 )
-VALUES (?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?);
 
 selectScenePayloadByContentId:
 SELECT *
@@ -26,5 +28,6 @@ UPDATE scene_payload
 SET purpose = ?,
     possible_next_scenes_json = ?,
     references_json = ?,
-    notes = ?
+    notes = ?,
+    sections_json = ?
 WHERE content_id = ?;

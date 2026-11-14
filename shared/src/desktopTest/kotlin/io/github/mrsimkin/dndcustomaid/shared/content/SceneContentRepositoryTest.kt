@@ -190,6 +190,8 @@ class SceneContentRepositoryTest {
 
             val driver = JdbcSqliteDriver(jdbcUrl)
             AppDatabase.Schema.migrate(driver = driver, oldVersion = 25, newVersion = 26)
+            // Migration 37 (QA 0.7.0-preqa.2) adds the scene sections that the repository reads.
+            driver.execute(null, "ALTER TABLE scene_payload ADD COLUMN sections_json TEXT NOT NULL DEFAULT '{}'", 0)
             val database = AppDatabase(driver)
 
             assertEquals(

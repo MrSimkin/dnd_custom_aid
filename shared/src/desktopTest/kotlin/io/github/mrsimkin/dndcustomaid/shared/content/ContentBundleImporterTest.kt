@@ -77,6 +77,40 @@ class ContentBundleImporterTest {
     }
 
     @Test
+    fun encountersBringTheirCreaturesAndASecondLoadRefreshesOnlyWhatTheDmDidNotEdit() = db { database ->
+        val campaign = CampaignRepository(database).createCampaign("Prueba")
+        val first = parseContentBundle(
+            """
+            {"creatures": [{"key": "c:obrero", "name": "Obrero alterado", "payload": {"armorClass": 14, "hitPoints": 31, "challengeRating": "2"}}],
+             "encounters": [{"key": "e:1", "name": "Patrulla", "payload": {"summary": "Patrulla"}, "participants": [{"creatureKey": "c:obrero", "quantity": 2}]}],
+             "scenes": [{"key": "s:1", "name": "Llegada", "payload": {"purpose": "Llegar"}},
+                        {"key": "s:2", "name": "Filtro", "payload": {"purpose": "Filtrar"}}]}
+            """.trimIndent(),
+        )
+        val importer = ContentBundleImporter(database, null) { 100 }
+        val report = importer.load(first, campaign.id, ContentBundleParts.ALL, null) { null }
+        assertEquals(mapOf("criaturas" to 1, "encuentros" to 1, "escenas" to 2), report.created)
+        val encounter = EncounterContentRepository(database).encounter(stableContentId(campaign.id, "e:1"))!!
+        assertEquals(stableContentId(campaign.id, "c:obrero"), encounter.payload.participants.single().sourceContentId)
+        assertEquals(2, encounter.payload.participants.single().quantity)
+
+        // The DM edits one scene; the bundle then brings dedicated sections for both.
+        val scenes = SceneContentRepository(database)
+        val edited = scenes.scene(stableContentId(campaign.id, "s:2"))!!
+        scenes.update(edited.item.identity.id, edited.item.identity.revision, "Filtro", edited.payload.copy(notes = "mío"), 150)
+        val second = parseContentBundle(
+            """
+            {"scenes": [{"key": "s:1", "name": "Llegada", "payload": {"purpose": "Llegar", "sections": {"READ_ALOUD_SHORT": "La grieta se abre."}}},
+                        {"key": "s:2", "name": "Filtro", "payload": {"purpose": "Filtrar", "sections": {"TRUTH": "Talwen clasifica."}}}]}
+            """.trimIndent(),
+        )
+        val again = importer.load(second, campaign.id, ContentBundleParts.ALL, null) { null }
+        assertEquals(mapOf("actualizados" to 1), again.created)
+        assertEquals("La grieta se abre.", scenes.scene(stableContentId(campaign.id, "s:1"))!!.payload.section(SceneSection.READ_ALOUD_SHORT))
+        assertEquals("mío", scenes.scene(stableContentId(campaign.id, "s:2"))!!.payload.notes, "an edited scene is left alone")
+    }
+
+    @Test
     fun theTabletLoadsOnlyTheParty() = db { database ->
         val campaign = CampaignRepository(database).createCampaign("Prueba")
         val report = ContentBundleImporter(database, null) { 100 }.load(bundle, campaign.id, ContentBundleParts.CHARACTERS, null) { null }

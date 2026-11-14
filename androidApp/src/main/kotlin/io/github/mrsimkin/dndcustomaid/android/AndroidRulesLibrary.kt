@@ -17,6 +17,7 @@ internal fun AndroidRulesLibraryScreen(
     accountId: Uuid?,
     campaignId: Uuid?,
     onBack: () -> Unit,
+    ownerLabel: String? = null,
 ) {
     val context = LocalContext.current
     val platform = remember { AndroidDmPlatform(context, hostedBootstrap) }
@@ -27,6 +28,7 @@ internal fun AndroidRulesLibraryScreen(
             ownerAccountId = accountId,
             campaignId = campaignId,
             onBack = onBack,
+            ownerLabel = ownerLabel,
         )
     }
 }

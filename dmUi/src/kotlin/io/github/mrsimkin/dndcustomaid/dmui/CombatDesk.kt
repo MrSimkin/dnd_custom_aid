@@ -35,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -98,7 +99,11 @@ private fun d20(): Int = Random.nextInt(1, 21)
 private fun stemOf(label: String) = label.replace(Regex("""\s+\d+$"""), "")
 
 /** Everything the combat desk reads from the campaign, loaded once per desk. */
-private class CombatSources(database: AppDatabase, campaignId: Uuid, accountId: Uuid?) {
+private class CombatSources(private val database: AppDatabase, private val campaignId: Uuid, accountId: Uuid?) {
+    /** QA 0.7.0-preqa.2 (C1, D6): an SRD monster becomes the campaign's creature the first time it is used. */
+    fun adopt(monster: io.github.mrsimkin.dndcustomaid.shared.dm.SrdMonster): CreatureContent =
+        io.github.mrsimkin.dndcustomaid.shared.dm.adoptSrdMonster(database, campaignId, monster, nowEpochSeconds())
+
     private val reusable = ReusableContentRepository(database)
     private val creatureRepo = CreatureContentRepository(database, reusable)
     val creatures: List<CreatureContent> = (
@@ -487,6 +492,7 @@ private fun SelectionPanel(
         CreaturePicker(
             title = "Cambiar «${target.label}» por…",
             creatures = sources.creatures,
+            adopt = sources::adopt,
             withQuantity = false,
             onDismiss = { substitute = false },
             onPick = { creature, _ ->
@@ -1143,8 +1149,9 @@ private fun AddDialog(mode: AddMode, doc: CombatDocument, sources: CombatSources
     var customQty by remember { mutableStateOf("1") }
     when (mode) {
         AddMode.BESTIARY -> CreaturePicker(
-            title = "Agregar del bestiario",
+            title = "Agregar criaturas",
             creatures = sources.creatures,
+            adopt = sources::adopt,
             withQuantity = true,
             onDismiss = onDismiss,
             onPick = { creature, quantity -> onChange(CombatEngine.addCreature(doc, creature, quantity)) },
@@ -1194,9 +1201,15 @@ private fun CreaturePicker(
     withQuantity: Boolean,
     onDismiss: () -> Unit,
     onPick: (CreatureContent, Int) -> Unit,
+    adopt: ((io.github.mrsimkin.dndcustomaid.shared.dm.SrdMonster) -> CreatureContent)? = null,
 ) {
     var query by remember { mutableStateOf("") }
     var quantity by remember { mutableStateOf("1") }
+    // QA 0.7.0-preqa.2 (C1, D6): the campaign's creatures first, then every SRD monster.
+    val platform = LocalDmPlatform.current
+    var srd by remember { mutableStateOf<List<io.github.mrsimkin.dndcustomaid.shared.dm.SrdMonster>>(emptyList()) }
+    var fromSrd by remember { mutableStateOf(creatures.isEmpty()) }
+    LaunchedEffect(Unit) { if (adopt != null) srd = SrdMonsterAssets.monsters(platform) }
     val normalized = query.trim().lowercase()
     val shown = creatures
         .filter { normalized.isEmpty() || it.item.displayName.lowercase().contains(normalized) || it.payload.challengeRating == normalized }
@@ -1211,7 +1224,33 @@ private fun CreaturePicker(
                     TextFieldSmall(query, "Buscar (nombre o VD)", 220) { query = it }
                     if (withQuantity) TextFieldSmall(quantity, "Cantidad", 90, numeric = true) { quantity = it.filter(Char::isDigit).take(2) }
                 }
-                if (creatures.isEmpty()) Text("No hay criaturas en este aparato. Llegan al sincronizar.", style = MaterialTheme.typography.bodySmall)
+                if (adopt != null) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        FilterChip(selected = !fromSrd, onClick = { fromSrd = false }, label = { Text("De la campaña (${creatures.size})") })
+                        FilterChip(selected = fromSrd, onClick = { fromSrd = true }, label = { Text("📖 Del SRD (${srd.size})") })
+                    }
+                }
+                if (fromSrd && adopt != null) {
+                    val monsters = io.github.mrsimkin.dndcustomaid.shared.dm.searchSrdMonsters(srd, query)
+                    if (srd.isEmpty()) Text("Cargando los monstruos del SRD…", style = MaterialTheme.typography.bodySmall)
+                    LazyColumn(modifier = Modifier.widthIn(max = 520.dp)) {
+                        items(monsters, key = { "${it.edition}-${it.name}" }) { monster ->
+                            TextButton(onClick = { onPick(adopt(monster), (quantity.toIntOrNull() ?: 1).coerceIn(1, 50)) }) {
+                                Text(
+                                    listOfNotNull(
+                                        monster.name,
+                                        "SRD ${monster.edition}",
+                                        monster.payload.challengeRating.takeIf { it.isNotBlank() }?.let { "VD $it" },
+                                        monster.payload.armorClass?.let { "CA $it" },
+                                        monster.payload.hitPoints?.let { "PV $it" },
+                                    ).joinToString(" · "),
+                                )
+                            }
+                        }
+                    }
+                    return@Column
+                }
+                if (creatures.isEmpty()) Text("La campaña todavía no tiene criaturas: elige del SRD o prepáralas en la App de PC.", style = MaterialTheme.typography.bodySmall)
                 LazyColumn(modifier = Modifier.widthIn(max = 520.dp)) {
                     items(shown, key = { it.item.identity.id.toString() }) { creature ->
                         TextButton(onClick = { onPick(creature, (quantity.toIntOrNull() ?: 1).coerceIn(1, 50)) }) {

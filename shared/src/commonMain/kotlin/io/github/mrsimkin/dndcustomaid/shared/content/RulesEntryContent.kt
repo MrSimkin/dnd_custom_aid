@@ -18,8 +18,8 @@ import kotlin.uuid.Uuid
 
 @Serializable
 enum class RulesEntryKind(val label: String, val plural: String) {
-    SPECIES("Especie", "Especies"),
-    SUBSPECIES("Subespecie o semirraza", "Subespecies y semirrazas"),
+    SPECIES("Raza", "Razas"),
+    SUBSPECIES("Subraza o semirraza", "Subrazas y semirrazas"),
     CLASS("Clase", "Clases"),
     SUBCLASS("Subclase", "Subclases"),
     BACKGROUND("Trasfondo", "Trasfondos"),

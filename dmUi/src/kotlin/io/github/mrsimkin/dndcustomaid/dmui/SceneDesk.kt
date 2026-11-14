@@ -76,7 +76,7 @@ import kotlin.uuid.Uuid
 
 private enum class SceneMode(val label: String) { SEARCH("Buscar"), WALK("Recorrer") }
 
-private enum class WalkMode(val label: String) { ZONE("Por zona"), FUNCTION("Por función"), ADVENTURE("Por aventura"), MAP("🗺 Mapa") }
+private enum class WalkMode(val label: String) { ZONE("🏙 Por zona"), FUNCTION("🧭 Por función"), ADVENTURE("📜 Por aventura"), MAP("🗺 Mapa") }
 
 /** Per-campaign memory of the desk: the open sheet, the pinned ones and the recent ones. */
 internal class SceneDeskPreferences(private val store: DmKeyValueStore, private val campaignId: Uuid) {
@@ -160,15 +160,23 @@ internal fun SceneDesk(campaign: Campaign, database: AppDatabase, mediaBlobs: Me
     if (index.entries.isEmpty()) {
         Column(modifier = Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Todavía no hay PNJ, lugares, zonas ni escenas en esta campaña.", style = MaterialTheme.typography.titleMedium)
-            Text("Se preparan en la App de PC (Gestores) y llegan al sincronizar.", style = MaterialTheme.typography.bodyMedium)
+            Text("Se preparan en la App de PC (Preparar) y llegan al sincronizar.", style = MaterialTheme.typography.bodyMedium)
         }
         return
     }
 
     Row(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.weight(1f).fillMaxHeight().padding(horizontal = 12.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                SceneMode.entries.forEach { m -> FilterChip(selected = mode == m, onClick = { mode = m }, label = { Text(m.label) }) }
+            // QA 0.7.0-preqa.2 (S5, S6): every way in is visible at once, not hidden behind «Recorrer».
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                FilterChip(selected = mode == SceneMode.SEARCH, onClick = { mode = SceneMode.SEARCH }, label = { Text("🔎 Buscar") })
+                WalkMode.entries.forEach { w ->
+                    FilterChip(
+                        selected = mode == SceneMode.WALK && walk == w,
+                        onClick = { mode = SceneMode.WALK; walk = w },
+                        label = { Text(w.label) },
+                    )
+                }
             }
             when (mode) {
                 SceneMode.SEARCH -> SearchColumn(
@@ -321,9 +329,6 @@ private fun EntryRow(
 
 @Composable
 private fun WalkColumn(index: SceneIndex, walk: WalkMode, onWalk: (WalkMode) -> Unit, openId: Uuid?, onOpen: (Uuid) -> Unit, onMap: (Uuid) -> Unit) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        WalkMode.entries.forEach { w -> FilterChip(selected = walk == w, onClick = { onWalk(w) }, label = { Text(w.label) }) }
-    }
     Column(modifier = Modifier.fillMaxSize().dmScroll(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
         when (walk) {
             WalkMode.ZONE -> {
@@ -551,6 +556,10 @@ private fun SceneSheet(index: SceneIndex, scene: SceneContent, onOpen: (Uuid) ->
     if (l.adventure.isNotBlank()) Text(listOfNotNull(l.adventure, l.order?.let { "escena $it" }, if (l.detour) "desvío" else null).joinToString(" · "), style = MaterialTheme.typography.bodySmall)
     PaperReference(scene.payload.references)
     Part("Para qué sirve", scene.payload.purpose, forPlayers = false)
+    // QA 0.7.0-preqa.2 (R4): the scene's own sections, in the order they are used at the table.
+    io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.entries.forEach { section ->
+        Part(section.label, scene.payload.section(section), forPlayers = section.forPlayers)
+    }
     Part("Notas", scene.payload.notes, forPlayers = false)
     val next = index.nextScenes(scene)
     if (next.isNotEmpty() || scene.payload.possibleNextScenes.isNotEmpty()) {

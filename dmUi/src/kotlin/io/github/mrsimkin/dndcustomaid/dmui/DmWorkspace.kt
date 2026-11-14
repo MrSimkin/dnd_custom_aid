@@ -833,7 +833,7 @@ internal fun deskHelp(desk: DeskRef): String = when (desk) {
         "3) Abajo: 📖 Reglas, 🖼 Handouts, 📝 Notas, ⏱ Relojes y ☁ Sincronizar. 4) «＋ Nueva mesa» abre un combate."
     DeskRef.DmScreen -> "1) Una ficha por PJ con CA, PV, pasivas, velocidad y quién lo juega; lo mejor del grupo va resaltado. " +
         "2) «Vista Grupo» lo muestra como tabla. 3) Toca un PJ para su hoja rápida. 4) La referencia rápida abre reglas a un toque."
-    DeskRef.Scene -> "1) Busca un PNJ, lugar o escena por nombre, papel o idea. 2) Toca una ficha para leerla; «📌» la fija. " +
+    DeskRef.Scene -> "1) Arriba eliges cómo buscar: 🔎 Buscar por nombre, papel o idea, o recorrer 🏙 por zona, 🧭 por función, 📜 por aventura o el 🗺 mapa. 2) Toca una ficha para leerla; «📌» la fija. " +
         "3) Desde una ficha, sus vínculos abren lo relacionado. 4) «← Atrás» vuelve a la ficha anterior."
     DeskRef.Dungeon -> "1) Elige el dungeon y la zona de entrada y toca «Empezar». 2) Cada PJ elige su actividad de un toque. " +
         "3) «Cerrar turno» avanza 10 minutos, relojes y registro. 4) Toca una zona del mapa para su ficha; el grupo se arrastra."

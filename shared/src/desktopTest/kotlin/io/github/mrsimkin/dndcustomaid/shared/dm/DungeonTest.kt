@@ -24,6 +24,15 @@ class DungeonTest {
     private val activities = DungeonRules.betaActivities
 
     @Test
+    fun pcsLoadedAfterTheStartJoinThePartyOnceAndNobodyIsDuplicated() {
+        val empty = DungeonEngine.new(Uuid.random(), "Sitio 021", emptyList(), null, 100)
+        val joined = DungeonEngine.joinMissing(empty, listOf(ana, bo))
+        assertEquals(listOf(ana, bo), joined.groups.single().characterIds)
+        val split = DungeonEngine.split(DungeonEngine.joinMissing(joined, listOf(ana, bo, cy)), joined.groups.single().id, listOf(cy), "Exploradores")
+        assertEquals(split, DungeonEngine.joinMissing(split, listOf(ana, bo, cy)), "everyone already has a group")
+    }
+
+    @Test
     fun theBetaListHasFifteenActivitiesPlusTheTwoStarredOnes() {
         assertEquals(17, activities.size)
         assertEquals(listOf("Exploración normal *", "Ocultarse *"), activities.filter { it.starred }.map { it.displayName })

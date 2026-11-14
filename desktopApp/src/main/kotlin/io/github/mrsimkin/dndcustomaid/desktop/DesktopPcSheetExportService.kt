@@ -174,7 +174,7 @@ internal class DesktopPcSheetExportService(
             .replace(Regex("""[\\/:*?"<>|]+"""), "_")
             .replace(Regex("""\s+"""), " ")
             .ifBlank { "Personaje" }
-        return "$name - Hoja de PJ - PREQA V11 $variant.pdf"
+        return "$name - Hoja de PJ V11 $variant.pdf"
     }
 
     fun createShareFile(

@@ -95,6 +95,8 @@ CREATE TABLE character_combat_entry (
     notes TEXT,
     sort_order INTEGER NOT NULL,
     pinned INTEGER NOT NULL DEFAULT 0,
+    linked_item_id TEXT,
+    linked_spell_id TEXT,
     UNIQUE(character_id, sort_order)
 );
 
@@ -405,12 +407,12 @@ WHERE character_id = ?;
 
 insertCharacterCombatEntry:
 INSERT INTO character_combat_entry(
-    id, character_id, name, type, attack_modifier, damage_effect, range_text, notes, sort_order, pinned
+    id, character_id, name, type, attack_modifier, damage_effect, range_text, notes, sort_order, pinned, linked_item_id, linked_spell_id
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectCharacterCombatEntries:
-SELECT id, character_id, name, type, attack_modifier, damage_effect, range_text, notes, sort_order, pinned
+SELECT id, character_id, name, type, attack_modifier, damage_effect, range_text, notes, sort_order, pinned, linked_item_id, linked_spell_id
 FROM character_combat_entry
 WHERE character_id = ?
 ORDER BY sort_order, id;

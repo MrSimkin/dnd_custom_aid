@@ -117,6 +117,7 @@ internal fun HandoutVisibility.spanishLabel(): String = when (this) {
     HandoutVisibility.PLAYER_SAFE -> "Se puede mostrar a los jugadores"
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 internal fun DesktopHandoutManagerScreen(
     controller: DesktopHandoutManagerController,
@@ -128,6 +129,9 @@ internal fun DesktopHandoutManagerScreen(
     var selectedId by remember { mutableStateOf<Uuid?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
     var confirmDelete by remember { mutableStateOf(false) }
+    // QA 0.7.0-preqa.2 (H1): search, filter by type and group by folder, with a thumbnail of each image.
+    var query by remember { mutableStateOf("") }
+    var filter by remember { mutableStateOf("TODOS") }
 
     val ownerId = remember(refresh) { controller.personalOwnerAccountId() }
     val list = remember(refresh, personal, activeCampaign?.id, ownerId) {
@@ -147,8 +151,9 @@ internal fun DesktopHandoutManagerScreen(
             WorkbenchHeading(
                 title = "Handouts y mapas",
                 subtitle = "Imágenes para mostrar a los jugadores, mapas con marcas y retratos de PNJ. Viajan a la tablet al sincronizar.",
-                help = "1) «Agregar imagen» elige un archivo; el explorador recuerda tus carpetas. 2) Elige el tipo: Handout, Mapa o Retrato. " +
-                    "3) Visibilidad: «Solo DM» o «Se puede mostrar a los jugadores». 4) En un Mapa, un clic pone una marca y puedes arrastrarla para moverla.",
+                help = "1) «Importar imagen…» elige un archivo; el explorador recuerda tus carpetas. 2) Ponle tipo (Handout, Mapa o Retrato), carpeta y etiquetas: " +
+                    "así la lista se ordena por carpeta y la búsqueda la encuentra. 3) Visibilidad: «Solo DM» o «Se puede mostrar a los jugadores», y «Enviar a los jugadores». " +
+                    "4) En un Mapa, un clic pone una marca y puedes arrastrarla para moverla.",
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(selected = !personal, enabled = activeCampaign != null, onClick = { personal = false })
@@ -181,17 +186,52 @@ internal fun DesktopHandoutManagerScreen(
             if (list.isEmpty()) {
                 Text("Todavía no hay imágenes aquí.", style = MaterialTheme.typography.body2)
             }
-            list.forEach { handout ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().clickable { selectedId = handout.item.identity.id },
-                    elevation = if (handout.item.identity.id == selectedId) 6.dp else 1.dp,
-                ) {
-                    Column(modifier = Modifier.padding(10.dp)) {
-                        Text(handout.item.displayName, fontWeight = FontWeight.Bold)
-                        Text(
-                            "${handout.payload.kind.spanishLabel()} · ${handout.payload.visibility.spanishLabel()}",
-                            style = MaterialTheme.typography.caption,
-                        )
+            if (list.isNotEmpty()) {
+                OutlinedTextField(value = query, onValueChange = { query = it }, label = { Text("Buscar por nombre, carpeta, etiqueta o texto") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    listOf("TODOS" to "Todos", "MAP" to "Mapas", "HANDOUT" to "Handouts", "NPC_PORTRAIT" to "Retratos", "SENT" to "📤 Enviados", "DM" to "Solo DM").forEach { (key, label) ->
+                        if (filter == key) Button(onClick = { filter = key }) { Text(label) } else TextButton(onClick = { filter = key }) { Text(label) }
+                    }
+                }
+            }
+            val needle = query.trim().lowercase()
+            val shown = list.filter { handout ->
+                val p = handout.payload
+                val matchesFilter = when (filter) {
+                    "TODOS" -> true
+                    "SENT" -> p.sharedWithPlayers
+                    "DM" -> p.visibility == HandoutVisibility.DM_ONLY
+                    else -> p.kind.name == filter
+                }
+                matchesFilter && (needle.isEmpty() || listOf(handout.item.displayName, p.folder, p.caption, p.notes, p.tags.joinToString(" ")).any { it.lowercase().contains(needle) })
+            }
+            if (list.isNotEmpty() && shown.isEmpty()) Text("Nada coincide con la búsqueda.", style = MaterialTheme.typography.body2)
+            shown.groupBy { it.payload.folder.trim() }.toSortedMap(compareBy<String> { it.isEmpty() }.thenBy { it.lowercase() }).forEach { (folder, inFolder) ->
+                Text("📁 ${folder.ifEmpty { "Sin carpeta" }} · ${inFolder.size}", style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
+                inFolder.sortedBy { it.item.displayName.lowercase() }.forEach { handout ->
+                    val thumb = remember(handout.payload.sha256) { controller.preview(handout.payload.sha256) }
+                    Card(
+                        modifier = Modifier.fillMaxWidth().clickable { selectedId = handout.item.identity.id },
+                        elevation = if (handout.item.identity.id == selectedId) 6.dp else 1.dp,
+                    ) {
+                        Row(modifier = Modifier.padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            if (thumb != null) {
+                                Image(bitmap = thumb, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.width(64.dp).heightIn(max = 64.dp))
+                            }
+                            Column {
+                                Text(handout.item.displayName, fontWeight = FontWeight.Bold)
+                                Text(
+                                    listOfNotNull(
+                                        handout.payload.kind.spanishLabel(),
+                                        handout.payload.visibility.spanishLabel(),
+                                        "📤 Enviado".takeIf { handout.payload.sharedWithPlayers },
+                                    ).joinToString(" · "),
+                                    style = MaterialTheme.typography.caption,
+                                )
+                                handout.payload.caption.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.caption, maxLines = 2) }
+                                if (handout.payload.tags.isNotEmpty()) Text(handout.payload.tags.joinToString(" ") { "#$it" }, style = MaterialTheme.typography.caption)
+                            }
+                        }
                     }
                 }
             }
@@ -244,6 +284,8 @@ private fun HandoutEditor(
     var shared by remember(key) { mutableStateOf(handout.payload.sharedWithPlayers) }
     var caption by remember(key) { mutableStateOf(handout.payload.caption) }
     var notes by remember(key) { mutableStateOf(handout.payload.notes) }
+    var folder by remember(key) { mutableStateOf(handout.payload.folder) }
+    var tags by remember(key) { mutableStateOf(handout.payload.tags.joinToString(", ")) }
     var error by remember(key) { mutableStateOf<String?>(null) }
     val bitmap = remember(handout.payload.sha256) { controller.preview(handout.payload.sha256) }
 
@@ -298,6 +340,8 @@ private fun HandoutEditor(
         }
         OutlinedTextField(value = caption, onValueChange = { caption = it }, label = { Text("Texto al pie (opcional)") }, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas del DM") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = folder, onValueChange = { folder = it }, label = { Text("Carpeta (por ejemplo «Ciudad» o «La Torre»)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = tags, onValueChange = { tags = it }, label = { Text("Etiquetas, separadas por coma") }, singleLine = true, modifier = Modifier.fillMaxWidth())
         error?.let { Text(it, color = MaterialTheme.colors.error) }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = {
@@ -314,6 +358,8 @@ private fun HandoutEditor(
                         caption = caption.trim(),
                         notes = notes.trim(),
                         sharedWithPlayers = shared && visibility == HandoutVisibility.PLAYER_SAFE,
+                        folder = folder.trim(),
+                        tags = tags.split(',').map(String::trim).filter(String::isNotEmpty).distinct(),
                     ),
                 )
                 if (decision is RevisionDecision.Accepted) onSaved() else error = "Otra ventana cambió esta imagen. Vuelve a abrirla."

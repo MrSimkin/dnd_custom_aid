@@ -45,6 +45,7 @@ import io.github.mrsimkin.dndcustomaid.shared.dm.RulesOption
 import io.github.mrsimkin.dndcustomaid.shared.dm.SRD_CATALOG_FILES
 import io.github.mrsimkin.dndcustomaid.shared.dm.SrdCatalog
 import io.github.mrsimkin.dndcustomaid.shared.dm.SrdCorpus
+import io.github.mrsimkin.dndcustomaid.shared.dm.SrdLayout
 import io.github.mrsimkin.dndcustomaid.shared.dm.parseSrdCatalog
 import io.github.mrsimkin.dndcustomaid.shared.dm.rulesOptions
 import io.github.mrsimkin.dndcustomaid.shared.dm.searchSrd
@@ -70,8 +71,8 @@ internal object SrdCatalogAssets {
 
 /** What each homebrew family is for, shown while it is still empty. */
 internal fun RulesEntryKind.placeholder(): String = when (this) {
-    RulesEntryKind.SPECIES -> "Aquí van tus especies propias, como el genasi de agua con tus reglas."
-    RulesEntryKind.SUBSPECIES -> "Aquí van las subespecies y semirrazas: una especie principal con rasgos de otra."
+    RulesEntryKind.SPECIES -> "Aquí van tus razas propias, como el genasi de agua con tus reglas."
+    RulesEntryKind.SUBSPECIES -> "Aquí van las subrazas y semirrazas: una raza principal con rasgos de otra."
     RulesEntryKind.CLASS -> "Aquí van tus clases propias o adaptadas."
     RulesEntryKind.SUBCLASS -> "Aquí van subclases, dominios, patrones y sendas: de tu manual o adaptadas."
     RulesEntryKind.BACKGROUND -> "Aquí van tus trasfondos, como Demonólogo / celestólogo."
@@ -109,13 +110,17 @@ fun RulesLibraryScreen(
     /** Without an account, homebrew is kept in the open campaign. */
     campaignId: Uuid?,
     onBack: (() -> Unit)? = null,
+    /** The account's e-mail, so the DM knows whose personal library is shown. */
+    ownerLabel: String? = null,
     modifier: Modifier = Modifier,
 ) {
     var tab by remember { mutableStateOf(RulesTab.SRD_55E) }
     var catalogs by remember { mutableStateOf<List<SrdCatalog>?>(null) }
     var corpora by remember { mutableStateOf<List<SrdCorpus>?>(null) }
     var showHelp by remember { mutableStateOf(false) }
+    var layouts by remember { mutableStateOf<List<SrdLayout>>(emptyList()) }
     LaunchedEffect(Unit) { catalogs = SrdCatalogAssets.catalogs(platform) }
+    LaunchedEffect(Unit) { layouts = SrdLayoutAssets.layouts(platform) }
     LaunchedEffect(tab) { if (tab == RulesTab.TEXT && corpora == null) corpora = SrdAssets.corpora(platform) }
 
     Column(modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -130,7 +135,7 @@ fun RulesLibraryScreen(
         if (showHelp) {
             Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.small) {
                 Text(
-                    "«SRD 5e» y «SRD 5.5e» muestran las reglas oficiales gratuitas por tipo: especies, clases, conjuros, armas… " +
+                    "«SRD 5e» y «SRD 5.5e» muestran las reglas oficiales gratuitas por tipo: razas, clases, conjuros, armas… " +
                         "«Homebrew» es tu biblioteca: lo que agregues aquí aparece después del SRD cuando eliges algo para un PJ. " +
                         "«Texto completo del SRD» busca en todo el documento y lo lee página a página.",
                     style = MaterialTheme.typography.bodySmall,
@@ -150,17 +155,17 @@ fun RulesLibraryScreen(
                 Text("Cargando el SRD…")
             } else {
                 val catalog = loaded.first { it.edition == if (tab == RulesTab.SRD_5E) "5e" else "5.5e" }
-                SrdBrowser(catalog)
+                SrdBrowser(catalog, layouts.firstOrNull { it.edition == catalog.edition })
             }
-            RulesTab.HOMEBREW -> HomebrewLibrary(database, ownerAccountId, campaignId)
-            RulesTab.TEXT -> SrdTextReader(corpora)
+            RulesTab.HOMEBREW -> HomebrewLibrary(database, ownerAccountId, campaignId, ownerLabel)
+            RulesTab.TEXT -> SrdTextReader(corpora, layouts)
         }
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun SrdBrowser(catalog: SrdCatalog) {
+private fun SrdBrowser(catalog: SrdCatalog, layout: SrdLayout?) {
     var kind by remember(catalog.version) { mutableStateOf(RulesEntryKind.CLASS) }
     var query by remember { mutableStateOf("") }
     var selected by remember(catalog.version, kind) { mutableStateOf<RulesOption?>(null) }
@@ -176,7 +181,10 @@ private fun SrdBrowser(catalog: SrdCatalog) {
             )
         }
     }
-    OptionsAndDetail(options = options, query = query, onQuery = { query = it }, selected = selected, onSelect = { selected = it })
+    OptionsAndDetail(
+        options = options, query = query, onQuery = { query = it }, selected = selected, onSelect = { selected = it },
+        formatted = { option -> layout?.entry(option.kind.name, option.name) },
+    )
     Text(catalog.attribution, style = MaterialTheme.typography.labelSmall)
 }
 
@@ -187,6 +195,8 @@ private fun OptionsAndDetail(
     onQuery: (String) -> Unit,
     selected: RulesOption?,
     onSelect: (RulesOption) -> Unit,
+    /** The SRD entry with its layout (headings, tables), when there is one. */
+    formatted: (RulesOption) -> String? = { null },
 ) {
     Row(Modifier.fillMaxWidth().heightIn(min = 300.dp, max = 2000.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(Modifier.width(300.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -225,7 +235,8 @@ private fun OptionsAndDetail(
                         Text("${key.replace('_', ' ').replaceFirstChar { it.uppercase() }}: $value", style = MaterialTheme.typography.bodyMedium)
                     }
                     HorizontalDivider()
-                    Text(selected.body.ifBlank { selected.summary }, style = MaterialTheme.typography.bodyMedium)
+                    val md = formatted(selected)
+                    if (md != null) SrdMarkdown(md) else Text(selected.body.ifBlank { selected.summary }, style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
@@ -233,7 +244,7 @@ private fun OptionsAndDetail(
 }
 
 @Composable
-private fun SrdTextReader(corpora: List<SrdCorpus>?) {
+private fun SrdTextReader(corpora: List<SrdCorpus>?, layouts: List<SrdLayout>) {
     if (corpora == null) {
         Text("Cargando el texto del SRD…")
         return
@@ -271,7 +282,8 @@ private fun SrdTextReader(corpora: List<SrdCorpus>?) {
                     OutlinedButton(onClick = { page = (page + 1).coerceAtMost(corpus.pages.size) }, modifier = Modifier.handCursor()) { Text("▶") }
                 }
                 Box(Modifier.weight(1f).dmScroll()) {
-                    Text(corpus.pages.firstOrNull { it.page == page }?.text.orEmpty(), style = MaterialTheme.typography.bodyMedium)
+                    val md = layouts.firstOrNull { it.version == corpus.version }?.page(page)
+                    if (md != null) SrdMarkdown(md) else Text(corpus.pages.firstOrNull { it.page == page }?.text.orEmpty(), style = MaterialTheme.typography.bodyMedium)
                 }
                 Text(corpus.attribution, style = MaterialTheme.typography.labelSmall)
             }
@@ -281,7 +293,7 @@ private fun SrdTextReader(corpora: List<SrdCorpus>?) {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun HomebrewLibrary(database: AppDatabase, ownerAccountId: Uuid?, campaignId: Uuid?) {
+private fun HomebrewLibrary(database: AppDatabase, ownerAccountId: Uuid?, campaignId: Uuid?, ownerLabel: String?) {
     val repository = remember(database) { RulesEntryContentRepository(database) }
     var version by remember { mutableStateOf(0) }
     val entries = remember(version, ownerAccountId, campaignId) {
@@ -296,9 +308,20 @@ private fun HomebrewLibrary(database: AppDatabase, ownerAccountId: Uuid?, campai
 
     if (chosen == null) {
         Text(
-            if (ownerAccountId != null) "Tu biblioteca personal: sirve en todas tus campañas." else "Sin cuenta, tu homebrew se guarda en la campaña abierta.",
+            when {
+                ownerAccountId != null && ownerLabel != null -> "Biblioteca personal de $ownerLabel: sirve en todas sus campañas, más el homebrew de la campaña abierta."
+                ownerAccountId != null -> "Tu biblioteca personal: sirve en todas tus campañas, más el homebrew de la campaña abierta."
+                else -> "Sin cuenta, tu homebrew se guarda en la campaña abierta."
+            },
             style = MaterialTheme.typography.bodySmall,
         )
+        if (entries.isEmpty()) {
+            Text(
+                "Todavía no hay homebrew aquí. Un paquete cargado con otra cuenta deja su homebrew en esa cuenta: entra con ella y sincroniza para verlo.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             RulesEntryKind.entries.forEach { candidate ->
                 val count = entries.count { it.payload.kind == candidate }
@@ -389,7 +412,7 @@ private fun HomebrewEditor(
             OutlinedTextField(
                 value = parent,
                 onValueChange = { parent = it },
-                label = { Text(if (kind == RulesEntryKind.SUBCLASS) "Clase a la que pertenece" else "Especie principal") },
+                label = { Text(if (kind == RulesEntryKind.SUBCLASS) "Clase a la que pertenece" else "Raza principal") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
