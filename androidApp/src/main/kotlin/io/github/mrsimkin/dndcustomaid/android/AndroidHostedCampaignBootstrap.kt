@@ -184,7 +184,9 @@ internal class AndroidHostedCampaignBootstrapController(
      * A failed network/provider step never deletes local campaign/PC data or its durable outbox.
      * Diagnostic projections retain enough evidence for physical QA without exposing credentials.
      */
-    suspend fun refresh(): AndroidHostedCampaignBootstrapOutcome {
+    suspend fun refresh(
+        onDmContentProgress: (io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncProgress) -> Unit = {},
+    ): AndroidHostedCampaignBootstrapOutcome {
         if (!hasRememberedSession()) {
             return AndroidHostedCampaignBootstrapOutcome.NoRememberedSession
         }
@@ -336,7 +338,7 @@ internal class AndroidHostedCampaignBootstrapController(
             var dmContentError: String? = null
             if (dmScopes.any { it is DmContentSyncScope.Campaign }) {
                 try {
-                    dmContentResult = dmContentSync.synchronize(dmScopes, currentEpochSeconds())
+                    dmContentResult = dmContentSync.synchronize(dmScopes, currentEpochSeconds(), onDmContentProgress)
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {

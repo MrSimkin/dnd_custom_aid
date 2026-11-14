@@ -1,4 +1,4 @@
-# QA del rediseño DM — 0.7.0-preqa.1
+# QA del rediseño DM — 0.7.0-preqa.2
 
 Candidata para el QA del propietario después del rediseño R1 a R7 ([REDISENO_BASE_DM.md](REDISENO_BASE_DM.md)). Cubre los puntos A1 a A14 del libro de aceptación ([QA_BASE_DM_0.6.0-preqa.2_OBSERVACIONES.md](QA_BASE_DM_0.6.0-preqa.2_OBSERVACIONES.md)). También repite las pruebas de las mesas (paquetes 1 a 8) que antes no se pudieron hacer porque la cuenta Gmail era Jugador.
 
@@ -6,12 +6,19 @@ Candidata para el QA del propietario después del rediseño R1 a R7 ([REDISENO_B
 
 | Pieza | Identidad | SHA-256 |
 | --- | --- | --- |
-| APK | `dnd-custom-aid-0.7.0-preqa.1-build-70100.apk` (versionName `0.7.0-preqa.1`, versionCode 70100) | `5036aee6772164dd8527bb16b9776a7cc90a7f098238337a27a8084166e3ec48` |
-| Windows | `dnd-custom-aid-windows-0.7.0-preqa.1.zip` (packageVersion 0.7.0) | `d1e23e3eed1f5b98342171ea6d1941c226f9ab59faf869eddb214f4763adc584` |
+| APK | `dnd-custom-aid-0.7.0-preqa.2-build-70200.apk` (versionName `0.7.0-preqa.2`, versionCode 70200) | `ee1e6f658b98f09f347b887fc7fc52841b232346a0df5c20e60494c1fa8b1b7a` |
+| Windows | `dnd-custom-aid-windows-0.7.0-preqa.2.zip` (packageVersion 0.7.1) | `460190ddfe2971fc639c0ba805694d707b59d5408ce3844c29c3d9171fa6af0f` |
 | Worker | `dnd-custom-aid-api`, versión `78552ccb-e244-4d31-ac24-ccf06eb5fb7a` | — |
 
 - Commit de origen: el commit que agrega esta guía en `feature/dm-ux-redesign`.
-- Carpeta local del propietario: `D:\DnD_Aid\APKs\QA 0.7.0-preqa.1 Rediseño DM`.
+- Carpeta local del propietario: `D:\DnD_Aid\APKs\QA 0.7.0-preqa.2 Rediseño DM`.
+
+## Cambios desde 0.7.0-preqa.1
+
+- Observación S1 del propietario: «Sincronizar» muestra cuánto va y cuánto falta, por ejemplo «Enviando 535 de 1.090 · faltan unos 7 min».
+  - En Windows aparece en la barra superior, con una barra de avance, y en el Escritorio DM.
+  - En la tablet aparece en «Tus campañas» y en el Escritorio DM.
+- La preqa.1 ya no se usa.
 
 ## Cuentas
 
@@ -57,7 +64,7 @@ Candidata para el QA del propietario después del rediseño R1 a R7 ([REDISENO_B
 
 ## Verificación técnica
 
-- La ejecución completa pasa 812 pruebas, 0 fallas:
+- La ejecución completa pasa 814 pruebas, 0 fallas:
   - `:shared:desktopTest`
   - `:desktopApp:test`
   - `:androidApp:assembleDebug`

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.Card
@@ -42,6 +43,9 @@ import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedAccount
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiErrorCode
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiException
 import io.github.mrsimkin.dndcustomaid.shared.hosted.spanishSummary
+import io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncProgressText
+import io.github.mrsimkin.dndcustomaid.shared.hosted.fraction
+import androidx.compose.material.LinearProgressIndicator
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembershipStatus
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignRole
 import kotlinx.coroutines.launch
@@ -90,6 +94,14 @@ internal class DesktopAccountSession(
         private set
     var message by mutableStateOf<String?>(null)
     var lastSyncEpochSeconds by mutableStateOf(store.getString(LAST_SYNC_KEY)?.toLongOrNull())
+        private set
+
+    /** While «⟳ Sincronizar» runs: how much is done («Enviando 535 de 1.090 · faltan unos 7 min»). */
+    var syncProgress by mutableStateOf<String?>(null)
+        private set
+
+    /** The same progress as a fraction for the bar, or null when there is nothing to count yet. */
+    var syncFraction by mutableStateOf<Float?>(null)
         private set
 
     /** Bumped whenever campaigns or memberships may have changed, so lists reload. */
@@ -143,7 +155,16 @@ internal class DesktopAccountSession(
 
     /** «⟳ Sincronizar»: sends the DM content of this computer and receives the tablet's. */
     suspend fun synchronize() = work {
-        val result = hosted.syncDmContent()
+        val texts = DmContentSyncProgressText { System.currentTimeMillis() }
+        val result = try {
+            hosted.syncDmContent { progress ->
+                syncProgress = texts.text(progress)
+                syncFraction = progress.fraction
+            }
+        } finally {
+            syncProgress = null
+            syncFraction = null
+        }
         offline = false
         lastSyncEpochSeconds = now().also { store.putString(LAST_SYNC_KEY, it.toString()) }
         message = result.spanishSummary()
@@ -190,7 +211,7 @@ internal class DesktopAccountSession(
 
     /** Short status for the top bar, next to «⟳ Sincronizar». */
     fun syncStatus(): String = when {
-        busy -> "Sincronizando…"
+        busy -> syncProgress ?: "Sincronizando…"
         offline -> "Sin conexión: trabajas en este equipo"
         lastSyncEpochSeconds == null -> "Aún sin sincronizar"
         else -> "Sincronizado ${ago(now() - lastSyncEpochSeconds!!)}"
@@ -379,7 +400,10 @@ internal fun DesktopAccountBar(
                 onClick = { scope.launch { session.synchronize() } },
                 modifier = Modifier.handCursor(),
             ) { Text("⟳ Sincronizar") }
-            Text(session.syncStatus(), style = MaterialTheme.typography.caption)
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(session.syncStatus(), style = MaterialTheme.typography.caption)
+                session.syncFraction?.let { LinearProgressIndicator(progress = it, modifier = Modifier.width(220.dp)) }
+            }
             Box {
                 OutlinedButton(onClick = { menuOpen = true }, modifier = Modifier.handCursor()) {
                     Text(

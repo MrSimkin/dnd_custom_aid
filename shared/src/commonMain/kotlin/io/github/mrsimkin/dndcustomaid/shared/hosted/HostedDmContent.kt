@@ -613,6 +613,46 @@ data class DmContentSyncResult(
     val mediaMissingCount: Int = 0,
 )
 
+/** What a long «Sincronizar» is doing (owner request, 2026-11-13: show how much is left). */
+enum class DmContentSyncStep { SENDING, RECEIVING, IMAGES }
+
+data class DmContentSyncProgress(val step: DmContentSyncStep, val done: Int, val total: Int)
+
+/**
+ * Turns progress into a short Spanish line for the DM, with the time left once the pace is known:
+ * «Enviando 535 de 1.090 · faltan unos 7 min».
+ */
+class DmContentSyncProgressText(private val nowMillis: () -> Long) {
+    private var step: DmContentSyncStep? = null
+    private var stepStartedAt = 0L
+    private var doneAtStart = 0
+
+    fun text(progress: DmContentSyncProgress): String {
+        val now = nowMillis()
+        if (progress.step != step) {
+            step = progress.step
+            stepStartedAt = now
+            doneAtStart = progress.done
+        }
+        val verb = when (progress.step) {
+            DmContentSyncStep.SENDING -> "Enviando"
+            DmContentSyncStep.RECEIVING -> "Recibiendo"
+            DmContentSyncStep.IMAGES -> "Bajando imágenes:"
+        }
+        val base = "$verb ${grouped(progress.done)} de ${grouped(progress.total)}"
+        val advanced = progress.done - doneAtStart
+        val elapsed = now - stepStartedAt
+        if (progress.done >= progress.total || advanced < 10 || elapsed <= 0) return base
+        val secondsLeft = (progress.total - progress.done).toLong() * elapsed / advanced / 1000
+        return if (secondsLeft < 60) "$base · falta menos de un minuto" else "$base · faltan unos ${(secondsLeft + 30) / 60} min"
+    }
+
+    private fun grouped(value: Int): String = value.toString().reversed().chunked(3).joinToString(".").reversed()
+}
+
+/** The fraction done, for a progress bar. */
+val DmContentSyncProgress.fraction: Float get() = if (total <= 0) 0f else done.toFloat() / total
+
 /**
  * One sync pass for the DM: queue local changes, send the queue, then receive hosted changes.
  *
@@ -628,7 +668,11 @@ class HostedDmContentSyncService(
 ) {
     private var mediaTransferred = 0
 
-    suspend fun synchronize(scopes: List<DmContentSyncScope>, nowEpochSeconds: Long): DmContentSyncResult {
+    suspend fun synchronize(
+        scopes: List<DmContentSyncScope>,
+        nowEpochSeconds: Long,
+        onProgress: (DmContentSyncProgress) -> Unit = {},
+    ): DmContentSyncResult {
         require(nowEpochSeconds >= 0) { "Sync time must not be negative." }
         val conflicts = linkedMapOf<Uuid, DmContentSyncConflictReason>()
         val pushed = mutableListOf<Uuid>()
@@ -641,8 +685,12 @@ class HostedDmContentSyncService(
         scopes.distinct().forEach { queueLocalChanges(it, nowEpochSeconds, conflicts) }
 
         var offline = false
-        for (mutation in outbox.allMutations().filter { it.retryState == HostedRetryState.READY }) {
-            when (val outcome = send(mutation, nowEpochSeconds)) {
+        val ready = outbox.allMutations().filter { it.retryState == HostedRetryState.READY }
+        if (ready.isNotEmpty()) onProgress(DmContentSyncProgress(DmContentSyncStep.SENDING, 0, ready.size))
+        for ((index, mutation) in ready.withIndex()) {
+            val outcome = send(mutation, nowEpochSeconds)
+            onProgress(DmContentSyncProgress(DmContentSyncStep.SENDING, index + 1, ready.size))
+            when (outcome) {
                 SendOutcome.Sent -> pushed += mutation.contentId
                 SendOutcome.Offline -> {
                     offline = true
@@ -668,7 +716,11 @@ class HostedDmContentSyncService(
                     }
                     throw error
                 }
-                hosted.sortedBy { it.id.toString() }.forEach { remote ->
+                if (hosted.isNotEmpty()) onProgress(DmContentSyncProgress(DmContentSyncStep.RECEIVING, 0, hosted.size))
+                hosted.sortedBy { it.id.toString() }.forEachIndexed { index, remote ->
+                    if ((index + 1) % 50 == 0 || index + 1 == hosted.size) {
+                        onProgress(DmContentSyncProgress(DmContentSyncStep.RECEIVING, index + 1, hosted.size))
+                    }
                     when (val outcome = receive(remote, conflicts)) {
                         ReceiveOutcome.Applied -> applied += remote.id
                         ReceiveOutcome.Tombstoned -> tombstoned += remote.id
@@ -680,7 +732,7 @@ class HostedDmContentSyncService(
             }
         }
 
-        val mediaMissing = if (offline) countMissingMedia(scopes) else downloadMissingMedia(scopes)
+        val mediaMissing = if (offline) countMissingMedia(scopes) else downloadMissingMedia(scopes, onProgress)
 
         return DmContentSyncResult(
             mediaTransferredCount = mediaTransferred,
@@ -860,10 +912,13 @@ class HostedDmContentSyncService(
 
     private fun countMissingMedia(scopes: List<DmContentSyncScope>): Int = activeHandoutsMissingImage(scopes).size
 
-    private suspend fun downloadMissingMedia(scopes: List<DmContentSyncScope>): Int {
+    private suspend fun downloadMissingMedia(scopes: List<DmContentSyncScope>, onProgress: (DmContentSyncProgress) -> Unit): Int {
         val store = blobs ?: return 0
         var missing = 0
-        for ((id, payload) in activeHandoutsMissingImage(scopes)) {
+        val wanted = activeHandoutsMissingImage(scopes)
+        for ((index, entry) in wanted.withIndex()) {
+            val (id, payload) = entry
+            onProgress(DmContentSyncProgress(DmContentSyncStep.IMAGES, index, wanted.size))
             if (store.has(payload.sha256)) continue
             val bytes = try {
                 transport.mediaContent(payload.sha256, id)

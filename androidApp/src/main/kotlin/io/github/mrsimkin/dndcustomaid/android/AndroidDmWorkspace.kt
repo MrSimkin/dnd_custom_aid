@@ -82,8 +82,9 @@ internal fun AndroidDmWorkspaceScreen(
         mediaBlobs = mediaBlobs,
         platform = platform,
         accountId = accountId,
-        onSync = {
-            when (val outcome = hostedBootstrap.refresh()) {
+        onSync = { report ->
+            val texts = io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncProgressText { System.currentTimeMillis() }
+            when (val outcome = hostedBootstrap.refresh { report(texts.text(it)) }) {
                 is AndroidHostedCampaignBootstrapOutcome.Success ->
                     DmSyncResult(synced = true, message = outcome.dmContentError?.let { "El contenido del DM quedó guardado para reintentar." })
                 AndroidHostedCampaignBootstrapOutcome.NoRememberedSession -> DmSyncResult(false, "Entra con tu cuenta para sincronizar.")

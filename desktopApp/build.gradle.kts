@@ -40,7 +40,7 @@ compose.desktop {
         // Owner QA identity of the Windows app; matches the Android candidate 0.7.0-preqa.1 (build 70100).
         nativeDistributions {
             packageName = "DnD Custom Aid"
-            packageVersion = "0.7.0"
+            packageVersion = "0.7.1"
             description = "D&D Custom Aid - App de PC y Escritorio DM"
             // The bundled Java runtime is trimmed; SQLite (java.sql), Ktor and Compose need these.
             // jdk.crypto.ec: TLS with the hosted API; java.naming: name lookups used by the HTTP stack.

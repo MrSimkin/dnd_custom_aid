@@ -157,12 +157,13 @@ internal fun DesktopDmWorkspaceScreen(
             mediaBlobs = mediaBlobs,
             platform = platform,
             accountId = accountId,
-            onSync = {
+            onSync = { report ->
                 runCatching {
                     val account = hostedController.bootstrap().account
                     accountId = account.id
                     platform.store.putString("account_id", account.id.toString())
-                    hostedController.syncDmContent()
+                    val texts = io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncProgressText { System.currentTimeMillis() }
+                    hostedController.syncDmContent { report(texts.text(it)) }
                 }.fold(
                     onSuccess = { result ->
                         val attention = result.offline || result.conflicts.isNotEmpty() || result.mediaMissingCount > 0

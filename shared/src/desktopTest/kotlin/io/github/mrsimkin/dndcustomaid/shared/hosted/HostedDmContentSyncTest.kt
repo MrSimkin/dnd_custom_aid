@@ -304,9 +304,38 @@ class HostedDmContentSyncTest {
     private class Device(val database: AppDatabase, private val server: FakeDmContentServer, private val scopes: List<DmContentSyncScope>) {
         private var clock = 1_000L
         val blobs = InMemoryMediaBlobStore()
-        fun sync(): DmContentSyncResult = runBlocking {
-            HostedDmContentSyncService(database, server, blobs = blobs).synchronize(scopes, clock++)
+        fun sync(onProgress: (DmContentSyncProgress) -> Unit = {}): DmContentSyncResult = runBlocking {
+            HostedDmContentSyncService(database, server, blobs = blobs).synchronize(scopes, clock++, onProgress)
         }
+    }
+
+    @Test
+    fun aLongSyncReportsHowMuchIsSentAndReceived() = scenario { _, pc, tablet ->
+        val creatures = CreatureContentRepository(pc.database)
+        repeat(3) { creatures.createCampaign(campaignId, "Goblin $it", goblinPayload(), 100) }
+        val sent = mutableListOf<DmContentSyncProgress>()
+        pc.sync { sent += it }
+        assertEquals(DmContentSyncProgress(DmContentSyncStep.SENDING, 0, 3), sent.first())
+        assertEquals((1..3).map { DmContentSyncProgress(DmContentSyncStep.SENDING, it, 3) }, sent.filter { it.step == DmContentSyncStep.SENDING }.drop(1))
+
+        val received = mutableListOf<DmContentSyncProgress>()
+        tablet.sync { received += it }
+        assertEquals(DmContentSyncProgress(DmContentSyncStep.RECEIVING, 3, 3), received.last { it.step == DmContentSyncStep.RECEIVING })
+    }
+
+    @Test
+    fun theProgressLineSaysHowMuchTimeIsLeftOnceThePaceIsKnown() {
+        var now = 0L
+        val text = DmContentSyncProgressText { now }
+        assertEquals("Enviando 0 de 1.090", text.text(DmContentSyncProgress(DmContentSyncStep.SENDING, 0, 1090)))
+        now = 5_000
+        assertEquals("Enviando 5 de 1.090", text.text(DmContentSyncProgress(DmContentSyncStep.SENDING, 5, 1090)))
+        now = 400_000
+        // 535 sent in 400 s: the other 555 take about 415 s, so about 7 minutes.
+        assertEquals("Enviando 535 de 1.090 · faltan unos 7 min", text.text(DmContentSyncProgress(DmContentSyncStep.SENDING, 535, 1090)))
+        now = 810_000
+        assertEquals("Enviando 1.080 de 1.090 · falta menos de un minuto", text.text(DmContentSyncProgress(DmContentSyncStep.SENDING, 1080, 1090)))
+        assertEquals("Bajando imágenes: 0 de 22", text.text(DmContentSyncProgress(DmContentSyncStep.IMAGES, 0, 22)))
     }
 
     @Test

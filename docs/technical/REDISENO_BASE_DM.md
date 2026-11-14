@@ -46,7 +46,7 @@ El set «Campus Celeste», los manuales del propietario y los nombres de sus jug
 
 ## Estado (2026-11-13)
 
-Todos los paquetes están implementados y van juntos al QA de la candidata `0.7.0-preqa.1` (build 70100, Windows 0.7.0). Guía de QA: [QA_REDISENO_DM_0.7.0-preqa.1.md](QA_REDISENO_DM_0.7.0-preqa.1.md).
+Todos los paquetes están implementados y van juntos al QA de la candidata `0.7.0-preqa.2` (build 70200, Windows 0.7.1). Guía de QA: [QA_REDISENO_DM_0.7.0-preqa.2.md](QA_REDISENO_DM_0.7.0-preqa.2.md).
 
 | Paquete | Estado | Evidencia |
 | --- | --- | --- |

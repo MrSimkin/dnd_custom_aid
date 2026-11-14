@@ -66,9 +66,12 @@ internal class DesktopHostedCampaignAdministrationController(
      * Base para DM, package 1: sends this App de PC's DM content (personal library and every
      * campaign where the account is an active DM) and receives changes made on the tablet.
      */
-    suspend fun syncDmContent(nowEpochSeconds: Long = System.currentTimeMillis() / 1000): DmContentSyncResult {
+    suspend fun syncDmContent(
+        nowEpochSeconds: Long = System.currentTimeMillis() / 1000,
+        onProgress: (io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncProgress) -> Unit = {},
+    ): DmContentSyncResult {
         val account = bootstrapService.refresh().account
-        return dmContentSync.synchronize(dmContentSyncScopes(database, account.id), nowEpochSeconds)
+        return dmContentSync.synchronize(dmContentSyncScopes(database, account.id), nowEpochSeconds, onProgress)
     }
 
     /** «Nueva campaña»: created on the server with the open account as its DM. */

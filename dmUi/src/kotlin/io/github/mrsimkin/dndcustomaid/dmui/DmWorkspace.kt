@@ -158,7 +158,7 @@ fun DmWorkspaceScreen(
     mediaBlobs: MediaBlobStore,
     platform: DmPlatform,
     accountId: Uuid?,
-    onSync: suspend () -> DmSyncResult,
+    onSync: suspend (report: (String) -> Unit) -> DmSyncResult,
     onExitToCampaigns: () -> Unit,
     onOpenAppSettings: () -> Unit,
 ) {
@@ -174,7 +174,7 @@ private fun DmWorkspaceContent(
     database: AppDatabase,
     mediaBlobs: MediaBlobStore,
     accountId: Uuid?,
-    onSync: suspend () -> DmSyncResult,
+    onSync: suspend (report: (String) -> Unit) -> DmSyncResult,
     onExitToCampaigns: () -> Unit,
     onOpenAppSettings: () -> Unit,
 ) {
@@ -190,6 +190,7 @@ private fun DmWorkspaceContent(
     var showDeskSettings by remember { mutableStateOf(false) }
     var version by remember { mutableIntStateOf(0) }
     var syncing by remember { mutableStateOf(false) }
+    var syncProgress by remember { mutableStateOf<String?>(null) }
     var lastSync by remember { mutableStateOf(prefs.lastSyncEpochSeconds) }
     var syncMessage by remember { mutableStateOf<String?>(null) }
 
@@ -254,7 +255,7 @@ private fun DmWorkspaceContent(
         syncing = true
         scope.launch {
             try {
-                val outcome = onSync()
+                val outcome = onSync { syncProgress = it }
                 if (outcome.synced) {
                     prefs.lastSyncEpochSeconds = nowEpochSeconds()
                     lastSync = prefs.lastSyncEpochSeconds
@@ -263,6 +264,7 @@ private fun DmWorkspaceContent(
                 version += 1
             } finally {
                 syncing = false
+                syncProgress = null
             }
         }
     }
@@ -404,7 +406,7 @@ private fun DmWorkspaceContent(
                         campaign = campaign,
                         desk = desk,
                         openCombats = openCombats,
-                        syncText = if (syncing) "Sincronizando…" else syncAgoText(lastSync),
+                        syncText = if (syncing) syncProgress ?: "Sincronizando…" else syncAgoText(lastSync),
                         onOpen = ::open,
                         onNewCombat = ::newCombat,
                         onPanel = ::togglePanel,
@@ -422,7 +424,7 @@ private fun DmWorkspaceContent(
                         dungeonSubtitle = dungeonSubtitle,
                         desk = desk,
                         openCombats = openCombats,
-                        syncText = if (syncing) "Sincronizando…" else syncAgoText(lastSync),
+                        syncText = if (syncing) syncProgress ?: "Sincronizando…" else syncAgoText(lastSync),
                         onOpen = ::open,
                         onNewCombat = ::newCombat,
                         onPanel = ::togglePanel,

@@ -400,6 +400,7 @@ private fun CampaignScreen(
     var activeCampaignId by remember { mutableStateOf(repository.activeCampaign()?.id) }
     var showCreateDialog by remember { mutableStateOf(false) }
     var hostedRefreshing by remember { mutableStateOf(false) }
+    var hostedProgress by remember { mutableStateOf<String?>(null) }
 
     fun idleHostedStatus(): String {
         val pending = hostedBootstrap.pendingMutationCount()
@@ -533,11 +534,15 @@ private fun CampaignScreen(
             hostedRefreshing = true
             try {
                 applyHostedOutcome(
-                    outcome = hostedBootstrap.refresh(),
+                    outcome = run {
+                        val texts = io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncProgressText { System.currentTimeMillis() }
+                        hostedBootstrap.refresh { hostedProgress = texts.text(it) }
+                    },
                     focusedCreation = focusedCreation,
                 )
             } finally {
                 hostedRefreshing = false
+                hostedProgress = null
             }
         }
     }
@@ -610,7 +615,7 @@ private fun CampaignScreen(
                                 )
                             }
                             Text(
-                                text = hostedStatus,
+                                text = hostedProgress?.takeIf { hostedRefreshing } ?: hostedStatus,
                                 style = MaterialTheme.typography.bodySmall,
                             )
                             if (hostedBootstrap.hasRememberedSession()) {

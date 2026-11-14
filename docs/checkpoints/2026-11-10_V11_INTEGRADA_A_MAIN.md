@@ -177,4 +177,4 @@ El control previo al QA de V11 sigue bloqueado por la hoja de PJ, que no cambió
 - Alcance A1 a A10 y decisiones D1 a D7 en `docs/technical/QA_BASE_DM_0.6.0-preqa.2_OBSERVACIONES.md`.
 - Gmail es la cuenta de DM de pruebas; en el servidor DEV ya es DM de «QA - PC Sheet PDF Runtime».
 
-**Siguiente paso:** el propietario hace el QA del rediseño DM, candidata `0.7.0-preqa.1` (build 70100, Windows 0.7.0), según `docs/technical/QA_REDISENO_DM_0.7.0-preqa.1.md`. Sus observaciones se registran textuales en `docs/technical/QA_BASE_DM_0.6.0-preqa.2_OBSERVACIONES.md` antes de corregir. El set de prueba privado está en `D:\DnD_Aid\Set de prueba Campus Celeste` y no entra al repositorio.
+**Siguiente paso:** el propietario hace el QA del rediseño DM, candidata `0.7.0-preqa.2` (build 70200, Windows 0.7.1), según `docs/technical/QA_REDISENO_DM_0.7.0-preqa.2.md`. Sus observaciones se registran textuales en `docs/technical/QA_BASE_DM_0.6.0-preqa.2_OBSERVACIONES.md` antes de corregir. El set de prueba privado está en `D:\DnD_Aid\Set de prueba Campus Celeste` y no entra al repositorio.

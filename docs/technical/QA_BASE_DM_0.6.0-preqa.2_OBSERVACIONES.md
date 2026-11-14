@@ -212,22 +212,31 @@ Consecuencias:
 
 | # | Qué se hará | Observaciones que cubre | Estado |
 | --- | --- | --- | --- |
-| A1 | Entrada y cuenta: Windows pide la cuenta al abrir y la recuerda; la cuenta y el rol se ven siempre; «Cerrar sesión» y «Cambiar usuario»; si una cuenta no es DM, se explica por qué no aparece el Escritorio DM. | P3, P8, E1, W4, D1, D2, D4 | Implementado en 0.7.0-preqa.1; pendiente QA del propietario. |
-| A2 | Campañas: una sola lista estable de campañas con su rol, en la tablet y en Windows, sin pantallas que cambian según el estado. | G3, E1 | Implementado en 0.7.0-preqa.1; pendiente QA del propietario. |
-| A3 | Windows, preparar: «Gestores» se reemplaza por una sección «Preparar» con nombres claros y una línea que dice para qué sirve cada cosa. Sincronizar queda en el menú normal. | P3, P8, D3 | Implementado en 0.7.0-preqa.1; pendiente QA del propietario. |
-| A4 | Dungeons: objeto propio y editor con plano (maqueta D5); en toda la App se dice «dungeon». | P5, D5 | Implementado en 0.7.0-preqa.1; pendiente QA del propietario. |
-| A5 | Archivos y mapas: carpetas favoritas y recientes, la carpeta de la campaña recordada; marcas del mapa que se arrastran. | P7 | Implementado en 0.7.0-preqa.1; pendiente QA del propietario. |
-| A6 | Tablet en la mesa: Escritorio pensado para uso rápido, con acciones grandes y directas y nombres claros. | G1, E1 | Implementado en 0.7.0-preqa.1; pendiente QA del propietario. |
-| A7 | Handouts a los jugadores: el DM elige qué mostrar y el jugador lo ve en su App. | G2 | Implementado en 0.7.0-preqa.1; pendiente QA del propietario. |
-| A8 | SRD: lector del SRD para todos, y pantallas de homebrew por familia (objetos, clases, dotes, conjuros…), con su lugar reservado aunque aún estén vacías. | G4 | Implementado en 0.7.0-preqa.1; pendiente QA del propietario. |
-| A9 | Notas: un lugar fijo donde encontrarlas en la tablet y en Windows. | N1 | Implementado en 0.7.0-preqa.1; pendiente QA del propietario. |
-| A10 | P6: las escenas en Preparar tienen que ser más claras (comentario menor); lo cubre A3. | P6 | Implementado en 0.7.0-preqa.1; pendiente QA del propietario. |
-| A12 | Selector SRD → homebrew → custom al agregar objetos, armas, ataques, conjuros, dotes y similares a un PJ. | G4, D9 | Implementado en 0.7.0-preqa.1; pendiente QA del propietario. |
-| A13 | Asignar a cada PJ su jugador o jugadora, aunque todavía no tenga cuenta en la App. | D13 | Implementado en 0.7.0-preqa.1; pendiente QA del propietario. |
-| A14 | Ayuda dentro de la App: cada pantalla explica en corto qué es y cómo se usa. | D14 | Implementado en 0.7.0-preqa.1; pendiente QA del propietario. |
-| A11 | Crear PJ eligiendo desde el SRD (especie o raza, clase, subclase, trasfondo, dotes, conjuros y equipo) en el editor de PJ, 5e y 5.5e, y cada lista con su homebrew de A8. | G4, D8 | Implementado en 0.7.0-preqa.1; pendiente QA del propietario. |
+| A1 | Entrada y cuenta: Windows pide la cuenta al abrir y la recuerda; la cuenta y el rol se ven siempre; «Cerrar sesión» y «Cambiar usuario»; si una cuenta no es DM, se explica por qué no aparece el Escritorio DM. | P3, P8, E1, W4, D1, D2, D4 | Implementado en 0.7.0-preqa.2; pendiente QA del propietario. |
+| A2 | Campañas: una sola lista estable de campañas con su rol, en la tablet y en Windows, sin pantallas que cambian según el estado. | G3, E1 | Implementado en 0.7.0-preqa.2; pendiente QA del propietario. |
+| A3 | Windows, preparar: «Gestores» se reemplaza por una sección «Preparar» con nombres claros y una línea que dice para qué sirve cada cosa. Sincronizar queda en el menú normal. | P3, P8, D3 | Implementado en 0.7.0-preqa.2; pendiente QA del propietario. |
+| A4 | Dungeons: objeto propio y editor con plano (maqueta D5); en toda la App se dice «dungeon». | P5, D5 | Implementado en 0.7.0-preqa.2; pendiente QA del propietario. |
+| A5 | Archivos y mapas: carpetas favoritas y recientes, la carpeta de la campaña recordada; marcas del mapa que se arrastran. | P7 | Implementado en 0.7.0-preqa.2; pendiente QA del propietario. |
+| A6 | Tablet en la mesa: Escritorio pensado para uso rápido, con acciones grandes y directas y nombres claros. | G1, E1 | Implementado en 0.7.0-preqa.2; pendiente QA del propietario. |
+| A7 | Handouts a los jugadores: el DM elige qué mostrar y el jugador lo ve en su App. | G2 | Implementado en 0.7.0-preqa.2; pendiente QA del propietario. |
+| A8 | SRD: lector del SRD para todos, y pantallas de homebrew por familia (objetos, clases, dotes, conjuros…), con su lugar reservado aunque aún estén vacías. | G4 | Implementado en 0.7.0-preqa.2; pendiente QA del propietario. |
+| A9 | Notas: un lugar fijo donde encontrarlas en la tablet y en Windows. | N1 | Implementado en 0.7.0-preqa.2; pendiente QA del propietario. |
+| A10 | P6: las escenas en Preparar tienen que ser más claras (comentario menor); lo cubre A3. | P6 | Implementado en 0.7.0-preqa.2; pendiente QA del propietario. |
+| A12 | Selector SRD → homebrew → custom al agregar objetos, armas, ataques, conjuros, dotes y similares a un PJ. | G4, D9 | Implementado en 0.7.0-preqa.2; pendiente QA del propietario. |
+| A13 | Asignar a cada PJ su jugador o jugadora, aunque todavía no tenga cuenta en la App. | D13 | Implementado en 0.7.0-preqa.2; pendiente QA del propietario. |
+| A14 | Ayuda dentro de la App: cada pantalla explica en corto qué es y cómo se usa. | D14 | Implementado en 0.7.0-preqa.2; pendiente QA del propietario. |
+| A11 | Crear PJ eligiendo desde el SRD (especie o raza, clase, subclase, trasfondo, dotes, conjuros y equipo) en el editor de PJ, 5e y 5.5e, y cada lista con su homebrew de A8. | G4, D8 | Implementado en 0.7.0-preqa.2; pendiente QA del propietario. |
+
+## Observaciones durante el QA de 0.7.0-preqa.1 (2026-11-13)
+
+Textuales, con captura de la App de Windows en Diagnóstico tras cargar Campus Celeste:
+
+- **S1.** «cuanto tiempo es razonable para que la App Windows termina de sincronizar? lleva 5 minutos en esta pantalla»
+  - Diagnóstico: la sincronización avanzaba sin errores, unas 80 fichas por minuto, con 1.090 fichas en la primera subida. La pantalla solo decía «Sincronizando…», sin avance ni tiempo restante.
+  - Decisión del propietario: «Sí, agrégalo» (agregar un contador de avance).
+  - Estado: implementado en `0.7.0-preqa.2`. El avance y el tiempo restante se ven en la barra de Windows, en el Escritorio DM y en «Tus campañas» de la tablet. Pendiente QA (P6).
 
 ## Próximo paso
 
-1. El propietario hace el QA de la candidata `0.7.0-preqa.1` (build 70100, Windows 0.7.0) con el set privado Campus Celeste, según [QA_REDISENO_DM_0.7.0-preqa.1.md](QA_REDISENO_DM_0.7.0-preqa.1.md).
+1. El propietario hace el QA de la candidata `0.7.0-preqa.2` (build 70200, Windows 0.7.1) con el set privado Campus Celeste, según [QA_REDISENO_DM_0.7.0-preqa.2.md](QA_REDISENO_DM_0.7.0-preqa.2.md).
 2. Registrar aquí sus observaciones, textuales, antes de corregir nada (AGENTS §6.3).
