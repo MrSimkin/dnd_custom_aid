@@ -17,6 +17,13 @@ import {
 } from "./mediaStore.ts";
 import type { ApiErrorBody, ApiErrorCode, Uuid } from "./contracts/spine.ts";
 import {
+  RULES_PASSAGE_MAX_CHARS,
+  RULES_PASSAGES_MAX,
+  RULES_QUESTION_MAX_CHARS,
+  type RulesAnswerer,
+  type RulesPassage,
+} from "./rulesAnswer.ts";
+import {
   HostedAuthorizationError,
   HostedObjectGoneError,
   HostedObjectNotFoundError,
@@ -38,6 +45,8 @@ export interface ApiDependencies {
   /** Absent until the owner binds the Workers KV namespace (P27); media routes then answer 503. */
   media?: MediaStore;
   mediaAuthorization?: MediaAuthorization;
+  /** Absent until the owner binds Workers AI (package 8); the rules route then answers 503. */
+  rules?: RulesAnswerer;
 }
 
 export type ApiHandler = (request: Request) => Promise<Response>;
@@ -62,11 +71,13 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
       const campaignContentMatch = /^\/v1\/campaigns\/([^/]+)\/content$/.exec(path);
       const contentMatch = /^\/v1\/content\/([^/]+)$/.exec(path);
       const mediaMatch = /^\/v1\/media\/([0-9a-f]{64})$/.exec(path);
+      const sharedHandoutsMatch = /^\/v1\/campaigns\/([^/]+)\/handouts$/.exec(path);
       const knownFixedPath =
         path === "/v1/me" ||
         path === "/v1/me/content" ||
         path === "/v1/campaigns" ||
-        path === "/v1/campaign-memberships";
+        path === "/v1/campaign-memberships" ||
+        path === "/v1/rules/answer";
 
       if (
         !knownFixedPath &&
@@ -77,13 +88,35 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         pcSnapshotMatch == null &&
         campaignContentMatch == null &&
         contentMatch == null &&
-        mediaMatch == null
+        mediaMatch == null &&
+        sharedHandoutsMatch == null
       ) {
         throw new ApiProblem(404, "NOT_FOUND", "Route not found.");
       }
 
       const identity = await dependencies.auth.verify(request);
       const user = await dependencies.campaigns.resolveUser(identity.subject, identity.displayName);
+
+      if (path === "/v1/rules/answer") {
+        requireMethod(request, "POST");
+        const rules = dependencies.rules;
+        if (rules == null) {
+          throw new ApiProblem(503, "TRANSIENT_FAILURE", "Rules answers are not available yet.");
+        }
+        const body = await readJsonObject(request);
+        const question = requireNonBlankString(body.question, "question");
+        if (question.length > RULES_QUESTION_MAX_CHARS) {
+          throw new ApiProblem(400, "VALIDATION_FAILED", "question is too long.", { field: "question" });
+        }
+        const passages = requireRulesPassages(body.passages);
+        try {
+          const answer = await rules.answer(question, passages);
+          return jsonResponse({ answer, passageCount: passages.length });
+        } catch {
+          // Quota exhausted or model unavailable: the App keeps showing the SRD search.
+          throw new ApiProblem(503, "TRANSIENT_FAILURE", "Rules answers are not available right now.");
+        }
+      }
 
       if (path === "/v1/me") {
         requireMethod(request, "GET");
@@ -106,6 +139,20 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         const campaignId = requireUuid(campaignContentMatch[1], "campaignId");
         const content = await requireDmContent(dependencies).listCampaignContent(user.id, campaignId);
         return jsonResponse({ content });
+      }
+
+      if (sharedHandoutsMatch != null) {
+        requireMethod(request, "GET");
+        const campaignId = requireUuid(sharedHandoutsMatch[1], "campaignId");
+        const authorization = dependencies.mediaAuthorization;
+        if (authorization == null) {
+          throw new ApiProblem(503, "TRANSIENT_FAILURE", "Media storage is not configured yet.");
+        }
+        const handouts = await authorization.listSharedHandouts(user.id, campaignId);
+        if (handouts == null) {
+          throw new ApiProblem(404, "NOT_FOUND", "Campaign not found.");
+        }
+        return jsonResponse({ handouts });
       }
 
       if (mediaMatch != null) {
@@ -448,6 +495,26 @@ function requireJsonObject(value: unknown, field: string): Record<string, unknow
     throw new ApiProblem(400, "VALIDATION_FAILED", `${field} must be a JSON object.`, { field });
   }
   return value as Record<string, unknown>;
+}
+
+function requireRulesPassages(value: unknown): RulesPassage[] {
+  if (!Array.isArray(value) || value.length === 0 || value.length > RULES_PASSAGES_MAX) {
+    throw new ApiProblem(400, "VALIDATION_FAILED", `passages must hold 1 to ${RULES_PASSAGES_MAX} SRD passages.`, { field: "passages" });
+  }
+  return value.map((entry, index) => {
+    const passage = requireJsonObject(entry, `passages[${index}]`);
+    const version = requireNonBlankString(passage.version, `passages[${index}].version`);
+    if (version !== "5.1" && version !== "5.2.1") {
+      throw new ApiProblem(400, "VALIDATION_FAILED", "passages[].version must be 5.1 or 5.2.1.", { field: `passages[${index}].version` });
+    }
+    const page = passage.page;
+    if (typeof page !== "number" || !Number.isInteger(page) || page < 1 || page > 2000) {
+      throw new ApiProblem(400, "VALIDATION_FAILED", "passages[].page must be a page number.", { field: `passages[${index}].page` });
+    }
+    const text = requireNonBlankString(passage.text, `passages[${index}].text`);
+    const heading = typeof passage.heading === "string" ? passage.heading.trim().slice(0, 200) : "";
+    return { version, page, heading, text: text.slice(0, RULES_PASSAGE_MAX_CHARS) };
+  });
 }
 
 function requireNonBlankString(value: unknown, field: string): string {

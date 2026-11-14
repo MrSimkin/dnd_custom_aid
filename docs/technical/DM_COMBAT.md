@@ -64,3 +64,12 @@ Estado: implementado en la rama `feature/dm-combat`, construida sobre el paquete
 
 - El combate vive solo en la tablet. Compartirlo entre aparatos queda para cuando haga falta.
 - La ronda sorpresa tras una emboscada (P22) llega con la Mesa de Dungeon (paquete 7).
+
+## Rediseño aprobado (P32–P34)
+
+- **Iniciativa por grupo:** `sharedInitiativeGroups` en el documento. Un grupo con una sola iniciativa es un solo turno (`turnSlots`, `actingIds`), y «Siguiente turno» salta el grupo entero.
+- **Tiradas con el motor de la hoja de PJ:** `rollInitiativeFor`, `rollGroupInitiative` y `rollAllCreatureInitiative` usan `resolveCharacterD20Roll`. El dado queda en `initiativeDie`, y la ventana muestra la tarjeta de resultado de la hoja de PJ según «Dados visibles» o compacto.
+- **Variante propia:** `CreatureEdits` guarda características, velocidad, defensa, ataques estructurados (`CombatAttack`), rasgos, acciones y conjuros. El ● marca `hasOwnChanges`, y `resetAll` deshace todo.
+- **Guardar como criatura nueva:** `variantPayload` escribe lo propio sobre el bloque base y crea una criatura de campaña. Llega a la App de PC al sincronizar, y el bestiario no cambia.
+- **Bloques:** `setGroupQuantity` cambia la cantidad con − y +.
+

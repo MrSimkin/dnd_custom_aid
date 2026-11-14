@@ -16,6 +16,12 @@ import io.github.mrsimkin.dndcustomaid.shared.content.NpcContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.NpcPayload
 import io.github.mrsimkin.dndcustomaid.shared.content.PlaceContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.PlacePayload
+import io.github.mrsimkin.dndcustomaid.shared.content.ContentLinks
+import io.github.mrsimkin.dndcustomaid.shared.content.ContentLinksRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.NoteContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.DungeonContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.DungeonPayload
+import io.github.mrsimkin.dndcustomaid.shared.content.NotePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentFamily
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentItem
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentRepository
@@ -149,6 +155,8 @@ interface HostedDmContentTransport {
     suspend fun mediaContent(sha256: String, contentId: Uuid): ByteArray
 }
 
+private const val LINKS_KEY = "links"
+
 internal fun dmContentJson(): Json = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true
@@ -174,6 +182,10 @@ class DmContentSnapshotCodec(
     private val scenes = SceneContentRepository(database, reusableContent)
     private val handouts = HandoutContentRepository(database, reusableContent)
     private val packages = PackageContentRepository(database, reusableContent)
+    private val links = ContentLinksRepository(database)
+    private val notes = NoteContentRepository(database, reusableContent)
+    private val dungeons = DungeonContentRepository(database, reusableContent)
+    private val rulesEntries = io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryContentRepository(database, reusableContent)
 
     fun supportsFamily(family: String): Boolean = ReusableContentFamily.entries.any { it.name == family }
 
@@ -195,7 +207,10 @@ class DmContentSnapshotCodec(
             ReusableContentFamily.SCENE -> encode(ScenePayload.serializer(), scenes.payload(id))
             ReusableContentFamily.HANDOUT -> encode(HandoutPayload.serializer(), handouts.payload(id))
             ReusableContentFamily.PACKAGE -> encode(PackagePayload.serializer(), packages.payload(id))
-        }
+            ReusableContentFamily.NOTE -> encode(NotePayload.serializer(), notes.payload(id))
+            ReusableContentFamily.DUNGEON -> encode(DungeonPayload.serializer(), dungeons.payload(id) ?: DungeonPayload())
+            ReusableContentFamily.RULES_ENTRY -> encode(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryPayload.serializer(), rulesEntries.payload(id))
+        }.withLinks(links.links(id))
         val provenance = item.identity.provenance?.let {
             val (kind, ref) = encodeScope(it.sourceScope)
             DmContentProvenanceDocument(
@@ -295,7 +310,21 @@ class DmContentSnapshotCodec(
         }
     }
 
-    private fun canonicalPayload(family: ReusableContentFamily, payload: JsonObject): JsonObject = when (family) {
+    /** Package 6: structured links travel inside the payload under "links"; none means no key. */
+    private fun JsonObject.withLinks(value: ContentLinks): JsonObject {
+        val clean = value.normalized()
+        if (clean.isEmpty) return JsonObject(this - LINKS_KEY)
+        return JsonObject(this + (LINKS_KEY to json.encodeToJsonElement(ContentLinks.serializer(), clean)))
+    }
+
+    private fun linksOf(payload: JsonObject): ContentLinks =
+        (payload[LINKS_KEY] as? JsonObject)?.let { runCatching { json.decodeFromJsonElement(ContentLinks.serializer(), it) }.getOrNull() }
+            ?: ContentLinks()
+
+    private fun canonicalPayload(family: ReusableContentFamily, payload: JsonObject): JsonObject =
+        familyCanonicalPayload(family, payload).withLinks(linksOf(payload))
+
+    private fun familyCanonicalPayload(family: ReusableContentFamily, payload: JsonObject): JsonObject = when (family) {
         ReusableContentFamily.CREATURE -> roundTrip(CreaturePayload.serializer(), payload)
         ReusableContentFamily.NPC -> roundTrip(NpcPayload.serializer(), payload)
         ReusableContentFamily.HOMEBREW_RULE -> roundTrip(HomebrewRulePayload.serializer(), payload)
@@ -305,9 +334,13 @@ class DmContentSnapshotCodec(
         ReusableContentFamily.SCENE -> roundTrip(ScenePayload.serializer(), payload)
         ReusableContentFamily.HANDOUT -> roundTrip(HandoutPayload.serializer(), payload)
         ReusableContentFamily.PACKAGE -> roundTrip(PackagePayload.serializer(), payload)
+        ReusableContentFamily.NOTE -> roundTrip(NotePayload.serializer(), payload)
+        ReusableContentFamily.DUNGEON -> roundTrip(DungeonPayload.serializer(), payload)
+        ReusableContentFamily.RULES_ENTRY -> roundTrip(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryPayload.serializer(), payload)
     }
 
     private fun writePayload(family: ReusableContentFamily, id: Uuid, payload: JsonObject) {
+        links.save(id, linksOf(payload))
         when (family) {
             ReusableContentFamily.CREATURE -> json.decodeFromJsonElement(CreaturePayload.serializer(), payload).let {
                 if (creatures.payload(id) == null) creatures.insertPayload(id, it) else creatures.updatePayloadRow(id, it)
@@ -335,6 +368,15 @@ class DmContentSnapshotCodec(
             }
             ReusableContentFamily.PACKAGE -> json.decodeFromJsonElement(PackagePayload.serializer(), payload).let {
                 if (packages.payload(id) == null) packages.insertPayload(id, it) else packages.updatePayloadRow(id, it)
+            }
+            ReusableContentFamily.NOTE -> json.decodeFromJsonElement(NotePayload.serializer(), payload).let {
+                if (notes.payload(id) == null) notes.insertPayload(id, it) else notes.updatePayloadRow(id, it)
+            }
+            ReusableContentFamily.DUNGEON -> json.decodeFromJsonElement(DungeonPayload.serializer(), payload).let {
+                dungeons.updatePayloadRow(id, it)
+            }
+            ReusableContentFamily.RULES_ENTRY -> json.decodeFromJsonElement(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryPayload.serializer(), payload).let {
+                rulesEntries.updatePayloadRow(id, it)
             }
         }
     }
@@ -571,6 +613,46 @@ data class DmContentSyncResult(
     val mediaMissingCount: Int = 0,
 )
 
+/** What a long «Sincronizar» is doing (owner request, 2026-11-13: show how much is left). */
+enum class DmContentSyncStep { SENDING, RECEIVING, IMAGES }
+
+data class DmContentSyncProgress(val step: DmContentSyncStep, val done: Int, val total: Int)
+
+/**
+ * Turns progress into a short Spanish line for the DM, with the time left once the pace is known:
+ * «Enviando 535 de 1.090 · faltan unos 7 min».
+ */
+class DmContentSyncProgressText(private val nowMillis: () -> Long) {
+    private var step: DmContentSyncStep? = null
+    private var stepStartedAt = 0L
+    private var doneAtStart = 0
+
+    fun text(progress: DmContentSyncProgress): String {
+        val now = nowMillis()
+        if (progress.step != step) {
+            step = progress.step
+            stepStartedAt = now
+            doneAtStart = progress.done
+        }
+        val verb = when (progress.step) {
+            DmContentSyncStep.SENDING -> "Enviando"
+            DmContentSyncStep.RECEIVING -> "Recibiendo"
+            DmContentSyncStep.IMAGES -> "Bajando imágenes:"
+        }
+        val base = "$verb ${grouped(progress.done)} de ${grouped(progress.total)}"
+        val advanced = progress.done - doneAtStart
+        val elapsed = now - stepStartedAt
+        if (progress.done >= progress.total || advanced < 10 || elapsed <= 0) return base
+        val secondsLeft = (progress.total - progress.done).toLong() * elapsed / advanced / 1000
+        return if (secondsLeft < 60) "$base · falta menos de un minuto" else "$base · faltan unos ${(secondsLeft + 30) / 60} min"
+    }
+
+    private fun grouped(value: Int): String = value.toString().reversed().chunked(3).joinToString(".").reversed()
+}
+
+/** The fraction done, for a progress bar. */
+val DmContentSyncProgress.fraction: Float get() = if (total <= 0) 0f else done.toFloat() / total
+
 /**
  * One sync pass for the DM: queue local changes, send the queue, then receive hosted changes.
  *
@@ -586,7 +668,11 @@ class HostedDmContentSyncService(
 ) {
     private var mediaTransferred = 0
 
-    suspend fun synchronize(scopes: List<DmContentSyncScope>, nowEpochSeconds: Long): DmContentSyncResult {
+    suspend fun synchronize(
+        scopes: List<DmContentSyncScope>,
+        nowEpochSeconds: Long,
+        onProgress: (DmContentSyncProgress) -> Unit = {},
+    ): DmContentSyncResult {
         require(nowEpochSeconds >= 0) { "Sync time must not be negative." }
         val conflicts = linkedMapOf<Uuid, DmContentSyncConflictReason>()
         val pushed = mutableListOf<Uuid>()
@@ -599,8 +685,12 @@ class HostedDmContentSyncService(
         scopes.distinct().forEach { queueLocalChanges(it, nowEpochSeconds, conflicts) }
 
         var offline = false
-        for (mutation in outbox.allMutations().filter { it.retryState == HostedRetryState.READY }) {
-            when (val outcome = send(mutation, nowEpochSeconds)) {
+        val ready = outbox.allMutations().filter { it.retryState == HostedRetryState.READY }
+        if (ready.isNotEmpty()) onProgress(DmContentSyncProgress(DmContentSyncStep.SENDING, 0, ready.size))
+        for ((index, mutation) in ready.withIndex()) {
+            val outcome = send(mutation, nowEpochSeconds)
+            onProgress(DmContentSyncProgress(DmContentSyncStep.SENDING, index + 1, ready.size))
+            when (outcome) {
                 SendOutcome.Sent -> pushed += mutation.contentId
                 SendOutcome.Offline -> {
                     offline = true
@@ -626,7 +716,11 @@ class HostedDmContentSyncService(
                     }
                     throw error
                 }
-                hosted.sortedBy { it.id.toString() }.forEach { remote ->
+                if (hosted.isNotEmpty()) onProgress(DmContentSyncProgress(DmContentSyncStep.RECEIVING, 0, hosted.size))
+                hosted.sortedBy { it.id.toString() }.forEachIndexed { index, remote ->
+                    if ((index + 1) % 50 == 0 || index + 1 == hosted.size) {
+                        onProgress(DmContentSyncProgress(DmContentSyncStep.RECEIVING, index + 1, hosted.size))
+                    }
                     when (val outcome = receive(remote, conflicts)) {
                         ReceiveOutcome.Applied -> applied += remote.id
                         ReceiveOutcome.Tombstoned -> tombstoned += remote.id
@@ -638,7 +732,7 @@ class HostedDmContentSyncService(
             }
         }
 
-        val mediaMissing = if (offline) countMissingMedia(scopes) else downloadMissingMedia(scopes)
+        val mediaMissing = if (offline) countMissingMedia(scopes) else downloadMissingMedia(scopes, onProgress)
 
         return DmContentSyncResult(
             mediaTransferredCount = mediaTransferred,
@@ -818,10 +912,13 @@ class HostedDmContentSyncService(
 
     private fun countMissingMedia(scopes: List<DmContentSyncScope>): Int = activeHandoutsMissingImage(scopes).size
 
-    private suspend fun downloadMissingMedia(scopes: List<DmContentSyncScope>): Int {
+    private suspend fun downloadMissingMedia(scopes: List<DmContentSyncScope>, onProgress: (DmContentSyncProgress) -> Unit): Int {
         val store = blobs ?: return 0
         var missing = 0
-        for ((id, payload) in activeHandoutsMissingImage(scopes)) {
+        val wanted = activeHandoutsMissingImage(scopes)
+        for ((index, entry) in wanted.withIndex()) {
+            val (id, payload) = entry
+            onProgress(DmContentSyncProgress(DmContentSyncStep.IMAGES, index, wanted.size))
             if (store.has(payload.sha256)) continue
             val bytes = try {
                 transport.mediaContent(payload.sha256, id)

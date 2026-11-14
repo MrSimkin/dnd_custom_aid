@@ -166,6 +166,94 @@ class CombatTest {
         assertEquals(listOf(b.id), repo.list(campaign.id).map { it.id })
     }
 
+    @Test
+    fun aGroupWithOneInitiativeActsAsOneTurnAndRollsRespectEachGroupsChoice() = db { database ->
+        val campaign = CampaignRepository(database).createCampaign("Terramore")
+        val goblin = CreatureContentRepository(database).createCampaign(campaign.id, "Goblin", goblinPayload(), 100)
+        val wolf = CreatureContentRepository(database).createCampaign(campaign.id, "Lobo", goblinPayload(), 100)
+        var doc = CombatEngine.new(campaign.id, "Puente", 200)
+        doc = CombatEngine.addCreature(doc, goblin, 3)
+        doc = CombatEngine.addCreature(doc, wolf, 2)
+        val goblins = doc.combatants.first().groupId
+        val wolves = doc.combatants.last().groupId
+
+        doc = CombatEngine.setInitiativeShared(doc, goblins, true)
+        val dice = ArrayDeque(listOf(15, 4, 9))
+        doc = CombatEngine.rollAllCreatureInitiative(doc) { dice.removeFirst() }
+        assertTrue(dice.isEmpty(), "one roll for the shared goblins, one per wolf")
+        val goblinInitiatives = doc.combatants.filter { it.groupId == goblins }.map { it.initiative }.distinct()
+        assertEquals(listOf(17), goblinInitiatives, "d20 15 + DEX 2 for the whole group")
+        assertEquals(15, doc.combatants.first().initiativeDie)
+        assertEquals(listOf(6, 11), doc.combatants.filter { it.groupId == wolves }.map { it.initiative })
+
+        doc = CombatEngine.start(doc)
+        assertEquals(3, doc.actingIds.size, "the three goblins act together")
+        doc = CombatEngine.nextTurn(doc)
+        assertEquals("Lobo 2", doc.combatant(doc.activeCombatantId!!)!!.label)
+        doc = CombatEngine.nextTurn(doc)
+        doc = CombatEngine.nextTurn(doc)
+        assertEquals(2, doc.round)
+        assertTrue(doc.activeCombatantId in doc.combatants.filter { it.groupId == goblins }.map { it.id })
+    }
+
+    @Test
+    fun aSuccessfulAmbushOpensWithASurpriseRoundForTheAmbushersOnly() = db { database ->
+        val campaign = CampaignRepository(database).createCampaign("Terramore")
+        val goblin = CreatureContentRepository(database).createCampaign(campaign.id, "Goblin", goblinPayload(), 100)
+        var doc = CombatEngine.addCreature(CombatEngine.new(campaign.id, "Cripta", 200), goblin, 2)
+        doc = CombatEngine.addCustom(doc, "Ana", null, 14)
+        doc = CombatEngine.addCustom(doc, "Bo", null, 12)
+        val ana = doc.combatants.first { it.label == "Ana" }
+        val bo = doc.combatants.first { it.label == "Bo" }
+        listOf(ana.id to 5, bo.id to 18).forEach { (id, value) -> doc = CombatEngine.setInitiative(doc, id, value) }
+        doc.combatants.filter { it.label.startsWith("Goblin") }.forEach { doc = CombatEngine.setInitiative(doc, it.id, 10) }
+
+        doc = CombatEngine.setSurpriseActors(doc, listOf(ana.id))
+        doc = CombatEngine.start(doc)
+        assertEquals(0, doc.round, "round 0 is the surprise round")
+        assertEquals(ana.id, doc.activeCombatantId, "only the ambusher acts, even with a lower initiative")
+        doc = CombatEngine.nextTurn(doc)
+        assertEquals(1, doc.round)
+        assertEquals(bo.id, doc.activeCombatantId, "round 1 starts at the top of the full order")
+
+        val noSurprise = CombatEngine.start(CombatEngine.setSurpriseActors(doc.copy(status = CombatStatus.PREPARING), emptyList()))
+        assertEquals(1, noSurprise.round, "the DM can always start without surprise")
+    }
+
+    @Test
+    fun blockQuantityAndAVariantSavedAsANewCreatureLeaveTheBaseUntouched() = db { database ->
+        val campaign = CampaignRepository(database).createCampaign("Terramore")
+        val creatures = CreatureContentRepository(database)
+        val goblin = creatures.createCampaign(campaign.id, "Goblin", goblinPayload(), 100)
+        var doc = CombatEngine.addCreature(CombatEngine.new(campaign.id, "Puente", 200), goblin, 2)
+        val group = doc.combatants.first().groupId
+        doc = CombatEngine.setGroupQuantity(doc, group, 4)
+        assertEquals(4, doc.combatants.count { it.groupId == group })
+        doc = CombatEngine.setGroupQuantity(doc, group, 3)
+        assertEquals(listOf("Goblin 1", "Goblin 2", "Goblin 3"), doc.combatants.map { it.label })
+
+        val boss = doc.combatants.first()
+        doc = CombatEngine.setEdits(doc, boss.id, CreatureEdits(
+            abilityScores = CreatureAbilityScores(strength = 16, dexterity = 14),
+            attacks = listOf(CombatAttack("Hacha", bonus = 5, damage = "1d8+3", damageType = "cortante", reach = "1,5 m")),
+        ))
+        doc = CombatEngine.setOverrides(doc, boss.id, CombatOverrides(maxHp = 20))
+        val edited = doc.combatant(boss.id)!!
+        assertTrue(edited.hasOwnChanges)
+        assertTrue(!doc.combatants[1].hasOwnChanges, "only the edited goblin carries the ●")
+
+        val payload = CombatEngine.variantPayload(goblin.payload, edited, edited.effective(emptyMap()))
+        val saved = creatures.createCampaign(campaign.id, "Goblin jefe", payload, 300)
+        assertEquals(20, saved.payload.hitPoints)
+        assertEquals(16, saved.payload.abilityScores.strength)
+        assertTrue("Hacha. +5 al impactar, 1,5 m, 1d8+3 cortante." in saved.payload.actions)
+        assertEquals(7, creatures.creature(goblin.item.identity.id)!!.payload.hitPoints, "the bestiary creature does not change")
+
+        doc = CombatEngine.resetAll(doc, boss.id)
+        assertTrue(!doc.combatant(boss.id)!!.hasOwnChanges)
+        assertEquals(7, doc.combatant(boss.id)!!.currentHp)
+    }
+
     private fun goblinPayload() = CreaturePayload(
         armorClass = 15,
         hitPoints = 7,

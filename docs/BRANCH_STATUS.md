@@ -1,3 +1,13 @@
+**2026-11-13 — Rediseño DM (R1 a R7) en `feature/dm-ux-redesign`, candidata 0.7.0-preqa.2 (build 70200, Windows 0.7.1).** Cuenta recordada en Windows, Preparar, dungeons con plano, Reglas con SRD y homebrew, PJ desde el SRD, handouts a los jugadores y paquete de contenido. Pendiente: QA del propietario. Detalle en [REDISENO_BASE_DM.md](technical/REDISENO_BASE_DM.md).
+
+**2026-11-11 — Base para DM, paquete 8 (Consultar reglas con IA), en `feature/dm-ux-redesign`.** La búsqueda sin conexión sigue en el aparato y la respuesta con IA viene de Workers AI, citando el SRD. Falta el paso del propietario en los proveedores ([DM_REGLAS_IA.md](technical/DM_REGLAS_IA.md) §4).
+
+**2026-11-11 — Base para DM, paquete 7 (Mesa de Dungeon), en `feature/dm-ux-redesign`, en la tablet y en Windows.** Incluye turno de mazmorra, mapa de zonas, fichas de zona, relojes, notas sincronizadas y ronda sorpresa tras una emboscada. Detalle en [DM_DUNGEON.md](technical/DM_DUNGEON.md).
+
+**2026-11-11 — Base para DM: mesas también en Windows y paquete 6 (Mesa de Escena), en `feature/dm-ux-redesign`.** Las mesas se comparten entre la tablet y la App de Windows (`dmUi`). Hay vínculos elegidos de listas en la App de PC y marcas en mapas. Detalle en [DM_ESCENA.md](technical/DM_ESCENA.md).
+
+**2026-11-11 — Base para DM: pantallas corregidas según el diseño aprobado, en `feature/dm-ux-redesign`.** Escritorio con barra lateral y paneles, Pantalla del DM con hoja rápida y hoja completa en lectura, y Mesa de Combate en 4 pasos con editor completo. Diseño en [DM_UX_APROBADA.md](technical/DM_UX_APROBADA.md).
+
 **2026-11-11 — Base para DM, paquete 5 (Mesa de Combate) implementado en `feature/dm-combat`.** Preparar encuentro, paquetes (armados en la App de PC), iniciativa, PV, estados y turnos en la tablet. Detalle en [DM_COMBAT.md](technical/DM_COMBAT.md).
 
 **2026-11-10 — Base para DM, paquete 4 (Archivos e imágenes) implementado en `feature/dm-media`.** Workers KV (P27, revisión USD $0), handouts como contenido del DM con imagen por SHA-256, importación en la App de PC y pantalla completa en la tablet. Detalle en [DM_MEDIA.md](technical/DM_MEDIA.md).

@@ -199,7 +199,9 @@ For the verified Wave 5 state, the existing DEV Worker is `dnd-custom-aid-api` a
 
 ## 9. Canonical DEV identity
 
-Normal hosted DEV owner/DM testing uses the Outlook-backed application identity. Gmail is historical/inactive by default and may be deliberately reused only when a future test needs a secondary real user. Historical Gmail mutation/audit evidence remains historical truth and must not be rewritten.
+**Owner decision (2026-11-13), current:** while testing, the owner's **Gmail** identity is the DM (and may also own/play PCs) and the **Outlook** identity is a player. This replaces the earlier rule that made Outlook the canonical DM identity and Gmail historical/inactive. Hosted roles are changed only with the owner's explicit yes.
+
+Historical Outlook/Gmail mutation and audit evidence remains historical truth and must not be rewritten.
 
 ## 10. Cost/security
 

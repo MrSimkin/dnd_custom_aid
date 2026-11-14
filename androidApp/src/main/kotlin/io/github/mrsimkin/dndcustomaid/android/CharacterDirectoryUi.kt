@@ -206,8 +206,9 @@ internal fun CharacterDirectoryScreen(
             campaigns = campaigns,
             defaultCampaignId = defaultCampaignId,
             onDismiss = { showCreateDialog = false },
-            onCreate = { campaignId, name ->
-                val character = repository.createCharacter(campaignId, name)
+            onCreate = { campaignId, name, start ->
+                val created = repository.createCharacter(campaignId, name)
+                val character = start?.let { repository.saveCharacter(it.applyTo(created)) } ?: created
                 reload()
                 showCreateDialog = false
                 onEdit(character)
@@ -329,17 +330,18 @@ private fun CreateCharacterInCampaignDialog(
     campaigns: List<Campaign>,
     defaultCampaignId: Uuid,
     onDismiss: () -> Unit,
-    onCreate: (Uuid, String) -> Unit,
+    onCreate: (Uuid, String, CharacterStartingChoices?) -> Unit,
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var campaignIdText by rememberSaveable { mutableStateOf(defaultCampaignId.toString()) }
     val selectedCampaign = campaigns.firstOrNull { it.id.toString() == campaignIdText } ?: campaigns.first()
     val normalizedName = name.trim()
+    var start by remember { mutableStateOf(CharacterStartingChoices()) }
 
     CharacterImeSafeEditorDialog(
         title = "Nuevo personaje",
         onCancel = onDismiss,
-        onSave = { onCreate(selectedCampaign.id, normalizedName) },
+        onSave = { onCreate(selectedCampaign.id, normalizedName, start.takeIf { !it.isEmpty }) },
         saveLabel = "Crear",
         saveEnabled = normalizedName.isNotEmpty(),
     ) {
@@ -357,6 +359,46 @@ private fun CreateCharacterInCampaignDialog(
         )
         CharacterInlineValidationMessage(
             if (name.isNotEmpty() && normalizedName.isEmpty()) "Escribe un nombre para crear el personaje." else null,
+        )
+        // Redesign R5 (D8): start from the SRD, then the homebrew; everything stays editable afterwards.
+        Text("Empezar desde el SRD o tu homebrew (opcional)", style = MaterialTheme.typography.titleSmall)
+        Text(
+            listOfNotNull(
+                start.species?.let { "Especie: ${it.name}" },
+                start.characterClass?.let { "Clase: ${it.name} ${start.level}" },
+                start.subclass?.let { "Subclase: ${it.name}" },
+                start.background?.let { "Trasfondo: ${it.name}" },
+            ).joinToString(" · ").ifBlank { "Sin elegir: el personaje empieza en blanco." },
+            style = MaterialTheme.typography.bodySmall,
+        )
+        RulesPickButton(
+            kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.SPECIES),
+            label = "📖 Especie",
+            onPick = { start = start.copy(species = it) },
+        )
+        RulesPickButton(
+            kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.CLASS),
+            label = "📖 Clase",
+            onPick = { start = start.copy(characterClass = it) },
+        )
+        if (start.characterClass != null) {
+            CharacterCompactOutlinedTextFieldV4(
+                value = start.level.toString(),
+                onValueChange = { value -> start = start.copy(level = value.filter(Char::isDigit).toIntOrNull()?.coerceIn(1, 20) ?: 1) },
+                label = { Text("Nivel") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+            )
+            RulesPickButton(
+                kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.SUBCLASS),
+                label = "📖 Subclase",
+                onPick = { start = start.copy(subclass = it) },
+            )
+        }
+        RulesPickButton(
+            kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.BACKGROUND),
+            label = "📖 Trasfondo",
+            onPick = { start = start.copy(background = it) },
         )
     }
 }
@@ -437,4 +479,49 @@ private fun directoryStatusLabel(status: CharacterStatus): String = when (status
     CharacterStatus.INACTIVE -> "Inactivo"
     CharacterStatus.RETIRED -> "Retirado"
     CharacterStatus.DEAD -> "Muerto"
+}
+
+
+/** What «Nuevo personaje» picked from the SRD or the homebrew (redesign R5, owner decision D8). */
+data class CharacterStartingChoices(
+    val species: io.github.mrsimkin.dndcustomaid.shared.dm.RulesOption? = null,
+    val characterClass: io.github.mrsimkin.dndcustomaid.shared.dm.RulesOption? = null,
+    val level: Int = 1,
+    val subclass: io.github.mrsimkin.dndcustomaid.shared.dm.RulesOption? = null,
+    val background: io.github.mrsimkin.dndcustomaid.shared.dm.RulesOption? = null,
+) {
+    val isEmpty: Boolean get() = species == null && characterClass == null && background == null
+
+    fun applyTo(sheet: io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet): io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet {
+        fun family(option: io.github.mrsimkin.dndcustomaid.shared.dm.RulesOption) = when {
+            option.origin != io.github.mrsimkin.dndcustomaid.shared.content.RulesOrigin.SRD -> io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily.CUSTOM
+            option.edition == "5e" -> io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily.DND_5E
+            option.edition == "5.5e" -> io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily.DND_5_5E
+            else -> io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily.UNSPECIFIED
+        }
+        val classes = characterClass?.let { picked ->
+            listOf(
+                io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassLevel(
+                    id = Uuid.random(),
+                    name = picked.name,
+                    level = level,
+                    hitDieSides = picked.fields["dado_de_golpe"]?.removePrefix("d")?.toIntOrNull() ?: 8,
+                    hitDiceRemaining = level,
+                    sortOrder = 0,
+                    rulesFamily = family(picked),
+                    source = picked.source,
+                    subclassName = subclass?.name,
+                    subclassSource = subclass?.source,
+                    subclassRulesFamily = subclass?.let(::family) ?: family(picked),
+                ),
+            )
+        } ?: sheet.classes
+        return sheet.copy(
+            classes = classes,
+            background = sheet.background.copy(
+                name = background?.name ?: sheet.background.name,
+                race = species?.name ?: sheet.background.race,
+            ),
+        )
+    }
 }

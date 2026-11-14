@@ -17,6 +17,15 @@ for path in sorted(ROOT.glob('*.kt')):
         material_imports.append(path.name)
     compact_calls += text.count('CharacterCompactOutlinedTextFieldV4(')
 
+# Base para DM: the desks in dmUi are compiled into the Android app too and use DmTextField.
+DM_ROOT = pathlib.Path('dmUi/src/kotlin/io/github/mrsimkin/dndcustomaid/dmui')
+for path in sorted(DM_ROOT.glob('*.kt')):
+    text = path.read_text(encoding='utf-8')
+    for match in raw_pattern.finditer(text):
+        raw_sites.append(f'dmUi/{path.name}:{text.count(chr(10), 0, match.start()) + 1}')
+    if 'import androidx.compose.material3.OutlinedTextField' in text:
+        material_imports.append(f'dmUi/{path.name}')
+
 errors = []
 if raw_sites:
     errors.append('raw Material OutlinedTextField call sites remain: ' + ', '.join(raw_sites))

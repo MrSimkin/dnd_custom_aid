@@ -1,7 +1,10 @@
 package io.github.mrsimkin.dndcustomaid.shared.dm
 
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
+import io.github.mrsimkin.dndcustomaid.shared.character.resolveCharacterD20Roll
+import io.github.mrsimkin.dndcustomaid.shared.content.CreatureAbilityScores
 import io.github.mrsimkin.dndcustomaid.shared.content.CreatureContent
+import io.github.mrsimkin.dndcustomaid.shared.content.CreaturePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterContent
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterParticipantReadiness
 import io.github.mrsimkin.dndcustomaid.shared.content.PackageContent
@@ -42,6 +45,37 @@ data class CombatOverrides(
         get() = armorClass == null && maxHp == null && attackBonus == null && damageDice == null && damageBonus == null
 }
 
+/** A structured attack the DM gave this combatant in the full editor (P32). */
+@Serializable
+data class CombatAttack(
+    val name: String,
+    val bonus: Int? = null,
+    val damage: String = "",
+    val damageType: String = "",
+    val reach: String = "",
+    val notes: String = "",
+)
+
+/**
+ * The combatant's own version of its stat block (P32 «Editar completa»). A null field means «as in
+ * the bestiary». Nothing here touches the base creature; «Guardar como criatura nueva» is the only
+ * way a variant leaves the combat. Changing an ability score never recalculates AC or attacks.
+ */
+@Serializable
+data class CreatureEdits(
+    val abilityScores: CreatureAbilityScores? = null,
+    val speed: String? = null,
+    val armorClassDetails: String? = null,
+    val defenses: String? = null,
+    val attacks: List<CombatAttack> = emptyList(),
+    val traits: String? = null,
+    val actions: String? = null,
+    val spells: String? = null,
+) {
+    val isEmpty: Boolean
+        get() = this == CreatureEdits()
+}
+
 @Serializable
 data class Combatant(
     val id: Uuid,
@@ -67,10 +101,17 @@ data class Combatant(
     val defeated: Boolean = false,
     val reserve: Boolean = false,
     val notes: String = "",
+    val edits: CreatureEdits = CreatureEdits(),
+    /** The d20 behind [initiative] when the App rolled it; null when it was written. */
+    val initiativeDie: Int? = null,
 ) {
     init {
         require(label.isNotBlank()) { "Combatant name must not be blank." }
     }
+
+    /** Has its own tweaks, packages or editor changes (the ● of P32). */
+    val hasOwnChanges: Boolean
+        get() = !overrides.isEmpty || packageIds.isNotEmpty() || !edits.isEmpty
 }
 
 @Serializable
@@ -86,6 +127,15 @@ data class CombatDocument(
     val combatants: List<Combatant> = emptyList(),
     val createdAtEpochSeconds: Long,
     val updatedAtEpochSeconds: Long,
+    /** Groups that act together on one initiative (P33 «Una para el grupo»). */
+    val sharedInitiativeGroups: List<Uuid> = emptyList(),
+    /** The prepared encounter this combat came from, for its guidance (D-0069 §10). */
+    val encounterId: Uuid? = null,
+    /**
+     * P22: after a successful ambush, these combatants act in a surprise round (round 0) before
+     * round 1; everyone else is surprised. Empty means no surprise round.
+     */
+    val surpriseActorIds: List<Uuid> = emptyList(),
 ) {
     init {
         require(name.isNotBlank()) { "Combat name must not be blank." }
@@ -99,12 +149,35 @@ data class CombatDocument(
         get() = combatants.filter { !it.reserve }.sortedWith(
             compareByDescending<Combatant> { it.initiative ?: Int.MIN_VALUE }
                 .thenByDescending { it.dexterityModifier }
+                .thenBy { it.groupId.toString() }
                 .thenBy { it.label.lowercase() }
                 .thenBy { it.id.toString() },
         )
 
     val reserve: List<Combatant>
         get() = combatants.filter { it.reserve }
+
+    fun sharesInitiative(groupId: Uuid): Boolean = groupId in sharedInitiativeGroups
+
+    /** Turns in order: a group with one shared initiative is a single turn (P33). */
+    val turnSlots: List<List<Combatant>>
+        get() {
+            val slots = mutableListOf<List<Combatant>>()
+            val seen = mutableSetOf<Uuid>()
+            val order = turnOrder
+            order.forEach { c ->
+                if (sharesInitiative(c.groupId)) {
+                    if (seen.add(c.groupId)) slots += order.filter { it.groupId == c.groupId }
+                } else {
+                    slots += listOf(c)
+                }
+            }
+            return slots
+        }
+
+    /** Everyone acting now: the active combatant, or its whole group when the group shares a turn. */
+    val actingIds: Set<Uuid>
+        get() = turnSlots.firstOrNull { slot -> slot.any { it.id == activeCombatantId } }?.map { it.id }?.toSet().orEmpty()
 }
 
 /** Values the DM sees for a combatant: base + packages + overrides (an override always wins). */
@@ -170,6 +243,18 @@ data class DiceExpression(val count: Int, val sides: Int, val bonus: Int) {
 }
 
 private fun dexModifier(score: Int): Int = (score - 10).floorDiv(2)
+
+/** «Garrote. +4 al impactar, 1,5 m. 1d6+2 contundente.» */
+fun CombatAttack.describe(): String = buildString {
+    append(name.trim().ifBlank { "Ataque" })
+    val parts = listOfNotNull(
+        bonus?.let { if (it >= 0) "+$it al impactar" else "$it al impactar" },
+        reach.takeIf { it.isNotBlank() },
+        listOf(damage, damageType).filter { it.isNotBlank() }.joinToString(" ").takeIf { it.isNotBlank() },
+        notes.takeIf { it.isNotBlank() },
+    )
+    if (parts.isNotEmpty()) append(". ").append(parts.joinToString(", ")).append(".")
+}
 
 /** Pure operations on a combat document; every call returns a new document. */
 object CombatEngine {
@@ -239,7 +324,7 @@ object CombatEngine {
 
     /** A prepared encounter enters whole (P14): quantities expand, «reserva» stays in reserve. */
     fun addEncounter(doc: CombatDocument, encounter: EncounterContent, creatures: Map<Uuid, CreatureContent>): CombatDocument =
-        encounter.payload.participants.fold(doc) { acc, participant ->
+        encounter.payload.participants.fold(doc.copy(encounterId = doc.encounterId ?: encounter.item.identity.id)) { acc, participant ->
             val creature = participant.sourceContentId?.let(creatures::get)
             val reserve = participant.readiness != EncounterParticipantReadiness.EXPECTED
             when {
@@ -262,6 +347,7 @@ object CombatEngine {
             label = "$stem ${sameGroup + 1}",
             currentHp = source.baseMaxHp?.let { source.overrides.maxHp ?: it } ?: source.currentHp,
             initiative = null,
+            initiativeDie = null,
             conditions = emptyList(),
             concentrating = false,
             defeated = false,
@@ -339,7 +425,106 @@ object CombatEngine {
         c.copy(overrides = c.overrides.copy(maxHp = rolled), currentHp = rolled)
     }
 
-    fun setInitiative(doc: CombatDocument, id: Uuid, value: Int?): CombatDocument = update(doc, id) { it.copy(initiative = value) }
+    fun setInitiative(doc: CombatDocument, id: Uuid, value: Int?): CombatDocument = update(doc, id) { it.copy(initiative = value, initiativeDie = null) }
+
+    /** P33: «Una para el grupo» (one number, one turn) or «Cada uno la suya». */
+    fun setInitiativeShared(doc: CombatDocument, groupId: Uuid, shared: Boolean): CombatDocument {
+        val groups = if (shared) (doc.sharedInitiativeGroups + groupId).distinct() else doc.sharedInitiativeGroups - groupId
+        val withMode = doc.copy(sharedInitiativeGroups = groups)
+        if (!shared) return withMode
+        // Joining a group gives everyone the first member's number, so the group really acts together.
+        val first = doc.combatants.firstOrNull { it.groupId == groupId && it.initiative != null } ?: return withMode
+        return setGroupInitiative(withMode, groupId, first.initiative, first.initiativeDie)
+    }
+
+    /** Writes (or, with [die], records a roll for) the same number for every member of a group. */
+    fun setGroupInitiative(doc: CombatDocument, groupId: Uuid, value: Int?, die: Int? = null): CombatDocument = doc.copy(
+        combatants = doc.combatants.map { c -> if (c.groupId == groupId) c.copy(initiative = value, initiativeDie = die) else c },
+    )
+
+    /** A d20 already rolled ([die], 1-20) plus the combatant's DEX, through the PC dice engine (P34). */
+    fun rollInitiativeFor(doc: CombatDocument, id: Uuid, die: Int): CombatDocument = update(doc, id) { c ->
+        c.copy(initiative = resolveCharacterD20Roll(firstDie = die, modifier = c.dexterityModifier).total, initiativeDie = die)
+    }
+
+    fun rollGroupInitiative(doc: CombatDocument, groupId: Uuid, die: Int): CombatDocument {
+        val first = doc.combatants.firstOrNull { it.groupId == groupId } ?: return doc
+        return setGroupInitiative(doc, groupId, resolveCharacterD20Roll(firstDie = die, modifier = first.dexterityModifier).total, die)
+    }
+
+    /** «Tirar todas las criaturas»: one roll per shared group, one per creature otherwise. PCs are written. */
+    fun rollAllCreatureInitiative(doc: CombatDocument, d20: () -> Int): CombatDocument {
+        var result = doc
+        doc.combatants.filter { it.kind != CombatantKind.PC }.map { it.groupId }.distinct().forEach { groupId ->
+            result = if (doc.sharesInitiative(groupId)) {
+                rollGroupInitiative(result, groupId, d20())
+            } else {
+                result.combatants.filter { it.groupId == groupId }.fold(result) { acc, c -> rollInitiativeFor(acc, c.id, d20()) }
+            }
+        }
+        return result
+    }
+
+    /** − / + on a block (P32 «Goblin jefe ×3»): adds copies of the last member, or removes the last ones. */
+    fun setGroupQuantity(doc: CombatDocument, groupId: Uuid, quantity: Int): CombatDocument {
+        val members = doc.combatants.filter { it.groupId == groupId }
+        if (members.isEmpty() || quantity < 1 || quantity > 50 || quantity == members.size) return doc
+        if (quantity > members.size) {
+            return (members.size until quantity).fold(doc) { acc, _ ->
+                val last = acc.combatants.last { it.groupId == groupId }
+                duplicate(acc, last.id)
+            }
+        }
+        val drop = members.reversed().take(members.size - quantity).map { it.id }.toSet()
+        return doc.copy(
+            combatants = doc.combatants.filter { it.id !in drop },
+            activeCombatantId = doc.activeCombatantId.takeIf { it !in drop },
+        )
+    }
+
+    fun setEdits(doc: CombatDocument, id: Uuid, edits: CreatureEdits, wholeGroup: Boolean = false): CombatDocument =
+        forTargets(doc, id, wholeGroup) { it.copy(edits = edits) }
+
+    fun setLabel(doc: CombatDocument, id: Uuid, label: String): CombatDocument =
+        if (label.isBlank()) doc else update(doc, id) { it.copy(label = label.trim()) }
+
+    /** «Deshacer todo» on one combatant or its group: tweaks, packages and editor changes. */
+    fun resetAll(doc: CombatDocument, id: Uuid, wholeGroup: Boolean = false): CombatDocument {
+        val target = doc.combatant(id) ?: return doc
+        return doc.copy(combatants = doc.combatants.map { c ->
+            if (c.id == id || (wholeGroup && c.groupId == target.groupId)) {
+                val oldMax = c.overrides.maxHp ?: c.baseMaxHp
+                val hp = if (c.kind != CombatantKind.PC && c.currentHp == oldMax) c.baseMaxHp else c.currentHp
+                c.copy(overrides = CombatOverrides(), packageIds = emptyList(), edits = CreatureEdits(), currentHp = hp)
+            } else {
+                c
+            }
+        })
+    }
+
+    /**
+     * «Guardar como criatura nueva» (P32, D-0068 §14): the base stat block with this combatant's own
+     * values written in. Structured attacks are added to the actions text. The base creature is not touched.
+     */
+    fun variantPayload(base: CreaturePayload?, combatant: Combatant, effective: EffectiveCombatant): CreaturePayload {
+        val start = base ?: CreaturePayload()
+        val e = combatant.edits
+        val attacksText = e.attacks.joinToString("\n") { it.describe() }
+        val actions = listOf(e.actions ?: start.actions, attacksText).filter { it.isNotBlank() }.joinToString("\n")
+        val traits = listOf(e.traits ?: start.traits, e.spells?.let { "Conjuros. $it" }.orEmpty()).filter { it.isNotBlank() }.joinToString("\n")
+        val defenses = e.defenses
+        return start.copy(
+            armorClass = effective.armorClass ?: start.armorClass,
+            armorClassDetails = e.armorClassDetails ?: start.armorClassDetails,
+            hitPoints = effective.maxHp ?: start.hitPoints,
+            speed = e.speed ?: start.speed,
+            abilityScores = e.abilityScores ?: start.abilityScores,
+            damageResistances = defenses ?: start.damageResistances,
+            traits = traits,
+            actions = actions,
+            notes = listOf(start.notes, combatant.notes).filter { it.isNotBlank() }.joinToString("\n"),
+        )
+    }
 
     /** d20 + DEX for one creature, or for every creature and improvised participant (P12). PCs are written. */
     fun rollInitiative(doc: CombatDocument, random: Random, id: Uuid? = null): CombatDocument = doc.copy(
@@ -375,21 +560,38 @@ object CombatEngine {
 
     /** «Empezar combate»: the prepared state is kept; round 1 starts at the top of the order. */
     fun start(doc: CombatDocument): CombatDocument {
-        val started = doc.copy(status = CombatStatus.ACTIVE, round = 1)
-        return started.copy(activeCombatantId = started.turnOrder.firstOrNull { !it.defeated }?.id)
+        val surprise = doc.surpriseActorIds.any { id -> doc.combatant(id)?.reserve == false }
+        val started = doc.copy(status = CombatStatus.ACTIVE, round = if (surprise) 0 else 1)
+        return started.copy(activeCombatantId = started.slotsThisRound().firstNotNullOfOrNull { slot -> slot.firstOrNull { !it.defeated } }?.id)
     }
 
-    /** Next living combatant in initiative order; passing the end starts a new round. */
+    /** P22: who acts in the surprise round, set or changed by the DM (empty = start without surprise). */
+    fun setSurpriseActors(doc: CombatDocument, ids: List<Uuid>): CombatDocument =
+        doc.copy(surpriseActorIds = ids.filter { doc.combatant(it) != null }.distinct())
+
+    /** In the surprise round only its actors take turns; afterwards, everyone. */
+    private fun CombatDocument.slotsThisRound(): List<List<Combatant>> =
+        if (round == 0) turnSlots.filter { slot -> slot.any { it.id in surpriseActorIds } } else turnSlots
+
+    /** Next turn with someone still standing (a shared group is one turn); passing the end starts a new round. */
     fun nextTurn(doc: CombatDocument): CombatDocument {
-        val order = doc.turnOrder.filter { !it.defeated }
-        if (order.isEmpty()) return doc.copy(activeCombatantId = null)
-        val full = doc.turnOrder
-        val currentIndex = full.indexOfFirst { it.id == doc.activeCombatantId }
-        val after = if (currentIndex < 0) emptyList() else full.drop(currentIndex + 1).filter { !it.defeated }
+        if (doc.round == 0) {
+            val surpriseSlots = doc.slotsThisRound()
+            val index = surpriseSlots.indexOfFirst { slot -> slot.any { it.id == doc.activeCombatantId } }
+            val next = surpriseSlots.drop(index + 1).firstOrNull { slot -> slot.any { !it.defeated } }
+            if (next != null) return doc.copy(activeCombatantId = next.first { !it.defeated }.id)
+            val firstOfRoundOne = doc.turnSlots.firstOrNull { slot -> slot.any { !it.defeated } } ?: return doc.copy(activeCombatantId = null, round = 1)
+            return doc.copy(activeCombatantId = firstOfRoundOne.first { !it.defeated }.id, round = 1)
+        }
+        val slots = doc.turnSlots.filter { slot -> slot.any { !it.defeated } }
+        if (slots.isEmpty()) return doc.copy(activeCombatantId = null)
+        val all = doc.turnSlots
+        val currentIndex = all.indexOfFirst { slot -> slot.any { it.id == doc.activeCombatantId } }
+        val after = if (currentIndex < 0) emptyList() else all.drop(currentIndex + 1).filter { slot -> slot.any { !it.defeated } }
         return if (after.isNotEmpty()) {
-            doc.copy(activeCombatantId = after.first().id)
+            doc.copy(activeCombatantId = after.first().first { !it.defeated }.id)
         } else {
-            doc.copy(activeCombatantId = order.first().id, round = doc.round + 1)
+            doc.copy(activeCombatantId = slots.first().first { !it.defeated }.id, round = doc.round + 1)
         }
     }
 

@@ -121,11 +121,11 @@ class MainActivity : ComponentActivity() {
 private enum class AppScreen {
     ENTRY,
     DM_DESK,
-    DM_SCREEN,
-    DM_COMBAT,
     CAMPAIGNS,
     CHARACTERS,
     CHARACTER_EDITOR,
+    RULES,
+    PLAYER_HANDOUTS,
 }
 
 @Composable
@@ -166,11 +166,19 @@ private fun DndCustomAidApp(
     // Where Back from a PC sheet returns: the player's PC list or the Pantalla del DM.
     var editorReturnName by rememberSaveable { mutableStateOf(AppScreen.CHARACTERS.name) }
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    // Redesign A7: the campaign whose shared handouts are open.
+    var handoutsCampaignIdText by rememberSaveable { mutableStateOf<String?>(null) }
 
     val screen = runCatching { AppScreen.valueOf(screenName) }.getOrDefault(AppScreen.CHARACTERS)
 
     BackHandler(enabled = showSettings) {
         showSettings = false
+    }
+    BackHandler(enabled = !showSettings && screen == AppScreen.PLAYER_HANDOUTS) {
+        screenName = AppScreen.CAMPAIGNS.name
+    }
+    BackHandler(enabled = !showSettings && screen == AppScreen.RULES) {
+        screenName = AppScreen.CAMPAIGNS.name
     }
     BackHandler(enabled = !showSettings && screen == AppScreen.CAMPAIGNS) {
         selectedCharacterId = null
@@ -183,12 +191,6 @@ private fun DndCustomAidApp(
     BackHandler(enabled = !showSettings && screen == AppScreen.DM_DESK) {
         entryStore.lastDmCampaignId = null
         screenName = AppScreen.CAMPAIGNS.name
-    }
-    BackHandler(enabled = !showSettings && screen == AppScreen.DM_COMBAT) {
-        screenName = AppScreen.DM_DESK.name
-    }
-    BackHandler(enabled = !showSettings && screen == AppScreen.DM_SCREEN) {
-        screenName = AppScreen.DM_DESK.name
     }
     BackHandler(enabled = !showSettings && screen == AppScreen.CHARACTER_EDITOR) {
         selectedCharacterId = null
@@ -214,12 +216,32 @@ private fun DndCustomAidApp(
         )
     }
 
+    // Redesign R5 (D8, D9): every «Añadir» of the PC editor can pick from the SRD, then the homebrew.
+    val rulesContext = androidx.compose.ui.platform.LocalContext.current
+    val rulesPlatform = remember { AndroidDmPlatform(rulesContext, hostedCampaignBootstrapController) }
+    val rulesSources = remember {
+        RulesSources(
+            loadCatalogs = { io.github.mrsimkin.dndcustomaid.dmui.SrdCatalogAssets.catalogs(rulesPlatform) },
+            homebrew = {
+                val repository = io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryContentRepository(database)
+                val personal = entryStore.accountId?.let { runCatching { repository.listPersonal(it) }.getOrDefault(emptyList()) }.orEmpty()
+                val campaign = campaignRepository.activeCampaign()?.id?.let { repository.listCampaign(it) }.orEmpty()
+                (personal + campaign).distinctBy { it.item.identity.id }
+            },
+        )
+    }
+
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalRulesSources provides rulesSources,
+        io.github.mrsimkin.dndcustomaid.dmui.LocalDmPlatform provides rulesPlatform,
+    ) {
     Box(modifier = Modifier.fillMaxSize()) {
         when (screen) {
             AppScreen.ENTRY -> AppEntryScreen(
                 authController = hostedAuthController,
-                onSignedIn = {
+                onSignedIn = { email ->
                     entryStore.localOnlyChosen = false
+                    entryStore.accountEmail = email
                     val outcome = hostedCampaignBootstrapController.refresh()
                     if (outcome is AndroidHostedCampaignBootstrapOutcome.Success) {
                         entryStore.accountId = outcome.accountId
@@ -239,57 +261,17 @@ private fun DndCustomAidApp(
                 if (campaign == null) {
                     LaunchedEffect(Unit) { screenName = AppScreen.CAMPAIGNS.name }
                 } else {
-                    DmDeskScreen(
+                    AndroidDmWorkspaceScreen(
                         campaign = campaign,
                         database = database,
                         mediaBlobs = mediaBlobs,
                         hostedBootstrap = hostedCampaignBootstrapController,
                         accountId = entryStore.accountId,
-                        onOpenCampaigns = {
+                        onExitToCampaigns = {
                             entryStore.lastDmCampaignId = null
                             screenName = AppScreen.CAMPAIGNS.name
                         },
-                        onOpenSettings = { showSettings = true },
-                        onOpenDmScreen = { screenName = AppScreen.DM_SCREEN.name },
-                        onOpenCombat = { screenName = AppScreen.DM_COMBAT.name },
-                    )
-                }
-            }
-
-            AppScreen.DM_COMBAT -> {
-                val campaign = dmCampaignIdText
-                    ?.let { runCatching { Uuid.parse(it) }.getOrNull() }
-                    ?.let(campaignRepository::campaign)
-                if (campaign == null) {
-                    LaunchedEffect(Unit) { screenName = AppScreen.CAMPAIGNS.name }
-                } else {
-                    CombatDeskScreen(
-                        campaign = campaign,
-                        database = database,
-                        accountId = entryStore.accountId,
-                        onBack = { screenName = AppScreen.DM_DESK.name },
-                        onOpenSettings = { showSettings = true },
-                    )
-                }
-            }
-
-            AppScreen.DM_SCREEN -> {
-                val campaign = dmCampaignIdText
-                    ?.let { runCatching { Uuid.parse(it) }.getOrNull() }
-                    ?.let(campaignRepository::campaign)
-                if (campaign == null) {
-                    LaunchedEffect(Unit) { screenName = AppScreen.CAMPAIGNS.name }
-                } else {
-                    DmScreen(
-                        campaign = campaign,
-                        database = database,
-                        onBack = { screenName = AppScreen.DM_DESK.name },
-                        onOpenSettings = { showSettings = true },
-                        onOpenCharacter = { character ->
-                            selectedCharacterId = character.id.toString()
-                            editorReturnName = AppScreen.DM_SCREEN.name
-                            screenName = AppScreen.CHARACTER_EDITOR.name
-                        },
+                        onOpenAppSettings = { showSettings = true },
                     )
                 }
             }
@@ -317,6 +299,11 @@ private fun DndCustomAidApp(
                     }
                 },
                 onSignIn = { screenName = AppScreen.ENTRY.name },
+                onOpenRules = { screenName = AppScreen.RULES.name },
+                onOpenHandouts = { campaign ->
+                    handoutsCampaignIdText = campaign.id.toString()
+                    screenName = AppScreen.PLAYER_HANDOUTS.name
+                },
                 onSignOut = {
                     hostedAuthController.signOut()
                     entryStore.clearAccount()
@@ -325,6 +312,30 @@ private fun DndCustomAidApp(
             )
 
             AppScreen.CHARACTERS -> directory()
+
+            AppScreen.PLAYER_HANDOUTS -> {
+                val handoutsCampaign = handoutsCampaignIdText
+                    ?.let { runCatching { Uuid.parse(it) }.getOrNull() }
+                    ?.let(campaignRepository::campaign)
+                if (handoutsCampaign == null) {
+                    LaunchedEffect(Unit) { screenName = AppScreen.CAMPAIGNS.name }
+                } else {
+                    AndroidSharedHandoutsScreen(
+                        campaignName = handoutsCampaign.name,
+                        campaignId = handoutsCampaign.id,
+                        hostedBootstrap = hostedCampaignBootstrapController,
+                        onBack = { screenName = AppScreen.CAMPAIGNS.name },
+                    )
+                }
+            }
+
+            AppScreen.RULES -> AndroidRulesLibraryScreen(
+                database = database,
+                hostedBootstrap = hostedCampaignBootstrapController,
+                accountId = entryStore.accountId,
+                campaignId = campaignRepository.activeCampaign()?.id,
+                onBack = { screenName = AppScreen.CAMPAIGNS.name },
+            )
 
             AppScreen.CHARACTER_EDITOR -> {
                 val characterId = selectedCharacterId?.let { runCatching { Uuid.parse(it) }.getOrNull() }
@@ -365,6 +376,7 @@ private fun DndCustomAidApp(
             )
         }
     }
+    }
 }
 
 @Composable
@@ -377,6 +389,8 @@ private fun CampaignScreen(
     onOpenSettings: () -> Unit,
     onOpenCampaign: (Campaign, CampaignRole?) -> Unit,
     onSignIn: () -> Unit,
+    onOpenRules: () -> Unit,
+    onOpenHandouts: (Campaign) -> Unit,
     onSignOut: suspend () -> Unit,
 ) {
     var accountId by remember { mutableStateOf(entryStore.accountId) }
@@ -386,22 +400,41 @@ private fun CampaignScreen(
     var activeCampaignId by remember { mutableStateOf(repository.activeCampaign()?.id) }
     var showCreateDialog by remember { mutableStateOf(false) }
     var hostedRefreshing by remember { mutableStateOf(false) }
+    var hostedProgress by remember { mutableStateOf<String?>(null) }
 
     fun idleHostedStatus(): String {
         val pending = hostedBootstrap.pendingMutationCount()
         return when {
             hostedBootstrap.hasRememberedSession() && pending > 0 ->
-                "Sesión hospedada disponible. Hay $pending cambio(s) local(es) pendiente(s) de sincronizar."
+                "Hay $pending cambio(s) de esta tablet esperando para sincronizar."
             hostedBootstrap.hasRememberedSession() ->
-                "Sesión hospedada disponible. La sincronización revisará todas las campañas hospedadas elegibles."
+                "Sincronizar trae lo que preparaste en Windows y envía lo de esta tablet."
             pending > 0 ->
-                "Sin sesión hospedada. $pending cambio(s) local(es) permanecen guardados y pendientes."
+                "Sin cuenta abierta. $pending cambio(s) siguen guardados en esta tablet."
             else ->
-                "Sin sesión hospedada en este dispositivo."
+                "Sin cuenta abierta: el Escritorio DM y la sincronización necesitan tu cuenta."
         }
     }
 
     var hostedStatus by remember { mutableStateOf(idleHostedStatus()) }
+
+    // Redesign R7: the DM loads the party of a content bundle into one campaign on this tablet.
+    val bundleContext = androidx.compose.ui.platform.LocalContext.current
+    var bundleCampaignId by remember { mutableStateOf<Uuid?>(null) }
+    val bundleLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        val target = bundleCampaignId
+        if (uri == null || target == null) return@rememberLauncherForActivityResult
+        hostedStatus = runCatching {
+            val text = bundleContext.contentResolver.openInputStream(uri)!!.use { it.readBytes().decodeToString() }
+            val bundle = io.github.mrsimkin.dndcustomaid.shared.content.parseContentBundle(text)
+            io.github.mrsimkin.dndcustomaid.shared.content.ContentBundleImporter(database, null) { System.currentTimeMillis() / 1000L }
+                .load(bundle, target, io.github.mrsimkin.dndcustomaid.shared.content.ContentBundleParts.CHARACTERS, entryStore.accountId) { null }
+                .spanishSummary()
+        }.getOrElse { "No se pudo leer el paquete: ${it.message}" }
+        campaigns = repository.listCampaigns()
+    }
 
     fun reload() {
         campaigns = repository.listCampaigns()
@@ -501,11 +534,15 @@ private fun CampaignScreen(
             hostedRefreshing = true
             try {
                 applyHostedOutcome(
-                    outcome = hostedBootstrap.refresh(),
+                    outcome = run {
+                        val texts = io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncProgressText { System.currentTimeMillis() }
+                        hostedBootstrap.refresh { hostedProgress = texts.text(it) }
+                    },
                     focusedCreation = focusedCreation,
                 )
             } finally {
                 hostedRefreshing = false
+                hostedProgress = null
             }
         }
     }
@@ -554,6 +591,7 @@ private fun CampaignScreen(
                                 style = MaterialTheme.typography.bodySmall,
                             )
                         }
+                        TextButton(onClick = onOpenRules) { Text("📖 Reglas") }
                         StableSettingsIconButton(onClick = onOpenSettings)
                     }
                 }
@@ -567,11 +605,17 @@ private fun CampaignScreen(
                             verticalArrangement = Arrangement.spacedBy(appSpacingV4(8.dp)),
                         ) {
                             Text(
-                                text = "Servidor",
+                                text = "Tu cuenta",
                                 style = MaterialTheme.typography.titleMedium,
                             )
+                            if (hostedBootstrap.hasRememberedSession()) {
+                                Text(
+                                    text = "Entraste como ${entryStore.accountEmail ?: "tu cuenta"}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
                             Text(
-                                text = hostedStatus,
+                                text = hostedProgress?.takeIf { hostedRefreshing } ?: hostedStatus,
                                 style = MaterialTheme.typography.bodySmall,
                             )
                             if (hostedBootstrap.hasRememberedSession()) {
@@ -584,6 +628,21 @@ private fun CampaignScreen(
                                         enabled = !hostedRefreshing && !signingOut,
                                     ) {
                                         Text(if (hostedRefreshing) "Sincronizando…" else "Sincronizar")
+                                    }
+                                    TextButton(
+                                        onClick = {
+                                            signingOut = true
+                                            coroutineScope.launch {
+                                                try {
+                                                    onSignOut()
+                                                } finally {
+                                                    signingOut = false
+                                                }
+                                            }
+                                        },
+                                        enabled = !hostedRefreshing && !signingOut,
+                                    ) {
+                                        Text("Cambiar usuario")
                                     }
                                     TextButton(
                                         onClick = {
@@ -627,6 +686,13 @@ private fun CampaignScreen(
                             campaign = campaign,
                             isActive = campaign.id == activeCampaignId,
                             role = role,
+                            signedIn = hostedBootstrap.hasRememberedSession(),
+                            accountEmail = entryStore.accountEmail,
+                            onOpenHandouts = { onOpenHandouts(campaign) },
+                            onLoadParty = {
+                                bundleCampaignId = campaign.id
+                                bundleLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
+                            },
                             onSelect = {
                                 repository.setActiveCampaign(campaign.id)
                                 reload()
@@ -665,6 +731,10 @@ private fun CampaignCard(
     campaign: Campaign,
     isActive: Boolean,
     role: CampaignRole?,
+    signedIn: Boolean,
+    accountEmail: String?,
+    onOpenHandouts: () -> Unit,
+    onLoadParty: () -> Unit,
     onSelect: () -> Unit,
     onOpen: () -> Unit,
 ) {
@@ -672,6 +742,7 @@ private fun CampaignCard(
         onClick = onSelect,
         modifier = Modifier.fillMaxWidth(),
     ) {
+      Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -693,16 +764,44 @@ private fun CampaignCard(
                 )
                 if (isActive) {
                     Text(
-                        text = "Campaña activa para uso local",
+                        text = "Campaña abierta",
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
             }
-            role?.let { CampaignRoleBadge(it) }
+            if (role != null) {
+                CampaignRoleBadge(role)
+            } else {
+                Text("Solo en esta tablet", style = MaterialTheme.typography.labelMedium)
+            }
+            if (role != null && signedIn) {
+                TextButton(onClick = onOpenHandouts) { Text("🖼 Handouts") }
+            }
+            if (role == CampaignRole.DM) {
+                TextButton(onClick = onLoadParty) { Text("📦 PJ de un paquete") }
+            }
             TextButton(onClick = onOpen) {
-                Text(if (role == CampaignRole.DM) "Abrir Escritorio DM" else "Abrir")
+                Text(if (role == CampaignRole.DM) "Abrir Escritorio DM" else "Ver mis PJ")
             }
         }
+        // Owner decision D1: the DM desk opens only with the DM's account, and the App says why.
+        val explanation = when {
+            role == CampaignRole.PLAYER ->
+                "Con ${accountEmail ?: "esta cuenta"} eres Jugador aquí. El Escritorio DM se abre con la cuenta que es DM de esta campaña: usa «Cambiar usuario»."
+            role == null && signedIn ->
+                "Esta campaña está solo en esta tablet: tu cuenta no figura en ella en el servidor."
+            role == null ->
+                "Entra con tu cuenta para ver tu rol en esta campaña."
+            else -> null
+        }
+        explanation?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 10.dp),
+            )
+        }
+      }
     }
 }
 

@@ -70,6 +70,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterSpellLev
 import io.github.mrsimkin.dndcustomaid.shared.character.spellPreparedForView
 import io.github.mrsimkin.dndcustomaid.shared.character.spellVisibleForSource
 import io.github.mrsimkin.dndcustomaid.shared.character.withQuickAccess
+import io.github.mrsimkin.dndcustomaid.shared.dm.toSpellPick
 import kotlin.uuid.Uuid
 
 private const val SPELL_FILTER_SEPARATOR_G2 = "\u001E"
@@ -994,6 +995,23 @@ private fun SpellEditorFieldsG2(
     onAssociationChange: (Uuid, Boolean) -> Unit,
     onPreparedChange: (Uuid, Boolean) -> Unit,
 ) {
+    // Redesign R5 (D9): SRD first, then homebrew; writing by hand stays as «Custom».
+    RulesPickButton(kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.SPELL), onPick = { option ->
+        val pick = option.toSpellPick()
+        onNameChange(pick.name)
+        onSchoolChange(pick.school)
+        onLevelChange(pick.level.toString())
+        onCastingTimeChange(pick.castingTime)
+        onRangeTextChange(pick.rangeText)
+        onVerbalChange(pick.verbal)
+        onSomaticChange(pick.somatic)
+        onMaterialChange(pick.material)
+        onMaterialTextChange(pick.materialText)
+        onDurationChange(pick.duration)
+        onConcentrationChange(pick.concentration)
+        onRitualChange(pick.ritual)
+        onDescriptionChange(pick.description)
+    })
     CharacterCompactOutlinedTextFieldV4(
         value = name,
         onValueChange = onNameChange,

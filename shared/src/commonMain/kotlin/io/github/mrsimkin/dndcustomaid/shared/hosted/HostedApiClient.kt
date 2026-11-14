@@ -25,6 +25,20 @@ interface HostedAccessTokenProvider {
 }
 
 @Serializable
+data class HostedSharedHandout(
+    val id: Uuid,
+    val name: String,
+    val caption: String = "",
+    val kind: String = "HANDOUT",
+    val sha256: String,
+    val mediaType: String,
+    val revision: Long = 0,
+)
+
+@Serializable
+internal data class SharedHandoutsResponse(val handouts: List<HostedSharedHandout>)
+
+@Serializable
 data class HostedAccount(
     val id: Uuid,
     val displayName: String? = null,
@@ -339,6 +353,27 @@ class HostedApiClient(
         return response.readRawBytes()
     }
 
+    /** Redesign A7: the campaign's handouts the DM sent to the players (any active member). */
+    suspend fun sharedHandouts(campaignId: Uuid): List<HostedSharedHandout> =
+        authenticatedGet<SharedHandoutsResponse>("/v1/campaigns/$campaignId/handouts").handouts
+
+    /**
+     * Package 8: asks the Worker to answer [question] from the SRD [passages] the App found on the
+     * device. A 503 means the AI is not available (not set up, or its free quota is used up).
+     */
+    suspend fun answerRules(question: String, passages: List<HostedRulesPassage>): String {
+        require(question.isNotBlank()) { "A rules question must not be blank." }
+        require(passages.isNotEmpty()) { "A rules question needs SRD passages." }
+        val token = requireAccessToken()
+        val response = httpClient.post("$apiBaseUrl/v1/rules/answer") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody(HostedRulesQuestion(question.trim().take(500), passages.take(8)))
+        }
+        ensureSuccess(response.status.value, response)
+        return response.body<HostedRulesAnswer>().answer
+    }
+
     fun close() {
         httpClient.close()
     }
@@ -386,3 +421,18 @@ class HostedApiClient(
 }
 
 expect fun createHostedHttpClient(): HttpClient
+
+/** An SRD passage the App sends with a rules question (version «5.1» or «5.2.1»). */
+@kotlinx.serialization.Serializable
+data class HostedRulesPassage(
+    val version: String,
+    val page: Int,
+    val heading: String = "",
+    val text: String,
+)
+
+@kotlinx.serialization.Serializable
+internal data class HostedRulesQuestion(val question: String, val passages: List<HostedRulesPassage>)
+
+@kotlinx.serialization.Serializable
+internal data class HostedRulesAnswer(val answer: String, val passageCount: Int = 0)

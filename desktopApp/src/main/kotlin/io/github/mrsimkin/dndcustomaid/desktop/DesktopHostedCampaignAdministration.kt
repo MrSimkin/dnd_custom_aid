@@ -2,6 +2,7 @@ package io.github.mrsimkin.dndcustomaid.desktop
 
 import io.github.mrsimkin.dndcustomaid.shared.content.MediaBlobStore
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRulesPassage
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiClient
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiErrorCode
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiException
@@ -57,13 +58,25 @@ internal class DesktopHostedCampaignAdministrationController(
 
     suspend fun bootstrap(): HostedCampaignBootstrapResult = bootstrapService.refresh()
 
+    /** Package 8: a rules answer from the SRD passages found on this computer. */
+    suspend fun answerRules(question: String, passages: List<HostedRulesPassage>): String =
+        apiClient.answerRules(question, passages)
+
     /**
      * Base para DM, package 1: sends this App de PC's DM content (personal library and every
      * campaign where the account is an active DM) and receives changes made on the tablet.
      */
-    suspend fun syncDmContent(nowEpochSeconds: Long = System.currentTimeMillis() / 1000): DmContentSyncResult {
+    suspend fun syncDmContent(
+        nowEpochSeconds: Long = System.currentTimeMillis() / 1000,
+        onProgress: (io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncProgress) -> Unit = {},
+    ): DmContentSyncResult {
         val account = bootstrapService.refresh().account
-        return dmContentSync.synchronize(dmContentSyncScopes(database, account.id), nowEpochSeconds)
+        return dmContentSync.synchronize(dmContentSyncScopes(database, account.id), nowEpochSeconds, onProgress)
+    }
+
+    /** «Nueva campaña»: created on the server with the open account as its DM. */
+    suspend fun createHostedCampaign(name: String) {
+        apiClient.createCampaign(mutationId = Uuid.random(), campaignId = Uuid.random(), name = name)
     }
 
     fun membership(campaignId: Uuid, accountId: Uuid): CampaignMembership? =

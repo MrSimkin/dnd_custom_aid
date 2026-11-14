@@ -9,27 +9,28 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.BottomAppBar
 import androidx.compose.material.Button
 import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
+import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.material.TextField
-import androidx.compose.material.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,17 +39,22 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import io.github.mrsimkin.dndcustomaid.dmui.handCursor
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
-import io.github.mrsimkin.dndcustomaid.shared.db.DesktopDatabaseFactory
 import io.github.mrsimkin.dndcustomaid.shared.content.FileMediaBlobStore
-import java.io.File
+import io.github.mrsimkin.dndcustomaid.shared.content.MediaBlobStore
+import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.db.DesktopDatabaseFactory
+import kotlinx.coroutines.launch
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
+import java.io.File
 
 fun main() {
     val databaseFactory = DesktopDatabaseFactory()
     val databaseHandle = databaseFactory.create()
+    val dataDirectory = DesktopDatabaseFactory.defaultDatabaseFile().parentFile
     val campaignRepository = CampaignRepository(databaseHandle.database)
     val creatureManagerController = DesktopCreatureManagerController(databaseHandle.database)
     val npcManagerController = DesktopNpcManagerController(databaseHandle.database)
@@ -56,41 +62,61 @@ fun main() {
     val placeManagerController = DesktopPlaceManagerController(databaseHandle.database)
     val pcManagerController = DesktopPcManagerController(databaseHandle.database)
     // Base para DM, package 4: images are stored next to the database, by checksum.
-    val mediaBlobs = FileMediaBlobStore(File(DesktopDatabaseFactory.defaultDatabaseFile().parentFile, "media"))
+    val mediaBlobs = FileMediaBlobStore(File(dataDirectory, "media"))
     val handoutManagerController = DesktopHandoutManagerController(databaseHandle.database, mediaBlobs)
+    // Redesign R3: dungeons are objects with a plan of zones and passages.
+    val dungeonEditorController = DesktopDungeonEditorController(databaseHandle.database, mediaBlobs)
+    // Base para DM: the live desks, shared with the Android tablet (module dmUi).
+    val contentLinksController = DesktopContentLinksController(databaseHandle.database, mediaBlobs)
     val preferencesStore = DesktopPreferencesStore()
-    val hostedAuthController = DesktopHostedAuthController()
+    // Owner decision D2: the account is asked for at start and remembered (DPAPI on Windows).
+    val hostedAuthController = DesktopHostedAuthController(vault = defaultDesktopCredentialVault(dataDirectory))
     val hostedCampaignController = DesktopHostedCampaignAdministrationController(
         database = databaseHandle.database,
         accessTokens = hostedAuthController,
         mediaBlobs = mediaBlobs,
     )
+    val dmPlatform = DesktopDmPlatform(
+        DesktopDmKeyValueStore(File(dataDirectory, "dm_workspace.properties")),
+        rules = { question, passages -> hostedCampaignController.answerRules(question, passages) },
+    )
+    val accountSession = DesktopAccountSession(hostedAuthController, hostedCampaignController, dmPlatform.store)
 
     try {
         application {
             Window(
                 onCloseRequest = ::exitApplication,
-                title = "D&D Custom Aid — Desktop",
+                title = "D&D Custom Aid",
             ) {
                 var preferences by remember { mutableStateOf(preferencesStore.load()) }
 
                 DesktopAppTheme(preferences) {
-                    DesktopWorkbench(
-                        campaignRepository = campaignRepository,
-                        creatureManagerController = creatureManagerController,
-                        npcManagerController = npcManagerController,
-                        homebrewRuleManagerController = homebrewRuleManagerController,
-                        placeManagerController = placeManagerController,
-                        handoutManagerController = handoutManagerController,
-                        pcManagerController = pcManagerController,
-                        hostedAuthController = hostedAuthController,
-                        hostedCampaignController = hostedCampaignController,
-                        preferences = preferences,
-                        onPreferencesChange = { updated ->
-                            preferences = updated
-                            preferencesStore.save(updated)
-                        },
-                    )
+                    Surface(color = MaterialTheme.colors.background, modifier = Modifier.fillMaxSize()) {
+                        DesktopAccountGateScreen(session = accountSession, onExit = ::exitApplication) {
+                            ProvideDesktopContentLinks(contentLinksController) {
+                                DesktopWorkbench(
+                                    database = databaseHandle.database,
+                                    mediaBlobs = mediaBlobs,
+                                    dmPlatform = dmPlatform,
+                                    campaignRepository = campaignRepository,
+                                    creatureManagerController = creatureManagerController,
+                                    npcManagerController = npcManagerController,
+                                    homebrewRuleManagerController = homebrewRuleManagerController,
+                                    placeManagerController = placeManagerController,
+                                    handoutManagerController = handoutManagerController,
+                                    dungeonEditorController = dungeonEditorController,
+                                    pcManagerController = pcManagerController,
+                                    accountSession = accountSession,
+                                    hostedCampaignController = hostedCampaignController,
+                                    preferences = preferences,
+                                    onPreferencesChange = { updated ->
+                                        preferences = updated
+                                        preferencesStore.save(updated)
+                                    },
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -101,38 +127,45 @@ fun main() {
     }
 }
 
-private enum class DesktopDestination(val label: String) {
-    DASHBOARD("Dashboard"),
-    CAMPAIGNS("Campañas"),
-    PLAYER_CHARACTERS("Personajes jugadores"),
-    MEDIA_HANDOUTS("Medios / Handouts"),
-    MANAGERS("Gestores"),
-    COMBAT("Combate"),
-    CAMPAIGN_ADMINISTRATION("Administración de campaña"),
-    SYSTEM_ADMINISTRATION("Administración del sistema"),
-    EXPORT_BACKUP("Exportar / Backup"),
-    APPLICATION_SETTINGS("Configuración"),
-    QA_DIAGNOSTICS("QA / Diagnóstico"),
+/**
+ * The left menu of the App de PC, in the order the DM works: prepare, play, consult.
+ * Redesign R1/R2 (owner observations P3, P6, G1, G3): names a DM recognizes, one line of purpose each.
+ */
+internal enum class DesktopDestination(val label: String, val purpose: String, val lower: Boolean = false) {
+    HOME("Inicio", "Tu campaña abierta y lo que más usas."),
+    DM_DESK("Escritorio DM", "Las mesas en vivo: escena, dungeon, combate y la pantalla del DM."),
+    PREPARE("Preparar", "Todo lo que armas antes de jugar: lugares, PNJ, aventuras, dungeons y encuentros."),
+    CHARACTERS("Personajes", "Los PJ de la campaña, su jugador y su hoja."),
+    RULES("Reglas", "El SRD para leer y tu homebrew, en dos orígenes separados."),
+    HANDOUTS("Handouts y mapas", "Imágenes para mostrar a los jugadores y mapas con marcas."),
+    CAMPAIGNS("Campañas", "Tus campañas y tu rol en cada una."),
+    PLAYERS("Jugadores de la campaña", "Quién está en la campaña y su estado.", lower = true),
+    SETTINGS("Configuración", "Tema, letra y tamaño de la App.", lower = true),
+    DIAGNOSTICS("Diagnóstico", "Datos técnicos para cuando algo falla.", lower = true),
 }
 
 @Composable
 private fun DesktopWorkbench(
+    database: AppDatabase,
+    mediaBlobs: MediaBlobStore,
+    dmPlatform: DesktopDmPlatform,
     campaignRepository: CampaignRepository,
     creatureManagerController: DesktopCreatureManagerController,
     npcManagerController: DesktopNpcManagerController,
     homebrewRuleManagerController: DesktopHomebrewRuleManagerController,
     placeManagerController: DesktopPlaceManagerController,
     handoutManagerController: DesktopHandoutManagerController,
+    dungeonEditorController: DesktopDungeonEditorController,
     pcManagerController: DesktopPcManagerController,
-    hostedAuthController: DesktopHostedAuthController,
+    accountSession: DesktopAccountSession,
     hostedCampaignController: DesktopHostedCampaignAdministrationController,
     preferences: DesktopPreferences,
     onPreferencesChange: (DesktopPreferences) -> Unit,
 ) {
-    var destination by remember { mutableStateOf(DesktopDestination.DASHBOARD) }
+    var destination by remember { mutableStateOf(DesktopDestination.HOME) }
     var campaigns by remember { mutableStateOf(campaignRepository.listCampaigns()) }
     var activeCampaign by remember { mutableStateOf(campaignRepository.activeCampaign()) }
-    var qaEvents by remember { mutableStateOf(listOf("Inicio del workbench Desktop")) }
+    var qaEvents by remember { mutableStateOf(listOf("Inicio de la App de PC")) }
 
     fun logQa(message: String) {
         qaEvents = (qaEvents + message).takeLast(100)
@@ -143,10 +176,12 @@ private fun DesktopWorkbench(
         activeCampaign = campaignRepository.activeCampaign()
     }
 
+    LaunchedEffect(accountSession.campaignsVersion) { refreshCampaigns() }
+
     fun activateCampaign(campaign: Campaign) {
         campaignRepository.setActiveCampaign(campaign.id)
         refreshCampaigns()
-        logQa("Campaña activa: ${campaign.name} (${campaign.id})")
+        logQa("Campaña abierta: ${campaign.name} (${campaign.id})")
     }
 
     fun selectDestination(next: DesktopDestination) {
@@ -156,144 +191,112 @@ private fun DesktopWorkbench(
         }
     }
 
-    Scaffold(
-        topBar = { WorkbenchTopBar(activeCampaign = activeCampaign) },
-        bottomBar = {
-            WorkbenchStatusBar(
-                campaignCount = campaigns.size,
-                activeCampaign = activeCampaign,
-            )
-        },
-    ) { paddingValues ->
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-        ) {
+    val access = activeCampaign?.let { accountSession.access(it.id) }
+
+    // The Escritorio DM takes the whole window, like on the tablet; «← Mesa de trabajo» comes back here.
+    val deskCampaign = activeCampaign
+    if (destination == DesktopDestination.DM_DESK && deskCampaign != null && access != DesktopCampaignAccess.PLAYER) {
+        DesktopDmWorkspaceScreen(
+            campaign = deskCampaign,
+            database = database,
+            mediaBlobs = mediaBlobs,
+            platform = dmPlatform,
+            hostedController = hostedCampaignController,
+            onExit = { selectDestination(DesktopDestination.HOME) },
+            onOpenAppSettings = { selectDestination(DesktopDestination.SETTINGS) },
+        )
+        return
+    }
+
+    Column(Modifier.fillMaxSize()) {
+        DesktopAccountBar(session = accountSession, campaignName = activeCampaign?.name, access = access)
+        DesktopAccountMessage(accountSession)
+        Row(modifier = Modifier.fillMaxSize()) {
             WorkbenchNavigation(
                 selected = destination,
                 density = preferences.workspaceDensity,
                 onSelect = ::selectDestination,
             )
-
-            Divider(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(1.dp),
-            )
-
+            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
                     .padding(desktopSpacing(24.dp)),
             ) {
-                when (destination) {
-                    DesktopDestination.DASHBOARD -> DashboardScreen(
-                        campaigns = campaigns,
-                        activeCampaign = activeCampaign,
-                        onOpenCampaigns = { selectDestination(DesktopDestination.CAMPAIGNS) },
-                        onOpenAdministration = { selectDestination(DesktopDestination.CAMPAIGN_ADMINISTRATION) },
-                    )
-
-                    DesktopDestination.CAMPAIGNS -> CampaignsScreen(
-                        campaigns = campaigns,
-                        activeCampaign = activeCampaign,
-                        onCreate = { name ->
-                            val campaign = campaignRepository.createCampaign(name)
-                            campaignRepository.setActiveCampaign(campaign.id)
-                            refreshCampaigns()
-                            logQa("Campaña local creada: ${campaign.name} (${campaign.id})")
-                        },
-                        onActivate = ::activateCampaign,
-                    )
-
-                    DesktopDestination.PLAYER_CHARACTERS -> DesktopPcManagerScreen(
-                        controller = pcManagerController,
-                        hostedController = hostedCampaignController,
-                        activeCampaign = activeCampaign,
-                        onQaEvent = ::logQa,
-                    )
-
-                    DesktopDestination.MEDIA_HANDOUTS -> DesktopHandoutManagerScreen(
-                        controller = handoutManagerController,
-                        activeCampaign = activeCampaign,
-                        onQaEvent = ::logQa,
-                    )
-
-                    DesktopDestination.MANAGERS -> DesktopManagersHubScreen(
-                        creatureController = creatureManagerController,
-                        npcController = npcManagerController,
-                        homebrewRuleController = homebrewRuleManagerController,
-                        placeController = placeManagerController,
-                        activeCampaign = activeCampaign,
-                        onQaEvent = ::logQa,
-                    )
-
-                    DesktopDestination.CAMPAIGN_ADMINISTRATION -> HostedCampaignAdministrationScreen(
-                        activeCampaign = activeCampaign,
-                        authController = hostedAuthController,
-                        hostedController = hostedCampaignController,
-                        onOpenCampaigns = { selectDestination(DesktopDestination.CAMPAIGNS) },
-                        onLocalCampaignsChanged = ::refreshCampaigns,
-                        onQaEvent = ::logQa,
-                    )
-
-                    DesktopDestination.APPLICATION_SETTINGS -> DesktopApplicationSettingsScreen(
-                        preferences = preferences,
-                        onPreferencesChange = onPreferencesChange,
-                    )
-
-                    DesktopDestination.QA_DIAGNOSTICS -> QaDiagnosticsScreen(
-                        campaigns = campaigns,
-                        activeCampaign = activeCampaign,
-                        destination = destination,
-                        preferences = preferences,
-                        hostedAuthPhase = hostedAuthController.phase,
-                        events = qaEvents,
-                    )
-
-                    else -> DeferredDestinationScreen(destination)
+                val campaign = activeCampaign
+                val dmOnly = destination == DesktopDestination.PREPARE || destination == DesktopDestination.DM_DESK
+                when {
+                    dmOnly && campaign == null -> ChooseCampaignFirst(destination) { selectDestination(DesktopDestination.CAMPAIGNS) }
+                    dmOnly && campaign != null && access == DesktopCampaignAccess.PLAYER ->
+                        NotDmNotice(campaignName = campaign.name, session = accountSession, what = destination.label)
+                    else -> when (destination) {
+                        DesktopDestination.HOME -> HomeScreen(
+                            activeCampaign = activeCampaign,
+                            access = access,
+                            accountSession = accountSession,
+                            onOpen = ::selectDestination,
+                        )
+                        DesktopDestination.CAMPAIGNS -> CampaignsScreen(
+                            campaigns = campaigns,
+                            activeCampaign = activeCampaign,
+                            accountSession = accountSession,
+                            onActivate = ::activateCampaign,
+                            onOpenDesk = { activateCampaign(it); selectDestination(DesktopDestination.DM_DESK) },
+                            onOpenCharacters = { activateCampaign(it); selectDestination(DesktopDestination.CHARACTERS) },
+                        )
+                        DesktopDestination.CHARACTERS -> DesktopPcManagerScreen(
+                            controller = pcManagerController,
+                            hostedController = hostedCampaignController,
+                            activeCampaign = activeCampaign,
+                            onQaEvent = ::logQa,
+                        )
+                        DesktopDestination.HANDOUTS -> DesktopHandoutManagerScreen(
+                            controller = handoutManagerController,
+                            activeCampaign = activeCampaign,
+                            onQaEvent = ::logQa,
+                        )
+                        DesktopDestination.PREPARE -> DesktopPrepareScreen(
+                            creatureController = creatureManagerController,
+                            npcController = npcManagerController,
+                            homebrewRuleController = homebrewRuleManagerController,
+                            placeController = placeManagerController,
+                            dungeonController = dungeonEditorController,
+                            database = database,
+                            activeCampaign = activeCampaign,
+                            onQaEvent = ::logQa,
+                        )
+                        DesktopDestination.RULES -> DesktopRulesScreen(dmPlatform, database, accountSession, activeCampaign)
+                        DesktopDestination.PLAYERS -> DesktopCampaignPlayersScreen(
+                            activeCampaign = activeCampaign,
+                            access = access,
+                            accountSession = accountSession,
+                            hostedController = hostedCampaignController,
+                            onOpenCampaigns = { selectDestination(DesktopDestination.CAMPAIGNS) },
+                            onQaEvent = ::logQa,
+                        )
+                        DesktopDestination.SETTINGS -> DesktopApplicationSettingsScreen(
+                            preferences = preferences,
+                            onPreferencesChange = onPreferencesChange,
+                        )
+                        DesktopDestination.DIAGNOSTICS -> QaDiagnosticsScreen(
+                            database = database,
+                            mediaBlobs = mediaBlobs,
+                            onLoaded = { accountSession.message = it; refreshCampaigns() },
+                            campaigns = campaigns,
+                            activeCampaign = activeCampaign,
+                            destination = destination,
+                            preferences = preferences,
+                            accountSession = accountSession,
+                            events = qaEvents,
+                        )
+                        // Reached only without a campaign (handled above).
+                        DesktopDestination.DM_DESK -> ChooseCampaignFirst(destination) { selectDestination(DesktopDestination.CAMPAIGNS) }
+                    }
                 }
-            }
-
-            if (
-                destination == DesktopDestination.DASHBOARD ||
-                destination == DesktopDestination.CAMPAIGNS ||
-                destination == DesktopDestination.PLAYER_CHARACTERS ||
-                destination == DesktopDestination.MANAGERS ||
-                destination == DesktopDestination.MEDIA_HANDOUTS ||
-                destination == DesktopDestination.CAMPAIGN_ADMINISTRATION
-            ) {
-                Divider(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(1.dp),
-                )
-                CampaignContextPanel(
-                    campaigns = campaigns,
-                    activeCampaign = activeCampaign,
-                    density = preferences.workspaceDensity,
-                    onActivate = ::activateCampaign,
-                )
             }
         }
     }
-}
-
-@Composable
-private fun WorkbenchTopBar(activeCampaign: Campaign?) {
-    TopAppBar(
-        title = {
-            Column {
-                Text("D&D Custom Aid — Mesa de trabajo DM")
-                Text(
-                    text = activeCampaign?.let { "Campaña activa: ${it.name}" } ?: "Sin campaña activa",
-                    style = MaterialTheme.typography.caption,
-                )
-            }
-        },
-    )
 }
 
 @Composable
@@ -312,114 +315,114 @@ private fun WorkbenchNavigation(
             modifier = Modifier.padding(desktopSpacing(12.dp)),
             verticalArrangement = Arrangement.spacedBy(desktopSpacing(4.dp)),
         ) {
-            Text(
-                text = "Espacio de trabajo",
-                style = MaterialTheme.typography.subtitle2,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(
-                    horizontal = desktopSpacing(8.dp),
-                    vertical = desktopSpacing(8.dp),
-                ),
-            )
-
-            DesktopDestination.entries.forEach { destination ->
-                if (destination == selected) {
-                    Button(
-                        onClick = { onSelect(destination) },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(destination.label)
-                    }
-                } else {
-                    TextButton(
-                        onClick = { onSelect(destination) },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(destination.label)
-                    }
-                }
-            }
+            val (main, lower) = DesktopDestination.entries.partition { !it.lower }
+            main.forEach { NavigationEntry(it, it == selected, onSelect) }
+            Spacer(Modifier.weight(1f))
+            Divider()
+            lower.forEach { NavigationEntry(it, it == selected, onSelect) }
         }
     }
 }
 
 @Composable
-private fun DashboardScreen(
-    campaigns: List<Campaign>,
+private fun NavigationEntry(destination: DesktopDestination, selected: Boolean, onSelect: (DesktopDestination) -> Unit) {
+    if (selected) {
+        Button(onClick = { onSelect(destination) }, modifier = Modifier.fillMaxWidth().handCursor()) {
+            Text(destination.label)
+        }
+    } else {
+        TextButton(onClick = { onSelect(destination) }, modifier = Modifier.fillMaxWidth().handCursor()) {
+            Text(destination.label)
+        }
+    }
+}
+
+@Composable
+private fun ChooseCampaignFirst(destination: DesktopDestination, onOpenCampaigns: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp))) {
+        WorkbenchHeading(title = destination.label, subtitle = destination.purpose)
+        Text("Primero abre una campaña: ${destination.label} trabaja sobre la campaña abierta.")
+        Button(onClick = onOpenCampaigns) { Text("Ir a Campañas") }
+    }
+}
+
+/** «Inicio»: the open campaign, your role and the three things a DM does most. */
+@Composable
+private fun HomeScreen(
     activeCampaign: Campaign?,
-    onOpenCampaigns: () -> Unit,
-    onOpenAdministration: () -> Unit,
+    access: DesktopCampaignAccess?,
+    accountSession: DesktopAccountSession,
+    onOpen: (DesktopDestination) -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
     Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(16.dp))) {
-        WorkbenchHeading(
-            title = "Dashboard",
-            subtitle = "Resumen del espacio de trabajo de campañas.",
-        )
-
-        Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp))) {
-            SummaryCard("Campañas locales", campaigns.size.toString())
-            SummaryCard("Campaña activa", activeCampaign?.name ?: "Ninguna")
-        }
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .widthIn(max = 760.dp),
-            elevation = 2.dp,
-        ) {
-            Column(
-                modifier = Modifier.padding(desktopSpacing(20.dp)),
-                verticalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp)),
-            ) {
-                Text("Wave 7 — Gestores de autoría", style = MaterialTheme.typography.h6)
-                Text(
-                    "Desktop mantiene el contexto local persistente, puede conectarse al servicio alojado desde " +
-                        "Administración de campaña y ahora incorpora gestores locales para criaturas / monstruos, PNJ y reglas Homebrew.",
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
-                    Button(onClick = onOpenCampaigns) { Text("Abrir campañas") }
-                    Button(onClick = onOpenAdministration) {
-                        Text("Abrir administración de campaña")
-                    }
+        WorkbenchHeading(title = "Inicio", subtitle = DesktopDestination.HOME.purpose)
+        if (activeCampaign == null) {
+            Card(elevation = 2.dp, modifier = Modifier.widthIn(max = 760.dp)) {
+                Column(Modifier.padding(desktopSpacing(20.dp)), verticalArrangement = Arrangement.spacedBy(desktopSpacing(10.dp))) {
+                    Text("Aún no abres una campaña", style = MaterialTheme.typography.h6)
+                    Text("Elige una de tus campañas o crea una nueva. Al crearla, quedas como su DM.")
+                    Button(onClick = { onOpen(DesktopDestination.CAMPAIGNS) }) { Text("Ir a Campañas") }
                 }
             }
+            return@Column
         }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(desktopSpacing(10.dp))) {
+            Text(activeCampaign.name, style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+            access?.let { AccessChip(it) }
+        }
+        if (access == DesktopCampaignAccess.PLAYER) {
+            NotDmNotice(campaignName = activeCampaign.name, session = accountSession, what = "El Escritorio DM")
+            return@Column
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp))) {
+            BigAction("Abrir Escritorio DM", "Las mesas en vivo", primary = true) { onOpen(DesktopDestination.DM_DESK) }
+            BigAction("Preparar", "Lugares, PNJ, aventuras, dungeons") { onOpen(DesktopDestination.PREPARE) }
+            BigAction("⟳ Sincronizar", accountSession.syncStatus()) { scope.launch { accountSession.synchronize() } }
+        }
+        Text(
+            "Lo que preparas aquí llega a la tablet al sincronizar, y lo que cambias en la tablet llega aquí.",
+            style = MaterialTheme.typography.body2,
+        )
     }
 }
 
 @Composable
-private fun SummaryCard(title: String, value: String) {
-    Card(
-        modifier = Modifier.widthIn(min = 220.dp, max = 360.dp),
-        elevation = 2.dp,
-    ) {
-        Column(
-            modifier = Modifier.padding(desktopSpacing(16.dp)),
-            verticalArrangement = Arrangement.spacedBy(desktopSpacing(6.dp)),
-        ) {
-            Text(title, style = MaterialTheme.typography.caption)
-            Text(value, style = MaterialTheme.typography.h6)
+private fun BigAction(title: String, subtitle: String, primary: Boolean = false, onClick: () -> Unit) {
+    val content: @Composable () -> Unit = {
+        Column(Modifier.padding(vertical = 10.dp, horizontal = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(title, style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text(subtitle, style = MaterialTheme.typography.caption)
         }
+    }
+    if (primary) {
+        Button(onClick = onClick, modifier = Modifier.widthIn(min = 200.dp).height(76.dp).handCursor()) { content() }
+    } else {
+        OutlinedButton(onClick = onClick, modifier = Modifier.widthIn(min = 200.dp).height(76.dp).handCursor()) { content() }
     }
 }
 
+/**
+ * «Campañas»: one stable list with your role in each (owner observation G3), the same on the
+ * tablet. A new campaign is created on the server with you as its DM.
+ */
 @Composable
 private fun CampaignsScreen(
     campaigns: List<Campaign>,
     activeCampaign: Campaign?,
-    onCreate: (String) -> Unit,
+    accountSession: DesktopAccountSession,
     onActivate: (Campaign) -> Unit,
+    onOpenDesk: (Campaign) -> Unit,
+    onOpenCharacters: (Campaign) -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
     var newCampaignName by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(desktopSpacing(16.dp)),
     ) {
-        WorkbenchHeading(
-            title = "Campañas",
-            subtitle = "Crea y selecciona el contexto de campaña local usado por el workbench Desktop.",
-        )
+        WorkbenchHeading(title = "Campañas", subtitle = DesktopDestination.CAMPAIGNS.purpose)
 
         Card(modifier = Modifier.fillMaxWidth(), elevation = 2.dp) {
             Row(
@@ -430,53 +433,66 @@ private fun CampaignsScreen(
                 TextField(
                     value = newCampaignName,
                     onValueChange = { newCampaignName = it },
-                    label = { Text("Nombre de campaña") },
+                    label = { Text("Nombre de la nueva campaña") },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                 )
                 Button(
                     onClick = {
-                        onCreate(newCampaignName)
-                        newCampaignName = ""
+                        val name = newCampaignName
+                        scope.launch { if (accountSession.createCampaign(name)) newCampaignName = "" }
                     },
-                    enabled = newCampaignName.isNotBlank(),
+                    enabled = newCampaignName.isNotBlank() && !accountSession.busy,
                 ) {
-                    Text("Crear campaña")
+                    Text(if (accountSession.busy) "Creando…" else "＋ Nueva campaña")
                 }
             }
         }
 
         if (campaigns.isEmpty()) {
-            Text("Aún no hay campañas locales. Crea una arriba para establecer el contexto Desktop.")
+            Text("Aún no tienes campañas. Crea una arriba: quedarás como su DM.")
         } else {
-            Text("Campañas locales", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp)),
             ) {
                 items(items = campaigns, key = { it.id.toString() }) { campaign ->
                     val isActive = campaign.id == activeCampaign?.id
+                    val access = accountSession.access(campaign.id)
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .handCursor()
                             .clickable { onActivate(campaign) },
                         elevation = if (isActive) 6.dp else 1.dp,
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(desktopSpacing(16.dp)),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
+                        Column(Modifier.padding(desktopSpacing(16.dp)), verticalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(desktopSpacing(10.dp))) {
                                 Text(
                                     text = campaign.name,
                                     style = MaterialTheme.typography.subtitle1,
                                     fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
                                 )
-                                Text("ID ${campaign.id.toString().take(8)}…", style = MaterialTheme.typography.caption)
+                                AccessChip(access)
+                                if (isActive) Text("· abierta", style = MaterialTheme.typography.caption)
+                                Spacer(Modifier.weight(1f))
+                                if (access == DesktopCampaignAccess.PLAYER) {
+                                    OutlinedButton(onClick = { onOpenCharacters(campaign) }) { Text("Ver mis PJ") }
+                                } else {
+                                    Button(onClick = { onOpenDesk(campaign) }) { Text("Abrir Escritorio DM") }
+                                }
                             }
-                            Text(if (isActive) "ACTIVA" else "Seleccionar")
+                            when (access) {
+                                DesktopCampaignAccess.PLAYER -> Text(
+                                    "Con ${accountSession.email ?: "esta cuenta"} eres Jugador aquí. Para prepararla o dirigirla, entra con la cuenta que es DM.",
+                                    style = MaterialTheme.typography.caption,
+                                )
+                                DesktopCampaignAccess.LOCAL_ONLY -> Text(
+                                    "Esta campaña está solo en este equipo: no llega a la tablet.",
+                                    style = MaterialTheme.typography.caption,
+                                )
+                                DesktopCampaignAccess.DM -> Unit
+                            }
                         }
                     }
                 }
@@ -485,65 +501,36 @@ private fun CampaignsScreen(
     }
 }
 
+/** «Reglas» (redesign R4): the SRD to read and the DM's homebrew library, shared with the tablet. */
 @Composable
-private fun CampaignContextPanel(
-    campaigns: List<Campaign>,
+private fun DesktopRulesScreen(
+    platform: DesktopDmPlatform,
+    database: AppDatabase,
+    accountSession: DesktopAccountSession,
     activeCampaign: Campaign?,
-    density: DesktopWorkspaceDensity,
-    onActivate: (Campaign) -> Unit,
 ) {
-    Surface(
-        modifier = Modifier
-            .width(density.contextPanelWidth())
-            .fillMaxHeight(),
-        elevation = 1.dp,
-    ) {
-        Column(
-            modifier = Modifier.padding(desktopSpacing(16.dp)),
-            verticalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp)),
-        ) {
-            Text("Contexto de campaña", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
-            Text(activeCampaign?.name ?: "Sin campaña activa", style = MaterialTheme.typography.body1)
-            if (activeCampaign != null) {
-                SelectionContainer {
-                    Text(activeCampaign.id.toString(), style = MaterialTheme.typography.caption)
-                }
-            }
-
-            Divider()
-            Text("Cambiar campaña", style = MaterialTheme.typography.subtitle2)
-
-            if (campaigns.isEmpty()) {
-                Text("No hay campañas disponibles.", style = MaterialTheme.typography.caption)
-            } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(desktopSpacing(4.dp))) {
-                    items(items = campaigns, key = { it.id.toString() }) { campaign ->
-                        TextButton(
-                            onClick = { onActivate(campaign) },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(
-                                if (campaign.id == activeCampaign?.id) {
-                                    "${campaign.name} • activa"
-                                } else {
-                                    campaign.name
-                                },
-                            )
-                        }
-                    }
-                }
-            }
+    androidx.compose.material3.MaterialTheme(colorScheme = desktopDmColorScheme(), typography = desktopDmTypography()) {
+        androidx.compose.runtime.CompositionLocalProvider(io.github.mrsimkin.dndcustomaid.dmui.LocalDmPlatform provides platform) {
+            io.github.mrsimkin.dndcustomaid.dmui.RulesLibraryScreen(
+                platform = platform,
+                database = database,
+                ownerAccountId = accountSession.accountId,
+                campaignId = activeCampaign?.id,
+            )
         }
     }
 }
 
 @Composable
 private fun QaDiagnosticsScreen(
+    database: AppDatabase,
+    mediaBlobs: MediaBlobStore,
+    onLoaded: (String) -> Unit,
     campaigns: List<Campaign>,
     activeCampaign: Campaign?,
     destination: DesktopDestination,
     preferences: DesktopPreferences,
-    hostedAuthPhase: DesktopHostedAuthPhase,
+    accountSession: DesktopAccountSession,
     events: List<String>,
 ) {
     val snapshot = buildQaSnapshot(
@@ -551,7 +538,7 @@ private fun QaDiagnosticsScreen(
         activeCampaign = activeCampaign,
         destination = destination,
         preferences = preferences,
-        hostedAuthPhase = hostedAuthPhase,
+        accountSession = accountSession,
         events = events,
     )
 
@@ -559,17 +546,46 @@ private fun QaDiagnosticsScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(desktopSpacing(16.dp)),
     ) {
+        item { WorkbenchHeading(title = "Diagnóstico", subtitle = DesktopDestination.DIAGNOSTICS.purpose) }
         item {
-            WorkbenchHeading(
-                title = "QA / Diagnóstico",
-                subtitle = "Datos de apoyo para pruebas. Este panel no sustituye el logging técnico del sistema.",
-            )
+            // Redesign R7: loads a prepared campaign (a content bundle) into the open campaign, once.
+            Card(modifier = Modifier.fillMaxWidth(), elevation = 2.dp) {
+                Column(Modifier.padding(desktopSpacing(16.dp)), verticalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
+                    Text("Cargar paquete de contenido", style = MaterialTheme.typography.h6)
+                    Text(
+                        "Carga en la campaña abierta un paquete preparado (.json): lugares, PNJ, escenas, dungeons, handouts, notas, " +
+                            "homebrew y los PJ. Cargarlo otra vez no duplica nada. Después usa «⟳ Sincronizar» para llevarlo a la tablet.",
+                        style = MaterialTheme.typography.body2,
+                    )
+                    var loading by remember { mutableStateOf(false) }
+                    val loadScope = rememberCoroutineScope()
+                    Button(enabled = activeCampaign != null && !loading, onClick = {
+                        val campaign = activeCampaign ?: return@Button
+                        val file = chooseFileWithExplorer("Elegir paquete de contenido", "bundles", campaign.id.toString(), listOf("json")) ?: return@Button
+                        loading = true
+                        loadScope.launch {
+                            val summary = runCatching {
+                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                    val bundle = io.github.mrsimkin.dndcustomaid.shared.content.parseContentBundle(file.readText())
+                                    io.github.mrsimkin.dndcustomaid.shared.content.ContentBundleImporter(database, mediaBlobs) { System.currentTimeMillis() / 1000L }
+                                        .load(bundle, campaign.id, io.github.mrsimkin.dndcustomaid.shared.content.ContentBundleParts.ALL, accountSession.accountId) { name ->
+                                            File(file.parentFile, name).takeIf { it.isFile }?.readBytes()
+                                        }.spanishSummary()
+                                }
+                            }.getOrElse { "No se pudo leer el paquete: ${it.message}" }
+                            loading = false
+                            onLoaded(summary)
+                        }
+                    }) { Text(if (loading) "Cargando…" else "Elegir paquete y cargar") }
+                    if (activeCampaign == null) Text("Primero abre una campaña.", style = MaterialTheme.typography.caption)
+                }
+            }
         }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
                 Button(onClick = { copyToClipboard(snapshot) }) { Text("Copiar diagnóstico") }
                 Text(
-                    "Los datos también se pueden seleccionar manualmente.",
+                    "También puedes seleccionar el texto a mano.",
                     style = MaterialTheme.typography.caption,
                     modifier = Modifier.align(Alignment.CenterVertically),
                 )
@@ -578,19 +594,12 @@ private fun QaDiagnosticsScreen(
         item {
             Card(modifier = Modifier.fillMaxWidth(), elevation = 2.dp) {
                 SelectionContainer {
-                    Text(
-                        snapshot,
-                        modifier = Modifier.padding(desktopSpacing(18.dp)),
-                        style = MaterialTheme.typography.body2,
-                    )
+                    Text(snapshot, modifier = Modifier.padding(desktopSpacing(18.dp)), style = MaterialTheme.typography.body2)
                 }
             }
         }
         item {
-            Text(
-                "El registro de sesión es deliberadamente acotado y nunca incluye tokens ni códigos OTP.",
-                style = MaterialTheme.typography.caption,
-            )
+            Text("El diagnóstico nunca incluye claves ni códigos de acceso.", style = MaterialTheme.typography.caption)
         }
     }
 }
@@ -600,95 +609,70 @@ private fun buildQaSnapshot(
     activeCampaign: Campaign?,
     destination: DesktopDestination,
     preferences: DesktopPreferences,
-    hostedAuthPhase: DesktopHostedAuthPhase,
+    accountSession: DesktopAccountSession,
     events: List<String>,
 ): String = buildString {
-    appendLine("D&D Custom Aid — Desktop QA")
-    appendLine("Paquete: Wave 7 Desktop authoring Managers — Creature + NPC + Homebrew/Rules local cores")
+    appendLine("D&D Custom Aid — App de PC · diagnóstico")
     appendLine("SO: ${System.getProperty("os.name")} ${System.getProperty("os.version")} (${System.getProperty("os.arch")})")
     appendLine("Java: ${System.getProperty("java.version")}")
     appendLine("Base local: ${DesktopDatabaseFactory.defaultDatabaseFile().absolutePath}")
     appendLine("Preferencias: ${DesktopPreferencesStore.defaultPreferencesFile()}")
-    appendLine("Hosted API: ${DesktopHostedDevelopmentEnvironment.HOSTED_API_BASE_URL}")
-    appendLine("Sesión alojada: ${hostedAuthPhase.name}")
-    appendLine("Destino actual: ${destination.label}")
-    appendLine("Campañas locales: ${campaigns.size}")
-    appendLine("Campaña activa: ${activeCampaign?.name ?: "ninguna"}")
-    appendLine("ID campaña activa: ${activeCampaign?.id ?: "n/a"}")
+    appendLine("Servidor: ${DesktopHostedDevelopmentEnvironment.HOSTED_API_BASE_URL}")
+    appendLine("Cuenta: ${if (accountSession.email != null) "abierta" else "sin cuenta"}${if (accountSession.offline) " · sin conexión" else ""}")
+    appendLine("Recuerda la cuenta: ${if (accountSession.canRemember) "sí" else "no"}")
+    appendLine("Pantalla actual: ${destination.label}")
+    appendLine("Campañas: ${campaigns.size}")
+    appendLine("Campaña abierta: ${activeCampaign?.name ?: "ninguna"}")
+    appendLine("ID campaña abierta: ${activeCampaign?.id ?: "n/a"}")
+    appendLine("Rol: ${activeCampaign?.let { accountSession.access(it.id).label } ?: "n/a"}")
     appendLine(
         "UI: tema=${preferences.themeChoice.label}; fuente=${preferences.fontChoice.label}; " +
             "texto=${preferences.fontScalePercent}%; espacios=${preferences.spacingScalePercent}%; " +
             "densidad=${preferences.workspaceDensity.label}",
     )
-    appendLine("Eventos de sesión:")
-    if (events.isEmpty()) {
-        appendLine("- ninguno")
-    } else {
-        events.forEach { appendLine("- $it") }
-    }
+    appendLine("Eventos:")
+    if (events.isEmpty()) appendLine("- ninguno") else events.forEach { appendLine("- $it") }
 }
 
 private fun copyToClipboard(text: String) {
     Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(text), null)
 }
 
-@Composable
-private fun DeferredDestinationScreen(destination: DesktopDestination) {
-    Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp))) {
-        WorkbenchHeading(
-            title = destination.label,
-            subtitle = "Destino reservado del workbench Desktop.",
-        )
-        Card(elevation = 2.dp) {
-            Text(
-                text = "La navegación del workbench está establecida, pero ${destination.label} queda fuera del paquete acotado actual.",
-                modifier = Modifier.padding(desktopSpacing(20.dp)),
-            )
-        }
-    }
-}
+/** Short help for each screen (redesign A14, decision D14): three or four lines, opened on demand. */
+internal val SCREEN_HELP: Map<String, String> = mapOf(
+    "Inicio" to "1) Arriba ves la campaña abierta y tu rol. 2) «Abrir Escritorio DM» lleva a las mesas en vivo. " +
+        "3) «Preparar» es donde armas lugares, PNJ, aventuras y dungeons. 4) «⟳ Sincronizar» envía lo de este equipo a la tablet y trae lo de la tablet.",
+    "Campañas" to "1) Cada campaña muestra tu rol: DM, Jugador o «Solo en este equipo». 2) Toca una para abrirla. " +
+        "3) «＋ Nueva campaña» la crea en el servidor contigo como DM. 4) Si eres Jugador, la App te dice qué cuenta usar.",
+    "Preparar" to "1) Cada tarjeta es algo que preparas antes de jugar. 2) Dentro: busca, crea y edita a la derecha. " +
+        "3) Los vínculos (dónde está, quién atiende, qué escena) se eligen de listas. 4) Todo llega a la tablet al sincronizar.",
+    "Jugadores de la campaña" to "1) Quién está en la campaña abierta y su estado. 2) Solo el DM ve esta lista. " +
+        "3) Expulsar o bloquear pide confirmación y no borra personajes.",
+    "Diagnóstico" to "Datos técnicos para cuando algo falla. «Copiar diagnóstico» los copia para enviarlos; nunca incluyen claves.",
+)
 
 @Composable
-private fun WorkbenchHeading(title: String, subtitle: String) {
+internal fun WorkbenchHeading(title: String, subtitle: String, help: String? = SCREEN_HELP[title]) {
+    var showHelp by remember(title) { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(4.dp))) {
-        Text(text = title, style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp))) {
+            Text(text = title, style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+            if (help != null) {
+                TextButton(onClick = { showHelp = !showHelp }, modifier = Modifier.handCursor()) { Text("? ¿Cómo se usa?") }
+            }
+        }
         Text(text = subtitle, style = MaterialTheme.typography.body1)
-    }
-}
-
-@Composable
-private fun WorkbenchStatusBar(
-    campaignCount: Int,
-    activeCampaign: Campaign?,
-) {
-    BottomAppBar(backgroundColor = MaterialTheme.colors.surface, elevation = 4.dp) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = desktopSpacing(16.dp)),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("Almacén local de campañas: listo", style = MaterialTheme.typography.caption)
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = "$campaignCount ${if (campaignCount == 1) "campaña" else "campañas"} • " +
-                    (activeCampaign?.let { "activa: ${it.name}" } ?: "sin campaña activa"),
-                style = MaterialTheme.typography.caption,
-            )
+        if (showHelp && help != null) {
+            Surface(color = MaterialTheme.colors.secondary.copy(alpha = 0.12f), shape = MaterialTheme.shapes.small) {
+                Text(help, style = MaterialTheme.typography.body2, modifier = Modifier.padding(desktopSpacing(10.dp)))
+            }
         }
     }
 }
 
 private fun DesktopWorkspaceDensity.navigationWidth(): Dp = when (this) {
     DesktopWorkspaceDensity.COMFORTABLE -> 250.dp
-    DesktopWorkspaceDensity.BALANCED -> 220.dp
-    DesktopWorkspaceDensity.COMPACT -> 195.dp
-    DesktopWorkspaceDensity.DENSE -> 175.dp
-}
-
-private fun DesktopWorkspaceDensity.contextPanelWidth(): Dp = when (this) {
-    DesktopWorkspaceDensity.COMFORTABLE -> 320.dp
-    DesktopWorkspaceDensity.BALANCED -> 280.dp
-    DesktopWorkspaceDensity.COMPACT -> 250.dp
-    DesktopWorkspaceDensity.DENSE -> 225.dp
+    DesktopWorkspaceDensity.BALANCED -> 230.dp
+    DesktopWorkspaceDensity.COMPACT -> 210.dp
+    DesktopWorkspaceDensity.DENSE -> 195.dp
 }

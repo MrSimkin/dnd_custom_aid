@@ -1,6 +1,5 @@
-package io.github.mrsimkin.dndcustomaid.android
+package io.github.mrsimkin.dndcustomaid.dmui
 
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -53,29 +51,37 @@ internal fun HandoutKind.spanishLabel(): String = when (this) {
 }
 
 /** Decodes a stored image, sampled down so a thumbnail never holds a full-size bitmap. */
-private suspend fun loadBitmap(blobs: MediaBlobStore, sha256: String, maxSide: Int): ImageBitmap? = withContext(Dispatchers.IO) {
+private suspend fun loadBitmap(platform: DmPlatform, blobs: MediaBlobStore, sha256: String, maxSide: Int): ImageBitmap? = withContext(Dispatchers.Default) {
     val bytes = blobs.read(sha256) ?: return@withContext null
-    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
-    var sample = 1
-    while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= maxSide) sample *= 2
-    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply { inSampleSize = sample })
-        ?.asImageBitmap()
+    platform.decodeImage(bytes, maxSide)
 }
 
 /** Thumbnails of the campaign handouts; tapping one opens it full screen. */
 @Composable
-internal fun HandoutStrip(handouts: List<HandoutContent>, blobs: MediaBlobStore) {
+internal fun HandoutStrip(
+    handouts: List<HandoutContent>,
+    blobs: MediaBlobStore,
+    /** Redesign A7: the DM sends a PLAYER_SAFE handout to the players' App, or stops sending it. */
+    onShare: ((HandoutContent, Boolean) -> Unit)? = null,
+) {
     var open by remember { mutableStateOf<HandoutContent?>(null) }
     if (handouts.isEmpty()) {
         Text("Todavía no hay handouts ni mapas en este aparato.", style = MaterialTheme.typography.bodyMedium)
     } else {
         Row(
             modifier = Modifier.horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(appSpacingV4(10.dp)),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             handouts.forEach { handout ->
-                HandoutThumbnail(handout, blobs, onOpen = { open = handout })
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    HandoutThumbnail(handout, blobs, onOpen = { open = handout })
+                    if (onShare != null && handout.payload.visibility == HandoutVisibility.PLAYER_SAFE) {
+                        val shared = handout.payload.sharedWithPlayers
+                        TextButton(onClick = { onShare(handout, !shared) }, modifier = Modifier.handCursor()) {
+                            Text(if (shared) "✓ Enviado · dejar de enviar" else "📤 Enviar a los jugadores")
+                        }
+                    }
+                }
             }
         }
     }
@@ -85,10 +91,11 @@ internal fun HandoutStrip(handouts: List<HandoutContent>, blobs: MediaBlobStore)
 @Composable
 private fun HandoutThumbnail(handout: HandoutContent, blobs: MediaBlobStore, onOpen: () -> Unit) {
     var bitmap by remember(handout.payload.sha256) { mutableStateOf<ImageBitmap?>(null) }
-    LaunchedEffect(handout.payload.sha256) { bitmap = loadBitmap(blobs, handout.payload.sha256, 320) }
+    val platform = LocalDmPlatform.current
+    LaunchedEffect(handout.payload.sha256) { bitmap = loadBitmap(platform, blobs, handout.payload.sha256, 320) }
     Column(
         modifier = Modifier.width(180.dp).clickable(onClick = onOpen),
-        verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Box(
             modifier = Modifier
@@ -105,7 +112,11 @@ private fun HandoutThumbnail(handout: HandoutContent, blobs: MediaBlobStore, onO
         }
         Text(handout.item.displayName, style = MaterialTheme.typography.titleSmall, maxLines = 1)
         Text(
-            text = handout.payload.kind.spanishLabel() + if (handout.payload.visibility == HandoutVisibility.DM_ONLY) " · Solo DM" else "",
+            text = handout.payload.kind.spanishLabel() + when {
+                handout.payload.visibility == HandoutVisibility.DM_ONLY -> " · Solo DM"
+                handout.payload.sharedWithPlayers -> " · Enviado a los jugadores"
+                else -> ""
+            },
             style = MaterialTheme.typography.bodySmall,
         )
     }
@@ -118,7 +129,8 @@ private fun HandoutThumbnail(handout: HandoutContent, blobs: MediaBlobStore, onO
 @Composable
 private fun HandoutFullScreen(handout: HandoutContent, blobs: MediaBlobStore, onClose: () -> Unit) {
     var bitmap by remember(handout.payload.sha256) { mutableStateOf<ImageBitmap?>(null) }
-    LaunchedEffect(handout.payload.sha256) { bitmap = loadBitmap(blobs, handout.payload.sha256, 2048) }
+    val platform = LocalDmPlatform.current
+    LaunchedEffect(handout.payload.sha256) { bitmap = loadBitmap(platform, blobs, handout.payload.sha256, 2048) }
     Dialog(onDismissRequest = onClose, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(modifier = Modifier.fillMaxSize(), color = Color.Black, contentColor = Color.White) {
             Box(modifier = Modifier.fillMaxSize().clickable(onClick = onClose)) {

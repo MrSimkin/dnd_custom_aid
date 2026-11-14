@@ -91,11 +91,90 @@ El paso del propietario en los proveedores ahora suma la creación del espacio K
 - Incluye Preparar encuentro con reserva, ajustes y paquetes, iniciativa escrita o tirada, PV de monstruos con promedio o tirados, la nota de PV de los PJ, estados, turnos y rondas.
 - Los paquetes se arman en la App de PC (Gestores → Paquetes).
 
-**Siguiente paso de ingeniería:** el paquete 6, la Mesa de Escena (P15).
+**Revisión del diseño de uso (2026-11-11).** El propietario detuvo el trabajo al ver en el emulador que las pantallas DM no seguían el diseño de D-0068/D-0069.
 
-- Incluye buscador, fijados y recientes, y recorrido por zona, por función y por aventura (secuencia de escenas).
-- Las tiendas muestran qué venden, cuánto cuesta, lo destacado y quién atiende, sin llevar existencias.
-- Lleva la referencia al papel, la ficha rápida de PNJ («para jugadores» / «solo DM») y el camino a la vista.
-- Antes de programar, releer P15 y D-0069.
+- Se revisaron y **aprobaron una a una** cinco propuestas (P28 a P37): Escritorio con barra lateral, Pantalla del DM, Mesa de Combate en 4 pasos con editor completo, Mesa de Escena y Mesa de Dungeon.
+- El diseño aprobado está en `docs/technical/DM_UX_APROBADA.md` y manda sobre las pantallas actuales.
 
-Después siguen los paquetes 7 y 8, y al final un solo QA del propietario. El paso del propietario en Neon y Cloudflare sigue pendiente, antes del QA.
+**Corrección de las pantallas hecha (2026-11-11, rama `feature/dm-ux-redesign`).** Las tres pantallas ya construidas siguen ahora `DM_UX_APROBADA.md`:
+
+1. **Escritorio:** barra lateral con vista general, mesas fijas, combates abiertos, «＋ Nueva mesa», herramientas como panel al costado y estado de sincronización; pestañas arriba como opción en ⚙.
+2. **Pantalla del DM:** hoja de grupo (Fichas | Vista Grupo), hoja rápida y hoja completa en lectura al costado, «Pregunta una regla…» y Referencia rápida con «Consultadas hace poco».
+3. **Mesa de Combate en 4 pasos:**
+   - Preparar, con bloques − y +, «aplicar a: los N | uno» y lo propio en naranja;
+   - Iniciativa, una vez, con «Una para el grupo» o «Cada uno la suya»;
+   - En curso, con orden, criatura tocada y «Ahora actúa»;
+   - el editor completo, con ataques estructurados y «Guardar como criatura nueva».
+
+Probado en el emulador de tablet (solo lectura).
+
+**Tablet y Windows con las mismas mesas (2026-11-11).** El propietario pidió que todo lo del DM esté también en la App de Windows.
+
+- Las mesas están en `dmUi/src/kotlin` y las compilan las dos Apps, cada una con su Compose.
+- En Windows se abren desde «Escritorio DM (mesa en vivo)».
+- Detalle en `docs/technical/DM_ESCENA.md`.
+
+**Paquete 6, Mesa de Escena (2026-11-11), en la tablet y en Windows:**
+
+- búsqueda por tipo y por idea;
+- 📌 Fijados y 🕘 Recientes;
+- recorrer por zona, por función, por aventura y en el mapa;
+- ficha con partes para jugadores o solo DM, la tienda con precios y ⭐, y «PNJ aquí»;
+- lo relacionado a la derecha.
+
+En la App de PC, los vínculos se eligen de una lista (P36) y las marcas se ponen sobre el mapa (P35). Se probó con pruebas automáticas y con imágenes de la App de Windows.
+
+**Paquete 7, Mesa de Dungeon (2026-11-11), en la tablet y en Windows:**
+
+- mapa de zonas con pasajes (los secretos, punteados), con su estado, y el grupo y las criaturas puestos a mano;
+- turno de 10 minutos con una actividad por toque (las 15 de la regla beta más dos con *), la anterior de referencia y el avance solo como dato;
+- cerrar turno, separar grupo e interrumpido por combate, con registro automático;
+- fichas de zona en pestañas, con secciones y marcas de un toque, y «Preparar ▸ ⚔»;
+- relojes que solo avisan;
+- notas que se pegan al contexto y viajan a la App de PC;
+- una emboscada exitosa propone la ronda sorpresa en la Mesa de Combate.
+
+En la App de PC: mazmorra, diagrama, pasajes y encuentro de cada zona, y lista de actividades en las reglas caseras. Detalle en `docs/technical/DM_DUNGEON.md`.
+
+**Paquete 8, Consultar reglas con IA (2026-11-11), en la tablet, en Windows y en el Worker.**
+
+- La búsqueda sigue siendo local y sin conexión.
+- «Responder con IA» envía la pregunta y los 6 primeros fragmentos del SRD a `POST /v1/rules/answer`.
+- Workers AI responde en español y cita [1], [2]…
+- Sin IA o sin cupo, la App sigue mostrando el SRD.
+- El costo está revisado: USD $0 en el plan Workers Free.
+- Detalle en `docs/technical/DM_REGLAS_IA.md`.
+
+Los 8 paquetes de la «Base para DM» están construidos en la tablet y en Windows.
+
+**Paso de proveedores hecho (2026-11-11).** El propietario autorizó las sesiones y el Worker hizo el resto:
+
+- en Neon DEV, la migración 0002 quedó aplicada (`dm_content` y sus 5 funciones);
+- en Cloudflare, se creó el espacio KV `dnd-custom-aid-media` y se publicó `dnd-custom-aid-api` con `MEDIA` y `AI` (versión `a63a59c5-8b27-451c-8bf8-b1185b6aa1f3`);
+- `/health` responde ok y las rutas nuevas piden sesión.
+
+La evidencia está en `DM_REGLAS_IA.md` §5.
+
+**QA único «Base para DM» entregado (2026-11-11).** Candidato:
+
+- APK `0.6.0-preqa.2` (build 60200), con SHA-256 `8aade822…`;
+- App de Windows `0.6.2`, con SHA-256 `9d01b038…`;
+- guía en `docs/technical/QA_BASE_DM_0.6.0-preqa.2.md`.
+
+Reemplaza a preqa.1 antes de usarlo: en Windows se agregaron «← Atrás», Esc y Alt+←, barras de desplazamiento, cursor de mano y una sola paleta, la del tema de Configuración (pedido del propietario el 2026-11-12).
+
+El control previo al QA de V11 sigue bloqueado por la hoja de PJ, que no cambió y queda fuera de este QA, con la excepción del propietario igual que preqa.13 y preqa.14.
+
+**QA del propietario recibido (2026-11-13).** Resultado: 7 bien, 5 falla y 33 no aplica.
+
+- Casi todo quedó bloqueado porque la tablet solo permitió entrar como jugador (con la cuenta Gmail).
+- El propietario dice que la experiencia lo confunde.
+- Cada observación está al pie de la letra en `docs/technical/QA_BASE_DM_0.6.0-preqa.2_OBSERVACIONES.md`.
+- La ventana de QA (versión 3) suma «A medias», «Otra cosa que viste» y observaciones generales, con las mismas pruebas.
+
+**Rediseño delegado (2026-11-13).** El propietario cedió al agente todo el rediseño de la experiencia, los nombres y la organización (D7), para evaluarlo en un solo QA.
+
+- Alcance A1 a A10 y decisiones D1 a D7 en `docs/technical/QA_BASE_DM_0.6.0-preqa.2_OBSERVACIONES.md`.
+- Gmail es la cuenta de DM de pruebas; en el servidor DEV ya es DM de «QA - PC Sheet PDF Runtime».
+
+**Siguiente paso:** el propietario hace el QA del rediseño DM, candidata `0.7.0-preqa.2` (build 70200, Windows 0.7.1), según `docs/technical/QA_REDISENO_DM_0.7.0-preqa.2.md`. Sus observaciones se registran textuales en `docs/technical/QA_BASE_DM_0.6.0-preqa.2_OBSERVACIONES.md` antes de corregir. El set de prueba privado está en `D:\DnD_Aid\Set de prueba Campus Celeste` y no entra al repositorio.

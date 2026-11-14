@@ -154,6 +154,12 @@ class DesktopPcManagerController(
     private val nowEpochSeconds: () -> Long = { System.currentTimeMillis() / 1000L },
 ) {
     private val characters = CharacterRepository(database)
+    private val players = io.github.mrsimkin.dndcustomaid.shared.character.CharacterPlayerRepository(database)
+
+    /** Redesign A13: who plays each PC, even before that person has an account. */
+    fun player(characterId: Uuid): String? = players.player(characterId)
+
+    fun setPlayer(characterId: Uuid, name: String?) = players.setPlayer(characterId, name)
     private val closure = CharacterClosureRepository(database)
     private val successor = CharacterSuccessorRepository(database)
     private val spine = IntegratedSpineRepository(database)
@@ -267,10 +273,11 @@ internal fun DesktopPcManagerScreen(
 
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("PC Manager / Auditoría", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
-            Text(
-                "Inspección DM de los mismos registros canónicos usados por Player. " +
-                    "Propiedad, control, datos locales y sincronización permanecen separados.",
+            WorkbenchHeading(
+                title = "Personajes",
+                subtitle = "Los PJ de la campaña, quién los juega y su hoja.",
+                help = "1) Elige un PJ de la lista. 2) Arriba escribe quién lo juega («Jugador o jugadora») y toca «Guardar». " +
+                    "3) Debajo ves su hoja y puedes exportar el PDF. 4) Los PJ los crean los jugadores en su App; llegan al sincronizar.",
             )
         }
 
@@ -314,6 +321,7 @@ internal fun DesktopPcManagerScreen(
                     ) {
                         Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(character.name, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
+                            controller.player(character.id)?.let { Text("Jugador/a: " + it, style = MaterialTheme.typography.caption) }
                             Text(
                                 pcStatusLabel(character.status) + " • nivel " + character.totalLevel,
                                 style = MaterialTheme.typography.caption,
@@ -484,6 +492,15 @@ internal fun DesktopPcManagerScreen(
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(details.character.name, style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+                                PcPlayerField(
+                                    current = controller.player(details.character.id),
+                                    key = details.character.id.toString() + refreshVersion,
+                                    onSave = { name ->
+                                        controller.setPlayer(details.character.id, name)
+                                        statusMessage = if (name.isBlank()) "Jugador/a quitado." else "Jugador/a: " + name.trim()
+                                        refresh()
+                                    },
+                                )
                                 Text(
                                     pcStatusLabel(details.character.status) + " • nivel " + details.character.totalLevel +
                                         " • PC " + details.character.id.toString().take(8) + "…",
@@ -871,14 +888,13 @@ private fun pcSheetPortraitFitLabel(mode: PcSheetPortraitFitMode): String = when
 }
 
 private fun choosePcSheetSaveTarget(suggestedName: String): File? {
-    val chooser = JFileChooser().apply {
-        dialogTitle = "Guardar hoja de PJ como PDF"
-        selectedFile = File(suggestedName)
-        fileFilter = FileNameExtensionFilter("Documento PDF (*.pdf)", "pdf")
-    }
-    if (chooser.showSaveDialog(null) != JFileChooser.APPROVE_OPTION) return null
-
-    val selected = chooser.selectedFile ?: return null
+    val selected = chooseFileWithExplorer(
+        title = "Guardar hoja de PJ como PDF",
+        purpose = "pc-sheets",
+        extensions = listOf("pdf"),
+        save = true,
+        suggestedName = suggestedName,
+    ) ?: return null
     val target = if (selected.extension.equals("pdf", ignoreCase = true)) {
         selected
     } else {
@@ -1301,3 +1317,22 @@ private fun signed(value: Int): String = if (value >= 0) "+" + value else value.
 
 private fun <T> listSummary(items: List<T>, render: (T) -> String): String =
     items.joinToString(" · ", transform = render).ifBlank { "—" }
+
+
+/** «Jugador o jugadora» of a PC (redesign A13), saved with «Guardar». */
+@androidx.compose.runtime.Composable
+private fun PcPlayerField(current: String?, key: String, onSave: (String) -> Unit) {
+    var value by remember(key) { mutableStateOf(current.orEmpty()) }
+    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = { value = it },
+            label = { Text("Jugador o jugadora") },
+            singleLine = true,
+            modifier = Modifier.width(280.dp),
+        )
+        if (value.trim() != current.orEmpty()) {
+            androidx.compose.material.Button(onClick = { onSave(value) }) { Text("Guardar") }
+        }
+    }
+}

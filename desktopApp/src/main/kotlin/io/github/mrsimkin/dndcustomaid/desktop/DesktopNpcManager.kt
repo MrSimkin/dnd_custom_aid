@@ -167,7 +167,7 @@ class DesktopNpcManagerController(
 }
 
 @Composable
-private fun NpcManagerScreen(
+internal fun NpcManagerScreen(
     controller: DesktopNpcManagerController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
@@ -457,6 +457,7 @@ private fun NpcEditor(
         item { NpcEditorTextField("Lugares", draft.places, lines = 3) { onDraftChange(draft.copy(places = it)) } }
         item { NpcEditorTextField("Aventura / escena", draft.adventureSceneLinks, lines = 3) { onDraftChange(draft.copy(adventureSceneLinks = it)) } }
         item { NpcEditorTextField("Guía para el DM", draft.dmGuidance, lines = 4) { onDraftChange(draft.copy(dmGuidance = it)) } }
+        item { DesktopContentLinksSection(content.item) }
 
         item {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

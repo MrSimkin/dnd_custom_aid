@@ -66,6 +66,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.groupCharacterTraits
 import io.github.mrsimkin.dndcustomaid.shared.character.hasQuickAccess
 import io.github.mrsimkin.dndcustomaid.shared.character.presentCharacterTraits
 import io.github.mrsimkin.dndcustomaid.shared.character.withQuickAccess
+import io.github.mrsimkin.dndcustomaid.shared.dm.toTraitPick
 import kotlin.uuid.Uuid
 
 private const val TRAIT_FILTER_SEPARATOR_G1 = "\u001E"
@@ -808,6 +809,22 @@ private fun TraitEditorDialogG1(
         onSave = onApply,
         saveEnabled = valid,
     ) {
+        // Redesign R5 (D9): feats, backgrounds, species traits and rules from the SRD or the homebrew.
+        RulesPickButton(
+            kinds = listOf(
+                io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.FEAT,
+                io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.SPECIES,
+                io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.SUBSPECIES,
+                io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.BACKGROUND,
+                io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.RULE,
+            ),
+            onPick = { option ->
+                val trait = option.toTraitPick()
+                onNameChange(trait.name)
+                onDescriptionChange(trait.description)
+                onNotesChange(trait.source)
+            },
+        )
         CharacterCompactOutlinedTextFieldV4(
             value = name,
             onValueChange = onNameChange,

@@ -2,7 +2,18 @@ package io.github.mrsimkin.dndcustomaid.shared.hosted
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.ContentLinks
+import io.github.mrsimkin.dndcustomaid.shared.content.ContentLinksRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.CreatureAbilityScores
+import io.github.mrsimkin.dndcustomaid.shared.content.NoteContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.NoteContextKind
+import io.github.mrsimkin.dndcustomaid.shared.content.NotePayload
+import io.github.mrsimkin.dndcustomaid.shared.content.NpcContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.NpcPayload
+import io.github.mrsimkin.dndcustomaid.shared.content.PlaceContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.PlaceKind
+import io.github.mrsimkin.dndcustomaid.shared.content.PlacePayload
+import io.github.mrsimkin.dndcustomaid.shared.content.ShopItem
 import io.github.mrsimkin.dndcustomaid.shared.content.CreatureContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.CreaturePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterContentRepository
@@ -84,6 +95,67 @@ class HostedDmContentSyncTest {
         assertTrue(quietPc.pushedIds.isEmpty() && quietPc.appliedIds.isEmpty())
         assertTrue(quietTablet.pushedIds.isEmpty() && quietTablet.appliedIds.isEmpty())
         assertEquals(4, quietTablet.unchangedCount)
+    }
+
+    @Test
+    fun structuredLinksTravelWithTheirContentAndALinkEditIsAnEdit() = scenario { _, pc, tablet ->
+        val shop = PlaceContentRepository(pc.database).createCampaign(campaignId, "Herrería", PlacePayload(kind = PlaceKind.SHOP), 100)
+        val smith = NpcContentRepository(pc.database).createCampaign(campaignId, "Bruna", NpcPayload(conceptRole = "Herrera"), 100)
+        val shopId = shop.item.identity.id
+        val smithId = smith.item.identity.id
+        val pcLinks = ContentLinksRepository(pc.database)
+        pcLinks.save(smithId, ContentLinks(placeIds = listOf(shopId), groups = listOf(" Gremio ", "gremio")))
+        pcLinks.save(shopId, ContentLinks(npcIds = listOf(smithId), shopItems = listOf(ShopItem("Cota de malla", "75 po", highlighted = true))))
+
+        assertEquals(2, pc.sync().pushedIds.size)
+        assertEquals(2, tablet.sync().appliedIds.size)
+        val tabletLinks = ContentLinksRepository(tablet.database)
+        assertEquals(ContentLinks(placeIds = listOf(shopId), groups = listOf("Gremio")), tabletLinks.links(smithId), "groups arrive cleaned")
+        assertEquals("75 po", tabletLinks.links(shopId).shopItems.single().price)
+
+        pcLinks.save(shopId, pcLinks.links(shopId).copy(shopItems = listOf(ShopItem("Cota de malla", "70 po"))))
+        assertEquals(listOf(shopId), pc.sync().pushedIds, "changing only a link sends the place again")
+        tablet.sync()
+        assertEquals("70 po", tabletLinks.links(shopId).shopItems.single().price)
+        assertTrue(tablet.sync().appliedIds.isEmpty() && pc.sync().pushedIds.isEmpty(), "nothing moves without edits")
+    }
+
+    @Test
+    fun aDungeonDrawnOnTheAppDePcReachesTheTabletWithItsZonesAndPassages() = scenario { _, pc, tablet ->
+        val dungeons = io.github.mrsimkin.dndcustomaid.shared.content.DungeonContentRepository(pc.database)
+        val site = dungeons.create(campaignId, "Sitio 021", io.github.mrsimkin.dndcustomaid.shared.content.DungeonPayload(summary = "Complejo de extracción"), 500)
+        val a1 = dungeons.addZone(campaignId, site, "A1 Explanada", 0.1, 0.1, 500)
+        val a2 = dungeons.addZone(campaignId, site, "A2 Caseta", 0.5, 0.1, 500)
+        dungeons.connect(a1.item.identity.id, a2.item.identity.id, secret = true)
+        pc.sync()
+        tablet.sync()
+        val onTablet = io.github.mrsimkin.dndcustomaid.shared.content.DungeonContentRepository(tablet.database)
+        val received = onTablet.listCampaign(campaignId).single()
+        assertEquals("Sitio 021", received.item.displayName)
+        assertEquals("Complejo de extracción", received.payload.summary)
+        val zones = onTablet.zonesOf(campaignId, received)
+        assertEquals(listOf("A1 Explanada", "A2 Caseta"), zones.map { it.zone.displayName })
+        val passage = zones.first().links.passages.single()
+        assertEquals(a2.item.identity.id, passage.toZoneId)
+        assertTrue(passage.secret, "the secret passage keeps its mark")
+        assertEquals("Sitio 021", zones.first().links.dungeon, "the tablet's Mesa de Dungeon still finds it by name")
+    }
+
+    @Test
+    fun aLiveNoteWrittenOnTheTabletReachesTheAppDePcWithItsContext() = scenario { _, pc, tablet ->
+        val zoneId = Uuid.random()
+        val note = NoteContentRepository(tablet.database).create(
+            campaignId,
+            NotePayload("La puerta norte quedó atrancada.\nVolver con palanca.", NoteContextKind.ZONE, zoneId, "Antesala"),
+            500,
+        )
+        assertEquals("La puerta norte quedó atrancada.", note.item.displayName, "a note is named by its first line")
+        assertEquals(listOf(note.item.identity.id), tablet.sync().pushedIds)
+        pc.sync()
+        val onPc = NoteContentRepository(pc.database).listCampaign(campaignId).single()
+        assertEquals(NoteContextKind.ZONE, onPc.payload.contextKind)
+        assertEquals("Antesala", onPc.payload.contextLabel)
+        assertEquals(zoneId, onPc.payload.contextId)
     }
 
     @Test
@@ -232,9 +304,38 @@ class HostedDmContentSyncTest {
     private class Device(val database: AppDatabase, private val server: FakeDmContentServer, private val scopes: List<DmContentSyncScope>) {
         private var clock = 1_000L
         val blobs = InMemoryMediaBlobStore()
-        fun sync(): DmContentSyncResult = runBlocking {
-            HostedDmContentSyncService(database, server, blobs = blobs).synchronize(scopes, clock++)
+        fun sync(onProgress: (DmContentSyncProgress) -> Unit = {}): DmContentSyncResult = runBlocking {
+            HostedDmContentSyncService(database, server, blobs = blobs).synchronize(scopes, clock++, onProgress)
         }
+    }
+
+    @Test
+    fun aLongSyncReportsHowMuchIsSentAndReceived() = scenario { _, pc, tablet ->
+        val creatures = CreatureContentRepository(pc.database)
+        repeat(3) { creatures.createCampaign(campaignId, "Goblin $it", goblinPayload(), 100) }
+        val sent = mutableListOf<DmContentSyncProgress>()
+        pc.sync { sent += it }
+        assertEquals(DmContentSyncProgress(DmContentSyncStep.SENDING, 0, 3), sent.first())
+        assertEquals((1..3).map { DmContentSyncProgress(DmContentSyncStep.SENDING, it, 3) }, sent.filter { it.step == DmContentSyncStep.SENDING }.drop(1))
+
+        val received = mutableListOf<DmContentSyncProgress>()
+        tablet.sync { received += it }
+        assertEquals(DmContentSyncProgress(DmContentSyncStep.RECEIVING, 3, 3), received.last { it.step == DmContentSyncStep.RECEIVING })
+    }
+
+    @Test
+    fun theProgressLineSaysHowMuchTimeIsLeftOnceThePaceIsKnown() {
+        var now = 0L
+        val text = DmContentSyncProgressText { now }
+        assertEquals("Enviando 0 de 1.090", text.text(DmContentSyncProgress(DmContentSyncStep.SENDING, 0, 1090)))
+        now = 5_000
+        assertEquals("Enviando 5 de 1.090", text.text(DmContentSyncProgress(DmContentSyncStep.SENDING, 5, 1090)))
+        now = 400_000
+        // 535 sent in 400 s: the other 555 take about 415 s, so about 7 minutes.
+        assertEquals("Enviando 535 de 1.090 · faltan unos 7 min", text.text(DmContentSyncProgress(DmContentSyncStep.SENDING, 535, 1090)))
+        now = 810_000
+        assertEquals("Enviando 1.080 de 1.090 · falta menos de un minuto", text.text(DmContentSyncProgress(DmContentSyncStep.SENDING, 1080, 1090)))
+        assertEquals("Bajando imágenes: 0 de 22", text.text(DmContentSyncProgress(DmContentSyncStep.IMAGES, 0, 22)))
     }
 
     @Test

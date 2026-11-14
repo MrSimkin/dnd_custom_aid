@@ -440,6 +440,7 @@ private fun SceneEditor(
             ) { onDraftChange(draft.copy(references = it)) }
         }
         item { SceneField("Notas DM", draft.notes, false, 5) { onDraftChange(draft.copy(notes = it)) } }
+        item { DesktopContentLinksSection(content.item) }
     }
 }
 

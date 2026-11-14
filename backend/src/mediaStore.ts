@@ -25,6 +25,22 @@ export interface MediaAuthorization {
   isActiveDm(actorUserId: Uuid): Promise<boolean>;
   /** True when the actor may read the active HANDOUT content [contentId] and it names [sha256]. */
   mayReadMedia(actorUserId: Uuid, contentId: Uuid, sha256: string): Promise<boolean>;
+  /**
+   * Redesign A7: the campaign's handouts the DM sent to the players (PLAYER_SAFE and shared),
+   * for any ACTIVE member of that campaign. Null when the actor is not an active member.
+   */
+  listSharedHandouts(actorUserId: Uuid, campaignId: Uuid): Promise<SharedHandout[] | null>;
+}
+
+/** What a player receives about a handout: never the DM notes. */
+export interface SharedHandout {
+  id: Uuid;
+  name: string;
+  caption: string;
+  kind: string;
+  sha256: string;
+  mediaType: string;
+  revision: number;
 }
 
 export interface StoredMedia {
@@ -106,8 +122,61 @@ export class NeonMediaAuthorization implements MediaAuthorization {
         AND d.family = 'HANDOUT'
         AND d.deleted_at IS NULL
         AND d.snapshot -> 'payload' ->> 'sha256' = ${sha256}
-        AND dm_content_actor_may_write(${actorUserId}::uuid, d.scope_kind, d.owner_user_id, d.campaign_id)
+        AND (
+          dm_content_actor_may_write(${actorUserId}::uuid, d.scope_kind, d.owner_user_id, d.campaign_id)
+          OR (
+            d.scope_kind = 'CAMPAIGN'
+            AND d.snapshot -> 'payload' ->> 'visibility' = 'PLAYER_SAFE'
+            AND d.snapshot -> 'payload' ->> 'sharedWithPlayers' = 'true'
+            AND EXISTS (
+              SELECT 1 FROM campaign_membership m
+              WHERE m.campaign_id = d.campaign_id
+                AND m.user_id = ${actorUserId}::uuid
+                AND m.status = 'ACTIVE'
+            )
+          )
+        )
     ` as unknown[];
     return rows.length > 0;
+  }
+
+  async listSharedHandouts(actorUserId: Uuid, campaignId: Uuid): Promise<SharedHandout[] | null> {
+    const member = await this.sql`
+      SELECT 1
+      FROM campaign_membership m
+      JOIN campaign c ON c.id = m.campaign_id
+      WHERE m.campaign_id = ${campaignId}::uuid
+        AND m.user_id = ${actorUserId}::uuid
+        AND m.status = 'ACTIVE'
+        AND c.deleted_at IS NULL
+      LIMIT 1
+    ` as unknown[];
+    if (member.length === 0) return null;
+    const rows = await this.sql`
+      SELECT d.id::text AS id,
+             d.display_name AS name,
+             COALESCE(d.snapshot -> 'payload' ->> 'caption', '') AS caption,
+             COALESCE(d.snapshot -> 'payload' ->> 'kind', 'HANDOUT') AS kind,
+             d.snapshot -> 'payload' ->> 'sha256' AS sha256,
+             d.snapshot -> 'payload' ->> 'mediaType' AS media_type,
+             d.revision AS revision
+      FROM dm_content d
+      WHERE d.campaign_id = ${campaignId}::uuid
+        AND d.scope_kind = 'CAMPAIGN'
+        AND d.family = 'HANDOUT'
+        AND d.deleted_at IS NULL
+        AND d.snapshot -> 'payload' ->> 'visibility' = 'PLAYER_SAFE'
+        AND d.snapshot -> 'payload' ->> 'sharedWithPlayers' = 'true'
+      ORDER BY d.display_name
+    ` as Array<{ id: string; name: string; caption: string; kind: string; sha256: string; media_type: string; revision: string | number }>;
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      caption: row.caption,
+      kind: row.kind,
+      sha256: row.sha256,
+      mediaType: row.media_type,
+      revision: Number(row.revision),
+    }));
   }
 }

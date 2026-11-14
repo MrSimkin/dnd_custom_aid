@@ -13,8 +13,8 @@ android {
         applicationId = "io.github.mrsimkin.dndcustomaid"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 51400
-        versionName = "0.5.0-preqa.14"
+        versionCode = 70200
+        versionName = "0.7.0-preqa.2"
     }
 
     if (ciDebugKeystore.exists()) {
@@ -47,6 +47,8 @@ android {
     }
 
     sourceSets.getByName("main").assets.srcDir(rootProject.file("assets"))
+    // Base para DM: the desks shared with the Windows app, compiled here with this App's own Compose.
+    sourceSets.getByName("main").kotlin.srcDir(rootProject.file("dmUi/src/kotlin"))
 }
 
 dependencies {
