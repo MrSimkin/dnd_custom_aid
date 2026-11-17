@@ -108,3 +108,22 @@ Se recomienda al propietario no hacer todavía el QA de preqa.3. El refactor pro
   - quedan textos técnicos («Gestor de Escenarios», «Stage», «Personal», «auditarlo», «PC locales», «workbench»);
   - Configuración tiene su propia cabecera;
   - en el plano de dungeon, dos zonas sin posición quedan pegadas y tapan el pasaje.
+
+### F3: dividir por responsabilidad (2026-11-17)
+
+- **Una sola fuente para la hoja V11.** El renderizador V11 y su medidor de fuentes de Windows son la fuente. La copia de la tablet se genera con `scripts/sync_android_v11_renderer.py`, que cambia solo el paquete, la librería de PDF y la lectura del logo y las fuentes. La copia generada es idéntica byte a byte a la que había, así que el PDF no cambia. El CI (`scaffold-check`) exige que sigan iguales.
+- **Archivos divididos.** Se movieron funciones completas, sin reescribirlas; solo cambiaron de `private` a `internal` las que se usan desde el archivo nuevo:
+
+  | Archivo original | Antes | Después | Archivos nuevos |
+  | --- | --- | --- | --- |
+  | `CharacterEditorV4.kt` | 3.703 | 1.594 | `CharacterOverviewTabV4`, `CharacterSkillsTabV4`, `CharacterEditorFieldsV4`, `CharacterEditorDraftV4` |
+  | `CombatDesk.kt` | 1.304 | ~320 | `CombatPrepareStep`, `CombatLiveStep`, `CombatCreatureEditing` |
+  | `DesktopPcManager.kt` | 1.147 | ~710 | `DesktopPcInspection` (la inspección técnica que F4 saca de tu pantalla), `DesktopPcSheetExportPanel` |
+  | `UiPreferences.kt` | 1.321 | ~700 | `AppSettingsScreen` (la pantalla Configuración de la tablet) |
+  | `CharacterManagementSuccessorV4.kt` | 1.420 | ~980 | `CharacterManagementDialogsV4` |
+  | `CharacterEquipmentClosureV4.kt` | 1.338 | ~720 | `CharacterEquipmentEditorV4` |
+
+- **Pendiente.**
+  - `CharacterEditorV4.kt` sigue en 1.594 líneas porque casi todo es una sola función de pantalla. Partirla exige reescribirla, y se hará cuando se toque ese editor.
+  - Cinco archivos de pestañas de la tablet rondan las 1.000 a 1.170 líneas y se dividen cuando se trabaje en ellos.
+  - Las copias del renderizador V11 no se dividen: son la hoja contractual.
