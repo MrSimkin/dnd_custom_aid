@@ -185,8 +185,7 @@ internal class DesktopPreferencesStore(
         private const val KEY_WORKSPACE_DENSITY = "workspace_density"
 
         fun defaultPreferencesFile(): Path = Paths.get(
-            System.getProperty("user.home"),
-            ".dnd_custom_aid",
+            io.github.mrsimkin.dndcustomaid.shared.db.DesktopDatabaseFactory.defaultDataDirectory().path,
             "desktop_preferences.properties",
         )
     }

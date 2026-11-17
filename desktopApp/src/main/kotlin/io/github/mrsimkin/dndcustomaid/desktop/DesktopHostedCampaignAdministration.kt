@@ -79,6 +79,15 @@ internal class DesktopHostedCampaignAdministrationController(
         apiClient.createCampaign(mutationId = Uuid.random(), campaignId = Uuid.random(), name = name)
     }
 
+    /** Refactor F5 (AGENTS §6.4): with test data and no account, a campaign that exists only here. */
+    fun createLocalCampaignForTesting(name: String) {
+        check(io.github.mrsimkin.dndcustomaid.shared.db.DesktopDatabaseFactory.usesTestDataDirectory()) {
+            "Only a test data folder creates campaigns without the server."
+        }
+        val repository = io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository(database)
+        repository.setActiveCampaign(repository.createCampaign(name.trim()).id)
+    }
+
     fun membership(campaignId: Uuid, accountId: Uuid): CampaignMembership? =
         spine.membership(campaignId, accountId)
 

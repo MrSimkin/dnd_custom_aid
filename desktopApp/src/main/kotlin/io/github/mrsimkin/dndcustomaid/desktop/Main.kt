@@ -90,7 +90,7 @@ fun main() {
         application {
             Window(
                 onCloseRequest = ::exitApplication,
-                title = "D&D Custom Aid",
+                title = if (DesktopDatabaseFactory.usesTestDataDirectory()) "D&D Custom Aid — DATOS DE PRUEBA" else "D&D Custom Aid",
             ) {
                 var preferences by remember { mutableStateOf(preferencesStore.load()) }
 

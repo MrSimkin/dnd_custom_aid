@@ -172,6 +172,19 @@ internal class DesktopAccountSession(
         refreshCampaignsInside()
     }
 
+    /**
+     * Refactor F5 (AGENTS §6.4): only when the App runs on a test data folder, the agent walks it
+     * without the owner's account. Everything stays on this computer, as «Solo en este equipo».
+     */
+    fun continueWithoutAccountForTesting() {
+        check(io.github.mrsimkin.dndcustomaid.shared.db.DesktopDatabaseFactory.usesTestDataDirectory()) {
+            "Only a test data folder can be opened without an account."
+        }
+        email = null
+        message = null
+        gate = DesktopAccountGate.READY
+    }
+
     fun cancelCode() {
         auth.cancelPendingCode()
         message = null
@@ -201,6 +214,12 @@ internal class DesktopAccountSession(
     /** «Nueva campaña»: created on the server with this account as its DM, then brought here. */
     suspend fun createCampaign(name: String): Boolean {
         var created = false
+        if (email == null && io.github.mrsimkin.dndcustomaid.shared.db.DesktopDatabaseFactory.usesTestDataDirectory()) {
+            hosted.createLocalCampaignForTesting(name)
+            campaignsVersion++
+            message = "Campaña «${name.trim()}» creada solo en este equipo (datos de prueba)."
+            return true
+        }
         work {
             hosted.createHostedCampaign(name)
             refreshCampaignsInside()
@@ -341,6 +360,11 @@ internal fun DesktopSignInScreen(session: DesktopAccountSession, onExit: () -> U
                             onClick = { scope.launch { session.sendCode(address) } },
                         ) { Text(if (session.busy) "Enviando…" else "Enviar código") }
                         TextButton(onClick = onExit) { Text("Salir de la App") }
+                    }
+                    if (io.github.mrsimkin.dndcustomaid.shared.db.DesktopDatabaseFactory.usesTestDataDirectory()) {
+                        TextButton(onClick = { session.continueWithoutAccountForTesting() }) {
+                            Text("Seguir sin cuenta (datos de prueba)")
+                        }
                     }
                 } else {
                     Text("Escribe el código que llegó a ${session.pendingEmail ?: "tu correo"}.", style = MaterialTheme.typography.bodyMedium)

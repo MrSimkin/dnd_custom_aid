@@ -196,6 +196,11 @@ Before any owner QA window is published:
 
 A candidate with a FAILED test does not go to the owner.
 
+Tooling: `scripts/qa_real_app.py`.
+
+- **Windows.** `win-start --data <test folder>` sets `DND_CUSTOM_AID_DATA_DIR`. The window title then says «DATOS DE PRUEBA», and «Seguir sin cuenta» and local campaigns are available for the walk. `win-stop` confirms the owner's `~/.dnd_custom_aid` did not change. Clicks take the real mouse and stop instead of reaching another window, so tell the owner before a walk.
+- **Android.** `emu-start` runs the emulator `-read-only -no-snapshot-save -no-window`. `emu-install` is for the agent's emulator only; it never replaces the owner's install step.
+
 ## 7. Secret handling
 
 Never request or commit passwords, OTPs, Cloudflare tokens, DB passwords, Neon connection strings, Descope/session/access/refresh JWTs, private keys, signing credentials, provider credential files or secret environment-variable values.

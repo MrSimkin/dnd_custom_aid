@@ -147,3 +147,20 @@ Puntos 4 y 6. El modelo de datos no cambia; cambia lo que se ve.
 - **Cargar paquete** sale de Diagnóstico y pasa a Campañas, como en la tablet (punto 5). Se muestra para la campaña abierta cuando eres su DM o está solo en este equipo.
 - **Configuración en Windows** usa la cabecera común («Configuración», con su ayuda) y textos sin «workbench» ni «fuentes Android».
 - **Pendiente para los editores como fichas (punto 6, después del refactor):** «Copiar a otra campaña», la vista de ficha con «Editar» por bloque, y las zonas sin posición que se tapan en el plano del dungeon.
+
+### F5: verificación en la App real (2026-11-17)
+
+Punto 2 y AGENTS §6.4.
+
+- **Carpeta de datos aparte en Windows.**
+  - La App de PC usa la carpeta de `DND_CUSTOM_AID_DATA_DIR`, o la propiedad Java `dndcustomaid.dataDir`, en lugar de `~/.dnd_custom_aid`. Ahí guarda la base de datos, las imágenes, la cuenta recordada, las mesas y las preferencias.
+  - En ese modo, el título de la ventana dice «DATOS DE PRUEBA».
+  - Prueba nueva: `DesktopDataDirectoryTest`.
+- **Sin tu cuenta, solo con datos de prueba.** «Seguir sin cuenta (datos de prueba)» entra a la App, y «＋ Nueva campaña» crea una campaña solo en este equipo. Con la carpeta normal, nada de esto aparece.
+- **Herramienta `scripts/qa_real_app.py`.**
+  - En Windows: arranca la distribución exacta con su carpeta de prueba, toma capturas de la ventana aunque esté detrás de otras, hace clics y escribe con el ratón y teclado reales, responde el selector de archivos de Windows y, al cerrar, comprueba que tu carpeta real no cambió.
+  - En Android: arranca el emulador `-read-only -no-snapshot-save -no-window`, instala, abre, toca, escribe y toma capturas.
+- **Probado con la App real (2026-11-17):**
+  - Windows: entrar sin cuenta, crear «Serpiente Vieja», cargar un paquete de prueba con el selector real («Cargado: 2 lugares, 1 PNJ, 1 criaturas, 1 encuentros, 1 escenas, 1 dungeons, 2 zonas, 1 notas, 1 PJ.») y abrir el Escritorio DM. Al cerrar: «La carpeta real del propietario no cambió».
+  - Tablet (emulador Lenovo P11): abrir la App y tocar «Escena», que abre la Mesa de Escena.
+- **Límite conocido.** Windows no entrega clics a una ventana en segundo plano, así que el recorrido en Windows usa el ratón real durante unos minutos. La herramienta se detiene antes de hacer clic o escribir en otra ventana. Antes de cada recorrido se avisa al propietario.
