@@ -80,3 +80,14 @@ Después del refactor siguen: la sincronización (cuando se decida la regla), lo
 ## Efecto sobre la candidata 0.7.0-preqa.3
 
 Se recomienda al propietario no hacer todavía el QA de preqa.3. El refactor produce una nueva candidata que el agente recorre primero en la App real. Las pruebas de la ventana «QA Reparaciones DM» se reutilizan.
+
+## Avance del refactor
+
+### F1: sacar el código muerto (2026-11-17)
+
+- **Hojas antiguas fuera de las dos Apps.** Se quitaron Fantasy Sheet, Custom v1 y Custom v2 (Classic, Hybrid, Extended, SharedBase, TemplateProof, VisualCompletion y WholeDraft), junto con sus renderizadores de libro de conjuros, retrato y primitivas, y su puente en Android. Son 11 archivos de Windows, 12 de Android y 28 pruebas de esas familias: unas 53.500 líneas menos.
+- **Exportación.** Los servicios de Windows y Android exportan solo la hoja V11 A/B; las opciones de exportación ya no tienen «familia» ni «estadísticas personalizadas».
+- **Script y CI.** Se quitó `scripts/generate_android_pc_sheet_renderer.py`, que copiaba las hojas antiguas de Windows a Android, junto con su paso en CI. La guarda `check_android_pc_sheet_pdf_delivery.py` ahora exige la ruta V11 y falla si vuelve una familia antigua.
+- **Textos y nombres.** Se quitaron los textos de «PRUEBA INTERNA» de las pantallas y el nombre «PREQA» del PDF de la tablet. Ahora se llama «<PJ> - Hoja de PJ V11 A.pdf», igual que en Windows.
+- **Sin cambios.** Los archivos del renderizador V11, su medidor de fuentes, el cargador de recursos y el planificador compartido no se tocaron, así que el PDF V11 no cambia. Las plantillas y fuentes del propietario en `assets/` se conservan.
+- **Pendiente del proceso V11.** El PDF V11 todavía imprime «PRUEBA INTERNA V11 - NO APROBADA» en el pie de página. Es parte de la hoja contractual y se decide con su QA, no en el refactor.

@@ -30,7 +30,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -41,15 +40,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -70,7 +69,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassLevel
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatDamageProfile
-import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportAggregate
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ExportRequest
@@ -584,12 +582,11 @@ internal fun CharacterEditorScreenV4(
             val result = runCatching {
                 withContext(Dispatchers.IO) {
                     val purpose = if (action == PcSheetAndroidExportActionV4.SAVE) "save" else "share"
-                    val proofVariant = options.v11ProofVariant
-                    // C473 (owner 2026-11-10): V11 replaces the old sheets in every build.
-                    if (proofVariant != null) {
+                    // C473 (owner 2026-11-10): V11 is the only sheet.
+                    run {
                         val proof = pcSheetExportService.generateV11Proof(
                             PcSheetV11ExportRequest(
-                                variant = proofVariant,
+                                variant = options.variant,
                                 stateSelection = options.stateSelection,
                                 portraitFitMode = options.portraitFitMode,
                                 includeSpellDescriptions = options.includeSpellDescriptions,
@@ -603,14 +600,6 @@ internal fun CharacterEditorScreenV4(
                             purpose = purpose,
                         )
                         proof.semantic.notices to staged
-                    } else {
-                        val generated = pcSheetExportService.generate(options.request(), sources)
-                        val staged = pcSheetExportService.stage(
-                            generated = generated,
-                            characterName = aggregate.sheet.name,
-                            purpose = purpose,
-                        )
-                        generated.plan.notices to staged
                     }
                 }
             }
@@ -629,10 +618,7 @@ internal fun CharacterEditorScreenV4(
             } else {
                 null
             }
-            val internalQaNotice = if (options.v11ProofVariant != null && BuildConfig.DEBUG) {
-                "PDF V11 de PRUEBA INTERNA, aún NO aprobado visualmente."
-            } else null
-            val combinedNotice = listOfNotNull(unsavedNotice, notice, internalQaNotice)
+            val combinedNotice = listOfNotNull(unsavedNotice, notice)
                 .joinToString(" ").takeIf { it.isNotBlank() }
 
             when (action) {
@@ -641,15 +627,9 @@ internal fun CharacterEditorScreenV4(
                     pendingPcSheetSaveNotice = combinedNotice
                     pcSheetExportBusy = false
                     pcSheetSaveLauncher.launch(
-                        if (options.v11ProofVariant != null) {
-                            pcSheetExportService.suggestedV11ProofFileName(
-                                aggregate.sheet.name, options.v11ProofVariant, options.lightInkNumbers,
-                            )
-                        } else {
-                            pcSheetExportService.suggestedFileName(
-                                aggregate.sheet.name, options.visualFamily,
-                            )
-                        },
+                        pcSheetExportService.suggestedV11ProofFileName(
+                            aggregate.sheet.name, options.variant, options.lightInkNumbers,
+                        ),
                     )
                 }
 
