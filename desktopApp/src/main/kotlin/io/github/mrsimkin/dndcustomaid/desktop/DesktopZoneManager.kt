@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -246,19 +247,6 @@ internal fun DesktopZoneManagerScreen(
                 modifier = Modifier.weight(1f),
             )
             Button(
-                enabled = newName.isNotBlank() && ownerAccountId != null,
-                onClick = {
-                    runCatching { controller.createPersonal(requireNotNull(ownerAccountId), newName) }
-                        .onSuccess { created ->
-                            newName = ""
-                            statusMessage = "Zona Personal creada."
-                            onQaEvent("Zone Manager: zona Personal creada ${created.item.identity.id}")
-                            refresh(created.item.identity.id)
-                        }
-                        .onFailure { statusMessage = it.message ?: "No se pudo crear la zona Personal." }
-                },
-            ) { Text("Crear Personal") }
-            Button(
                 enabled = newName.isNotBlank() && activeCampaign != null,
                 onClick = {
                     runCatching { controller.createCampaign(requireNotNull(activeCampaign).id, newName) }
@@ -270,7 +258,7 @@ internal fun DesktopZoneManagerScreen(
                         }
                         .onFailure { statusMessage = it.message ?: "No se pudo crear la zona de campaña." }
                 },
-            ) { Text("Crear en campaña") }
+            ) { Text("＋ Crear") }
         }
 
         Row(
@@ -293,13 +281,6 @@ internal fun DesktopZoneManagerScreen(
             )
         }
 
-        if (ownerAccountId == null) {
-            Text(
-                "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
-                    "Las zonas de campaña local siguen disponibles.",
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
         statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
         HorizontalDivider()
@@ -317,14 +298,14 @@ internal fun DesktopZoneManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            HorizontalDivider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            VerticalDivider()
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text("Selecciona una zona para abrirla.", style = MaterialTheme.typography.titleLarge)
-                    Text("Personal: ${personalZones.size} • Campaña activa: ${campaignZones.size}")
+                    Text("${campaignZones.size} en esta campaña.")
                 }
             } else {
                 ZoneEditor(
@@ -343,7 +324,7 @@ internal fun DesktopZoneManagerScreen(
                             payload = currentDraft.toPayload(),
                         )) {
                             is RevisionDecision.Accepted -> {
-                                statusMessage = "Cambios guardados (revisión ${decision.nextRevision.value})."
+                                statusMessage = "Cambios guardados."
                                 onQaEvent("Zone Manager: zona actualizada ${selected.item.identity.id}")
                                 refresh(selected.item.identity.id)
                             }
@@ -400,7 +381,7 @@ private fun ZoneList(
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text(zoneScopeLabel(content), style = MaterialTheme.typography.bodySmall)
+                    zoneScopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                     if (content.payload.area.isNotBlank()) {
                         Text(content.payload.area, style = MaterialTheme.typography.bodySmall)
                     }
@@ -434,19 +415,9 @@ private fun ZoneEditor(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Editor de Zona", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                    Text(
-                        "${zoneScopeLabel(content)} • revisión ${content.item.identity.revision.value}",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    content.item.identity.provenance?.let { provenance ->
-                        Text(
-                            "Copia de ${provenance.sourceObjectId.toString().take(8)}… • independiente desde la copia",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
                 }
                 if (content.item.identity.scope is ContentScope.Personal && activeCampaign != null) {
-                    Button(onClick = onCopyToCampaign) { Text("Copiar a campaña") }
+                    Button(onClick = onCopyToCampaign) { Text("Traer a esta campaña") }
                 }
                 Button(onClick = onSave, enabled = draft.displayName.isNotBlank()) { Text("Guardar") }
             }
@@ -592,8 +563,8 @@ private fun zoneScopeSortKey(content: ZoneContent): Int = when (content.item.ide
 }
 
 private fun zoneScopeLabel(content: ZoneContent): String = when (content.item.identity.scope) {
-    is ContentScope.Personal -> "Personal"
-    is ContentScope.Campaign -> "Campaña"
+    is ContentScope.Personal -> "De tu biblioteca anterior"
+    is ContentScope.Campaign -> ""
     is ContentScope.Official -> "Oficial / SRD"
     ContentScope.System -> "Sistema"
 }

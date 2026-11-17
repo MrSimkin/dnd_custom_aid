@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -219,14 +220,6 @@ internal fun NpcManagerScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de PNJ", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text(
-                "PNJ rápidos, desarrollados y con mecánicas de combate opcionales. Un PNJ incompleto sigue siendo válido.",
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -247,19 +240,6 @@ internal fun NpcManagerScreen(
                 modifier = Modifier.weight(1f),
             )
             Button(
-                enabled = newName.isNotBlank() && ownerAccountId != null,
-                onClick = {
-                    runCatching { controller.createPersonal(requireNotNull(ownerAccountId), newName) }
-                        .onSuccess { created ->
-                            newName = ""
-                            statusMessage = "PNJ Personal creado."
-                            onQaEvent("NPC Manager: PNJ Personal creado ${created.item.identity.id}")
-                            refresh(created.item.identity.id)
-                        }
-                        .onFailure { statusMessage = it.message ?: "No se pudo crear el PNJ Personal." }
-                },
-            ) { Text("Crear Personal") }
-            Button(
                 enabled = newName.isNotBlank() && activeCampaign != null,
                 onClick = {
                     runCatching { controller.createCampaign(requireNotNull(activeCampaign).id, newName) }
@@ -271,16 +251,9 @@ internal fun NpcManagerScreen(
                         }
                         .onFailure { statusMessage = it.message ?: "No se pudo crear el PNJ de campaña." }
                 },
-            ) { Text("Crear en campaña") }
+            ) { Text("＋ Crear") }
         }
 
-        if (ownerAccountId == null) {
-            Text(
-                "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
-                    "El contenido de campaña local sigue disponible.",
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
         statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
         HorizontalDivider()
@@ -298,14 +271,14 @@ internal fun NpcManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            HorizontalDivider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            VerticalDivider()
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text("Selecciona un PNJ para abrirlo.", style = MaterialTheme.typography.titleLarge)
-                    Text("Personal: ${personalNpcs.size} • Campaña activa: ${campaignNpcs.size}")
+                    Text("${campaignNpcs.size} en esta campaña.")
                 }
             } else {
                 NpcEditor(
@@ -324,7 +297,7 @@ internal fun NpcManagerScreen(
                                     payload = payload,
                                 )) {
                                     is RevisionDecision.Accepted -> {
-                                        statusMessage = "Cambios guardados (revisión ${decision.nextRevision.value})."
+                                        statusMessage = "Cambios guardados."
                                         onQaEvent("NPC Manager: PNJ actualizado ${selected.item.identity.id}")
                                         refresh(selected.item.identity.id)
                                     }
@@ -383,7 +356,7 @@ private fun NpcList(
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text(npcScopeLabel(content), style = MaterialTheme.typography.bodySmall)
+                    npcScopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                     val stage = if (content.payload.hasDevelopedDetails()) "Desarrollado" else "Rápido"
                     val combat = if (content.payload.combatMechanics != null) " • combate" else ""
                     Text("$stage$combat", style = MaterialTheme.typography.bodySmall)
@@ -415,14 +388,7 @@ private fun NpcEditor(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Editor de PNJ", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                    Text(npcScopeLabel(content), style = MaterialTheme.typography.bodySmall)
-                    content.item.identity.provenance?.let { provenance ->
-                        Text(
-                            "Proveniencia: ${npcScopeLabel(provenance.sourceScope)} • ${provenance.sourceObjectId.toString().take(8)}…",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                    Text("Revisión ${content.item.identity.revision.value}", style = MaterialTheme.typography.bodySmall)
+                    npcScopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                 }
                 Button(onClick = onSave) { Text("Guardar") }
                 if (content.item.identity.scope is ContentScope.Personal) {
@@ -771,8 +737,8 @@ private fun npcScopeSortKey(content: NpcContent): Int = when (content.item.ident
 private fun npcScopeLabel(content: NpcContent): String = npcScopeLabel(content.item.identity.scope)
 
 private fun npcScopeLabel(scope: ContentScope): String = when (scope) {
-    is ContentScope.Personal -> "Personal"
-    is ContentScope.Campaign -> "Campaña"
+    is ContentScope.Personal -> "De tu biblioteca anterior"
+    is ContentScope.Campaign -> ""
     is ContentScope.Official -> "Oficial / SRD"
     ContentScope.System -> "Sistema"
 }

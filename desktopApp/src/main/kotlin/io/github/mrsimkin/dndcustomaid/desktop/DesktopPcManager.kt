@@ -220,14 +220,15 @@ internal fun DesktopPcManagerScreen(
     var exportOptions by remember(selectedId) { mutableStateOf(DesktopPcSheetExportOptions()) }
     var v11ProofVariant by remember(selectedId) { mutableStateOf(PcSheetV11Variant.A) }
     var exportBusy by remember { mutableStateOf(false) }
+    var showTechnical by remember(selectedId) { mutableStateOf(false) }
     val exportService = remember { DesktopPcSheetExportService() }
     val deliverToClipboard = copyFileToClipboard ?: exportService::copyFileToClipboard
     val coroutineScope = rememberCoroutineScope()
 
     if (activeCampaign == null) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("PC Manager / Auditoría", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text("Selecciona una campaña activa para inspeccionar sus personajes jugadores.")
+            Text("Personajes", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text("Abre una campaña para ver sus personajes.")
         }
         return
     }
@@ -305,7 +306,7 @@ internal fun DesktopPcManagerScreen(
                                 style = MaterialTheme.typography.bodySmall,
                             )
                             Text(
-                                "Actualizado localmente: " + formatPcEpoch(character.updatedAtEpochSeconds),
+                                "Cambiado: " + formatPcEpoch(character.updatedAtEpochSeconds),
                                 style = MaterialTheme.typography.bodySmall,
                             )
                         }
@@ -320,8 +321,8 @@ internal fun DesktopPcManagerScreen(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona un personaje para auditarlo.", style = MaterialTheme.typography.titleLarge)
-                    Text("PC locales en campaña: " + pcs.size)
+                    Text("Elige un personaje de la lista para verlo.", style = MaterialTheme.typography.titleLarge)
+                    Text("Personajes en esta campaña: " + pcs.size)
                 }
             } else {
                 val selectedDetails = details
@@ -411,8 +412,7 @@ internal fun DesktopPcManagerScreen(
                                     },
                                 )
                                 Text(
-                                    pcStatusLabel(details.character.status) + " • nivel " + details.character.totalLevel +
-                                        " • PC " + details.character.id.toString().take(8) + "…",
+                                    pcStatusLabel(details.character.status) + " • nivel " + details.character.totalLevel,
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                             }
@@ -437,12 +437,12 @@ internal fun DesktopPcManagerScreen(
                     }
 
                     item {
-                        PcAuditSection("Autoridad del PC") {
-                            PcAuditLine("Propietario", pcAccountLabel(details.owner, details.authority?.ownerAccountId))
-                            PcAuditLine("Controlador", pcAccountLabel(details.controller, details.authority?.controllerAccountId))
-                            PcAuditLine(
-                                "Regla",
-                                "El rol DM no otorga propiedad ni control. La asignación es una acción administrativa explícita.",
+                        PcAuditSection("Dueño y quién lo juega") {
+                            PcAuditLine("Dueño (cuenta)", pcAccountLabel(details.owner, details.authority?.ownerAccountId))
+                            PcAuditLine("Lo juega ahora", pcAccountLabel(details.controller, details.authority?.controllerAccountId))
+                            Text(
+                                "Ser DM no te hace dueño del PJ: el dueño y quien lo juega se eligen aquí.",
+                                style = MaterialTheme.typography.bodySmall,
                             )
 
                             if (!authorityMode) {
@@ -468,17 +468,17 @@ internal fun DesktopPcManagerScreen(
                                         }
                                     },
                                 ) {
-                                    Text(if (authorityLoading) "Cargando…" else "Administrar propiedad / control")
+                                    Text(if (authorityLoading) "Cargando…" else "Cambiar dueño o quién lo juega")
                                 }
                             } else {
                                 PcAuthoritySelector(
-                                    label = "Propietario",
+                                    label = "Dueño (cuenta)",
                                     members = authorityMembers,
                                     selectedId = selectedOwnerId,
                                     onSelect = { selectedOwnerId = it },
                                 )
                                 PcAuthoritySelector(
-                                    label = "Controlador actual",
+                                    label = "Lo juega ahora",
                                     members = authorityMembers,
                                     selectedId = selectedControllerId,
                                     onSelect = { selectedControllerId = it },
@@ -499,7 +499,7 @@ internal fun DesktopPcManagerScreen(
                                                     )
                                                 }.onSuccess { result ->
                                                     val action = if (result.applied) "actualizada" else "sin cambios"
-                                                    statusMessage = "Autoridad del PC " + action + "."
+                                                    statusMessage = if (result.applied) "Dueño y jugador guardados." else "No había cambios."
                                                     onQaEvent(
                                                         "PC Manager: autoridad " + result.authority.characterId + " " + action,
                                                     )
@@ -513,7 +513,7 @@ internal fun DesktopPcManagerScreen(
                                             }
                                         },
                                     ) {
-                                        Text(if (authorityLoading) "Guardando…" else "Guardar propiedad / control")
+                                        Text(if (authorityLoading) "Guardando…" else "Guardar")
                                     }
                                     TextButton(
                                         enabled = !authorityLoading,
@@ -529,28 +529,6 @@ internal fun DesktopPcManagerScreen(
                                     }
                                 }
                             }
-                        }
-                    }
-
-                    item {
-                        PcAuditSection("Frescura de datos y sincronización") {
-                            PcAuditLine("Datos locales", "actualizados " + formatPcEpoch(details.character.updatedAtEpochSeconds))
-                            PcAuditLine("Revisión sync local", details.sync.revision.value.toString())
-                            PcAuditLine(
-                                "Baseline alojado conocido",
-                                details.sync.baselineRevision?.value?.toString() ?: "sin baseline local",
-                            )
-                            PcAuditLine(
-                                "Outbox PC",
-                                when (details.sync.pendingRetryState) {
-                                    HostedRetryState.READY -> "pendiente de envío"
-                                    HostedRetryState.BLOCKED -> "bloqueado; requiere resolución"
-                                    null -> "sin mutación pendiente"
-                                },
-                            )
-                            details.sync.pendingAttemptCount?.let { PcAuditLine("Intentos de outbox", it.toString()) }
-                            details.sync.pendingErrorCode?.let { PcAuditLine("Último error sync", it) }
-                            details.sync.deletedAtEpochSeconds?.let { PcAuditLine("Tombstone local", formatPcEpoch(it)) }
                         }
                     }
 
@@ -584,8 +562,7 @@ internal fun DesktopPcManagerScreen(
                                                 reason = correctionReason,
                                             )
                                         }.onSuccess { result ->
-                                            statusMessage = "Corrección DM registrada y snapshot encolado: " +
-                                                result.mutation.mutationId.toString().take(8) + "…"
+                                            statusMessage = "Corrección guardada; llegará a la tablet al sincronizar."
                                             onQaEvent(
                                                 "PC Manager: corrección DM " + result.checkpoint.id +
                                                     " sobre " + details.character.id,
@@ -602,32 +579,61 @@ internal fun DesktopPcManagerScreen(
                         }
                     }
 
+                    item { PcCoreInspection(details.character) }
+                    item { PcCollectionsInspection(details.character) }
+                    // Refactor F4 (point 6): sync state, history and internal state only for diagnosis, closed by default.
                     item {
-                        PcAuditSection("Historial / reconciliación") {
-                            val checkpoints = details.closure.reconciliationCheckpoints
-                                .sortedByDescending { it.createdAtEpochSeconds }
-                            if (checkpoints.isEmpty()) {
-                                Text("Sin checkpoints de reconciliación registrados.", style = MaterialTheme.typography.bodySmall)
-                            } else {
-                                checkpoints.forEach { checkpoint ->
-                                    Text(
-                                        checkpoint.label?.takeIf { it.isNotBlank() } ?: "Checkpoint",
-                                        fontWeight = FontWeight.Bold,
-                                    )
-                                    Text(formatPcEpoch(checkpoint.createdAtEpochSeconds), style = MaterialTheme.typography.bodySmall)
-                                    checkpoint.notes?.takeIf { it.isNotBlank() }?.let {
-                                        Text(it, style = MaterialTheme.typography.bodyMedium)
+                        TextButton(onClick = { showTechnical = !showTechnical }) {
+                            Text((if (showTechnical) "▾ " else "▸ ") + "Datos técnicos (para diagnóstico)")
+                        }
+                    }
+                    if (showTechnical) {
+                        item {
+                            PcAuditSection("Frescura de datos y sincronización") {
+                                PcAuditLine("Datos locales", "actualizados " + formatPcEpoch(details.character.updatedAtEpochSeconds))
+                                PcAuditLine("Revisión sync local", details.sync.revision.value.toString())
+                                PcAuditLine(
+                                    "Baseline alojado conocido",
+                                    details.sync.baselineRevision?.value?.toString() ?: "sin baseline local",
+                                )
+                                PcAuditLine(
+                                    "Outbox PC",
+                                    when (details.sync.pendingRetryState) {
+                                        HostedRetryState.READY -> "pendiente de envío"
+                                        HostedRetryState.BLOCKED -> "bloqueado; requiere resolución"
+                                        null -> "sin mutación pendiente"
+                                    },
+                                )
+                                details.sync.pendingAttemptCount?.let { PcAuditLine("Intentos de outbox", it.toString()) }
+                                details.sync.pendingErrorCode?.let { PcAuditLine("Último error sync", it) }
+                                details.sync.deletedAtEpochSeconds?.let { PcAuditLine("Tombstone local", formatPcEpoch(it)) }
+                            }
+                        }
+
+                        item {
+                            PcAuditSection("Historial / reconciliación") {
+                                val checkpoints = details.closure.reconciliationCheckpoints
+                                    .sortedByDescending { it.createdAtEpochSeconds }
+                                if (checkpoints.isEmpty()) {
+                                    Text("Sin checkpoints de reconciliación registrados.", style = MaterialTheme.typography.bodySmall)
+                                } else {
+                                    checkpoints.forEach { checkpoint ->
+                                        Text(
+                                            checkpoint.label?.takeIf { it.isNotBlank() } ?: "Checkpoint",
+                                            fontWeight = FontWeight.Bold,
+                                        )
+                                        Text(formatPcEpoch(checkpoint.createdAtEpochSeconds), style = MaterialTheme.typography.bodySmall)
+                                        checkpoint.notes?.takeIf { it.isNotBlank() }?.let {
+                                            Text(it, style = MaterialTheme.typography.bodyMedium)
+                                        }
+                                        HorizontalDivider()
                                     }
-                                    HorizontalDivider()
                                 }
                             }
                         }
+                        item { PcClosureInspection(details.closure) }
+                        item { PcSuccessorInspection(details.successor) }
                     }
-
-                    item { PcCoreInspection(details.character) }
-                    item { PcCollectionsInspection(details.character) }
-                    item { PcClosureInspection(details.closure) }
-                    item { PcSuccessorInspection(details.successor) }
                 }
             }
         }

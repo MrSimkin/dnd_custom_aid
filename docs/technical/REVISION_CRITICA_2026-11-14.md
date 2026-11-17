@@ -127,3 +127,23 @@ Se recomienda al propietario no hacer todavía el QA de preqa.3. El refactor pro
   - `CharacterEditorV4.kt` sigue en 1.594 líneas porque casi todo es una sola función de pantalla. Partirla exige reescribirla, y se hará cuando se toque ese editor.
   - Cinco archivos de pestañas de la tablet rondan las 1.000 a 1.170 líneas y se dividen cuando se trabaje en ellos.
   - Las copias del renderizador V11 no se dividen: son la hoja contractual.
+
+### F4: un solo lugar para el contenido y sin palabras técnicas (2026-11-17)
+
+Puntos 4 y 6. El modelo de datos no cambia; cambia lo que se ve.
+
+- **Preparar en Windows (lugares, PNJ, criaturas, encuentros, escenas, zonas, reglas de la casa):**
+  - se quitaron el título «Gestor de…» con su descripción técnica (Preparar ya muestra la cabecera), el botón «Crear Personal» y el aviso «Biblioteca Personal no disponible»;
+  - «Crear en campaña» pasa a «＋ Crear», y el contador dice «N en esta campaña.»;
+  - se quitaron del editor la línea «Personal/Campaña • revisión N», la «Copia de 1a2b…», la «Proveniencia» y la «Revisión» de los PNJ, y la revisión en «Cambios guardados»;
+  - lo que quedó de la antigua biblioteca personal se marca «De tu biblioteca anterior» y se trae con «Traer a esta campaña»;
+  - Lugares: «Organización Stage» pasa a «Ordenar y filtrar», se quitó el filtro «Ámbito: Personal / Campaña», y «Stage • Lugares / Tiendas» pasa a «Lugares y tiendas» (también en Escenas);
+  - los separadores verticales vuelven a ser verticales (F2 los había dejado horizontales).
+- **La biblioteca del DM** queda solo en Reglas → homebrew, como dice el punto 4.
+- **Personajes en Windows:**
+  - el título es «Personajes», y sin personaje elegido dice «Elige un personaje de la lista para verlo.» y «Personajes en esta campaña: N»;
+  - las secciones se llaman «La hoja: lo principal», «La hoja: equipo, conjuros y rasgos», «Dueño y quién lo juega» y «Corregir como DM»;
+  - sincronización, historial de reconciliación y estado interno quedan bajo «▸ Datos técnicos (para diagnóstico)», cerrado por defecto.
+- **Cargar paquete** sale de Diagnóstico y pasa a Campañas, como en la tablet (punto 5). Se muestra para la campaña abierta cuando eres su DM o está solo en este equipo.
+- **Configuración en Windows** usa la cabecera común («Configuración», con su ayuda) y textos sin «workbench» ni «fuentes Android».
+- **Pendiente para los editores como fichas (punto 6, después del refactor):** «Copiar a otra campaña», la vista de ficha con «Editar» por bloque, y las zonas sin posición que se tapan en el plano del dungeon.

@@ -250,6 +250,9 @@ internal fun DesktopWorkbench(
                             onActivate = ::activateCampaign,
                             onOpenDesk = { activateCampaign(it); selectDestination(DesktopDestination.DM_DESK) },
                             onOpenCharacters = { activateCampaign(it); selectDestination(DesktopDestination.CHARACTERS) },
+                            database = database,
+                            mediaBlobs = mediaBlobs,
+                            onLoaded = { accountSession.message = it; refreshCampaigns() },
                         )
                         DesktopDestination.CHARACTERS -> DesktopPcManagerScreen(
                             controller = pcManagerController,
@@ -286,9 +289,6 @@ internal fun DesktopWorkbench(
                             onPreferencesChange = onPreferencesChange,
                         )
                         DesktopDestination.DIAGNOSTICS -> QaDiagnosticsScreen(
-                            database = database,
-                            mediaBlobs = mediaBlobs,
-                            onLoaded = { accountSession.message = it; refreshCampaigns() },
                             campaigns = campaigns,
                             activeCampaign = activeCampaign,
                             destination = destination,
@@ -420,6 +420,9 @@ private fun CampaignsScreen(
     onActivate: (Campaign) -> Unit,
     onOpenDesk: (Campaign) -> Unit,
     onOpenCharacters: (Campaign) -> Unit,
+    database: AppDatabase,
+    mediaBlobs: MediaBlobStore,
+    onLoaded: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     var newCampaignName by remember { mutableStateOf("") }
@@ -454,6 +457,10 @@ private fun CampaignsScreen(
                 }
             }
         }
+
+        activeCampaign?.takeIf {
+            accountSession.access(it.id).let { a -> a == DesktopCampaignAccess.DM || a == DesktopCampaignAccess.LOCAL_ONLY }
+        }?.let { campaign -> ContentBundleCard(database, mediaBlobs, campaign, accountSession, onLoaded) }
 
         if (campaigns.isEmpty()) {
             Text("Aún no tienes campañas. Crea una arriba: quedarás como su DM.")
@@ -513,6 +520,46 @@ private fun CampaignsScreen(
     }
 }
 
+/** Redesign R7, moved to «Campañas» in refactor F4: loads a prepared content bundle into the open campaign, once. */
+@Composable
+private fun ContentBundleCard(
+    database: AppDatabase,
+    mediaBlobs: MediaBlobStore,
+    campaign: Campaign,
+    accountSession: DesktopAccountSession,
+    onLoaded: (String) -> Unit,
+) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = androidx.compose.material3.CardDefaults.cardElevation(2.dp)) {
+        Column(Modifier.padding(desktopSpacing(16.dp)), verticalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
+            Text("Cargar un paquete preparado en «${campaign.name}»", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Un paquete (.json) trae: lugares, PNJ, escenas, dungeons, handouts, notas, " +
+                    "homebrew y los PJ. Cargarlo otra vez no duplica nada. Después usa «⟳ Sincronizar» para llevarlo a la tablet.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            var loading by remember { mutableStateOf(false) }
+            val loadScope = rememberCoroutineScope()
+            OutlinedButton(enabled = !loading, onClick = {
+                val file = chooseFileWithExplorer("Elegir paquete de contenido", "bundles", campaign.id.toString(), listOf("json")) ?: return@OutlinedButton
+                loading = true
+                loadScope.launch {
+                    val summary = runCatching {
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            val bundle = io.github.mrsimkin.dndcustomaid.shared.content.parseContentBundle(file.readText())
+                            io.github.mrsimkin.dndcustomaid.shared.content.ContentBundleImporter(database, mediaBlobs) { System.currentTimeMillis() / 1000L }
+                                .load(bundle, campaign.id, io.github.mrsimkin.dndcustomaid.shared.content.ContentBundleParts.ALL, accountSession.accountId) { name ->
+                                    File(file.parentFile, name).takeIf { it.isFile }?.readBytes()
+                                }.spanishSummary()
+                        }
+                    }.getOrElse { "No se pudo leer el paquete: ${it.message}" }
+                    loading = false
+                    onLoaded(summary)
+                }
+            }) { Text(if (loading) "Cargando…" else "Elegir paquete y cargar") }
+        }
+    }
+}
+
 /** «Reglas» (redesign R4): the SRD to read and the DM's homebrew library, shared with the tablet. */
 @Composable
 private fun DesktopRulesScreen(
@@ -536,9 +583,6 @@ private fun DesktopRulesScreen(
 
 @Composable
 private fun QaDiagnosticsScreen(
-    database: AppDatabase,
-    mediaBlobs: MediaBlobStore,
-    onLoaded: (String) -> Unit,
     campaigns: List<Campaign>,
     activeCampaign: Campaign?,
     destination: DesktopDestination,
@@ -560,40 +604,6 @@ private fun QaDiagnosticsScreen(
         verticalArrangement = Arrangement.spacedBy(desktopSpacing(16.dp)),
     ) {
         item { WorkbenchHeading(title = "Diagnóstico", subtitle = DesktopDestination.DIAGNOSTICS.purpose) }
-        item {
-            // Redesign R7: loads a prepared campaign (a content bundle) into the open campaign, once.
-            Card(modifier = Modifier.fillMaxWidth(), elevation = androidx.compose.material3.CardDefaults.cardElevation(2.dp)) {
-                Column(Modifier.padding(desktopSpacing(16.dp)), verticalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
-                    Text("Cargar paquete de contenido", style = MaterialTheme.typography.titleLarge)
-                    Text(
-                        "Carga en la campaña abierta un paquete preparado (.json): lugares, PNJ, escenas, dungeons, handouts, notas, " +
-                            "homebrew y los PJ. Cargarlo otra vez no duplica nada. Después usa «⟳ Sincronizar» para llevarlo a la tablet.",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    var loading by remember { mutableStateOf(false) }
-                    val loadScope = rememberCoroutineScope()
-                    Button(enabled = activeCampaign != null && !loading, onClick = {
-                        val campaign = activeCampaign ?: return@Button
-                        val file = chooseFileWithExplorer("Elegir paquete de contenido", "bundles", campaign.id.toString(), listOf("json")) ?: return@Button
-                        loading = true
-                        loadScope.launch {
-                            val summary = runCatching {
-                                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                                    val bundle = io.github.mrsimkin.dndcustomaid.shared.content.parseContentBundle(file.readText())
-                                    io.github.mrsimkin.dndcustomaid.shared.content.ContentBundleImporter(database, mediaBlobs) { System.currentTimeMillis() / 1000L }
-                                        .load(bundle, campaign.id, io.github.mrsimkin.dndcustomaid.shared.content.ContentBundleParts.ALL, accountSession.accountId) { name ->
-                                            File(file.parentFile, name).takeIf { it.isFile }?.readBytes()
-                                        }.spanishSummary()
-                                }
-                            }.getOrElse { "No se pudo leer el paquete: ${it.message}" }
-                            loading = false
-                            onLoaded(summary)
-                        }
-                    }) { Text(if (loading) "Cargando…" else "Elegir paquete y cargar") }
-                    if (activeCampaign == null) Text("Primero abre una campaña.", style = MaterialTheme.typography.bodySmall)
-                }
-            }
-        }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
                 Button(onClick = { copyToClipboard(snapshot) }) { Text("Copiar diagnóstico") }
@@ -656,7 +666,8 @@ internal val SCREEN_HELP: Map<String, String> = mapOf(
     "Inicio" to "1) Arriba ves la campaña abierta y tu rol. 2) «Abrir Escritorio DM» lleva a las mesas en vivo. " +
         "3) «Preparar» es donde armas lugares, PNJ, aventuras y dungeons. 4) «⟳ Sincronizar» envía lo de este equipo a la tablet y trae lo de la tablet.",
     "Campañas" to "1) Cada campaña muestra tu rol: DM, Jugador o «Solo en este equipo». 2) Toca una para abrirla. " +
-        "3) «＋ Nueva campaña» la crea en el servidor contigo como DM. 4) Si eres Jugador, la App te dice qué cuenta usar.",
+        "3) «＋ Nueva campaña» la crea en el servidor contigo como DM. 4) Si eres Jugador, la App te dice qué cuenta usar. " +
+        "5) «Elegir paquete y cargar» trae a la campaña abierta un paquete preparado.",
     "Preparar" to "1) Cada tarjeta es algo que preparas antes de jugar. 2) Dentro: busca, crea y edita a la derecha. " +
         "3) Los vínculos (dónde está, quién atiende, qué escena) se eligen de listas. 4) Todo llega a la tablet al sincronizar.",
     "Jugadores de la campaña" to "1) Quién está en la campaña abierta y su estado. 2) Solo el DM ve esta lista. " +

@@ -112,7 +112,7 @@ internal fun StagePlaceFilterControls(
     onFiltersChange: (StagePlaceFilters) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text("Organización Stage")
+        Text("Ordenar y filtrar")
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Tipo:")
             StageChoice(filters.kind == null, "Todos") { onFiltersChange(filters.copy(kind = null)) }
@@ -121,16 +121,6 @@ internal fun StagePlaceFilterControls(
             }
             StageChoice(filters.kind == PlaceKind.SHOP, "Tiendas") {
                 onFiltersChange(filters.copy(kind = PlaceKind.SHOP))
-            }
-            Text("Ámbito:")
-            StageChoice(filters.scope == StagePlaceScopeFilter.ALL, "Todos") {
-                onFiltersChange(filters.copy(scope = StagePlaceScopeFilter.ALL))
-            }
-            StageChoice(filters.scope == StagePlaceScopeFilter.PERSONAL, "Personal") {
-                onFiltersChange(filters.copy(scope = StagePlaceScopeFilter.PERSONAL))
-            }
-            StageChoice(filters.scope == StagePlaceScopeFilter.CAMPAIGN, "Campaña") {
-                onFiltersChange(filters.copy(scope = StagePlaceScopeFilter.CAMPAIGN))
             }
         }
         Row(

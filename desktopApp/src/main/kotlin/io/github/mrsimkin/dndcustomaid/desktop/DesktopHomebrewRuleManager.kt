@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -222,14 +223,6 @@ internal fun HomebrewRuleManagerScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de Homebrew y Reglas", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text(
-                "Reglas ligeras locales con ciclo Borrador / Activa / Retirada. Las copias de campaña son independientes.",
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -250,19 +243,6 @@ internal fun HomebrewRuleManagerScreen(
                 modifier = Modifier.weight(1f),
             )
             Button(
-                enabled = newName.isNotBlank() && ownerAccountId != null,
-                onClick = {
-                    runCatching { controller.createPersonal(requireNotNull(ownerAccountId), newName) }
-                        .onSuccess { created ->
-                            newName = ""
-                            statusMessage = "Regla Personal creada."
-                            onQaEvent("Homebrew Manager: regla Personal creada ${created.item.identity.id}")
-                            refresh(created.item.identity.id)
-                        }
-                        .onFailure { statusMessage = it.message ?: "No se pudo crear la regla Personal." }
-                },
-            ) { Text("Crear Personal") }
-            Button(
                 enabled = newName.isNotBlank() && activeCampaign != null,
                 onClick = {
                     runCatching { controller.createCampaign(requireNotNull(activeCampaign).id, newName) }
@@ -274,16 +254,9 @@ internal fun HomebrewRuleManagerScreen(
                         }
                         .onFailure { statusMessage = it.message ?: "No se pudo crear la regla de campaña." }
                 },
-            ) { Text("Crear en campaña") }
+            ) { Text("＋ Crear") }
         }
 
-        if (ownerAccountId == null) {
-            Text(
-                "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
-                    "El contenido de campaña local sigue disponible.",
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
         statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
         HorizontalDivider()
@@ -301,14 +274,14 @@ internal fun HomebrewRuleManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            HorizontalDivider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            VerticalDivider()
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text("Selecciona una regla para abrirla.", style = MaterialTheme.typography.titleLarge)
-                    Text("Personal: ${personalRules.size} • Campaña activa: ${campaignRules.size}")
+                    Text("${campaignRules.size} en esta campaña.")
                 }
             } else {
                 HomebrewRuleEditor(
@@ -325,7 +298,7 @@ internal fun HomebrewRuleManagerScreen(
                             payload = currentDraft.toPayload(),
                         )) {
                             is RevisionDecision.Accepted -> {
-                                statusMessage = "Cambios guardados (revisión ${decision.nextRevision.value})."
+                                statusMessage = "Cambios guardados."
                                 onQaEvent("Homebrew Manager: regla actualizada ${selected.item.identity.id}")
                                 refresh(selected.item.identity.id)
                             }
@@ -382,7 +355,7 @@ private fun HomebrewRuleList(
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text(homebrewScopeLabel(content), style = MaterialTheme.typography.bodySmall)
+                    homebrewScopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                     Text(homebrewLifecycleLabel(content.payload.lifecycle), style = MaterialTheme.typography.bodySmall)
                     if (content.payload.category.isNotBlank()) {
                         Text(content.payload.category, style = MaterialTheme.typography.bodySmall)
@@ -412,19 +385,9 @@ private fun HomebrewRuleEditor(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Editor de Homebrew / Regla", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                    Text(
-                        "${homebrewScopeLabel(content)} • revisión ${content.item.identity.revision.value}",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    content.item.identity.provenance?.let { provenance ->
-                        Text(
-                            "Copia de ${provenance.sourceObjectId.toString().take(8)}… • independiente desde la copia",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
                 }
                 if (content.item.identity.scope is ContentScope.Personal && activeCampaign != null) {
-                    Button(onClick = onCopyToCampaign) { Text("Copiar a campaña") }
+                    Button(onClick = onCopyToCampaign) { Text("Traer a esta campaña") }
                 }
                 Button(onClick = onSave, enabled = draft.displayName.isNotBlank()) { Text("Guardar") }
             }
@@ -543,8 +506,8 @@ private fun homebrewScopeSortKey(content: HomebrewRuleContent): Int = when (cont
 private fun homebrewScopeLabel(content: HomebrewRuleContent): String = homebrewScopeLabel(content.item.identity.scope)
 
 private fun homebrewScopeLabel(scope: ContentScope): String = when (scope) {
-    is ContentScope.Personal -> "Personal"
-    is ContentScope.Campaign -> "Campaña"
+    is ContentScope.Personal -> "De tu biblioteca anterior"
+    is ContentScope.Campaign -> ""
     is ContentScope.Official -> "Oficial / SRD"
     ContentScope.System -> "Sistema"
 }

@@ -40,19 +40,7 @@ internal fun DesktopApplicationSettingsScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(desktopSpacing(18.dp)),
     ) {
-        item {
-            Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(4.dp))) {
-                Text(
-                    text = "Configuración de la aplicación",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                )
-                Text(
-                    text = "Preferencias de este dispositivo con vista previa antes de seleccionar fuente y tema.",
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-            }
-        }
+        item { WorkbenchHeading(title = "Configuración", subtitle = DesktopDestination.SETTINGS.purpose + " Solo en este equipo.") }
 
         item {
             DesktopPercentSlider(
@@ -60,7 +48,7 @@ internal fun DesktopApplicationSettingsScreen(
                 value = preferences.fontScalePercent,
                 options = DESKTOP_FONT_SCALE_OPTIONS,
                 onSelect = { onPreferencesChange(preferences.copy(fontScalePercent = it)) },
-                detail = "Ajusta la escala tipográfica del workbench sin cambiar los datos de la campaña.",
+                detail = "Agranda o achica todo el texto de la App. No cambia tus datos.",
             )
         }
 
@@ -134,7 +122,7 @@ private fun FontPreviewSelector(
         ) {
             Text("Fuente", style = MaterialTheme.typography.titleLarge)
             Text(
-                "Cada opción se muestra con la fuente que realmente usará. Las fuentes Android no instaladas en este equipo no se ofrecen bajo un nombre falso.",
+                "Cada opción se muestra con la letra que realmente usará.",
                 style = MaterialTheme.typography.bodySmall,
             )
 
@@ -192,7 +180,7 @@ private fun ThemePreviewSelector(
         ) {
             Text("Tema", style = MaterialTheme.typography.titleLarge)
             Text(
-                "Vista previa de fondo, superficie y acentos antes de aplicar el tema al workbench.",
+                "Así se verán los colores antes de aplicarlos.",
                 style = MaterialTheme.typography.bodySmall,
             )
 

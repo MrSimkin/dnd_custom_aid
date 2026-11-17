@@ -40,7 +40,7 @@ internal fun PcCorrectionEditor(
     onReasonChange: (String) -> Unit,
     onApply: () -> Unit,
 ) {
-    PcAuditSection("Corrección DM — núcleo del PC") {
+    PcAuditSection("Corregir como DM") {
         Text(
             "Acción explícita y auditada: modifica campos nucleares, agrega un checkpoint de reconciliación " +
                 "y encola el snapshot. Las colecciones complejas permanecen sólo en inspección en este corte.",
@@ -101,7 +101,7 @@ internal fun PcCorrectionEditor(
 
 @Composable
 internal fun PcCoreInspection(sheet: CharacterSheet) {
-    PcAuditSection("Ficha canónica — núcleo") {
+    PcAuditSection("La hoja: lo principal") {
         PcAuditLine("Nombre", sheet.name)
         PcAuditLine("Estado", pcStatusLabel(sheet.status))
         PcAuditLine(
@@ -156,7 +156,7 @@ internal fun PcCoreInspection(sheet: CharacterSheet) {
 
 @Composable
 internal fun PcCollectionsInspection(sheet: CharacterSheet) {
-    PcAuditSection("Ficha canónica — colecciones") {
+    PcAuditSection("La hoja: equipo, conjuros y rasgos") {
         PcAuditLine("Acciones / ataques", listSummary(sheet.combatEntries) { it.name + " [" + it.type.name + "]" })
         PcAuditLine("Inventario", listSummary(sheet.inventoryItems) { it.name + " ×" + it.quantity })
         PcAuditLine("Monedas", listSummary(sheet.currencies) { it.name + ": " + it.amount })
@@ -184,7 +184,7 @@ internal fun PcCollectionsInspection(sheet: CharacterSheet) {
 
 @Composable
 internal fun PcClosureInspection(state: CharacterClosureState) {
-    PcAuditSection("Estado extendido / cierre") {
+    PcAuditSection("Estado interno de la hoja") {
         PcAuditLine("Agotamiento", state.exhaustionLevel.toString())
         PcAuditLine(
             "Concentración",
@@ -230,7 +230,7 @@ internal fun PcClosureInspection(state: CharacterClosureState) {
 
 @Composable
 internal fun PcSuccessorInspection(state: CharacterSuccessorState) {
-    PcAuditSection("Estado sucesor / identidad y extensiones") {
+    PcAuditSection("Identidad interna y extensiones") {
         PcAuditLine(
             "Atributos personalizados",
             listSummary(state.customAttributes) { it.name + " (" + it.abbreviation + ")=" + it.score },

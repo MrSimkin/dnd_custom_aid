@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedButton
@@ -192,14 +193,6 @@ fun CreatureManagerScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de criaturas / monstruos", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text(
-                "Biblioteca local Personal y de la campaña activa. Los cambios de campaña son independientes del original Personal.",
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -220,19 +213,6 @@ fun CreatureManagerScreen(
                 modifier = Modifier.weight(1f),
             )
             Button(
-                enabled = newName.isNotBlank() && ownerAccountId != null,
-                onClick = {
-                    runCatching {
-                        controller.createPersonal(requireNotNull(ownerAccountId), newName)
-                    }.onSuccess { created ->
-                        newName = ""
-                        statusMessage = "Criatura Personal creada."
-                        onQaEvent("Creature Manager: criatura Personal creada ${created.item.identity.id}")
-                        refresh(created.item.identity.id)
-                    }.onFailure { error -> statusMessage = error.message ?: "No se pudo crear la criatura Personal." }
-                },
-            ) { Text("Crear Personal") }
-            Button(
                 enabled = newName.isNotBlank() && activeCampaign != null,
                 onClick = {
                     runCatching {
@@ -244,7 +224,7 @@ fun CreatureManagerScreen(
                         refresh(created.item.identity.id)
                     }.onFailure { error -> statusMessage = error.message ?: "No se pudo crear la criatura de campaña." }
                 },
-            ) { Text("Crear en campaña") }
+            ) { Text("＋ Crear") }
             OutlinedButton(enabled = activeCampaign != null, onClick = { choosingSrd = true }) { Text("📖 Añadir del SRD…") }
         }
         if (choosingSrd && activeCampaign != null) {
@@ -275,14 +255,6 @@ fun CreatureManagerScreen(
             )
         }
 
-        if (ownerAccountId == null) {
-            Text(
-                "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
-                    "Inicia/sincroniza una campaña alojada con tu cuenta DM para establecer esa identidad. " +
-                    "El contenido de campaña local sigue disponible.",
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
         statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
         HorizontalDivider()
@@ -300,14 +272,14 @@ fun CreatureManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            HorizontalDivider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            VerticalDivider()
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text("Selecciona una criatura para abrirla.", style = MaterialTheme.typography.titleLarge)
-                    Text("Personal: ${personalCreatures.size} • Campaña activa: ${campaignCreatures.size}")
+                    Text("${campaignCreatures.size} en esta campaña.")
                 }
             } else {
                 CreatureEditor(
@@ -326,7 +298,7 @@ fun CreatureManagerScreen(
                                     payload = payload,
                                 )) {
                                     is RevisionDecision.Accepted -> {
-                                        statusMessage = "Cambios guardados (revisión ${decision.nextRevision.value})."
+                                        statusMessage = "Cambios guardados."
                                         onQaEvent("Creature Manager: criatura actualizada ${selected.item.identity.id}")
                                         refresh(selected.item.identity.id)
                                     }
@@ -388,7 +360,7 @@ private fun CreatureList(
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text(scopeLabel(content), style = MaterialTheme.typography.bodySmall)
+                    scopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                     val detail = listOf(
                         content.payload.size,
                         content.payload.creatureType,
@@ -423,14 +395,7 @@ private fun CreatureEditor(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Editor de criatura", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                    Text(scopeLabel(content), style = MaterialTheme.typography.bodySmall)
-                    content.item.identity.provenance?.let { provenance ->
-                        Text(
-                            "Proveniencia: ${provenance.sourceScope.displayLabel()} • ${provenance.sourceObjectId.toString().take(8)}…",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                    Text("Revisión ${content.item.identity.revision.value}", style = MaterialTheme.typography.bodySmall)
+                    scopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                 }
                 Button(onClick = onSave) { Text("Guardar") }
                 if (content.item.identity.scope is ContentScope.Personal) {
@@ -666,15 +631,15 @@ private fun scopeSortKey(content: CreatureContent): Int = when (content.item.ide
 }
 
 private fun scopeLabel(content: CreatureContent): String = when (val scope = content.item.identity.scope) {
-    is ContentScope.Personal -> "Personal"
-    is ContentScope.Campaign -> "Campaña • ${scope.campaignId.toString().take(8)}…"
+    is ContentScope.Personal -> "De tu biblioteca anterior"
+    is ContentScope.Campaign -> ""
     is ContentScope.Official -> "Oficial • ${scope.sourceKey}"
     ContentScope.System -> "Sistema"
 }
 
 private fun ContentScope.displayLabel(): String = when (this) {
-    is ContentScope.Personal -> "Personal"
-    is ContentScope.Campaign -> "Campaña"
+    is ContentScope.Personal -> "De tu biblioteca anterior"
+    is ContentScope.Campaign -> ""
     is ContentScope.Official -> "Oficial ($sourceKey)"
     ContentScope.System -> "Sistema"
 }

@@ -7,9 +7,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.runDesktopComposeUiTest
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.ContentBundleImporter
@@ -105,9 +108,22 @@ class DesktopWorkbenchTourTest {
         open("← Preparar", "Dungeons", "t04_preparar_otra_vez")
         open("Dungeons", "La Cueva", "t05_dungeons")
         open("Personajes", "Ana", "t06_personajes")
+        // Refactor F4 (point 6): the PC opens in plain words; the technical lines stay closed.
+        open("Ana", "La hoja: lo principal", "t06b_personaje_ana")
+        val technical = hasText("Datos técnicos (para diagnóstico)", substring = true)
+        val lists = onAllNodes(hasScrollToNodeAction())
+        (0 until lists.fetchSemanticsNodes().size).forEach { runCatching { lists[it].performScrollToNode(technical) } }
+        waitForIdle()
+        assertTrue(onAllNodesWithText("Revisión sync local", substring = true).fetchSemanticsNodes().isEmpty(), "sync audit is closed")
+        onAllNodes(technical)[0].performClick()
+        waitForIdle()
+        (0 until lists.fetchSemanticsNodes().size).forEach { runCatching { lists[it].performScrollToNode(hasText("Revisión sync local", substring = true)) } }
+        shot("t06c_personaje_datos_tecnicos")
+        assertTrue(onAllNodesWithText("Revisión sync local", substring = true).fetchSemanticsNodes().isNotEmpty(), "technical data opens on demand")
         open("Reglas", "SRD 5.5e", "t07_reglas")
         open("Handouts y mapas", "Importar imagen", "t08_handouts")
-        open("Campañas", "Serpiente Vieja", "t09_campanas")
+        // Refactor F4 (point 5): loading a package lives in Campañas, as on the tablet.
+        open("Campañas", "Cargar un paquete preparado en «Serpiente Vieja»", "t09_campanas")
         open("Configuración", "Tamaño de texto", "t10_configuracion")
         handle.close()
     }

@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -241,14 +242,6 @@ internal fun DesktopPlaceManagerScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de Escenarios, Lugares y Tiendas", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text(
-                "La vista Stage organiza los lugares reutilizables existentes; las tiendas siguen siendo lugares especializados y las copias de campaña son independientes.",
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -276,19 +269,6 @@ internal fun DesktopPlaceManagerScreen(
                 }
             }
             Button(
-                enabled = newName.isNotBlank() && ownerAccountId != null,
-                onClick = {
-                    runCatching { controller.createPersonal(requireNotNull(ownerAccountId), newName, newKind) }
-                        .onSuccess { created ->
-                            newName = ""
-                            statusMessage = "${placeKindLabel(created.payload.kind)} Personal creado."
-                            onQaEvent("Place Manager: contenido Personal creado ${created.item.identity.id}")
-                            refresh(created.item.identity.id)
-                        }
-                        .onFailure { statusMessage = it.message ?: "No se pudo crear el contenido Personal." }
-                },
-            ) { Text("Crear Personal") }
-            Button(
                 enabled = newName.isNotBlank() && activeCampaign != null,
                 onClick = {
                     runCatching {
@@ -300,16 +280,9 @@ internal fun DesktopPlaceManagerScreen(
                         refresh(created.item.identity.id)
                     }.onFailure { statusMessage = it.message ?: "No se pudo crear el contenido de campaña." }
                 },
-            ) { Text("Crear en campaña") }
+            ) { Text("＋ Crear") }
         }
 
-        if (ownerAccountId == null) {
-            Text(
-                "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
-                    "El contenido de campaña local sigue disponible.",
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
         statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
         StagePlaceFilterControls(
@@ -332,14 +305,14 @@ internal fun DesktopPlaceManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            HorizontalDivider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            VerticalDivider()
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text("Selecciona un lugar o tienda para abrirlo.", style = MaterialTheme.typography.titleLarge)
-                    Text("Personal: ${personalPlaces.size} • Campaña activa: ${campaignPlaces.size}")
+                    Text("${campaignPlaces.size} en esta campaña.")
                 }
             } else {
                 PlaceEditor(
@@ -356,7 +329,7 @@ internal fun DesktopPlaceManagerScreen(
                             payload = currentDraft.toPayload(),
                         )) {
                             is RevisionDecision.Accepted -> {
-                                statusMessage = "Cambios guardados (revisión ${decision.nextRevision.value})."
+                                statusMessage = "Cambios guardados."
                                 onQaEvent("Place Manager: contenido actualizado ${selected.item.identity.id}")
                                 refresh(selected.item.identity.id)
                             }
@@ -400,7 +373,7 @@ private fun PlaceList(
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
-            Text("Stage • Lugares / Tiendas (${places.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text("Lugares y tiendas (${places.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (places.isEmpty()) {
             item { Text("No hay contenido que coincida con el filtro.", style = MaterialTheme.typography.bodySmall) }
@@ -413,7 +386,7 @@ private fun PlaceList(
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text("${placeKindLabel(content.payload.kind)} • ${placeScopeLabel(content)}", style = MaterialTheme.typography.bodySmall)
+                    Text(listOf(placeKindLabel(content.payload.kind), placeScopeLabel(content)).filter { it.isNotBlank() }.joinToString(" • "), style = MaterialTheme.typography.bodySmall)
                     if (content.payload.area.isNotBlank()) {
                         Text(content.payload.area, style = MaterialTheme.typography.bodySmall)
                     }
@@ -443,18 +416,12 @@ private fun PlaceEditor(
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Editor de Lugar / Tienda", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                     Text(
-                        "${placeKindLabel(draft.kind)} • ${placeScopeLabel(content)} • revisión ${content.item.identity.revision.value}",
+                        "${placeKindLabel(draft.kind)}",
                         style = MaterialTheme.typography.bodySmall,
                     )
-                    content.item.identity.provenance?.let { provenance ->
-                        Text(
-                            "Copia de ${provenance.sourceObjectId.toString().take(8)}… • independiente desde la copia",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
                 }
                 if (content.item.identity.scope is ContentScope.Personal && activeCampaign != null) {
-                    Button(onClick = onCopyToCampaign) { Text("Copiar a campaña") }
+                    Button(onClick = onCopyToCampaign) { Text("Traer a esta campaña") }
                 }
                 Button(onClick = onSave, enabled = draft.displayName.isNotBlank()) { Text("Guardar") }
             }
@@ -567,8 +534,8 @@ private fun placeScopeSortKey(content: PlaceContent): Int = when (content.item.i
 private fun placeScopeLabel(content: PlaceContent): String = placeScopeLabel(content.item.identity.scope)
 
 private fun placeScopeLabel(scope: ContentScope): String = when (scope) {
-    is ContentScope.Personal -> "Personal"
-    is ContentScope.Campaign -> "Campaña"
+    is ContentScope.Personal -> "De tu biblioteca anterior"
+    is ContentScope.Campaign -> ""
     is ContentScope.Official -> "Oficial / SRD"
     ContentScope.System -> "Sistema"
 }

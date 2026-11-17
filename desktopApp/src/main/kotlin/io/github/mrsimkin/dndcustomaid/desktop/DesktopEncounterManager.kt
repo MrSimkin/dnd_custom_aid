@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -235,15 +236,6 @@ internal fun DesktopEncounterManagerScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de Encuentros", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text(
-                "Prepara encuentros reutilizables sin convertirlos en combate en vivo. " +
-                    "Las anulaciones pertenecen al encuentro y no modifican las criaturas o PNJ de origen.",
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -277,19 +269,6 @@ internal fun DesktopEncounterManagerScreen(
                 modifier = Modifier.weight(1f),
             )
             Button(
-                enabled = newName.isNotBlank() && ownerAccountId != null,
-                onClick = {
-                    runCatching { controller.createPersonal(requireNotNull(ownerAccountId), newName) }
-                        .onSuccess { created ->
-                            newName = ""
-                            statusMessage = "Encuentro Personal creado."
-                            onQaEvent("Encounter Manager: encuentro Personal creado ${created.item.identity.id}")
-                            refresh(created.item.identity.id)
-                        }
-                        .onFailure { statusMessage = it.message ?: "No se pudo crear el encuentro Personal." }
-                },
-            ) { Text("Crear Personal") }
-            Button(
                 enabled = newName.isNotBlank() && activeCampaign != null,
                 onClick = {
                     runCatching { controller.createCampaign(requireNotNull(activeCampaign).id, newName) }
@@ -301,16 +280,9 @@ internal fun DesktopEncounterManagerScreen(
                         }
                         .onFailure { statusMessage = it.message ?: "No se pudo crear el encuentro de campaña." }
                 },
-            ) { Text("Crear en campaña") }
+            ) { Text("＋ Crear") }
         }
 
-        if (ownerAccountId == null) {
-            Text(
-                "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
-                    "Los encuentros de campaña siguen disponibles.",
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
         statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
         HorizontalDivider()
@@ -328,14 +300,14 @@ internal fun DesktopEncounterManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            HorizontalDivider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            VerticalDivider()
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text("Selecciona un encuentro para abrirlo.", style = MaterialTheme.typography.titleLarge)
-                    Text("Personal: ${personalEncounters.size} • Campaña activa: ${campaignEncounters.size}")
+                    Text("${campaignEncounters.size} en esta campaña.")
                 }
             } else {
                 EncounterEditor(
@@ -356,7 +328,7 @@ internal fun DesktopEncounterManagerScreen(
                         }.onSuccess { decision ->
                             when (decision) {
                                 is RevisionDecision.Accepted -> {
-                                    statusMessage = "Cambios guardados (revisión ${decision.nextRevision.value})."
+                                    statusMessage = "Cambios guardados."
                                     onQaEvent("Encounter Manager: encuentro actualizado ${selected.item.identity.id}")
                                     refresh(selected.item.identity.id)
                                 }
@@ -378,7 +350,7 @@ internal fun DesktopEncounterManagerScreen(
                         } else {
                             runCatching { controller.copyPersonalToCampaign(selected.item.identity.id, campaign.id) }
                                 .onSuccess { copied ->
-                                    statusMessage = "Copia independiente creada en ${campaign.name}; las dependencias Personal se copiaron y reconectaron."
+                                    statusMessage = "Traído a ${campaign.name} junto con sus criaturas y PNJ."
                                     onQaEvent("Encounter Manager: encuentro copiado a campaña ${copied.item.identity.id}")
                                     refresh(copied.item.identity.id)
                                 }
@@ -415,7 +387,7 @@ private fun EncounterList(
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
                     Text(
-                        "${encounterScopeLabel(content.item.identity.scope)} • ${content.payload.participants.size} participantes/grupos",
+                        listOf(encounterScopeLabel(content.item.identity.scope), "${content.payload.participants.size} participantes o grupos").filter { it.isNotBlank() }.joinToString(" • "),
                         style = MaterialTheme.typography.bodySmall,
                     )
                     if (content.payload.environment.isNotBlank()) {
@@ -450,19 +422,9 @@ private fun EncounterEditor(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Editor de Encuentro", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                    Text(
-                        "${encounterScopeLabel(content.item.identity.scope)} • revisión ${content.item.identity.revision.value}",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    content.item.identity.provenance?.let { provenance ->
-                        Text(
-                            "Copia de ${provenance.sourceObjectId.toString().take(8)}… • independiente desde la copia",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
                 }
                 if (content.item.identity.scope is ContentScope.Personal && activeCampaign != null) {
-                    Button(onClick = onCopyToCampaign) { Text("Copiar a campaña") }
+                    Button(onClick = onCopyToCampaign) { Text("Traer a esta campaña") }
                 }
                 Button(
                     onClick = onSave,
@@ -710,8 +672,8 @@ private fun encounterScopeSortKey(content: EncounterContent): Int = when (conten
 }
 
 private fun encounterScopeLabel(scope: ContentScope): String = when (scope) {
-    is ContentScope.Personal -> "Personal"
-    is ContentScope.Campaign -> "Campaña"
+    is ContentScope.Personal -> "De tu biblioteca anterior"
+    is ContentScope.Campaign -> ""
     is ContentScope.Official -> "Oficial / SRD"
     ContentScope.System -> "Sistema"
 }
