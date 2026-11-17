@@ -21,7 +21,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -188,7 +187,7 @@ private fun OptionsAndDetail(
 ) {
     Row(Modifier.fillMaxWidth().heightIn(min = 300.dp, max = 2000.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(Modifier.width(300.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            OutlinedTextField(value = query, onValueChange = onQuery, label = { Text("Buscar") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            DmTextField(value = query, onValueChange = onQuery, label = { Text("Buscar") }, singleLine = true, modifier = Modifier.fillMaxWidth())
             LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 items(options, key = { "${it.origin}-${it.edition}-${it.name}" }) { option ->
                     val isSelected = option == selected
@@ -249,7 +248,7 @@ private fun SrdTextReader(corpora: List<SrdCorpus>?, layouts: List<SrdLayout>) {
     }
     Row(Modifier.fillMaxWidth().heightIn(min = 300.dp, max = 2000.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(Modifier.width(300.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            OutlinedTextField(value = query, onValueChange = { query = it }, label = { Text("Buscar en el SRD") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            DmTextField(value = query, onValueChange = { query = it }, label = { Text("Buscar en el SRD") }, singleLine = true, modifier = Modifier.fillMaxWidth())
             if (query.length in 1..2) Text("Escribe al menos 3 letras.", style = MaterialTheme.typography.bodySmall)
             LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 items(hits) { hit ->
@@ -390,14 +389,14 @@ private fun HomebrewEditor(
 
     Column(Modifier.fillMaxWidth().dmScroll(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(if (existing == null) "${kind.label} nueva" else "Editar ${kind.label.lowercase()}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        DmTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, singleLine = true, modifier = Modifier.fillMaxWidth())
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             listOf("" to "Ambas ediciones", "5e" to "5e", "5.5e" to "5.5e").forEach { (value, label) ->
                 FilterChip(selected = edition == value, onClick = { edition = value }, label = { Text(label) })
             }
         }
         if (kind == RulesEntryKind.SUBCLASS || kind == RulesEntryKind.SUBSPECIES) {
-            OutlinedTextField(
+            DmTextField(
                 value = parent,
                 onValueChange = { parent = it },
                 label = { Text(if (kind == RulesEntryKind.SUBCLASS) "Clase a la que pertenece" else "Raza principal") },
@@ -405,16 +404,16 @@ private fun HomebrewEditor(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-        OutlinedTextField(value = summary, onValueChange = { summary = it }, label = { Text("En una línea") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(value = body, onValueChange = { body = it }, label = { Text("Texto completo") }, minLines = 6, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(
+        DmTextField(value = summary, onValueChange = { summary = it }, label = { Text("En una línea") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        DmTextField(value = body, onValueChange = { body = it }, label = { Text("Texto completo") }, minLines = 6, modifier = Modifier.fillMaxWidth())
+        DmTextField(
             value = fields,
             onValueChange = { fields = it },
             label = { Text("Datos (uno por línea, «nombre: valor», p. ej. «daño: 1d8 contundente»)") },
             minLines = 3,
             modifier = Modifier.fillMaxWidth(),
         )
-        OutlinedTextField(value = source, onValueChange = { source = it }, label = { Text("De dónde viene (manual, página)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        DmTextField(value = source, onValueChange = { source = it }, label = { Text("De dónde viene (manual, página)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
         if (!canSave) Text("Entra con tu cuenta o abre una campaña para guardar homebrew.", color = MaterialTheme.colorScheme.error)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(

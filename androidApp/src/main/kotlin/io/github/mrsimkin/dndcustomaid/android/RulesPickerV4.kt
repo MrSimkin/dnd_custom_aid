@@ -14,7 +14,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -112,7 +111,7 @@ private fun RulesPickDialog(
                     Text("Escribe tú los datos en el formulario: cierra esta ventana y completa los campos a mano.", style = MaterialTheme.typography.bodyMedium)
                     return@Column
                 }
-                OutlinedTextField(value = query, onValueChange = { query = it }, label = { Text("Buscar") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                CharacterCompactOutlinedTextFieldV4(value = query, onValueChange = { query = it }, label = { Text("Buscar") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 when {
                     options == null -> Text("Cargando…")
                     options.isEmpty() && origin == RulesOrigin.HOMEBREW ->

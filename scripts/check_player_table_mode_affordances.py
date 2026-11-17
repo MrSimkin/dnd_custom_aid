@@ -5,6 +5,7 @@ from pathlib import Path
 
 ROOT = Path("androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android")
 EDITOR = ROOT / "CharacterEditorV4.kt"
+EDITOR_SPLIT = [ROOT / name for name in ("CharacterOverviewTabV4.kt", "CharacterSkillsTabV4.kt", "CharacterEditorFieldsV4.kt", "CharacterEditorDraftV4.kt")]
 CLASS_WRAPPER = ROOT / "CharacterClassIdentityV4.kt"
 CLASS_IDENTITY = ROOT / "CharacterClassIdentitySuccessorV4.kt"
 GENERAL_CLOSURE = ROOT / "CharacterGeneralClosureV4.kt"
@@ -17,7 +18,8 @@ def require(text: str, needle: str, label: str) -> None:
 
 
 def main() -> None:
-    editor = EDITOR.read_text(encoding="utf-8")
+    # Refactor F3 split the editor's tabs into their own files; they are read together.
+    editor = "\n".join(path.read_text(encoding="utf-8") for path in (EDITOR, *EDITOR_SPLIT))
     class_wrapper = CLASS_WRAPPER.read_text(encoding="utf-8")
     class_identity = CLASS_IDENTITY.read_text(encoding="utf-8")
     general_closure = GENERAL_CLOSURE.read_text(encoding="utf-8")
