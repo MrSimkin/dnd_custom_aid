@@ -8,12 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,7 +72,7 @@ internal fun DesktopNotesScreen(database: AppDatabase, activeCampaign: Campaign?
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             groups.forEach { (group, items) ->
                 item(key = "group-$group") {
-                    Text("$group (${items.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+                    Text("$group (${items.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 }
                 items(items, key = { it.item.identity.id.toString() }) { note ->
                     NoteCard(note = note, onSave = { text ->
@@ -92,7 +92,7 @@ internal fun DesktopNotesScreen(database: AppDatabase, activeCampaign: Campaign?
 private fun NoteCard(note: NoteContent, onSave: (String) -> Unit, onDelete: () -> Unit) {
     var text by remember(note.item.identity.id, note.item.identity.revision) { mutableStateOf(note.payload.text) }
     var confirmDelete by remember { mutableStateOf(false) }
-    Card(elevation = 1.dp, modifier = Modifier.fillMaxWidth()) {
+    Card(elevation = androidx.compose.material3.CardDefaults.cardElevation(1.dp), modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             OutlinedTextField(value = text, onValueChange = { text = it }, modifier = Modifier.fillMaxWidth())
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -102,7 +102,7 @@ private fun NoteCard(note: NoteContent, onSave: (String) -> Unit, onDelete: () -
                 if (!confirmDelete) {
                     TextButton(onClick = { confirmDelete = true }) { Text("Borrar") }
                 } else {
-                    Text("¿Borrar esta nota?", style = MaterialTheme.typography.body2)
+                    Text("¿Borrar esta nota?", style = MaterialTheme.typography.bodyMedium)
                     Button(onClick = onDelete) { Text("Borrar") }
                     TextButton(onClick = { confirmDelete = false }) { Text("Cancelar") }
                 }

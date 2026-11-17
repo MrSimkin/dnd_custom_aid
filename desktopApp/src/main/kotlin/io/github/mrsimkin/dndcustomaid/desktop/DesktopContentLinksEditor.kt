@@ -21,15 +21,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Checkbox
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -154,13 +154,13 @@ internal fun DesktopContentLinksSection(item: ReusableContentItem, handoutKind: 
 
     fun options(family: ReusableContentFamily) = controller.candidates(scope, family).filter { it.identity.id != id }.map { it.identity.id to it.displayName }
 
-    Card(elevation = 1.dp, modifier = Modifier.fillMaxWidth()) {
+    Card(elevation = androidx.compose.material3.CardDefaults.cardElevation(1.dp), modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Vínculos para la Mesa de Escena", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                if (saved) Text("Guardado ✓", style = MaterialTheme.typography.caption)
+                Text("Vínculos para la Mesa de Escena", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                if (saved) Text("Guardado ✓", style = MaterialTheme.typography.bodySmall)
             }
-            Text("Se eligen de una lista y se guardan al momento. Los textos libres siguen sirviendo para buscar.", style = MaterialTheme.typography.caption)
+            Text("Se eligen de una lista y se guardan al momento. Los textos libres siguen sirviendo para buscar.", style = MaterialTheme.typography.bodySmall)
             when (item.family) {
                 ReusableContentFamily.NPC -> {
                     LinkPicker("Lugares donde está", options(ReusableContentFamily.PLACE), links.placeIds) { update(links.copy(placeIds = it)) }
@@ -203,7 +203,7 @@ internal fun DesktopContentLinksSection(item: ReusableContentItem, handoutKind: 
                         .flatMap { family -> controller.candidates(scope, family).map { it.identity.id to it.displayName } }
                     MapPinsEditor(controller.mapImage(id), links.pins, targets) { update(links.copy(pins = it)) }
                 } else {
-                    Text("Las marcas en el mapa están disponibles cuando el tipo es «Mapa».", style = MaterialTheme.typography.caption)
+                    Text("Las marcas en el mapa están disponibles cuando el tipo es «Mapa».", style = MaterialTheme.typography.bodySmall)
                 }
                 ReusableContentFamily.HOMEBREW_RULE -> ActivitiesEditor(links.activities) { update(links.copy(activities = it)) }
                 else -> Unit
@@ -226,10 +226,10 @@ private fun DungeonFields(controller: DesktopContentLinksController, item: Reusa
             known.filter { it != links.dungeon }.forEach { name -> TextButton(onClick = { dungeon = name; onChange(links.copy(dungeon = name)) }) { Text(name) } }
         }
         if (links.dungeon.isNotBlank()) {
-            Text("Ubicación en el diagrama: haz clic donde va esta zona. Las otras zonas de «${links.dungeon}» se ven de referencia.", style = MaterialTheme.typography.caption)
+            Text("Ubicación en el diagrama: haz clic donde va esta zona. Las otras zonas de «${links.dungeon}» se ven de referencia.", style = MaterialTheme.typography.bodySmall)
             BoxWithConstraints(
                 modifier = Modifier.widthIn(max = 640.dp).fillMaxWidth().aspectRatio(2f)
-                    .background(MaterialTheme.colors.onSurface.copy(alpha = 0.06f), MaterialTheme.shapes.small)
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f), MaterialTheme.shapes.small)
                     .pointerInput(links) {
                         detectTapGestures { tap ->
                             onChange(links.copy(diagramX = (tap.x / size.width).toDouble().coerceIn(0.0, 1.0), diagramY = (tap.y / size.height).toDouble().coerceIn(0.0, 1.0)))
@@ -243,9 +243,9 @@ private fun DungeonFields(controller: DesktopContentLinksController, item: Reusa
                     val y = l.diagramY ?: return@forEach
                     Text(
                         other.displayName,
-                        style = MaterialTheme.typography.caption,
+                        style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.offset { androidx.compose.ui.unit.IntOffset((x * w).roundToInt(), (y * h).roundToInt()) }
-                            .background(MaterialTheme.colors.surface, MaterialTheme.shapes.small).padding(horizontal = 4.dp),
+                            .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.small).padding(horizontal = 4.dp),
                     )
                 }
                 if (links.diagramX != null && links.diagramY != null) {
@@ -253,9 +253,9 @@ private fun DungeonFields(controller: DesktopContentLinksController, item: Reusa
                         "★ ${item.displayName}",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.caption,
+                        style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.offset { androidx.compose.ui.unit.IntOffset((links.diagramX!! * w).roundToInt(), (links.diagramY!! * h).roundToInt()) }
-                            .background(MaterialTheme.colors.primary, MaterialTheme.shapes.small).padding(horizontal = 4.dp),
+                            .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small).padding(horizontal = 4.dp),
                     )
                 }
             }
@@ -286,7 +286,7 @@ private fun ActivitiesEditor(activities: List<DungeonActivity>, onChange: (List<
         Text("Actividades del turno de dungeon", fontWeight = FontWeight.Medium)
         Text(
             "Si una regla de la campaña tiene esta lista, la Mesa de Dungeon usa esa en vez de la de la regla beta.",
-            style = MaterialTheme.typography.caption,
+            style = MaterialTheme.typography.bodySmall,
         )
         if (activities.isEmpty()) {
             TextButton(onClick = { onChange(DungeonRules.betaActivities) }) { Text("Empezar desde la lista beta (15 + 2 con *)") }
@@ -298,7 +298,7 @@ private fun ActivitiesEditor(activities: List<DungeonActivity>, onChange: (List<
                 Box {
                     TextButton(onClick = { open = true }) { Text(activity.advance.label) }
                     DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-                        DungeonAdvance.entries.forEach { a -> DropdownMenuItem(onClick = { open = false; set(index) { it.copy(advance = a) } }) { Text(a.label) } }
+                        DungeonAdvance.entries.forEach { a -> DropdownMenuItem(text = { Text(a.label) }, onClick = { open = false; set(index) { it.copy(advance = a) } }) }
                     }
                 }
                 OutlinedTextField(value = activity.benefit, onValueChange = { v -> set(index) { it.copy(benefit = v) } }, label = { Text("Beneficio") }, singleLine = true, modifier = Modifier.weight(1f))
@@ -327,7 +327,7 @@ private fun LinkPicker(title: String, options: List<Pair<Uuid, String>>, selecte
             selected.forEach { id ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.background(MaterialTheme.colors.primary.copy(alpha = 0.15f), MaterialTheme.shapes.small).padding(start = 8.dp),
+                    modifier = Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), MaterialTheme.shapes.small).padding(start = 8.dp),
                 ) {
                     Text(names[id] ?: "(ya no existe)")
                     TextButton(onClick = { onChange(selected - id) }) { Text("✕") }
@@ -340,12 +340,12 @@ private fun LinkPicker(title: String, options: List<Pair<Uuid, String>>, selecte
                         OutlinedTextField(value = filter, onValueChange = { filter = it }, label = { Text("Filtrar") }, singleLine = true, modifier = Modifier.padding(horizontal = 8.dp).width(260.dp))
                     }
                     options.filter { it.first !in selected && it.second.contains(filter.trim(), ignoreCase = true) }.take(40).forEach { (optionId, name) ->
-                        DropdownMenuItem(onClick = { open = false; onChange(selected + optionId) }) { Text(name) }
+                        DropdownMenuItem(text = { Text(name) }, onClick = { open = false; onChange(selected + optionId) })
                     }
                 }
             }
         }
-        if (options.isEmpty()) Text("Todavía no hay fichas de este tipo en esta biblioteca.", style = MaterialTheme.typography.caption)
+        if (options.isEmpty()) Text("Todavía no hay fichas de este tipo en esta biblioteca.", style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -357,11 +357,11 @@ private fun SinglePicker(title: String, options: List<Pair<Uuid, String>>, selec
         Box {
             TextButton(onClick = { open = true }) { Text(selected?.let { id -> options.firstOrNull { it.first == id }?.second ?: "(ya no existe)" } ?: "Elegir…") }
             DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-                DropdownMenuItem(onClick = { open = false; onChange(null) }) { Text("Ninguno") }
-                options.forEach { (id, name) -> DropdownMenuItem(onClick = { open = false; onChange(id) }) { Text(name) } }
+                DropdownMenuItem(text = { Text("Ninguno") }, onClick = { open = false; onChange(null) })
+                options.forEach { (id, name) -> DropdownMenuItem(text = { Text(name) }, onClick = { open = false; onChange(id) }) }
             }
         }
-        if (options.isEmpty()) Text("(no hay opciones todavía)", style = MaterialTheme.typography.caption)
+        if (options.isEmpty()) Text("(no hay opciones todavía)", style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -374,7 +374,7 @@ private fun GroupsPicker(groups: List<String>, known: List<String>, onChange: (L
             groups.forEach { group ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.background(MaterialTheme.colors.primary.copy(alpha = 0.15f), MaterialTheme.shapes.small).padding(start = 8.dp),
+                    modifier = Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), MaterialTheme.shapes.small).padding(start = 8.dp),
                 ) {
                     Text(group)
                     TextButton(onClick = { onChange(groups - group) }) { Text("✕") }
@@ -452,16 +452,16 @@ private fun MapPinsEditor(image: ImageBitmap?, pins: List<MapPin>, targets: List
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text("Marcas en el mapa", fontWeight = FontWeight.Medium)
         if (image == null) {
-            Text("La imagen no está en este computador todavía.", style = MaterialTheme.typography.caption)
+            Text("La imagen no está en este computador todavía.", style = MaterialTheme.typography.bodySmall)
             return
         }
-        Text("Haz clic en el mapa para poner una marca; arrástrala para moverla.", style = MaterialTheme.typography.caption)
+        Text("Haz clic en el mapa para poner una marca; arrástrala para moverla.", style = MaterialTheme.typography.bodySmall)
         // Redesign A5 (owner observation P7): a mark follows the mouse while dragged and is saved on release.
         var dragging by remember { mutableStateOf<Pair<Int, Pair<Double, Double>>?>(null) }
         // QA 0.7.0-preqa.2 (G4): the map can be enlarged to read it; it scrolls when it is bigger.
         var mapZoom by remember { mutableStateOf(1) }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Tamaño del mapa:", style = MaterialTheme.typography.caption)
+            Text("Tamaño del mapa:", style = MaterialTheme.typography.bodySmall)
             listOf(1 to "Normal", 2 to "Grande", 3 to "Muy grande").forEach { (z, label) ->
                 if (mapZoom == z) Button(onClick = { mapZoom = z }) { Text(label) } else TextButton(onClick = { mapZoom = z }) { Text(label) }
             }

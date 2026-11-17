@@ -12,13 +12,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -236,11 +236,11 @@ internal fun DesktopEncounterManagerScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de Encuentros", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+            Text("Gestor de Encuentros", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Text(
                 "Prepara encuentros reutilizables sin convertirlos en combate en vivo. " +
                     "Las anulaciones pertenecen al encuentro y no modifican las criaturas o PNJ de origen.",
-                style = MaterialTheme.typography.body1,
+                style = MaterialTheme.typography.bodyLarge,
             )
         }
 
@@ -308,12 +308,12 @@ internal fun DesktopEncounterManagerScreen(
             Text(
                 "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
                     "Los encuentros de campaña siguen disponibles.",
-                style = MaterialTheme.typography.caption,
+                style = MaterialTheme.typography.bodySmall,
             )
         }
-        statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
+        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
-        Divider()
+        HorizontalDivider()
 
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -328,13 +328,13 @@ internal fun DesktopEncounterManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxHeight().width(1.dp))
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona un encuentro para abrirlo.", style = MaterialTheme.typography.h6)
+                    Text("Selecciona un encuentro para abrirlo.", style = MaterialTheme.typography.titleLarge)
                     Text("Personal: ${personalEncounters.size} • Campaña activa: ${campaignEncounters.size}")
                 }
             } else {
@@ -401,25 +401,25 @@ private fun EncounterList(
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
-            Text("Encuentros (${encounters.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Encuentros (${encounters.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (encounters.isEmpty()) {
-            item { Text("No hay encuentros que coincidan con el filtro.", style = MaterialTheme.typography.caption) }
+            item { Text("No hay encuentros que coincidan con el filtro.", style = MaterialTheme.typography.bodySmall) }
         }
         items(encounters, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onSelect(content.item.identity.id) },
-                elevation = if (selected) 6.dp else 1.dp,
+                elevation = androidx.compose.material3.CardDefaults.cardElevation(if (selected) 6.dp else 1.dp),
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
                     Text(
                         "${encounterScopeLabel(content.item.identity.scope)} • ${content.payload.participants.size} participantes/grupos",
-                        style = MaterialTheme.typography.caption,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                     if (content.payload.environment.isNotBlank()) {
-                        Text(content.payload.environment, style = MaterialTheme.typography.caption)
+                        Text(content.payload.environment, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -449,15 +449,15 @@ private fun EncounterEditor(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Editor de Encuentro", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+                    Text("Editor de Encuentro", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                     Text(
                         "${encounterScopeLabel(content.item.identity.scope)} • revisión ${content.item.identity.revision.value}",
-                        style = MaterialTheme.typography.caption,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                     content.item.identity.provenance?.let { provenance ->
                         Text(
                             "Copia de ${provenance.sourceObjectId.toString().take(8)}… • independiente desde la copia",
-                            style = MaterialTheme.typography.caption,
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                 }
@@ -480,11 +480,11 @@ private fun EncounterEditor(
         item { EncounterField("Notas", draft.notes, false, 4) { onDraftChange(draft.copy(notes = it)) } }
 
         item {
-            Divider()
-            Text("Participantes / grupos", style = MaterialTheme.typography.h6, fontWeight = FontWeight.Bold)
+            HorizontalDivider()
+            Text("Participantes / grupos", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Text(
                 "Añade grupos libres o referencias a criaturas/PNJ del mismo ámbito. Las anulaciones siguientes sólo pertenecen a este encuentro.",
-                style = MaterialTheme.typography.caption,
+                style = MaterialTheme.typography.bodySmall,
             )
             Button(
                 onClick = {
@@ -499,7 +499,7 @@ private fun EncounterEditor(
 
         if (participantSources.isNotEmpty()) {
             item {
-                Text("Añadir desde biblioteca", style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
+                Text("Añadir desde biblioteca", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             }
             items(participantSources, key = { "source-${it.id}" }) { source ->
                 TextButton(
@@ -551,7 +551,7 @@ private fun EncounterParticipantEditor(
     onChange: (EncounterParticipantDraft) -> Unit,
     onRemove: () -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth(), elevation = 1.dp) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = androidx.compose.material3.CardDefaults.cardElevation(1.dp)) {
         Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -597,7 +597,7 @@ private fun EncounterParticipantEditor(
                 Button(onClick = { onChange(participant.copy(quantity = participant.quantity + 1)) }) { Text("+") }
             }
 
-            Text("Preparación", style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
+            Text("Preparación", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 EncounterParticipantReadiness.entries.forEach { readiness ->
                     if (participant.readiness == readiness) {

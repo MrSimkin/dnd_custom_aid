@@ -21,7 +21,6 @@ kotlin {
 dependencies {
     implementation(projects.shared)
     implementation(compose.desktop.currentOs)
-    implementation(libs.compose.multiplatform.material)
     implementation(compose.material3)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.ktor.client.core)

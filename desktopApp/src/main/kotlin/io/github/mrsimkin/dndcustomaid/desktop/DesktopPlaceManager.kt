@@ -11,13 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,7 +76,7 @@ fun DesktopManagersHubScreen(
                 }
             }
         }
-        Divider()
+        HorizontalDivider()
         when (section) {
             DesktopManagersHubSection.CREATURES_NPCS_HOMEBREW -> DesktopAuthoringManagersScreen(
                 creatureController = creatureController,
@@ -242,10 +242,10 @@ internal fun DesktopPlaceManagerScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de Escenarios, Lugares y Tiendas", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+            Text("Gestor de Escenarios, Lugares y Tiendas", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Text(
                 "La vista Stage organiza los lugares reutilizables existentes; las tiendas siguen siendo lugares especializados y las copias de campaña son independientes.",
-                style = MaterialTheme.typography.body1,
+                style = MaterialTheme.typography.bodyLarge,
             )
         }
 
@@ -307,17 +307,17 @@ internal fun DesktopPlaceManagerScreen(
             Text(
                 "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
                     "El contenido de campaña local sigue disponible.",
-                style = MaterialTheme.typography.caption,
+                style = MaterialTheme.typography.bodySmall,
             )
         }
-        statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
+        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
         StagePlaceFilterControls(
             filters = stageFilters,
             onFiltersChange = { stageFilters = it },
         )
 
-        Divider()
+        HorizontalDivider()
 
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -332,13 +332,13 @@ internal fun DesktopPlaceManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxHeight().width(1.dp))
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona un lugar o tienda para abrirlo.", style = MaterialTheme.typography.h6)
+                    Text("Selecciona un lugar o tienda para abrirlo.", style = MaterialTheme.typography.titleLarge)
                     Text("Personal: ${personalPlaces.size} • Campaña activa: ${campaignPlaces.size}")
                 }
             } else {
@@ -400,22 +400,22 @@ private fun PlaceList(
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
-            Text("Stage • Lugares / Tiendas (${places.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Stage • Lugares / Tiendas (${places.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (places.isEmpty()) {
-            item { Text("No hay contenido que coincida con el filtro.", style = MaterialTheme.typography.caption) }
+            item { Text("No hay contenido que coincida con el filtro.", style = MaterialTheme.typography.bodySmall) }
         }
         items(places, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onSelect(content.item.identity.id) },
-                elevation = if (selected) 6.dp else 1.dp,
+                elevation = androidx.compose.material3.CardDefaults.cardElevation(if (selected) 6.dp else 1.dp),
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text("${placeKindLabel(content.payload.kind)} • ${placeScopeLabel(content)}", style = MaterialTheme.typography.caption)
+                    Text("${placeKindLabel(content.payload.kind)} • ${placeScopeLabel(content)}", style = MaterialTheme.typography.bodySmall)
                     if (content.payload.area.isNotBlank()) {
-                        Text(content.payload.area, style = MaterialTheme.typography.caption)
+                        Text(content.payload.area, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -441,15 +441,15 @@ private fun PlaceEditor(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Editor de Lugar / Tienda", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+                    Text("Editor de Lugar / Tienda", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                     Text(
                         "${placeKindLabel(draft.kind)} • ${placeScopeLabel(content)} • revisión ${content.item.identity.revision.value}",
-                        style = MaterialTheme.typography.caption,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                     content.item.identity.provenance?.let { provenance ->
                         Text(
                             "Copia de ${provenance.sourceObjectId.toString().take(8)}… • independiente desde la copia",
-                            style = MaterialTheme.typography.caption,
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                 }
@@ -462,7 +462,7 @@ private fun PlaceEditor(
 
         item { PlaceField("Nombre", draft.displayName, true) { onDraftChange(draft.copy(displayName = it)) } }
         item {
-            Text("Tipo", style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
+            Text("Tipo", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 PlaceKind.entries.forEach { kind ->
                     if (draft.kind == kind) {

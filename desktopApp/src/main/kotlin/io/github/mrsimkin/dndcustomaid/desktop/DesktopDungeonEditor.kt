@@ -25,16 +25,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.Button
-import androidx.compose.material.Checkbox
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -195,11 +195,11 @@ internal fun DesktopDungeonEditorScreen(
 
     Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(Modifier.width(190.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Tus dungeons", style = MaterialTheme.typography.caption)
+            Text("Tus dungeons", style = MaterialTheme.typography.bodySmall)
             all.forEach { dungeon ->
                 val isSelected = dungeon.item.identity.id == selected?.item?.identity?.id
                 Surface(
-                    color = if (isSelected) MaterialTheme.colors.primary.copy(alpha = 0.16f) else MaterialTheme.colors.surface,
+                    color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f) else MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(6.dp),
                     modifier = Modifier.fillMaxWidth().handCursor().clickable { selectedId = dungeon.item.identity.id },
                 ) {
@@ -214,22 +214,22 @@ internal fun DesktopDungeonEditorScreen(
             Spacer(Modifier.weight(1f))
             TextButton(onClick = { help = !help }, modifier = Modifier.handCursor()) { Text("? ¿Cómo se usa?") }
         }
-        Divider(Modifier.fillMaxHeight().width(1.dp))
+        HorizontalDivider(Modifier.fillMaxHeight().width(1.dp))
         Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (help) {
-                Surface(color = MaterialTheme.colors.secondary.copy(alpha = 0.12f), shape = RoundedCornerShape(6.dp)) {
+                Surface(color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f), shape = RoundedCornerShape(6.dp)) {
                     Text(
                         "1) «＋ Nuevo dungeon» lo crea. 2) «＋ Zona» agrega una caja: arrástrala para ubicarla. " +
                             "3) Para unir dos zonas, arrastra desde el ● de una hasta la otra. " +
                             "4) Elige una zona para ver sus pasajes, marcar uno como secreto o abrir su ficha completa.",
-                        style = MaterialTheme.typography.body2,
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(10.dp),
                     )
                 }
             }
             if (selected == null) {
                 Column(Modifier.padding(top = 24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Aún no hay dungeons en esta campaña.", style = MaterialTheme.typography.h6)
+                    Text("Aún no hay dungeons en esta campaña.", style = MaterialTheme.typography.titleLarge)
                     Text("Crea uno y agrégale zonas en el plano.")
                     Button(onClick = { creating = true }) { Text("＋ Nuevo dungeon") }
                 }
@@ -329,7 +329,7 @@ private fun DungeonPlanEditor(
     Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(dungeon.item.displayName, style = MaterialTheme.typography.h6, fontWeight = FontWeight.Bold)
+                Text(dungeon.item.displayName, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 TextButton(onClick = { renamingDungeon = true }, modifier = Modifier.handCursor()) { Text("Cambiar nombre") }
                 Spacer(Modifier.weight(1f))
                 Button(onClick = {
@@ -341,9 +341,9 @@ private fun DungeonPlanEditor(
                 OutlinedButton(onClick = { choosingBackground = true }, modifier = Modifier.handCursor()) { Text("Plano de fondo") }
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text("Tamaño del plano:", style = MaterialTheme.typography.caption)
+                Text("Tamaño del plano:", style = MaterialTheme.typography.bodySmall)
                 OutlinedButton(onClick = { zoom = ((zoom ?: 1f) - 0.25f).coerceAtLeast(0.5f) }, modifier = Modifier.handCursor().testTag("plan-zoom-out")) { Text("−") }
-                Text(zoom?.let { "${(it * 100).roundToInt()} %" } ?: "Ajustado", style = MaterialTheme.typography.caption)
+                Text(zoom?.let { "${(it * 100).roundToInt()} %" } ?: "Ajustado", style = MaterialTheme.typography.bodySmall)
                 OutlinedButton(onClick = { zoom = ((zoom ?: 1f) + 0.25f).coerceAtMost(3f) }, modifier = Modifier.handCursor().testTag("plan-zoom-in")) { Text("＋") }
                 TextButton(onClick = { zoom = null }, modifier = Modifier.handCursor()) { Text("Ajustar a la ventana") }
             }
@@ -351,8 +351,8 @@ private fun DungeonPlanEditor(
                 Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .border(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colors.onSurface.copy(alpha = 0.03f), RoundedCornerShape(8.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.03f), RoundedCornerShape(8.dp))
                     .testTag("dungeon-plan"),
             ) {
                 val density = LocalDensity.current
@@ -383,8 +383,8 @@ private fun DungeonPlanEditor(
                     val tl = topLeft(id)
                     point.x in tl.x..(tl.x + zoneW) && point.y in tl.y..(tl.y + zoneH)
                 }
-                val lineColor = MaterialTheme.colors.onSurface.copy(alpha = 0.55f)
-                val accent = MaterialTheme.colors.primary
+                val lineColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                val accent = MaterialTheme.colorScheme.primary
 
                 if (background != null) {
                     Image(
@@ -414,7 +414,7 @@ private fun DungeonPlanEditor(
                     Text(
                         "Este dungeon aún no tiene zonas. Usa «＋ Zona».",
                         modifier = Modifier.align(Alignment.Center),
-                        style = MaterialTheme.typography.body2,
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
                 members.forEach { member ->
@@ -425,7 +425,7 @@ private fun DungeonPlanEditor(
                         Modifier
                             .offset { IntOffset(tl.x.roundToInt(), tl.y.roundToInt()) }
                             .size(ZONE_WIDTH, ZONE_HEIGHT)
-                            .background(MaterialTheme.colors.surface, RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
                             .border(if (isSelected) 2.dp else 1.dp, if (isSelected) accent else lineColor, RoundedCornerShape(8.dp))
                             .handCursor()
                             .clickable { selectedZoneId = id }
@@ -454,7 +454,7 @@ private fun DungeonPlanEditor(
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                             textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.body2,
+                            style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(horizontal = 18.dp),
                         )
                         // The ● to drag a passage from this zone to another.
@@ -500,7 +500,7 @@ private fun DungeonPlanEditor(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (zone == null) {
-                Text("Elige una zona en el plano para ver sus pasajes y su encuentro.", style = MaterialTheme.typography.body2)
+                Text("Elige una zona en el plano para ver sus pasajes y su encuentro.", style = MaterialTheme.typography.bodyMedium)
             } else {
                 ZonePanel(
                     controller = controller,
@@ -531,7 +531,7 @@ private fun ZonePanel(
     var confirmDelete by remember(id) { mutableStateOf(false) }
     val encounters = remember(campaignId) { controller.encounters(campaignId) }
 
-    Text("Zona elegida", style = MaterialTheme.typography.caption)
+    Text("Zona elegida", style = MaterialTheme.typography.bodySmall)
     OutlinedTextField(
         value = name,
         onValueChange = { name = it },
@@ -542,21 +542,21 @@ private fun ZonePanel(
     if (name.trim() != zone.zone.displayName && name.isNotBlank()) {
         Button(onClick = { if (controller.renameZone(zone.zone, name.trim())) onChanged() }) { Text("Guardar nombre") }
     }
-    Text("Pasajes", style = MaterialTheme.typography.caption)
-    if (passages.isEmpty()) Text("Sin pasajes. Arrastra desde el ● hasta otra zona.", style = MaterialTheme.typography.body2)
+    Text("Pasajes", style = MaterialTheme.typography.bodySmall)
+    if (passages.isEmpty()) Text("Sin pasajes. Arrastra desde el ● hasta otra zona.", style = MaterialTheme.typography.bodyMedium)
     passages.forEach { (a, b, secret) ->
         val other = if (a == id) b else a
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("→ ${controller.nameOf(other) ?: "Zona"}", modifier = Modifier.weight(1f), style = MaterialTheme.typography.body2)
+            Text("→ ${controller.nameOf(other) ?: "Zona"}", modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
             Checkbox(checked = secret, onCheckedChange = { controller.setSecret(a, b, it); onChanged() })
-            Text("secreto", style = MaterialTheme.typography.caption)
+            Text("secreto", style = MaterialTheme.typography.bodySmall)
             TextButton(onClick = { controller.disconnect(a, b); onChanged() }) { Text("✕") }
         }
     }
-    Text("Encuentro", style = MaterialTheme.typography.caption)
+    Text("Encuentro", style = MaterialTheme.typography.bodySmall)
     val current = zone.links.encounterIds.firstOrNull()
     if (encounters.isEmpty()) {
-        Text("Aún no hay encuentros: créalos en «Preparar → Encuentros».", style = MaterialTheme.typography.body2)
+        Text("Aún no hay encuentros: créalos en «Preparar → Encuentros».", style = MaterialTheme.typography.bodyMedium)
     } else {
         Column {
             encounters.forEach { encounter ->
@@ -567,12 +567,12 @@ private fun ZonePanel(
             }
         }
     }
-    Divider()
+    HorizontalDivider()
     Button(onClick = { onOpenZone(id) }, modifier = Modifier.fillMaxWidth()) { Text("Abrir ficha completa") }
     if (!confirmDelete) {
         TextButton(onClick = { confirmDelete = true }) { Text("Quitar zona") }
     } else {
-        Text("¿Quitar «${zone.zone.displayName}» y sus pasajes?", style = MaterialTheme.typography.body2)
+        Text("¿Quitar «${zone.zone.displayName}» y sus pasajes?", style = MaterialTheme.typography.bodyMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = {
                 controller.deleteZone(zone.zone, passages.map { (a, b, _) -> if (a == id) b else a })

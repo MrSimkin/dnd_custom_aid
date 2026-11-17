@@ -10,14 +10,14 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
-import androidx.compose.material.TextField
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -160,11 +160,11 @@ internal fun DesktopCampaignPlayersScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Button(enabled = !busy, onClick = ::refreshRoster) { Text(if (busy) "Actualizando…" else "Actualizar lista") }
-                        statusMessage?.let { Text(it, style = MaterialTheme.typography.body2) }
+                        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
                     }
                 }
                 errorMessage?.let { message ->
-                    item { Text(message, color = MaterialTheme.colors.error) }
+                    item { Text(message, color = MaterialTheme.colorScheme.error) }
                 }
                 roster?.let { currentRoster ->
                     items(items = currentRoster.members, key = { it.userId.toString() }) { member ->
@@ -188,12 +188,12 @@ private fun HostedMemberCard(
 ) {
     val actions = availableModerationActions(member)
 
-    Card(modifier = Modifier.fillMaxWidth(), elevation = 1.dp) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = androidx.compose.material3.CardDefaults.cardElevation(1.dp)) {
         Column(
             modifier = Modifier.padding(desktopSpacing(16.dp)),
             verticalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp)),
         ) {
-            Text(hostedMemberLabel(member), style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text(hostedMemberLabel(member), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Row(horizontalArrangement = Arrangement.spacedBy(desktopSpacing(16.dp))) {
                 Text("Rol: ${member.role.spanishLabel()}")
                 Text("Estado: ${member.status.spanishLabel()}")
@@ -211,7 +211,7 @@ private fun HostedMemberCard(
                     }
                 }
             } else if (member.role == CampaignRole.DM) {
-                Text("Es el DM de la campaña.", style = MaterialTheme.typography.caption)
+                Text("Es el DM de la campaña.", style = MaterialTheme.typography.bodySmall)
             }
         }
     }

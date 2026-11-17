@@ -10,11 +10,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -70,7 +70,7 @@ internal fun DesktopPrepareScreen(
             ) {
                 PrepareSection.entries.forEach { candidate ->
                     Card(
-                        elevation = 2.dp,
+                        elevation = androidx.compose.material3.CardDefaults.cardElevation(2.dp),
                         modifier = Modifier
                             .width(260.dp)
                             .height(118.dp)
@@ -81,15 +81,15 @@ internal fun DesktopPrepareScreen(
                             },
                     ) {
                         Column(Modifier.padding(desktopSpacing(16.dp)), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Text(candidate.title, style = MaterialTheme.typography.h6, fontWeight = FontWeight.Bold)
-                            Text(candidate.purpose, style = MaterialTheme.typography.body2)
+                            Text(candidate.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                            Text(candidate.purpose, style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                 }
             }
             Text(
                 "Lo que preparas aquí llega a la tablet con «⟳ Sincronizar», arriba.",
-                style = MaterialTheme.typography.caption,
+                style = MaterialTheme.typography.bodySmall,
             )
         }
         return
@@ -102,11 +102,11 @@ internal fun DesktopPrepareScreen(
                 modifier = Modifier.handCursor(),
             ) { Text(if (zoneSheetId != null) "← Plano del dungeon" else "← Preparar") }
             Column {
-                Text(section.title, style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
-                Text(section.purpose, style = MaterialTheme.typography.body2)
+                Text(section.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text(section.purpose, style = MaterialTheme.typography.bodyMedium)
             }
         }
-        Divider()
+        HorizontalDivider()
         when (section) {
             PrepareSection.PLACES -> DesktopPlaceManagerScreen(placeController, activeCampaign, onQaEvent)
             PrepareSection.NPCS -> NpcManagerScreen(npcController, activeCampaign, onQaEvent)

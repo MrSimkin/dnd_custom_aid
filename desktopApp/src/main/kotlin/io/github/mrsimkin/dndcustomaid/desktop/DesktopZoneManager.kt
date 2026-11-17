@@ -11,12 +11,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -218,11 +218,11 @@ internal fun DesktopZoneManagerScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Dungeons", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+            Text("Dungeons", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Text(
                 "Prepara cada Zona como un Zone Brief: PRESENTAR, INTERACTUAR y ENCUENTRO. " +
                     "Espacio y exploración conservan la orientación topológica sin convertir el gestor en un VTT.",
-                style = MaterialTheme.typography.body1,
+                style = MaterialTheme.typography.bodyLarge,
             )
         }
 
@@ -297,12 +297,12 @@ internal fun DesktopZoneManagerScreen(
             Text(
                 "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
                     "Las zonas de campaña local siguen disponibles.",
-                style = MaterialTheme.typography.caption,
+                style = MaterialTheme.typography.bodySmall,
             )
         }
-        statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
+        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
-        Divider()
+        HorizontalDivider()
 
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -317,13 +317,13 @@ internal fun DesktopZoneManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxHeight().width(1.dp))
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona una zona para abrirla.", style = MaterialTheme.typography.h6)
+                    Text("Selecciona una zona para abrirla.", style = MaterialTheme.typography.titleLarge)
                     Text("Personal: ${personalZones.size} • Campaña activa: ${campaignZones.size}")
                 }
             } else {
@@ -387,25 +387,25 @@ private fun ZoneList(
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
-            Text("Zonas (${zones.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Zonas (${zones.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (zones.isEmpty()) {
-            item { Text("No hay zonas que coincidan con el filtro.", style = MaterialTheme.typography.caption) }
+            item { Text("No hay zonas que coincidan con el filtro.", style = MaterialTheme.typography.bodySmall) }
         }
         items(zones, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onSelect(content.item.identity.id) },
-                elevation = if (selected) 6.dp else 1.dp,
+                elevation = androidx.compose.material3.CardDefaults.cardElevation(if (selected) 6.dp else 1.dp),
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text(zoneScopeLabel(content), style = MaterialTheme.typography.caption)
+                    Text(zoneScopeLabel(content), style = MaterialTheme.typography.bodySmall)
                     if (content.payload.area.isNotBlank()) {
-                        Text(content.payload.area, style = MaterialTheme.typography.caption)
+                        Text(content.payload.area, style = MaterialTheme.typography.bodySmall)
                     }
                     if (content.payload.summary.isNotBlank()) {
-                        Text(content.payload.summary, style = MaterialTheme.typography.caption)
+                        Text(content.payload.summary, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -433,15 +433,15 @@ private fun ZoneEditor(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Editor de Zona", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+                    Text("Editor de Zona", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                     Text(
                         "${zoneScopeLabel(content)} • revisión ${content.item.identity.revision.value}",
-                        style = MaterialTheme.typography.caption,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                     content.item.identity.provenance?.let { provenance ->
                         Text(
                             "Copia de ${provenance.sourceObjectId.toString().take(8)}… • independiente desde la copia",
-                            style = MaterialTheme.typography.caption,
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                 }
@@ -469,24 +469,24 @@ private fun ZoneEditor(
 
         item { ZoneSectionHeading("ENCUENTRO") }
         if (encounters.isEmpty()) {
-            item { Text("Esta zona no tiene encuentros vinculados. Se vinculan en el plano del dungeon o en «Vínculos».", style = MaterialTheme.typography.caption) }
+            item { Text("Esta zona no tiene encuentros vinculados. Se vinculan en el plano del dungeon o en «Vínculos».", style = MaterialTheme.typography.bodySmall) }
         }
         encounters.forEach { encounter ->
             item(key = "encounter-${encounter.item.identity.id}") {
-                Card(elevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
+                Card(elevation = androidx.compose.material3.CardDefaults.cardElevation(2.dp), modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text("⚔ ${encounter.item.displayName}", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
-                        if (encounter.payload.summary.isNotBlank()) Text(encounter.payload.summary, style = MaterialTheme.typography.body2)
+                        Text("⚔ ${encounter.item.displayName}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        if (encounter.payload.summary.isNotBlank()) Text(encounter.payload.summary, style = MaterialTheme.typography.bodyMedium)
                         if (encounter.payload.participants.isEmpty()) {
-                            Text("Sin criaturas todavía: se agregan en Preparar → Encuentros.", style = MaterialTheme.typography.caption)
+                            Text("Sin criaturas todavía: se agregan en Preparar → Encuentros.", style = MaterialTheme.typography.bodySmall)
                         }
                         encounter.payload.participants.forEach { participant ->
                             val name = participantName(participant.sourceContentId) ?: participant.label
-                            Text("• ${participant.quantity} × $name" + participant.condition.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty(), style = MaterialTheme.typography.body2)
+                            Text("• ${participant.quantity} × $name" + participant.condition.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty(), style = MaterialTheme.typography.bodyMedium)
                         }
                         listOf("Entorno" to encounter.payload.environment, "Contexto" to encounter.payload.context, "Guía DM" to encounter.payload.dmGuidance, "Notas" to encounter.payload.notes)
                             .filter { it.second.isNotBlank() }
-                            .forEach { (label, text) -> Text("$label: $text", style = MaterialTheme.typography.body2) }
+                            .forEach { (label, text) -> Text("$label: $text", style = MaterialTheme.typography.bodyMedium) }
                     }
                 }
             }
@@ -504,8 +504,8 @@ private fun ZoneEditor(
 @Composable
 private fun ZoneSectionHeading(label: String) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Divider()
-        Text(label, style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+        HorizontalDivider()
+        Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
     }
 }
 

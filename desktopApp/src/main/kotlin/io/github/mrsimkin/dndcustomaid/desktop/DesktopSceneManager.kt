@@ -11,13 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -69,7 +69,7 @@ internal fun DesktopStageAndSceneManagerScreen(
                 }
             }
         }
-        Divider()
+        HorizontalDivider()
         when (section) {
             DesktopStageContentSection.PLACES_SHOPS -> DesktopPlaceManagerScreen(
                 controller = controller,
@@ -215,10 +215,10 @@ internal fun DesktopSceneManagerScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Adventure / Scene Spine", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+            Text("Adventure / Scene Spine", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Text(
                 "Orientación ligera: propósito, posibles escenas siguientes y referencias. No es un motor de quests ni de estado vivo.",
-                style = MaterialTheme.typography.body1,
+                style = MaterialTheme.typography.bodyLarge,
             )
         }
 
@@ -273,12 +273,12 @@ internal fun DesktopSceneManagerScreen(
             Text(
                 "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
                     "Las escenas de campaña local siguen disponibles.",
-                style = MaterialTheme.typography.caption,
+                style = MaterialTheme.typography.bodySmall,
             )
         }
-        statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
+        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
-        Divider()
+        HorizontalDivider()
 
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -293,13 +293,13 @@ internal fun DesktopSceneManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxHeight().width(1.dp))
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona una escena para abrirla.", style = MaterialTheme.typography.h6)
+                    Text("Selecciona una escena para abrirla.", style = MaterialTheme.typography.titleLarge)
                     Text("Personal: ${personalScenes.size} • Campaña activa: ${campaignScenes.size}")
                 }
             } else {
@@ -361,22 +361,22 @@ private fun SceneList(
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
-            Text("Escenas (${scenes.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Escenas (${scenes.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (scenes.isEmpty()) {
-            item { Text("No hay escenas que coincidan con el filtro.", style = MaterialTheme.typography.caption) }
+            item { Text("No hay escenas que coincidan con el filtro.", style = MaterialTheme.typography.bodySmall) }
         }
         items(scenes, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onSelect(content.item.identity.id) },
-                elevation = if (selected) 6.dp else 1.dp,
+                elevation = androidx.compose.material3.CardDefaults.cardElevation(if (selected) 6.dp else 1.dp),
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text(sceneScopeLabel(content), style = MaterialTheme.typography.caption)
+                    Text(sceneScopeLabel(content), style = MaterialTheme.typography.bodySmall)
                     if (content.payload.purpose.isNotBlank()) {
-                        Text(content.payload.purpose, style = MaterialTheme.typography.caption)
+                        Text(content.payload.purpose, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -402,15 +402,15 @@ private fun SceneEditor(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Editor de Escena", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+                    Text("Editor de Escena", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                     Text(
                         "${sceneScopeLabel(content)} • revisión ${content.item.identity.revision.value}",
-                        style = MaterialTheme.typography.caption,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                     content.item.identity.provenance?.let { provenance ->
                         Text(
                             "Copia de ${provenance.sourceObjectId.toString().take(8)}… • independiente desde la copia",
-                            style = MaterialTheme.typography.caption,
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                 }

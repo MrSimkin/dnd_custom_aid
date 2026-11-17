@@ -11,13 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,7 +72,7 @@ fun DesktopManagersScreen(
                 }
             }
         }
-        Divider()
+        HorizontalDivider()
         when (section) {
             DesktopManagerSection.CREATURES -> CreatureManagerScreen(
                 controller = creatureController,
@@ -220,10 +220,10 @@ internal fun NpcManagerScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de PNJ", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+            Text("Gestor de PNJ", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Text(
                 "PNJ rápidos, desarrollados y con mecánicas de combate opcionales. Un PNJ incompleto sigue siendo válido.",
-                style = MaterialTheme.typography.body1,
+                style = MaterialTheme.typography.bodyLarge,
             )
         }
 
@@ -278,12 +278,12 @@ internal fun NpcManagerScreen(
             Text(
                 "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
                     "El contenido de campaña local sigue disponible.",
-                style = MaterialTheme.typography.caption,
+                style = MaterialTheme.typography.bodySmall,
             )
         }
-        statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
+        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
-        Divider()
+        HorizontalDivider()
 
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -298,13 +298,13 @@ internal fun NpcManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxHeight().width(1.dp))
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona un PNJ para abrirlo.", style = MaterialTheme.typography.h6)
+                    Text("Selecciona un PNJ para abrirlo.", style = MaterialTheme.typography.titleLarge)
                     Text("Personal: ${personalNpcs.size} • Campaña activa: ${campaignNpcs.size}")
                 }
             } else {
@@ -370,25 +370,25 @@ private fun NpcList(
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
-            Text("PNJ (${npcs.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("PNJ (${npcs.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (npcs.isEmpty()) {
-            item { Text("No hay PNJ que coincidan con el filtro.", style = MaterialTheme.typography.caption) }
+            item { Text("No hay PNJ que coincidan con el filtro.", style = MaterialTheme.typography.bodySmall) }
         }
         items(npcs, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onSelect(content.item.identity.id) },
-                elevation = if (selected) 6.dp else 1.dp,
+                elevation = androidx.compose.material3.CardDefaults.cardElevation(if (selected) 6.dp else 1.dp),
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text(npcScopeLabel(content), style = MaterialTheme.typography.caption)
+                    Text(npcScopeLabel(content), style = MaterialTheme.typography.bodySmall)
                     val stage = if (content.payload.hasDevelopedDetails()) "Desarrollado" else "Rápido"
                     val combat = if (content.payload.combatMechanics != null) " • combate" else ""
-                    Text("$stage$combat", style = MaterialTheme.typography.caption)
+                    Text("$stage$combat", style = MaterialTheme.typography.bodySmall)
                     if (content.payload.conceptRole.isNotBlank()) {
-                        Text(content.payload.conceptRole, style = MaterialTheme.typography.caption)
+                        Text(content.payload.conceptRole, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -414,15 +414,15 @@ private fun NpcEditor(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Editor de PNJ", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
-                    Text(npcScopeLabel(content), style = MaterialTheme.typography.caption)
+                    Text("Editor de PNJ", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    Text(npcScopeLabel(content), style = MaterialTheme.typography.bodySmall)
                     content.item.identity.provenance?.let { provenance ->
                         Text(
                             "Proveniencia: ${npcScopeLabel(provenance.sourceScope)} • ${provenance.sourceObjectId.toString().take(8)}…",
-                            style = MaterialTheme.typography.caption,
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
-                    Text("Revisión ${content.item.identity.revision.value}", style = MaterialTheme.typography.caption)
+                    Text("Revisión ${content.item.identity.revision.value}", style = MaterialTheme.typography.bodySmall)
                 }
                 Button(onClick = onSave) { Text("Guardar") }
                 if (content.item.identity.scope is ContentScope.Personal) {
@@ -527,7 +527,7 @@ private fun NpcEditor(
 
 @Composable
 private fun NpcSectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+    Text(text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 }
 
 @Composable

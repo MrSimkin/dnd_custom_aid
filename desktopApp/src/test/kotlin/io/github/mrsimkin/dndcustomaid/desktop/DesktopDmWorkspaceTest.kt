@@ -403,6 +403,6 @@ class DesktopDmWorkspaceTest {
 @androidx.compose.runtime.Composable
 private fun DeskTheme(content: @androidx.compose.runtime.Composable () -> Unit) {
     DesktopAppTheme(DesktopPreferences(themeChoice = DesktopThemeChoice.DARK)) {
-        MaterialTheme(colorScheme = desktopDmColorScheme(), typography = desktopDmTypography(), content = content)
+        content()
     }
 }

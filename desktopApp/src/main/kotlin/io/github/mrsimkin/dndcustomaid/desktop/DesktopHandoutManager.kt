@@ -13,15 +13,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.RadioButton
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -181,10 +181,10 @@ internal fun DesktopHandoutManagerScreen(
                     "No se pudo importar la imagen: ${error.message ?: error::class.simpleName}"
                 }
             }) { Text("Importar imagen…") }
-            message?.let { Text(it, style = MaterialTheme.typography.body2) }
-            Divider()
+            message?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+            HorizontalDivider()
             if (list.isEmpty()) {
-                Text("Todavía no hay imágenes aquí.", style = MaterialTheme.typography.body2)
+                Text("Todavía no hay imágenes aquí.", style = MaterialTheme.typography.bodyMedium)
             }
             if (list.isNotEmpty()) {
                 OutlinedTextField(value = query, onValueChange = { query = it }, label = { Text("Buscar por nombre, carpeta, etiqueta o texto") }, singleLine = true, modifier = Modifier.fillMaxWidth())
@@ -205,14 +205,14 @@ internal fun DesktopHandoutManagerScreen(
                 }
                 matchesFilter && (needle.isEmpty() || listOf(handout.item.displayName, p.folder, p.caption, p.notes, p.tags.joinToString(" ")).any { it.lowercase().contains(needle) })
             }
-            if (list.isNotEmpty() && shown.isEmpty()) Text("Nada coincide con la búsqueda.", style = MaterialTheme.typography.body2)
+            if (list.isNotEmpty() && shown.isEmpty()) Text("Nada coincide con la búsqueda.", style = MaterialTheme.typography.bodyMedium)
             shown.groupBy { it.payload.folder.trim() }.toSortedMap(compareBy<String> { it.isEmpty() }.thenBy { it.lowercase() }).forEach { (folder, inFolder) ->
-                Text("📁 ${folder.ifEmpty { "Sin carpeta" }} · ${inFolder.size}", style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
+                Text("📁 ${folder.ifEmpty { "Sin carpeta" }} · ${inFolder.size}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 inFolder.sortedBy { it.item.displayName.lowercase() }.forEach { handout ->
                     val thumb = remember(handout.payload.sha256) { controller.preview(handout.payload.sha256) }
                     Card(
                         modifier = Modifier.fillMaxWidth().clickable { selectedId = handout.item.identity.id },
-                        elevation = if (handout.item.identity.id == selectedId) 6.dp else 1.dp,
+                        elevation = androidx.compose.material3.CardDefaults.cardElevation(if (handout.item.identity.id == selectedId) 6.dp else 1.dp),
                     ) {
                         Row(modifier = Modifier.padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             if (thumb != null) {
@@ -226,10 +226,10 @@ internal fun DesktopHandoutManagerScreen(
                                         handout.payload.visibility.spanishLabel(),
                                         "📤 Enviado".takeIf { handout.payload.sharedWithPlayers },
                                     ).joinToString(" · "),
-                                    style = MaterialTheme.typography.caption,
+                                    style = MaterialTheme.typography.bodySmall,
                                 )
-                                handout.payload.caption.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.caption, maxLines = 2) }
-                                if (handout.payload.tags.isNotEmpty()) Text(handout.payload.tags.joinToString(" ") { "#$it" }, style = MaterialTheme.typography.caption)
+                                handout.payload.caption.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 2) }
+                                if (handout.payload.tags.isNotEmpty()) Text(handout.payload.tags.joinToString(" ") { "#$it" }, style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
@@ -301,7 +301,7 @@ private fun HandoutEditor(
                 modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp),
             )
         } else {
-            Text("La imagen no está en este computador todavía.", style = MaterialTheme.typography.body2)
+            Text("La imagen no está en este computador todavía.", style = MaterialTheme.typography.bodyMedium)
         }
         Text(
             listOfNotNull(
@@ -309,7 +309,7 @@ private fun HandoutEditor(
                 if (handout.payload.width != null && handout.payload.height != null) "${handout.payload.width}×${handout.payload.height}" else null,
                 "${handout.payload.sizeBytes / 1024} KB",
             ).joinToString(" · "),
-            style = MaterialTheme.typography.caption,
+            style = MaterialTheme.typography.bodySmall,
         )
         OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth())
         Text("Tipo", fontWeight = FontWeight.Bold)
@@ -328,7 +328,7 @@ private fun HandoutEditor(
         }
         // Redesign A7 (owner observation G2): only a PLAYER_SAFE image can be sent; their App shows it after syncing.
         Row(verticalAlignment = Alignment.CenterVertically) {
-            androidx.compose.material.Checkbox(
+            androidx.compose.material3.Checkbox(
                 checked = shared && visibility == HandoutVisibility.PLAYER_SAFE,
                 enabled = visibility == HandoutVisibility.PLAYER_SAFE,
                 onCheckedChange = { shared = it },
@@ -342,7 +342,7 @@ private fun HandoutEditor(
         OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas del DM") }, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(value = folder, onValueChange = { folder = it }, label = { Text("Carpeta (por ejemplo «Ciudad» o «La Torre»)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(value = tags, onValueChange = { tags = it }, label = { Text("Etiquetas, separadas por coma") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-        error?.let { Text(it, color = MaterialTheme.colors.error) }
+        error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = {
                 if (name.isBlank()) {

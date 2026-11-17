@@ -79,65 +79,6 @@ internal class DesktopDmPlatform(
     override val exitLabel: String = "← Mesa de trabajo"
 }
 
-/**
- * One palette across the Windows app (owner request 2026-11-12): the DM desks take the theme and
- * the font chosen in Configuración, the same ones the workbench (Material 2) already uses, instead
- * of Material 3's own defaults. Container colors are blends of the theme's own colors.
- */
-@Composable
-internal fun desktopDmColorScheme(): ColorScheme {
-    val c = androidx.compose.material.MaterialTheme.colors
-    val containerOf = { tint: Color -> lerp(c.surface, tint, if (c.isLight) 0.18f else 0.30f) }
-    val surfaceVariant = lerp(c.surface, c.onSurface, 0.10f)
-    val base = if (c.isLight) lightColorScheme() else darkColorScheme()
-    return base.copy(
-        primary = c.primary,
-        onPrimary = c.onPrimary,
-        primaryContainer = containerOf(c.primary),
-        onPrimaryContainer = c.onSurface,
-        inversePrimary = c.primaryVariant,
-        secondary = c.secondary,
-        onSecondary = c.onSecondary,
-        secondaryContainer = containerOf(c.secondary),
-        onSecondaryContainer = c.onSurface,
-        tertiary = c.secondaryVariant,
-        background = c.background,
-        onBackground = c.onBackground,
-        surface = c.surface,
-        onSurface = c.onSurface,
-        surfaceVariant = surfaceVariant,
-        onSurfaceVariant = c.onSurface.copy(alpha = 0.74f),
-        surfaceTint = c.primary,
-        surfaceContainerLowest = c.background,
-        surfaceContainerLow = lerp(c.background, c.surface, 0.5f),
-        surfaceContainer = c.surface,
-        surfaceContainerHigh = lerp(c.surface, c.onSurface, 0.05f),
-        surfaceContainerHighest = surfaceVariant,
-        error = c.error,
-        onError = c.onError,
-        errorContainer = containerOf(c.error),
-        onErrorContainer = c.onSurface,
-        outline = c.onSurface.copy(alpha = 0.42f),
-        outlineVariant = c.onSurface.copy(alpha = 0.18f),
-    )
-}
-
-/** The same font family as the workbench, on every Material 3 text style. */
-@Composable
-internal fun desktopDmTypography(): Typography {
-    val family = androidx.compose.material.MaterialTheme.typography.body1.fontFamily
-    val t = Typography()
-    if (family == null) return t
-    fun TextStyle.f() = copy(fontFamily = family)
-    return t.copy(
-        displayLarge = t.displayLarge.f(), displayMedium = t.displayMedium.f(), displaySmall = t.displaySmall.f(),
-        headlineLarge = t.headlineLarge.f(), headlineMedium = t.headlineMedium.f(), headlineSmall = t.headlineSmall.f(),
-        titleLarge = t.titleLarge.f(), titleMedium = t.titleMedium.f(), titleSmall = t.titleSmall.f(),
-        bodyLarge = t.bodyLarge.f(), bodyMedium = t.bodyMedium.f(), bodySmall = t.bodySmall.f(),
-        labelLarge = t.labelLarge.f(), labelMedium = t.labelMedium.f(), labelSmall = t.labelSmall.f(),
-    )
-}
-
 @Composable
 internal fun DesktopDmWorkspaceScreen(
     campaign: Campaign,
@@ -150,7 +91,7 @@ internal fun DesktopDmWorkspaceScreen(
 ) {
     var accountId by remember { mutableStateOf(platform.store.getString("account_id")?.let { runCatching { Uuid.parse(it) }.getOrNull() }) }
     // The workbench uses Material 2; the shared desks use Material 3 with the very same theme and font.
-    MaterialTheme(colorScheme = desktopDmColorScheme(), typography = desktopDmTypography()) {
+    run {
         DmWorkspaceScreen(
             campaign = campaign,
             database = database,

@@ -91,3 +91,20 @@ Se recomienda al propietario no hacer todavía el QA de preqa.3. El refactor pro
 - **Textos y nombres.** Se quitaron los textos de «PRUEBA INTERNA» de las pantallas y el nombre «PREQA» del PDF de la tablet. Ahora se llama «<PJ> - Hoja de PJ V11 A.pdf», igual que en Windows.
 - **Sin cambios.** Los archivos del renderizador V11, su medidor de fuentes, el cargador de recursos y el planificador compartido no se tocaron, así que el PDF V11 no cambia. Las plantillas y fuentes del propietario en `assets/` se conservan.
 - **Pendiente del proceso V11.** El PDF V11 todavía imprime «PRUEBA INTERNA V11 - NO APROBADA» en el pie de página. Es parte de la hoja contractual y se decide con su QA, no en el refactor.
+
+### F2: un solo estilo (2026-11-17)
+
+- **Tema único.** La App de PC usa solo Material 3 (antes, la mesa de trabajo usaba Material 2 y las mesas, Material 3). Los nueve temas de Configuración (Sistema, Claro, Oscuro, Gris, Púrpura, Cian, Azul noche, Verde bosque, Pergamino) conservan sus mismos colores, ahora como paletas propias (`DesktopPalette`) que alimentan un único `ColorScheme`. La fuente elegida se aplica a todos los estilos de texto.
+- **Pantallas convertidas.** Las 21 pantallas de Windows pasaron a Material 3:
+  - texto, botones, tarjetas, campos, menús y diálogos;
+  - divisores como `HorizontalDivider`;
+  - estilos de texto según la tabla de equivalencias (h4 → headlineMedium, caption → bodySmall…);
+  - elevaciones de tarjeta y superficie con su forma nueva.
+- **Sin Material 2.** Se quitó la dependencia de Material 2 de la App de PC, para que no vuelva a entrar.
+- **Un solo tema en las mesas.** Las mesas ya no aplican un segundo tema propio: usan el de la App.
+- **Pieza compartida.** `DmScreenHeader` (en `dmUi`) es la cabecera de pantalla con título, línea de propósito, «← Atrás» y «? ¿Cómo se usa?». La usan la mesa de trabajo de Windows (`WorkbenchHeading`) y la pantalla Reglas, en Windows y en la tablet.
+- **Recorrido nuevo con capturas.** `DesktopWorkbenchTourTest` abre Inicio, Preparar, Lugares y tiendas, Dungeons, Personajes, Reglas, Handouts y mapas, Campañas y Configuración con contenido, y guarda una captura de cada una en `desktopApp/build/workbench-tour/`. Falla si alguna pantalla no abre.
+- **Visto en las capturas, para F4 y el punto 6:**
+  - quedan textos técnicos («Gestor de Escenarios», «Stage», «Personal», «auditarlo», «PC locales», «workbench»);
+  - Configuración tiene su propia cabecera;
+  - en el plano de dungeon, dos zonas sin posición quedan pegadas y tapan el pasaje.

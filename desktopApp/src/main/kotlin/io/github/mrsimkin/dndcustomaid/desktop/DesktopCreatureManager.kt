@@ -11,18 +11,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.OutlinedButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -193,10 +193,10 @@ fun CreatureManagerScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de criaturas / monstruos", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+            Text("Gestor de criaturas / monstruos", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Text(
                 "Biblioteca local Personal y de la campaña activa. Los cambios de campaña son independientes del original Personal.",
-                style = MaterialTheme.typography.body1,
+                style = MaterialTheme.typography.bodyLarge,
             )
         }
 
@@ -254,7 +254,7 @@ fun CreatureManagerScreen(
                 title = { Text("Monstruos del SRD") },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Elige uno: queda como criatura de «${activeCampaign.name}» y puedes ajustarlo.", style = MaterialTheme.typography.caption)
+                        Text("Elige uno: queda como criatura de «${activeCampaign.name}» y puedes ajustarlo.", style = MaterialTheme.typography.bodySmall)
                         OutlinedTextField(value = srdQuery, onValueChange = { srdQuery = it }, label = { Text("Buscar por nombre o VD") }, singleLine = true)
                         Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
                             io.github.mrsimkin.dndcustomaid.shared.dm.searchSrdMonsters(controller.srdMonsters, srdQuery).forEach { monster ->
@@ -280,12 +280,12 @@ fun CreatureManagerScreen(
                 "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
                     "Inicia/sincroniza una campaña alojada con tu cuenta DM para establecer esa identidad. " +
                     "El contenido de campaña local sigue disponible.",
-                style = MaterialTheme.typography.caption,
+                style = MaterialTheme.typography.bodySmall,
             )
         }
-        statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
+        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
-        Divider()
+        HorizontalDivider()
 
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -300,13 +300,13 @@ fun CreatureManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxHeight().width(1.dp))
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona una criatura para abrirla.", style = MaterialTheme.typography.h6)
+                    Text("Selecciona una criatura para abrirla.", style = MaterialTheme.typography.titleLarge)
                     Text("Personal: ${personalCreatures.size} • Campaña activa: ${campaignCreatures.size}")
                 }
             } else {
@@ -375,26 +375,26 @@ private fun CreatureList(
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         item {
-            Text("Criaturas (${creatures.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Criaturas (${creatures.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (creatures.isEmpty()) {
-            item { Text("No hay criaturas que coincidan con el filtro.", style = MaterialTheme.typography.caption) }
+            item { Text("No hay criaturas que coincidan con el filtro.", style = MaterialTheme.typography.bodySmall) }
         }
         items(creatures, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onSelect(content.item.identity.id) },
-                elevation = if (selected) 6.dp else 1.dp,
+                elevation = androidx.compose.material3.CardDefaults.cardElevation(if (selected) 6.dp else 1.dp),
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text(scopeLabel(content), style = MaterialTheme.typography.caption)
+                    Text(scopeLabel(content), style = MaterialTheme.typography.bodySmall)
                     val detail = listOf(
                         content.payload.size,
                         content.payload.creatureType,
                         content.payload.challengeRating.takeIf { it.isNotBlank() }?.let { "CR $it" }.orEmpty(),
                     ).filter { it.isNotBlank() }.joinToString(" • ")
-                    if (detail.isNotBlank()) Text(detail, style = MaterialTheme.typography.caption)
+                    if (detail.isNotBlank()) Text(detail, style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
@@ -422,15 +422,15 @@ private fun CreatureEditor(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Editor de criatura", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
-                    Text(scopeLabel(content), style = MaterialTheme.typography.caption)
+                    Text("Editor de criatura", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    Text(scopeLabel(content), style = MaterialTheme.typography.bodySmall)
                     content.item.identity.provenance?.let { provenance ->
                         Text(
                             "Proveniencia: ${provenance.sourceScope.displayLabel()} • ${provenance.sourceObjectId.toString().take(8)}…",
-                            style = MaterialTheme.typography.caption,
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
-                    Text("Revisión ${content.item.identity.revision.value}", style = MaterialTheme.typography.caption)
+                    Text("Revisión ${content.item.identity.revision.value}", style = MaterialTheme.typography.bodySmall)
                 }
                 Button(onClick = onSave) { Text("Guardar") }
                 if (content.item.identity.scope is ContentScope.Personal) {
@@ -460,7 +460,7 @@ private fun CreatureEditor(
         }
         item { EditorTextField("Velocidad", draft.speed) { onDraftChange(draft.copy(speed = it)) } }
         item {
-            Text("Características", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Características", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 EditorTextField("FUE", draft.strength, Modifier.weight(1f), true) { onDraftChange(draft.copy(strength = it)) }
                 EditorTextField("DES", draft.dexterity, Modifier.weight(1f), true) { onDraftChange(draft.copy(dexterity = it)) }

@@ -117,32 +117,20 @@ fun RulesLibraryScreen(
     var tab by remember { mutableStateOf(RulesTab.SRD_55E) }
     var catalogs by remember { mutableStateOf<List<SrdCatalog>?>(null) }
     var corpora by remember { mutableStateOf<List<SrdCorpus>?>(null) }
-    var showHelp by remember { mutableStateOf(false) }
     var layouts by remember { mutableStateOf<List<SrdLayout>>(emptyList()) }
     LaunchedEffect(Unit) { catalogs = SrdCatalogAssets.catalogs(platform) }
     LaunchedEffect(Unit) { layouts = SrdLayoutAssets.layouts(platform) }
     LaunchedEffect(tab) { if (tab == RulesTab.TEXT && corpora == null) corpora = SrdAssets.corpora(platform) }
 
     Column(modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            onBack?.let { TextButton(onClick = it, modifier = Modifier.handCursor()) { Text("← Atrás") } }
-            Column(Modifier.weight(1f)) {
-                Text("Reglas", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                Text("El SRD para leer y tu homebrew, en dos orígenes separados.", style = MaterialTheme.typography.bodySmall)
-            }
-            TextButton(onClick = { showHelp = !showHelp }, modifier = Modifier.handCursor()) { Text("? ¿Cómo se usa?") }
-        }
-        if (showHelp) {
-            Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.small) {
-                Text(
-                    "«SRD 5e» y «SRD 5.5e» muestran las reglas oficiales gratuitas por tipo: razas, clases, conjuros, armas… " +
-                        "«Homebrew» es tu biblioteca: lo que agregues aquí aparece después del SRD cuando eliges algo para un PJ. " +
-                        "«Texto completo del SRD» busca en todo el documento y lo lee página a página.",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(10.dp),
-                )
-            }
-        }
+        DmScreenHeader(
+            title = "Reglas",
+            subtitle = "El SRD para leer y tu homebrew, en dos orígenes separados.",
+            onBack = onBack,
+            help = "«SRD 5e» y «SRD 5.5e» muestran las reglas oficiales gratuitas por tipo: razas, clases, conjuros, armas… " +
+                "«Homebrew» es tu biblioteca: lo que agregues aquí aparece después del SRD cuando eliges algo para un PJ. " +
+                "«Texto completo del SRD» busca en todo el documento y lo lee página a página.",
+        )
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             RulesTab.entries.forEach { candidate ->
                 FilterChip(selected = tab == candidate, onClick = { tab = candidate }, label = { Text(candidate.label) }, modifier = Modifier.handCursor())

@@ -1,7 +1,6 @@
 package io.github.mrsimkin.dndcustomaid.desktop
 
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.darkColors
+import androidx.compose.material3.Surface
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.test.ExperimentalTestApi
@@ -39,8 +38,8 @@ class DesktopDungeonEditorTest {
         val controller = DesktopDungeonEditorController(database, InMemoryMediaBlobStore())
 
         setContent {
-            MaterialTheme(colors = darkColors()) {
-                androidx.compose.material.Surface {
+            DesktopAppTheme(DesktopPreferences(themeChoice = DesktopThemeChoice.DARK)) {
+                Surface {
                     DesktopDungeonEditorScreen(controller, campaign, onOpenZone = {}, onQaEvent = {})
                 }
             }

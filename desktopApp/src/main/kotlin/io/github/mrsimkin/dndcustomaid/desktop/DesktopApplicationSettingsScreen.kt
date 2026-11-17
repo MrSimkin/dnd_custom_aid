@@ -12,14 +12,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Slider
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,12 +44,12 @@ internal fun DesktopApplicationSettingsScreen(
             Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(4.dp))) {
                 Text(
                     text = "Configuración de la aplicación",
-                    style = MaterialTheme.typography.h4,
+                    style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                 )
                 Text(
                     text = "Preferencias de este dispositivo con vista previa antes de seleccionar fuente y tema.",
-                    style = MaterialTheme.typography.body1,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
             }
         }
@@ -100,19 +100,19 @@ internal fun DesktopApplicationSettingsScreen(
         }
 
         item {
-            Card(modifier = Modifier.fillMaxWidth(), elevation = 2.dp) {
+            Card(modifier = Modifier.fillMaxWidth(), elevation = androidx.compose.material3.CardDefaults.cardElevation(2.dp)) {
                 Column(
                     modifier = Modifier.padding(desktopSpacing(18.dp)),
                     verticalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp)),
                 ) {
-                    Text("Vista previa actual", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
-                    Text("Alyra Voss · Maga 7", style = MaterialTheme.typography.h6)
+                    Text("Vista previa actual", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text("Alyra Voss · Maga 7", style = MaterialTheme.typography.titleLarge)
                     Text("CD 15 · CA 17 · 1d20 + 7")
                     Text(
                         "${preferences.themeChoice.label} · ${preferences.fontChoice.label} · " +
                             "Texto ${preferences.fontScalePercent}% · Espacios ${preferences.spacingScalePercent}% · " +
                             preferences.workspaceDensity.label,
-                        style = MaterialTheme.typography.caption,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
             }
@@ -127,15 +127,15 @@ private fun FontPreviewSelector(
 ) {
     val choices = remember { DesktopFontChoice.selectableChoices() }
 
-    Card(modifier = Modifier.fillMaxWidth(), elevation = 2.dp) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = androidx.compose.material3.CardDefaults.cardElevation(2.dp)) {
         Column(
             modifier = Modifier.padding(desktopSpacing(18.dp)),
             verticalArrangement = Arrangement.spacedBy(desktopSpacing(10.dp)),
         ) {
-            Text("Fuente", style = MaterialTheme.typography.h6)
+            Text("Fuente", style = MaterialTheme.typography.titleLarge)
             Text(
                 "Cada opción se muestra con la fuente que realmente usará. Las fuentes Android no instaladas en este equipo no se ofrecen bajo un nombre falso.",
-                style = MaterialTheme.typography.caption,
+                style = MaterialTheme.typography.bodySmall,
             )
 
             choices.forEach { choice ->
@@ -144,7 +144,7 @@ private fun FontPreviewSelector(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onSelect(choice) },
-                    elevation = if (isSelected) 6.dp else 1.dp,
+                    elevation = androidx.compose.material3.CardDefaults.cardElevation(if (isSelected) 6.dp else 1.dp),
                 ) {
                     Row(
                         modifier = Modifier
@@ -166,7 +166,7 @@ private fun FontPreviewSelector(
                             Text(
                                 "El velo púrpura cubre el antiguo observatorio.",
                                 fontFamily = choice.family,
-                                style = MaterialTheme.typography.caption,
+                                style = MaterialTheme.typography.bodySmall,
                             )
                         }
                         Button(onClick = { onSelect(choice) }) {
@@ -185,15 +185,15 @@ private fun ThemePreviewSelector(
     fontChoice: DesktopFontChoice,
     onSelect: (DesktopThemeChoice) -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth(), elevation = 2.dp) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = androidx.compose.material3.CardDefaults.cardElevation(2.dp)) {
         Column(
             modifier = Modifier.padding(desktopSpacing(18.dp)),
             verticalArrangement = Arrangement.spacedBy(desktopSpacing(10.dp)),
         ) {
-            Text("Tema", style = MaterialTheme.typography.h6)
+            Text("Tema", style = MaterialTheme.typography.titleLarge)
             Text(
                 "Vista previa de fondo, superficie y acentos antes de aplicar el tema al workbench.",
-                style = MaterialTheme.typography.caption,
+                style = MaterialTheme.typography.bodySmall,
             )
 
             DesktopThemeChoice.entries.forEach { choice ->
@@ -215,17 +215,17 @@ private fun ThemePreviewCard(
     fontChoice: DesktopFontChoice,
     onSelect: () -> Unit,
 ) {
-    val previewColors = desktopColors(choice)
+    val previewColors = desktopPalette(choice)
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onSelect),
-        elevation = if (selected) 6.dp else 1.dp,
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(if (selected) 6.dp else 1.dp),
     ) {
         MaterialTheme(
-            colors = previewColors,
-            typography = androidx.compose.material.Typography(defaultFontFamily = fontChoice.family),
+            colorScheme = desktopColorScheme(previewColors),
+            typography = desktopTypography(fontChoice.family),
         ) {
             Surface(
                 color = previewColors.background,
@@ -241,8 +241,8 @@ private fun ThemePreviewCard(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(choice.label, fontWeight = FontWeight.Bold)
-                            Text("Alyra Voss · Maga 7", style = MaterialTheme.typography.subtitle1)
-                            Text("CA 17 · CD 15 · Concentración", style = MaterialTheme.typography.caption)
+                            Text("Alyra Voss · Maga 7", style = MaterialTheme.typography.titleMedium)
+                            Text("CA 17 · CD 15 · Concentración", style = MaterialTheme.typography.bodySmall)
                         }
                         Button(onClick = onSelect) {
                             Text(if (selected) "Seleccionado" else "Usar")
@@ -278,7 +278,7 @@ private fun DesktopPercentSlider(
     detail: String,
 ) {
     val currentIndex = options.indexOf(value).coerceAtLeast(0)
-    Card(modifier = Modifier.fillMaxWidth(), elevation = 2.dp) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = androidx.compose.material3.CardDefaults.cardElevation(2.dp)) {
         Column(
             modifier = Modifier.padding(desktopSpacing(18.dp)),
             verticalArrangement = Arrangement.spacedBy(desktopSpacing(6.dp)),
@@ -298,10 +298,10 @@ private fun DesktopPercentSlider(
                 steps = (options.size - 2).coerceAtLeast(0),
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("${options.first()}%", style = MaterialTheme.typography.caption)
-                Text("${options.last()}%", style = MaterialTheme.typography.caption)
+                Text("${options.first()}%", style = MaterialTheme.typography.bodySmall)
+                Text("${options.last()}%", style = MaterialTheme.typography.bodySmall)
             }
-            Text(detail, style = MaterialTheme.typography.caption)
+            Text(detail, style = MaterialTheme.typography.bodySmall)
         }
     }
 }
@@ -315,7 +315,7 @@ private fun <T> DesktopSimpleSelector(
     onSelect: (T) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Card(modifier = Modifier.fillMaxWidth(), elevation = 2.dp) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = androidx.compose.material3.CardDefaults.cardElevation(2.dp)) {
         Row(
             modifier = Modifier.padding(desktopSpacing(18.dp)),
             verticalAlignment = Alignment.CenterVertically,
@@ -329,13 +329,12 @@ private fun <T> DesktopSimpleSelector(
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     options.forEach { option ->
                         DropdownMenuItem(
+                            text = { Text(optionLabel(option)) },
                             onClick = {
                                 onSelect(option)
                                 expanded = false
                             },
-                        ) {
-                            Text(optionLabel(option))
-                        }
+                        )
                     }
                 }
             }

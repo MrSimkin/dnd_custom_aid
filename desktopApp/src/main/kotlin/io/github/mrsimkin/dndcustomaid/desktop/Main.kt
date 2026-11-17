@@ -16,15 +16,15 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
-import androidx.compose.material.TextField
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -95,7 +95,7 @@ fun main() {
                 var preferences by remember { mutableStateOf(preferencesStore.load()) }
 
                 DesktopAppTheme(preferences) {
-                    Surface(color = MaterialTheme.colors.background, modifier = Modifier.fillMaxSize()) {
+                    Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
                         DesktopAccountGateScreen(session = accountSession, onExit = ::exitApplication) {
                             ProvideDesktopContentLinks(contentLinksController) {
                                 DesktopWorkbench(
@@ -149,7 +149,7 @@ internal enum class DesktopDestination(val label: String, val purpose: String, v
 }
 
 @Composable
-private fun DesktopWorkbench(
+internal fun DesktopWorkbench(
     database: AppDatabase,
     mediaBlobs: MediaBlobStore,
     dmPlatform: DesktopDmPlatform,
@@ -221,7 +221,7 @@ private fun DesktopWorkbench(
                 density = preferences.workspaceDensity,
                 onSelect = ::selectDestination,
             )
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxHeight().width(1.dp))
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -312,7 +312,7 @@ private fun WorkbenchNavigation(
     onSelect: (DesktopDestination) -> Unit,
 ) {
     Surface(
-        elevation = 2.dp,
+        shadowElevation = 2.dp,
         modifier = Modifier
             .width(density.navigationWidth())
             .fillMaxHeight(),
@@ -324,7 +324,7 @@ private fun WorkbenchNavigation(
             val (main, lower) = DesktopDestination.entries.partition { !it.lower }
             main.forEach { NavigationEntry(it, it == selected, onSelect) }
             Spacer(Modifier.weight(1f))
-            Divider()
+            HorizontalDivider()
             lower.forEach { NavigationEntry(it, it == selected, onSelect) }
         }
     }
@@ -364,9 +364,9 @@ private fun HomeScreen(
     Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(16.dp))) {
         WorkbenchHeading(title = "Inicio", subtitle = DesktopDestination.HOME.purpose)
         if (activeCampaign == null) {
-            Card(elevation = 2.dp, modifier = Modifier.widthIn(max = 760.dp)) {
+            Card(elevation = androidx.compose.material3.CardDefaults.cardElevation(2.dp), modifier = Modifier.widthIn(max = 760.dp)) {
                 Column(Modifier.padding(desktopSpacing(20.dp)), verticalArrangement = Arrangement.spacedBy(desktopSpacing(10.dp))) {
-                    Text("Aún no abres una campaña", style = MaterialTheme.typography.h6)
+                    Text("Aún no abres una campaña", style = MaterialTheme.typography.titleLarge)
                     Text("Elige una de tus campañas o crea una nueva. Al crearla, quedas como su DM.")
                     Button(onClick = { onOpen(DesktopDestination.CAMPAIGNS) }) { Text("Ir a Campañas") }
                 }
@@ -374,7 +374,7 @@ private fun HomeScreen(
             return@Column
         }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(desktopSpacing(10.dp))) {
-            Text(activeCampaign.name, style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+            Text(activeCampaign.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             access?.let { AccessChip(it) }
         }
         if (access?.blocksDm == true) {
@@ -388,7 +388,7 @@ private fun HomeScreen(
         }
         Text(
             "Lo que preparas aquí llega a la tablet al sincronizar, y lo que cambias en la tablet llega aquí.",
-            style = MaterialTheme.typography.body2,
+            style = MaterialTheme.typography.bodyMedium,
         )
     }
 }
@@ -397,8 +397,8 @@ private fun HomeScreen(
 private fun BigAction(title: String, subtitle: String, primary: Boolean = false, onClick: () -> Unit) {
     val content: @Composable () -> Unit = {
         Column(Modifier.padding(vertical = 10.dp, horizontal = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(title, style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
-            Text(subtitle, style = MaterialTheme.typography.caption)
+            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall)
         }
     }
     if (primary) {
@@ -430,7 +430,7 @@ private fun CampaignsScreen(
     ) {
         WorkbenchHeading(title = "Campañas", subtitle = DesktopDestination.CAMPAIGNS.purpose)
 
-        Card(modifier = Modifier.fillMaxWidth(), elevation = 2.dp) {
+        Card(modifier = Modifier.fillMaxWidth(), elevation = androidx.compose.material3.CardDefaults.cardElevation(2.dp)) {
             Row(
                 modifier = Modifier.padding(desktopSpacing(16.dp)),
                 verticalAlignment = Alignment.CenterVertically,
@@ -470,17 +470,17 @@ private fun CampaignsScreen(
                             .fillMaxWidth()
                             .handCursor()
                             .clickable { onActivate(campaign) },
-                        elevation = if (isActive) 6.dp else 1.dp,
+                        elevation = androidx.compose.material3.CardDefaults.cardElevation(if (isActive) 6.dp else 1.dp),
                     ) {
                         Column(Modifier.padding(desktopSpacing(16.dp)), verticalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(desktopSpacing(10.dp))) {
                                 Text(
                                     text = campaign.name,
-                                    style = MaterialTheme.typography.subtitle1,
+                                    style = MaterialTheme.typography.titleMedium,
                                     fontWeight = if (isActive) FontWeight.Bold else FontWeight.Normal,
                                 )
                                 AccessChip(access)
-                                if (isActive) Text("· abierta", style = MaterialTheme.typography.caption)
+                                if (isActive) Text("· abierta", style = MaterialTheme.typography.bodySmall)
                                 Spacer(Modifier.weight(1f))
                                 if (access == DesktopCampaignAccess.NOT_MEMBER) {
                                     Unit
@@ -493,15 +493,15 @@ private fun CampaignsScreen(
                             when (access) {
                                 DesktopCampaignAccess.PLAYER -> Text(
                                     "Con ${accountSession.email ?: "esta cuenta"} eres Jugador aquí. Para prepararla o dirigirla, entra con la cuenta que es DM.",
-                                    style = MaterialTheme.typography.caption,
+                                    style = MaterialTheme.typography.bodySmall,
                                 )
                                 DesktopCampaignAccess.LOCAL_ONLY -> Text(
                                     "Esta campaña está solo en este equipo: no llega a la tablet.",
-                                    style = MaterialTheme.typography.caption,
+                                    style = MaterialTheme.typography.bodySmall,
                                 )
                                 DesktopCampaignAccess.NOT_MEMBER -> Text(
                                     "Con ${accountSession.email ?: "esta cuenta"} no eres parte de esta campaña: es de otra cuenta que usó este equipo.",
-                                    style = MaterialTheme.typography.caption,
+                                    style = MaterialTheme.typography.bodySmall,
                                 )
                                 DesktopCampaignAccess.DM -> Unit
                             }
@@ -521,7 +521,7 @@ private fun DesktopRulesScreen(
     accountSession: DesktopAccountSession,
     activeCampaign: Campaign?,
 ) {
-    androidx.compose.material3.MaterialTheme(colorScheme = desktopDmColorScheme(), typography = desktopDmTypography()) {
+    run {
         androidx.compose.runtime.CompositionLocalProvider(io.github.mrsimkin.dndcustomaid.dmui.LocalDmPlatform provides platform) {
             io.github.mrsimkin.dndcustomaid.dmui.RulesLibraryScreen(
                 platform = platform,
@@ -562,13 +562,13 @@ private fun QaDiagnosticsScreen(
         item { WorkbenchHeading(title = "Diagnóstico", subtitle = DesktopDestination.DIAGNOSTICS.purpose) }
         item {
             // Redesign R7: loads a prepared campaign (a content bundle) into the open campaign, once.
-            Card(modifier = Modifier.fillMaxWidth(), elevation = 2.dp) {
+            Card(modifier = Modifier.fillMaxWidth(), elevation = androidx.compose.material3.CardDefaults.cardElevation(2.dp)) {
                 Column(Modifier.padding(desktopSpacing(16.dp)), verticalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {
-                    Text("Cargar paquete de contenido", style = MaterialTheme.typography.h6)
+                    Text("Cargar paquete de contenido", style = MaterialTheme.typography.titleLarge)
                     Text(
                         "Carga en la campaña abierta un paquete preparado (.json): lugares, PNJ, escenas, dungeons, handouts, notas, " +
                             "homebrew y los PJ. Cargarlo otra vez no duplica nada. Después usa «⟳ Sincronizar» para llevarlo a la tablet.",
-                        style = MaterialTheme.typography.body2,
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                     var loading by remember { mutableStateOf(false) }
                     val loadScope = rememberCoroutineScope()
@@ -590,7 +590,7 @@ private fun QaDiagnosticsScreen(
                             onLoaded(summary)
                         }
                     }) { Text(if (loading) "Cargando…" else "Elegir paquete y cargar") }
-                    if (activeCampaign == null) Text("Primero abre una campaña.", style = MaterialTheme.typography.caption)
+                    if (activeCampaign == null) Text("Primero abre una campaña.", style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
@@ -599,20 +599,20 @@ private fun QaDiagnosticsScreen(
                 Button(onClick = { copyToClipboard(snapshot) }) { Text("Copiar diagnóstico") }
                 Text(
                     "También puedes seleccionar el texto a mano.",
-                    style = MaterialTheme.typography.caption,
+                    style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.align(Alignment.CenterVertically),
                 )
             }
         }
         item {
-            Card(modifier = Modifier.fillMaxWidth(), elevation = 2.dp) {
+            Card(modifier = Modifier.fillMaxWidth(), elevation = androidx.compose.material3.CardDefaults.cardElevation(2.dp)) {
                 SelectionContainer {
-                    Text(snapshot, modifier = Modifier.padding(desktopSpacing(18.dp)), style = MaterialTheme.typography.body2)
+                    Text(snapshot, modifier = Modifier.padding(desktopSpacing(18.dp)), style = MaterialTheme.typography.bodyMedium)
                 }
             }
         }
         item {
-            Text("El diagnóstico nunca incluye claves ni códigos de acceso.", style = MaterialTheme.typography.caption)
+            Text("El diagnóstico nunca incluye claves ni códigos de acceso.", style = MaterialTheme.typography.bodySmall)
         }
     }
 }
@@ -665,23 +665,8 @@ internal val SCREEN_HELP: Map<String, String> = mapOf(
 )
 
 @Composable
-internal fun WorkbenchHeading(title: String, subtitle: String, help: String? = SCREEN_HELP[title]) {
-    var showHelp by remember(title) { mutableStateOf(false) }
-    Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(4.dp))) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp))) {
-            Text(text = title, style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
-            if (help != null) {
-                TextButton(onClick = { showHelp = !showHelp }, modifier = Modifier.handCursor()) { Text("? ¿Cómo se usa?") }
-            }
-        }
-        Text(text = subtitle, style = MaterialTheme.typography.body1)
-        if (showHelp && help != null) {
-            Surface(color = MaterialTheme.colors.secondary.copy(alpha = 0.12f), shape = MaterialTheme.shapes.small) {
-                Text(help, style = MaterialTheme.typography.body2, modifier = Modifier.padding(desktopSpacing(10.dp)))
-            }
-        }
-    }
-}
+internal fun WorkbenchHeading(title: String, subtitle: String, help: String? = SCREEN_HELP[title]) =
+    io.github.mrsimkin.dndcustomaid.dmui.DmScreenHeader(title = title, subtitle = subtitle, help = help)
 
 private fun DesktopWorkspaceDensity.navigationWidth(): Dp = when (this) {
     DesktopWorkspaceDensity.COMFORTABLE -> 250.dp

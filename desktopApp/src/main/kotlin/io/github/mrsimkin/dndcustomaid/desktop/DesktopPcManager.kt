@@ -12,13 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
@@ -233,7 +233,7 @@ internal fun DesktopPcManagerScreen(
 
     if (activeCampaign == null) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("PC Manager / Auditoría", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
+            Text("PC Manager / Auditoría", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Text("Selecciona una campaña activa para inspeccionar sus personajes jugadores.")
         }
         return
@@ -273,8 +273,8 @@ internal fun DesktopPcManagerScreen(
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
-        statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
-        Divider()
+        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+        HorizontalDivider()
 
         Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             LazyColumn(
@@ -284,7 +284,7 @@ internal fun DesktopPcManagerScreen(
                 item {
                     Text(
                         "Personajes de " + activeCampaign.name + " (" + visiblePcs.size + ")",
-                        style = MaterialTheme.typography.subtitle1,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                     )
                 }
@@ -302,32 +302,32 @@ internal fun DesktopPcManagerScreen(
                             selectedControllerId = null
                             statusMessage = null
                         },
-                        elevation = if (selected) 6.dp else 1.dp,
+                        elevation = androidx.compose.material3.CardDefaults.cardElevation(if (selected) 6.dp else 1.dp),
                     ) {
                         Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(character.name, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                            controller.player(character.id)?.let { Text("Jugador/a: " + it, style = MaterialTheme.typography.caption) }
+                            controller.player(character.id)?.let { Text("Jugador/a: " + it, style = MaterialTheme.typography.bodySmall) }
                             Text(
                                 pcStatusLabel(character.status) + " • nivel " + character.totalLevel,
-                                style = MaterialTheme.typography.caption,
+                                style = MaterialTheme.typography.bodySmall,
                             )
                             Text(
                                 "Actualizado localmente: " + formatPcEpoch(character.updatedAtEpochSeconds),
-                                style = MaterialTheme.typography.caption,
+                                style = MaterialTheme.typography.bodySmall,
                             )
                         }
                     }
                 }
             }
 
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            HorizontalDivider(modifier = Modifier.fillMaxHeight().width(1.dp))
 
             if (details == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona un personaje para auditarlo.", style = MaterialTheme.typography.h6)
+                    Text("Selecciona un personaje para auditarlo.", style = MaterialTheme.typography.titleLarge)
                     Text("PC locales en campaña: " + pcs.size)
                 }
             } else {
@@ -407,7 +407,7 @@ internal fun DesktopPcManagerScreen(
                     item {
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(details.character.name, style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+                                Text(details.character.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                                 PcPlayerField(
                                     current = controller.player(details.character.id),
                                     key = details.character.id.toString() + refreshVersion,
@@ -420,7 +420,7 @@ internal fun DesktopPcManagerScreen(
                                 Text(
                                     pcStatusLabel(details.character.status) + " • nivel " + details.character.totalLevel +
                                         " • PC " + details.character.id.toString().take(8) + "…",
-                                    style = MaterialTheme.typography.caption,
+                                    style = MaterialTheme.typography.bodySmall,
                                 )
                             }
                             if (!correctionMode && !authorityMode) {
@@ -614,18 +614,18 @@ internal fun DesktopPcManagerScreen(
                             val checkpoints = details.closure.reconciliationCheckpoints
                                 .sortedByDescending { it.createdAtEpochSeconds }
                             if (checkpoints.isEmpty()) {
-                                Text("Sin checkpoints de reconciliación registrados.", style = MaterialTheme.typography.caption)
+                                Text("Sin checkpoints de reconciliación registrados.", style = MaterialTheme.typography.bodySmall)
                             } else {
                                 checkpoints.forEach { checkpoint ->
                                     Text(
                                         checkpoint.label?.takeIf { it.isNotBlank() } ?: "Checkpoint",
                                         fontWeight = FontWeight.Bold,
                                     )
-                                    Text(formatPcEpoch(checkpoint.createdAtEpochSeconds), style = MaterialTheme.typography.caption)
+                                    Text(formatPcEpoch(checkpoint.createdAtEpochSeconds), style = MaterialTheme.typography.bodySmall)
                                     checkpoint.notes?.takeIf { it.isNotBlank() }?.let {
-                                        Text(it, style = MaterialTheme.typography.body2)
+                                        Text(it, style = MaterialTheme.typography.bodyMedium)
                                     }
-                                    Divider()
+                                    HorizontalDivider()
                                 }
                             }
                         }
@@ -651,7 +651,7 @@ private fun PcSheetPdfExportPanel(
 ) {
     // QA 0.7.0-preqa.2 (J8): V11 is the only sheet, as on the tablet; the old families are gone.
     PcAuditSection("Exportar hoja de PJ (PDF)") {
-        Text("Hoja V11, la misma de la tablet. Se genera en este equipo, sin conexión.", style = MaterialTheme.typography.body2)
+        Text("Hoja V11, la misma de la tablet. Se genera en este equipo, sin conexión.", style = MaterialTheme.typography.bodyMedium)
         PcSheetExportChoiceRow(
             label = "Hoja",
             values = PcSheetV11Variant.entries,
@@ -665,7 +665,7 @@ private fun PcSheetPdfExportPanel(
         }
         Text(
             "Compartir prepara un PDF temporal y lo coloca en el portapapeles del sistema como archivo; pégalo en un destino compatible.",
-            style = MaterialTheme.typography.caption,
+            style = MaterialTheme.typography.bodySmall,
         )
     }
 }
@@ -679,7 +679,7 @@ private fun <T> PcSheetExportChoiceRow(
     onSelect: (T) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(label, style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
+        Text(label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             values.forEach { value ->
                 if (value == selected) {
@@ -730,7 +730,7 @@ private fun PcAuthoritySelector(
     onSelect: (Uuid?) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(label, style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
+        Text(label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             if (selectedId == null) {
                 Button(onClick = { onSelect(null) }) { Text("Sin asignar") }
@@ -747,7 +747,7 @@ private fun PcAuthoritySelector(
             }
         }
         if (members.isEmpty()) {
-            Text("No hay miembros activos elegibles.", style = MaterialTheme.typography.caption)
+            Text("No hay miembros activos elegibles.", style = MaterialTheme.typography.bodySmall)
         }
     }
 }
@@ -764,10 +764,10 @@ private fun PcCorrectionEditor(
         Text(
             "Acción explícita y auditada: modifica campos nucleares, agrega un checkpoint de reconciliación " +
                 "y encola el snapshot. Las colecciones complejas permanecen sólo en inspección en este corte.",
-            style = MaterialTheme.typography.body2,
+            style = MaterialTheme.typography.bodyMedium,
         )
         PcCorrectionField("Nombre", draft.name) { onDraftChange(draft.copy(name = it)) }
-        Text("Estado", style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
+        Text("Estado", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             CharacterStatus.entries.forEach { status ->
                 if (draft.status == status) {
@@ -988,9 +988,9 @@ private fun PcSuccessorInspection(state: CharacterSuccessorState) {
 
 @Composable
 private fun PcAuditSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth(), elevation = 1.dp) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = androidx.compose.material3.CardDefaults.cardElevation(1.dp)) {
         Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(title, style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             content()
         }
     }
@@ -999,8 +999,8 @@ private fun PcAuditSection(title: String, content: @Composable ColumnScope.() ->
 @Composable
 private fun PcAuditLine(label: String, value: String) {
     Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-        Text(label, style = MaterialTheme.typography.caption, fontWeight = FontWeight.Bold)
-        Text(value.ifBlank { "—" }, style = MaterialTheme.typography.body2)
+        Text(label, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+        Text(value.ifBlank { "—" }, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
@@ -1141,7 +1141,7 @@ private fun PcPlayerField(current: String?, key: String, onSave: (String) -> Uni
             modifier = Modifier.width(280.dp),
         )
         if (value.trim() != current.orEmpty()) {
-            androidx.compose.material.Button(onClick = { onSave(value) }) { Text("Guardar") }
+            androidx.compose.material3.Button(onClick = { onSave(value) }) { Text("Guardar") }
         }
     }
 }
