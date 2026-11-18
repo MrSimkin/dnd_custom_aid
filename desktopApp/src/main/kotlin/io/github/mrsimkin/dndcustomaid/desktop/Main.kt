@@ -463,7 +463,10 @@ private fun CampaignsScreen(
 
         activeCampaign?.takeIf {
             accountSession.access(it.id).let { a -> a == DesktopCampaignAccess.DM || a == DesktopCampaignAccess.LOCAL_ONLY }
-        }?.let { campaign -> ContentBundleCard(database, mediaBlobs, campaign, accountSession, onLoaded) }
+        }?.let { campaign ->
+            ContentBundleCard(database, mediaBlobs, campaign, accountSession, onLoaded)
+            DesktopCampaignBackupCard(database = database, campaign = campaign, onMessage = onLoaded)
+        }
 
         if (campaigns.isEmpty()) {
             Text("Aún no tienes campañas. Crea una arriba: quedarás como su DM.")
