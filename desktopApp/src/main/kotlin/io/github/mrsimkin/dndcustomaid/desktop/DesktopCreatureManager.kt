@@ -120,6 +120,17 @@ class DesktopCreatureManagerController(
             nowEpochSeconds = nowEpochSeconds(),
         )
 
+    /**
+     * Owner, 2026-11-18: what is prepared can be deleted. It leaves a tombstone, so it also goes
+     * from the tablet when syncing, and waits in «Papelera» in case it was a mistake.
+     */
+    fun delete(current: CreatureContent): RevisionDecision =
+        creatures.tombstone(
+            id = current.item.identity.id,
+            expectedRevision = current.item.identity.revision,
+            deletedAtEpochSeconds = nowEpochSeconds(),
+        )
+
     fun update(
         id: Uuid,
         expectedRevision: Revision,
@@ -284,6 +295,12 @@ fun CreatureManagerScreen(
                 }
             } else {
                 CreatureEditor(
+                    onDelete = {
+                        controller.delete(selected)
+                        statusMessage = "«" + selected.item.displayName + "» quedó en la papelera."
+                        onQaEvent("Creature Manager: borrado " + selected.item.identity.id)
+                        refresh(null)
+                    },
                     content = selected,
                     draft = requireNotNull(draft),
                     activeCampaign = activeCampaign,
@@ -383,6 +400,7 @@ private fun CreatureEditor(
     onDraftChange: (CreatureDraft) -> Unit,
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier,
 ) {
     LazyColumn(
@@ -399,6 +417,7 @@ private fun CreatureEditor(
                     Text("Editor de criatura", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                     scopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                 }
+                DeleteContentButton(name = draft.displayName, what = "esta criatura", onDelete = onDelete)
                 Button(onClick = onSave) { Text("Guardar") }
                 if (content.item.identity.scope is ContentScope.Personal) {
                     Button(onClick = onCopyToCampaign, enabled = activeCampaign != null) {

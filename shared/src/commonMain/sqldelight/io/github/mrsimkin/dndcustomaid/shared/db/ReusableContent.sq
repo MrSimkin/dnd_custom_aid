@@ -88,6 +88,31 @@ WHERE content.scope_kind = :scope_kind
   AND sync.deleted_at_epoch_seconds IS NULL
 ORDER BY content.display_name COLLATE NOCASE, content.id;
 
+selectDeletedReusableContentByScope:
+SELECT
+    content.id,
+    content.family,
+    content.display_name,
+    content.scope_kind,
+    content.scope_ref,
+    content.source_object_id,
+    content.source_scope_kind,
+    content.source_scope_ref,
+    content.copied_at_epoch_seconds,
+    content.created_at_epoch_seconds,
+    content.updated_at_epoch_seconds,
+    sync.revision,
+    sync.deleted_at_epoch_seconds
+FROM reusable_content AS content
+JOIN object_sync_state AS sync
+    ON sync.object_type = 'REUSABLE_CONTENT'
+   AND sync.object_id = content.id
+WHERE content.scope_kind = :scope_kind
+  AND content.scope_ref = :scope_ref
+  AND (:family IS NULL OR content.family = :family)
+  AND sync.deleted_at_epoch_seconds IS NOT NULL
+ORDER BY sync.deleted_at_epoch_seconds DESC, content.display_name COLLATE NOCASE, content.id;
+
 updateReusableContentName:
 UPDATE reusable_content
 SET display_name = ?,

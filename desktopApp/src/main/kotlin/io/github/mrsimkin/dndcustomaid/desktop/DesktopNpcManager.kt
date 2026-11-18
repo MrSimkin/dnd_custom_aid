@@ -146,6 +146,17 @@ class DesktopNpcManagerController(
             nowEpochSeconds = nowEpochSeconds(),
         )
 
+    /**
+     * Owner, 2026-11-18: what is prepared can be deleted. It leaves a tombstone, so it also goes
+     * from the tablet when syncing, and waits in «Papelera» in case it was a mistake.
+     */
+    fun delete(current: NpcContent): RevisionDecision =
+        npcs.tombstone(
+            id = current.item.identity.id,
+            expectedRevision = current.item.identity.revision,
+            deletedAtEpochSeconds = nowEpochSeconds(),
+        )
+
     fun update(
         id: Uuid,
         expectedRevision: Revision,
@@ -286,6 +297,12 @@ internal fun NpcManagerScreen(
                 }
             } else {
                 NpcEditor(
+                    onDelete = {
+                        controller.delete(selected)
+                        statusMessage = "«" + selected.item.displayName + "» quedó en la papelera."
+                        onQaEvent("Npc Manager: borrado " + selected.item.identity.id)
+                        refresh(null)
+                    },
                     content = selected,
                     draft = requireNotNull(draft),
                     activeCampaign = activeCampaign,
@@ -386,6 +403,7 @@ private fun NpcEditor(
     onDraftChange: (NpcDraft) -> Unit,
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier,
     openBlock: String?,
     onOpenBlock: (String?) -> Unit,
@@ -403,6 +421,7 @@ private fun NpcEditor(
                     Text("Editor de PNJ", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                     npcScopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                 }
+                DeleteContentButton(name = draft.displayName, what = "este PNJ", onDelete = onDelete)
                 Button(onClick = onSave) { Text("Guardar") }
                 if (content.item.identity.scope is ContentScope.Personal) {
                     Button(onClick = onCopyToCampaign, enabled = activeCampaign != null) { Text("Usar en campaña") }

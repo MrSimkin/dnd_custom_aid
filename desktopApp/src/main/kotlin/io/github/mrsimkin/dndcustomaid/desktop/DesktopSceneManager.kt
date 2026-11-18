@@ -143,6 +143,17 @@ class DesktopSceneManagerController(
             nowEpochSeconds = nowEpochSeconds(),
         )
 
+    /**
+     * Owner, 2026-11-18: what is prepared can be deleted. It leaves a tombstone, so it also goes
+     * from the tablet when syncing, and waits in «Papelera» in case it was a mistake.
+     */
+    fun delete(current: SceneContent): RevisionDecision =
+        scenes.tombstone(
+            id = current.item.identity.id,
+            expectedRevision = current.item.identity.revision,
+            deletedAtEpochSeconds = nowEpochSeconds(),
+        )
+
     fun update(
         id: Uuid,
         expectedRevision: Revision,
@@ -281,6 +292,12 @@ internal fun DesktopSceneManagerScreen(
                 }
             } else {
                 SceneEditor(
+                    onDelete = {
+                        controller.delete(selected)
+                        statusMessage = "«" + selected.item.displayName + "» quedó en la papelera."
+                        onQaEvent("Scene Manager: borrado " + selected.item.identity.id)
+                        refresh(null)
+                    },
                     openBlock = openBlock,
                     onOpenBlock = { openBlock = it },
                     showAll = showAll,
@@ -374,6 +391,7 @@ private fun SceneEditor(
     onDraftChange: (SceneDraft) -> Unit,
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier,
     openBlock: String?,
     onOpenBlock: (String?) -> Unit,
@@ -393,6 +411,7 @@ private fun SceneEditor(
                 if (content.item.identity.scope is ContentScope.Personal && activeCampaign != null) {
                     Button(onClick = onCopyToCampaign) { Text("Traer a esta campaña") }
                 }
+                DeleteContentButton(name = draft.displayName, what = "esta escena", onDelete = onDelete)
                 Button(onClick = onSave, enabled = draft.displayName.isNotBlank()) { Text("Guardar") }
             }
         }

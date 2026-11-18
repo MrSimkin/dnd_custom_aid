@@ -169,6 +169,17 @@ class DesktopEncounterManagerController(
             nowEpochSeconds = nowEpochSeconds(),
         )
 
+    /**
+     * Owner, 2026-11-18: what is prepared can be deleted. It leaves a tombstone, so it also goes
+     * from the tablet when syncing, and waits in «Papelera» in case it was a mistake.
+     */
+    fun delete(current: EncounterContent): RevisionDecision =
+        encounters.tombstone(
+            id = current.item.identity.id,
+            expectedRevision = current.item.identity.revision,
+            deletedAtEpochSeconds = nowEpochSeconds(),
+        )
+
     fun update(
         id: Uuid,
         expectedRevision: Revision,
@@ -312,6 +323,12 @@ internal fun DesktopEncounterManagerScreen(
                 }
             } else {
                 EncounterEditor(
+                    onDelete = {
+                        controller.delete(selected)
+                        statusMessage = "«" + selected.item.displayName + "» quedó en la papelera."
+                        onQaEvent("Encounter Manager: borrado " + selected.item.identity.id)
+                        refresh(null)
+                    },
                     content = selected,
                     draft = requireNotNull(draft),
                     participantSources = participantSources,
@@ -410,6 +427,7 @@ private fun EncounterEditor(
     onDraftChange: (EncounterDraft) -> Unit,
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier,
 ) {
     val sourceLabels = participantSources.associate { it.id to it.displayName }
@@ -428,6 +446,7 @@ private fun EncounterEditor(
                 if (content.item.identity.scope is ContentScope.Personal && activeCampaign != null) {
                     Button(onClick = onCopyToCampaign) { Text("Traer a esta campaña") }
                 }
+                DeleteContentButton(name = draft.displayName, what = "este encuentro", onDelete = onDelete)
                 Button(
                     onClick = onSave,
                     enabled = draft.displayName.isNotBlank() && validParticipants,

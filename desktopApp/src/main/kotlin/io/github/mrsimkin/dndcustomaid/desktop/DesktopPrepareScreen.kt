@@ -43,6 +43,7 @@ internal enum class PrepareSection(val title: String, val purpose: String) {
     HOUSE_RULES("Reglas de la casa", "Tus reglas y aclaraciones para esta mesa."),
     NOTES("Notas", "Todas las notas de la campaña, agrupadas por dónde las escribiste en la mesa."),
     PACKAGES("Paquetes", "Conjuntos para reutilizar contenido entre campañas."),
+    TRASH("Papelera", "Lo que borraste, por si te arrepientes."),
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -123,6 +124,7 @@ internal fun DesktopPrepareScreen(
             PrepareSection.HOUSE_RULES -> HomebrewRuleManagerScreen(homebrewRuleController, activeCampaign, onQaEvent)
             PrepareSection.NOTES -> DesktopNotesScreen(database, activeCampaign)
             PrepareSection.PACKAGES -> DesktopPackageManagerScreen(placeController.packageManagerController, activeCampaign, onQaEvent)
+            PrepareSection.TRASH -> DesktopTrashScreen(database, activeCampaign, onQaEvent)
         }
     }
 }
