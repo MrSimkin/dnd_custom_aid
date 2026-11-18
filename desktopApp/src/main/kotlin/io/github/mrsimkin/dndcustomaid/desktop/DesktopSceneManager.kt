@@ -188,6 +188,9 @@ internal fun DesktopSceneManagerScreen(
     val selected = remember(refreshVersion, selectedId) {
         selectedId?.let(controller::scene)
     }
+    // Owner point 10: the card first, the complete preparation only when asked for.
+    var openBlock by remember(selected?.item?.identity?.id) { mutableStateOf<String?>(null) }
+    var showAll by remember(selected?.item?.identity?.id) { mutableStateOf(false) }
     var draft by remember(selected?.item?.identity?.id, selected?.item?.identity?.revision?.value) {
         mutableStateOf(selected?.let(SceneDraft::from))
     }
@@ -277,6 +280,10 @@ internal fun DesktopSceneManagerScreen(
                 }
             } else {
                 SceneEditor(
+                    openBlock = openBlock,
+                    onOpenBlock = { openBlock = it },
+                    showAll = showAll,
+                    onShowAll = { showAll = it },
                     content = selected,
                     draft = requireNotNull(draft),
                     activeCampaign = activeCampaign,
@@ -366,6 +373,10 @@ private fun SceneEditor(
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
     modifier: Modifier,
+    openBlock: String?,
+    onOpenBlock: (String?) -> Unit,
+    showAll: Boolean,
+    onShowAll: (Boolean) -> Unit,
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
@@ -383,6 +394,81 @@ private fun SceneEditor(
                 Button(onClick = onSave, enabled = draft.displayName.isNotBlank()) { Text("Guardar") }
             }
         }
+
+        // Owner points 6 and 10: what you will read at the table first, the whole preparation after.
+        item {
+            val readAloud = draft.sections[io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.READ_ALOUD_SHORT.name].orEmpty()
+                .ifBlank { draft.sections[io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.READ_ALOUD.name].orEmpty() }
+            SheetBlock(
+                title = "En la mesa",
+                editing = openBlock == "mesa",
+                onEdit = { onOpenBlock("mesa") },
+                onDone = { onOpenBlock(null) },
+            ) {
+                if (openBlock == "mesa") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SceneField("Título", draft.displayName, true) { onDraftChange(draft.copy(displayName = it)) }
+                        SceneField("Para qué sirve (una o dos líneas)", draft.purpose, false, 2) { onDraftChange(draft.copy(purpose = it)) }
+                        SceneField(
+                            "Para leer en voz alta · 30 s",
+                            draft.sections[io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.READ_ALOUD_SHORT.name].orEmpty(),
+                            false,
+                            3,
+                        ) { text ->
+                            onDraftChange(draft.copy(sections = draft.sections + (io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.READ_ALOUD_SHORT.name to text)))
+                        }
+                    }
+                } else {
+                    Text(draft.displayName.ifBlank { "Sin título" }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    SheetLine("Para qué sirve", draft.purpose)
+                    SheetLine("Para leer en voz alta", readAloud)
+                    if (draft.purpose.isBlank() && readAloud.isBlank()) SheetEmpty("Todavía sin nada que leer en la mesa. Toca «Editar».")
+                }
+            }
+        }
+        item {
+            val truth = draft.sections[io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.TRUTH.name].orEmpty()
+            val beats = draft.sections[io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.BEATS.name].orEmpty()
+            val next = draft.sections[io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.NEXT.name].orEmpty()
+            SheetBlock(
+                title = "Qué pasa de verdad",
+                editing = openBlock == "verdad",
+                onEdit = { onOpenBlock("verdad") },
+                onDone = { onOpenBlock(null) },
+            ) {
+                if (openBlock == "verdad") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(
+                            io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.TRUTH,
+                            io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.BEATS,
+                            io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.NEXT,
+                        ).forEach { section ->
+                            SceneField(section.label, draft.sections[section.name].orEmpty(), false, 3) { text ->
+                                onDraftChange(draft.copy(sections = draft.sections + (section.name to text)))
+                            }
+                        }
+                    }
+                } else {
+                    SheetLine("Qué está pasando", truth)
+                    SheetLine("Momentos", beats)
+                    SheetLine("Conecta con", next)
+                    if (listOf(truth, beats, next).all { it.isBlank() }) SheetEmpty("Sin la trama anotada.")
+                }
+            }
+        }
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = { onShowAll(!showAll) }) {
+                    Text(if (showAll) "▾ Ocultar la preparación completa" else "▸ Ver todo (preparación completa)")
+                }
+                Text(
+                    if (showAll) "Todos los campos, como antes." else "Lo de arriba es lo que se ve en la mesa.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+
+        if (!showAll) return@LazyColumn
 
         item { SceneField("Título", draft.displayName, true) { onDraftChange(draft.copy(displayName = it)) } }
         item { SceneField("Para qué sirve (una o dos líneas)", draft.purpose, false, 2) { onDraftChange(draft.copy(purpose = it)) } }

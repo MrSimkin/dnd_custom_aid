@@ -191,6 +191,9 @@ internal fun NpcManagerScreen(
     val selected = remember(refreshVersion, selectedId) {
         selectedId?.let(controller::npc)
     }
+    // Owner point 10: the card first, the complete preparation only when asked for.
+    var openBlock by remember(selected?.item?.identity?.id) { mutableStateOf<String?>(null) }
+    var showAll by remember(selected?.item?.identity?.id) { mutableStateOf(false) }
     var draft by remember(selected?.item?.identity?.id, selected?.item?.identity?.revision?.value) {
         mutableStateOf(selected?.let(NpcDraft::from))
     }
@@ -328,6 +331,10 @@ internal fun NpcManagerScreen(
                         }
                     },
                     modifier = Modifier.weight(1f).fillMaxHeight(),
+                    openBlock = openBlock,
+                    onOpenBlock = { openBlock = it },
+                    showAll = showAll,
+                    onShowAll = { showAll = it },
                 )
             }
         }
@@ -378,6 +385,10 @@ private fun NpcEditor(
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
     modifier: Modifier,
+    openBlock: String?,
+    onOpenBlock: (String?) -> Unit,
+    showAll: Boolean,
+    onShowAll: (Boolean) -> Unit,
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
@@ -396,6 +407,95 @@ private fun NpcEditor(
                 }
             }
         }
+
+        // Owner points 6 and 10: the PNJ opens as the card you read at the table; «Editar» turns
+        // one block into its fields, and «Ver todo» opens the complete preparation below.
+        item {
+            SheetBlock(
+                title = "Quién es",
+                editing = openBlock == "quien",
+                onEdit = { onOpenBlock("quien") },
+                onDone = { onOpenBlock(null) },
+            ) {
+                if (openBlock == "quien") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        NpcEditorTextField("Nombre", draft.displayName) { onDraftChange(draft.copy(displayName = it)) }
+                        NpcEditorTextField("Concepto / rol", draft.conceptRole) { onDraftChange(draft.copy(conceptRole = it)) }
+                        NpcEditorTextField("Apariencia / primera impresión", draft.appearanceFirstImpression, lines = 3) { onDraftChange(draft.copy(appearanceFirstImpression = it)) }
+                        NpcEditorTextField("Personalidad / manera", draft.personalityManner, lines = 3) { onDraftChange(draft.copy(personalityManner = it)) }
+                    }
+                } else {
+                    Text(draft.displayName.ifBlank { "Sin nombre" }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    SheetLine("Concepto", draft.conceptRole)
+                    SheetLine("Primera impresión", draft.appearanceFirstImpression)
+                    SheetLine("Manera", draft.personalityManner)
+                    if (listOf(draft.conceptRole, draft.appearanceFirstImpression, draft.personalityManner).all { it.isBlank() }) {
+                        SheetEmpty("Todavía sin descripción. Toca «Editar» para escribirla.")
+                    }
+                }
+            }
+        }
+        item {
+            SheetBlock(
+                title = "Qué quiere en la mesa",
+                editing = openBlock == "quiere",
+                onEdit = { onOpenBlock("quiere") },
+                onDone = { onOpenBlock(null) },
+            ) {
+                if (openBlock == "quiere") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        NpcEditorTextField("Quiere / teme / necesita", draft.wantsFearsNeeds, lines = 3) { onDraftChange(draft.copy(wantsFearsNeeds = it)) }
+                        NpcEditorTextField("Qué puede ofrecer", draft.canOffer, lines = 3) { onDraftChange(draft.copy(canOffer = it)) }
+                        NpcEditorTextField("Límites / negativas", draft.limitsRefusals, lines = 3) { onDraftChange(draft.copy(limitsRefusals = it)) }
+                        NpcEditorTextField("Relación / contexto", draft.relationshipContext, lines = 3) { onDraftChange(draft.copy(relationshipContext = it)) }
+                    }
+                } else {
+                    SheetLine("Quiere, teme, necesita", draft.wantsFearsNeeds)
+                    SheetLine("Puede ofrecer", draft.canOffer)
+                    SheetLine("No hará", draft.limitsRefusals)
+                    SheetLine("Relación con el grupo", draft.relationshipContext)
+                    if (listOf(draft.wantsFearsNeeds, draft.canOffer, draft.limitsRefusals, draft.relationshipContext).all { it.isBlank() }) {
+                        SheetEmpty("Sin intenciones anotadas. Es lo que más sirve en la mesa.")
+                    }
+                }
+            }
+        }
+        item {
+            SheetBlock(
+                title = "Secretos y guía para ti",
+                editing = openBlock == "secretos",
+                onEdit = { onOpenBlock("secretos") },
+                onDone = { onOpenBlock(null) },
+            ) {
+                if (openBlock == "secretos") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        NpcEditorTextField("Secretos", draft.secrets, lines = 4) { onDraftChange(draft.copy(secrets = it)) }
+                        NpcEditorTextField("Guía para el DM", draft.dmGuidance, lines = 4) { onDraftChange(draft.copy(dmGuidance = it)) }
+                        NpcEditorTextField("Notas", draft.notes, lines = 4) { onDraftChange(draft.copy(notes = it)) }
+                    }
+                } else {
+                    SheetLine("Secretos", draft.secrets)
+                    SheetLine("Guía", draft.dmGuidance)
+                    SheetLine("Notas", draft.notes)
+                    if (listOf(draft.secrets, draft.dmGuidance, draft.notes).all { it.isBlank() }) {
+                        SheetEmpty("Sin secretos ni notas.")
+                    }
+                }
+            }
+        }
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = { onShowAll(!showAll) }) {
+                    Text(if (showAll) "▾ Ocultar la preparación completa" else "▸ Ver todo (preparación completa)")
+                }
+                Text(
+                    if (showAll) "Todos los campos, como antes." else "Lo de arriba es lo que se ve en la mesa.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+
+        if (!showAll) return@LazyColumn
 
         item { NpcSectionTitle("PNJ rápido") }
         item { NpcEditorTextField("Nombre", draft.displayName) { onDraftChange(draft.copy(displayName = it)) } }

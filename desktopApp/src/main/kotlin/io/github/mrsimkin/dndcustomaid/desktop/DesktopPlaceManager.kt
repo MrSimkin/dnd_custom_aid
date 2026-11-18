@@ -224,6 +224,9 @@ internal fun DesktopPlaceManagerScreen(
     val selected = remember(refreshVersion, selectedId) {
         selectedId?.let(controller::place)
     }
+    // Owner point 10: the card first, the complete preparation only when asked for.
+    var openBlock by remember(selected?.item?.identity?.id) { mutableStateOf<String?>(null) }
+    var showAll by remember(selected?.item?.identity?.id) { mutableStateOf(false) }
     var draft by remember(selected?.item?.identity?.id, selected?.item?.identity?.revision?.value) {
         mutableStateOf(selected?.let(PlaceDraft::from))
     }
@@ -316,6 +319,10 @@ internal fun DesktopPlaceManagerScreen(
                 }
             } else {
                 PlaceEditor(
+                    openBlock = openBlock,
+                    onOpenBlock = { openBlock = it },
+                    showAll = showAll,
+                    onShowAll = { showAll = it },
                     content = selected,
                     draft = requireNotNull(draft),
                     activeCampaign = activeCampaign,
@@ -405,6 +412,10 @@ private fun PlaceEditor(
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
     modifier: Modifier,
+    openBlock: String?,
+    onOpenBlock: (String?) -> Unit,
+    showAll: Boolean,
+    onShowAll: (Boolean) -> Unit,
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
@@ -426,6 +437,66 @@ private fun PlaceEditor(
                 Button(onClick = onSave, enabled = draft.displayName.isNotBlank()) { Text("Guardar") }
             }
         }
+
+        // Owner points 6 and 10: the card you read at the table comes first; «Ver todo» opens the
+        // complete preparation underneath, with every field as before.
+        item {
+            SheetBlock(
+                title = "En la mesa",
+                editing = openBlock == "mesa",
+                onEdit = { onOpenBlock("mesa") },
+                onDone = { onOpenBlock(null) },
+            ) {
+                if (openBlock == "mesa") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        PlaceField("Nombre", draft.displayName, true) { onDraftChange(draft.copy(displayName = it)) }
+                        PlaceField("Resumen", draft.summary, false, 3) { onDraftChange(draft.copy(summary = it)) }
+                        PlaceField("Presentación / atmósfera", draft.presentation, false, 4) { onDraftChange(draft.copy(presentation = it)) }
+                        PlaceField("Ganchos (uno por línea)", draft.hooks, false, 4) { onDraftChange(draft.copy(hooks = it)) }
+                    }
+                } else {
+                    Text(draft.displayName.ifBlank { "Sin nombre" }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    SheetLine("Qué es", draft.summary)
+                    SheetLine("Al llegar", draft.presentation)
+                    SheetLine("Ganchos", draft.hooks)
+                    if (listOf(draft.summary, draft.presentation, draft.hooks).all { it.isBlank() }) {
+                        SheetEmpty("Todavía sin nada que leer en la mesa. Toca «Editar».")
+                    }
+                }
+            }
+        }
+        item {
+            SheetBlock(
+                title = "Para los jugadores y para ti",
+                editing = openBlock == "textos",
+                onEdit = { onOpenBlock("textos") },
+                onDone = { onOpenBlock(null) },
+            ) {
+                if (openBlock == "textos") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        PlaceField("Texto seguro para jugadores", draft.playerSafeText, false, 4) { onDraftChange(draft.copy(playerSafeText = it)) }
+                        PlaceField("Notas DM", draft.dmNotes, false, 4) { onDraftChange(draft.copy(dmNotes = it)) }
+                    }
+                } else {
+                    SheetLine("Se puede leer en voz alta", draft.playerSafeText)
+                    SheetLine("Solo para ti", draft.dmNotes)
+                    if (draft.playerSafeText.isBlank() && draft.dmNotes.isBlank()) SheetEmpty("Sin textos preparados.")
+                }
+            }
+        }
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = { onShowAll(!showAll) }) {
+                    Text(if (showAll) "▾ Ocultar la preparación completa" else "▸ Ver todo (preparación completa)")
+                }
+                Text(
+                    if (showAll) "Todos los campos, como antes." else "Lo de arriba es lo que se ve en la mesa.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+
+        if (!showAll) return@LazyColumn
 
         item { PlaceField("Nombre", draft.displayName, true) { onDraftChange(draft.copy(displayName = it)) } }
         item {
