@@ -147,6 +147,19 @@ class DesktopPcManagerController(
 
     fun campaignPcs(campaignId: Uuid): List<CharacterSheet> = characters.listCharacters(campaignId)
 
+    /**
+     * Owner, 2026-11-18: the step-by-step new PC also lives on Windows. The wizard's answers fill
+     * the sheet exactly as on the tablet; with no answers the PC starts empty.
+     */
+    fun createCharacter(
+        campaignId: Uuid,
+        name: String,
+        build: io.github.mrsimkin.dndcustomaid.shared.dm.CharacterBuild?,
+    ): CharacterSheet {
+        val created = characters.createCharacter(campaignId, name)
+        return build?.let { characters.saveCharacter(io.github.mrsimkin.dndcustomaid.shared.dm.buildCharacter(created, it)) } ?: created
+    }
+
     fun activeDmAccountId(campaignId: Uuid): Uuid? =
         spine.memberships(campaignId)
             .asSequence()
@@ -202,6 +215,10 @@ internal fun DesktopPcManagerScreen(
     hostedController: DesktopHostedCampaignAdministrationController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
+    // «Nuevo personaje» needs the SRD (through the platform) and the DM's homebrew (the database).
+    database: AppDatabase? = null,
+    platform: io.github.mrsimkin.dndcustomaid.dmui.DmPlatform? = null,
+    accountId: Uuid? = null,
     // The two operating-system dialogs; a test without a display replaces them.
     chooseSaveTarget: (String) -> File? = ::choosePcSheetSaveTarget,
     copyFileToClipboard: ((File) -> Unit)? = null,
@@ -250,14 +267,36 @@ internal fun DesktopPcManagerScreen(
         refreshVersion += 1
     }
 
+    var creating by remember { mutableStateOf(false) }
+    if (creating && database != null && platform != null) {
+        DesktopNewCharacterDialog(
+            campaigns = listOf(activeCampaign),
+            database = database,
+            platform = platform,
+            accountId = accountId,
+            onDismiss = { creating = false },
+            onCreate = { campaignId, name, build ->
+                val created = controller.createCharacter(campaignId, name, build)
+                creating = false
+                statusMessage = "«${created.name}» ya está en la campaña. Abajo puedes seguir ajustando su hoja."
+                onQaEvent("pc-created:${created.id}")
+                refresh(created.id)
+            },
+        )
+    }
+
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             WorkbenchHeading(
                 title = "Personajes",
                 subtitle = "Los PJ de la campaña, quién los juega y su hoja.",
-                help = "1) Elige un PJ de la lista. 2) Arriba escribe quién lo juega («Jugador o jugadora») y toca «Guardar». " +
-                    "3) Debajo ves su hoja y puedes exportar el PDF. 4) Los PJ los crean los jugadores en su App; llegan al sincronizar.",
+                help = "1) Toca «＋ Nuevo personaje» para crear uno paso a paso, o elige uno de la lista. " +
+                    "2) Arriba escribe quién lo juega («Jugador o jugadora») y toca «Guardar». " +
+                    "3) Debajo ves su hoja y puedes exportar el PDF. 4) Los PJ que crean los jugadores en su App llegan al sincronizar.",
             )
+        }
+        if (database != null && platform != null) {
+            Button(onClick = { creating = true }) { Text("＋ Nuevo personaje") }
         }
 
         OutlinedTextField(

@@ -259,6 +259,9 @@ internal fun DesktopWorkbench(
                             hostedController = hostedCampaignController,
                             activeCampaign = activeCampaign,
                             onQaEvent = ::logQa,
+                            database = database,
+                            platform = dmPlatform,
+                            accountId = accountSession.accountId,
                         )
                         DesktopDestination.HANDOUTS -> DesktopHandoutManagerScreen(
                             controller = handoutManagerController,

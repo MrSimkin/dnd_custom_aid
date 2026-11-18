@@ -1,4 +1,4 @@
-package io.github.mrsimkin.dndcustomaid.android
+package io.github.mrsimkin.dndcustomaid.dmui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +37,9 @@ import io.github.mrsimkin.dndcustomaid.shared.dm.rulesOptions
 /*
  * Redesign R5 (owner decisions D8 and D9, 2026-11-13): every «Añadir» of the PC editor can fill
  * its fields from the SRD first, then the DM's homebrew; «Custom» is writing by hand as before.
+ *
+ * It lives here, next to the rest of the shared screens, so the tablet and Windows offer the same
+ * picking (owner, 2026-11-18: the step-by-step new PC must also exist on Windows).
  */
 
 /** Where the PC editor finds rules to pick from. Provided once at the top of the App. */
@@ -124,7 +127,7 @@ private fun RulesPickDialog(
                     Text("Escribe tú los datos en el formulario: cierra esta ventana y completa los campos a mano.", style = MaterialTheme.typography.bodyMedium)
                     return@Column
                 }
-                CharacterCompactOutlinedTextFieldV4(value = query, onValueChange = { query = it }, label = { Text("Buscar") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                DmTextField(value = query, onValueChange = { query = it }, label = { Text("Buscar") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 when {
                     options == null -> Text("Cargando…")
                     options.isEmpty() && origin == RulesOrigin.HOMEBREW ->
