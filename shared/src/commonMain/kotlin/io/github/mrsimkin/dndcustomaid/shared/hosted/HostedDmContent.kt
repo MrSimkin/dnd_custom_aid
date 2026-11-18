@@ -1,5 +1,6 @@
 package io.github.mrsimkin.dndcustomaid.shared.hosted
 
+import kotlinx.coroutines.CancellationException
 import io.github.mrsimkin.dndcustomaid.shared.content.CreatureContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.CreaturePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterContentRepository
@@ -132,6 +133,51 @@ data class HostedDmContentMutation(
     val applied: Boolean,
 )
 
+/**
+ * One queued change on its way to the hosted service. A null [snapshot] deletes the object.
+ *
+ * Plan A of the server decision (owner, 2026-11-18): the first upload of a whole package used one
+ * request per object, which took minutes and spent the free plan's request budget. Changes now
+ * travel in groups of [HOSTED_DM_CONTENT_SEND_GROUP].
+ */
+data class HostedDmContentSendItem(
+    val mutationId: Uuid,
+    val contentId: Uuid,
+    val expectedRevision: Long,
+    val snapshot: DmContentSnapshotDocument?,
+) {
+    init {
+        require(expectedRevision >= 0) { "Expected DM content revision must not be negative." }
+        require(snapshot == null || snapshot.content.id == contentId) {
+            "DM content snapshot identity must match the requested content."
+        }
+    }
+}
+
+/** What the hosted service answered for one item of a group. */
+sealed interface HostedDmContentSendResult {
+    data class Sent(val revision: Long) : HostedDmContentSendResult
+    data class Rejected(val code: HostedApiErrorCode?, val message: String?) : HostedDmContentSendResult
+}
+
+/** How many changes travel in one request. The hosted service refuses more than this. */
+const val HOSTED_DM_CONTENT_SEND_GROUP: Int = 100
+
+/**
+ * True when sending must stop and wait for a later pass instead of blocking the object: no
+ * connection, a transient server failure, an expired session, or a server without these routes.
+ */
+internal fun hostedSendMustWait(error: Exception): Boolean = when (error) {
+    // NOT_FOUND also counts as "try later": a server that does not have the DM content
+    // routes yet must not block the DM's queued changes. Nothing is lost while it waits.
+    is HostedApiException -> error.isTransient || error.code == HostedApiErrorCode.NOT_FOUND
+    is HostedAuthenticationUnavailableException -> true
+    else -> error::class.simpleName?.let { name ->
+        name.contains("Timeout") || name.contains("Connect") || name.contains("UnknownHost") ||
+            name.contains("Unresolved") || name.contains("Socket") || name.contains("IOException")
+    } == true
+}
+
 /** The hosted calls DM content sync needs; HostedApiClient implements them over HTTP. */
 interface HostedDmContentTransport {
     suspend fun campaignDmContent(campaignId: Uuid): List<HostedDmContent>
@@ -147,6 +193,34 @@ interface HostedDmContentTransport {
         contentId: Uuid,
         expectedRevision: Long,
     ): HostedDmContentMutation
+
+    /**
+     * Sends a group of queued changes, in order, and answers one result per item.
+     *
+     * A shorter list than [items] means the connection stopped there: the rest stay in the queue
+     * for the next pass. The default sends them one by one, so a transport that cannot group them
+     * keeps working exactly as before.
+     */
+    suspend fun sendDmContent(items: List<HostedDmContentSendItem>): List<HostedDmContentSendResult> {
+        val results = mutableListOf<HostedDmContentSendResult>()
+        for (item in items) {
+            val result = try {
+                val mutation = if (item.snapshot != null) {
+                    putDmContent(item.mutationId, item.contentId, item.expectedRevision, item.snapshot)
+                } else {
+                    deleteDmContent(item.mutationId, item.contentId, item.expectedRevision)
+                }
+                HostedDmContentSendResult.Sent(mutation.content.revision)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                if (hostedSendMustWait(error)) return results
+                HostedDmContentSendResult.Rejected((error as? HostedApiException)?.code, error.message)
+            }
+            results += result
+        }
+        return results
+    }
 
     /** Uploads an image file by checksum (package 4). Uploading an existing checksum is a no-op. */
     suspend fun putMediaContent(sha256: String, mediaType: String, bytes: ByteArray)
@@ -687,16 +761,19 @@ class HostedDmContentSyncService(
         var offline = false
         val ready = outbox.allMutations().filter { it.retryState == HostedRetryState.READY }
         if (ready.isNotEmpty()) onProgress(DmContentSyncProgress(DmContentSyncStep.SENDING, 0, ready.size))
-        for ((index, mutation) in ready.withIndex()) {
-            val outcome = send(mutation, nowEpochSeconds)
-            onProgress(DmContentSyncProgress(DmContentSyncStep.SENDING, index + 1, ready.size))
-            when (outcome) {
-                SendOutcome.Sent -> pushed += mutation.contentId
-                SendOutcome.Offline -> {
-                    offline = true
-                    break
+        var done = 0
+        groups@ for (group in ready.chunked(HOSTED_DM_CONTENT_SEND_GROUP)) {
+            for (outcome in sendGroup(group, nowEpochSeconds)) {
+                done += 1
+                onProgress(DmContentSyncProgress(DmContentSyncStep.SENDING, done, ready.size))
+                when (outcome) {
+                    is SendOutcome.Sent -> pushed += outcome.contentId
+                    SendOutcome.Offline -> {
+                        offline = true
+                        break@groups
+                    }
+                    is SendOutcome.Blocked -> conflicts[outcome.contentId] = outcome.reason
                 }
-                is SendOutcome.Blocked -> conflicts[mutation.contentId] = outcome.reason
             }
         }
 
@@ -781,39 +858,93 @@ class HostedDmContentSyncService(
         }
     }
 
-    private suspend fun send(mutation: HostedDmContentOutboxMutation, nowEpochSeconds: Long): SendOutcome {
-        return try {
-            when (mutation.type) {
-                HostedDmContentMutationType.CONTENT_PUT -> {
-                    val payload = outbox.putPayload(mutation)
-                    uploadHandoutImage(payload.snapshot)
-                    val result = transport.putDmContent(mutation.mutationId, mutation.contentId, mutation.expectedRevision, payload.snapshot)
-                    outbox.acknowledge(mutation, result.content.revision, false, codec.normalizedJson(payload.snapshot))
+    /**
+     * Sends one group of queued changes in a single request and writes down what came back.
+     *
+     * Preparing an item is local work (reading the queued snapshot, uploading its image), so a
+     * failure there blocks only that object. Once the group travels, each answer is applied in
+     * order; if the connection stops mid-group, the rest keep their place in the queue.
+     */
+    private suspend fun sendGroup(
+        group: List<HostedDmContentOutboxMutation>,
+        nowEpochSeconds: Long,
+    ): List<SendOutcome> {
+        val outcomes = mutableListOf<SendOutcome>()
+        val sending = mutableListOf<HostedDmContentOutboxMutation>()
+        val items = mutableListOf<HostedDmContentSendItem>()
+        val snapshots = mutableListOf<String>()
+
+        for (mutation in group) {
+            try {
+                when (mutation.type) {
+                    HostedDmContentMutationType.CONTENT_PUT -> {
+                        val payload = outbox.putPayload(mutation)
+                        uploadHandoutImage(payload.snapshot)
+                        items += HostedDmContentSendItem(mutation.mutationId, mutation.contentId, mutation.expectedRevision, payload.snapshot)
+                        snapshots += codec.normalizedJson(payload.snapshot)
+                    }
+                    HostedDmContentMutationType.CONTENT_DELETE -> {
+                        items += HostedDmContentSendItem(mutation.mutationId, mutation.contentId, mutation.expectedRevision, null)
+                        snapshots += outbox.baseline(mutation.contentId)?.snapshotJson
+                            ?: codec.export(mutation.contentId)?.let(codec::normalizedJson)
+                            ?: "{}"
+                    }
                 }
-                HostedDmContentMutationType.CONTENT_DELETE -> {
-                    val result = transport.deleteDmContent(mutation.mutationId, mutation.contentId, mutation.expectedRevision)
-                    val previous = outbox.baseline(mutation.contentId)?.snapshotJson
-                        ?: codec.export(mutation.contentId)?.let(codec::normalizedJson)
-                        ?: "{}"
-                    outbox.acknowledge(mutation, result.content.revision, true, previous)
+                sending += mutation
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                if (hostedSendMustWait(error)) {
+                    outbox.recordFailure(mutation.mutationId, nowEpochSeconds, retryable = true, errorCode = "OFFLINE", errorMessage = error.message)
+                    return outcomes + SendOutcome.Offline
                 }
+                outbox.recordFailure(mutation.mutationId, nowEpochSeconds, retryable = false, errorCode = "LOCAL_ERROR", errorMessage = error.message)
+                outcomes += SendOutcome.Blocked(mutation.contentId, DmContentSyncConflictReason.REJECTED)
             }
-            SendOutcome.Sent
-        } catch (error: Exception) {
-            if (isOffline(error)) {
-                outbox.recordFailure(mutation.mutationId, nowEpochSeconds, retryable = true, errorCode = "OFFLINE", errorMessage = error.message)
-                return SendOutcome.Offline
-            }
-            val code = (error as? HostedApiException)?.code
-            outbox.recordFailure(mutation.mutationId, nowEpochSeconds, retryable = false, errorCode = code?.name ?: "LOCAL_ERROR", errorMessage = error.message)
-            SendOutcome.Blocked(
-                when (code) {
-                    HostedApiErrorCode.CONFLICT_STALE_REVISION -> DmContentSyncConflictReason.LOCAL_AND_HOSTED_CHANGED
-                    HostedApiErrorCode.GONE -> DmContentSyncConflictReason.CHANGED_LOCALLY_DELETED_HOSTED
-                    else -> DmContentSyncConflictReason.REJECTED
-                },
-            )
         }
+        if (items.isEmpty()) return outcomes
+
+        val results = try {
+            transport.sendDmContent(items)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            outbox.recordFailure(items.first().mutationId, nowEpochSeconds, retryable = true, errorCode = "OFFLINE", errorMessage = error.message)
+            return outcomes + SendOutcome.Offline
+        }
+
+        results.forEachIndexed { index, result ->
+            val mutation = sending[index]
+            when (result) {
+                is HostedDmContentSendResult.Sent -> {
+                    outbox.acknowledge(mutation, result.revision, mutation.type == HostedDmContentMutationType.CONTENT_DELETE, snapshots[index])
+                    outcomes += SendOutcome.Sent(mutation.contentId)
+                }
+                is HostedDmContentSendResult.Rejected -> {
+                    outbox.recordFailure(
+                        mutation.mutationId,
+                        nowEpochSeconds,
+                        retryable = false,
+                        errorCode = result.code?.name ?: "LOCAL_ERROR",
+                        errorMessage = result.message,
+                    )
+                    outcomes += SendOutcome.Blocked(
+                        mutation.contentId,
+                        when (result.code) {
+                            HostedApiErrorCode.CONFLICT_STALE_REVISION -> DmContentSyncConflictReason.LOCAL_AND_HOSTED_CHANGED
+                            HostedApiErrorCode.GONE -> DmContentSyncConflictReason.CHANGED_LOCALLY_DELETED_HOSTED
+                            else -> DmContentSyncConflictReason.REJECTED
+                        },
+                    )
+                }
+            }
+        }
+        if (results.size < items.size) {
+            val waiting = sending[results.size]
+            outbox.recordFailure(waiting.mutationId, nowEpochSeconds, retryable = true, errorCode = "OFFLINE", errorMessage = null)
+            outcomes += SendOutcome.Offline
+        }
+        return outcomes
     }
 
     private fun receive(
@@ -938,21 +1069,12 @@ class HostedDmContentSyncService(
         return missing
     }
 
-    private fun isOffline(error: Exception): Boolean = when (error) {
-        // NOT_FOUND also counts as "try later": a server that does not have the DM content
-        // routes yet must not block the DM's queued changes. Nothing is lost while it waits.
-        is HostedApiException -> error.isTransient || error.code == HostedApiErrorCode.NOT_FOUND
-        is HostedAuthenticationUnavailableException -> true
-        else -> error::class.simpleName?.let { name ->
-            name.contains("Timeout") || name.contains("Connect") || name.contains("UnknownHost") ||
-                name.contains("Unresolved") || name.contains("Socket") || name.contains("IOException")
-        } == true
-    }
+    private fun isOffline(error: Exception): Boolean = hostedSendMustWait(error)
 
     private sealed interface SendOutcome {
-        data object Sent : SendOutcome
+        data class Sent(val contentId: Uuid) : SendOutcome
         data object Offline : SendOutcome
-        data class Blocked(val reason: DmContentSyncConflictReason) : SendOutcome
+        data class Blocked(val contentId: Uuid, val reason: DmContentSyncConflictReason) : SendOutcome
     }
 
     private sealed interface ReceiveOutcome {

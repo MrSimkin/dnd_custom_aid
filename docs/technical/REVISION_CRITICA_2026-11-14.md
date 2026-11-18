@@ -63,6 +63,20 @@ Hoy el servidor es Cloudflare Worker + base Neon + KV para imágenes + Descope p
 | B | A, pero las imágenes en tu Google Drive o Dropbox (una carpeta de la App, gratis), y el texto en el servidor. | Imágenes casi sin límite, en tu propia cuenta. | Una entrada más con Google o Dropbox; compartir imágenes con jugadores requiere enlaces. |
 | C | Todo en Drive o Dropbox, sin servidor propio. | Sin servidor que mantener. | Se pierden roles y permisos propios (invariante de AGENTS §3), los conflictos empeoran y cada jugador necesita acceso a tus carpetas. No recomendado. |
 
+### Decisión y estado (2026-11-18)
+
+El propietario encargó avanzar sin preguntar («De tu lista, que puedes hacer sin preguntar»), así que se toma el **plan A**: se sigue con el servidor actual y se agrega el envío en lotes. El plan B queda abierto: mover las imágenes a Drive o Dropbox necesita su cuenta y su permiso explícito, y no se hace solo.
+
+**Hecho en la App y en el servidor:**
+
+- ruta nueva `POST /v1/content:batch`, que recibe hasta 100 cambios por petición y responde uno a uno: un rechazo no detiene al resto, y lo que falla vuelve con su código para que la App lo conserve en cola;
+- la misma validación de la ruta de a uno, compartida, así que las dos se comportan igual;
+- un fallo del servidor (500, sesión vencida, sobrecarga) hace fallar el grupo entero a propósito: la App lo reintenta después sin perder nada;
+- en la App, `HostedDmContentSyncService` arma grupos de 100 y `HostedApiClient` los manda en una petición; si el servidor responde que no conoce la ruta, vuelve sola al envío de a uno por el resto de la sesión. Por eso la App nueva funciona con el servidor viejo;
+- pruebas: seis del servidor (`backend/test/dm-content-group.test.mjs`) y cinco de la App (`HostedDmContentGroupSendTest`), incluidas la caída a mitad de grupo y el servidor sin la ruta.
+
+**Pendiente del propietario (acción en el proveedor, AGENTS §5):** desplegar el Worker para que la ruta exista. Hasta entonces la App sigue enviando de a uno, igual que hoy.
+
 ## Plan de refactor (prioridad antes de continuar)
 
 **Regla:** sin cambios de comportamiento. Cada fase se verifica con las pruebas y recorriendo la App real (AGENTS §6.4).

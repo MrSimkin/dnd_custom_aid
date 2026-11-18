@@ -206,6 +206,32 @@ private data class DmContentMutationResponse(
     val applied: Boolean,
 )
 
+/** One change of a group: a put carries its snapshot, a delete does not. */
+@Serializable
+private data class DmContentGroupItemRequest(
+    val mutationId: Uuid,
+    val contentId: Uuid,
+    val expectedRevision: Long,
+    val snapshot: DmContentSnapshotDocument? = null,
+    val delete: Boolean = false,
+)
+
+@Serializable
+private data class DmContentGroupRequest(val items: List<DmContentGroupItemRequest>)
+
+/** The hosted answer for one change of a group: either the stored object, or why it was refused. */
+@Serializable
+private data class DmContentGroupItemResponse(
+    val contentId: Uuid,
+    val content: HostedDmContent? = null,
+    val applied: Boolean = false,
+    val errorCode: String? = null,
+    val errorMessage: String? = null,
+)
+
+@Serializable
+private data class DmContentGroupResponse(val results: List<DmContentGroupItemResponse>)
+
 data class HostedCampaignCreation(
     val campaign: HostedCampaign,
     val created: Boolean,
@@ -222,6 +248,9 @@ class HostedApiClient(
     private val httpClient: HttpClient = createHostedHttpClient(),
 ) : HostedDmContentTransport {
     private val apiBaseUrl = normalizeBaseUrl(baseUrl)
+
+    /** Turned off for this session the first time the service answers that it has no group route. */
+    private var groupedSendAvailable = true
 
     suspend fun currentAccount(): HostedAccount = authenticatedGet<MeResponse>("/v1/me").account
 
@@ -329,6 +358,55 @@ class HostedApiClient(
         ensureSuccess(response.status.value, response)
         val body = response.body<DmContentMutationResponse>()
         return HostedDmContentMutation(body.content, body.applied)
+    }
+
+    /**
+     * Sends a group of changes in one request (plan A of the server decision). A server that does
+     * not know this route yet answers 404 or 405; from then on this session sends them one by one,
+     * exactly as before, so nothing depends on the service being updated first.
+     */
+    override suspend fun sendDmContent(items: List<HostedDmContentSendItem>): List<HostedDmContentSendResult> {
+        if (items.isEmpty()) return emptyList()
+        require(items.size <= HOSTED_DM_CONTENT_SEND_GROUP) {
+            "A group must not carry more than $HOSTED_DM_CONTENT_SEND_GROUP changes."
+        }
+        if (!groupedSendAvailable || items.size == 1) return super.sendDmContent(items)
+
+        val token = requireAccessToken()
+        val response = httpClient.post("$apiBaseUrl/v1/content:batch") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody(
+                DmContentGroupRequest(
+                    items.map {
+                        DmContentGroupItemRequest(
+                            mutationId = it.mutationId,
+                            contentId = it.contentId,
+                            expectedRevision = it.expectedRevision,
+                            snapshot = it.snapshot,
+                            delete = it.snapshot == null,
+                        )
+                    },
+                ),
+            )
+        }
+        if (response.status.value == 404 || response.status.value == 405) {
+            groupedSendAvailable = false
+            return super.sendDmContent(items)
+        }
+        ensureSuccess(response.status.value, response)
+        val results = response.body<DmContentGroupResponse>().results
+        return results.take(items.size).map { result ->
+            val content = result.content
+            if (content != null && result.errorCode == null) {
+                HostedDmContentSendResult.Sent(content.revision)
+            } else {
+                HostedDmContentSendResult.Rejected(
+                    HostedApiErrorCode.entries.firstOrNull { it.name == result.errorCode },
+                    result.errorMessage,
+                )
+            }
+        }
     }
 
     override suspend fun putMediaContent(sha256: String, mediaType: String, bytes: ByteArray) {

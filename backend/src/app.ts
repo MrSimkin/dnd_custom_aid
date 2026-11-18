@@ -36,6 +36,8 @@ const CHARACTER_BACKUP_FORMAT = "dnd-custom-aid.character-backup";
 const DM_CONTENT_FORMAT = "dnd-custom-aid.dm-content";
 const DM_CONTENT_MAX_SNAPSHOT_BYTES = 1_000_000;
 const DM_CONTENT_FAMILY_PATTERN = /^[A-Z][A-Z0-9_]{0,63}$/;
+/** How many changes one group request may carry (owner's server plan A). */
+const DM_CONTENT_GROUP_MAX = 100;
 
 export interface ApiDependencies {
   auth: AuthVerifier;
@@ -75,6 +77,7 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
       const knownFixedPath =
         path === "/v1/me" ||
         path === "/v1/me/content" ||
+        path === "/v1/content:batch" ||
         path === "/v1/campaigns" ||
         path === "/v1/campaign-memberships" ||
         path === "/v1/rules/answer";
@@ -205,66 +208,59 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         });
       }
 
+      if (path === "/v1/content:batch") {
+        // One request carries a group of changes instead of one each (owner's server plan A,
+        // 2026-11-18). Each change is applied on its own: one refusal never stops the rest, and
+        // what the group could not apply comes back per item so the App can keep it queued.
+        requireMethod(request, "POST");
+        const body = await readJsonObject(request);
+        const items = body.items;
+        if (!Array.isArray(items) || items.length === 0) {
+          throw new ApiProblem(400, "VALIDATION_FAILED", "items must be a non-empty array.", { field: "items" });
+        }
+        if (items.length > DM_CONTENT_GROUP_MAX) {
+          throw new ApiProblem(400, "VALIDATION_FAILED", `items must not carry more than ${DM_CONTENT_GROUP_MAX} changes.`, {
+            field: "items",
+          });
+        }
+        const store = requireDmContent(dependencies);
+        const results: Array<Record<string, unknown>> = [];
+        for (const raw of items) {
+          const item = requireJsonObject(raw, "items[]");
+          const contentId = requireUuid(item.contentId, "items[].contentId");
+          try {
+            const result = await applyDmContentChange(store, user.id, {
+              contentId,
+              mutationId: item.mutationId,
+              expectedRevision: item.expectedRevision,
+              snapshot: item.delete === true ? undefined : item.snapshot,
+              remove: item.delete === true,
+            });
+            results.push({ contentId, content: result.content, applied: result.applied });
+          } catch (error) {
+            const problem = describeProblem(error);
+            // Not the object's fault (no session, overload, a bug here): the whole group waits.
+            if (problem.status >= 500 || problem.status === 401 || problem.status === 429) {
+              throw error;
+            }
+            results.push({ contentId, errorCode: problem.code, errorMessage: problem.message });
+          }
+        }
+        return jsonResponse({ results });
+      }
+
       if (contentMatch != null) {
         const contentId = requireUuid(contentMatch[1], "contentId");
-        const body = await readJsonObject(request);
-        const mutationId = requireUuid(body.mutationId, "mutationId");
-        const expectedRevision = requireNonNegativeInteger(body.expectedRevision, "expectedRevision");
-        const store = requireDmContent(dependencies);
-
-        if (request.method === "DELETE") {
-          const result = await store.deleteContent({
-            actorUserId: user.id,
-            mutationId,
-            contentId,
-            expectedRevision,
-          });
-          return jsonResponse({ content: result.content, applied: result.applied });
-        }
-        if (request.method !== "PUT") {
+        if (request.method !== "PUT" && request.method !== "DELETE") {
           throw methodNotAllowed(["PUT", "DELETE"]);
         }
-
-        const snapshot = requireJsonObject(body.snapshot, "snapshot");
-        const snapshotFormat = requireNonBlankString(snapshot.format, "snapshot.format");
-        const snapshotVersion = requirePositiveInteger(snapshot.version, "snapshot.version");
-        if (snapshotFormat !== DM_CONTENT_FORMAT) {
-          throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot.format is not a supported DM content format.", {
-            field: "snapshot.format",
-          });
-        }
-        if (JSON.stringify(snapshot).length > DM_CONTENT_MAX_SNAPSHOT_BYTES) {
-          throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot is too large.", { field: "snapshot" });
-        }
-        const content = requireJsonObject(snapshot.content, "snapshot.content");
-        if (requireUuid(content.id, "snapshot.content.id") !== contentId) {
-          throw new ApiProblem(400, "VALIDATION_FAILED", "Snapshot identity must match the requested content.", {
-            field: "snapshot.content.id",
-          });
-        }
-        const family = requireNonBlankString(content.family, "snapshot.content.family");
-        if (!DM_CONTENT_FAMILY_PATTERN.test(family)) {
-          throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot.content.family is invalid.", {
-            field: "snapshot.content.family",
-          });
-        }
-        const displayName = requireNonBlankString(content.displayName, "snapshot.content.displayName");
-        const scope = requireJsonObject(content.scope, "snapshot.content.scope");
-        const scopeKind = requireDmContentScopeKind(scope.kind);
-        const scopeRef = requireUuid(scope.ref, "snapshot.content.scope.ref");
-
-        const result = await store.putContent({
-          actorUserId: user.id,
-          mutationId,
+        const body = await readJsonObject(request);
+        const result = await applyDmContentChange(requireDmContent(dependencies), user.id, {
           contentId,
-          expectedRevision,
-          scopeKind,
-          scopeRef,
-          family,
-          displayName,
-          snapshotFormat,
-          snapshotVersion,
-          snapshot,
+          mutationId: body.mutationId,
+          expectedRevision: body.expectedRevision,
+          snapshot: request.method === "PUT" ? body.snapshot : undefined,
+          remove: request.method === "DELETE",
         });
         return jsonResponse({ content: result.content, applied: result.applied });
       }
@@ -446,6 +442,72 @@ function requireCampaignAdministration(dependencies: ApiDependencies): CampaignA
   return administration;
 }
 
+/** One queued change as it arrives, alone on its own route or inside a group. */
+interface DmContentChange {
+  contentId: Uuid;
+  mutationId: unknown;
+  expectedRevision: unknown;
+  snapshot?: unknown;
+  remove: boolean;
+}
+
+/** Validates one change and applies it, so the single route and a group behave identically. */
+async function applyDmContentChange(
+  store: DmContentStore,
+  actorUserId: Uuid,
+  change: DmContentChange,
+): Promise<{ content: unknown; applied: boolean }> {
+  const mutationId = requireUuid(change.mutationId, "mutationId");
+  const expectedRevision = requireNonNegativeInteger(change.expectedRevision, "expectedRevision");
+  const contentId = change.contentId;
+
+  if (change.remove) {
+    return await store.deleteContent({ actorUserId, mutationId, contentId, expectedRevision });
+  }
+
+  const snapshot = requireJsonObject(change.snapshot, "snapshot");
+  const snapshotFormat = requireNonBlankString(snapshot.format, "snapshot.format");
+  const snapshotVersion = requirePositiveInteger(snapshot.version, "snapshot.version");
+  if (snapshotFormat !== DM_CONTENT_FORMAT) {
+    throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot.format is not a supported DM content format.", {
+      field: "snapshot.format",
+    });
+  }
+  if (JSON.stringify(snapshot).length > DM_CONTENT_MAX_SNAPSHOT_BYTES) {
+    throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot is too large.", { field: "snapshot" });
+  }
+  const content = requireJsonObject(snapshot.content, "snapshot.content");
+  if (requireUuid(content.id, "snapshot.content.id") !== contentId) {
+    throw new ApiProblem(400, "VALIDATION_FAILED", "Snapshot identity must match the requested content.", {
+      field: "snapshot.content.id",
+    });
+  }
+  const family = requireNonBlankString(content.family, "snapshot.content.family");
+  if (!DM_CONTENT_FAMILY_PATTERN.test(family)) {
+    throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot.content.family is invalid.", {
+      field: "snapshot.content.family",
+    });
+  }
+  const displayName = requireNonBlankString(content.displayName, "snapshot.content.displayName");
+  const scope = requireJsonObject(content.scope, "snapshot.content.scope");
+  const scopeKind = requireDmContentScopeKind(scope.kind);
+  const scopeRef = requireUuid(scope.ref, "snapshot.content.scope.ref");
+
+  return await store.putContent({
+    actorUserId,
+    mutationId,
+    contentId,
+    expectedRevision,
+    scopeKind,
+    scopeRef,
+    family,
+    displayName,
+    snapshotFormat,
+    snapshotVersion,
+    snapshot,
+  });
+}
+
 function requireDmContent(dependencies: ApiDependencies): DmContentStore {
   const store = dependencies.dmContent;
   if (store == null) {
@@ -568,38 +630,58 @@ function requirePositiveInteger(value: unknown, field: string): number {
   return value;
 }
 
-function errorResponse(error: unknown): Response {
+interface ApiProblemShape {
+  status: number;
+  code: ApiErrorCode;
+  message: string;
+  details?: Record<string, unknown>;
+  headers?: HeadersInit;
+}
+
+/** The status and code one failure deserves, used both for a response and per item of a group. */
+function describeProblem(error: unknown): ApiProblemShape {
   if (error instanceof ApiProblem) {
-    return jsonError(error.status, error.code, error.message, error.details, error.headers);
+    return { status: error.status, code: error.code, message: error.message, details: error.details, headers: error.headers };
   }
   if (error instanceof DmContentIdentityError) {
-    return jsonError(400, "VALIDATION_FAILED", error.message);
+    return { status: 400, code: "VALIDATION_FAILED", message: error.message };
   }
   if (error instanceof AuthenticationError) {
-    return jsonError(401, "UNAUTHENTICATED", error.message, undefined, {
-      "WWW-Authenticate": "Bearer",
-    });
+    return {
+      status: 401,
+      code: "UNAUTHENTICATED",
+      message: error.message,
+      headers: { "WWW-Authenticate": "Bearer" },
+    };
   }
   if (error instanceof HostedAuthorizationError) {
-    return jsonError(403, "FORBIDDEN", error.message);
+    return { status: 403, code: "FORBIDDEN", message: error.message };
   }
   if (error instanceof MutationReuseError) {
-    return jsonError(409, "CONFLICT_MUTATION_REUSE", error.message);
+    return { status: 409, code: "CONFLICT_MUTATION_REUSE", message: error.message };
   }
   if (error instanceof StaleRevisionError) {
-    return jsonError(409, "CONFLICT_STALE_REVISION", error.message, {
-      currentRevision: error.currentRevision,
-    });
+    return {
+      status: 409,
+      code: "CONFLICT_STALE_REVISION",
+      message: error.message,
+      details: { currentRevision: error.currentRevision },
+    };
   }
   if (error instanceof HostedObjectGoneError) {
-    return jsonError(410, "GONE", error.message);
+    return { status: 410, code: "GONE", message: error.message };
   }
   if (error instanceof HostedObjectNotFoundError) {
-    return jsonError(404, "NOT_FOUND", error.message);
+    return { status: 404, code: "NOT_FOUND", message: error.message };
   }
 
   console.error("Unhandled API error", error);
-  return jsonError(500, "INTERNAL_ERROR", "Unexpected server error.");
+  return { status: 500, code: "INTERNAL_ERROR", message: "Unexpected server error." };
+}
+
+function errorResponse(error: unknown): Response {
+  const problem = describeProblem(error);
+  return jsonError(problem.status, problem.code, problem.message, problem.details, problem.headers);
 }
 
 function jsonError(
