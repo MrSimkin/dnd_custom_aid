@@ -261,6 +261,7 @@ internal fun DesktopSceneManagerScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             SceneList(
+                    searching = query.isNotBlank(),
                 scenes = visibleScenes,
                 selectedId = selectedId,
                 onSelect = {
@@ -335,6 +336,7 @@ internal fun DesktopSceneManagerScreen(
 @Composable
 private fun SceneList(
     scenes: List<SceneContent>,
+    searching: Boolean,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
@@ -344,7 +346,7 @@ private fun SceneList(
             Text("Escenas (${scenes.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (scenes.isEmpty()) {
-            item { Text("No hay escenas que coincidan con el filtro.", style = MaterialTheme.typography.bodySmall) }
+            item { EmptyList(searching = searching, nothingYet = "Aún no hay escenas.", howToCreate = "Escribe un título en «Nueva escena» y toca «＋ Crear».") }
         }
         items(scenes, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId

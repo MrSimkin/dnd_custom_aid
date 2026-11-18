@@ -266,6 +266,7 @@ internal fun HomebrewRuleManagerScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             HomebrewRuleList(
+                    searching = query.isNotBlank(),
                 rules = visibleRules,
                 selectedId = selectedId,
                 onSelect = {
@@ -336,6 +337,7 @@ internal fun HomebrewRuleManagerScreen(
 @Composable
 private fun HomebrewRuleList(
     rules: List<HomebrewRuleContent>,
+    searching: Boolean,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
@@ -345,7 +347,7 @@ private fun HomebrewRuleList(
             Text("Reglas (${rules.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (rules.isEmpty()) {
-            item { Text("No hay reglas que coincidan con el filtro.", style = MaterialTheme.typography.bodySmall) }
+            item { EmptyList(searching = searching, nothingYet = "Aún no hay reglas tuyas.", howToCreate = "Escribe un nombre en «Nueva regla» y toca «＋ Crear».") }
         }
         items(rules, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId

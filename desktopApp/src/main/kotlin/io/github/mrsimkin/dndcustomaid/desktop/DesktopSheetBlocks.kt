@@ -63,3 +63,22 @@ internal fun SheetLine(label: String, value: String) {
 internal fun SheetEmpty(text: String) {
     Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
+
+/**
+ * Owner point 7: an empty list teaches what to do instead of only saying that nothing matches.
+ *
+ * [searching] tells the two cases apart: nothing created yet, or a filter hiding everything.
+ * [howToCreate] is the one step that fills this list, in the words of the screen's own buttons.
+ */
+@Composable
+internal fun EmptyList(searching: Boolean, nothingYet: String, howToCreate: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(vertical = 6.dp)) {
+        if (searching) {
+            Text("Nada coincide con lo que buscas.", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+            Text("Borra lo escrito en «Buscar» para verlos todos.", style = MaterialTheme.typography.bodySmall)
+        } else {
+            Text(nothingYet, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+            Text(howToCreate, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}

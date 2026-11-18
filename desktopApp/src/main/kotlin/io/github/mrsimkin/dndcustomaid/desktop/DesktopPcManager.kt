@@ -321,7 +321,15 @@ internal fun DesktopPcManagerScreen(
                         fontWeight = FontWeight.Bold,
                     )
                 }
-                if (visiblePcs.isEmpty()) item { Text("No hay personajes que coincidan con el filtro.") }
+                if (visiblePcs.isEmpty()) {
+                    item {
+                        EmptyList(
+                            searching = query.isNotBlank(),
+                            nothingYet = "Aún no hay personajes en esta campaña.",
+                            howToCreate = "Toca «＋ Nuevo personaje» para crear uno paso a paso. Los que crean los jugadores en su App llegan al sincronizar.",
+                        )
+                    }
+                }
                 items(visiblePcs, key = { it.id.toString() }) { character ->
                     val selected = character.id == selectedId
                     Card(

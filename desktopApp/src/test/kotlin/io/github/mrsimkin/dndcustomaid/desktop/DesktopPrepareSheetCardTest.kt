@@ -83,4 +83,30 @@ class DesktopPrepareSheetCardTest {
         shot("f3_preparacion_completa")
         handle.close()
     }
+
+    /** Owner point 7: an empty list says what to do, not only that nothing matches. */
+    @Test
+    fun anEmptyListSaysHowToFillIt() = runDesktopComposeUiTest(width = 1200, height = 800) {
+        val dir = Files.createTempDirectory("dnd-custom-aid-empty-list-")
+        val handle = DesktopDatabaseFactory(dir.resolve("empty.db").toFile()).create()
+        val campaign = CampaignRepository(handle.database).createCampaign("Serpiente Vieja")
+        setContent {
+            DesktopAppTheme(DesktopPreferences(themeChoice = DesktopThemeChoice.DARK)) {
+                NpcManagerScreen(
+                    controller = DesktopNpcManagerController(handle.database),
+                    activeCampaign = campaign,
+                    onQaEvent = {},
+                )
+            }
+        }
+        waitForIdle()
+        onNodeWithText("Aún no hay PNJ en esta campaña.").assertExists()
+        onNodeWithText("Escribe un nombre en «Nuevo PNJ» y toca «＋ Crear».").assertExists()
+
+        // With a filter on, it says how to see them all instead.
+        onAllNodesWithText("Buscar")[0].performTextInput("zzz")
+        waitForIdle()
+        onNodeWithText("Borra lo escrito en «Buscar» para verlos todos.").assertExists()
+        handle.close()
+    }
 }

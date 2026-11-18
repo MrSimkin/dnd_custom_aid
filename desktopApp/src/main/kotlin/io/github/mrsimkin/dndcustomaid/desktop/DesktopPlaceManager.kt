@@ -300,6 +300,7 @@ internal fun DesktopPlaceManagerScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             PlaceList(
+                    searching = query.isNotBlank(),
                 places = visiblePlaces,
                 selectedId = selectedId,
                 onSelect = {
@@ -374,6 +375,7 @@ internal fun DesktopPlaceManagerScreen(
 @Composable
 private fun PlaceList(
     places: List<PlaceContent>,
+    searching: Boolean,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
@@ -383,7 +385,7 @@ private fun PlaceList(
             Text("Lugares y tiendas (${places.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (places.isEmpty()) {
-            item { Text("No hay contenido que coincida con el filtro.", style = MaterialTheme.typography.bodySmall) }
+            item { EmptyList(searching = searching, nothingYet = "Aún no hay lugares ni tiendas.", howToCreate = "Escribe un nombre en «Nuevo lugar / tienda» y toca «＋ Crear».") }
         }
         items(places, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId

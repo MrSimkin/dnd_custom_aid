@@ -266,6 +266,7 @@ internal fun NpcManagerScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             NpcList(
+                    searching = query.isNotBlank(),
                 npcs = visibleNpcs,
                 selectedId = selectedId,
                 onSelect = {
@@ -344,6 +345,7 @@ internal fun NpcManagerScreen(
 @Composable
 private fun NpcList(
     npcs: List<NpcContent>,
+    searching: Boolean,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
@@ -353,7 +355,7 @@ private fun NpcList(
             Text("PNJ (${npcs.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (npcs.isEmpty()) {
-            item { Text("No hay PNJ que coincidan con el filtro.", style = MaterialTheme.typography.bodySmall) }
+            item { EmptyList(searching = searching, nothingYet = "Aún no hay PNJ en esta campaña.", howToCreate = "Escribe un nombre en «Nuevo PNJ» y toca «＋ Crear».") }
         }
         items(npcs, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId

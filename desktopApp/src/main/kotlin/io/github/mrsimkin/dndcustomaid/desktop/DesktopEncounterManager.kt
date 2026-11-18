@@ -292,6 +292,7 @@ internal fun DesktopEncounterManagerScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             EncounterList(
+                    searching = query.isNotBlank(),
                 encounters = visibleEncounters,
                 selectedId = selectedId,
                 onSelect = {
@@ -367,6 +368,7 @@ internal fun DesktopEncounterManagerScreen(
 @Composable
 private fun EncounterList(
     encounters: List<EncounterContent>,
+    searching: Boolean,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
@@ -376,7 +378,7 @@ private fun EncounterList(
             Text("Encuentros (${encounters.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (encounters.isEmpty()) {
-            item { Text("No hay encuentros que coincidan con el filtro.", style = MaterialTheme.typography.bodySmall) }
+            item { EmptyList(searching = searching, nothingYet = "Aún no hay encuentros preparados.", howToCreate = "Escribe un nombre en «Nuevo encuentro» y toca «＋ Crear»; en el combate también puedes armarlos con «Elegir o armar encuentro».") }
         }
         items(encounters, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId

@@ -107,12 +107,37 @@ def run_in_traits(md: str) -> list[dict]:
     return traits
 
 
+def flattened_level_rows(md: str) -> dict[int, list[str]]:
+    """
+    A level table split by a page break loses its second half: the PDF repeats the header and the
+    rest arrives as a paragraph («12 +4 Mejora de Característica 13 +5 …»). Owner point 11: the
+    Guerrero of 5e stopped at level 11 because of this.
+    """
+    levels: dict[int, list[str]] = {}
+    for run in re.finditer(r"(?:(?<=\n)|(?<=^))\s*\d{1,2}\s\+\d\s[^\n]{10,}", md):
+        parts = re.split(r"(?<!\S)(\d{1,2})\s\+(\d)\s", run.group(0))
+        previous = 0
+        for index in range(1, len(parts) - 2, 3):
+            level = int(parts[index])
+            text = parts[index + 2].strip()
+            if not 1 <= level <= 20 or level <= previous:
+                continue
+            previous = level
+            names = [n.strip() for n in re.split(r",\s*", text) if n.strip() and n.strip() != "—"]
+            if names:
+                levels.setdefault(level, names)
+    return levels
+
+
 def level_features(md: str) -> dict[int, list[str]]:
     levels: dict[int, list[str]] = {}
     for row in table_rows(md):
         if len(row) >= 3 and re.fullmatch(r"\d{1,2}", row[0]) and re.fullmatch(r"\+\d", row[1]):
             names = [n.strip() for n in re.split(r",\s*", row[2]) if n.strip() and n.strip() != "—"]
             levels.setdefault(int(row[0]), names)
+    if levels and max(levels) < 20:
+        for level, names in flattened_level_rows(md).items():
+            levels.setdefault(level, names)
     return levels
 
 

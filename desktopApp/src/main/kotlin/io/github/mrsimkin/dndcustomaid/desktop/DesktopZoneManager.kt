@@ -281,6 +281,7 @@ internal fun DesktopZoneManagerScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             ZoneList(
+                    searching = query.isNotBlank(),
                 zones = visibleZones,
                 selectedId = selectedId,
                 onSelect = {
@@ -353,6 +354,7 @@ internal fun DesktopZoneManagerScreen(
 @Composable
 private fun ZoneList(
     zones: List<ZoneContent>,
+    searching: Boolean,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
@@ -362,7 +364,7 @@ private fun ZoneList(
             Text("Zonas (${zones.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (zones.isEmpty()) {
-            item { Text("No hay zonas que coincidan con el filtro.", style = MaterialTheme.typography.bodySmall) }
+            item { EmptyList(searching = searching, nothingYet = "Aún no hay zonas.", howToCreate = "Escribe un nombre en «Nueva zona» y toca «＋ Crear».") }
         }
         items(zones, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId

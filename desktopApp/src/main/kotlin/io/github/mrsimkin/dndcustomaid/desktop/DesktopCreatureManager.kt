@@ -264,6 +264,7 @@ fun CreatureManagerScreen(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             CreatureList(
+                    searching = query.isNotBlank(),
                 creatures = visibleCreatures,
                 selectedId = selectedId,
                 onSelect = {
@@ -338,6 +339,7 @@ fun CreatureManagerScreen(
 @Composable
 private fun CreatureList(
     creatures: List<CreatureContent>,
+    searching: Boolean,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
@@ -350,7 +352,7 @@ private fun CreatureList(
             Text("Criaturas (${creatures.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (creatures.isEmpty()) {
-            item { Text("No hay criaturas que coincidan con el filtro.", style = MaterialTheme.typography.bodySmall) }
+            item { EmptyList(searching = searching, nothingYet = "Aún no hay criaturas tuyas.", howToCreate = "Escribe un nombre en «Nueva criatura» y toca «＋ Crear»; del SRD también puedes traerlas desde el combate.") }
         }
         items(creatures, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId

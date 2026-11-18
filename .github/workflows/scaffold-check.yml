@@ -27,6 +27,8 @@ jobs:
           gradle-version: "9.5.0"
       - name: Guard compact Player control geometry
         run: python3 scripts/check_player_control_geometry.py
+      - name: Review the SRD content pulled into the App
+        run: python3 scripts/check_srd_content.py
       - name: Guard Player reorder target stability
         run: python3 scripts/check_player_reorder_stability.py
       - name: Guard Player checkbox consistency
