@@ -3,6 +3,7 @@ package io.github.mrsimkin.dndcustomaid.dmui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -10,8 +11,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -62,9 +65,9 @@ internal fun PrepareStep(
     val members = doc.combatants.filter { it.groupId == focusGroup }
     val member = selectedMember?.let(doc::combatant)?.takeIf { it.groupId == focusGroup }
 
-    Row(modifier = Modifier.fillMaxSize()) {
+    val participants: @Composable (Modifier) -> Unit = { columnModifier ->
         Column(
-            modifier = Modifier.weight(1f).fillMaxHeight().dmScroll().padding(10.dp),
+            modifier = columnModifier,
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text("Participantes", style = MaterialTheme.typography.titleMedium)
@@ -92,8 +95,10 @@ internal fun PrepareStep(
                 }
             }
         }
+    }
+    val detail: @Composable (Modifier) -> Unit = { columnModifier ->
         Column(
-            modifier = Modifier.weight(1.25f).fillMaxHeight().dmScroll().padding(10.dp),
+            modifier = columnModifier,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (members.isEmpty()) {
@@ -110,12 +115,14 @@ internal fun PrepareStep(
                 )
             }
         }
+    }
+    val adding: @Composable (Modifier) -> Unit = { columnModifier ->
         Column(
-            modifier = Modifier.weight(0.9f).fillMaxHeight().dmScroll().padding(10.dp),
+            modifier = columnModifier,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text("Agregar", style = MaterialTheme.typography.titleMedium)
-            OutlinedButton(enabled = sources.encounters.isNotEmpty(), onClick = { onAdd(AddMode.ENCOUNTER) }, modifier = Modifier.fillMaxWidth()) { Text("Encuentro preparado") }
+            OutlinedButton(onClick = { onAdd(AddMode.ENCOUNTER) }, modifier = Modifier.fillMaxWidth()) { Text("Elegir o armar encuentro") }
             OutlinedButton(onClick = { onAdd(AddMode.BESTIARY) }, modifier = Modifier.fillMaxWidth()) { Text("Bestiario (nombre o VD)") }
             OutlinedButton(onClick = { onAdd(AddMode.CUSTOM) }, modifier = Modifier.fillMaxWidth()) { Text("Improvisado") }
             if (sources.pcs.any { pc -> doc.combatants.none { it.characterId == pc.id } }) {
@@ -130,6 +137,45 @@ internal fun PrepareStep(
             EncounterGuide(doc, sources)
         }
     }
+
+    // Tablet QA of E1: three columns on a tablet left each one so narrow that names piled up letter
+    // by letter. Narrow screens get two columns, with what you are adjusting under «Agregar».
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val column = Modifier.fillMaxHeight().dmScroll().padding(10.dp)
+        if (maxWidth >= 820.dp) {
+            Row(modifier = Modifier.fillMaxSize()) {
+                participants(Modifier.weight(1f).then(column))
+                detail(Modifier.weight(1.25f).then(column))
+                adding(Modifier.weight(0.9f).then(column))
+            }
+        } else {
+            Row(modifier = Modifier.fillMaxSize()) {
+                participants(Modifier.weight(1f).then(column))
+                Column(
+                    modifier = Modifier.weight(1f).then(column),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    adding(Modifier)
+                    HorizontalDivider()
+                    detail(Modifier)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * A narrow button for a participant row. Tablet QA of E1: the normal buttons took so much of the
+ * narrow column that the creature's name was drawn one letter per line.
+ */
+@Composable
+internal fun CompactRowButton(text: String, enabled: Boolean = true, onClick: () -> Unit) {
+    TextButton(
+        onClick = onClick,
+        enabled = enabled,
+        contentPadding = PaddingValues(horizontal = 4.dp),
+        modifier = Modifier.widthIn(min = 34.dp).height(36.dp),
+    ) { Text(text) }
 }
 
 @Composable
@@ -153,7 +199,7 @@ internal fun GroupBlock(
         Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (first.kind != CombatantKind.PC && group.size > 1) {
-                    TextButton(onClick = onToggleExpand) { Text(if (expanded) "▾" else "▸") }
+                    CompactRowButton(if (expanded) "▾" else "▸", onClick = onToggleExpand)
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -170,8 +216,8 @@ internal fun GroupBlock(
                     )
                 }
                 if (first.kind != CombatantKind.PC) {
-                    TextButton(enabled = group.size > 1, onClick = { onQuantity(group.size - 1) }) { Text("−") }
-                    TextButton(enabled = group.size < 50, onClick = { onQuantity(group.size + 1) }) { Text("+") }
+                    CompactRowButton("−", enabled = group.size > 1) { onQuantity(group.size - 1) }
+                    CompactRowButton("+", enabled = group.size < 50) { onQuantity(group.size + 1) }
                 }
             }
             if (expanded && group.size > 1) {

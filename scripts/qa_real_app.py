@@ -276,6 +276,8 @@ def win_type(text: str) -> None:
             inp = INPUT(type=1)
             inp.ki = KEYBDINPUT(0, ord(ch), flags, 0, 0)
             user32.SendInput(1, ctypes.byref(inp), ctypes.sizeof(INPUT))
+            time.sleep(0.02)
+        time.sleep(0.06)  # a person's pace: faster letters can arrive before Compose takes the last one
     time.sleep(0.4)
     print(f"escrito {text!r}")
 

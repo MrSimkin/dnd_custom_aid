@@ -2,6 +2,7 @@ package io.github.mrsimkin.dndcustomaid.dmui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -57,8 +58,8 @@ internal fun LiveStep(
     var addMenu by remember { mutableStateOf(false) }
     val selected = selectedId?.let(doc::combatant) ?: doc.activeCombatantId?.let(doc::combatant)
 
-    Row(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.weight(0.95f).fillMaxHeight().padding(10.dp)) {
+    val order: @Composable (Modifier) -> Unit = { columnModifier ->
+        Column(modifier = columnModifier) {
             Text("Orden", style = MaterialTheme.typography.titleMedium)
             LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 items(doc.turnSlots.flatten(), key = { it.id.toString() }) { c ->
@@ -85,24 +86,51 @@ internal fun LiveStep(
                 Box {
                     OutlinedButton(onClick = { addMenu = true }) { Text("＋ Agregar") }
                     DropdownMenu(expanded = addMenu, onDismissRequest = { addMenu = false }) {
-                        if (sources.encounters.isNotEmpty()) DropdownMenuItem(text = { Text("Encuentro preparado") }, onClick = { addMenu = false; onAdd(AddMode.ENCOUNTER) })
+                        DropdownMenuItem(text = { Text("Elegir o armar encuentro") }, onClick = { addMenu = false; onAdd(AddMode.ENCOUNTER) })
                         DropdownMenuItem(text = { Text("Bestiario") }, onClick = { addMenu = false; onAdd(AddMode.BESTIARY) })
                         DropdownMenuItem(text = { Text("Improvisado") }, onClick = { addMenu = false; onAdd(AddMode.CUSTOM) })
                     }
                 }
             }
         }
+    }
+    val target: @Composable (Modifier) -> Unit = { columnModifier ->
         Column(
-            modifier = Modifier.weight(1.15f).fillMaxHeight().dmScroll().padding(10.dp),
+            modifier = columnModifier,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (selected == null) Text("Toca a alguien del orden.") else LiveTarget(doc, selected, sources, onChange, onChangeQuiet, onEdit)
         }
+    }
+    val guide: @Composable (Modifier) -> Unit = { columnModifier ->
         Column(
-            modifier = Modifier.weight(1f).fillMaxHeight().dmScroll().padding(10.dp),
+            modifier = columnModifier,
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             GuideColumn(doc, sources)
+        }
+    }
+
+    // Tablet QA of E1: three columns were too narrow on a tablet, so names piled up letter by letter.
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        if (maxWidth >= 820.dp) {
+            Row(modifier = Modifier.fillMaxSize()) {
+                order(Modifier.weight(0.95f).fillMaxHeight().padding(10.dp))
+                target(Modifier.weight(1.15f).fillMaxHeight().dmScroll().padding(10.dp))
+                guide(Modifier.weight(1f).fillMaxHeight().dmScroll().padding(10.dp))
+            }
+        } else {
+            Row(modifier = Modifier.fillMaxSize()) {
+                order(Modifier.weight(1f).fillMaxHeight().padding(10.dp))
+                Column(
+                    modifier = Modifier.weight(1f).fillMaxHeight().dmScroll().padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    target(Modifier)
+                    HorizontalDivider()
+                    guide(Modifier)
+                }
+            }
         }
     }
 }

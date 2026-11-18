@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
@@ -112,6 +113,15 @@ internal fun CombatDesk(
         Text("Este combate ya no está en el aparato.", modifier = Modifier.padding(16.dp))
         return
     }
+    // Owner observation E1 (0.7.0-preqa.4): a new combat starts on «Elegir encuentro»; the same
+    // screen replaces the «Encuentro preparado» pop-up.
+    var selecting by remember(combatId) {
+        mutableStateOf(
+            current.status == CombatStatus.PREPARING && current.encounterId == null &&
+                current.combatants.none { it.kind != io.github.mrsimkin.dndcustomaid.shared.dm.CombatantKind.PC },
+        )
+    }
+    val openAdd: (AddMode) -> Unit = { mode -> if (mode == AddMode.ENCOUNTER) selecting = true else addMode = mode }
 
     fun save(next: CombatDocument) {
         doc = repository.save(next, nowEpochSeconds())
@@ -142,15 +152,30 @@ internal fun CombatDesk(
             val acting = current.actingIds.mapNotNull(current::combatant)
             val actingText = if (acting.size > 1) "${stemOf(acting.first().label)} ×${acting.size}" else acting.firstOrNull()?.label
             Text(
-                when (current.status) {
+                when {
+                    selecting -> "Elegir encuentro"
+                    else -> null
+                } ?: when (current.status) {
                     CombatStatus.PREPARING -> "Paso 1 · Preparar"
                     CombatStatus.ACTIVE -> (if (current.round == 0) "Ronda sorpresa" else "Ronda ${current.round}") + (actingText?.let { " · Actúa $it" } ?: "")
                     CombatStatus.ENDED -> "Terminado"
                 },
                 style = MaterialTheme.typography.titleMedium,
+                // Tablet QA: without these the title broke into one letter per line beside the message.
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
-            notice?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary) }
+            notice?.let {
+                Text(
+                    it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+            }
             TextButton(enabled = undo.isNotEmpty(), onClick = { save(undo.removeAt(undo.lastIndex)) }) { Text("↶ Deshacer") }
             OutlinedButton(onClick = { confirmClose = true }) {
                 Text(if (current.status == CombatStatus.PREPARING) "Borrar combate" else "Terminar combate")
@@ -158,13 +183,28 @@ internal fun CombatDesk(
         }
         HorizontalDivider()
         Box(modifier = Modifier.fillMaxSize()) {
-            when (current.status) {
+            if (selecting && current.status != CombatStatus.ENDED) {
+                EncounterSelector(
+                    database = database,
+                    campaignId = campaign.id,
+                    sources = sources,
+                    startingCombat = current.combatants.none { it.kind != io.github.mrsimkin.dndcustomaid.shared.dm.CombatantKind.PC },
+                    onUse = { draft, creatures ->
+                        change(draft.applyTo(current, creatures))
+                        sourcesVersion += 1
+                        selecting = false
+                        notice = "«${draft.name.ifBlank { "Encuentro" }}» está en el combate."
+                    },
+                    onSkip = { selecting = false },
+                    onSaved = { sourcesVersion += 1; onChanged() },
+                )
+            } else when (current.status) {
                 CombatStatus.PREPARING -> PrepareStep(
                     doc = current,
                     sources = sources,
                     onChange = ::change,
                     onEdit = { id, whole -> checkpoint(); editor = id to whole },
-                    onAdd = { addMode = it },
+                    onAdd = openAdd,
                     onStart = { checkpoint(); showInitiative = true },
                 )
                 CombatStatus.ACTIVE -> LiveStep(
@@ -173,7 +213,7 @@ internal fun CombatDesk(
                     onChange = ::change,
                     onChangeQuiet = ::changeQuiet,
                     onEdit = { id, whole -> checkpoint(); editor = id to whole },
-                    onAdd = { addMode = it },
+                    onAdd = openAdd,
                 )
                 CombatStatus.ENDED -> Text("Este combate terminó.", modifier = Modifier.padding(16.dp))
             }

@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -261,21 +262,8 @@ internal fun AddDialog(mode: AddMode, doc: CombatDocument, sources: CombatSource
             onDismiss = onDismiss,
             onPick = { creature, quantity -> onChange(CombatEngine.addCreature(doc, creature, quantity)) },
         )
-        AddMode.ENCOUNTER -> AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text("Encuentro preparado") },
-            text = {
-                Column {
-                    sources.encounters.forEach { encounter ->
-                        TextButton(onClick = { onChange(CombatEngine.addEncounter(doc, encounter, sources.creaturesById)) }) {
-                            Text("${encounter.item.displayName} (${encounter.payload.participants.sumOf { it.quantity }})")
-                        }
-                    }
-                }
-            },
-            confirmButton = {},
-            dismissButton = { TextButton(onClick = onDismiss) { Text("Cerrar") } },
-        )
+        // Owner observation E1: encounters are chosen in the «Elegir encuentro» step, not in a pop-up.
+        AddMode.ENCOUNTER -> Unit
         AddMode.CUSTOM -> AlertDialog(
             onDismissRequest = onDismiss,
             title = { Text("Participante improvisado") },
@@ -285,7 +273,7 @@ internal fun AddDialog(mode: AddMode, doc: CombatDocument, sources: CombatSource
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         TextFieldSmall(customHp, "PV", 80, numeric = true) { customHp = it.filter(Char::isDigit).take(4) }
                         TextFieldSmall(customAc, "CA", 80, numeric = true) { customAc = it.filter(Char::isDigit).take(2) }
-                        TextFieldSmall(customQty, "Cantidad", 90, numeric = true) { customQty = it.filter(Char::isDigit).take(2) }
+                        TextFieldQuantity(customQty) { customQty = it }
                     }
                 }
             },
@@ -327,7 +315,7 @@ internal fun CreaturePicker(
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TextFieldSmall(query, "Buscar (nombre o VD)", 220) { query = it }
-                    if (withQuantity) TextFieldSmall(quantity, "Cantidad", 90, numeric = true) { quantity = it.filter(Char::isDigit).take(2) }
+                    if (withQuantity) TextFieldQuantity(quantity) { quantity = it }
                 }
                 if (adopt != null) {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -391,6 +379,31 @@ internal fun NumberField(value: Int?, label: String, width: Int, own: Boolean = 
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = Modifier.width(width.dp),
+    )
+}
+
+/**
+ * The «Cantidad» box. Tablet QA of E1: it started with «1», so typing 3 left ×13. Touching the box
+ * empties it, and leaving it empty puts the 1 back, so what you type is the quantity.
+ */
+@Composable
+internal fun TextFieldQuantity(value: String, width: Int = 90, onValue: (String) -> Unit) {
+    var hasFocus by remember { mutableStateOf(false) }
+    DmTextField(
+        value = value,
+        onValueChange = { onValue(it.filter(Char::isDigit).take(2)) },
+        label = { Text("Cantidad") },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = Modifier.width(width.dp).onFocusChanged { state ->
+            if (state.isFocused && !hasFocus) {
+                hasFocus = true
+                if (value == "1") onValue("")
+            } else if (!state.isFocused && hasFocus) {
+                hasFocus = false
+                if (value.isBlank()) onValue("1")
+            }
+        },
     )
 }
 

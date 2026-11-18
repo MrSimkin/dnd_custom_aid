@@ -314,6 +314,8 @@ class DesktopDmWorkspaceTest {
         onAllNodesWithText("Cerrar turno")[0].performClick()
         shot("w11_dungeon_emboscada")
         onAllNodesWithText("Ronda sorpresa ▸ ⚔")[0].performClick()
+        // E1: a combat with no enemies yet opens on «Elegir encuentro»; this one goes on without one.
+        onAllNodesWithText("Sin encuentro: improvisar ▸")[0].performClick()
         onAllNodesWithText("Empezar combate ▸")[0].performClick()
         shot("w12_combate_ronda_sorpresa")
         handle.close()
