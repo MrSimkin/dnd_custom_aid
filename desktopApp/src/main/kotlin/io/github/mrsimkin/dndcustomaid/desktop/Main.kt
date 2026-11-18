@@ -562,6 +562,43 @@ private fun ContentBundleCard(
                     onLoaded(summary)
                 }
             }) { Text(if (loading) "Cargando…" else "Elegir paquete y cargar") }
+
+            // Owner point 12: before loading again, see what the package would change.
+            var comparison by remember { mutableStateOf<BundleComparison?>(null) }
+            OutlinedButton(enabled = !loading, onClick = {
+                val file = chooseFileWithExplorer("Elegir paquete para comparar", "bundles", campaign.id.toString(), listOf("json")) ?: return@OutlinedButton
+                loading = true
+                loadScope.launch {
+                    val outcome = runCatching {
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            compareBundleWithCampaign(
+                                database = database,
+                                bundle = io.github.mrsimkin.dndcustomaid.shared.content.parseContentBundle(file.readText()),
+                                campaignId = campaign.id,
+                                campaignName = campaign.name,
+                                ownerAccountId = accountSession.accountId,
+                                readFile = { name -> File(file.parentFile, name).takeIf { it.isFile }?.readBytes() },
+                                nowEpochSeconds = System.currentTimeMillis() / 1000L,
+                            )
+                        }
+                    }
+                    loading = false
+                    outcome.onSuccess { comparison = it }
+                        .onFailure { onLoaded("No se pudo comparar el paquete: " + it.message) }
+                }
+            }) { Text("Ver cambios del paquete…") }
+
+            comparison?.let { found ->
+                DesktopBundleChangesDialog(
+                    comparison = found,
+                    onDismiss = { comparison = null },
+                    onUseTheirs = { ids ->
+                        val applied = found.useTheirs(database, ids, System.currentTimeMillis() / 1000L)
+                        comparison = null
+                        onLoaded("Traído del paquete: " + applied + " objeto(s). Lo demás quedó como lo tenías.")
+                    },
+                )
+            }
         }
     }
 }
