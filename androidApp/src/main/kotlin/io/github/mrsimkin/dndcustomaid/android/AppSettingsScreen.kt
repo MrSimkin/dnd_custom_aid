@@ -100,6 +100,8 @@ internal fun AppSettingsScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(appSpacingV4(9.dp)),
             ) {
+                // Owner point 5: one public table of what is done where, the same in both Apps.
+                item { io.github.mrsimkin.dndcustomaid.dmui.WhereToDoItCard() }
                 item {
                     SteppedPercentSettingV4(
                         label = "Tamaño de texto",

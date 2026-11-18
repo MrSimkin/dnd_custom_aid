@@ -42,6 +42,9 @@ internal fun DesktopApplicationSettingsScreen(
     ) {
         item { WorkbenchHeading(title = "Configuración", subtitle = DesktopDestination.SETTINGS.purpose + " Solo en este equipo.") }
 
+        // Owner point 5: one public table of what is done where, the same in both Apps.
+        item { io.github.mrsimkin.dndcustomaid.dmui.WhereToDoItCard() }
+
         item {
             DesktopPercentSlider(
                 label = "Tamaño de texto",

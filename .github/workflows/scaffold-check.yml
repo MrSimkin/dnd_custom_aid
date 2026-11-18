@@ -29,6 +29,8 @@ jobs:
         run: python3 scripts/check_player_control_geometry.py
       - name: Review the SRD content pulled into the App
         run: python3 scripts/check_srd_content.py
+      - name: Guard the table of what is done where
+        run: python3 scripts/check_where_to_do_it.py
       - name: Guard Player reorder target stability
         run: python3 scripts/check_player_reorder_stability.py
       - name: Guard Player checkbox consistency
