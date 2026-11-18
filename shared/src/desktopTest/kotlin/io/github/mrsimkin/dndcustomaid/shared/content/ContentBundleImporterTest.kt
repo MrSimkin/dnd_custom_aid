@@ -70,6 +70,10 @@ class ContentBundleImporterTest {
         assertEquals("Embaucador arcano", pc.classes.single().subclassName)
         assertEquals("Gnomo", pc.background.race)
         assertEquals("Daniela", CharacterPlayerRepository(database).player(pc.id))
+        // Agent check of 0.7.0-preqa.4: level 7 is +3 with no adjustment, and PV are the dice average (8 + 6 × 5).
+        assertEquals(3, pc.finalProficiencyBonus)
+        assertEquals(0, pc.proficiencyBonusAdjustment)
+        assertEquals(38, pc.maxHp)
 
         val again = importer.load(bundle, campaign.id, ContentBundleParts.ALL, ownerAccountId = null) { png }
         assertTrue(again.created.isEmpty(), "nothing new the second time: ${again.created}")

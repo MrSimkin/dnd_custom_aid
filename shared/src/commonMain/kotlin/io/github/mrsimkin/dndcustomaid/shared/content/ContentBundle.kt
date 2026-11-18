@@ -412,10 +412,20 @@ class ContentBundleImporter(
                             subclassRulesFamily = family,
                         )
                     }
+                    // Agent check of 0.7.0-preqa.4: the package brings no characteristics, so the PC starts
+                    // with the proficiency bonus of its level (it was kept at +2 and read as a −1
+                    // adjustment) and the average hit points of its hit dice instead of 1.
+                    val hitPoints = classes.flatMapIndexed { index, c ->
+                        List(c.level) { step -> if (index == 0 && step == 0) c.hitDieSides else c.hitDieSides / 2 + 1 }
+                    }.sum().coerceAtLeast(1)
                     characters.saveCharacter(
                         sheet.copy(
                             classes = classes,
-                            background = CharacterBackground(name = pc.background, race = pc.species, story = pc.story),
+                            background = CharacterBackground(name = pc.background, race = pc.species, story = io.github.mrsimkin.dndcustomaid.shared.character.printableSheetText(pc.story)),
+                            proficiencyBonus = io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel(classes.sumOf { it.level }),
+                            proficiencyBonusAdjustment = 0,
+                            maxHp = hitPoints,
+                            currentHp = hitPoints,
                         ),
                     )
                     players.setPlayer(sheet.id, pc.player)

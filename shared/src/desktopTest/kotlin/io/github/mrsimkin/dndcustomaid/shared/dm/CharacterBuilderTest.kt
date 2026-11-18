@@ -70,6 +70,14 @@ class CharacterBuilderTest {
         assertTrue(built.traits.any { it.type == CharacterTraitType.FEAT })
         assertTrue(built.inventoryItems.any { it.name.contains("hacha de mano", ignoreCase = true) || it.name.contains("hachas de mano") }, built.inventoryItems.map { it.name }.toString())
         assertEquals(15, built.currencies.single { it.key == "gp" }.amount + 0 - built.currencies.single { it.key == "gp" }.amount + 15)
+        // Agent check of 0.7.0-preqa.4: level 7 means +3, and the saved sheet keeps it with no adjustment.
+        assertEquals(3, built.proficiencyBonus)
+        // No armour: 10 + Destreza (+1) + Constitución (+2), the Bárbaro's Unarmored Defense.
+        assertEquals(13, built.armorClass)
+        val saved = CharacterRepository(database).saveCharacter(built)
+        assertEquals(3, saved.finalProficiencyBonus)
+        assertEquals(0, saved.proficiencyBonusAdjustment)
+        assertEquals(13, saved.armorClass)
         driver.close()
     }
 

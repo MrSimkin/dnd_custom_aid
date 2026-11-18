@@ -84,7 +84,7 @@ internal fun filterDesktopZones(
                 addAll(content.payload.tags)
             }.any { it.lowercase().contains(query) }
         }
-        .sortedWith(compareBy({ zoneScopeSortKey(it) }, { it.item.displayName.lowercase() }))
+        .sortedWith(compareBy<ZoneContent> { zoneScopeSortKey(it) }.then(io.github.mrsimkin.dndcustomaid.shared.dm.naturalZoneOrder))
 }
 
 class DesktopZoneManagerController(
@@ -218,15 +218,6 @@ internal fun DesktopZoneManagerScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Dungeons", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text(
-                "Prepara cada Zona como un Zone Brief: PRESENTAR, INTERACTUAR y ENCUENTRO. " +
-                    "Espacio y exploración conservan la orientación topológica sin convertir el gestor en un VTT.",
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),

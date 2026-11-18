@@ -45,8 +45,27 @@ fun RulesOption.toSpellPick(): SpellPick {
     )
 }
 
+/** The characteristic a weapon attacks with. */
+enum class WeaponAbility { STRENGTH, DEXTERITY, BEST_OF_BOTH }
+
 /** The fields of «Añadir ataque o acción», filled from a picked weapon. */
-data class AttackPick(val name: String, val damageEffect: String, val rangeText: String, val notes: String)
+data class AttackPick(
+    val name: String,
+    val damageEffect: String,
+    val rangeText: String,
+    val notes: String,
+    val ability: WeaponAbility = WeaponAbility.STRENGTH,
+) {
+    /** Attack bonus and damage bonus for a PC with these modifiers (proficiency is always counted). */
+    fun bonuses(strengthModifier: Int, dexterityModifier: Int, proficiencyBonus: Int): Pair<Int, Int> {
+        val modifier = when (ability) {
+            WeaponAbility.STRENGTH -> strengthModifier
+            WeaponAbility.DEXTERITY -> dexterityModifier
+            WeaponAbility.BEST_OF_BOTH -> maxOf(strengthModifier, dexterityModifier)
+        }
+        return (modifier + proficiencyBonus) to modifier
+    }
+}
 
 fun RulesOption.toAttackPick(): AttackPick {
     val properties = fields["propiedades"].orEmpty().takeIf { it != "—" }.orEmpty()
@@ -56,7 +75,13 @@ fun RulesOption.toAttackPick(): AttackPick {
         fields["maestria"]?.let { "Maestría: $it" },
         "$source",
     ).joinToString(" · ")
-    return AttackPick(name = name, damageEffect = fields["dano"].orEmpty().takeIf { it != "—" }.orEmpty(), rangeText = range, notes = notes)
+    val lower = properties.lowercase()
+    val ability = when {
+        Regex("""\bsutil\b""").containsMatchIn(lower) -> WeaponAbility.BEST_OF_BOTH
+        fields["categoria"].orEmpty().lowercase().contains("a distancia") -> WeaponAbility.DEXTERITY
+        else -> WeaponAbility.STRENGTH
+    }
+    return AttackPick(name = name, damageEffect = fields["dano"].orEmpty().takeIf { it != "—" }.orEmpty(), rangeText = range, notes = notes, ability = ability)
 }
 
 /** The fields of «Añadir objeto», filled from a picked weapon, armour or item. */

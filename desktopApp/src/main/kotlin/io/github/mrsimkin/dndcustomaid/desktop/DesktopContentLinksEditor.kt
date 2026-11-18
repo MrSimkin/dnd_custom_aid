@@ -41,6 +41,7 @@ import io.github.mrsimkin.dndcustomaid.dmui.handCursor
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
@@ -222,7 +223,7 @@ private fun DungeonFields(controller: DesktopContentLinksController, item: Reusa
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text("Dungeon (Mesa de Dungeon)", fontWeight = FontWeight.Medium)
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            OutlinedTextField(value = dungeon, onValueChange = { dungeon = it; onChange(links.copy(dungeon = it)) }, label = { Text("Nombre de el dungeon") }, singleLine = true, modifier = Modifier.width(280.dp))
+            OutlinedTextField(value = dungeon, onValueChange = { dungeon = it; onChange(links.copy(dungeon = it)) }, label = { Text("Nombre del dungeon") }, singleLine = true, modifier = Modifier.width(280.dp))
             known.filter { it != links.dungeon }.forEach { name -> TextButton(onClick = { dungeon = name; onChange(links.copy(dungeon = name)) }) { Text(name) } }
         }
         if (links.dungeon.isNotBlank()) {
@@ -244,7 +245,7 @@ private fun DungeonFields(controller: DesktopContentLinksController, item: Reusa
                     Text(
                         other.displayName,
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.offset { androidx.compose.ui.unit.IntOffset((x * w).roundToInt(), (y * h).roundToInt()) }
+                        modifier = Modifier.insideDiagram(x, y)
                             .background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.small).padding(horizontal = 4.dp),
                     )
                 }
@@ -254,7 +255,7 @@ private fun DungeonFields(controller: DesktopContentLinksController, item: Reusa
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.offset { androidx.compose.ui.unit.IntOffset((links.diagramX!! * w).roundToInt(), (links.diagramY!! * h).roundToInt()) }
+                        modifier = Modifier.insideDiagram(links.diagramX!!, links.diagramY!!)
                             .background(MaterialTheme.colorScheme.primary, MaterialTheme.shapes.small).padding(horizontal = 4.dp),
                     )
                 }
@@ -275,6 +276,19 @@ private fun DungeonFields(controller: DesktopContentLinksController, item: Reusa
                 }
             }
         }
+    }
+}
+
+/**
+ * Agent check of 0.7.0-preqa.4 (R5): a zone name sits at its place in the diagram but never past its
+ * edges (names at the right or bottom spilled over «Pasajes a otras zonas»).
+ */
+private fun Modifier.insideDiagram(fx: Double, fy: Double): Modifier = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints.copy(minWidth = 0, minHeight = 0))
+    layout(placeable.width, placeable.height) {
+        val x = (fx * (constraints.maxWidth - placeable.width)).roundToInt().coerceAtLeast(0)
+        val y = (fy * (constraints.maxHeight - placeable.height)).roundToInt().coerceAtLeast(0)
+        placeable.place(x, y)
     }
 }
 

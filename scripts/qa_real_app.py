@@ -11,6 +11,8 @@ Windows (the App de PC, always with its own data folder, never the owner's ~/.dn
   qa_real_app.py win-type "texto"             type text into the focused field
   qa_real_app.py win-key enter|tab|esc|backspace
   qa_real_app.py win-size 1500 950            fixed window size, so steps repeat
+  qa_real_app.py win-drag X1 Y1 X2 Y2         a real mouse drag in small steps
+  qa_real_app.py win-scroll X Y CLICKS        mouse wheel (negative scrolls down)
   qa_real_app.py win-file "Título del selector" archivo.json   answer the App's file dialog
   qa_real_app.py win-stop --data D:\\qa\\datos   close it and confirm the owner's data was not touched
 
@@ -24,7 +26,7 @@ Android emulator (always -read-only -no-snapshot-save, so nothing is kept):
   qa_real_app.py emu-start AVD_NAME
   qa_real_app.py emu-install file.apk         (the agent's emulator only; the owner never installs with adb)
   qa_real_app.py emu-open
-  qa_real_app.py emu-tap X Y | emu-type "texto" | emu-key ENTER|BACK
+  qa_real_app.py emu-tap X Y | emu-tap-text "Texto" [--index N] | emu-type "texto" | emu-key ENTER|BACK
   qa_real_app.py emu-shot out.png
   qa_real_app.py emu-stop
 """
@@ -115,9 +117,11 @@ def require_window() -> int:
 # real mouse and keyboard (Windows ignores them otherwise), so they are guarded: they stop instead
 # of reaching any other window.
 
-def win_shot(out: Path) -> None:
+def win_shot(out: Path, title: str | None = None) -> None:
     ctypes, wintypes, user32, gdi32 = _win()
-    hwnd = require_window()
+    hwnd = find_window(title) if title else require_window()
+    if not hwnd:
+        raise SystemExit(f"No veo la ventana «{title}».")
     _, _, w, h = client_origin(hwnd)
     screen = user32.GetDC(0)
     mem = gdi32.CreateCompatibleDC(screen)
@@ -153,17 +157,21 @@ def focus(hwnd: int) -> None:
     _, _, user32, _ = _win()
     if user32.IsIconic(hwnd):
         user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+    activated = False
     for _ in range(3):
         if user32.GetForegroundWindow() == hwnd:
             break
-        # Windows lets a process take the foreground right after input: a lone Alt tap allows it.
-        user32.keybd_event(0x12, 0, 0, 0)
-        user32.keybd_event(0x12, 0, 0x0002, 0)
+        # Windows lets a process take the foreground right after input. A Shift tap counts as input and,
+        # unlike Alt, does not arm the window menu (which swallowed the next click).
+        user32.keybd_event(0x10, 0, 0, 0)
+        user32.keybd_event(0x10, 0, 0x0002, 0)
         user32.SetForegroundWindow(hwnd)
+        activated = True
         time.sleep(0.4)
     if user32.GetForegroundWindow() != hwnd:
         raise SystemExit("No pude traer la App al frente (¿alguien usa el equipo?); no hago clic ni escribo.")
-    time.sleep(0.2)
+    # A window that has just come to the front needs a moment before it takes clicks reliably.
+    time.sleep(1.0 if activated else 0.2)
 
 
 def win_click(x: int, y: int) -> None:
@@ -176,13 +184,53 @@ def win_click(x: int, y: int) -> None:
     user32.WindowFromPoint.argtypes = [wintypes.POINT]
     if user32.GetAncestor(user32.WindowFromPoint(wintypes.POINT(ox + x, oy + y)), 2) != hwnd:  # GA_ROOT
         raise SystemExit(f"En {x},{y} hay otra ventana encima de la App; no hago clic.")
+    # Arrive like a hand: a few pixels away first, then onto the target, so the App sees the pointer
+    # enter before the press (some controls ignore a press that comes with no move).
+    user32.SetCursorPos(ox + x - 6, oy + y - 4)
+    time.sleep(0.12)
     user32.SetCursorPos(ox + x, oy + y)
-    time.sleep(0.08)
+    time.sleep(0.25)
     user32.mouse_event(0x0002, 0, 0, 0, 0)  # left down
-    time.sleep(0.05)
+    time.sleep(0.08)
     user32.mouse_event(0x0004, 0, 0, 0, 0)  # left up
     time.sleep(0.7)
     print(f"clic en {x},{y}")
+
+
+def win_drag(x1: int, y1: int, x2: int, y2: int, steps: int = 20) -> None:
+    """A real mouse drag from x1,y1 to x2,y2 in small steps, as a hand would do it."""
+    ctypes, wintypes, user32, _ = _win()
+    hwnd = require_window()
+    focus(hwnd)
+    ox, oy, _, _ = client_origin(hwnd)
+    user32.WindowFromPoint.argtypes = [wintypes.POINT]
+    for x, y in ((x1, y1), (x2, y2)):
+        if user32.GetAncestor(user32.WindowFromPoint(wintypes.POINT(ox + x, oy + y)), 2) != hwnd:
+            raise SystemExit(f"En {x},{y} hay otra ventana encima de la App; no arrastro.")
+    user32.SetCursorPos(ox + x1, oy + y1)
+    time.sleep(0.15)
+    user32.mouse_event(0x0002, 0, 0, 0, 0)  # left down
+    time.sleep(0.15)
+    for i in range(1, steps + 1):
+        user32.SetCursorPos(ox + x1 + (x2 - x1) * i // steps, oy + y1 + (y2 - y1) * i // steps)
+        time.sleep(0.03)
+    time.sleep(0.15)
+    user32.mouse_event(0x0004, 0, 0, 0, 0)  # left up
+    time.sleep(0.7)
+    print(f"arrastre de {x1},{y1} a {x2},{y2}")
+
+
+def win_scroll(x: int, y: int, clicks: int) -> None:
+    """Mouse wheel at x,y: negative clicks scroll down."""
+    ctypes, wintypes, user32, _ = _win()
+    hwnd = require_window()
+    focus(hwnd)
+    ox, oy, _, _ = client_origin(hwnd)
+    user32.SetCursorPos(ox + x, oy + y)
+    time.sleep(0.1)
+    user32.mouse_event(0x0800, 0, 0, clicks * 120, 0)  # MOUSEEVENTF_WHEEL
+    time.sleep(0.6)
+    print(f"rueda {clicks} en {x},{y}")
 
 
 VK = {"enter": 0x0D, "tab": 0x09, "esc": 0x1B, "backspace": 0x08, "down": 0x28, "up": 0x26, "pagedown": 0x22, "pageup": 0x21}
@@ -350,6 +398,30 @@ def emu_start(avd: str, wait: int) -> None:
     raise SystemExit("El emulador no terminó de arrancar a tiempo.")
 
 
+def emu_all():
+    """Every on-screen element with text or a description: (centre x, centre y, label)."""
+    import re
+    import xml.etree.ElementTree as ET
+    adb("shell", "uiautomator", "dump", "/sdcard/qa_ui.xml", capture=True)
+    root = ET.fromstring(adb("exec-out", "cat", "/sdcard/qa_ui.xml", capture=True).decode("utf-8", errors="ignore"))
+    out = []
+    for node in root.iter("node"):
+        label = ((node.get("text") or "") + " " + (node.get("content-desc") or "")).strip()
+        if label:
+            x1, y1, x2, y2 = map(int, re.findall(r"\d+", node.get("bounds", "")))
+            if x2 > x1 and y2 > y1:
+                out.append(((x1 + x2) // 2, (y1 + y2) // 2, label))
+    return out
+
+
+def emu_find(text: str, index: int = 0):
+    """Centre of the index-th on-screen element whose text or description contains `text`."""
+    hits = [h for h in emu_all() if text.lower() in h[2].lower()]
+    if len(hits) <= index:
+        raise SystemExit(f"No veo «{text}» en la pantalla ({len(hits)} coincidencias).")
+    return hits[index]
+
+
 def emu_shot(out: Path) -> None:
     png = adb("exec-out", "screencap", "-p", capture=True)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -363,16 +435,20 @@ def main() -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("win-start"); s.add_argument("--data", type=Path, required=True); s.add_argument("--exe", type=Path, default=DEFAULT_EXE); s.add_argument("--wait", type=int, default=90)
     s = sub.add_parser("win-stop"); s.add_argument("--data", type=Path, required=True)
-    s = sub.add_parser("win-shot"); s.add_argument("out", type=Path)
+    s = sub.add_parser("win-shot"); s.add_argument("out", type=Path); s.add_argument("--title")
     s = sub.add_parser("win-click"); s.add_argument("x", type=int); s.add_argument("y", type=int)
     s = sub.add_parser("win-type"); s.add_argument("text")
     s = sub.add_parser("win-key"); s.add_argument("name")
+    s = sub.add_parser("win-drag"); [s.add_argument(n, type=int) for n in ("x1", "y1", "x2", "y2")]
+    s = sub.add_parser("win-scroll"); s.add_argument("x", type=int); s.add_argument("y", type=int); s.add_argument("clicks", type=int)
     s = sub.add_parser("win-file"); s.add_argument("title"); s.add_argument("path", type=Path)
     s = sub.add_parser("win-size"); s.add_argument("width", type=int); s.add_argument("height", type=int)
     s = sub.add_parser("emu-start"); s.add_argument("avd"); s.add_argument("--wait", type=int, default=240)
     s = sub.add_parser("emu-install"); s.add_argument("apk", type=Path)
     sub.add_parser("emu-open")
     s = sub.add_parser("emu-tap"); s.add_argument("x", type=int); s.add_argument("y", type=int)
+    sub.add_parser("emu-texts")
+    s = sub.add_parser("emu-tap-text"); s.add_argument("text"); s.add_argument("--index", type=int, default=0)
     s = sub.add_parser("emu-type"); s.add_argument("text")
     s = sub.add_parser("emu-key"); s.add_argument("name")
     s = sub.add_parser("emu-shot"); s.add_argument("out", type=Path)
@@ -380,12 +456,14 @@ def main() -> int:
     a = ap.parse_args()
     if a.cmd == "win-start": win_start(a.data, a.exe, a.wait)
     elif a.cmd == "win-stop": win_stop(a.data)
-    elif a.cmd == "win-shot": win_shot(a.out)
+    elif a.cmd == "win-shot": win_shot(a.out, a.title)
     elif a.cmd == "win-click": win_click(a.x, a.y)
     elif a.cmd == "win-type": win_type(a.text)
     elif a.cmd == "win-key": win_key(a.name)
     elif a.cmd == "win-size": win_size(a.width, a.height)
     elif a.cmd == "win-file": win_file(a.title, a.path)
+    elif a.cmd == "win-drag": win_drag(a.x1, a.y1, a.x2, a.y2)
+    elif a.cmd == "win-scroll": win_scroll(a.x, a.y, a.clicks)
     elif a.cmd == "emu-start": emu_start(a.avd, a.wait)
     elif a.cmd == "emu-install": adb("install", "-r", str(a.apk)); print("instalada")
     elif a.cmd == "emu-open":
@@ -393,6 +471,12 @@ def main() -> int:
         time.sleep(10)  # the first screen needs a few seconds before it answers taps
         print("App abierta")
     elif a.cmd == "emu-tap": adb("shell", "input", "tap", str(a.x), str(a.y)); time.sleep(1.5); print(f"toque en {a.x},{a.y}")
+    elif a.cmd == "emu-texts":
+        for x, y, label in emu_all():
+            print(f"{x:5d},{y:5d}  {label}")
+    elif a.cmd == "emu-tap-text":
+        x, y, label = emu_find(a.text, a.index)
+        adb("shell", "input", "tap", str(x), str(y)); time.sleep(1.5); print(f"toque en «{label}» ({x},{y})")
     elif a.cmd == "emu-type": adb("shell", "input", "text", a.text.replace(" ", "%s")); print("escrito")
     elif a.cmd == "emu-key": adb("shell", "input", "keyevent", "KEYCODE_" + a.name.upper()); print(f"tecla {a.name}")
     elif a.cmd == "emu-shot": emu_shot(a.out)

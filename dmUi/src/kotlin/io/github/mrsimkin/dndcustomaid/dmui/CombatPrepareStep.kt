@@ -121,11 +121,13 @@ internal fun PrepareStep(
             if (sources.pcs.any { pc -> doc.combatants.none { it.characterId == pc.id } }) {
                 OutlinedButton(onClick = { onChange(CombatEngine.addPcs(doc, sources.pcs)) }, modifier = Modifier.fillMaxWidth()) { Text("PJ que faltan") }
             }
-            HorizontalDivider()
-            EncounterGuide(doc, sources)
+            // Agent check of 0.7.0-preqa.4: the start button sat below a long encounter guide and had to
+            // be found by scrolling; it now comes right after «Agregar».
             Spacer(Modifier.height(4.dp))
             Button(enabled = doc.turnOrder.isNotEmpty(), onClick = onStart, modifier = Modifier.fillMaxWidth()) { Text("Empezar combate ▸") }
             Text("Primero se pide la iniciativa, una sola vez.", style = MaterialTheme.typography.bodySmall)
+            HorizontalDivider()
+            EncounterGuide(doc, sources)
         }
     }
 }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
@@ -73,7 +74,8 @@ internal fun DesktopPrepareScreen(
                         elevation = androidx.compose.material3.CardDefaults.cardElevation(2.dp),
                         modifier = Modifier
                             .width(260.dp)
-                            .height(118.dp)
+                            // Agent check of 0.7.0-preqa.4: a fixed height cut the last line of the text.
+                            .heightIn(min = 118.dp)
                             .handCursor()
                             .clickable {
                                 open = candidate

@@ -373,12 +373,19 @@ data class DungeonMapZone(
 fun SceneIndex.dungeons(): List<String> =
     zones.map { links(it.item.identity.id).dungeon }.filter { it.isNotBlank() }.distinctBy { it.lowercase() }.sortedBy { it.lowercase() }
 
+/** Zone names in reading order: a leading number counts as a number («2. Caseta» before «10. Celdas»). */
+val naturalZoneOrder: Comparator<ZoneContent> = compareBy<ZoneContent>(
+    { Regex("""^\s*(\d+)""").find(it.item.displayName)?.groupValues?.get(1)?.toIntOrNull() ?: Int.MAX_VALUE },
+    { it.item.displayName.lowercase() },
+)
+
 /**
  * The diagram of one dungeon (P23). Zones placed in the App de PC keep their place; the others
  * are laid out in rows so the map is never empty. Passages point both ways.
  */
 fun SceneIndex.dungeonMap(dungeon: String): List<DungeonMapZone> {
-    val members = zones.filter { links(it.item.identity.id).dungeon.equals(dungeon, ignoreCase = true) }.sortedBy { it.item.displayName.lowercase() }
+    // Agent check of 0.7.0-preqa.4: «1, 2, … 10» in number order, not «1, 10, 11, 2» as text.
+    val members = zones.filter { links(it.item.identity.id).dungeon.equals(dungeon, ignoreCase = true) }.sortedWith(naturalZoneOrder)
     val ids = members.map { it.item.identity.id }.toSet()
     val unplaced = members.filter { links(it.item.identity.id).diagramX == null || links(it.item.identity.id).diagramY == null }
     val columns = 4

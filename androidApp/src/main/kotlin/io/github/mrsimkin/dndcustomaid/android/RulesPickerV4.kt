@@ -59,12 +59,19 @@ fun RulesPickButton(
     onPick: (RulesOption) -> Unit,
     modifier: Modifier = Modifier,
     label: String = "📖 Elegir del SRD o tu homebrew",
+    /** Only this SRD edition («5e» or «5.5e»); the homebrew is always offered. */
+    edition: String? = null,
+    /** For a subclass or subrace: only those of this class or race (all of them if none match). */
+    parent: String? = null,
 ) {
     val sources = LocalRulesSources.current ?: return
     var open by remember { mutableStateOf(false) }
     OutlinedButton(onClick = { open = true }, modifier = modifier.fillMaxWidth()) { Text(label) }
     if (open) {
-        RulesPickDialog(sources = sources, kinds = kinds, onDismiss = { open = false }, onPick = { open = false; onPick(it) })
+        RulesPickDialog(
+            sources = sources, kinds = kinds, edition = edition, parent = parent,
+            onDismiss = { open = false }, onPick = { open = false; onPick(it) },
+        )
     }
 }
 
@@ -72,6 +79,8 @@ fun RulesPickButton(
 private fun RulesPickDialog(
     sources: RulesSources,
     kinds: List<RulesEntryKind>,
+    edition: String? = null,
+    parent: String? = null,
     onDismiss: () -> Unit,
     onPick: (RulesOption) -> Unit,
 ) {
@@ -83,7 +92,11 @@ private fun RulesPickDialog(
     var selected by remember { mutableStateOf<RulesOption?>(null) }
     val homebrew = remember { sources.homebrew() }
     val options = catalogs?.let { loaded ->
-        rulesOptions(kind, loaded, homebrew, sources.preferredEdition(), query).filter { it.origin == origin }
+        val inEdition = loaded.filter { edition == null || it.edition == edition }
+        val all = rulesOptions(kind, inEdition, homebrew, edition ?: sources.preferredEdition(), query).filter { it.origin == origin }
+        val wanted = parent?.trim()?.lowercase()?.takeIf { it.isNotEmpty() }
+        val ofParent = if (wanted == null) all else all.filter { it.parent.trim().lowercase() == wanted }
+        ofParent.ifEmpty { all }
     }
 
     AlertDialog(

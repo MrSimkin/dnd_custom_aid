@@ -25,7 +25,21 @@ data class SrdLayout(
 
     fun page(number: Int): String? = pages.firstOrNull { it.page == number }?.md
 
-    fun entry(kind: String, name: String): String? = entries["$kind|$name"]?.takeIf { it.isNotBlank() }
+    /**
+     * The formatted text of one catalog entry. Agent check of 0.7.0-preqa.4: an entry stops where a
+     * heading with the name of another entry of the same kind starts («Bola de fuego» carried «Bola de
+     * fuego de explosión retardada» after it).
+     */
+    fun entry(kind: String, name: String): String? {
+        val md = entries["$kind|$name"]?.takeIf { it.isNotBlank() } ?: return null
+        val lines = md.lines()
+        val cut = lines.indexOfFirst { line ->
+            line.startsWith("#") && line.trimStart('#').trim().let { title ->
+                title != name && (entries.containsKey("$kind|$title") || title.startsWith("$name "))
+            }
+        }
+        return if (cut <= 0) md else lines.take(cut).joinToString("\n").trimEnd().takeIf { it.isNotBlank() }
+    }
 }
 
 val SRD_LAYOUT_FILES: List<String> = listOf("srd_5_1_es.layout.json", "srd_5_2_1_es.layout.json")
@@ -71,12 +85,42 @@ fun srdBlocks(md: String): List<SrdBlock> {
                 i++
             }
             else -> {
-                blocks += SrdBlock.Paragraph(srdSpans(line))
+                val previous = blocks.lastOrNull()
+                val previousSpans = (previous as? SrdBlock.Paragraph)?.spans ?: (previous as? SrdBlock.Bullet)?.spans
+                val previousText = previousSpans?.joinToString("") { it.text }?.trimEnd().orEmpty()
+                if (previousSpans != null && continuesSentence(previousText, line)) {
+                    // Agent check of 0.7.0-preqa.4: the PDF layout breaks a sentence after a run-in
+                    // label («**Resistencia al daño.** Tienes resistencia al daño» / «contundente…»)
+                    // and inside hyphenated words («mante‑» / «ner»); both read as one paragraph.
+                    val hyphenated = previousText.lastOrNull() in HYPHENS
+                    val joined = trimTrailing(previousSpans, if (hyphenated) 1 else 0) +
+                        srdSpans(if (hyphenated) line.trimStart() else " " + line.trimStart())
+                    blocks[blocks.lastIndex] = if (previous is SrdBlock.Bullet) SrdBlock.Bullet(joined) else SrdBlock.Paragraph(joined)
+                } else {
+                    blocks += SrdBlock.Paragraph(srdSpans(line))
+                }
                 i++
             }
         }
     }
     return blocks
+}
+
+private val HYPHENS = setOf('-', '‐', '‑', '­')
+
+/** A line that starts in lowercase after a line with no closing punctuation continues it. */
+private fun continuesSentence(previousText: String, line: String): Boolean {
+    val first = line.trimStart().firstOrNull() ?: return false
+    val last = previousText.lastOrNull() ?: return false
+    return first.isLowerCase() && last !in ".:;!?»”)]"
+}
+
+/** The spans without their last [drop] characters (a line-end hyphen), and without trailing spaces. */
+private fun trimTrailing(spans: List<SrdSpan>, drop: Int): List<SrdSpan> {
+    if (spans.isEmpty()) return spans
+    val last = spans.last()
+    val text = last.text.trimEnd().dropLast(drop)
+    return spans.dropLast(1) + last.copy(text = text)
 }
 
 private fun table(lines: List<String>): SrdBlock.Table {

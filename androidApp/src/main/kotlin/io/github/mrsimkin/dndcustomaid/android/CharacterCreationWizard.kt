@@ -161,8 +161,8 @@ internal fun CharacterCreationWizard(
                 if (rr.abilityIncreases.isNotEmpty()) Text("Bonos: " + rr.abilityIncreases.entries.joinToString { "${ABILITY_NAMES_ES[it.key]} +${it.value}" }, style = MaterialTheme.typography.bodySmall)
                 Text("Rasgos: " + rr.traits.joinToString { it.name }, style = MaterialTheme.typography.bodySmall)
             }
-            RulesPickButton(kinds = listOf(RulesEntryKind.SPECIES), label = "📖 Elegir raza", onPick = { race = it; subrace = null })
-            if (race != null) RulesPickButton(kinds = listOf(RulesEntryKind.SUBSPECIES), label = "📖 Subraza o semirraza (opcional)", onPick = { subrace = it })
+            RulesPickButton(kinds = listOf(RulesEntryKind.SPECIES), label = "📖 Elegir raza", edition = edition, onPick = { race = it; subrace = null })
+            if (race != null) RulesPickButton(kinds = listOf(RulesEntryKind.SUBSPECIES), label = "📖 Subraza o semirraza (opcional)", edition = edition, parent = race?.name, onPick = { subrace = it })
         }
 
         Step("3. Clases") {
@@ -184,12 +184,12 @@ internal fun CharacterCreationWizard(
                             Text("Dado de golpe d${cr.hitDie}" + if (index == 0) " · Salvaciones: ${cr.saves.joinToString { ABILITY_NAMES_ES[it].orEmpty() }}" else " · Multiclase", style = MaterialTheme.typography.bodySmall)
                         }
                         Text("Subclase: ${subclasses[index]?.name ?: "sin elegir"}", style = MaterialTheme.typography.bodySmall)
-                        RulesPickButton(kinds = listOf(RulesEntryKind.SUBCLASS), label = "📖 Elegir subclase", onPick = { subclasses = subclasses + (index to it) })
+                        RulesPickButton(kinds = listOf(RulesEntryKind.SUBCLASS), label = "📖 Elegir subclase", edition = option.edition.ifBlank { edition }, parent = option.name, onPick = { subclasses = subclasses + (index to it) })
                     }
                 }
             }
             Text("Nivel total: ${classes.sumOf { it.second }}", style = MaterialTheme.typography.bodySmall)
-            RulesPickButton(kinds = listOf(RulesEntryKind.CLASS), label = if (classes.isEmpty()) "📖 Elegir clase" else "＋ Añadir otra clase (multiclase)", onPick = { classes = classes + (it to 1) })
+            RulesPickButton(kinds = listOf(RulesEntryKind.CLASS), label = if (classes.isEmpty()) "📖 Elegir clase" else "＋ Añadir otra clase (multiclase)", edition = edition, onPick = { classes = classes + (it to 1) })
         }
 
         Step("4. Trasfondo") {
@@ -201,7 +201,7 @@ internal fun CharacterCreationWizard(
                     b.tools.takeIf { it.isNotBlank() }?.let { "Herramientas: $it" },
                 ).joinToString(" · "), style = MaterialTheme.typography.bodySmall)
             }
-            RulesPickButton(kinds = listOf(RulesEntryKind.BACKGROUND), label = "📖 Elegir trasfondo", onPick = { background = it })
+            RulesPickButton(kinds = listOf(RulesEntryKind.BACKGROUND), label = "📖 Elegir trasfondo", edition = edition, onPick = { background = it })
         }
 
         Step("5. Características") {

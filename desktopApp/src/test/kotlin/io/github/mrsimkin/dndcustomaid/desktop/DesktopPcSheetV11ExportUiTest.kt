@@ -40,6 +40,31 @@ class DesktopPcSheetV11ExportUiTest {
         Loader.loadPDF(bytes).use { PDFTextStripper().getText(it) }
 
     @Test
+    fun aStoryCopiedFromAPdfWithAPageBreakStillPrints() {
+        // Agent check of 0.7.0-preqa.4: Arruk's story from the Campus Celeste set carries U+000C and
+        // «Guardar PDF…» failed with «No glyph for U+000C in font NotoSans-Regular».
+        val dir = Files.createTempDirectory("dnd-v11-ff-").toFile()
+        val handle = DesktopDatabaseFactory(File(dir, "ff.db")).create()
+        try {
+            val database = handle.database
+            val campaign = CampaignRepository(database).createCampaign("Campaña")
+            val repository = CharacterRepository(database)
+            val pc = repository.createCharacter(campaign.id, "Arruk")
+            repository.saveCharacter(pc.copy(background = pc.background.copy(story = "Nacido en Draconia.\u000CSigue en otra página.\tCon tabulador.")))
+            val sources = desktopPcSheetExportSources(assertNotNull(DesktopPcManagerController(database).details(pc.id)))
+            for (variant in PcSheetV11Variant.entries) {
+                val bytes = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, DesktopPcSheetExportOptions().stateSelection), sources).bytes
+                assertTrue(text(bytes).contains("Sigue en otra"), "the story is printed ($variant)")
+            }
+            assertTrue('\u000C' in assertNotNull(repository.character(pc.id)).background.story, "the PC itself is not changed")
+        } finally {
+            handle.close()
+            dir.deleteRecursively()
+        }
+    }
+
+    @Test
     fun c441ABrandNewCharacterPrintsTheFourGoldenPagesAB() {
         // C441 / D-0076 3.44 and the near-empty golden: P1, P2, P3 and the final NOTAS,
         // with no C2 and no C-N3, because a new character has nothing to continue.

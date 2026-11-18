@@ -16,6 +16,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTrait
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterTraitType
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillKey
 import io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining
+import io.github.mrsimkin.dndcustomaid.shared.character.standardProficiencyBonusForLevel
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.uuid.Uuid
@@ -310,7 +311,20 @@ fun buildCharacter(sheet: CharacterSheet, build: CharacterBuild): CharacterSheet
 
     val speed = (build.subrace?.speedMeters ?: build.race?.speedMeters)?.let { (it / 0.3).toInt() } ?: sheet.speed
     val f = scores.final
+    // Agent check of 0.7.0-preqa.4: a new PC starts with the proficiency bonus of its level (a level 7
+    // PC had +2 and the sheet then read it as a −1 adjustment) and with the armour class of no armour,
+    // using the first class's Unarmored Defense (Bárbaro: + Constitución, Monje: + Sabiduría).
+    val proficiency = standardProficiencyBonusForLevel(classes.sumOf { it.level }) + sheet.proficiencyBonusAdjustment
+    fun mod(code: String) = ((f[code] ?: 10) - 10).floorDiv(2)
+    val unarmored = when (first?.name?.trim()?.lowercase()) {
+        "bárbaro", "barbaro" -> mod("CON")
+        "monje" -> mod("WIS")
+        else -> 0
+    }
+    val armorClass = 10 + mod("DEX") + unarmored
     return sheet.copy(
+        proficiencyBonus = proficiency,
+        armorClass = armorClass,
         name = build.name.ifBlank { sheet.name },
         strength = f["STR"] ?: 10, dexterity = f["DEX"] ?: 10, constitution = f["CON"] ?: 10,
         intelligence = f["INT"] ?: 10, wisdom = f["WIS"] ?: 10, charisma = f["CHA"] ?: 10,

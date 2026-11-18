@@ -218,11 +218,15 @@ private fun OptionsAndDetail(
                 } else {
                     Text(selected.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Text("${selected.origin.label} · ${selected.source}", style = MaterialTheme.typography.labelMedium)
-                    selected.fields.filterValues { it.isNotBlank() }.forEach { (key, value) ->
-                        Text("${key.replace('_', ' ').replaceFirstChar { it.uppercase() }}: $value", style = MaterialTheme.typography.bodyMedium)
-                    }
-                    HorizontalDivider()
+                    // Agent check of 0.7.0-preqa.4: a spell's formatted text repeats these data line by
+                    // line, so its plain list is shown only without it; labels keep their accents.
                     val md = formatted(selected)
+                    if (md == null || selected.kind != io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.SPELL) {
+                        selected.fields.filterValues { it.isNotBlank() }.forEach { (key, value) ->
+                            Text("${srdFieldLabel(key)}: $value", style = MaterialTheme.typography.bodyMedium)
+                        }
+                        HorizontalDivider()
+                    }
                     if (md != null) SrdMarkdown(md) else Text(selected.body.ifBlank { selected.summary }, style = MaterialTheme.typography.bodyMedium)
                 }
             }
@@ -431,3 +435,15 @@ private fun HomebrewEditor(
         }
     }
 }
+
+/** The SRD data keys as the reader sees them, with their accents (agent check of 0.7.0-preqa.4). */
+private val SRD_FIELD_LABELS = mapOf(
+    "alcance" to "Alcance", "ca" to "CA", "categoria" to "Categoría", "clases" to "Clases",
+    "componentes" to "Componentes", "dado_de_golpe" to "Dado de golpe", "dano" to "Daño",
+    "duracion" to "Duración", "escuela" to "Escuela", "fuerza" to "Fuerza", "maestria" to "Maestría",
+    "nivel" to "Nivel", "peso" to "Peso", "precio" to "Precio", "propiedades" to "Propiedades",
+    "ritual" to "Ritual", "sigilo" to "Sigilo", "tiempo" to "Tiempo de lanzamiento",
+)
+
+internal fun srdFieldLabel(key: String): String =
+    SRD_FIELD_LABELS[key] ?: key.replace('_', ' ').replaceFirstChar { it.uppercase() }

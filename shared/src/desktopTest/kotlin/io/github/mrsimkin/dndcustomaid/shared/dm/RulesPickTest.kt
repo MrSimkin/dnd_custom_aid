@@ -59,6 +59,13 @@ class RulesPickTest {
         val dagger = rulesOptions(RulesEntryKind.WEAPON, listOf(srd5), emptyList()).first { it.name == "Daga" }.toAttackPick()
         assertEquals("6/18 m", dagger.rangeText)
 
+        // Agent check of 0.7.0-preqa.4: Fuerza +3, Destreza +1, proficiency +3.
+        assertEquals(6 to 3, hammer.toAttackPick().bonuses(3, 1, 3), "a melee weapon uses Fuerza")
+        assertEquals(WeaponAbility.BEST_OF_BOTH, dagger.ability)
+        assertEquals(5 to 2, dagger.bonuses(-1, 2, 3), "a «sutil» weapon uses the better of Fuerza and Destreza")
+        val bow = rulesOptions(RulesEntryKind.WEAPON, listOf(srd55), emptyList()).first { it.name == "Arco corto" }.toAttackPick()
+        assertEquals(4 to 1, bow.bonuses(3, 1, 3), "a ranged weapon uses Destreza")
+
         val mail = rulesOptions(RulesEntryKind.ARMOR, listOf(srd5), emptyList()).first { it.name == "Cota de malla" }.toItemPick()
         assertTrue(mail.description.startsWith("CA 16"))
     }

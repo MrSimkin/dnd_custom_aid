@@ -1,5 +1,6 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -21,14 +22,21 @@ internal fun AndroidRulesLibraryScreen(
 ) {
     val context = LocalContext.current
     val platform = remember { AndroidDmPlatform(context, hostedBootstrap) }
-    CompositionLocalProvider(LocalDmPlatform provides platform) {
-        RulesLibraryScreen(
-            platform = platform,
-            database = database,
-            ownerAccountId = accountId,
-            campaignId = campaignId,
-            onBack = onBack,
-            ownerLabel = ownerLabel,
-        )
+    // Agent check of 0.7.0-preqa.4: without its own surface the screen showed the window's white
+    // background and faded tabs instead of the App's theme.
+    androidx.compose.material3.Surface(
+        color = androidx.compose.material3.MaterialTheme.colorScheme.background,
+        modifier = androidx.compose.ui.Modifier.fillMaxSize(),
+    ) {
+        CompositionLocalProvider(LocalDmPlatform provides platform) {
+            RulesLibraryScreen(
+                platform = platform,
+                database = database,
+                ownerAccountId = accountId,
+                campaignId = campaignId,
+                onBack = onBack,
+                ownerLabel = ownerLabel,
+            )
+        }
     }
 }

@@ -461,10 +461,17 @@ internal fun CharacterCombatSuccessorTabV4(
                     editorType = io.github.mrsimkin.dndcustomaid.shared.character.CharacterCombatEntryType.ATTACK.name
                     if (attack.rangeText.isNotBlank()) editorRange = attack.rangeText
                     editorNotes = attack.notes
+                    // Agent check of 0.7.0-preqa.4: the PC's bonus to hit and to damage with this weapon.
+                    val (toHit, damageBonus) = attack.bonuses(
+                        strengthModifier = (sheet.strength - 10).floorDiv(2),
+                        dexterityModifier = (sheet.dexterity - 10).floorDiv(2),
+                        proficiencyBonus = sheet.finalProficiencyBonus,
+                    )
+                    editorAttackModifier = toHit.toString()
                     val dice = Regex("""^(\d+d\d+|\d+)\s*(.*)$""").find(attack.damageEffect.trim())
                     if (dice != null) {
                         editorDamageJson = characterDamageComponentsToJsonV4(
-                            listOf(
+                            listOfNotNull(
                                 io.github.mrsimkin.dndcustomaid.shared.character.CharacterDamageComponent(
                                     kind = if (dice.groupValues[1].contains('d')) {
                                         io.github.mrsimkin.dndcustomaid.shared.character.CharacterDamageComponentKind.DICE
@@ -474,6 +481,13 @@ internal fun CharacterCombatSuccessorTabV4(
                                     expression = dice.groupValues[1],
                                     typeText = dice.groupValues[2].takeIf { it.isNotBlank() },
                                 ),
+                                damageBonus.takeIf { it != 0 }?.let { bonus ->
+                                    io.github.mrsimkin.dndcustomaid.shared.character.CharacterDamageComponent(
+                                        kind = io.github.mrsimkin.dndcustomaid.shared.character.CharacterDamageComponentKind.FLAT,
+                                        expression = bonus.toString(),
+                                        typeText = null,
+                                    )
+                                },
                             ),
                         )
                     }

@@ -369,8 +369,25 @@ private fun DungeonMapView(map: List<DungeonMapZone>, doc: DungeonDocument, movi
         val w = constraints.maxWidth.toFloat()
         val h = constraints.maxHeight.toFloat()
         val density = LocalDensity.current
-        val boxW = with(density) { 132.dp.toPx() }
         val boxH = with(density) { 64.dp.toPx() }
+        // Agent check of 0.7.0-preqa.4: on the tablet's narrow plan, zones side by side (Sitio 021:
+        // 3 and 6, 4 and 7, 5 and 8) were drawn on top of each other. The boxes narrow until zones
+        // at the same height no longer overlap (never below 64 dp; long names end in «…»).
+        val fullW = with(density) { 132.dp.toPx() }
+        val minW = with(density) { 64.dp.toPx() }
+        val gap = with(density) { 6.dp.toPx() }
+        val boxW = run {
+            var limit = fullW
+            for (i in map.indices) for (j in i + 1 until map.size) {
+                val a = map[i]
+                val b = map[j]
+                val dy = kotlin.math.abs(a.y - b.y).toFloat() * (h - boxH)
+                val dx = kotlin.math.abs(a.x - b.x).toFloat()
+                if (dy < boxH && dx > 0f) limit = minOf(limit, (dx * w / (1f + dx)) - gap)
+            }
+            limit.coerceIn(minW, fullW)
+        }
+        val boxWdp = with(density) { boxW.toDp() }
         fun center(z: DungeonMapZone) = Offset((z.x * (w - boxW) + boxW / 2).toFloat(), (z.y * (h - boxH) + boxH / 2).toFloat())
         val byId = map.associateBy { it.zone.item.identity.id }
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -397,7 +414,7 @@ private fun DungeonMapView(map: List<DungeonMapZone>, doc: DungeonDocument, movi
             Column(
                 modifier = Modifier
                     .offset { IntOffset((z.x * (w - boxW)).roundToInt(), (z.y * (h - boxH)).roundToInt()) }
-                    .width(132.dp)
+                    .width(boxWdp)
                     .height(64.dp)
                     .background(
                         if (marks.contains(ZoneMark.DANGER)) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surface,

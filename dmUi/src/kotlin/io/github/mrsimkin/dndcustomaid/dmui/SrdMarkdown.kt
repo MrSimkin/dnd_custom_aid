@@ -6,6 +6,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -77,12 +78,44 @@ private fun spanned(spans: List<SrdSpan>) = buildAnnotatedString {
 private fun SrdTable(table: SrdBlock.Table) {
     val columns = maxOf(table.header?.size ?: 0, table.rows.maxOfOrNull { it.size } ?: 0)
     if (columns == 0) return
-    // Wider columns for longer text (the «Rasgos de clase» column), narrow ones for numbers.
-    val widths = (0 until columns).map { c ->
-        val longest = (listOfNotNull(table.header?.getOrNull(c)) + table.rows.mapNotNull { it.getOrNull(c) }).maxOfOrNull { it.length } ?: 4
-        (longest.coerceIn(4, 46) * 7 + 16).dp
+    if (columns == 2 && table.header == null) {
+        SrdLabelValueTable(table)
+        return
+    }
+    // Wider columns for longer text (the «Rasgos de clase» column), narrow ones for numbers. The cells
+    // set the width; a long header («Bonificador por competencia») wraps instead of widening its column.
+    fun dp(chars: Int) = (chars * 7 + 16).dp
+    val natural = (0 until columns).map { c ->
+        val cells = table.rows.mapNotNull { it.getOrNull(c) }
+        val header = table.header?.getOrNull(c).orEmpty()
+        val longestCell = cells.maxOfOrNull { it.length } ?: header.length
+        val longestHeaderWord = header.split(' ').maxOfOrNull { it.length } ?: 0
+        // Header words are bold, so they need a little more room per letter than the cells.
+        maxOf(dp(longestCell.coerceIn(4, 46)), (longestHeaderWord * 9 + 18).dp)
     }
     val line = MaterialTheme.colorScheme.outlineVariant
+    androidx.compose.foundation.layout.BoxWithConstraints(Modifier.fillMaxWidth()) {
+    // Agent check of 0.7.0-preqa.4 (F1): when the table is wider than the pane, the wide text columns
+    // shrink (their text wraps) so the whole table is seen; only a table that still does not fit scrolls.
+    var widths = natural
+    repeat(columns) {
+        val excess = widths.fold(0.dp) { sum, w -> sum + w } - maxWidth
+        if (excess <= 0.dp) return@repeat
+        val widest = widths.indices.maxByOrNull { widths[it].value } ?: return@repeat
+        val second = widths.filterIndexed { i, _ -> i != widest }.maxByOrNull { it.value } ?: 0.dp
+        val target = maxOf(widths[widest] - excess, second, 110.dp)
+        if (target >= widths[widest]) return@repeat
+        widths = widths.mapIndexed { i, w -> if (i == widest) target else w }
+    }
+    val scrolls = widths.fold(0.dp) { sum, w -> sum + w } > maxWidth
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    if (scrolls) {
+        Text(
+            "↔ Desliza la tabla para ver todas las columnas.",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
     Column(Modifier.horizontalScroll(rememberScrollState()).border(1.dp, line, MaterialTheme.shapes.small)) {
         table.header?.let { header ->
             Row(Modifier.background(MaterialTheme.colorScheme.secondaryContainer)) {
@@ -106,6 +139,37 @@ private fun SrdTable(table: SrdBlock.Table) {
                         modifier = Modifier.width(widths[c]).padding(horizontal = 8.dp, vertical = 4.dp),
                     )
                 }
+            }
+        }
+    }
+    }
+    }
+}
+
+/**
+ * Agent check of 0.7.0-preqa.4 (F1): a «label · value» table («Atributos básicos») fills the width
+ * and wraps each value, instead of fixed columns that cut the value at the edge of the pane.
+ */
+@Composable
+private fun SrdLabelValueTable(table: SrdBlock.Table) {
+    val line = MaterialTheme.colorScheme.outlineVariant
+    Column(Modifier.fillMaxWidth().border(1.dp, line, MaterialTheme.shapes.small)) {
+        table.rows.forEachIndexed { index, row ->
+            Row(
+                Modifier.fillMaxWidth()
+                    .background(if (index % 2 == 1) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surface),
+            ) {
+                Text(
+                    row.getOrElse(0) { "" },
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(0.4f).padding(horizontal = 8.dp, vertical = 4.dp),
+                )
+                Text(
+                    row.getOrElse(1) { "" },
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.weight(0.6f).padding(horizontal = 8.dp, vertical = 4.dp),
+                )
             }
         }
     }

@@ -215,14 +215,6 @@ internal fun DesktopSceneManagerScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Adventure / Scene Spine", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-            Text(
-                "Orientación ligera: propósito, posibles escenas siguientes y referencias. No es un motor de quests ni de estado vivo.",
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),

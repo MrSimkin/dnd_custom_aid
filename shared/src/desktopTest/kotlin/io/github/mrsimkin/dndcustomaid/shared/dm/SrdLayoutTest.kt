@@ -34,6 +34,28 @@ class SrdLayoutTest {
     }
 
     @Test
+    fun aSentenceBrokenByThePdfLayoutReadsAsOneParagraph() {
+        val blocks = srdBlocks(
+            "**Resistencia al daño.** Tienes resistencia al daño\n\ncontundente, cortante y perforante.\n\n" +
+                "**Sin concentración ni conjuros.** No puedes mante‑\n\nner la concentración.\n\nUna frase nueva.",
+        )
+        assertEquals(3, blocks.size, blocks.toString())
+        val first = (blocks[0] as SrdBlock.Paragraph).spans.joinToString("") { it.text }
+        assertEquals("Resistencia al daño. Tienes resistencia al daño contundente, cortante y perforante.", first)
+        assertEquals("Sin concentración ni conjuros. No puedes mantener la concentración.", (blocks[1] as SrdBlock.Paragraph).spans.joinToString("") { it.text })
+        assertEquals(SrdSpan("Resistencia al daño.", bold = true), (blocks[0] as SrdBlock.Paragraph).spans.first())
+    }
+
+    @Test
+    fun anEntryStopsWhereTheNextEntryStarts() {
+        for (file in SRD_LAYOUT_FILES) {
+            val fireball = assertNotNull(layout(file).entry("SPELL", "Bola de fuego"), file)
+            assertTrue("explosión retardada" !in fireball, "$file: «Bola de fuego» carried the next spell")
+            assertTrue("8d6" in fireball, file)
+        }
+    }
+
+    @Test
     fun theShippedSrdHasTheBarbarianLevelTableAsATableInBothEditions() {
         for (file in SRD_LAYOUT_FILES) {
             val srd = layout(file)

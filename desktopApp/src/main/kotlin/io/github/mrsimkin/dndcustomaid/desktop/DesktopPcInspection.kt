@@ -116,9 +116,9 @@ internal fun PcCoreInspection(sheet: CharacterSheet) {
                 " · Velocidad " + sheet.speed,
         )
         PcAuditLine(
-            "Competencia",
-            "base " + sheet.standardProficiencyBonus + " · ajuste " + signed(sheet.proficiencyBonusAdjustment) +
-                " · final " + signed(sheet.finalProficiencyBonus),
+            "Bono de competencia",
+            signed(sheet.finalProficiencyBonus) +
+                (if (sheet.proficiencyBonusAdjustment != 0) " (ajuste manual " + signed(sheet.proficiencyBonusAdjustment) + ")" else ""),
         )
         PcAuditLine("Percepción Pasiva", sheet.passivePerception.toString())
         PcAuditLine("Inspiración", if (sheet.inspiration) "sí" else "no")
@@ -128,7 +128,7 @@ internal fun PcCoreInspection(sheet: CharacterSheet) {
         )
         PcAuditLine("Notas generales", sheet.generalNotes.ifBlank { "—" })
         PcAuditLine(
-            "Background",
+            "Trasfondo y raza",
             listOf(sheet.background.name, sheet.background.race, sheet.background.religionFaith)
                 .filter { it.isNotBlank() }.joinToString(" · ").ifBlank { "—" },
         )
@@ -141,14 +141,19 @@ internal fun PcCoreInspection(sheet: CharacterSheet) {
         PcAuditLine(
             "Tiradas de salvación",
             sheet.savingThrows.joinToString(" · ") {
-                it.ability.name + ": " + signed(sheet.savingThrowTotal(it.ability)) +
-                    (if (it.proficient) " P" else "")
+                io.github.mrsimkin.dndcustomaid.shared.character.characterAbilitySpanishLabel(it.ability) + " " +
+                    signed(sheet.savingThrowTotal(it.ability)) + (if (it.proficient) " (competente)" else "")
             },
         )
         PcAuditLine(
             "Habilidades",
             sheet.skills.joinToString(" · ") {
-                it.key.name + ": " + signed(sheet.skillTotal(it.key)) + " (" + it.training.name + ")"
+                io.github.mrsimkin.dndcustomaid.shared.character.characterSkillSpanishLabel(it.key) + " " +
+                    signed(sheet.skillTotal(it.key)) + when (it.training) {
+                        io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.NONE -> ""
+                        io.github.mrsimkin.dndcustomaid.shared.character.SkillTraining.PROFICIENT -> " (competente)"
+                        else -> " (pericia)"
+                    }
             },
         )
     }
@@ -157,10 +162,12 @@ internal fun PcCoreInspection(sheet: CharacterSheet) {
 @Composable
 internal fun PcCollectionsInspection(sheet: CharacterSheet) {
     PcAuditSection("La hoja: equipo, conjuros y rasgos") {
-        PcAuditLine("Acciones / ataques", listSummary(sheet.combatEntries) { it.name + " [" + it.type.name + "]" })
+        PcAuditLine("Acciones / ataques", listSummary(sheet.combatEntries) {
+            it.name + " (" + io.github.mrsimkin.dndcustomaid.shared.character.characterCombatEntryTypeSpanishLabel(it.type) + ")"
+        })
         PcAuditLine("Inventario", listSummary(sheet.inventoryItems) { it.name + " ×" + it.quantity })
         PcAuditLine("Monedas", listSummary(sheet.currencies) { it.name + ": " + it.amount })
-        PcAuditLine("Rasgos", listSummary(sheet.traits) { it.name + " [" + it.type.name + "]" })
+        PcAuditLine("Rasgos", listSummary(sheet.traits) { it.name })
         PcAuditLine("Fuentes mágicas", listSummary(sheet.spellcastingSources) { it.name })
         PcAuditLine("Conjuros", listSummary(sheet.spells) { it.name + " (nivel " + it.level + ")" })
         PcAuditLine(
@@ -168,7 +175,7 @@ internal fun PcCollectionsInspection(sheet: CharacterSheet) {
             listSummary(sheet.spellSlots) { "N" + it.level + ": " + (it.totalSlots - it.spentSlots) + "/" + it.totalSlots },
         )
         PcAuditLine("Notas tituladas", listSummary(sheet.noteCards) { it.title })
-        PcAuditLine("Competencias", listSummary(sheet.proficiencies) { it.type.name + ": " + it.name })
+        PcAuditLine("Competencias", listSummary(sheet.proficiencies) { it.name })
         PcAuditLine("Maestrías", listSummary(sheet.weaponMasteries) { it.weaponName + ": " + it.masteryName })
         PcAuditLine(
             "Recursos",
