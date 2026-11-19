@@ -48,7 +48,62 @@ export interface StoredMedia {
   mediaType: string;
 }
 
-export class MediaStore {
+/**
+ * Where the bytes of an image live. Owner's «N» (2026-11-18): the free Workers KV plan allows
+ * 1000 writes a day, which a campaign of handouts and maps eats quickly; object storage holds the
+ * same files with far more room. The API in front never changes, so the Apps do not care which one
+ * is behind, and no client ever holds storage credentials (AGENTS §3).
+ */
+export interface MediaBytesStore {
+  /** Stores the bytes unless that checksum is already present; returns whether it wrote. */
+  put(sha256: string, mediaType: string, bytes: ArrayBuffer): Promise<boolean>;
+  get(sha256: string): Promise<StoredMedia | null>;
+}
+
+/** The object storage binding this Worker uses (Cloudflare R2 shape). */
+export interface MediaBucket {
+  head(key: string): Promise<unknown | null>;
+  put(key: string, value: ArrayBuffer, options?: { httpMetadata?: { contentType?: string } }): Promise<unknown>;
+  get(key: string): Promise<
+    | {
+        arrayBuffer(): Promise<ArrayBuffer>;
+        httpMetadata?: { contentType?: string };
+      }
+    | null
+  >;
+}
+
+/** Keeps the images in object storage, by checksum, exactly as KV did. */
+export class BucketMediaStore implements MediaBytesStore {
+  private readonly bucket: MediaBucket;
+
+  constructor(bucket: MediaBucket) {
+    this.bucket = bucket;
+  }
+
+  async put(sha256: string, mediaType: string, bytes: ArrayBuffer): Promise<boolean> {
+    const key = mediaKey(sha256);
+    if ((await this.bucket.head(key)) != null) {
+      return false;
+    }
+    await this.bucket.put(key, bytes, { httpMetadata: { contentType: mediaType } });
+    return true;
+  }
+
+  async get(sha256: string): Promise<StoredMedia | null> {
+    const stored = await this.bucket.get(mediaKey(sha256));
+    if (stored == null) {
+      return null;
+    }
+    const mediaType = stored.httpMetadata?.contentType;
+    return {
+      bytes: await stored.arrayBuffer(),
+      mediaType: mediaType != null && MEDIA_TYPES.has(mediaType) ? mediaType : "application/octet-stream",
+    };
+  }
+}
+
+export class MediaStore implements MediaBytesStore {
   private readonly kv: MediaKv;
 
   constructor(kv: MediaKv) {

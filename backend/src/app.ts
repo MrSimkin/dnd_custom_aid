@@ -17,7 +17,7 @@ import {
   MEDIA_MAX_BYTES,
   MEDIA_TYPES,
   type MediaAuthorization,
-  type MediaStore,
+  type MediaBytesStore,
   sha256Hex,
 } from "./mediaStore.ts";
 import type { ApiErrorBody, ApiErrorCode, Uuid } from "./contracts/spine.ts";
@@ -49,8 +49,8 @@ export interface ApiDependencies {
   campaigns: CampaignStore;
   campaignAdministration?: CampaignAdministrationStore;
   dmContent?: DmContentStore;
-  /** Absent until the owner binds the Workers KV namespace (P27); media routes then answer 503. */
-  media?: MediaStore;
+  /** Absent until the owner binds storage for the images; media routes then answer 503. */
+  media?: MediaBytesStore;
   mediaAuthorization?: MediaAuthorization;
   /** Absent until the invitation table exists; the invitation routes then answer 503. */
   invitations?: InvitationStore;

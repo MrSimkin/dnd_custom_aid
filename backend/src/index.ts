@@ -3,7 +3,13 @@ import { DescopeJwtVerifier } from "./auth.ts";
 import { NeonCampaignAdministrationStore } from "./campaignAdministrationStore.ts";
 import { NeonDmContentStore } from "./dmContentStore.ts";
 import { NeonInvitationStore } from "./invitationStore.ts";
-import { MediaStore, NeonMediaAuthorization, type MediaKv } from "./mediaStore.ts";
+import {
+  BucketMediaStore,
+  MediaStore,
+  NeonMediaAuthorization,
+  type MediaBucket,
+  type MediaKv,
+} from "./mediaStore.ts";
 import { RulesAnswerer, type AiRunner } from "./rulesAnswer.ts";
 import { NeonCampaignStore } from "./store.ts";
 
@@ -13,6 +19,12 @@ interface AppEnv {
   DESCOPE_BASE_URL?: string;
   /** Workers KV namespace for handout images (P27); optional so the Worker deploys without it. */
   MEDIA?: MediaKv;
+  /**
+   * Object storage for the images (owner's «N», 2026-11-18). When the owner binds it, the images
+   * go here instead of KV, which allows only 1000 writes a day on the free plan. Everything
+   * else stays the same, and files already in KV keep being served from there.
+   */
+  MEDIA_BUCKET?: MediaBucket;
   /** Workers AI binding for rules answers (package 8); optional so the Worker deploys without it. */
   AI?: AiRunner;
   /** Replaceable model name (D-0070); the default is in rulesAnswer.ts. */
@@ -50,8 +62,8 @@ export default {
         campaignAdministration: new NeonCampaignAdministrationStore(databaseUrl),
         dmContent: new NeonDmContentStore(databaseUrl),
         invitations: new NeonInvitationStore(databaseUrl),
-        media: env.MEDIA == null ? undefined : new MediaStore(env.MEDIA),
-        mediaAuthorization: env.MEDIA == null ? undefined : new NeonMediaAuthorization(databaseUrl),
+        media: mediaStore(env),
+        mediaAuthorization: mediaStore(env) == null ? undefined : new NeonMediaAuthorization(databaseUrl),
         rules: env.AI == null ? undefined : new RulesAnswerer(env.AI, env.AI_MODEL?.trim() || undefined),
       });
     }
@@ -59,6 +71,14 @@ export default {
     return cachedHandler(request);
   },
 } satisfies ExportedHandler<AppEnv>;
+
+/** Object storage when the owner bound it, otherwise the KV namespace, otherwise no images. */
+function mediaStore(env: AppEnv) {
+  if (env.MEDIA_BUCKET != null) {
+    return new BucketMediaStore(env.MEDIA_BUCKET);
+  }
+  return env.MEDIA == null ? undefined : new MediaStore(env.MEDIA);
+}
 
 function normalizePath(pathname: string): string {
   if (pathname.length > 1 && pathname.endsWith("/")) {

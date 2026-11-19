@@ -77,6 +77,10 @@ El propietario encargó avanzar sin preguntar («De tu lista, que puedes hacer s
 
 **Pendiente del propietario (acción en el proveedor, AGENTS §5):** desplegar el Worker para que la ruta exista. Hasta entonces la App sigue enviando de a uno, igual que hoy.
 
+### Las imágenes (18-11-2026)
+
+El plan B se hizo, pero **con R2 en vez de Drive o Dropbox**: con Drive cada aparato tendría que guardar credenciales del proveedor, lo que rompe el invariante de AGENTS §3, y el control de quién ve qué se saldría de la App. R2 es del mismo proveedor que ya usas, lo escribe el Worker y es gratis hasta 10 GB. El servidor ya funciona con cualquiera de los dos; detalle y pasos tuyos en [IMAGENES_FUERA_DE_KV.md](IMAGENES_FUERA_DE_KV.md).
+
 ## Plan de refactor (prioridad antes de continuar)
 
 **Regla:** sin cambios de comportamiento. Cada fase se verifica con las pruebas y recorriendo la App real (AGENTS §6.4).
