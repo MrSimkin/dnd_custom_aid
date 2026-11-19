@@ -61,11 +61,25 @@ internal fun DesktopPrepareScreen(
     var open by remember { mutableStateOf<PrepareSection?>(null) }
     // «Abrir ficha completa» from the dungeon plan opens that zone's full sheet.
     var zoneSheetId by remember { mutableStateOf<kotlin.uuid.Uuid?>(null) }
+    // Owner, 2026-11-18 («K»): one search for the whole campaign opens the result where it lives.
+    var foundId by remember { mutableStateOf<kotlin.uuid.Uuid?>(null) }
     val section = open
 
     if (section == null) {
         Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(16.dp))) {
             WorkbenchHeading(title = "Preparar", subtitle = DesktopDestination.PREPARE.purpose)
+            activeCampaign?.let { campaign ->
+                DesktopCampaignSearchBar(database = database, campaign = campaign) { result ->
+                    sectionOf(result.family)?.let { target ->
+                        foundId = result.id
+                        if (target == PrepareSection.DUNGEONS && result.family == io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentFamily.ZONE) {
+                            zoneSheetId = result.id
+                        }
+                        open = target
+                        onQaEvent("Buscar: " + result.name)
+                    }
+                }
+            }
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp)),
                 verticalArrangement = Arrangement.spacedBy(desktopSpacing(12.dp)),
@@ -111,16 +125,16 @@ internal fun DesktopPrepareScreen(
         }
         HorizontalDivider()
         when (section) {
-            PrepareSection.PLACES -> DesktopPlaceManagerScreen(placeController, activeCampaign, onQaEvent)
-            PrepareSection.NPCS -> NpcManagerScreen(npcController, activeCampaign, onQaEvent)
-            PrepareSection.SCENES -> DesktopSceneManagerScreen(placeController.sceneManagerController, activeCampaign, onQaEvent)
+            PrepareSection.PLACES -> DesktopPlaceManagerScreen(placeController, activeCampaign, onQaEvent, initialSelectedId = foundId)
+            PrepareSection.NPCS -> NpcManagerScreen(npcController, activeCampaign, onQaEvent, initialSelectedId = foundId)
+            PrepareSection.SCENES -> DesktopSceneManagerScreen(placeController.sceneManagerController, activeCampaign, onQaEvent, initialSelectedId = foundId)
             PrepareSection.DUNGEONS -> if (zoneSheetId != null) {
                 DesktopZoneManagerScreen(placeController.zoneManagerController, activeCampaign, onQaEvent, initialSelectedId = zoneSheetId)
             } else {
                 DesktopDungeonEditorScreen(dungeonController, activeCampaign, onOpenZone = { zoneSheetId = it }, onQaEvent = onQaEvent)
             }
-            PrepareSection.ENCOUNTERS -> DesktopEncounterManagerScreen(placeController.encounterManagerController, activeCampaign, onQaEvent)
-            PrepareSection.CREATURES -> CreatureManagerScreen(creatureController, activeCampaign, onQaEvent)
+            PrepareSection.ENCOUNTERS -> DesktopEncounterManagerScreen(placeController.encounterManagerController, activeCampaign, onQaEvent, initialSelectedId = foundId)
+            PrepareSection.CREATURES -> CreatureManagerScreen(creatureController, activeCampaign, onQaEvent, initialSelectedId = foundId)
             PrepareSection.HOUSE_RULES -> HomebrewRuleManagerScreen(homebrewRuleController, activeCampaign, onQaEvent)
             PrepareSection.NOTES -> DesktopNotesScreen(database, activeCampaign)
             PrepareSection.PACKAGES -> DesktopPackageManagerScreen(placeController.packageManagerController, activeCampaign, onQaEvent)
