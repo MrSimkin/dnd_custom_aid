@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -52,7 +51,7 @@ internal fun AndroidJoinWithCodeDialog(
                     "Escribe las seis letras que te dio el DM. También sirve el código del enlace o del QR.",
                     style = MaterialTheme.typography.bodyMedium,
                 )
-                OutlinedTextField(
+                CharacterCompactOutlinedTextFieldV4(
                     value = clean,
                     onValueChange = { code = it },
                     label = { Text("Código") },
