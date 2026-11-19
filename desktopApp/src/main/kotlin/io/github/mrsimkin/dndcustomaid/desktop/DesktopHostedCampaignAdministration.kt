@@ -141,6 +141,19 @@ internal class DesktopHostedCampaignAdministrationController(
         return result
     }
 
+    /** Owner, 2026-11-18: the live invitation of the campaign, or null. */
+    suspend fun invitation(campaignId: Uuid) = administrationClient.invitation(campaignId)
+
+    /** A new code, which replaces whatever was live. */
+    suspend fun createInvitation(campaignId: Uuid, daysValid: Int) =
+        administrationClient.createInvitation(campaignId, daysValid)
+
+    /** Stops the live code. */
+    suspend fun revokeInvitation(campaignId: Uuid) = administrationClient.revokeInvitation(campaignId)
+
+    /** Where a link made from a code points. */
+    val invitationLinkBaseUrl: String = DesktopHostedDevelopmentEnvironment.HOSTED_API_BASE_URL
+
     suspend fun moderate(
         campaignId: Uuid,
         userId: Uuid,

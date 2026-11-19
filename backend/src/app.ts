@@ -4,6 +4,11 @@ import {
   type CampaignModerationAction,
 } from "./campaignAdministrationStore.ts";
 import {
+  InvitationBannedError,
+  InvitationExpiredError,
+  type InvitationStore,
+} from "./invitationStore.ts";
+import {
   DmContentIdentityError,
   type DmContentScopeKind,
   type DmContentStore,
@@ -47,6 +52,8 @@ export interface ApiDependencies {
   /** Absent until the owner binds the Workers KV namespace (P27); media routes then answer 503. */
   media?: MediaStore;
   mediaAuthorization?: MediaAuthorization;
+  /** Absent until the invitation table exists; the invitation routes then answer 503. */
+  invitations?: InvitationStore;
   /** Absent until the owner binds Workers AI (package 8); the rules route then answers 503. */
   rules?: RulesAnswerer;
 }
@@ -65,6 +72,8 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
       }
 
       const campaignMembersMatch = /^\/v1\/campaigns\/([^/]+)\/members$/.exec(path);
+      const campaignInvitationMatch = /^\/v1\/campaigns\/([^/]+)\/invitation$/.exec(path);
+      const redeemInvitationMatch = /^\/v1\/invitations\/([A-Za-z]{6})$/.exec(path);
       const campaignMemberModerationMatch =
         /^\/v1\/campaigns\/([^/]+)\/members\/([^/]+)\/moderation$/.exec(path);
       const campaignPcsMatch = /^\/v1\/campaigns\/([^/]+)\/pcs$/.exec(path);
@@ -85,6 +94,8 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
       if (
         !knownFixedPath &&
         campaignMembersMatch == null &&
+        campaignInvitationMatch == null &&
+        redeemInvitationMatch == null &&
         campaignMemberModerationMatch == null &&
         campaignPcsMatch == null &&
         pcAuthorityMatch == null &&
@@ -269,6 +280,33 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         requireMethod(request, "GET");
         const memberships = await dependencies.campaigns.listCampaignMemberships(user.id);
         return jsonResponse({ memberships });
+      }
+
+      if (campaignInvitationMatch != null) {
+        // Owner, 2026-11-18: the DM holds one live code per campaign, with its expiry.
+        const campaignId = requireUuid(campaignInvitationMatch[1], "campaignId");
+        const invitations = requireInvitations(dependencies);
+        if (request.method === "GET") {
+          const invitation = await invitations.current(user.id, campaignId);
+          return jsonResponse({ invitation });
+        }
+        if (request.method === "POST") {
+          const body = await readJsonObject(request);
+          const days = body.daysValid === undefined ? 7 : requirePositiveInteger(body.daysValid, "daysValid");
+          const invitation = await invitations.create(user.id, campaignId, days);
+          return jsonResponse({ invitation }, 201);
+        }
+        if (request.method === "DELETE") {
+          const revoked = await invitations.revoke(user.id, campaignId);
+          return jsonResponse({ revoked });
+        }
+        throw methodNotAllowed(["GET", "POST", "DELETE"]);
+      }
+
+      if (redeemInvitationMatch != null) {
+        requireMethod(request, "POST");
+        const joined = await requireInvitations(dependencies).redeem(user.id, redeemInvitationMatch[1]);
+        return jsonResponse({ joined });
       }
 
       if (campaignMembersMatch != null) {
@@ -508,6 +546,14 @@ async function applyDmContentChange(
   });
 }
 
+function requireInvitations(dependencies: ApiDependencies): InvitationStore {
+  const invitations = dependencies.invitations;
+  if (invitations == null) {
+    throw new ApiProblem(503, "TRANSIENT_FAILURE", "Las invitaciones todavía no están disponibles en el servidor.");
+  }
+  return invitations;
+}
+
 function requireDmContent(dependencies: ApiDependencies): DmContentStore {
   const store = dependencies.dmContent;
   if (store == null) {
@@ -667,6 +713,12 @@ function describeProblem(error: unknown): ApiProblemShape {
       message: error.message,
       details: { currentRevision: error.currentRevision },
     };
+  }
+  if (error instanceof InvitationExpiredError) {
+    return { status: 410, code: "GONE", message: error.message };
+  }
+  if (error instanceof InvitationBannedError) {
+    return { status: 403, code: "FORBIDDEN", message: error.message };
   }
   if (error instanceof HostedObjectGoneError) {
     return { status: 410, code: "GONE", message: error.message };

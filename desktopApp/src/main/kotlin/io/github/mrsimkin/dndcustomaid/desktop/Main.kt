@@ -700,7 +700,7 @@ private fun buildQaSnapshot(
     if (events.isEmpty()) appendLine("- ninguno") else events.forEach { appendLine("- $it") }
 }
 
-private fun copyToClipboard(text: String) {
+internal fun copyToClipboard(text: String) {
     Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(text), null)
 }
 

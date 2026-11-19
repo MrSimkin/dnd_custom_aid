@@ -421,6 +421,18 @@ private fun CampaignScreen(
     }
 
     var hostedStatus by remember { mutableStateOf(idleHostedStatus()) }
+    // Owner, 2026-11-18: the other half of the DM invitation.
+    var showJoinWithCode by remember { mutableStateOf(false) }
+    if (showJoinWithCode) {
+        AndroidJoinWithCodeDialog(
+            onDismiss = { showJoinWithCode = false },
+            onJoined = { summary ->
+                showJoinWithCode = false
+                hostedStatus = summary
+                campaigns = repository.listCampaigns()
+            },
+        )
+    }
 
     // Redesign R7: the DM loads the party of a content bundle into one campaign on this tablet.
     val bundleContext = androidx.compose.ui.platform.LocalContext.current
@@ -595,6 +607,7 @@ private fun CampaignScreen(
                                 style = MaterialTheme.typography.bodySmall,
                             )
                         }
+                        TextButton(onClick = { showJoinWithCode = true }) { Text("＋ Unirme") }
                         TextButton(onClick = onOpenRules) { Text("📖 Reglas") }
                         StableSettingsIconButton(onClick = onOpenSettings)
                     }

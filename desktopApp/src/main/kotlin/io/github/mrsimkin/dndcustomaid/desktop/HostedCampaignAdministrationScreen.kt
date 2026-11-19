@@ -136,6 +136,20 @@ internal fun DesktopCampaignPlayersScreen(
     ) {
         item { WorkbenchHeading(title = "Jugadores de la campaña", subtitle = "Quién está en la campaña abierta y su estado.") }
 
+        // Owner, 2026-11-18: without an invitation nobody could join the campaign at all.
+        activeCampaign?.let { campaign ->
+            item {
+                DesktopInvitationSection(
+                    campaign = campaign,
+                    load = { hostedController.invitation(campaign.id) },
+                    create = { days -> hostedController.createInvitation(campaign.id, days) },
+                    revoke = { hostedController.revokeInvitation(campaign.id) },
+                    copy = ::copyToClipboard,
+                    linkBaseUrl = hostedController.invitationLinkBaseUrl,
+                )
+            }
+        }
+
         if (activeCampaign == null) {
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(desktopSpacing(8.dp))) {

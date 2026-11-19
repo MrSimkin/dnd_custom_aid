@@ -2,6 +2,7 @@ import { createApiHandler, type ApiHandler } from "./app.ts";
 import { DescopeJwtVerifier } from "./auth.ts";
 import { NeonCampaignAdministrationStore } from "./campaignAdministrationStore.ts";
 import { NeonDmContentStore } from "./dmContentStore.ts";
+import { NeonInvitationStore } from "./invitationStore.ts";
 import { MediaStore, NeonMediaAuthorization, type MediaKv } from "./mediaStore.ts";
 import { RulesAnswerer, type AiRunner } from "./rulesAnswer.ts";
 import { NeonCampaignStore } from "./store.ts";
@@ -48,6 +49,7 @@ export default {
         campaigns: new NeonCampaignStore(databaseUrl),
         campaignAdministration: new NeonCampaignAdministrationStore(databaseUrl),
         dmContent: new NeonDmContentStore(databaseUrl),
+        invitations: new NeonInvitationStore(databaseUrl),
         media: env.MEDIA == null ? undefined : new MediaStore(env.MEDIA),
         mediaAuthorization: env.MEDIA == null ? undefined : new NeonMediaAuthorization(databaseUrl),
         rules: env.AI == null ? undefined : new RulesAnswerer(env.AI, env.AI_MODEL?.trim() || undefined),
