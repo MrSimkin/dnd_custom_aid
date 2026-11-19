@@ -297,6 +297,7 @@ fun CreatureManagerScreen(
                 }
             } else {
                 CreatureEditor(
+                    onMessage = { statusMessage = it },
                     onDelete = {
                         controller.delete(selected)
                         statusMessage = "«" + selected.item.displayName + "» quedó en la papelera."
@@ -403,6 +404,7 @@ private fun CreatureEditor(
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
     onDelete: () -> Unit,
+    onMessage: (String) -> Unit,
     modifier: Modifier,
 ) {
     LazyColumn(
@@ -419,6 +421,7 @@ private fun CreatureEditor(
                     Text("Editor de criatura", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                     scopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                 }
+                TableCardPdfButton(card = creatureTableCard(content), onMessage = onMessage)
                 DeleteContentButton(name = draft.displayName, what = "esta criatura", onDelete = onDelete)
                 Button(onClick = onSave) { Text("Guardar") }
                 if (content.item.identity.scope is ContentScope.Personal) {

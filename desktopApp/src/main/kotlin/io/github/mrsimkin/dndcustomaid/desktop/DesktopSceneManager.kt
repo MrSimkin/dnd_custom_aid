@@ -294,6 +294,7 @@ internal fun DesktopSceneManagerScreen(
                 }
             } else {
                 SceneEditor(
+                    onMessage = { statusMessage = it },
                     onDelete = {
                         controller.delete(selected)
                         statusMessage = "«" + selected.item.displayName + "» quedó en la papelera."
@@ -394,6 +395,7 @@ private fun SceneEditor(
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
     onDelete: () -> Unit,
+    onMessage: (String) -> Unit,
     modifier: Modifier,
     openBlock: String?,
     onOpenBlock: (String?) -> Unit,
@@ -413,6 +415,7 @@ private fun SceneEditor(
                 if (content.item.identity.scope is ContentScope.Personal && activeCampaign != null) {
                     Button(onClick = onCopyToCampaign) { Text("Traer a esta campaña") }
                 }
+                TableCardPdfButton(card = sceneTableCard(content), onMessage = onMessage)
                 DeleteContentButton(name = draft.displayName, what = "esta escena", onDelete = onDelete)
                 Button(onClick = onSave, enabled = draft.displayName.isNotBlank()) { Text("Guardar") }
             }

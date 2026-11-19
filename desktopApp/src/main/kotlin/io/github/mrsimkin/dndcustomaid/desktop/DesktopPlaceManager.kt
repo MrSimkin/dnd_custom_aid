@@ -333,6 +333,7 @@ internal fun DesktopPlaceManagerScreen(
                 }
             } else {
                 PlaceEditor(
+                    onMessage = { statusMessage = it },
                     onDelete = {
                         controller.delete(selected)
                         statusMessage = "«" + selected.item.displayName + "» quedó en la papelera."
@@ -433,6 +434,7 @@ private fun PlaceEditor(
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
     onDelete: () -> Unit,
+    onMessage: (String) -> Unit,
     modifier: Modifier,
     openBlock: String?,
     onOpenBlock: (String?) -> Unit,
@@ -456,6 +458,7 @@ private fun PlaceEditor(
                 if (content.item.identity.scope is ContentScope.Personal && activeCampaign != null) {
                     Button(onClick = onCopyToCampaign) { Text("Traer a esta campaña") }
                 }
+                TableCardPdfButton(card = placeTableCard(content), onMessage = onMessage)
                 DeleteContentButton(name = draft.displayName, what = "este lugar", onDelete = onDelete)
                 Button(onClick = onSave, enabled = draft.displayName.isNotBlank()) { Text("Guardar") }
             }
