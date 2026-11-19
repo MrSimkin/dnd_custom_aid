@@ -81,6 +81,8 @@ class CampaignSearch(
         if (needle.length < 2) return emptyList()
 
         val names = content.listCampaign(campaignId).associate { it.identity.id to it.displayName }
+        // Read once: with two thousand objects, reading them per result turns the search quadratic.
+        val allLinks = links.all()
         val results = mutableListOf<CampaignSearchResult>()
 
         SEARCHABLE_FAMILIES.filter { it in families }.forEach { family ->
@@ -93,7 +95,7 @@ class CampaignSearch(
                     family = family,
                     name = item.displayName,
                     summary = summary.take(140),
-                    origin = originOf(item.identity.id, names),
+                    origin = originOf(item.identity.id, names, allLinks),
                 )
             }
         }
@@ -128,8 +130,8 @@ class CampaignSearch(
     }
 
     /** Where it lives, taken from what it is linked to. */
-    private fun originOf(id: Uuid, names: Map<Uuid, String>): String {
-        val own = links.links(id)
+    private fun originOf(id: Uuid, names: Map<Uuid, String>, allLinks: Map<Uuid, ContentLinks>): String {
+        val own = allLinks[id] ?: ContentLinks()
         val parents = buildList {
             own.placeIds.forEach { names[it]?.let(::add) }
             own.sceneIds.forEach { names[it]?.let(::add) }
@@ -141,7 +143,7 @@ class CampaignSearch(
         if (parents.isNotEmpty()) return parents.distinct().take(2).joinToString(" · ")
 
         // Nothing of its own: whoever mentions it is where it lives.
-        val mentioned = links.all().entries.firstOrNull { (owner, value) ->
+        val mentioned = allLinks.entries.firstOrNull { (owner, value) ->
             owner != id && (id in value.npcIds || id in value.placeIds || id in value.sceneIds ||
                 id in value.zoneIds || id in value.encounterIds)
         }
