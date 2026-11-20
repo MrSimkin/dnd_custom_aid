@@ -47,7 +47,15 @@ private const val MARGIN = 54f
 private val PAGE = PDRectangle.A4
 
 /** Writes the card to [file]: one object per sheet, more sheets only when the text needs them. */
-internal fun writeTableCardPdf(card: TableCard, file: File) {
+internal fun writeTableCardPdf(card: TableCard, file: File) = writeTableCardsPdf(listOf(card), file)
+
+/**
+ * Owner's J (2026-11-20): several cards at once, «ficha de mesa, una por hoja». Each card starts
+ * on its own sheet and runs on if its text needs more, so a scene and everything in it print in
+ * the order the DM reads them.
+ */
+internal fun writeTableCardsPdf(cards: List<TableCard>, file: File) {
+    require(cards.isNotEmpty()) { "No hay nada que imprimir." }
     PDDocument().use { pdf ->
         val title = PDType1Font(Standard14Fonts.FontName.TIMES_BOLD)
         val label = PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD)
@@ -89,6 +97,9 @@ internal fun writeTableCardPdf(card: TableCard, file: File) {
             y -= 8f
         }
 
+        cards.forEachIndexed { index, card ->
+        // Each card starts on its own sheet (the first one is already open).
+        if (index > 0) newPage()
         line(card.title, title, 20f, gap = 2f)
         line(card.subtitle, italic, 10f, gap = 8f)
         rule()
@@ -122,6 +133,7 @@ internal fun writeTableCardPdf(card: TableCard, file: File) {
                     line(name.uppercase(), label, 9f, gap = 1f)
                     line(text, body, 11f, gap = 8f)
                 }
+        }
         }
 
         stream.close()

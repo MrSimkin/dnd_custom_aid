@@ -95,6 +95,9 @@ class DesktopSceneManagerController(
     private val reusableContent = ReusableContentRepository(database)
     private val scenes = SceneContentRepository(database, reusableContent)
 
+    /** Owner's J (2026-11-20): the scene and everything that runs with it, to print at once. */
+    internal val tableCards = TableCardBundle(database)
+
     fun personalOwnerAccountId(): Uuid? {
         val activeCampaignId = campaignRepository.activeCampaign()?.id
         val campaignIds = buildList {
@@ -294,6 +297,7 @@ internal fun DesktopSceneManagerScreen(
                 }
             } else {
                 SceneEditor(
+                    tableCards = controller.tableCards::forScene,
                     onMessage = { statusMessage = it },
                     onDelete = {
                         controller.delete(selected)
@@ -389,6 +393,8 @@ private fun SceneList(
 @Composable
 private fun SceneEditor(
     content: SceneContent,
+    /** Owner's J: the scene and everything that runs with it. */
+    tableCards: (Uuid) -> List<TableCard>,
     draft: SceneDraft,
     activeCampaign: Campaign?,
     onDraftChange: (SceneDraft) -> Unit,
@@ -416,6 +422,12 @@ private fun SceneEditor(
                     Button(onClick = onCopyToCampaign) { Text("Traer a esta campaña") }
                 }
                 TableCardPdfButton(card = sceneTableCard(content), onMessage = onMessage)
+                TableCardsPdfButton(
+                    name = content.item.displayName,
+                    what = "lugares, PNJ ni criaturas",
+                    cards = { tableCards(content.item.identity.id) },
+                    onMessage = onMessage,
+                )
                 DeleteContentButton(name = draft.displayName, what = "esta escena", onDelete = onDelete)
                 Button(onClick = onSave, enabled = draft.displayName.isNotBlank()) { Text("Guardar") }
             }

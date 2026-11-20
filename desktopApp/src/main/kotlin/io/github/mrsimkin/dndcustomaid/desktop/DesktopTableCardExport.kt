@@ -42,6 +42,46 @@ internal fun TableCardPdfButton(
     }) { Text("Guardar PDF…") }
 }
 
+/**
+ * «Imprimir todo…» (owner's J, 2026-11-20): the scene or the place and everything that runs with
+ * it, one card per sheet, in one PDF.
+ */
+@Composable
+internal fun TableCardsPdfButton(
+    name: String,
+    what: String,
+    cards: () -> List<TableCard>,
+    onMessage: (String) -> Unit,
+    chooseFile: (String) -> File? = { suggested ->
+        chooseFileWithExplorer(
+            title = "Guardar las fichas en PDF",
+            purpose = "fichas",
+            campaignKey = null,
+            extensions = listOf("pdf"),
+            save = true,
+            suggestedName = suggested,
+        )
+    },
+) {
+    TextButton(onClick = {
+        val all = cards()
+        if (all.size <= 1) {
+            onMessage("«$name» no tiene $what para imprimir: usa «Guardar PDF…».")
+            return@TextButton
+        }
+        val file = chooseFile(
+            "fichas-" + name.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-').ifBlank { "sin-nombre" } + ".pdf",
+        ) ?: return@TextButton
+        val outcome = runCatching { writeTableCardsPdf(all, file) }
+        onMessage(
+            outcome.fold(
+                onSuccess = { "${all.size} fichas guardadas en ${file.name}, una por hoja." },
+                onFailure = { "No se pudieron guardar las fichas: ${it.message}" },
+            ),
+        )
+    }) { Text("Imprimir todo…") }
+}
+
 internal fun npcTableCard(content: NpcContent, origin: String): TableCard {
     val payload = content.payload
     val combat = payload.combatMechanics

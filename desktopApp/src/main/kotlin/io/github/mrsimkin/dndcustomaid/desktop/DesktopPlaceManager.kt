@@ -118,6 +118,9 @@ class DesktopPlaceManagerController(
     private val spine = IntegratedSpineRepository(database)
     private val reusableContent = ReusableContentRepository(database)
     private val places = PlaceContentRepository(database, reusableContent)
+
+    /** Owner's J (2026-11-20): the place and everyone who is there, to print at once. */
+    internal val tableCards = TableCardBundle(database)
     internal val sceneManagerController = DesktopSceneManagerController(database, nowEpochSeconds)
     internal val zoneManagerController = DesktopZoneManagerController(database, nowEpochSeconds)
     internal val packageManagerController = DesktopPackageManagerController(database, nowEpochSeconds)
@@ -333,6 +336,7 @@ internal fun DesktopPlaceManagerScreen(
                 }
             } else {
                 PlaceEditor(
+                    tableCards = controller.tableCards::forPlace,
                     onMessage = { statusMessage = it },
                     onDelete = {
                         controller.delete(selected)
@@ -428,6 +432,8 @@ private fun PlaceList(
 @Composable
 private fun PlaceEditor(
     content: PlaceContent,
+    /** Owner's J: the place and everyone who is there. */
+    tableCards: (Uuid) -> List<TableCard>,
     draft: PlaceDraft,
     activeCampaign: Campaign?,
     onDraftChange: (PlaceDraft) -> Unit,
@@ -459,6 +465,12 @@ private fun PlaceEditor(
                     Button(onClick = onCopyToCampaign) { Text("Traer a esta campaña") }
                 }
                 TableCardPdfButton(card = placeTableCard(content), onMessage = onMessage)
+                TableCardsPdfButton(
+                    name = content.item.displayName,
+                    what = "PNJ ni criaturas",
+                    cards = { tableCards(content.item.identity.id) },
+                    onMessage = onMessage,
+                )
                 DeleteContentButton(name = draft.displayName, what = "este lugar", onDelete = onDelete)
                 Button(onClick = onSave, enabled = draft.displayName.isNotBlank()) { Text("Guardar") }
             }
