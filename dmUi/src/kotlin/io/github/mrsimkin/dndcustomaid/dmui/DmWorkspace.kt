@@ -82,6 +82,8 @@ internal sealed interface DeskRef {
     data object Overview : DeskRef { override val key = "overview" }
     data object DmScreen : DeskRef { override val key = "dm" }
     data object Scene : DeskRef { override val key = "scene" }
+    /** Owner's I (2026-11-20): the search of the whole campaign, also on the tablet. */
+    data object Search : DeskRef { override val key = "search" }
     data object Dungeon : DeskRef { override val key = "dungeon" }
     data class Combat(val id: Uuid) : DeskRef { override val key = "combat:$id" }
 
@@ -90,6 +92,7 @@ internal sealed interface DeskRef {
             key == null -> Overview
             key == "dm" -> DmScreen
             key == "scene" -> Scene
+            key == "search" -> Search
             key == "dungeon" -> Dungeon
             key.startsWith("combat:") -> runCatching { Combat(Uuid.parse(key.removePrefix("combat:"))) }.getOrDefault(Overview)
             else -> Overview
@@ -274,6 +277,7 @@ private fun DmWorkspaceContent(
         DeskRef.Overview -> "Escritorio"
         DeskRef.DmScreen -> "Pantalla del DM"
         DeskRef.Scene -> "Mesa de Escena"
+        DeskRef.Search -> "Buscar"
         DeskRef.Dungeon -> "Mesa de Dungeon"
         is DeskRef.Combat -> openCombats.firstOrNull { it.id == (desk as DeskRef.Combat).id }?.name ?: "Combate"
     }
@@ -321,6 +325,16 @@ private fun DmWorkspaceContent(
                         database = database,
                         mediaBlobs = mediaBlobs,
                         version = version,
+                    )
+                    DeskRef.Search -> SearchDesk(
+                        campaign = campaign,
+                        database = database,
+                        version = version,
+                        onOpenInSceneDesk = { id ->
+                            // The Mesa de Escena opens whatever sheet it was left on.
+                            SceneDeskPreferences(platform.store, campaign.id).openId = id
+                            open(DeskRef.Scene)
+                        },
                     )
                     DeskRef.Dungeon -> DungeonDesk(
                         campaign = campaign,
@@ -552,6 +566,7 @@ private fun DeskRail(
             RailItem("🏠 Escritorio", "vista general", desk == DeskRef.Overview) { onOpen(DeskRef.Overview) }
             HorizontalDivider()
             RailItem("Pantalla del DM", null, desk == DeskRef.DmScreen) { onOpen(DeskRef.DmScreen) }
+            RailItem("🔎 Buscar", "en toda la campaña", desk == DeskRef.Search) { onOpen(DeskRef.Search) }
             RailItem("Escena", sceneSubtitle, desk == DeskRef.Scene) { onOpen(DeskRef.Scene) }
             RailItem("Dungeon", dungeonSubtitle, desk == DeskRef.Dungeon) { onOpen(DeskRef.Dungeon) }
             HorizontalDivider()
@@ -609,6 +624,7 @@ private fun DeskTabs(
             TextButton(onClick = onExit) { Text("←") }
             tab("🏠", desk == DeskRef.Overview) { onOpen(DeskRef.Overview) }
             tab("Pantalla del DM", desk == DeskRef.DmScreen) { onOpen(DeskRef.DmScreen) }
+            tab("🔎 Buscar", desk == DeskRef.Search) { onOpen(DeskRef.Search) }
             tab("Escena", desk == DeskRef.Scene) { onOpen(DeskRef.Scene) }
             tab("Dungeon", desk == DeskRef.Dungeon) { onOpen(DeskRef.Dungeon) }
             openCombats.forEach { doc -> tab("⚔ ${doc.name} · ${combatRailSubtitle(doc)}", desk == DeskRef.Combat(doc.id)) { onOpen(DeskRef.Combat(doc.id)) } }
@@ -707,6 +723,7 @@ private fun OverviewDesk(
         Text("En la mesa, a un toque", style = MaterialTheme.typography.titleSmall)
         FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             quick("⚔ Iniciativa", primary = true) { onNewCombat() }
+            quick("🔎 Buscar") { onOpen(DeskRef.Search) }
             quick("🎭 Escena") { onOpen(DeskRef.Scene) }
             quick("🏰 Dungeon") { onOpen(DeskRef.Dungeon) }
             quick("🛡 Grupo") { onOpen(DeskRef.DmScreen) }
@@ -726,6 +743,7 @@ private fun OverviewDesk(
             ) { onOpen(DeskRef.DmScreen) }
             deskCard("Escena", listOf(sceneSubtitle?.let { "Último: $it" } ?: "Buscar PNJ, tiendas, lugares y escenas")) { onOpen(DeskRef.Scene) }
             deskCard("Dungeon", listOf(dungeonSubtitle.replaceFirstChar { it.uppercase() })) { onOpen(DeskRef.Dungeon) }
+            deskCard("🔎 Buscar", listOf("PNJ, lugares, criaturas, encuentros, handouts, notas y reglas")) { onOpen(DeskRef.Search) }
             combats.forEach { doc ->
                 val wounded = doc.combatants.count { c ->
                     val max = c.effective(packages).maxHp
@@ -833,6 +851,8 @@ internal fun deskHelp(desk: DeskRef): String = when (desk) {
         "3) Abajo: 📖 Reglas, 🖼 Handouts, 📝 Notas, ⏱ Relojes y ☁ Sincronizar. 4) «＋ Nueva mesa» abre un combate."
     DeskRef.DmScreen -> "1) Una ficha por PJ con CA, PV, pasivas, velocidad y quién lo juega; lo mejor del grupo va resaltado. " +
         "2) «Vista Grupo» lo muestra como tabla. 3) Toca un PJ para su hoja rápida. 4) La referencia rápida abre reglas a un toque."
+    DeskRef.Search -> "1) Escribe dos letras o más: busca por nombre y por lo que dice cada ficha. 2) Cada resultado dice qué es y dónde vive. " +
+        "3) «Qué se busca» deja familias fuera; las reglas de la casa están fuera desde el principio. 4) PNJ, lugares, zonas y escenas se abren en la Mesa de Escena."
     DeskRef.Scene -> "1) Arriba eliges cómo buscar: 🔎 Buscar por nombre, papel o idea, o recorrer 🏙 por zona, 🧭 por función, 📜 por aventura o el 🗺 mapa. 2) Toca una ficha para leerla; «📌» la fija. " +
         "3) Desde una ficha, sus vínculos abren lo relacionado. 4) «← Atrás» vuelve a la ficha anterior."
     DeskRef.Dungeon -> "1) Elige el dungeon y la zona de entrada y toca «Empezar». 2) Cada PJ elige su actividad de un toque. " +
