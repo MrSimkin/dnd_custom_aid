@@ -125,13 +125,8 @@ class MainActivity : ComponentActivity() {
         invitationCodeOf(intent)?.let { invitationCode.value = it }
     }
 
-    /** «dndcustomaid://unirme/MARFIL» and the link of the page both carry the code at the end. */
-    private fun invitationCodeOf(intent: android.content.Intent?): String? {
-        val data = intent?.data ?: return null
-        val last = data.lastPathSegment?.takeIf { it.isNotBlank() } ?: data.host
-        val code = last?.trim()?.uppercase().orEmpty()
-        return code.takeIf { Regex("^[A-Z]{6}$").matches(it) }
-    }
+    private fun invitationCodeOf(intent: android.content.Intent?): String? =
+        invitationCodeFromLink(intent?.data?.toString())
 
     override fun onDestroy() {
         hostedCampaignBootstrapController.close()

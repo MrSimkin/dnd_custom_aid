@@ -49,6 +49,12 @@ android {
     sourceSets.getByName("main").assets.srcDir(rootProject.file("assets"))
     // Base para DM: the desks shared with the Windows app, compiled here with this App's own Compose.
     sourceSets.getByName("main").kotlin.srcDir(rootProject.file("dmUi/src/kotlin"))
+
+    // Owner's C (2026-11-20): until now this App had no tests at all. These run on the JVM, with
+    // no device, so they cover the logic that does not need Android itself.
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -62,4 +68,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.text.google.fonts)
     implementation(libs.androidx.compose.material3)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    testImplementation(kotlin("test"))
+    testImplementation(kotlin("test-junit"))
 }

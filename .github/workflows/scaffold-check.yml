@@ -54,7 +54,7 @@ jobs:
       - name: Prepare stable CI debug keystore
         run: base64 --decode androidApp/ci-debug.keystore.b64 > androidApp/ci-debug.keystore
       - name: Build and test Kotlin surfaces
-        run: gradle :shared:desktopTest :androidApp:assembleDebug :desktopApp:build --stacktrace
+        run: gradle :shared:desktopTest :androidApp:testDebugUnitTest :androidApp:assembleDebug :desktopApp:build --stacktrace
       - name: Independent V11 physical-envelope audit of real Desktop App PDFs
         if: github.ref == 'refs/heads/docs/pc-sheet-v11-approved-implementation-handoff'
         run: |
