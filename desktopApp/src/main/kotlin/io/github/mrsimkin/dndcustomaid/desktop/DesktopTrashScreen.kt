@@ -62,6 +62,16 @@ internal fun DesktopTrashScreen(
             )
             return@Column
         }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("${deleted.size} en la papelera", style = MaterialTheme.typography.bodySmall)
+            // Owner's H: emptying forgets what they held here; the deletion still reaches the tablet.
+            DeleteContentButton(name = "todo lo que hay en la papelera", what = "la papelera para siempre") {
+                val forgotten = trash.empty(ContentScope.Campaign(activeCampaign.id))
+                message = "La papelera quedó vacía: $forgotten objeto(s) que este equipo ya no recuerda."
+                onQaEvent("Papelera vaciada: $forgotten")
+                version += 1
+            }
+        }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             items(deleted, key = { it.item.identity.id.toString() }) { entry ->
                 Card(Modifier.fillMaxWidth()) {

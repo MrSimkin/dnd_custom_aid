@@ -123,6 +123,18 @@ internal class DesktopDungeonEditorController(
         zones.tombstone(zone.identity.id, zone.revisionNow(), now())
     }
 
+    /**
+     * Owner's H (2026-11-20): a whole dungeon can be deleted. Its zones go with it, because a zone
+     * without its dungeon is of no use to anyone, and all of it waits in «Papelera».
+     */
+    fun deleteDungeon(campaignId: Uuid, dungeon: DungeonContent) {
+        val plan = dungeons.zonesOf(campaignId, dungeon)
+        database.transaction {
+            plan.forEach { zone -> zones.tombstone(zone.zone.identity.id, zone.zone.revisionNow(), now()) }
+            dungeons.tombstone(dungeon.item.identity.id, dungeon.item.identity.revision, now())
+        }
+    }
+
     fun move(zoneId: Uuid, x: Double, y: Double) = dungeons.moveZone(zoneId, x, y)
 
     fun connect(from: Uuid, to: Uuid) = dungeons.connect(from, to)
@@ -211,6 +223,15 @@ internal fun DesktopDungeonEditorScreen(
                 }
             }
             TextButton(onClick = { creating = true }, modifier = Modifier.handCursor()) { Text("＋ Nuevo dungeon") }
+            selected?.let { dungeon ->
+                // Owner's H (2026-11-20): until now a dungeon could not be deleted at all.
+                DeleteContentButton(name = dungeon.item.displayName, what = "este dungeon y sus zonas") {
+                    controller.deleteDungeon(campaign.id, dungeon)
+                    selectedId = null
+                    version++
+                    onQaEvent("Dungeon borrado " + dungeon.item.identity.id)
+                }
+            }
             Spacer(Modifier.weight(1f))
             TextButton(onClick = { help = !help }, modifier = Modifier.handCursor()) { Text("? ¿Cómo se usa?") }
         }

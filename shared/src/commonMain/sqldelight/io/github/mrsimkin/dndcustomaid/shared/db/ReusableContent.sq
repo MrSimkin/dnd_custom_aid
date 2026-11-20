@@ -123,3 +123,8 @@ touchReusableContent:
 UPDATE reusable_content
 SET updated_at_epoch_seconds = ?
 WHERE id = ?;
+
+-- Owner's H (2026-11-20): «Vaciar la papelera» forgets what a deleted object held on this device.
+-- Its tombstone stays in object_sync_state, so the other devices still learn about the deletion.
+forgetReusableContent:
+DELETE FROM reusable_content WHERE id = ?;

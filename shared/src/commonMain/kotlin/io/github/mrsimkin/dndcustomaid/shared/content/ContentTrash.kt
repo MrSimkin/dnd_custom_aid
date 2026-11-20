@@ -63,6 +63,20 @@ class ContentTrash(
         return requireNotNull(reusableContent.content(newId))
     }
 
+    /**
+     * «Vaciar la papelera» (owner's H): this device forgets what those objects held. The tombstone
+     * stays, so the other devices still learn about the deletion and nothing comes back by itself.
+     */
+    fun empty(scope: ContentScope): Int {
+        val waiting = list(scope)
+        database.transaction {
+            waiting.forEach { entry ->
+                database.reusableContentQueries.forgetReusableContent(entry.item.identity.id.toString())
+            }
+        }
+        return waiting.size
+    }
+
     /** Everything that mentioned the deleted object now mentions the copy. */
     private fun repoint(from: Uuid, to: Uuid) {
         links.all().forEach { (owner, value) ->

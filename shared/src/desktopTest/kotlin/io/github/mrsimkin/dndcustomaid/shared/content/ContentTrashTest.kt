@@ -66,6 +66,23 @@ class ContentTrashTest {
     }
 
     @Test
+    fun emptyingTheTrashForgetsThemHereButKeepsTheDeletionForTheOtherDevices() = scenario { database, campaignId ->
+        val npcs = NpcContentRepository(database)
+        val barek = npcs.createCampaign(campaignId, "Barek Surn", NpcPayload(conceptRole = "Capataz"), 100)
+        val id = barek.item.identity.id
+        npcs.tombstone(id, barek.item.identity.revision, 200)
+        val trash = ContentTrash(database)
+
+        assertEquals(1, trash.empty(ContentScope.Campaign(campaignId)))
+
+        assertTrue(trash.list(ContentScope.Campaign(campaignId)).isEmpty(), "nothing is left waiting")
+        assertTrue(runCatching { trash.restore(id, 300) }.isFailure, "what was emptied cannot come back")
+        val metadata = io.github.mrsimkin.dndcustomaid.shared.spine.IntegratedSpineRepository(database)
+            .syncMetadata("REUSABLE_CONTENT", id)
+        assertEquals(200, metadata.deletedAtEpochSeconds, "the tombstone stays, so the tablet still learns about it")
+    }
+
+    @Test
     fun theTrashOnlyAnswersForWhatWasDeleted() = scenario { database, campaignId ->
         val creatures = CreatureContentRepository(database)
         val goblin = creatures.createCampaign(campaignId, "Goblin", CreaturePayload(armorClass = 15, hitPoints = 7), 100)
