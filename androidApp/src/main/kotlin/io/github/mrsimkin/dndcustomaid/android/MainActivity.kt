@@ -80,8 +80,12 @@ class MainActivity : ComponentActivity() {
     private val hapticPreferencesStore by lazy { CharacterHapticPreferencesStore(applicationContext) }
     private val characterNavigationPreferenceStore by lazy { CharacterNavigationPreferenceStore(applicationContext) }
 
+    /** The six letters of an invitation link or QR, when the App was opened with one. */
+    private val invitationCode = androidx.compose.runtime.mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        invitationCode.value = invitationCodeOf(intent)
         setContent {
             var preferences by remember { mutableStateOf(uiPreferencesStore.load()) }
 
@@ -108,10 +112,25 @@ class MainActivity : ComponentActivity() {
                         characterNavigationPreferenceStore = characterNavigationPreferenceStore,
                         preferences = preferences,
                         onPreferencesChange = ::updatePreferences,
+                        invitationCode = invitationCode.value,
+                        onInvitationUsed = { invitationCode.value = null },
                     )
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        invitationCodeOf(intent)?.let { invitationCode.value = it }
+    }
+
+    /** «dndcustomaid://unirme/MARFIL» and the link of the page both carry the code at the end. */
+    private fun invitationCodeOf(intent: android.content.Intent?): String? {
+        val data = intent?.data ?: return null
+        val last = data.lastPathSegment?.takeIf { it.isNotBlank() } ?: data.host
+        val code = last?.trim()?.uppercase().orEmpty()
+        return code.takeIf { Regex("^[A-Z]{6}$").matches(it) }
     }
 
     override fun onDestroy() {
@@ -147,6 +166,9 @@ private fun DndCustomAidApp(
     characterProvenanceRepository: CharacterProvenanceRepository,
     characterNavigationPreferenceStore: CharacterNavigationPreferenceStore,
     preferences: UiPreferences,
+    /** Owner's A: the App was opened from an invitation link or QR. */
+    invitationCode: String? = null,
+    onInvitationUsed: () -> Unit = {},
     onPreferencesChange: (UiPreferences) -> Unit,
 ) {
     val initialDmCampaignId = remember {
@@ -280,6 +302,8 @@ private fun DndCustomAidApp(
             }
 
             AppScreen.CAMPAIGNS -> CampaignScreen(
+                invitationCode = invitationCode,
+                onInvitationUsed = onInvitationUsed,
                 database = database,
                 repository = campaignRepository,
                 hostedBootstrap = hostedCampaignBootstrapController,
@@ -396,6 +420,9 @@ private fun CampaignScreen(
     onOpenRules: () -> Unit,
     onOpenHandouts: (Campaign) -> Unit,
     onSignOut: suspend () -> Unit,
+    /** Owner's A: the App was opened from an invitation link or QR. */
+    invitationCode: String? = null,
+    onInvitationUsed: () -> Unit = {},
 ) {
     var accountId by remember { mutableStateOf(entryStore.accountId) }
     var signingOut by remember { mutableStateOf(false) }
@@ -423,11 +450,17 @@ private fun CampaignScreen(
     var hostedStatus by remember { mutableStateOf(idleHostedStatus()) }
     // Owner, 2026-11-18: the other half of the DM invitation.
     var showJoinWithCode by remember { mutableStateOf(false) }
+    // Owner's A (2026-11-20): opened from the link or the QR, the dialog comes up already filled.
+    androidx.compose.runtime.LaunchedEffect(invitationCode) {
+        if (invitationCode != null) showJoinWithCode = true
+    }
     if (showJoinWithCode) {
         AndroidJoinWithCodeDialog(
-            onDismiss = { showJoinWithCode = false },
+            initialCode = invitationCode.orEmpty(),
+            onDismiss = { showJoinWithCode = false; onInvitationUsed() },
             onJoined = { summary ->
                 showJoinWithCode = false
+                onInvitationUsed()
                 hostedStatus = summary
                 campaigns = repository.listCampaigns()
             },

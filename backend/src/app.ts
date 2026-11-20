@@ -66,6 +66,14 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
       const url = new URL(request.url);
       const path = normalizePath(url.pathname);
 
+      const invitePageMatch = /^\/unirme\/([A-Za-z]{6})$/.exec(path);
+      if (invitePageMatch != null) {
+        // Owner's A (2026-11-20): the link and the QR used to point at nothing. This page needs no
+        // account and asks the database nothing: it only hands the six letters to whoever opened it.
+        requireMethod(request, "GET");
+        return invitationPage(invitePageMatch[1].toUpperCase());
+      }
+
       if (path === "/health") {
         requireMethod(request, "GET");
         return jsonResponse({ status: "ok", service: "dnd-custom-aid-api" });
@@ -441,6 +449,58 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
       return errorResponse(error);
     }
   };
+}
+
+/** What someone sees when they open an invitation link on their phone. */
+function invitationPage(code: string): Response {
+  const body = `<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Invitación a una campaña</title>
+<style>
+  :root { color-scheme: light dark; --bg: #faf7f2; --fg: #1d1b16; --soft: #6b6559; --card: #ffffff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #16150f; --fg: #f1ece1; --soft: #a9a294; --card: #211f17; }
+  }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 26rem; margin: 0 auto; padding: 2rem max(16px, env(safe-area-inset-left)) 3rem; }
+  h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+  p { margin: .6rem 0; }
+  .soft { color: var(--soft); font-size: .9rem; }
+  .code { background: var(--card); border-radius: 14px; padding: 1rem 1.2rem; margin: 1.2rem 0;
+          font-size: 2.1rem; letter-spacing: .35rem; text-align: center; font-weight: 700; }
+  a.button { display: inline-block; background: var(--fg); color: var(--bg); text-decoration: none;
+             padding: .7rem 1.1rem; border-radius: 999px; font-weight: 600; }
+  ol { padding-left: 1.2rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Te invitaron a una campaña</h1>
+  <p>Este es tu código para entrar en D&amp;D Custom Aid:</p>
+  <div class="code">${code}</div>
+  <p><a class="button" href="dndcustomaid://unirme/${code}">Abrir la App con este código</a></p>
+  <p class="soft">Si el botón no hace nada, la App todavía no está instalada en este teléfono, o se abre así:</p>
+  <ol class="soft">
+    <li>Abre D&amp;D Custom Aid.</li>
+    <li>Ve a «Tus campañas» y toca «＋ Unirme».</li>
+    <li>Escribe las seis letras de arriba.</li>
+  </ol>
+  <p class="soft">El código vence; si ya no funciona, pídele otro a tu DM.</p>
+</main>
+</body>
+</html>`;
+  return new Response(body, {
+    status: 200,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+      "referrer-policy": "no-referrer",
+      "x-content-type-options": "nosniff",
+    },
+  });
 }
 
 class ApiProblem extends Error {

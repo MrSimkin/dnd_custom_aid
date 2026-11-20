@@ -27,6 +27,8 @@ import kotlinx.coroutines.launch
  */
 @Composable
 internal fun AndroidJoinWithCodeDialog(
+    /** Already written when the App was opened from the link or the QR. */
+    initialCode: String = "",
     onDismiss: () -> Unit,
     onJoined: (String) -> Unit,
     client: HostedCampaignAdministrationClient = remember {
@@ -36,7 +38,7 @@ internal fun AndroidJoinWithCodeDialog(
         )
     },
 ) {
-    var code by remember { mutableStateOf("") }
+    var code by remember(initialCode) { mutableStateOf(initialCode) }
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()

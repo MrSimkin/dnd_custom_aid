@@ -13,9 +13,15 @@ En **Jugadores de la campaña** (Windows) hay una tarjeta «Invitar a un jugador
 
 Hay una sola invitación viva por campaña. «Cambiar el código» crea otra y anula la anterior; «Anular la invitación» deja la campaña sin código. Por defecto vale 7 días, y se puede pedir de 30.
 
+## Qué pasa al abrir el enlace o el QR
+
+El enlace (y el QR, que lleva el mismo enlace) abre una página sencilla que muestra las seis letras en grande y un botón «Abrir la App con este código». Si la App está instalada, se abre con el código ya escrito; si no, la página explica en tres pasos dónde escribirlo.
+
+Esa página **no pregunta nada al servidor ni pide cuenta**: solo repite el código que viene en el enlace. Así, un enlace reenviado por error no revela el nombre de la campaña ni cuándo vence.
+
 ## Qué hace el jugador
 
-En su App, **Tus campañas → ＋ Unirme**, escribe las seis letras y entra como jugador. Después el DM le asigna su PJ. Si ya estaba en la campaña, se lo dice y no pasa nada. Si fue expulsado, puede volver con una invitación válida; si fue vetado, no.
+Si abrió el enlace o el QR, la App ya le muestra el código y solo toca «Entrar». Si no, en su App, **Tus campañas → ＋ Unirme**, escribe las seis letras y entra como jugador. Después el DM le asigna su PJ. Si ya estaba en la campaña, se lo dice y no pasa nada. Si fue expulsado, puede volver con una invitación válida; si fue vetado, no.
 
 ## Cómo está hecho
 
