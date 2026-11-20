@@ -31,6 +31,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
+import io.github.mrsimkin.dndcustomaid.shared.content.CreatureContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterContent
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterParticipant
@@ -39,6 +42,9 @@ import io.github.mrsimkin.dndcustomaid.shared.content.EncounterPayload
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentFamily
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.dm.EncounterDifficulty
+import io.github.mrsimkin.dndcustomaid.shared.dm.EncounterDifficultyLevel
+import io.github.mrsimkin.dndcustomaid.shared.dm.EncounterDifficultyVerdict
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembershipStatus
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignRole
 import io.github.mrsimkin.dndcustomaid.shared.spine.ContentScope
@@ -99,6 +105,22 @@ class DesktopEncounterManagerController(
     private val spine = IntegratedSpineRepository(database)
     private val reusableContent = ReusableContentRepository(database)
     private val encounters = EncounterContentRepository(database, reusableContent)
+    private val creatures = CreatureContentRepository(database, reusableContent)
+    private val characters = CharacterRepository(database)
+
+    /** Owner's G (2026-11-20): the levels at the table, to weigh an encounter against them. */
+    fun partyLevels(campaignId: Uuid?): List<Int> =
+        campaignId?.let { characters.listCharacters(it).map(CharacterSheet::totalLevel) }.orEmpty()
+
+    /** Every creature's challenge rating, read once for the whole list. */
+    fun challengeRatings(campaignId: Uuid?, ownerAccountId: Uuid?): Map<Uuid, String> {
+        val items = campaignId?.let { reusableContent.listCampaign(it, ReusableContentFamily.CREATURE) }.orEmpty() +
+            ownerAccountId?.let { reusableContent.listPersonal(it, ReusableContentFamily.CREATURE) }.orEmpty()
+        return items.mapNotNull { item ->
+            runCatching { creatures.creature(item.identity.id) }.getOrNull()
+                ?.let { it.item.identity.id to it.payload.challengeRating }
+        }.toMap()
+    }
 
     fun personalOwnerAccountId(): Uuid? {
         val activeCampaignId = campaignRepository.activeCampaign()?.id
@@ -240,6 +262,12 @@ internal fun DesktopEncounterManagerScreen(
         refreshVersion += 1
     }
 
+    // Owner's G: what this party can take, and what each creature is worth.
+    val partyLevels = remember(refreshVersion, activeCampaign?.id) { controller.partyLevels(activeCampaign?.id) }
+    val challengeRatings = remember(refreshVersion, activeCampaign?.id, ownerAccountId) {
+        controller.challengeRatings(activeCampaign?.id, ownerAccountId)
+    }
+
     val visibleEncounters = filterDesktopEncounters(
         encounters = personalEncounters + campaignEncounters,
         filters = DesktopEncounterFilters(query = query, tag = tagFilter),
@@ -306,6 +334,8 @@ internal fun DesktopEncounterManagerScreen(
         ) {
             EncounterList(
                     searching = query.isNotBlank(),
+                partyLevels = partyLevels,
+                challengeRatings = challengeRatings,
                 encounters = visibleEncounters,
                 selectedId = selectedId,
                 onSelect = {
@@ -325,6 +355,8 @@ internal fun DesktopEncounterManagerScreen(
                 }
             } else {
                 EncounterEditor(
+                    partyLevels = partyLevels,
+                    challengeRatings = challengeRatings,
                     onDelete = {
                         controller.delete(selected)
                         statusMessage = "«" + selected.item.displayName + "» quedó en la papelera."
@@ -386,6 +418,8 @@ internal fun DesktopEncounterManagerScreen(
 
 @Composable
 private fun EncounterList(
+    partyLevels: List<Int>,
+    challengeRatings: Map<Uuid, String>,
     encounters: List<EncounterContent>,
     searching: Boolean,
     selectedId: Uuid?,
@@ -411,6 +445,12 @@ private fun EncounterList(
                         listOf(encounterScopeLabel(content.item.identity.scope), "${content.payload.participants.size} participantes o grupos").filter { it.isNotBlank() }.joinToString(" • "),
                         style = MaterialTheme.typography.bodySmall,
                     )
+                    DesktopDifficultyLine(
+                        EncounterDifficulty.of(
+                            partyLevels = partyLevels,
+                            creatures = EncounterDifficulty.challengeRatings(content.payload.participants) { id -> challengeRatings[id] },
+                        ),
+                    )
                     if (content.payload.environment.isNotBlank()) {
                         Text(content.payload.environment, style = MaterialTheme.typography.bodySmall)
                     }
@@ -420,9 +460,29 @@ private fun EncounterList(
     }
 }
 
+/**
+ * Owner's G: «Difícil para 4 PJ · 1800 PX ajustados», with the verdict's own colour. The App says
+ * what it counted; the DM decides.
+ */
+@Composable
+internal fun DesktopDifficultyLine(verdict: EncounterDifficultyVerdict) {
+    Text(
+        verdict.spanishSummary(),
+        style = MaterialTheme.typography.bodySmall,
+        color = when {
+            verdict.unknown || verdict.partySize == 0 -> MaterialTheme.colorScheme.onSurfaceVariant
+            verdict.level == EncounterDifficultyLevel.DEADLY -> MaterialTheme.colorScheme.error
+            verdict.level == EncounterDifficultyLevel.HARD -> MaterialTheme.colorScheme.primary
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
+        },
+    )
+}
+
 @Composable
 private fun EncounterEditor(
     content: EncounterContent,
+    partyLevels: List<Int>,
+    challengeRatings: Map<Uuid, String>,
     draft: EncounterDraft,
     participantSources: List<DesktopEncounterParticipantSource>,
     activeCampaign: Campaign?,
@@ -467,6 +527,14 @@ private fun EncounterEditor(
         item {
             HorizontalDivider()
             Text("Participantes / grupos", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            DesktopDifficultyLine(
+                EncounterDifficulty.of(
+                    partyLevels = partyLevels,
+                    creatures = draft.participants.flatMap { participant ->
+                        List(participant.quantity.coerceAtLeast(1)) { participant.sourceContentId?.let { challengeRatings[it] }.orEmpty() }
+                    },
+                ),
+            )
             Text(
                 "Añade grupos libres o referencias a criaturas/PNJ del mismo ámbito. Las anulaciones siguientes sólo pertenecen a este encuentro.",
                 style = MaterialTheme.typography.bodySmall,

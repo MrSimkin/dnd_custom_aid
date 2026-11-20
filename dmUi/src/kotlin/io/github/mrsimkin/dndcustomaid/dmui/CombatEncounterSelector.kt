@@ -34,6 +34,9 @@ import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.content.CreatureContent
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterContent
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.dm.EncounterDifficulty
+import io.github.mrsimkin.dndcustomaid.shared.dm.EncounterDifficultyLevel
+import io.github.mrsimkin.dndcustomaid.shared.dm.EncounterDifficultyVerdict
 import io.github.mrsimkin.dndcustomaid.shared.dm.EncounterDraft
 import io.github.mrsimkin.dndcustomaid.shared.dm.EncounterDraftEntry
 import io.github.mrsimkin.dndcustomaid.shared.dm.saveEncounterDraft
@@ -173,6 +176,15 @@ private fun EncounterList(
                 Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(encounter.item.displayName, fontWeight = FontWeight.SemiBold)
                     Text(summaryOf(encounter, creatures), style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    // Owner's G: the DM sees how hard each one looks before opening it.
+                    DifficultyLine(
+                        EncounterDifficulty.of(
+                            partyLevels = sources.pcs.map { it.totalLevel },
+                            creatures = EncounterDifficulty.challengeRatings(encounter.payload.participants) { id ->
+                                creatures[id]?.payload?.challengeRating
+                            },
+                        ),
+                    )
                 }
             }
         }
@@ -215,6 +227,15 @@ private fun DraftEditor(
             color = if (changed || base == null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text("Criaturas (${draft.creatureCount})", style = MaterialTheme.typography.titleMedium)
+        // Owner's G (2026-11-20): how hard it looks for this party, recalculated at every change.
+        DifficultyLine(
+            EncounterDifficulty.of(
+                partyLevels = sources.pcs.map { it.totalLevel },
+                creatures = draft.entries.flatMap { entry ->
+                    List(entry.quantity) { entry.creatureId?.let { id -> creatures[id]?.payload?.challengeRating }.orEmpty() }
+                },
+            ),
+        )
         if (draft.entries.isEmpty()) Text("Sin criaturas todavía: agrégalas abajo.", style = MaterialTheme.typography.bodySmall)
         draft.entries.forEach { entry -> DraftLine(entry, creatures, onDraft = { onDraft(it(draft)) }) }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -293,6 +314,21 @@ private fun DraftLine(entry: EncounterDraftEntry, creatures: Map<Uuid, CreatureC
             TextButton(onClick = { onDraft { it.without(entry.key) } }) { Text("Quitar") }
         }
     }
+}
+
+/**
+ * Owner's G: «Difícil para 4 PJ · 1800 PX ajustados». The colour follows the verdict, and an
+ * encounter whose creatures have no VD says so instead of pretending to know.
+ */
+@Composable
+internal fun DifficultyLine(verdict: EncounterDifficultyVerdict, modifier: Modifier = Modifier) {
+    val colour = when {
+        verdict.unknown || verdict.partySize == 0 -> MaterialTheme.colorScheme.onSurfaceVariant
+        verdict.level == EncounterDifficultyLevel.DEADLY -> MaterialTheme.colorScheme.error
+        verdict.level == EncounterDifficultyLevel.HARD -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    Text(verdict.spanishSummary(), style = MaterialTheme.typography.bodySmall, color = colour, modifier = modifier)
 }
 
 private fun summaryOf(encounter: EncounterContent, creatures: Map<Uuid, CreatureContent>): String =
