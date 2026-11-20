@@ -66,6 +66,8 @@ class DesktopDatabaseFactoryTest {
                     statement.execute("DROP TABLE npc_payload")
                     statement.execute("DROP TABLE creature_payload")
                     statement.execute("DROP TABLE reusable_content")
+                    // Owner B (2026-11-20): migration 39 creates it.
+                    statement.execute("DROP TABLE dm_content_conflict")
                     statement.execute("ALTER TABLE character_spell DROP COLUMN school")
                     statement.execute("ALTER TABLE character_class DROP COLUMN epic_levels_enabled")
                     statement.execute("ALTER TABLE handout_payload DROP COLUMN shared_with_players")

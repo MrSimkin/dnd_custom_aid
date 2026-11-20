@@ -47,11 +47,19 @@ Cada una tiene su cola y sus reglas, y hay tres botones distintos que no corren 
    - «3 cambios esperando conexión»;
    - «1 diferencia que decidir»;
    - «2 imágenes que faltan».
-4. **Regla para las diferencias**, que necesita la decisión del propietario:
+4. **Regla para las diferencias** — elegida por el propietario el 20-11-2026 y ya implementada (ver abajo):
    - Si un objeto cambió en un solo aparato, gana ese cambio, sin preguntar.
    - Si cambió en los dos, nada se pisa solo: la pantalla muestra las dos versiones lado a lado, con «quedarme con la de este aparato», «quedarme con la otra» o «guardar las dos».
    - Lo borrado en un aparato y editado en otro se pregunta igual.
 5. **Los PJ siguen la misma regla.** El jugador de cada PJ pasa a viajar con el PJ.
+
+### Las diferencias, hechas (20-11-2026)
+
+- Si algo cambió en un solo aparato, ese cambio entra solo, sin preguntar: ya era así y hay prueba.
+- Si cambió en los dos, no se pisa nada. La versión del otro aparato queda guardada en este (tabla , migración 39) y aparece en **Preparar → Diferencias que decidir**, con las dos versiones lado a lado y lo distinto resaltado.
+- Tres salidas: «Quedarme con lo de aquí» (lo tuyo se manda encima de lo del otro), «Quedarme con lo del otro» y «Guardar las dos» (lo del otro queda como el objeto y lo tuyo al lado, como «… (mi versión)»).
+- Lo borrado en un aparato y cambiado en otro aparece igual, y se decide igual.
+- Pruebas: las cinco reglas en  (dos aparatos contra un servidor que rechaza revisiones viejas) y la pantalla en .
 
 ## Planes para el servidor (punto 15)
 

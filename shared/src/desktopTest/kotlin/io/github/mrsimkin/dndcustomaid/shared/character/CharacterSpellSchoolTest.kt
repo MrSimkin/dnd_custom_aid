@@ -49,6 +49,8 @@ class CharacterSpellSchoolTest {
             driver.execute(null, "ALTER TABLE scene_payload DROP COLUMN sections_json", 0)
             driver.execute(null, "ALTER TABLE character_combat_entry DROP COLUMN linked_item_id", 0)
             driver.execute(null, "ALTER TABLE character_combat_entry DROP COLUMN linked_spell_id", 0)
+            // Owner B (2026-11-20): migration 39 creates this table.
+            driver.execute(null, "DROP TABLE dm_content_conflict", 0)
 
             AppDatabase.Schema.migrate(driver, oldVersion = 26, newVersion = AppDatabase.Schema.version)
 

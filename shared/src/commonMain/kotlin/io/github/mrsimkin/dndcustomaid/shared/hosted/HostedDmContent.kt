@@ -803,7 +803,12 @@ class HostedDmContentSyncService(
                         ReceiveOutcome.Tombstoned -> tombstoned += remote.id
                         ReceiveOutcome.Unchanged -> unchanged += 1
                         ReceiveOutcome.Unsupported -> unsupported += remote.id
-                        is ReceiveOutcome.Conflict -> conflicts[remote.id] = outcome.reason
+                        is ReceiveOutcome.Conflict -> {
+                            conflicts[remote.id] = outcome.reason
+                            // Owner's B (2026-11-20): the other device's version waits here so the
+                            // DM can compare and choose later, without syncing again.
+                            rememberDifference(remote, outcome.reason, nowEpochSeconds)
+                        }
                     }
                 }
             }
@@ -945,6 +950,18 @@ class HostedDmContentSyncService(
             outcomes += SendOutcome.Offline
         }
         return outcomes
+    }
+
+    /** Keeps the other device's version of an object the DM has to decide about. */
+    private fun rememberDifference(remote: HostedDmContent, reason: DmContentSyncConflictReason, nowEpochSeconds: Long) {
+        database.dmContentConflictQueries.upsertDmContentConflict(
+            content_id = remote.id.toString(),
+            reason = reason.name,
+            hosted_revision = remote.revision,
+            hosted_snapshot = remote.snapshot.toString(),
+            hosted_deleted = if (remote.deletedAtEpochSeconds != null) 1L else 0L,
+            seen_at_epoch_seconds = nowEpochSeconds,
+        )
     }
 
     private fun receive(

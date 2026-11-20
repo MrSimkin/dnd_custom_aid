@@ -44,6 +44,7 @@ internal enum class PrepareSection(val title: String, val purpose: String) {
     NOTES("Notas", "Todas las notas de la campaña, agrupadas por dónde las escribiste en la mesa."),
     PACKAGES("Paquetes", "Conjuntos para reutilizar contenido entre campañas."),
     TRASH("Papelera", "Lo que borraste, por si te arrepientes."),
+    DIFFERENCES("Diferencias que decidir", "Lo que cambió aquí y en otro aparato a la vez."),
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -139,6 +140,7 @@ internal fun DesktopPrepareScreen(
             PrepareSection.NOTES -> DesktopNotesScreen(database, activeCampaign)
             PrepareSection.PACKAGES -> DesktopPackageManagerScreen(placeController.packageManagerController, activeCampaign, onQaEvent)
             PrepareSection.TRASH -> DesktopTrashScreen(database, activeCampaign, onQaEvent)
+            PrepareSection.DIFFERENCES -> DesktopDifferencesScreen(database, onQaEvent)
         }
     }
 }
