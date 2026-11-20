@@ -466,6 +466,11 @@ private fun CampaignsScreen(
         }?.let { campaign ->
             ContentBundleCard(database, mediaBlobs, campaign, accountSession, onLoaded)
             DesktopCampaignBackupCard(database = database, campaign = campaign, onMessage = onLoaded)
+            // Owner's D (2026-11-20): what one «Sincronizar» still has pending, in plain words.
+            DesktopSyncStatusCard(
+                status = accountSession.syncStatusDetail(),
+                nowEpochSeconds = System.currentTimeMillis() / 1000,
+            )
         }
 
         if (campaigns.isEmpty()) {

@@ -74,6 +74,27 @@ internal class DesktopHostedCampaignAdministrationController(
         return dmContentSync.synchronize(dmContentSyncScopes(database, account.id), nowEpochSeconds, onProgress)
     }
 
+    /**
+     * Owner's D (2026-11-20): one «Sincronizar» runs them all. Until now Windows never delivered
+     * the PC changes the DM had queued — only the tablet did — so a correction stayed here.
+     */
+    suspend fun syncEverything(
+        nowEpochSeconds: Long = System.currentTimeMillis() / 1000,
+        onProgress: (io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncProgress) -> Unit = {},
+    ): DmContentSyncResult {
+        val account = bootstrapService.refresh().account
+        io.github.mrsimkin.dndcustomaid.shared.hosted.HostedOutboxDeliveryService(
+            outbox = io.github.mrsimkin.dndcustomaid.shared.hosted.HostedOutboxRepository(database),
+            api = apiClient,
+        ).deliverReady(attemptedAtEpochSeconds = nowEpochSeconds)
+        return dmContentSync.synchronize(dmContentSyncScopes(database, account.id), nowEpochSeconds, onProgress)
+    }
+
+    /** What is still waiting on this computer, without asking the server. */
+    fun syncStatus(lastSyncEpochSeconds: Long?, missingImages: Int = 0) =
+        io.github.mrsimkin.dndcustomaid.shared.hosted.SyncStatusReader(database)
+            .status(lastSyncEpochSeconds, missingImages)
+
     /** «Nueva campaña»: created on the server with the open account as its DM. */
     suspend fun createHostedCampaign(name: String) {
         apiClient.createCampaign(mutationId = Uuid.random(), campaignId = Uuid.random(), name = name)

@@ -193,11 +193,11 @@ internal class DesktopAccountSession(
     /** Brings the campaigns and roles of this account from the server. */
     suspend fun refreshCampaigns() = work { refreshCampaignsInside() }
 
-    /** «⟳ Sincronizar»: sends the DM content of this computer and receives the tablet's. */
+    /** «⟳ Sincronizar» (owner's D): account and campaigns, the PC changes, the prepared content and its images, in that order. */
     suspend fun synchronize() = work {
         val texts = DmContentSyncProgressText { System.currentTimeMillis() }
         val result = try {
-            hosted.syncDmContent { progress ->
+            hosted.syncEverything { progress ->
                 syncProgress = texts.text(progress)
                 syncFraction = progress.fraction
             }
@@ -247,6 +247,9 @@ internal class DesktopAccountSession(
 
     fun access(campaignId: Uuid): DesktopCampaignAccess =
         desktopCampaignAccess(accountId, hosted.memberships(campaignId))
+
+    /** Owner's D: what is still waiting, in full, for the «Estado de la sincronización» card. */
+    fun syncStatusDetail(missingImages: Int = 0) = hosted.syncStatus(lastSyncEpochSeconds, missingImages)
 
     /** Short status for the top bar, next to «⟳ Sincronizar». */
     fun syncStatus(): String = when {
