@@ -4,10 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.Button
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -112,7 +112,7 @@ internal fun StagePlaceFilterControls(
     onFiltersChange: (StagePlaceFilters) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text("Organización Stage")
+        Text("Ordenar y filtrar")
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("Tipo:")
             StageChoice(filters.kind == null, "Todos") { onFiltersChange(filters.copy(kind = null)) }
@@ -121,16 +121,6 @@ internal fun StagePlaceFilterControls(
             }
             StageChoice(filters.kind == PlaceKind.SHOP, "Tiendas") {
                 onFiltersChange(filters.copy(kind = PlaceKind.SHOP))
-            }
-            Text("Ámbito:")
-            StageChoice(filters.scope == StagePlaceScopeFilter.ALL, "Todos") {
-                onFiltersChange(filters.copy(scope = StagePlaceScopeFilter.ALL))
-            }
-            StageChoice(filters.scope == StagePlaceScopeFilter.PERSONAL, "Personal") {
-                onFiltersChange(filters.copy(scope = StagePlaceScopeFilter.PERSONAL))
-            }
-            StageChoice(filters.scope == StagePlaceScopeFilter.CAMPAIGN, "Campaña") {
-                onFiltersChange(filters.copy(scope = StagePlaceScopeFilter.CAMPAIGN))
             }
         }
         Row(

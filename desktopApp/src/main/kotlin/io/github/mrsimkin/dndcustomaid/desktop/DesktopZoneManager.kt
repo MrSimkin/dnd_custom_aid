@@ -11,12 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -83,7 +84,7 @@ internal fun filterDesktopZones(
                 addAll(content.payload.tags)
             }.any { it.lowercase().contains(query) }
         }
-        .sortedWith(compareBy({ zoneScopeSortKey(it) }, { it.item.displayName.lowercase() }))
+        .sortedWith(compareBy<ZoneContent> { zoneScopeSortKey(it) }.then(io.github.mrsimkin.dndcustomaid.shared.dm.naturalZoneOrder))
 }
 
 class DesktopZoneManagerController(
@@ -94,6 +95,14 @@ class DesktopZoneManagerController(
     private val spine = IntegratedSpineRepository(database)
     private val reusableContent = ReusableContentRepository(database)
     private val zones = ZoneContentRepository(database, reusableContent)
+    private val encounters = io.github.mrsimkin.dndcustomaid.shared.content.EncounterContentRepository(database, reusableContent)
+    private val links = io.github.mrsimkin.dndcustomaid.shared.content.ContentLinksRepository(database)
+
+    /** QA 0.7.0-preqa.2 (G4): the encounters linked to a zone, to read them on its sheet. */
+    fun linkedEncounters(zoneId: Uuid): List<io.github.mrsimkin.dndcustomaid.shared.content.EncounterContent> =
+        links.links(zoneId).encounterIds.mapNotNull { encounters.encounter(it) }
+
+    fun participantName(id: Uuid?): String? = id?.let { reusableContent.content(it)?.displayName }
 
     fun personalOwnerAccountId(): Uuid? {
         val activeCampaignId = campaignRepository.activeCampaign()?.id
@@ -169,13 +178,14 @@ internal fun DesktopZoneManagerScreen(
     controller: DesktopZoneManagerController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
+    initialSelectedId: Uuid? = null,
 ) {
     var refreshVersion by remember { mutableStateOf(0) }
     var query by remember { mutableStateOf("") }
     var areaFilter by remember { mutableStateOf("") }
     var tagFilter by remember { mutableStateOf("") }
     var newName by remember { mutableStateOf("") }
-    var selectedId by remember { mutableStateOf<Uuid?>(null) }
+    var selectedId by remember(initialSelectedId) { mutableStateOf(initialSelectedId) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
 
     val ownerAccountId = remember(refreshVersion, activeCampaign?.id) {
@@ -208,15 +218,6 @@ internal fun DesktopZoneManagerScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de Mazmorras / Zonas", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
-            Text(
-                "Prepara cada Zona como un Zone Brief: PRESENTAR, INTERACTUAR y ENCUENTRO. " +
-                    "Espacio y exploración conservan la orientación topológica sin convertir el gestor en un VTT.",
-                style = MaterialTheme.typography.body1,
-            )
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -237,19 +238,6 @@ internal fun DesktopZoneManagerScreen(
                 modifier = Modifier.weight(1f),
             )
             Button(
-                enabled = newName.isNotBlank() && ownerAccountId != null,
-                onClick = {
-                    runCatching { controller.createPersonal(requireNotNull(ownerAccountId), newName) }
-                        .onSuccess { created ->
-                            newName = ""
-                            statusMessage = "Zona Personal creada."
-                            onQaEvent("Zone Manager: zona Personal creada ${created.item.identity.id}")
-                            refresh(created.item.identity.id)
-                        }
-                        .onFailure { statusMessage = it.message ?: "No se pudo crear la zona Personal." }
-                },
-            ) { Text("Crear Personal") }
-            Button(
                 enabled = newName.isNotBlank() && activeCampaign != null,
                 onClick = {
                     runCatching { controller.createCampaign(requireNotNull(activeCampaign).id, newName) }
@@ -261,7 +249,7 @@ internal fun DesktopZoneManagerScreen(
                         }
                         .onFailure { statusMessage = it.message ?: "No se pudo crear la zona de campaña." }
                 },
-            ) { Text("Crear en campaña") }
+            ) { Text("＋ Crear") }
         }
 
         Row(
@@ -284,22 +272,16 @@ internal fun DesktopZoneManagerScreen(
             )
         }
 
-        if (ownerAccountId == null) {
-            Text(
-                "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
-                    "Las zonas de campaña local siguen disponibles.",
-                style = MaterialTheme.typography.caption,
-            )
-        }
-        statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
+        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
-        Divider()
+        HorizontalDivider()
 
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             ZoneList(
+                    searching = query.isNotBlank(),
                 zones = visibleZones,
                 selectedId = selectedId,
                 onSelect = {
@@ -308,18 +290,20 @@ internal fun DesktopZoneManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            VerticalDivider()
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona una zona para abrirla.", style = MaterialTheme.typography.h6)
-                    Text("Personal: ${personalZones.size} • Campaña activa: ${campaignZones.size}")
+                    Text("Selecciona una zona para abrirla.", style = MaterialTheme.typography.titleLarge)
+                    Text("${campaignZones.size} en esta campaña.")
                 }
             } else {
                 ZoneEditor(
                     content = selected,
+                    encounters = controller.linkedEncounters(selected.item.identity.id),
+                    participantName = controller::participantName,
                     draft = requireNotNull(draft),
                     activeCampaign = activeCampaign,
                     onDraftChange = { draft = it },
@@ -332,7 +316,7 @@ internal fun DesktopZoneManagerScreen(
                             payload = currentDraft.toPayload(),
                         )) {
                             is RevisionDecision.Accepted -> {
-                                statusMessage = "Cambios guardados (revisión ${decision.nextRevision.value})."
+                                statusMessage = "Cambios guardados."
                                 onQaEvent("Zone Manager: zona actualizada ${selected.item.identity.id}")
                                 refresh(selected.item.identity.id)
                             }
@@ -370,31 +354,32 @@ internal fun DesktopZoneManagerScreen(
 @Composable
 private fun ZoneList(
     zones: List<ZoneContent>,
+    searching: Boolean,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
-            Text("Zonas (${zones.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Zonas (${zones.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (zones.isEmpty()) {
-            item { Text("No hay zonas que coincidan con el filtro.", style = MaterialTheme.typography.caption) }
+            item { EmptyList(searching = searching, nothingYet = "Aún no hay zonas.", howToCreate = "Escribe un nombre en «Nueva zona» y toca «＋ Crear».") }
         }
         items(zones, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onSelect(content.item.identity.id) },
-                elevation = if (selected) 6.dp else 1.dp,
+                elevation = androidx.compose.material3.CardDefaults.cardElevation(if (selected) 6.dp else 1.dp),
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text(zoneScopeLabel(content), style = MaterialTheme.typography.caption)
+                    zoneScopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                     if (content.payload.area.isNotBlank()) {
-                        Text(content.payload.area, style = MaterialTheme.typography.caption)
+                        Text(content.payload.area, style = MaterialTheme.typography.bodySmall)
                     }
                     if (content.payload.summary.isNotBlank()) {
-                        Text(content.payload.summary, style = MaterialTheme.typography.caption)
+                        Text(content.payload.summary, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -405,6 +390,8 @@ private fun ZoneList(
 @Composable
 private fun ZoneEditor(
     content: ZoneContent,
+    encounters: List<io.github.mrsimkin.dndcustomaid.shared.content.EncounterContent>,
+    participantName: (Uuid?) -> String?,
     draft: ZoneDraft,
     activeCampaign: Campaign?,
     onDraftChange: (ZoneDraft) -> Unit,
@@ -420,20 +407,10 @@ private fun ZoneEditor(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Editor de Zona", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
-                    Text(
-                        "${zoneScopeLabel(content)} • revisión ${content.item.identity.revision.value}",
-                        style = MaterialTheme.typography.caption,
-                    )
-                    content.item.identity.provenance?.let { provenance ->
-                        Text(
-                            "Copia de ${provenance.sourceObjectId.toString().take(8)}… • independiente desde la copia",
-                            style = MaterialTheme.typography.caption,
-                        )
-                    }
+                    Text("Editor de Zona", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 }
                 if (content.item.identity.scope is ContentScope.Personal && activeCampaign != null) {
-                    Button(onClick = onCopyToCampaign) { Text("Copiar a campaña") }
+                    Button(onClick = onCopyToCampaign) { Text("Traer a esta campaña") }
                 }
                 Button(onClick = onSave, enabled = draft.displayName.isNotBlank()) { Text("Guardar") }
             }
@@ -455,20 +432,44 @@ private fun ZoneEditor(
         item { ZoneField("Consecuencias preparadas (una por línea)", draft.consequences, false, 4) { onDraftChange(draft.copy(consequences = it)) } }
 
         item { ZoneSectionHeading("ENCUENTRO") }
+        if (encounters.isEmpty()) {
+            item { Text("Esta zona no tiene encuentros vinculados. Se vinculan en el plano del dungeon o en «Vínculos».", style = MaterialTheme.typography.bodySmall) }
+        }
+        encounters.forEach { encounter ->
+            item(key = "encounter-${encounter.item.identity.id}") {
+                Card(elevation = androidx.compose.material3.CardDefaults.cardElevation(2.dp), modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("⚔ ${encounter.item.displayName}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        if (encounter.payload.summary.isNotBlank()) Text(encounter.payload.summary, style = MaterialTheme.typography.bodyMedium)
+                        if (encounter.payload.participants.isEmpty()) {
+                            Text("Sin criaturas todavía: se agregan en Preparar → Encuentros.", style = MaterialTheme.typography.bodySmall)
+                        }
+                        encounter.payload.participants.forEach { participant ->
+                            val name = participantName(participant.sourceContentId) ?: participant.label
+                            Text("• ${participant.quantity} × $name" + participant.condition.takeIf { it.isNotBlank() }?.let { " ($it)" }.orEmpty(), style = MaterialTheme.typography.bodyMedium)
+                        }
+                        listOf("Entorno" to encounter.payload.environment, "Contexto" to encounter.payload.context, "Guía DM" to encounter.payload.dmGuidance, "Notas" to encounter.payload.notes)
+                            .filter { it.second.isNotBlank() }
+                            .forEach { (label, text) -> Text("$label: $text", style = MaterialTheme.typography.bodyMedium) }
+                    }
+                }
+            }
+        }
         item { ZoneField("Resumen del encuentro", draft.encounterBrief, false, 5) { onDraftChange(draft.copy(encounterBrief = it)) } }
 
         item { ZoneSectionHeading("APOYO DM") }
         item { ZoneField("Guía DM", draft.dmGuidance, false, 5) { onDraftChange(draft.copy(dmGuidance = it)) } }
         item { ZoneField("Referencias de papel (una por línea)", draft.paperReferences, false, 3) { onDraftChange(draft.copy(paperReferences = it)) } }
         item { ZoneField("Etiquetas (coma o línea)", draft.tags, false, 3) { onDraftChange(draft.copy(tags = it)) } }
+        item { DesktopContentLinksSection(content.item) }
     }
 }
 
 @Composable
 private fun ZoneSectionHeading(label: String) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Divider()
-        Text(label, style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+        HorizontalDivider()
+        Text(label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -555,8 +556,8 @@ private fun zoneScopeSortKey(content: ZoneContent): Int = when (content.item.ide
 }
 
 private fun zoneScopeLabel(content: ZoneContent): String = when (content.item.identity.scope) {
-    is ContentScope.Personal -> "Personal"
-    is ContentScope.Campaign -> "Campaña"
+    is ContentScope.Personal -> "De tu biblioteca anterior"
+    is ContentScope.Campaign -> ""
     is ContentScope.Official -> "Oficial / SRD"
     ContentScope.System -> "Sistema"
 }

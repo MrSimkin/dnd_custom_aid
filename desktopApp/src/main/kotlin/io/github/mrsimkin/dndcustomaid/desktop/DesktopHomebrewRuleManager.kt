@@ -11,13 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,7 +73,7 @@ fun DesktopAuthoringManagersScreen(
                 }
             }
         }
-        Divider()
+        HorizontalDivider()
         when (section) {
             DesktopAuthoringManagerSection.CREATURES_AND_NPCS -> DesktopManagersScreen(
                 creatureController = creatureController,
@@ -168,7 +169,7 @@ class DesktopHomebrewRuleManagerController(
 }
 
 @Composable
-private fun HomebrewRuleManagerScreen(
+internal fun HomebrewRuleManagerScreen(
     controller: DesktopHomebrewRuleManagerController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
@@ -222,14 +223,6 @@ private fun HomebrewRuleManagerScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de Homebrew y Reglas", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
-            Text(
-                "Reglas ligeras locales con ciclo Borrador / Activa / Retirada. Las copias de campaña son independientes.",
-                style = MaterialTheme.typography.body1,
-            )
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -250,19 +243,6 @@ private fun HomebrewRuleManagerScreen(
                 modifier = Modifier.weight(1f),
             )
             Button(
-                enabled = newName.isNotBlank() && ownerAccountId != null,
-                onClick = {
-                    runCatching { controller.createPersonal(requireNotNull(ownerAccountId), newName) }
-                        .onSuccess { created ->
-                            newName = ""
-                            statusMessage = "Regla Personal creada."
-                            onQaEvent("Homebrew Manager: regla Personal creada ${created.item.identity.id}")
-                            refresh(created.item.identity.id)
-                        }
-                        .onFailure { statusMessage = it.message ?: "No se pudo crear la regla Personal." }
-                },
-            ) { Text("Crear Personal") }
-            Button(
                 enabled = newName.isNotBlank() && activeCampaign != null,
                 onClick = {
                     runCatching { controller.createCampaign(requireNotNull(activeCampaign).id, newName) }
@@ -274,25 +254,19 @@ private fun HomebrewRuleManagerScreen(
                         }
                         .onFailure { statusMessage = it.message ?: "No se pudo crear la regla de campaña." }
                 },
-            ) { Text("Crear en campaña") }
+            ) { Text("＋ Crear") }
         }
 
-        if (ownerAccountId == null) {
-            Text(
-                "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
-                    "El contenido de campaña local sigue disponible.",
-                style = MaterialTheme.typography.caption,
-            )
-        }
-        statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
+        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
-        Divider()
+        HorizontalDivider()
 
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             HomebrewRuleList(
+                    searching = query.isNotBlank(),
                 rules = visibleRules,
                 selectedId = selectedId,
                 onSelect = {
@@ -301,14 +275,14 @@ private fun HomebrewRuleManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            VerticalDivider()
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona una regla para abrirla.", style = MaterialTheme.typography.h6)
-                    Text("Personal: ${personalRules.size} • Campaña activa: ${campaignRules.size}")
+                    Text("Selecciona una regla para abrirla.", style = MaterialTheme.typography.titleLarge)
+                    Text("${campaignRules.size} en esta campaña.")
                 }
             } else {
                 HomebrewRuleEditor(
@@ -325,7 +299,7 @@ private fun HomebrewRuleManagerScreen(
                             payload = currentDraft.toPayload(),
                         )) {
                             is RevisionDecision.Accepted -> {
-                                statusMessage = "Cambios guardados (revisión ${decision.nextRevision.value})."
+                                statusMessage = "Cambios guardados."
                                 onQaEvent("Homebrew Manager: regla actualizada ${selected.item.identity.id}")
                                 refresh(selected.item.identity.id)
                             }
@@ -363,29 +337,30 @@ private fun HomebrewRuleManagerScreen(
 @Composable
 private fun HomebrewRuleList(
     rules: List<HomebrewRuleContent>,
+    searching: Boolean,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
-            Text("Reglas (${rules.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Reglas (${rules.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (rules.isEmpty()) {
-            item { Text("No hay reglas que coincidan con el filtro.", style = MaterialTheme.typography.caption) }
+            item { EmptyList(searching = searching, nothingYet = "Aún no hay reglas tuyas.", howToCreate = "Escribe un nombre en «Nueva regla» y toca «＋ Crear».") }
         }
         items(rules, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onSelect(content.item.identity.id) },
-                elevation = if (selected) 6.dp else 1.dp,
+                elevation = androidx.compose.material3.CardDefaults.cardElevation(if (selected) 6.dp else 1.dp),
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text(homebrewScopeLabel(content), style = MaterialTheme.typography.caption)
-                    Text(homebrewLifecycleLabel(content.payload.lifecycle), style = MaterialTheme.typography.caption)
+                    homebrewScopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                    Text(homebrewLifecycleLabel(content.payload.lifecycle), style = MaterialTheme.typography.bodySmall)
                     if (content.payload.category.isNotBlank()) {
-                        Text(content.payload.category, style = MaterialTheme.typography.caption)
+                        Text(content.payload.category, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -411,20 +386,10 @@ private fun HomebrewRuleEditor(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Editor de Homebrew / Regla", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
-                    Text(
-                        "${homebrewScopeLabel(content)} • revisión ${content.item.identity.revision.value}",
-                        style = MaterialTheme.typography.caption,
-                    )
-                    content.item.identity.provenance?.let { provenance ->
-                        Text(
-                            "Copia de ${provenance.sourceObjectId.toString().take(8)}… • independiente desde la copia",
-                            style = MaterialTheme.typography.caption,
-                        )
-                    }
+                    Text("Editor de Homebrew / Regla", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 }
                 if (content.item.identity.scope is ContentScope.Personal && activeCampaign != null) {
-                    Button(onClick = onCopyToCampaign) { Text("Copiar a campaña") }
+                    Button(onClick = onCopyToCampaign) { Text("Traer a esta campaña") }
                 }
                 Button(onClick = onSave, enabled = draft.displayName.isNotBlank()) { Text("Guardar") }
             }
@@ -434,7 +399,7 @@ private fun HomebrewRuleEditor(
             HomebrewField("Nombre", draft.displayName, true) { onDraftChange(draft.copy(displayName = it)) }
         }
         item {
-            Text("Estado", style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
+            Text("Estado", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 HomebrewRuleLifecycle.entries.forEach { lifecycle ->
                     if (draft.lifecycle == lifecycle) {
@@ -469,6 +434,7 @@ private fun HomebrewRuleEditor(
             }
         }
         item { HomebrewField("Notas DM", draft.notes, false, 4) { onDraftChange(draft.copy(notes = it)) } }
+        item { DesktopContentLinksSection(content.item) }
     }
 }
 
@@ -542,8 +508,8 @@ private fun homebrewScopeSortKey(content: HomebrewRuleContent): Int = when (cont
 private fun homebrewScopeLabel(content: HomebrewRuleContent): String = homebrewScopeLabel(content.item.identity.scope)
 
 private fun homebrewScopeLabel(scope: ContentScope): String = when (scope) {
-    is ContentScope.Personal -> "Personal"
-    is ContentScope.Campaign -> "Campaña"
+    is ContentScope.Personal -> "De tu biblioteca anterior"
+    is ContentScope.Campaign -> ""
     is ContentScope.Official -> "Oficial / SRD"
     ContentScope.System -> "Sistema"
 }

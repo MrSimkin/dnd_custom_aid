@@ -1,6 +1,6 @@
 # Base para DM · Paquete 4 · Archivos e imágenes
 
-Estado: implementado en la rama `feature/dm-media`, construida sobre el paquete 3, el 2026-11-10. Falta el paso del propietario en Cloudflare: crear el espacio KV (sección 5). Lo verifica el QA único de la «Base para DM».
+Estado: implementado (paquete 4). El espacio KV `dnd-custom-aid-media` (enlace `MEDIA`) se creó y se publicó el 2026-11-11; la evidencia está en `DM_REGLAS_IA.md` §5. Lo verifica el QA único de la «Base para DM».
 
 ## Decisiones del propietario
 

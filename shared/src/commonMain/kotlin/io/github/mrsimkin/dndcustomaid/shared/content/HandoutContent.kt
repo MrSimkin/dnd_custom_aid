@@ -45,6 +45,15 @@ data class HandoutPayload(
     val visibility: HandoutVisibility = HandoutVisibility.DM_ONLY,
     val caption: String = "",
     val notes: String = "",
+    /**
+     * Redesign A7 (owner observation G2): the DM sent it to the players; their App shows it. Only
+     * meaningful for PLAYER_SAFE handouts: a DM_ONLY handout is never sent.
+     */
+    val sharedWithPlayers: Boolean = false,
+    /** QA 0.7.0-preqa.2 (H1): where the DM keeps it («Ciudad», «La Torre»…); empty is «Sin carpeta». */
+    val folder: String = "",
+    /** Free tags to find it («mapa de jugador», «retrato», «pista»…). */
+    val tags: List<String> = emptyList(),
 ) {
     init {
         require(mediaType in HANDOUT_MEDIA_TYPES) { "Handout image type $mediaType is not supported." }

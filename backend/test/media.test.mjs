@@ -29,7 +29,7 @@ function fakeKv() {
   };
 }
 
-function fixture({ dm = true, readable = true, withMedia = true } = {}) {
+function fixture({ dm = true, readable = true, withMedia = true, member = true } = {}) {
   const kv = fakeKv();
   const calls = [];
   const handler = createApiHandler({
@@ -45,6 +45,12 @@ function fixture({ dm = true, readable = true, withMedia = true } = {}) {
           async mayReadMedia(actor, contentId, sha) {
             calls.push(["mayReadMedia", actor, contentId, sha]);
             return readable;
+          },
+          async listSharedHandouts(actor, campaignId) {
+            calls.push(["listSharedHandouts", actor, campaignId]);
+            return member
+              ? [{ id: CONTENT_ID, name: "Cartel de la Sierpe", caption: "Baños", kind: "HANDOUT", sha256: SHA, mediaType: "image/png", revision: 2 }]
+              : null;
           },
         }
       : undefined,
@@ -108,4 +114,29 @@ test("without the KV binding the media routes answer 503 and nothing else breaks
   const response = await handler(put());
   assert.equal(response.status, 503);
   assert.equal((await response.json()).code, "TRANSIENT_FAILURE");
+});
+
+
+// Redesign A7 (owner observation G2): the players' App lists the handouts the DM sent.
+const CAMPAIGN_ID = "20000000-0000-4000-8000-000000000901";
+
+test("an active member lists the campaign's shared handouts", async () => {
+  const { handler, calls } = fixture();
+  const response = await handler(new Request(`https://api.example.test/v1/campaigns/${CAMPAIGN_ID}/handouts`, {
+    headers: { authorization: "Bearer t" },
+  }));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.handouts.length, 1);
+  assert.equal(body.handouts[0].name, "Cartel de la Sierpe");
+  assert.equal(body.handouts[0].notes, undefined, "DM notes never reach players");
+  assert.deepEqual(calls.at(-1), ["listSharedHandouts", ACCOUNT_ID, CAMPAIGN_ID]);
+});
+
+test("someone outside the campaign gets not found", async () => {
+  const { handler } = fixture({ member: false });
+  const response = await handler(new Request(`https://api.example.test/v1/campaigns/${CAMPAIGN_ID}/handouts`, {
+    headers: { authorization: "Bearer t" },
+  }));
+  assert.equal(response.status, 404);
 });

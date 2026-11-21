@@ -1,14 +1,11 @@
 package io.github.mrsimkin.dndcustomaid.desktop
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material.Colors
-import androidx.compose.material.Typography
-import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.FontFamily
@@ -188,8 +185,7 @@ internal class DesktopPreferencesStore(
         private const val KEY_WORKSPACE_DENSITY = "workspace_density"
 
         fun defaultPreferencesFile(): Path = Paths.get(
-            System.getProperty("user.home"),
-            ".dnd_custom_aid",
+            io.github.mrsimkin.dndcustomaid.shared.db.DesktopDatabaseFactory.defaultDataDirectory().path,
             "desktop_preferences.properties",
         )
     }
@@ -214,6 +210,10 @@ internal fun desktopSpacing(value: Dp): Dp {
     return value * (1f + signed * 0.70f)
 }
 
+/**
+ * F2 refactor (owner 2026-11-14, «un solo estilo»): the whole App de PC uses Material 3, with the
+ * palettes chosen in Configuración, the same components as the tablet's desks.
+ */
 @Composable
 internal fun DesktopAppTheme(
     preferences: DesktopPreferences,
@@ -224,69 +224,116 @@ internal fun DesktopAppTheme(
         density = currentDensity.density,
         fontScale = currentDensity.fontScale * (preferences.fontScalePercent / 100f),
     )
-    val typography = Typography(defaultFontFamily = preferences.fontChoice.family)
 
     CompositionLocalProvider(
         LocalDensity provides adjustedDensity,
         LocalDesktopSpacingScale provides preferences.spacingScalePercent,
+        // QA 0.7.0-preqa.2 (general comment): on a computer there is no finger to make room for, so
+        // checkboxes, radio buttons and small buttons drop the 48 dp touch margin around them.
+        androidx.compose.material3.LocalMinimumInteractiveComponentSize provides androidx.compose.ui.unit.Dp.Unspecified,
     ) {
-        androidx.compose.material.MaterialTheme(
-            colors = desktopColors(preferences.themeChoice),
-            typography = typography,
+        androidx.compose.material3.MaterialTheme(
+            colorScheme = desktopColorScheme(desktopPalette(preferences.themeChoice)),
+            typography = desktopTypography(preferences.fontChoice.family),
             content = content,
         )
     }
 }
 
+/** The colours of one theme of Configuración (the values the App always had). */
+internal data class DesktopPalette(
+    val isLight: Boolean,
+    val primary: Color,
+    val primaryVariant: Color,
+    val secondary: Color,
+    val secondaryVariant: Color,
+    val background: Color,
+    val surface: Color,
+    val error: Color,
+    val onPrimary: Color,
+    val onSecondary: Color,
+    val onBackground: Color,
+    val onSurface: Color,
+    val onError: Color,
+)
+
+private fun lightPalette(
+    primary: Color = Color(0xFF6200EE),
+    primaryVariant: Color = Color(0xFF3700B3),
+    secondary: Color = Color(0xFF03DAC6),
+    background: Color = Color.White,
+    surface: Color = Color.White,
+    onBackground: Color = Color.Black,
+    onSurface: Color = Color.Black,
+) = DesktopPalette(true, primary, primaryVariant, secondary, Color(0xFF018786), background, surface, Color(0xFFB00020),
+    Color.White, Color.Black, onBackground, onSurface, Color.White)
+
+private fun darkPalette(
+    primary: Color = Color(0xFFBB86FC),
+    primaryVariant: Color = Color(0xFF3700B3),
+    secondary: Color = Color(0xFF03DAC6),
+    background: Color = Color(0xFF121212),
+    surface: Color = Color(0xFF121212),
+) = DesktopPalette(false, primary, primaryVariant, secondary, secondary, background, surface, Color(0xFFCF6679),
+    Color.Black, Color.Black, Color.White, Color.White, Color.Black)
+
 @Composable
-internal fun desktopColors(choice: DesktopThemeChoice): Colors = when (choice) {
-    DesktopThemeChoice.SYSTEM -> if (isSystemInDarkTheme()) darkColors() else lightColors()
-    DesktopThemeChoice.LIGHT -> lightColors()
-    DesktopThemeChoice.DARK -> darkColors()
-    DesktopThemeChoice.GRAY -> lightColors(
-        primary = Color(0xFF424242),
-        primaryVariant = Color(0xFF303030),
-        secondary = Color(0xFF616161),
-        background = Color(0xFFB8B8B8),
-        surface = Color(0xFFD2D2D2),
-        onBackground = Color(0xFF181818),
-        onSurface = Color(0xFF181818),
+internal fun desktopPalette(choice: DesktopThemeChoice): DesktopPalette = when (choice) {
+    DesktopThemeChoice.SYSTEM -> if (isSystemInDarkTheme()) darkPalette() else lightPalette()
+    DesktopThemeChoice.LIGHT -> lightPalette()
+    DesktopThemeChoice.DARK -> darkPalette()
+    DesktopThemeChoice.GRAY -> lightPalette(
+        primary = Color(0xFF424242), primaryVariant = Color(0xFF303030), secondary = Color(0xFF616161),
+        background = Color(0xFFB8B8B8), surface = Color(0xFFD2D2D2), onBackground = Color(0xFF181818), onSurface = Color(0xFF181818),
     )
-    DesktopThemeChoice.DARK_PURPLE -> darkColors(
-        primary = Color(0xFFD5B3FF),
-        primaryVariant = Color(0xFF5A2392),
-        secondary = Color(0xFFC8B4E3),
-        background = Color(0xFF120B1F),
-        surface = Color(0xFF1B1229),
+    DesktopThemeChoice.DARK_PURPLE -> darkPalette(Color(0xFFD5B3FF), Color(0xFF5A2392), Color(0xFFC8B4E3), Color(0xFF120B1F), Color(0xFF1B1229))
+    DesktopThemeChoice.DARK_CYAN -> darkPalette(Color(0xFF63E6E2), Color(0xFF00504D), Color(0xFFA8CECC), Color(0xFF071616), Color(0xFF0D2020))
+    DesktopThemeChoice.NIGHT_BLUE -> darkPalette(Color(0xFF8FC3FF), Color(0xFF0D4D82), Color(0xFFABC8E8), Color(0xFF061A33), Color(0xFF0B2749))
+    DesktopThemeChoice.FOREST_GREEN -> darkPalette(Color(0xFFA4D49E), Color(0xFF285125), Color(0xFFB8CCB3), Color(0xFF0B160B), Color(0xFF131F13))
+    DesktopThemeChoice.PARCHMENT -> lightPalette(
+        primary = Color(0xFF5F3D16), primaryVariant = Color(0xFF76572F), secondary = Color(0xFF76572F),
+        background = Color(0xFFE8D2A6), surface = Color(0xFFFFF3D0), onBackground = Color(0xFF2B2114), onSurface = Color(0xFF2B2114),
     )
-    DesktopThemeChoice.DARK_CYAN -> darkColors(
-        primary = Color(0xFF63E6E2),
-        primaryVariant = Color(0xFF00504D),
-        secondary = Color(0xFFA8CECC),
-        background = Color(0xFF071616),
-        surface = Color(0xFF0D2020),
+}
+
+/** Material 3 colours from a palette; containers are blends of the palette's own colours. */
+internal fun desktopColorScheme(c: DesktopPalette): androidx.compose.material3.ColorScheme {
+    val containerOf = { tint: Color -> lerp(c.surface, tint, if (c.isLight) 0.18f else 0.30f) }
+    val surfaceVariant = lerp(c.surface, c.onSurface, 0.10f)
+    val base = if (c.isLight) androidx.compose.material3.lightColorScheme() else androidx.compose.material3.darkColorScheme()
+    return base.copy(
+        primary = c.primary, onPrimary = c.onPrimary,
+        primaryContainer = containerOf(c.primary), onPrimaryContainer = c.onSurface,
+        inversePrimary = c.primaryVariant,
+        secondary = c.secondary, onSecondary = c.onSecondary,
+        secondaryContainer = containerOf(c.secondary), onSecondaryContainer = c.onSurface,
+        tertiary = c.secondaryVariant,
+        background = c.background, onBackground = c.onBackground,
+        surface = c.surface, onSurface = c.onSurface,
+        surfaceVariant = surfaceVariant, onSurfaceVariant = c.onSurface.copy(alpha = 0.74f),
+        surfaceTint = c.primary,
+        surfaceContainerLowest = c.background,
+        surfaceContainerLow = lerp(c.background, c.surface, 0.5f),
+        surfaceContainer = c.surface,
+        surfaceContainerHigh = lerp(c.surface, c.onSurface, 0.05f),
+        surfaceContainerHighest = surfaceVariant,
+        error = c.error, onError = c.onError,
+        errorContainer = containerOf(c.error), onErrorContainer = c.onSurface,
+        outline = c.onSurface.copy(alpha = 0.42f),
+        outlineVariant = c.onSurface.copy(alpha = 0.18f),
     )
-    DesktopThemeChoice.NIGHT_BLUE -> darkColors(
-        primary = Color(0xFF8FC3FF),
-        primaryVariant = Color(0xFF0D4D82),
-        secondary = Color(0xFFABC8E8),
-        background = Color(0xFF061A33),
-        surface = Color(0xFF0B2749),
-    )
-    DesktopThemeChoice.FOREST_GREEN -> darkColors(
-        primary = Color(0xFFA4D49E),
-        primaryVariant = Color(0xFF285125),
-        secondary = Color(0xFFB8CCB3),
-        background = Color(0xFF0B160B),
-        surface = Color(0xFF131F13),
-    )
-    DesktopThemeChoice.PARCHMENT -> lightColors(
-        primary = Color(0xFF5F3D16),
-        primaryVariant = Color(0xFF76572F),
-        secondary = Color(0xFF76572F),
-        background = Color(0xFFE8D2A6),
-        surface = Color(0xFFFFF3D0),
-        onBackground = Color(0xFF2B2114),
-        onSurface = Color(0xFF2B2114),
+}
+
+/** Material 3 text styles in the font chosen in Configuración. */
+internal fun desktopTypography(family: androidx.compose.ui.text.font.FontFamily?): androidx.compose.material3.Typography {
+    val t = androidx.compose.material3.Typography()
+    if (family == null) return t
+    fun androidx.compose.ui.text.TextStyle.f() = copy(fontFamily = family)
+    return t.copy(
+        displayLarge = t.displayLarge.f(), displayMedium = t.displayMedium.f(), displaySmall = t.displaySmall.f(),
+        headlineLarge = t.headlineLarge.f(), headlineMedium = t.headlineMedium.f(), headlineSmall = t.headlineSmall.f(),
+        titleLarge = t.titleLarge.f(), titleMedium = t.titleMedium.f(), titleSmall = t.titleSmall.f(),
+        bodyLarge = t.bodyLarge.f(), bodyMedium = t.bodyMedium.f(), bodySmall = t.bodySmall.f(),
+        labelLarge = t.labelLarge.f(), labelMedium = t.labelMedium.f(), labelSmall = t.labelSmall.f(),
     )
 }

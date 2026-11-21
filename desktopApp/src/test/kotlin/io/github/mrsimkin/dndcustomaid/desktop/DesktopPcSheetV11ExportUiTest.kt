@@ -1,11 +1,12 @@
 package io.github.mrsimkin.dndcustomaid.desktop
 
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.runDesktopComposeUiTest
@@ -37,6 +38,31 @@ import org.apache.pdfbox.text.PDFTextStripper
 class DesktopPcSheetV11ExportUiTest {
     private fun text(bytes: ByteArray): String =
         Loader.loadPDF(bytes).use { PDFTextStripper().getText(it) }
+
+    @Test
+    fun aStoryCopiedFromAPdfWithAPageBreakStillPrints() {
+        // Agent check of 0.7.0-preqa.4: Arruk's story from the Campus Celeste set carries U+000C and
+        // «Guardar PDF…» failed with «No glyph for U+000C in font NotoSans-Regular».
+        val dir = Files.createTempDirectory("dnd-v11-ff-").toFile()
+        val handle = DesktopDatabaseFactory(File(dir, "ff.db")).create()
+        try {
+            val database = handle.database
+            val campaign = CampaignRepository(database).createCampaign("Campaña")
+            val repository = CharacterRepository(database)
+            val pc = repository.createCharacter(campaign.id, "Arruk")
+            repository.saveCharacter(pc.copy(background = pc.background.copy(story = "Nacido en Draconia.\u000CSigue en otra página.\tCon tabulador.")))
+            val sources = desktopPcSheetExportSources(assertNotNull(DesktopPcManagerController(database).details(pc.id)))
+            for (variant in PcSheetV11Variant.entries) {
+                val bytes = DesktopPcSheetExportService().generateV11Proof(
+                    PcSheetV11ExportRequest(variant, DesktopPcSheetExportOptions().stateSelection), sources).bytes
+                assertTrue(text(bytes).contains("Sigue en otra"), "the story is printed ($variant)")
+            }
+            assertTrue('\u000C' in assertNotNull(repository.character(pc.id)).background.story, "the PC itself is not changed")
+        } finally {
+            handle.close()
+            dir.deleteRecursively()
+        }
+    }
 
     @Test
     fun c441ABrandNewCharacterPrintsTheFourGoldenPagesAB() {
@@ -116,26 +142,22 @@ class DesktopPcSheetV11ExportUiTest {
                     events.count { it.contains(fragment) } >= count
                 }
 
-                // V11 is its own opt-in: variant A is selected and saved through its own button.
-                press("Guardar PDF PREQA")
+                // QA 0.7.0-preqa.2 (J8): V11 is the only sheet; the old families are not offered.
+                onAllNodes(hasText("Fantasy Sheet", substring = true)).assertCountEquals(0)
+                onAllNodes(hasText("Custom v1", substring = true)).assertCountEquals(0)
+                press("Guardar PDF…")
                 awaitEvent("PDF V11 interno guardado", 1)
-                onNodeWithText("PDF PREQA guardado", substring = true).assertExists()
+                onNodeWithText("PDF guardado", substring = true).assertExists()
 
                 // B is reachable from the same panel and goes through Save.
-                press("B")
+                press("B · Habilidades en orden alfabético")
                 waitForIdle()
-                press("Guardar PDF PREQA")
+                press("Guardar PDF…")
                 awaitEvent("PDF V11 interno guardado", 2)
 
                 // Share delivers the same document as a file.
-                press("Compartir PDF PREQA")
+                press("Compartir PDF")
                 awaitEvent("PDF V11 interno compartido", 1)
-
-                // The old family keeps its own button and its own file name.
-                press("Guardar PDF…")
-                waitUntil(timeoutMillis = 120_000) {
-                    File(out, "Prueba UI - Hoja de PJ - Fantasy Sheet.pdf").isFile
-                }
                 waitForIdle()
             }
 
@@ -147,8 +169,8 @@ class DesktopPcSheetV11ExportUiTest {
                         includeSpellDescriptions = it.includeSpellDescriptions)
                 }, sources).bytes)
 
-            val savedA = File(out, "Prueba UI - Hoja de PJ - PREQA V11 A.pdf")
-            val savedB = File(out, "Prueba UI - Hoja de PJ - PREQA V11 B.pdf")
+            val savedA = File(out, "Prueba UI - Hoja de PJ V11 A.pdf")
+            val savedB = File(out, "Prueba UI - Hoja de PJ V11 B.pdf")
             assertTrue(savedA.isFile && savedB.isFile, "Both variants were saved: ${out.list()?.toList()}")
             assertEquals(expected(PcSheetV11Variant.A), text(savedA.readBytes()), "Save A wrote variant A.")
             assertEquals(expected(PcSheetV11Variant.B), text(savedB.readBytes()), "Save B wrote variant B.")
@@ -158,8 +180,6 @@ class DesktopPcSheetV11ExportUiTest {
             assertEquals(savedB.name, shareFile.name, "Share keeps the selected variant.")
             assertEquals(text(savedB.readBytes()), text(shareFile.readBytes()), "Share and Save give the same sheet.")
 
-            val old = text(File(out, "Prueba UI - Hoja de PJ - Fantasy Sheet.pdf").readBytes())
-            assertNotEquals(text(savedA.readBytes()), old, "The old family is still a different document.")
         } finally {
             handle.close()
             dir.deleteRecursively()

@@ -11,13 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +45,7 @@ import io.github.mrsimkin.dndcustomaid.shared.spine.RevisionDecision
 import kotlin.uuid.Uuid
 
 private enum class DesktopStageContentSection(val label: String) {
-    PLACES_SHOPS("Stage • Lugares / Tiendas"),
+    PLACES_SHOPS("Lugares y tiendas"),
     SCENES("Aventura / Escenas"),
 }
 
@@ -69,7 +70,7 @@ internal fun DesktopStageAndSceneManagerScreen(
                 }
             }
         }
-        Divider()
+        HorizontalDivider()
         when (section) {
             DesktopStageContentSection.PLACES_SHOPS -> DesktopPlaceManagerScreen(
                 controller = controller,
@@ -93,6 +94,9 @@ class DesktopSceneManagerController(
     private val spine = IntegratedSpineRepository(database)
     private val reusableContent = ReusableContentRepository(database)
     private val scenes = SceneContentRepository(database, reusableContent)
+
+    /** Owner's J (2026-11-20): the scene and everything that runs with it, to print at once. */
+    internal val tableCards = TableCardBundle(database)
 
     fun personalOwnerAccountId(): Uuid? {
         val activeCampaignId = campaignRepository.activeCampaign()?.id
@@ -142,6 +146,17 @@ class DesktopSceneManagerController(
             nowEpochSeconds = nowEpochSeconds(),
         )
 
+    /**
+     * Owner, 2026-11-18: what is prepared can be deleted. It leaves a tombstone, so it also goes
+     * from the tablet when syncing, and waits in «Papelera» in case it was a mistake.
+     */
+    fun delete(current: SceneContent): RevisionDecision =
+        scenes.tombstone(
+            id = current.item.identity.id,
+            expectedRevision = current.item.identity.revision,
+            deletedAtEpochSeconds = nowEpochSeconds(),
+        )
+
     fun update(
         id: Uuid,
         expectedRevision: Revision,
@@ -168,11 +183,13 @@ internal fun DesktopSceneManagerScreen(
     controller: DesktopSceneManagerController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
+    /** Opens on this object, when the search sent the DM here. */
+    initialSelectedId: Uuid? = null,
 ) {
     var refreshVersion by remember { mutableStateOf(0) }
     var query by remember { mutableStateOf("") }
     var newName by remember { mutableStateOf("") }
-    var selectedId by remember { mutableStateOf<Uuid?>(null) }
+    var selectedId by remember(initialSelectedId) { mutableStateOf(initialSelectedId) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
 
     val ownerAccountId = remember(refreshVersion, activeCampaign?.id) {
@@ -187,6 +204,9 @@ internal fun DesktopSceneManagerScreen(
     val selected = remember(refreshVersion, selectedId) {
         selectedId?.let(controller::scene)
     }
+    // Owner point 10: the card first, the complete preparation only when asked for.
+    var openBlock by remember(selected?.item?.identity?.id) { mutableStateOf<String?>(null) }
+    var showAll by remember(selected?.item?.identity?.id) { mutableStateOf(false) }
     var draft by remember(selected?.item?.identity?.id, selected?.item?.identity?.revision?.value) {
         mutableStateOf(selected?.let(SceneDraft::from))
     }
@@ -214,14 +234,6 @@ internal fun DesktopSceneManagerScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Adventure / Scene Spine", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
-            Text(
-                "Orientación ligera: propósito, posibles escenas siguientes y referencias. No es un motor de quests ni de estado vivo.",
-                style = MaterialTheme.typography.body1,
-            )
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -242,19 +254,6 @@ internal fun DesktopSceneManagerScreen(
                 modifier = Modifier.weight(1f),
             )
             Button(
-                enabled = newName.isNotBlank() && ownerAccountId != null,
-                onClick = {
-                    runCatching { controller.createPersonal(requireNotNull(ownerAccountId), newName) }
-                        .onSuccess { created ->
-                            newName = ""
-                            statusMessage = "Escena Personal creada."
-                            onQaEvent("Scene Manager: escena Personal creada ${created.item.identity.id}")
-                            refresh(created.item.identity.id)
-                        }
-                        .onFailure { statusMessage = it.message ?: "No se pudo crear la escena Personal." }
-                },
-            ) { Text("Crear Personal") }
-            Button(
                 enabled = newName.isNotBlank() && activeCampaign != null,
                 onClick = {
                     runCatching { controller.createCampaign(requireNotNull(activeCampaign).id, newName) }
@@ -266,25 +265,19 @@ internal fun DesktopSceneManagerScreen(
                         }
                         .onFailure { statusMessage = it.message ?: "No se pudo crear la escena de campaña." }
                 },
-            ) { Text("Crear en campaña") }
+            ) { Text("＋ Crear") }
         }
 
-        if (ownerAccountId == null) {
-            Text(
-                "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
-                    "Las escenas de campaña local siguen disponibles.",
-                style = MaterialTheme.typography.caption,
-            )
-        }
-        statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
+        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
-        Divider()
+        HorizontalDivider()
 
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             SceneList(
+                    searching = query.isNotBlank(),
                 scenes = visibleScenes,
                 selectedId = selectedId,
                 onSelect = {
@@ -293,17 +286,29 @@ internal fun DesktopSceneManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            VerticalDivider()
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona una escena para abrirla.", style = MaterialTheme.typography.h6)
-                    Text("Personal: ${personalScenes.size} • Campaña activa: ${campaignScenes.size}")
+                    Text("Selecciona una escena para abrirla.", style = MaterialTheme.typography.titleLarge)
+                    Text("${campaignScenes.size} en esta campaña.")
                 }
             } else {
                 SceneEditor(
+                    tableCards = controller.tableCards::forScene,
+                    onMessage = { statusMessage = it },
+                    onDelete = {
+                        controller.delete(selected)
+                        statusMessage = "«" + selected.item.displayName + "» quedó en la papelera."
+                        onQaEvent("Scene Manager: borrado " + selected.item.identity.id)
+                        refresh(null)
+                    },
+                    openBlock = openBlock,
+                    onOpenBlock = { openBlock = it },
+                    showAll = showAll,
+                    onShowAll = { showAll = it },
                     content = selected,
                     draft = requireNotNull(draft),
                     activeCampaign = activeCampaign,
@@ -317,7 +322,7 @@ internal fun DesktopSceneManagerScreen(
                             payload = currentDraft.toPayload(),
                         )) {
                             is RevisionDecision.Accepted -> {
-                                statusMessage = "Cambios guardados (revisión ${decision.nextRevision.value})."
+                                statusMessage = "Cambios guardados."
                                 onQaEvent("Scene Manager: escena actualizada ${selected.item.identity.id}")
                                 refresh(selected.item.identity.id)
                             }
@@ -355,28 +360,29 @@ internal fun DesktopSceneManagerScreen(
 @Composable
 private fun SceneList(
     scenes: List<SceneContent>,
+    searching: Boolean,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
-            Text("Escenas (${scenes.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Escenas (${scenes.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (scenes.isEmpty()) {
-            item { Text("No hay escenas que coincidan con el filtro.", style = MaterialTheme.typography.caption) }
+            item { EmptyList(searching = searching, nothingYet = "Aún no hay escenas.", howToCreate = "Escribe un título en «Nueva escena» y toca «＋ Crear».") }
         }
         items(scenes, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onSelect(content.item.identity.id) },
-                elevation = if (selected) 6.dp else 1.dp,
+                elevation = androidx.compose.material3.CardDefaults.cardElevation(if (selected) 6.dp else 1.dp),
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text(sceneScopeLabel(content), style = MaterialTheme.typography.caption)
+                    sceneScopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                     if (content.payload.purpose.isNotBlank()) {
-                        Text(content.payload.purpose, style = MaterialTheme.typography.caption)
+                        Text(content.payload.purpose, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -387,12 +393,20 @@ private fun SceneList(
 @Composable
 private fun SceneEditor(
     content: SceneContent,
+    /** Owner's J: the scene and everything that runs with it. */
+    tableCards: (Uuid) -> List<TableCard>,
     draft: SceneDraft,
     activeCampaign: Campaign?,
     onDraftChange: (SceneDraft) -> Unit,
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
+    onDelete: () -> Unit,
+    onMessage: (String) -> Unit,
     modifier: Modifier,
+    openBlock: String?,
+    onOpenBlock: (String?) -> Unit,
+    showAll: Boolean,
+    onShowAll: (Boolean) -> Unit,
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
@@ -402,27 +416,111 @@ private fun SceneEditor(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Editor de Escena", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
-                    Text(
-                        "${sceneScopeLabel(content)} • revisión ${content.item.identity.revision.value}",
-                        style = MaterialTheme.typography.caption,
-                    )
-                    content.item.identity.provenance?.let { provenance ->
-                        Text(
-                            "Copia de ${provenance.sourceObjectId.toString().take(8)}… • independiente desde la copia",
-                            style = MaterialTheme.typography.caption,
-                        )
-                    }
+                    Text("Editor de Escena", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 }
                 if (content.item.identity.scope is ContentScope.Personal && activeCampaign != null) {
-                    Button(onClick = onCopyToCampaign) { Text("Copiar a campaña") }
+                    Button(onClick = onCopyToCampaign) { Text("Traer a esta campaña") }
                 }
+                TableCardPdfButton(card = sceneTableCard(content), onMessage = onMessage)
+                TableCardsPdfButton(
+                    name = content.item.displayName,
+                    what = "lugares, PNJ ni criaturas",
+                    cards = { tableCards(content.item.identity.id) },
+                    onMessage = onMessage,
+                )
+                DeleteContentButton(name = draft.displayName, what = "esta escena", onDelete = onDelete)
                 Button(onClick = onSave, enabled = draft.displayName.isNotBlank()) { Text("Guardar") }
             }
         }
 
+        // Owner points 6 and 10: what you will read at the table first, the whole preparation after.
+        item {
+            val readAloud = draft.sections[io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.READ_ALOUD_SHORT.name].orEmpty()
+                .ifBlank { draft.sections[io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.READ_ALOUD.name].orEmpty() }
+            SheetBlock(
+                title = "En la mesa",
+                editing = openBlock == "mesa",
+                onEdit = { onOpenBlock("mesa") },
+                onDone = { onOpenBlock(null) },
+            ) {
+                if (openBlock == "mesa") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SceneField("Título", draft.displayName, true) { onDraftChange(draft.copy(displayName = it)) }
+                        SceneField("Para qué sirve (una o dos líneas)", draft.purpose, false, 2) { onDraftChange(draft.copy(purpose = it)) }
+                        SceneField(
+                            "Para leer en voz alta · 30 s",
+                            draft.sections[io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.READ_ALOUD_SHORT.name].orEmpty(),
+                            false,
+                            3,
+                        ) { text ->
+                            onDraftChange(draft.copy(sections = draft.sections + (io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.READ_ALOUD_SHORT.name to text)))
+                        }
+                    }
+                } else {
+                    Text(draft.displayName.ifBlank { "Sin título" }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    SheetLine("Para qué sirve", draft.purpose)
+                    SheetLine("Para leer en voz alta", readAloud)
+                    if (draft.purpose.isBlank() && readAloud.isBlank()) SheetEmpty("Todavía sin nada que leer en la mesa. Toca «Editar».")
+                }
+            }
+        }
+        item {
+            val truth = draft.sections[io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.TRUTH.name].orEmpty()
+            val beats = draft.sections[io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.BEATS.name].orEmpty()
+            val next = draft.sections[io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.NEXT.name].orEmpty()
+            SheetBlock(
+                title = "Qué pasa de verdad",
+                editing = openBlock == "verdad",
+                onEdit = { onOpenBlock("verdad") },
+                onDone = { onOpenBlock(null) },
+            ) {
+                if (openBlock == "verdad") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(
+                            io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.TRUTH,
+                            io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.BEATS,
+                            io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.NEXT,
+                        ).forEach { section ->
+                            SceneField(section.label, draft.sections[section.name].orEmpty(), false, 3) { text ->
+                                onDraftChange(draft.copy(sections = draft.sections + (section.name to text)))
+                            }
+                        }
+                    }
+                } else {
+                    SheetLine("Qué está pasando", truth)
+                    SheetLine("Momentos", beats)
+                    SheetLine("Conecta con", next)
+                    if (listOf(truth, beats, next).all { it.isBlank() }) SheetEmpty("Sin la trama anotada.")
+                }
+            }
+        }
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = { onShowAll(!showAll) }) {
+                    Text(if (showAll) "▾ Ocultar la preparación completa" else "▸ Ver todo (preparación completa)")
+                }
+                Text(
+                    if (showAll) "Todos los campos, como antes." else "Lo de arriba es lo que se ve en la mesa.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+
+        if (!showAll) return@LazyColumn
+
         item { SceneField("Título", draft.displayName, true) { onDraftChange(draft.copy(displayName = it)) } }
-        item { SceneField("Propósito", draft.purpose, false, 4) { onDraftChange(draft.copy(purpose = it)) } }
+        item { SceneField("Para qué sirve (una o dos líneas)", draft.purpose, false, 2) { onDraftChange(draft.copy(purpose = it)) } }
+        // QA 0.7.0-preqa.2 (R4): every part of the scene has its own space.
+        io.github.mrsimkin.dndcustomaid.shared.content.SceneSection.entries.forEach { section ->
+            item(key = "section-${section.name}") {
+                SceneField(
+                    section.label + if (section.forPlayers) " · para los jugadores" else "",
+                    draft.sections[section.name].orEmpty(),
+                    false,
+                    3,
+                ) { text -> onDraftChange(draft.copy(sections = draft.sections + (section.name to text))) }
+            }
+        }
         item {
             SceneField(
                 "Posibles escenas siguientes (una por línea)",
@@ -440,6 +538,7 @@ private fun SceneEditor(
             ) { onDraftChange(draft.copy(references = it)) }
         }
         item { SceneField("Notas DM", draft.notes, false, 5) { onDraftChange(draft.copy(notes = it)) } }
+        item { DesktopContentLinksSection(content.item) }
     }
 }
 
@@ -467,12 +566,14 @@ private data class SceneDraft(
     val possibleNextScenes: String,
     val references: String,
     val notes: String,
+    val sections: Map<String, String> = emptyMap(),
 ) {
     fun toPayload(): ScenePayload = ScenePayload(
         purpose = purpose,
         possibleNextScenes = parseSceneLines(possibleNextScenes),
         references = parseSceneLines(references),
         notes = notes,
+        sections = sections.mapValues { it.value.trim() }.filterValues { it.isNotEmpty() },
     )
 
     companion object {
@@ -482,6 +583,7 @@ private data class SceneDraft(
             possibleNextScenes = content.payload.possibleNextScenes.joinToString("\n"),
             references = content.payload.references.joinToString("\n"),
             notes = content.payload.notes,
+            sections = content.payload.sections,
         )
     }
 }
@@ -496,8 +598,8 @@ private fun sceneScopeSortKey(content: SceneContent): Int = when (content.item.i
 }
 
 private fun sceneScopeLabel(content: SceneContent): String = when (content.item.identity.scope) {
-    is ContentScope.Personal -> "Personal"
-    is ContentScope.Campaign -> "Campaña"
+    is ContentScope.Personal -> "De tu biblioteca anterior"
+    is ContentScope.Campaign -> ""
     is ContentScope.Official -> "Oficial / SRD"
     ContentScope.System -> "Sistema"
 }

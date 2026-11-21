@@ -2,7 +2,8 @@
 from pathlib import Path
 
 ROOT = Path("androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/android")
-ui = (ROOT / "UiPreferences.kt").read_text(encoding="utf-8")
+# Refactor F3 moved the Configuración screen out of UiPreferences.kt; both are read together.
+ui = "\n".join((ROOT / name).read_text(encoding="utf-8") for name in ("UiPreferences.kt", "AppSettingsScreen.kt"))
 responsive = (ROOT / "CharacterResponsivePreferencesV4.kt").read_text(encoding="utf-8")
 haptic_prefs = (ROOT / "CharacterHapticPreferencesV4.kt").read_text(encoding="utf-8")
 haptic_hook = (ROOT / "CharacterCollectionPrimitivesV4.kt").read_text(encoding="utf-8")

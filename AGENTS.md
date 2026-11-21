@@ -183,6 +183,24 @@ If runtime output materially disagrees with repository proof (for example page c
 
 **V11 owner QA operational gate (current approved implementation route):** apply `docs/pc-sheet-v11/PROCEDIMIENTO_QA_SIN_PERDIDA.md` and preserve every owner observation in `docs/pc-sheet-v11/qa/REGISTRO_QA_V11.json` before repair. No owner feedback may be declared corrected solely by documentation, a passing test, or a changed fixture; the exact installed-app candidate and its output PDF must be traceable to a real production-code/resource commit. CI runs `scripts/check_v11_qa_registry.py` to reject lost owner testimony, stale candidate proofs and fabricated acceptance. This strengthens §6.3; it does not replace the original defect artifacts or waive any previous rule.
 
+## 6.4 Real-app verification before any owner QA
+
+**Owner decision (2026-11-14), «entonces corrígelo y regístralo»:** green tests are not enough to hand a candidate to the owner. In 0.7.0-preqa.2 a zone drag passed its UI test but failed with a real mouse, and «Enviar a los jugadores» was declared done while it was never stored.
+
+Before any owner QA window is published:
+
+1. Run the exact candidate binaries: the Windows distribution with a **separate data directory** (never the owner's real data) and the APK on an emulator (`-read-only -no-snapshot-save`).
+2. Walk every test of the QA window as the owner would. Save a screenshot per test, and for every save, sync or share action check the persisted result: reopen, sync, or read the database.
+3. Record per test **SEEN WORKING**, **FAILED** (fix it before handoff) or **NOT VERIFIABLE BY THE AGENT** (with the reason, for example a second physical device or the owner's account). Only the last kind may reach the owner unseen, and the QA window says so.
+4. Keep the evidence (screenshots and notes) with the candidate's QA guide.
+
+A candidate with a FAILED test does not go to the owner.
+
+Tooling: `scripts/qa_real_app.py`.
+
+- **Windows.** `win-start --data <test folder>` sets `DND_CUSTOM_AID_DATA_DIR`. The window title then says «DATOS DE PRUEBA», and «Seguir sin cuenta» and local campaigns are available for the walk. `win-stop` confirms the owner's `~/.dnd_custom_aid` did not change. Clicks take the real mouse and stop instead of reaching another window, so tell the owner before a walk.
+- **Android.** `emu-start` runs the emulator `-read-only -no-snapshot-save -no-window`. `emu-install` is for the agent's emulator only; it never replaces the owner's install step.
+
 ## 7. Secret handling
 
 Never request or commit passwords, OTPs, Cloudflare tokens, DB passwords, Neon connection strings, Descope/session/access/refresh JWTs, private keys, signing credentials, provider credential files or secret environment-variable values.
@@ -199,7 +217,9 @@ For the verified Wave 5 state, the existing DEV Worker is `dnd-custom-aid-api` a
 
 ## 9. Canonical DEV identity
 
-Normal hosted DEV owner/DM testing uses the Outlook-backed application identity. Gmail is historical/inactive by default and may be deliberately reused only when a future test needs a secondary real user. Historical Gmail mutation/audit evidence remains historical truth and must not be rewritten.
+**Owner decision (2026-11-13), current:** while testing, the owner's **Gmail** identity is the DM (and may also own/play PCs) and the **Outlook** identity is a player. This replaces the earlier rule that made Outlook the canonical DM identity and Gmail historical/inactive. Hosted roles are changed only with the owner's explicit yes.
+
+Historical Outlook/Gmail mutation and audit evidence remains historical truth and must not be rewritten.
 
 ## 10. Cost/security
 

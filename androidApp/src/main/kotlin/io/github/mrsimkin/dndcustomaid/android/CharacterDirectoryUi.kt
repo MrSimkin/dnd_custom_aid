@@ -1,5 +1,8 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import io.github.mrsimkin.dndcustomaid.dmui.LocalRulesSources
+import io.github.mrsimkin.dndcustomaid.dmui.RulesPickButton
+import io.github.mrsimkin.dndcustomaid.dmui.RulesSources
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +25,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -62,6 +66,8 @@ internal fun CharacterDirectoryScreen(
     var characters by remember { mutableStateOf(directoryRepository.listAllCharacters()) }
     var showCreateDialog by rememberSaveable { mutableStateOf(false) }
     var showImportCampaignDialog by rememberSaveable { mutableStateOf(false) }
+    // QA 0.7.0-preqa.2 (P8): the list starts with the open campaign's PCs only.
+    var showAllCampaigns by rememberSaveable { mutableStateOf(false) }
     var pendingImportCampaignId by rememberSaveable { mutableStateOf<String?>(null) }
     var importedCharacterId by rememberSaveable { mutableStateOf<String?>(null) }
     var importedCharacterName by rememberSaveable { mutableStateOf<String?>(null) }
@@ -188,7 +194,31 @@ internal fun CharacterDirectoryScreen(
                         )
                     }
 
-                    else -> items(characters, key = { it.id.toString() }) { character ->
+                    else -> {
+                        val openCampaign = defaultCampaignId?.let(campaignById::get)
+                        if (openCampaign != null && campaigns.size > 1) {
+                            item(key = "character-directory-filter") {
+                                Row(horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
+                                    FilterChip(
+                                        selected = !showAllCampaigns,
+                                        onClick = { showAllCampaigns = false },
+                                        label = { Text("Solo «${openCampaign.name}»") },
+                                    )
+                                    FilterChip(
+                                        selected = showAllCampaigns,
+                                        onClick = { showAllCampaigns = true },
+                                        label = { Text("Todas las campañas") },
+                                    )
+                                }
+                            }
+                        }
+                        val visible = if (showAllCampaigns || openCampaign == null) characters else characters.filter { it.campaignId == openCampaign.id }
+                        if (visible.isEmpty()) {
+                            item(key = "character-directory-empty-campaign") {
+                                Text("«${openCampaign?.name}» todavía no tiene PJ en esta tablet.", style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                        items(visible, key = { it.id.toString() }) { character ->
                         CharacterDirectoryCard(
                             character = character,
                             campaignName = campaignById[character.campaignId]?.name ?: "Campaña no disponible",
@@ -196,18 +226,21 @@ internal fun CharacterDirectoryScreen(
                             onClick = { onEdit(character) },
                         )
                     }
+                    }
                 }
             }
         }
     }
 
     if (showCreateDialog && campaigns.isNotEmpty() && defaultCampaignId != null) {
-        CreateCharacterInCampaignDialog(
+        // QA 0.7.0-preqa.2 (J1): the step-by-step wizard fills the sheet from the SRD's rules.
+        CharacterCreationWizard(
             campaigns = campaigns,
             defaultCampaignId = defaultCampaignId,
             onDismiss = { showCreateDialog = false },
-            onCreate = { campaignId, name ->
-                val character = repository.createCharacter(campaignId, name)
+            onCreate = { campaignId, name, build ->
+                val created = repository.createCharacter(campaignId, name)
+                val character = build?.let { repository.saveCharacter(io.github.mrsimkin.dndcustomaid.shared.dm.buildCharacter(created, it)) } ?: created
                 reload()
                 showCreateDialog = false
                 onEdit(character)
@@ -329,17 +362,18 @@ private fun CreateCharacterInCampaignDialog(
     campaigns: List<Campaign>,
     defaultCampaignId: Uuid,
     onDismiss: () -> Unit,
-    onCreate: (Uuid, String) -> Unit,
+    onCreate: (Uuid, String, CharacterStartingChoices?) -> Unit,
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var campaignIdText by rememberSaveable { mutableStateOf(defaultCampaignId.toString()) }
     val selectedCampaign = campaigns.firstOrNull { it.id.toString() == campaignIdText } ?: campaigns.first()
     val normalizedName = name.trim()
+    var start by remember { mutableStateOf(CharacterStartingChoices()) }
 
     CharacterImeSafeEditorDialog(
         title = "Nuevo personaje",
         onCancel = onDismiss,
-        onSave = { onCreate(selectedCampaign.id, normalizedName) },
+        onSave = { onCreate(selectedCampaign.id, normalizedName, start.takeIf { !it.isEmpty }) },
         saveLabel = "Crear",
         saveEnabled = normalizedName.isNotEmpty(),
     ) {
@@ -357,6 +391,46 @@ private fun CreateCharacterInCampaignDialog(
         )
         CharacterInlineValidationMessage(
             if (name.isNotEmpty() && normalizedName.isEmpty()) "Escribe un nombre para crear el personaje." else null,
+        )
+        // Redesign R5 (D8): start from the SRD, then the homebrew; everything stays editable afterwards.
+        Text("Empezar desde el SRD o tu homebrew (opcional)", style = MaterialTheme.typography.titleSmall)
+        Text(
+            listOfNotNull(
+                start.species?.let { "Raza: ${it.name}" },
+                start.characterClass?.let { "Clase: ${it.name} ${start.level}" },
+                start.subclass?.let { "Subclase: ${it.name}" },
+                start.background?.let { "Trasfondo: ${it.name}" },
+            ).joinToString(" · ").ifBlank { "Sin elegir: el personaje empieza en blanco." },
+            style = MaterialTheme.typography.bodySmall,
+        )
+        RulesPickButton(
+            kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.SPECIES),
+            label = "📖 Raza",
+            onPick = { start = start.copy(species = it) },
+        )
+        RulesPickButton(
+            kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.CLASS),
+            label = "📖 Clase",
+            onPick = { start = start.copy(characterClass = it) },
+        )
+        if (start.characterClass != null) {
+            CharacterCompactOutlinedTextFieldV4(
+                value = start.level.toString(),
+                onValueChange = { value -> start = start.copy(level = value.filter(Char::isDigit).toIntOrNull()?.coerceIn(1, 20) ?: 1) },
+                label = { Text("Nivel") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+            )
+            RulesPickButton(
+                kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.SUBCLASS),
+                label = "📖 Subclase",
+                onPick = { start = start.copy(subclass = it) },
+            )
+        }
+        RulesPickButton(
+            kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.BACKGROUND),
+            label = "📖 Trasfondo",
+            onPick = { start = start.copy(background = it) },
         )
     }
 }
@@ -389,7 +463,7 @@ private fun ChooseCharacterCampaignDialog(
 }
 
 @Composable
-private fun CampaignSelectorV4(
+internal fun CampaignSelectorV4(
     campaigns: List<Campaign>,
     selected: Campaign,
     onSelect: (Campaign) -> Unit,
@@ -437,4 +511,49 @@ private fun directoryStatusLabel(status: CharacterStatus): String = when (status
     CharacterStatus.INACTIVE -> "Inactivo"
     CharacterStatus.RETIRED -> "Retirado"
     CharacterStatus.DEAD -> "Muerto"
+}
+
+
+/** What «Nuevo personaje» picked from the SRD or the homebrew (redesign R5, owner decision D8). */
+data class CharacterStartingChoices(
+    val species: io.github.mrsimkin.dndcustomaid.shared.dm.RulesOption? = null,
+    val characterClass: io.github.mrsimkin.dndcustomaid.shared.dm.RulesOption? = null,
+    val level: Int = 1,
+    val subclass: io.github.mrsimkin.dndcustomaid.shared.dm.RulesOption? = null,
+    val background: io.github.mrsimkin.dndcustomaid.shared.dm.RulesOption? = null,
+) {
+    val isEmpty: Boolean get() = species == null && characterClass == null && background == null
+
+    fun applyTo(sheet: io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet): io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet {
+        fun family(option: io.github.mrsimkin.dndcustomaid.shared.dm.RulesOption) = when {
+            option.origin != io.github.mrsimkin.dndcustomaid.shared.content.RulesOrigin.SRD -> io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily.CUSTOM
+            option.edition == "5e" -> io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily.DND_5E
+            option.edition == "5.5e" -> io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily.DND_5_5E
+            else -> io.github.mrsimkin.dndcustomaid.shared.character.CharacterRulesFamily.UNSPECIFIED
+        }
+        val classes = characterClass?.let { picked ->
+            listOf(
+                io.github.mrsimkin.dndcustomaid.shared.character.CharacterClassLevel(
+                    id = Uuid.random(),
+                    name = picked.name,
+                    level = level,
+                    hitDieSides = picked.fields["dado_de_golpe"]?.removePrefix("d")?.toIntOrNull() ?: 8,
+                    hitDiceRemaining = level,
+                    sortOrder = 0,
+                    rulesFamily = family(picked),
+                    source = picked.source,
+                    subclassName = subclass?.name,
+                    subclassSource = subclass?.source,
+                    subclassRulesFamily = subclass?.let(::family) ?: family(picked),
+                ),
+            )
+        } ?: sheet.classes
+        return sheet.copy(
+            classes = classes,
+            background = sheet.background.copy(
+                name = background?.name ?: sheet.background.name,
+                race = species?.name ?: sheet.background.race,
+            ),
+        )
+    }
 }

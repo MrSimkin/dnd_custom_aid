@@ -34,19 +34,45 @@ internal enum class DesktopHostedAuthPhase {
     AUTHENTICATED,
 }
 
+/** What happened when the App de PC tried to reopen the remembered account at start. */
+internal enum class DesktopRestoreOutcome {
+    /** Nothing remembered: the App asks for the account. */
+    NONE,
+
+    /** The remembered account is open again. */
+    RESTORED,
+
+    /** The account is remembered but the server could not be reached: work continues locally. */
+    OFFLINE,
+
+    /** The remembered account expired or was closed elsewhere: the App asks for it again. */
+    EXPIRED,
+}
+
+/** Descope refused the remembered login (expired, revoked): it must be asked for again. */
+internal class DesktopLoginExpiredException(message: String) : IllegalStateException(message)
+
 /**
  * Desktop-only Descope email-OTP adapter.
  *
- * Shared remains provider-neutral. Session and refresh JWTs deliberately remain in memory only;
- * they are never persisted through DesktopPreferencesStore or exposed through diagnostics.
+ * Shared remains provider-neutral. The session token lives in memory only. Since owner decision
+ * D2 (2026-11-13) the refresh token and the typed email are remembered between launches in
+ * [vault] (DPAPI on Windows); they are never written to DesktopPreferencesStore or diagnostics.
  */
 internal class DesktopHostedAuthController(
     private val projectId: String = DesktopHostedDevelopmentEnvironment.DESCOPE_PROJECT_ID,
     private val descopeBaseUrl: String = DesktopHostedDevelopmentEnvironment.DESCOPE_API_BASE_URL,
     private val httpClient: HttpClient = createHostedHttpClient(),
+    private val vault: DesktopCredentialVault = SessionOnlyCredentialVault,
 ) : HostedAccessTokenProvider {
     private var session: DesktopHostedSession? = null
     private var pendingEmail: String? = null
+
+    /** The email of the open (or remembered) account, shown in the account menu. */
+    var accountEmail: String? = null
+        private set
+
+    val canRemember: Boolean get() = vault.canRemember
 
     private val hostedApiClient = HostedApiClient(
         baseUrl = DesktopHostedDevelopmentEnvironment.HOSTED_API_BASE_URL,
@@ -86,10 +112,37 @@ internal class DesktopHostedAuthController(
         }
         val body = response.bodyAsText()
         requireSuccess(response.status.value, body, "No se pudo verificar el código de acceso.")
-        session = parseSession(body)
+        val opened = parseSession(body)
+        session = opened
+        accountEmail = email
         pendingEmail = null
         phase = DesktopHostedAuthPhase.AUTHENTICATED
+        remember(opened)
     }
+
+    /**
+     * Reopens the remembered account at start. A network failure keeps the account (the App works
+     * locally and renews it on the next call); only a refusal from Descope forgets it.
+     */
+    suspend fun restore(): DesktopRestoreOutcome {
+        val remembered = vault.load() ?: return DesktopRestoreOutcome.NONE
+        accountEmail = remembered.email
+        val pending = DesktopHostedSession(sessionJwt = "", refreshJwt = remembered.refreshJwt)
+        session = pending
+        phase = DesktopHostedAuthPhase.AUTHENTICATED
+        return try {
+            refreshSession(pending)
+            DesktopRestoreOutcome.RESTORED
+        } catch (expired: DesktopLoginExpiredException) {
+            forget()
+            DesktopRestoreOutcome.EXPIRED
+        } catch (offline: Exception) {
+            DesktopRestoreOutcome.OFFLINE
+        }
+    }
+
+    /** Called when the remembered account is refused by Descope, so the App asks to sign in again. */
+    var onAccountExpired: (() -> Unit)? = null
 
     override suspend fun accessToken(): String? {
         val current = session ?: return null
@@ -97,38 +150,83 @@ internal class DesktopHostedAuthController(
             return current.sessionJwt
         }
 
-        return runCatching { refreshSession(current) }
-            .onFailure { clearSession() }
-            .getOrNull()
-            ?.sessionJwt
+        return try {
+            refreshSession(current).sessionJwt
+        } catch (expired: DesktopLoginExpiredException) {
+            forget()
+            onAccountExpired?.invoke()
+            null
+        } catch (offline: Exception) {
+            // No connection: keep the account; the hosted call fails and the App says it is offline.
+            null
+        }
     }
 
     suspend fun currentHostedAccount(): HostedAccount = hostedApiClient.currentAccount()
 
-    fun signOut() {
-        clearSession()
+    /**
+     * «Cerrar sesión» / «Cambiar usuario»: forgets the account on this computer and, when the
+     * server is reachable, closes it at Descope too. Local campaigns and data stay.
+     */
+    suspend fun signOut() {
+        val refreshJwt = session?.refreshJwt
+        forget()
+        if (refreshJwt != null) {
+            runCatching {
+                httpClient.post("${descopeBaseUrl.trimEnd('/')}/v1/auth/logout") {
+                    bearerAuth("$projectId:$refreshJwt")
+                    contentType(ContentType.Application.Json)
+                }
+            }
+        }
+    }
+
+    /** Cancels a pending code without touching an open account. */
+    fun cancelPendingCode() {
+        pendingEmail = null
+        if (session == null) phase = DesktopHostedAuthPhase.SIGNED_OUT
     }
 
     fun close() {
-        clearSession()
+        session = null
         hostedApiClient.close()
         httpClient.close()
     }
 
-    private suspend fun refreshSession(current: DesktopHostedSession): DesktopHostedSession {
+    private suspend fun refreshSession(current: DesktopHostedSession, retried: Boolean = false): DesktopHostedSession {
         val response = httpClient.post("${descopeBaseUrl.trimEnd('/')}/v1/auth/refresh") {
             bearerAuth("$projectId:${current.refreshJwt}")
             contentType(ContentType.Application.Json)
         }
         val body = response.bodyAsText()
-        requireSuccess(response.status.value, body, "La sesión alojada expiró y no pudo renovarse.")
-        return parseSession(body, fallbackRefreshJwt = current.refreshJwt).also { session = it }
+        val status = response.status.value
+        if (status == 400 || status == 401 || status == 403) {
+            // QA 0.7.0-preqa.2 (M4): another copy of the App may have renewed the account and saved a
+            // newer refresh token. Use the remembered one before giving up.
+            val saved = if (retried) null else runCatching { vault.load() }.getOrNull()
+            if (saved != null && saved.refreshJwt != current.refreshJwt && saved.email == accountEmail) {
+                return refreshSession(DesktopHostedSession(sessionJwt = "", refreshJwt = saved.refreshJwt), retried = true)
+            }
+            throw DesktopLoginExpiredException("La cuenta recordada ya no es válida. Vuelve a entrar.")
+        }
+        requireSuccess(status, body, "La sesión alojada no pudo renovarse.")
+        val renewed = parseSession(body, fallbackRefreshJwt = current.refreshJwt)
+        session = renewed
+        if (renewed.refreshJwt != current.refreshJwt) remember(renewed)
+        return renewed
     }
 
-    private fun clearSession() {
+    private fun remember(opened: DesktopHostedSession) {
+        val email = accountEmail ?: return
+        runCatching { vault.save(RememberedLogin(email = email, refreshJwt = opened.refreshJwt)) }
+    }
+
+    private fun forget() {
         session = null
         pendingEmail = null
+        accountEmail = null
         phase = DesktopHostedAuthPhase.SIGNED_OUT
+        runCatching { vault.clear() }
     }
 }
 

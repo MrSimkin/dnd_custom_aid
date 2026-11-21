@@ -4,6 +4,11 @@ import {
   type CampaignModerationAction,
 } from "./campaignAdministrationStore.ts";
 import {
+  InvitationBannedError,
+  InvitationExpiredError,
+  type InvitationStore,
+} from "./invitationStore.ts";
+import {
   DmContentIdentityError,
   type DmContentScopeKind,
   type DmContentStore,
@@ -12,10 +17,19 @@ import {
   MEDIA_MAX_BYTES,
   MEDIA_TYPES,
   type MediaAuthorization,
-  type MediaStore,
+  type MediaBytesStore,
+  type MediaMigrationReport,
+  MEDIA_MIGRATION_MAX,
   sha256Hex,
 } from "./mediaStore.ts";
 import type { ApiErrorBody, ApiErrorCode, Uuid } from "./contracts/spine.ts";
+import {
+  RULES_PASSAGE_MAX_CHARS,
+  RULES_PASSAGES_MAX,
+  RULES_QUESTION_MAX_CHARS,
+  type RulesAnswerer,
+  type RulesPassage,
+} from "./rulesAnswer.ts";
 import {
   HostedAuthorizationError,
   HostedObjectGoneError,
@@ -29,15 +43,26 @@ const CHARACTER_BACKUP_FORMAT = "dnd-custom-aid.character-backup";
 const DM_CONTENT_FORMAT = "dnd-custom-aid.dm-content";
 const DM_CONTENT_MAX_SNAPSHOT_BYTES = 1_000_000;
 const DM_CONTENT_FAMILY_PATTERN = /^[A-Z][A-Z0-9_]{0,63}$/;
+/** How many changes one group request may carry (owner's server plan A). */
+const DM_CONTENT_GROUP_MAX = 100;
 
 export interface ApiDependencies {
   auth: AuthVerifier;
   campaigns: CampaignStore;
   campaignAdministration?: CampaignAdministrationStore;
   dmContent?: DmContentStore;
-  /** Absent until the owner binds the Workers KV namespace (P27); media routes then answer 503. */
-  media?: MediaStore;
+  /** Absent until the owner binds storage for the images; media routes then answer 503. */
+  media?: MediaBytesStore;
   mediaAuthorization?: MediaAuthorization;
+  /**
+   * Owner's K (2026-11-20): one bounded pass of the move from Workers KV to the bucket. Absent
+   * unless both are bound, because there is nothing to move otherwise.
+   */
+  mediaMigration?: (options: { limit?: number; cursor?: string | null }) => Promise<MediaMigrationReport>;
+  /** Absent until the invitation table exists; the invitation routes then answer 503. */
+  invitations?: InvitationStore;
+  /** Absent until the owner binds Workers AI (package 8); the rules route then answers 503. */
+  rules?: RulesAnswerer;
 }
 
 export type ApiHandler = (request: Request) => Promise<Response>;
@@ -48,12 +73,22 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
       const url = new URL(request.url);
       const path = normalizePath(url.pathname);
 
+      const invitePageMatch = /^\/unirme\/([A-Za-z]{6})$/.exec(path);
+      if (invitePageMatch != null) {
+        // Owner's A (2026-11-20): the link and the QR used to point at nothing. This page needs no
+        // account and asks the database nothing: it only hands the six letters to whoever opened it.
+        requireMethod(request, "GET");
+        return invitationPage(invitePageMatch[1].toUpperCase());
+      }
+
       if (path === "/health") {
         requireMethod(request, "GET");
         return jsonResponse({ status: "ok", service: "dnd-custom-aid-api" });
       }
 
       const campaignMembersMatch = /^\/v1\/campaigns\/([^/]+)\/members$/.exec(path);
+      const campaignInvitationMatch = /^\/v1\/campaigns\/([^/]+)\/invitation$/.exec(path);
+      const redeemInvitationMatch = /^\/v1\/invitations\/([A-Za-z]{6})$/.exec(path);
       const campaignMemberModerationMatch =
         /^\/v1\/campaigns\/([^/]+)\/members\/([^/]+)\/moderation$/.exec(path);
       const campaignPcsMatch = /^\/v1\/campaigns\/([^/]+)\/pcs$/.exec(path);
@@ -62,28 +97,56 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
       const campaignContentMatch = /^\/v1\/campaigns\/([^/]+)\/content$/.exec(path);
       const contentMatch = /^\/v1\/content\/([^/]+)$/.exec(path);
       const mediaMatch = /^\/v1\/media\/([0-9a-f]{64})$/.exec(path);
+      const sharedHandoutsMatch = /^\/v1\/campaigns\/([^/]+)\/handouts$/.exec(path);
       const knownFixedPath =
         path === "/v1/me" ||
         path === "/v1/me/content" ||
+        path === "/v1/content:batch" ||
+        path === "/v1/media:migrate" ||
         path === "/v1/campaigns" ||
-        path === "/v1/campaign-memberships";
+        path === "/v1/campaign-memberships" ||
+        path === "/v1/rules/answer";
 
       if (
         !knownFixedPath &&
         campaignMembersMatch == null &&
+        campaignInvitationMatch == null &&
+        redeemInvitationMatch == null &&
         campaignMemberModerationMatch == null &&
         campaignPcsMatch == null &&
         pcAuthorityMatch == null &&
         pcSnapshotMatch == null &&
         campaignContentMatch == null &&
         contentMatch == null &&
-        mediaMatch == null
+        mediaMatch == null &&
+        sharedHandoutsMatch == null
       ) {
         throw new ApiProblem(404, "NOT_FOUND", "Route not found.");
       }
 
       const identity = await dependencies.auth.verify(request);
       const user = await dependencies.campaigns.resolveUser(identity.subject, identity.displayName);
+
+      if (path === "/v1/rules/answer") {
+        requireMethod(request, "POST");
+        const rules = dependencies.rules;
+        if (rules == null) {
+          throw new ApiProblem(503, "TRANSIENT_FAILURE", "Rules answers are not available yet.");
+        }
+        const body = await readJsonObject(request);
+        const question = requireNonBlankString(body.question, "question");
+        if (question.length > RULES_QUESTION_MAX_CHARS) {
+          throw new ApiProblem(400, "VALIDATION_FAILED", "question is too long.", { field: "question" });
+        }
+        const passages = requireRulesPassages(body.passages);
+        try {
+          const answer = await rules.answer(question, passages);
+          return jsonResponse({ answer, passageCount: passages.length });
+        } catch {
+          // Quota exhausted or model unavailable: the App keeps showing the SRD search.
+          throw new ApiProblem(503, "TRANSIENT_FAILURE", "Rules answers are not available right now.");
+        }
+      }
 
       if (path === "/v1/me") {
         requireMethod(request, "GET");
@@ -106,6 +169,40 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         const campaignId = requireUuid(campaignContentMatch[1], "campaignId");
         const content = await requireDmContent(dependencies).listCampaignContent(user.id, campaignId);
         return jsonResponse({ content });
+      }
+
+      if (sharedHandoutsMatch != null) {
+        requireMethod(request, "GET");
+        const campaignId = requireUuid(sharedHandoutsMatch[1], "campaignId");
+        const authorization = dependencies.mediaAuthorization;
+        if (authorization == null) {
+          throw new ApiProblem(503, "TRANSIENT_FAILURE", "Media storage is not configured yet.");
+        }
+        const handouts = await authorization.listSharedHandouts(user.id, campaignId);
+        if (handouts == null) {
+          throw new ApiProblem(404, "NOT_FOUND", "Campaign not found.");
+        }
+        return jsonResponse({ handouts });
+      }
+
+      if (path === "/v1/media:migrate") {
+        // Owner's K: the DM asks for one page of the move and is told where to continue.
+        requireMethod(request, "POST");
+        const authorization = dependencies.mediaAuthorization;
+        const migrate = dependencies.mediaMigration;
+        if (authorization == null || migrate == null) {
+          throw new ApiProblem(503, "TRANSIENT_FAILURE", "There is nothing to move: object storage or KV is not bound.");
+        }
+        if (!(await authorization.isActiveDm(user.id))) {
+          throw new ApiProblem(403, "FORBIDDEN", "Only an active DM may move the images.");
+        }
+        const limitText = url.searchParams.get("limit");
+        const limit = limitText == null ? undefined : Number(limitText);
+        if (limit != null && (!Number.isInteger(limit) || limit < 1 || limit > MEDIA_MIGRATION_MAX)) {
+          throw new ApiProblem(400, "VALIDATION_FAILED", `limit must be between 1 and ${MEDIA_MIGRATION_MAX}.`, { field: "limit" });
+        }
+        const report = await migrate({ limit, cursor: url.searchParams.get("cursor") });
+        return jsonResponse(report);
       }
 
       if (mediaMatch != null) {
@@ -158,66 +255,59 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         });
       }
 
+      if (path === "/v1/content:batch") {
+        // One request carries a group of changes instead of one each (owner's server plan A,
+        // 2026-11-18). Each change is applied on its own: one refusal never stops the rest, and
+        // what the group could not apply comes back per item so the App can keep it queued.
+        requireMethod(request, "POST");
+        const body = await readJsonObject(request);
+        const items = body.items;
+        if (!Array.isArray(items) || items.length === 0) {
+          throw new ApiProblem(400, "VALIDATION_FAILED", "items must be a non-empty array.", { field: "items" });
+        }
+        if (items.length > DM_CONTENT_GROUP_MAX) {
+          throw new ApiProblem(400, "VALIDATION_FAILED", `items must not carry more than ${DM_CONTENT_GROUP_MAX} changes.`, {
+            field: "items",
+          });
+        }
+        const store = requireDmContent(dependencies);
+        const results: Array<Record<string, unknown>> = [];
+        for (const raw of items) {
+          const item = requireJsonObject(raw, "items[]");
+          const contentId = requireUuid(item.contentId, "items[].contentId");
+          try {
+            const result = await applyDmContentChange(store, user.id, {
+              contentId,
+              mutationId: item.mutationId,
+              expectedRevision: item.expectedRevision,
+              snapshot: item.delete === true ? undefined : item.snapshot,
+              remove: item.delete === true,
+            });
+            results.push({ contentId, content: result.content, applied: result.applied });
+          } catch (error) {
+            const problem = describeProblem(error);
+            // Not the object's fault (no session, overload, a bug here): the whole group waits.
+            if (problem.status >= 500 || problem.status === 401 || problem.status === 429) {
+              throw error;
+            }
+            results.push({ contentId, errorCode: problem.code, errorMessage: problem.message });
+          }
+        }
+        return jsonResponse({ results });
+      }
+
       if (contentMatch != null) {
         const contentId = requireUuid(contentMatch[1], "contentId");
-        const body = await readJsonObject(request);
-        const mutationId = requireUuid(body.mutationId, "mutationId");
-        const expectedRevision = requireNonNegativeInteger(body.expectedRevision, "expectedRevision");
-        const store = requireDmContent(dependencies);
-
-        if (request.method === "DELETE") {
-          const result = await store.deleteContent({
-            actorUserId: user.id,
-            mutationId,
-            contentId,
-            expectedRevision,
-          });
-          return jsonResponse({ content: result.content, applied: result.applied });
-        }
-        if (request.method !== "PUT") {
+        if (request.method !== "PUT" && request.method !== "DELETE") {
           throw methodNotAllowed(["PUT", "DELETE"]);
         }
-
-        const snapshot = requireJsonObject(body.snapshot, "snapshot");
-        const snapshotFormat = requireNonBlankString(snapshot.format, "snapshot.format");
-        const snapshotVersion = requirePositiveInteger(snapshot.version, "snapshot.version");
-        if (snapshotFormat !== DM_CONTENT_FORMAT) {
-          throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot.format is not a supported DM content format.", {
-            field: "snapshot.format",
-          });
-        }
-        if (JSON.stringify(snapshot).length > DM_CONTENT_MAX_SNAPSHOT_BYTES) {
-          throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot is too large.", { field: "snapshot" });
-        }
-        const content = requireJsonObject(snapshot.content, "snapshot.content");
-        if (requireUuid(content.id, "snapshot.content.id") !== contentId) {
-          throw new ApiProblem(400, "VALIDATION_FAILED", "Snapshot identity must match the requested content.", {
-            field: "snapshot.content.id",
-          });
-        }
-        const family = requireNonBlankString(content.family, "snapshot.content.family");
-        if (!DM_CONTENT_FAMILY_PATTERN.test(family)) {
-          throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot.content.family is invalid.", {
-            field: "snapshot.content.family",
-          });
-        }
-        const displayName = requireNonBlankString(content.displayName, "snapshot.content.displayName");
-        const scope = requireJsonObject(content.scope, "snapshot.content.scope");
-        const scopeKind = requireDmContentScopeKind(scope.kind);
-        const scopeRef = requireUuid(scope.ref, "snapshot.content.scope.ref");
-
-        const result = await store.putContent({
-          actorUserId: user.id,
-          mutationId,
+        const body = await readJsonObject(request);
+        const result = await applyDmContentChange(requireDmContent(dependencies), user.id, {
           contentId,
-          expectedRevision,
-          scopeKind,
-          scopeRef,
-          family,
-          displayName,
-          snapshotFormat,
-          snapshotVersion,
-          snapshot,
+          mutationId: body.mutationId,
+          expectedRevision: body.expectedRevision,
+          snapshot: request.method === "PUT" ? body.snapshot : undefined,
+          remove: request.method === "DELETE",
         });
         return jsonResponse({ content: result.content, applied: result.applied });
       }
@@ -226,6 +316,33 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         requireMethod(request, "GET");
         const memberships = await dependencies.campaigns.listCampaignMemberships(user.id);
         return jsonResponse({ memberships });
+      }
+
+      if (campaignInvitationMatch != null) {
+        // Owner, 2026-11-18: the DM holds one live code per campaign, with its expiry.
+        const campaignId = requireUuid(campaignInvitationMatch[1], "campaignId");
+        const invitations = requireInvitations(dependencies);
+        if (request.method === "GET") {
+          const invitation = await invitations.current(user.id, campaignId);
+          return jsonResponse({ invitation });
+        }
+        if (request.method === "POST") {
+          const body = await readJsonObject(request);
+          const days = body.daysValid === undefined ? 7 : requirePositiveInteger(body.daysValid, "daysValid");
+          const invitation = await invitations.create(user.id, campaignId, days);
+          return jsonResponse({ invitation }, 201);
+        }
+        if (request.method === "DELETE") {
+          const revoked = await invitations.revoke(user.id, campaignId);
+          return jsonResponse({ revoked });
+        }
+        throw methodNotAllowed(["GET", "POST", "DELETE"]);
+      }
+
+      if (redeemInvitationMatch != null) {
+        requireMethod(request, "POST");
+        const joined = await requireInvitations(dependencies).redeem(user.id, redeemInvitationMatch[1]);
+        return jsonResponse({ joined });
       }
 
       if (campaignMembersMatch != null) {
@@ -362,6 +479,58 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
   };
 }
 
+/** What someone sees when they open an invitation link on their phone. */
+function invitationPage(code: string): Response {
+  const body = `<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Invitación a una campaña</title>
+<style>
+  :root { color-scheme: light dark; --bg: #faf7f2; --fg: #1d1b16; --soft: #6b6559; --card: #ffffff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #16150f; --fg: #f1ece1; --soft: #a9a294; --card: #211f17; }
+  }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 26rem; margin: 0 auto; padding: 2rem max(16px, env(safe-area-inset-left)) 3rem; }
+  h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+  p { margin: .6rem 0; }
+  .soft { color: var(--soft); font-size: .9rem; }
+  .code { background: var(--card); border-radius: 14px; padding: 1rem 1.2rem; margin: 1.2rem 0;
+          font-size: 2.1rem; letter-spacing: .35rem; text-align: center; font-weight: 700; }
+  a.button { display: inline-block; background: var(--fg); color: var(--bg); text-decoration: none;
+             padding: .7rem 1.1rem; border-radius: 999px; font-weight: 600; }
+  ol { padding-left: 1.2rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Te invitaron a una campaña</h1>
+  <p>Este es tu código para entrar en D&amp;D Custom Aid:</p>
+  <div class="code">${code}</div>
+  <p><a class="button" href="dndcustomaid://unirme/${code}">Abrir la App con este código</a></p>
+  <p class="soft">Si el botón no hace nada, la App todavía no está instalada en este teléfono, o se abre así:</p>
+  <ol class="soft">
+    <li>Abre D&amp;D Custom Aid.</li>
+    <li>Ve a «Tus campañas» y toca «＋ Unirme».</li>
+    <li>Escribe las seis letras de arriba.</li>
+  </ol>
+  <p class="soft">El código vence; si ya no funciona, pídele otro a tu DM.</p>
+</main>
+</body>
+</html>`;
+  return new Response(body, {
+    status: 200,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": "no-store",
+      "referrer-policy": "no-referrer",
+      "x-content-type-options": "nosniff",
+    },
+  });
+}
+
 class ApiProblem extends Error {
   readonly status: number;
   readonly code: ApiErrorCode;
@@ -397,6 +566,80 @@ function requireCampaignAdministration(dependencies: ApiDependencies): CampaignA
     throw new Error("Campaign Administration API dependency is not configured.");
   }
   return administration;
+}
+
+/** One queued change as it arrives, alone on its own route or inside a group. */
+interface DmContentChange {
+  contentId: Uuid;
+  mutationId: unknown;
+  expectedRevision: unknown;
+  snapshot?: unknown;
+  remove: boolean;
+}
+
+/** Validates one change and applies it, so the single route and a group behave identically. */
+async function applyDmContentChange(
+  store: DmContentStore,
+  actorUserId: Uuid,
+  change: DmContentChange,
+): Promise<{ content: unknown; applied: boolean }> {
+  const mutationId = requireUuid(change.mutationId, "mutationId");
+  const expectedRevision = requireNonNegativeInteger(change.expectedRevision, "expectedRevision");
+  const contentId = change.contentId;
+
+  if (change.remove) {
+    return await store.deleteContent({ actorUserId, mutationId, contentId, expectedRevision });
+  }
+
+  const snapshot = requireJsonObject(change.snapshot, "snapshot");
+  const snapshotFormat = requireNonBlankString(snapshot.format, "snapshot.format");
+  const snapshotVersion = requirePositiveInteger(snapshot.version, "snapshot.version");
+  if (snapshotFormat !== DM_CONTENT_FORMAT) {
+    throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot.format is not a supported DM content format.", {
+      field: "snapshot.format",
+    });
+  }
+  if (JSON.stringify(snapshot).length > DM_CONTENT_MAX_SNAPSHOT_BYTES) {
+    throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot is too large.", { field: "snapshot" });
+  }
+  const content = requireJsonObject(snapshot.content, "snapshot.content");
+  if (requireUuid(content.id, "snapshot.content.id") !== contentId) {
+    throw new ApiProblem(400, "VALIDATION_FAILED", "Snapshot identity must match the requested content.", {
+      field: "snapshot.content.id",
+    });
+  }
+  const family = requireNonBlankString(content.family, "snapshot.content.family");
+  if (!DM_CONTENT_FAMILY_PATTERN.test(family)) {
+    throw new ApiProblem(400, "VALIDATION_FAILED", "snapshot.content.family is invalid.", {
+      field: "snapshot.content.family",
+    });
+  }
+  const displayName = requireNonBlankString(content.displayName, "snapshot.content.displayName");
+  const scope = requireJsonObject(content.scope, "snapshot.content.scope");
+  const scopeKind = requireDmContentScopeKind(scope.kind);
+  const scopeRef = requireUuid(scope.ref, "snapshot.content.scope.ref");
+
+  return await store.putContent({
+    actorUserId,
+    mutationId,
+    contentId,
+    expectedRevision,
+    scopeKind,
+    scopeRef,
+    family,
+    displayName,
+    snapshotFormat,
+    snapshotVersion,
+    snapshot,
+  });
+}
+
+function requireInvitations(dependencies: ApiDependencies): InvitationStore {
+  const invitations = dependencies.invitations;
+  if (invitations == null) {
+    throw new ApiProblem(503, "TRANSIENT_FAILURE", "Las invitaciones todavía no están disponibles en el servidor.");
+  }
+  return invitations;
 }
 
 function requireDmContent(dependencies: ApiDependencies): DmContentStore {
@@ -450,6 +693,26 @@ function requireJsonObject(value: unknown, field: string): Record<string, unknow
   return value as Record<string, unknown>;
 }
 
+function requireRulesPassages(value: unknown): RulesPassage[] {
+  if (!Array.isArray(value) || value.length === 0 || value.length > RULES_PASSAGES_MAX) {
+    throw new ApiProblem(400, "VALIDATION_FAILED", `passages must hold 1 to ${RULES_PASSAGES_MAX} SRD passages.`, { field: "passages" });
+  }
+  return value.map((entry, index) => {
+    const passage = requireJsonObject(entry, `passages[${index}]`);
+    const version = requireNonBlankString(passage.version, `passages[${index}].version`);
+    if (version !== "5.1" && version !== "5.2.1") {
+      throw new ApiProblem(400, "VALIDATION_FAILED", "passages[].version must be 5.1 or 5.2.1.", { field: `passages[${index}].version` });
+    }
+    const page = passage.page;
+    if (typeof page !== "number" || !Number.isInteger(page) || page < 1 || page > 2000) {
+      throw new ApiProblem(400, "VALIDATION_FAILED", "passages[].page must be a page number.", { field: `passages[${index}].page` });
+    }
+    const text = requireNonBlankString(passage.text, `passages[${index}].text`);
+    const heading = typeof passage.heading === "string" ? passage.heading.trim().slice(0, 200) : "";
+    return { version, page, heading, text: text.slice(0, RULES_PASSAGE_MAX_CHARS) };
+  });
+}
+
 function requireNonBlankString(value: unknown, field: string): string {
   if (typeof value !== "string" || value.trim().length === 0) {
     throw new ApiProblem(400, "VALIDATION_FAILED", `${field} must be a non-blank string.`, { field });
@@ -501,38 +764,64 @@ function requirePositiveInteger(value: unknown, field: string): number {
   return value;
 }
 
-function errorResponse(error: unknown): Response {
+interface ApiProblemShape {
+  status: number;
+  code: ApiErrorCode;
+  message: string;
+  details?: Record<string, unknown>;
+  headers?: HeadersInit;
+}
+
+/** The status and code one failure deserves, used both for a response and per item of a group. */
+function describeProblem(error: unknown): ApiProblemShape {
   if (error instanceof ApiProblem) {
-    return jsonError(error.status, error.code, error.message, error.details, error.headers);
+    return { status: error.status, code: error.code, message: error.message, details: error.details, headers: error.headers };
   }
   if (error instanceof DmContentIdentityError) {
-    return jsonError(400, "VALIDATION_FAILED", error.message);
+    return { status: 400, code: "VALIDATION_FAILED", message: error.message };
   }
   if (error instanceof AuthenticationError) {
-    return jsonError(401, "UNAUTHENTICATED", error.message, undefined, {
-      "WWW-Authenticate": "Bearer",
-    });
+    return {
+      status: 401,
+      code: "UNAUTHENTICATED",
+      message: error.message,
+      headers: { "WWW-Authenticate": "Bearer" },
+    };
   }
   if (error instanceof HostedAuthorizationError) {
-    return jsonError(403, "FORBIDDEN", error.message);
+    return { status: 403, code: "FORBIDDEN", message: error.message };
   }
   if (error instanceof MutationReuseError) {
-    return jsonError(409, "CONFLICT_MUTATION_REUSE", error.message);
+    return { status: 409, code: "CONFLICT_MUTATION_REUSE", message: error.message };
   }
   if (error instanceof StaleRevisionError) {
-    return jsonError(409, "CONFLICT_STALE_REVISION", error.message, {
-      currentRevision: error.currentRevision,
-    });
+    return {
+      status: 409,
+      code: "CONFLICT_STALE_REVISION",
+      message: error.message,
+      details: { currentRevision: error.currentRevision },
+    };
+  }
+  if (error instanceof InvitationExpiredError) {
+    return { status: 410, code: "GONE", message: error.message };
+  }
+  if (error instanceof InvitationBannedError) {
+    return { status: 403, code: "FORBIDDEN", message: error.message };
   }
   if (error instanceof HostedObjectGoneError) {
-    return jsonError(410, "GONE", error.message);
+    return { status: 410, code: "GONE", message: error.message };
   }
   if (error instanceof HostedObjectNotFoundError) {
-    return jsonError(404, "NOT_FOUND", error.message);
+    return { status: 404, code: "NOT_FOUND", message: error.message };
   }
 
   console.error("Unhandled API error", error);
-  return jsonError(500, "INTERNAL_ERROR", "Unexpected server error.");
+  return { status: 500, code: "INTERNAL_ERROR", message: "Unexpected server error." };
+}
+
+function errorResponse(error: unknown): Response {
+  const problem = describeProblem(error);
+  return jsonError(problem.status, problem.code, problem.message, problem.details, problem.headers);
 }
 
 function jsonError(

@@ -119,7 +119,7 @@ object PcSheetV11SemanticMapper {
                 portraitFitMode = request.portraitFitMode,
                 includeSpellDescriptions = request.includeSpellDescriptions,
             ),
-            sources = sources,
+            sources = sources.printable(),
         )
         val snapshot = sharedPlan.snapshot
         val aggregate = snapshot.aggregate

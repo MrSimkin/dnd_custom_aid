@@ -170,6 +170,10 @@ data class CharacterCombatEntry(
     val notes: String?,
     val sortOrder: Int,
     val pinned: Boolean = false,
+    /** QA 0.7.0-preqa.2 (J4): the weapon in the equipment this attack uses. */
+    val linkedItemId: Uuid? = null,
+    /** QA 0.7.0-preqa.2 (J4): the spell this attack or action casts. */
+    val linkedSpellId: Uuid? = null,
 )
 
 @Serializable

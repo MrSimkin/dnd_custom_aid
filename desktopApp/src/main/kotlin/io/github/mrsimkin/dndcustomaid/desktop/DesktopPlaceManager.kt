@@ -11,13 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,7 +48,7 @@ import kotlin.uuid.Uuid
 private enum class DesktopManagersHubSection(val label: String) {
     CREATURES_NPCS_HOMEBREW("Criaturas / PNJ / Homebrew"),
     PLACES_SHOPS("Escenarios / Lugares / Tiendas"),
-    DUNGEONS_ZONES("Mazmorras / Zonas"),
+    DUNGEONS_ZONES("Dungeons"),
     ENCOUNTERS("Encuentros"),
     PACKAGES("Paquetes"),
 }
@@ -76,7 +77,7 @@ fun DesktopManagersHubScreen(
                 }
             }
         }
-        Divider()
+        HorizontalDivider()
         when (section) {
             DesktopManagersHubSection.CREATURES_NPCS_HOMEBREW -> DesktopAuthoringManagersScreen(
                 creatureController = creatureController,
@@ -117,6 +118,9 @@ class DesktopPlaceManagerController(
     private val spine = IntegratedSpineRepository(database)
     private val reusableContent = ReusableContentRepository(database)
     private val places = PlaceContentRepository(database, reusableContent)
+
+    /** Owner's J (2026-11-20): the place and everyone who is there, to print at once. */
+    internal val tableCards = TableCardBundle(database)
     internal val sceneManagerController = DesktopSceneManagerController(database, nowEpochSeconds)
     internal val zoneManagerController = DesktopZoneManagerController(database, nowEpochSeconds)
     internal val packageManagerController = DesktopPackageManagerController(database, nowEpochSeconds)
@@ -176,6 +180,17 @@ class DesktopPlaceManagerController(
         nowEpochSeconds = nowEpochSeconds(),
     )
 
+    /**
+     * Owner, 2026-11-18: what is prepared can be deleted. It leaves a tombstone, so it also goes
+     * from the tablet when syncing, and waits in «Papelera» in case it was a mistake.
+     */
+    fun delete(current: PlaceContent): RevisionDecision =
+        places.tombstone(
+            id = current.item.identity.id,
+            expectedRevision = current.item.identity.revision,
+            deletedAtEpochSeconds = nowEpochSeconds(),
+        )
+
     fun update(
         id: Uuid,
         expectedRevision: Revision,
@@ -202,13 +217,15 @@ internal fun DesktopPlaceManagerScreen(
     controller: DesktopPlaceManagerController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
+    /** Opens on this object, when the search sent the DM here. */
+    initialSelectedId: Uuid? = null,
 ) {
     var refreshVersion by remember { mutableStateOf(0) }
     var query by remember { mutableStateOf("") }
     var stageFilters by remember { mutableStateOf(StagePlaceFilters()) }
     var newName by remember { mutableStateOf("") }
     var newKind by remember { mutableStateOf(PlaceKind.PLACE) }
-    var selectedId by remember { mutableStateOf<Uuid?>(null) }
+    var selectedId by remember(initialSelectedId) { mutableStateOf(initialSelectedId) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
 
     val ownerAccountId = remember(refreshVersion, activeCampaign?.id) {
@@ -223,6 +240,9 @@ internal fun DesktopPlaceManagerScreen(
     val selected = remember(refreshVersion, selectedId) {
         selectedId?.let(controller::place)
     }
+    // Owner point 10: the card first, the complete preparation only when asked for.
+    var openBlock by remember(selected?.item?.identity?.id) { mutableStateOf<String?>(null) }
+    var showAll by remember(selected?.item?.identity?.id) { mutableStateOf(false) }
     var draft by remember(selected?.item?.identity?.id, selected?.item?.identity?.revision?.value) {
         mutableStateOf(selected?.let(PlaceDraft::from))
     }
@@ -241,14 +261,6 @@ internal fun DesktopPlaceManagerScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de Escenarios, Lugares y Tiendas", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
-            Text(
-                "La vista Stage organiza los lugares reutilizables existentes; las tiendas siguen siendo lugares especializados y las copias de campaña son independientes.",
-                style = MaterialTheme.typography.body1,
-            )
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -276,19 +288,6 @@ internal fun DesktopPlaceManagerScreen(
                 }
             }
             Button(
-                enabled = newName.isNotBlank() && ownerAccountId != null,
-                onClick = {
-                    runCatching { controller.createPersonal(requireNotNull(ownerAccountId), newName, newKind) }
-                        .onSuccess { created ->
-                            newName = ""
-                            statusMessage = "${placeKindLabel(created.payload.kind)} Personal creado."
-                            onQaEvent("Place Manager: contenido Personal creado ${created.item.identity.id}")
-                            refresh(created.item.identity.id)
-                        }
-                        .onFailure { statusMessage = it.message ?: "No se pudo crear el contenido Personal." }
-                },
-            ) { Text("Crear Personal") }
-            Button(
                 enabled = newName.isNotBlank() && activeCampaign != null,
                 onClick = {
                     runCatching {
@@ -300,30 +299,24 @@ internal fun DesktopPlaceManagerScreen(
                         refresh(created.item.identity.id)
                     }.onFailure { statusMessage = it.message ?: "No se pudo crear el contenido de campaña." }
                 },
-            ) { Text("Crear en campaña") }
+            ) { Text("＋ Crear") }
         }
 
-        if (ownerAccountId == null) {
-            Text(
-                "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
-                    "El contenido de campaña local sigue disponible.",
-                style = MaterialTheme.typography.caption,
-            )
-        }
-        statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
+        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
         StagePlaceFilterControls(
             filters = stageFilters,
             onFiltersChange = { stageFilters = it },
         )
 
-        Divider()
+        HorizontalDivider()
 
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             PlaceList(
+                    searching = query.isNotBlank(),
                 places = visiblePlaces,
                 selectedId = selectedId,
                 onSelect = {
@@ -332,17 +325,29 @@ internal fun DesktopPlaceManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            VerticalDivider()
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona un lugar o tienda para abrirlo.", style = MaterialTheme.typography.h6)
-                    Text("Personal: ${personalPlaces.size} • Campaña activa: ${campaignPlaces.size}")
+                    Text("Selecciona un lugar o tienda para abrirlo.", style = MaterialTheme.typography.titleLarge)
+                    Text("${campaignPlaces.size} en esta campaña.")
                 }
             } else {
                 PlaceEditor(
+                    tableCards = controller.tableCards::forPlace,
+                    onMessage = { statusMessage = it },
+                    onDelete = {
+                        controller.delete(selected)
+                        statusMessage = "«" + selected.item.displayName + "» quedó en la papelera."
+                        onQaEvent("Place Manager: borrado " + selected.item.identity.id)
+                        refresh(null)
+                    },
+                    openBlock = openBlock,
+                    onOpenBlock = { openBlock = it },
+                    showAll = showAll,
+                    onShowAll = { showAll = it },
                     content = selected,
                     draft = requireNotNull(draft),
                     activeCampaign = activeCampaign,
@@ -356,7 +361,7 @@ internal fun DesktopPlaceManagerScreen(
                             payload = currentDraft.toPayload(),
                         )) {
                             is RevisionDecision.Accepted -> {
-                                statusMessage = "Cambios guardados (revisión ${decision.nextRevision.value})."
+                                statusMessage = "Cambios guardados."
                                 onQaEvent("Place Manager: contenido actualizado ${selected.item.identity.id}")
                                 refresh(selected.item.identity.id)
                             }
@@ -394,28 +399,29 @@ internal fun DesktopPlaceManagerScreen(
 @Composable
 private fun PlaceList(
     places: List<PlaceContent>,
+    searching: Boolean,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
-            Text("Stage • Lugares / Tiendas (${places.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Lugares y tiendas (${places.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (places.isEmpty()) {
-            item { Text("No hay contenido que coincida con el filtro.", style = MaterialTheme.typography.caption) }
+            item { EmptyList(searching = searching, nothingYet = "Aún no hay lugares ni tiendas.", howToCreate = "Escribe un nombre en «Nuevo lugar / tienda» y toca «＋ Crear».") }
         }
         items(places, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onSelect(content.item.identity.id) },
-                elevation = if (selected) 6.dp else 1.dp,
+                elevation = androidx.compose.material3.CardDefaults.cardElevation(if (selected) 6.dp else 1.dp),
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text("${placeKindLabel(content.payload.kind)} • ${placeScopeLabel(content)}", style = MaterialTheme.typography.caption)
+                    Text(listOf(placeKindLabel(content.payload.kind), placeScopeLabel(content)).filter { it.isNotBlank() }.joinToString(" • "), style = MaterialTheme.typography.bodySmall)
                     if (content.payload.area.isNotBlank()) {
-                        Text(content.payload.area, style = MaterialTheme.typography.caption)
+                        Text(content.payload.area, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -426,12 +432,20 @@ private fun PlaceList(
 @Composable
 private fun PlaceEditor(
     content: PlaceContent,
+    /** Owner's J: the place and everyone who is there. */
+    tableCards: (Uuid) -> List<TableCard>,
     draft: PlaceDraft,
     activeCampaign: Campaign?,
     onDraftChange: (PlaceDraft) -> Unit,
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
+    onDelete: () -> Unit,
+    onMessage: (String) -> Unit,
     modifier: Modifier,
+    openBlock: String?,
+    onOpenBlock: (String?) -> Unit,
+    showAll: Boolean,
+    onShowAll: (Boolean) -> Unit,
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
@@ -441,28 +455,90 @@ private fun PlaceEditor(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Editor de Lugar / Tienda", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
+                    Text("Editor de Lugar / Tienda", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                     Text(
-                        "${placeKindLabel(draft.kind)} • ${placeScopeLabel(content)} • revisión ${content.item.identity.revision.value}",
-                        style = MaterialTheme.typography.caption,
+                        "${placeKindLabel(draft.kind)}",
+                        style = MaterialTheme.typography.bodySmall,
                     )
-                    content.item.identity.provenance?.let { provenance ->
-                        Text(
-                            "Copia de ${provenance.sourceObjectId.toString().take(8)}… • independiente desde la copia",
-                            style = MaterialTheme.typography.caption,
-                        )
-                    }
                 }
                 if (content.item.identity.scope is ContentScope.Personal && activeCampaign != null) {
-                    Button(onClick = onCopyToCampaign) { Text("Copiar a campaña") }
+                    Button(onClick = onCopyToCampaign) { Text("Traer a esta campaña") }
                 }
+                TableCardPdfButton(card = placeTableCard(content), onMessage = onMessage)
+                TableCardsPdfButton(
+                    name = content.item.displayName,
+                    what = "PNJ ni criaturas",
+                    cards = { tableCards(content.item.identity.id) },
+                    onMessage = onMessage,
+                )
+                DeleteContentButton(name = draft.displayName, what = "este lugar", onDelete = onDelete)
                 Button(onClick = onSave, enabled = draft.displayName.isNotBlank()) { Text("Guardar") }
             }
         }
 
+        // Owner points 6 and 10: the card you read at the table comes first; «Ver todo» opens the
+        // complete preparation underneath, with every field as before.
+        item {
+            SheetBlock(
+                title = "En la mesa",
+                editing = openBlock == "mesa",
+                onEdit = { onOpenBlock("mesa") },
+                onDone = { onOpenBlock(null) },
+            ) {
+                if (openBlock == "mesa") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        PlaceField("Nombre", draft.displayName, true) { onDraftChange(draft.copy(displayName = it)) }
+                        PlaceField("Resumen", draft.summary, false, 3) { onDraftChange(draft.copy(summary = it)) }
+                        PlaceField("Presentación / atmósfera", draft.presentation, false, 4) { onDraftChange(draft.copy(presentation = it)) }
+                        PlaceField("Ganchos (uno por línea)", draft.hooks, false, 4) { onDraftChange(draft.copy(hooks = it)) }
+                    }
+                } else {
+                    Text(draft.displayName.ifBlank { "Sin nombre" }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    SheetLine("Qué es", draft.summary)
+                    SheetLine("Al llegar", draft.presentation)
+                    SheetLine("Ganchos", draft.hooks)
+                    if (listOf(draft.summary, draft.presentation, draft.hooks).all { it.isBlank() }) {
+                        SheetEmpty("Todavía sin nada que leer en la mesa. Toca «Editar».")
+                    }
+                }
+            }
+        }
+        item {
+            SheetBlock(
+                title = "Para los jugadores y para ti",
+                editing = openBlock == "textos",
+                onEdit = { onOpenBlock("textos") },
+                onDone = { onOpenBlock(null) },
+            ) {
+                if (openBlock == "textos") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        PlaceField("Texto seguro para jugadores", draft.playerSafeText, false, 4) { onDraftChange(draft.copy(playerSafeText = it)) }
+                        PlaceField("Notas DM", draft.dmNotes, false, 4) { onDraftChange(draft.copy(dmNotes = it)) }
+                    }
+                } else {
+                    SheetLine("Se puede leer en voz alta", draft.playerSafeText)
+                    SheetLine("Solo para ti", draft.dmNotes)
+                    if (draft.playerSafeText.isBlank() && draft.dmNotes.isBlank()) SheetEmpty("Sin textos preparados.")
+                }
+            }
+        }
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = { onShowAll(!showAll) }) {
+                    Text(if (showAll) "▾ Ocultar la preparación completa" else "▸ Ver todo (preparación completa)")
+                }
+                Text(
+                    if (showAll) "Todos los campos, como antes." else "Lo de arriba es lo que se ve en la mesa.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+
+        if (!showAll) return@LazyColumn
+
         item { PlaceField("Nombre", draft.displayName, true) { onDraftChange(draft.copy(displayName = it)) } }
         item {
-            Text("Tipo", style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
+            Text("Tipo", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 PlaceKind.entries.forEach { kind ->
                     if (draft.kind == kind) {
@@ -484,6 +560,7 @@ private fun PlaceEditor(
         item { PlaceField("Notas DM", draft.dmNotes, false, 4) { onDraftChange(draft.copy(dmNotes = it)) } }
         item { PlaceField("Referencias de papel (una por línea)", draft.paperReferences, false, 3) { onDraftChange(draft.copy(paperReferences = it)) } }
         item { PlaceField("Etiquetas (coma o línea)", draft.tags, false, 3) { onDraftChange(draft.copy(tags = it)) } }
+        item { DesktopContentLinksSection(content.item) }
     }
 }
 
@@ -566,8 +643,8 @@ private fun placeScopeSortKey(content: PlaceContent): Int = when (content.item.i
 private fun placeScopeLabel(content: PlaceContent): String = placeScopeLabel(content.item.identity.scope)
 
 private fun placeScopeLabel(scope: ContentScope): String = when (scope) {
-    is ContentScope.Personal -> "Personal"
-    is ContentScope.Campaign -> "Campaña"
+    is ContentScope.Personal -> "De tu biblioteca anterior"
+    is ContentScope.Campaign -> ""
     is ContentScope.Official -> "Oficial / SRD"
     ContentScope.System -> "Sistema"
 }

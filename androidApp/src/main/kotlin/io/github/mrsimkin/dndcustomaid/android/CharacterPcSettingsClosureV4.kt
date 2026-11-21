@@ -25,22 +25,20 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.android.pdf.AndroidPcSheetExportOptions
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterClosureState
-import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetCustomStatisticsPresentation
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportStateSelection
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPortraitFitMode
-import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11Variant
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleKind
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterModuleOverrideMode
@@ -487,7 +485,7 @@ private fun PcSettingsPdfExportClosureV4(
         stateSelection = state,
         portraitFitMode = portraitMode,
         includeSpellDescriptions = includeSpellDescriptions,
-        v11ProofVariant = variant,
+        variant = variant,
         lightInkNumbers = lightInkNumbers,
     )
 
@@ -660,23 +658,12 @@ private fun PdfChoiceRowClosureV4(
     }
 }
 
-private fun pcSheetFamilyLabelClosureV4(family: PcSheetVisualFamily): String = when (family) {
-    PcSheetVisualFamily.CLASSIC_DND_STYLE -> "Fantasy Sheet"
-    PcSheetVisualFamily.CUSTOM_V1 -> "Custom v1"
-    PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE -> "Custom v2 · Atributo"
-    PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY -> "Custom v2 · Habilidad"
-}
 
 private fun pcSheetStateLabelClosureV4(state: PcSheetExportStateSelection): String = when (state) {
     PcSheetExportStateSelection.PERMANENT -> "Permanente"
     PcSheetExportStateSelection.CURRENT_SNAPSHOT -> "Snapshot actual"
 }
 
-private fun pcSheetCustomModeLabelClosureV4(mode: PcSheetCustomStatisticsPresentation): String = when (mode) {
-    PcSheetCustomStatisticsPresentation.EXTENDED_PAGE -> "Extended"
-    PcSheetCustomStatisticsPresentation.APP_MODIFIED_SHEET -> "Hoja modificada"
-    PcSheetCustomStatisticsPresentation.MODIFIED_SHEET_AND_COMPLETE_EXTENDED_PAGE -> "Modificada + Extended"
-}
 
 private fun pcSheetPortraitModeLabelClosureV4(mode: PcSheetPortraitFitMode): String = when (mode) {
     PcSheetPortraitFitMode.CROP_TO_FILL -> "Recortar para llenar"

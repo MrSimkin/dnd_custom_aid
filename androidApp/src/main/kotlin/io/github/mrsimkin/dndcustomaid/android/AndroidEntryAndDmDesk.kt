@@ -66,19 +66,25 @@ internal class AppEntryStore(context: Context) {
         get() = prefs.getString(KEY_ACCOUNT, null)?.let { runCatching { Uuid.parse(it) }.getOrNull() }
         set(value) = prefs.edit().putString(KEY_ACCOUNT, value?.toString()).apply()
 
+    /** The email typed at sign-in, shown as «Entraste como…» (never sent anywhere else). */
+    var accountEmail: String?
+        get() = prefs.getString(KEY_EMAIL, null)
+        set(value) = prefs.edit().putString(KEY_EMAIL, value).apply()
+
     /** Last DM desk opened, so the App reopens it; null means the player area or none. */
     var lastDmCampaignId: Uuid?
         get() = prefs.getString(KEY_LAST_DM, null)?.let { runCatching { Uuid.parse(it) }.getOrNull() }
         set(value) = prefs.edit().putString(KEY_LAST_DM, value?.toString()).apply()
 
     fun clearAccount() {
-        prefs.edit().remove(KEY_ACCOUNT).remove(KEY_LAST_DM).putBoolean(KEY_LOCAL_ONLY, false).apply()
+        prefs.edit().remove(KEY_ACCOUNT).remove(KEY_EMAIL).remove(KEY_LAST_DM).putBoolean(KEY_LOCAL_ONLY, false).apply()
     }
 
     private companion object {
         const val KEY_LOCAL_ONLY = "local_only_chosen"
         const val KEY_ACCOUNT = "hosted_account_id"
         const val KEY_LAST_DM = "last_dm_campaign_id"
+        const val KEY_EMAIL = "hosted_account_email"
     }
 }
 
@@ -92,7 +98,7 @@ internal fun campaignRoleFor(database: AppDatabase, campaignId: Uuid, accountId:
 @Composable
 internal fun AppEntryScreen(
     authController: AndroidHostedAuthController,
-    onSignedIn: suspend () -> Unit,
+    onSignedIn: suspend (email: String) -> Unit,
     onContinueWithoutAccount: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
@@ -190,7 +196,7 @@ internal fun AppEntryScreen(
                     onClick = {
                         run {
                             authController.verifyEmailOtp(email, code)
-                            onSignedIn()
+                            onSignedIn(email.trim())
                         }
                     },
                     enabled = !busy && code.length >= 4,
@@ -262,185 +268,7 @@ internal fun ReusableContentFamily.spanishPlural(): String = when (this) {
     ReusableContentFamily.SCENE -> "Escenas"
     ReusableContentFamily.HANDOUT -> "Handouts e imágenes"
     ReusableContentFamily.PACKAGE -> "Paquetes"
-}
-
-private enum class DmDeskTarget { DM_SCREEN, COMBAT }
-
-private data class DmDeskTable(val name: String, val purpose: String, val target: DmDeskTarget? = null)
-
-private val dmDeskTables = listOf(
-    DmDeskTable("Pantalla del DM", "Hojas de PJ, Vista Grupo, Referencia rápida y Consultar reglas.", DmDeskTarget.DM_SCREEN),
-    DmDeskTable("Mesa de Combate", "Preparar encuentro, iniciativa, PV de monstruos y paquetes.", DmDeskTarget.COMBAT),
-    DmDeskTable("Mesa de Escena", "Ficha de Zona, relojes y notas en vivo."),
-    DmDeskTable("Mesa de Dungeon", "Turno de Dungeon, actividades y mapa de zonas."),
-)
-
-/**
- * Escritorio DM for one campaign (package 2 shell). The four tables are built in packages 3, 5,
- * 6 and 7; this screen already shows the DM content that arrived through package 1.
- */
-@Composable
-internal fun DmDeskScreen(
-    campaign: Campaign,
-    database: AppDatabase,
-    mediaBlobs: MediaBlobStore,
-    hostedBootstrap: AndroidHostedCampaignBootstrapController,
-    accountId: Uuid?,
-    onOpenCampaigns: () -> Unit,
-    onOpenSettings: () -> Unit,
-    onOpenDmScreen: () -> Unit,
-    onOpenCombat: () -> Unit,
-) {
-    val scope = rememberCoroutineScope()
-    var refreshVersion by remember { mutableIntStateOf(0) }
-    var syncing by remember { mutableStateOf(false) }
-    var status by remember { mutableStateOf<String?>(null) }
-    val content = remember(refreshVersion, campaign.id) { ReusableContentRepository(database) }
-    val campaignItems = remember(refreshVersion, campaign.id) { content.listCampaign(campaign.id) }
-    val handouts = remember(refreshVersion, campaign.id) { HandoutContentRepository(database).listCampaign(campaign.id) }
-    val personalCount = remember(refreshVersion, accountId) {
-        accountId?.let { content.listPersonal(it).size } ?: 0
-    }
-
-    fun sync() {
-        if (syncing) return
-        syncing = true
-        scope.launch {
-            try {
-                status = when (val outcome = hostedBootstrap.refresh()) {
-                    is AndroidHostedCampaignBootstrapOutcome.Success -> when {
-                        outcome.dmContentError != null ->
-                            "El contenido del DM no se pudo sincronizar esta vez; queda guardado para reintentar."
-                        outcome.dmContent != null -> outcome.dmContent.spanishSummary()
-                        else -> "Sincronizado. Esta cuenta no es DM activo de ninguna campaña."
-                    }
-                    AndroidHostedCampaignBootstrapOutcome.NoRememberedSession ->
-                        "No hay una sesión iniciada. Entra con tu cuenta desde Campañas."
-                    is AndroidHostedCampaignBootstrapOutcome.Failure -> outcome.message
-                }
-                refreshVersion += 1
-            } finally {
-                syncing = false
-            }
-        }
-    }
-
-    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.TopCenter,
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .widthIn(max = 960.dp)
-                .fillMaxSize()
-                .padding(horizontal = 14.dp),
-            contentPadding = PaddingValues(top = 12.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(appSpacingV4(10.dp)),
-        ) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp)),
-                ) {
-                    StableBackIconButton(onClick = onOpenCampaigns, contentDescription = "Volver a tus campañas")
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Escritorio DM", style = MaterialTheme.typography.headlineMedium)
-                        Text(campaign.name, style = MaterialTheme.typography.titleMedium)
-                    }
-                    CampaignRoleBadge(CampaignRole.DM)
-                    StableSettingsIconButton(onClick = onOpenSettings)
-                }
-            }
-
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-                    ) {
-                        Text("Mesas", style = MaterialTheme.typography.titleMedium)
-                        dmDeskTables.forEach { table ->
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Column(
-                                    modifier = Modifier.weight(1f),
-                                    verticalArrangement = Arrangement.spacedBy(appSpacingV4(1.dp)),
-                                ) {
-                                    Text(table.name, style = MaterialTheme.typography.titleSmall)
-                                    Text(
-                                        text = if (table.target != null) table.purpose else "${table.purpose} En preparación.",
-                                        style = MaterialTheme.typography.bodySmall,
-                                    )
-                                }
-                                table.target?.let { target ->
-                                    Button(onClick = if (target == DmDeskTarget.DM_SCREEN) onOpenDmScreen else onOpenCombat) { Text("Abrir") }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-                    ) {
-                        Text("Handouts e imágenes", style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            text = "Toca una imagen para mostrarla a pantalla completa.",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        HandoutStrip(handouts, mediaBlobs)
-                    }
-                }
-            }
-
-            item {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                        verticalArrangement = Arrangement.spacedBy(appSpacingV4(6.dp)),
-                    ) {
-                        Text("Tu contenido", style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            text = "Lo que preparaste en la App de PC llega aquí al sincronizar.",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        Button(onClick = ::sync, enabled = !syncing) {
-                            Text(if (syncing) "Sincronizando…" else "Sincronizar")
-                        }
-                        status?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-                        HorizontalDivider()
-                        if (campaignItems.isEmpty()) {
-                            Text(
-                                text = "Esta campaña aún no tiene contenido del DM en este aparato.",
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                        } else {
-                            campaignItems.groupBy { it.family }
-                                .toSortedMap(compareBy { it.ordinal })
-                                .forEach { (family, items) ->
-                                    Text(
-                                        text = "${family.spanishPlural()} (${items.size})",
-                                        style = MaterialTheme.typography.titleSmall,
-                                    )
-                                    Text(
-                                        text = items.joinToString(" · ") { it.displayName },
-                                        style = MaterialTheme.typography.bodyMedium,
-                                    )
-                                }
-                        }
-                        Text(
-                            text = "Tu biblioteca personal: $personalCount elemento(s).",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                }
-            }
-        }
-    }
-    }
+    ReusableContentFamily.NOTE -> "Notas"
+    ReusableContentFamily.DUNGEON -> "Dungeons"
+    ReusableContentFamily.RULES_ENTRY -> "Reglas homebrew"
 }

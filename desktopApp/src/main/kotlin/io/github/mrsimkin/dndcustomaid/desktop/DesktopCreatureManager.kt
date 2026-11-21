@@ -11,13 +11,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,7 +51,7 @@ import io.github.mrsimkin.dndcustomaid.shared.spine.RevisionDecision
 import kotlin.uuid.Uuid
 
 class DesktopCreatureManagerController(
-    database: AppDatabase,
+    private val database: AppDatabase,
     private val nowEpochSeconds: () -> Long = { System.currentTimeMillis() / 1000L },
 ) {
     private val campaignRepository = CampaignRepository(database)
@@ -86,6 +92,18 @@ class DesktopCreatureManagerController(
 
     fun creature(id: Uuid): CreatureContent? = creatures.creature(id)
 
+    /** QA 0.7.0-preqa.2 (C1, D6): the SRD monsters, ready to become the campaign's creatures. */
+    val srdMonsters: List<io.github.mrsimkin.dndcustomaid.shared.dm.SrdMonster> by lazy {
+        runCatching {
+            val text = checkNotNull(DesktopCreatureManagerController::class.java.getResourceAsStream("/srd/${io.github.mrsimkin.dndcustomaid.shared.dm.SRD_MONSTERS_FILE}"))
+                .bufferedReader(Charsets.UTF_8).use { it.readText() }
+            io.github.mrsimkin.dndcustomaid.shared.dm.parseSrdMonsters(text)
+        }.getOrDefault(emptyList())
+    }
+
+    fun adoptSrd(campaignId: Uuid, monster: io.github.mrsimkin.dndcustomaid.shared.dm.SrdMonster): CreatureContent =
+        io.github.mrsimkin.dndcustomaid.shared.dm.adoptSrdMonster(database, campaignId, monster, nowEpochSeconds())
+
     fun createPersonal(ownerAccountId: Uuid, displayName: String): CreatureContent =
         creatures.createPersonal(
             ownerAccountId = ownerAccountId,
@@ -100,6 +118,17 @@ class DesktopCreatureManagerController(
             rawDisplayName = displayName,
             payload = CreaturePayload(),
             nowEpochSeconds = nowEpochSeconds(),
+        )
+
+    /**
+     * Owner, 2026-11-18: what is prepared can be deleted. It leaves a tombstone, so it also goes
+     * from the tablet when syncing, and waits in «Papelera» in case it was a mistake.
+     */
+    fun delete(current: CreatureContent): RevisionDecision =
+        creatures.tombstone(
+            id = current.item.identity.id,
+            expectedRevision = current.item.identity.revision,
+            deletedAtEpochSeconds = nowEpochSeconds(),
         )
 
     fun update(
@@ -128,12 +157,15 @@ fun CreatureManagerScreen(
     controller: DesktopCreatureManagerController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
+    /** Opens on this object, when the search sent the DM here. */
+    initialSelectedId: Uuid? = null,
 ) {
     var refreshVersion by remember { mutableStateOf(0) }
     var query by remember { mutableStateOf("") }
     var newName by remember { mutableStateOf("") }
-    var selectedId by remember { mutableStateOf<Uuid?>(null) }
+    var selectedId by remember(initialSelectedId) { mutableStateOf(initialSelectedId) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
+    var choosingSrd by remember { mutableStateOf(false) }
 
     val ownerAccountId = remember(refreshVersion, activeCampaign?.id) {
         controller.personalOwnerAccountId()
@@ -174,14 +206,6 @@ fun CreatureManagerScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de criaturas / monstruos", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
-            Text(
-                "Biblioteca local Personal y de la campaña activa. Los cambios de campaña son independientes del original Personal.",
-                style = MaterialTheme.typography.body1,
-            )
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -202,19 +226,6 @@ fun CreatureManagerScreen(
                 modifier = Modifier.weight(1f),
             )
             Button(
-                enabled = newName.isNotBlank() && ownerAccountId != null,
-                onClick = {
-                    runCatching {
-                        controller.createPersonal(requireNotNull(ownerAccountId), newName)
-                    }.onSuccess { created ->
-                        newName = ""
-                        statusMessage = "Criatura Personal creada."
-                        onQaEvent("Creature Manager: criatura Personal creada ${created.item.identity.id}")
-                        refresh(created.item.identity.id)
-                    }.onFailure { error -> statusMessage = error.message ?: "No se pudo crear la criatura Personal." }
-                },
-            ) { Text("Crear Personal") }
-            Button(
                 enabled = newName.isNotBlank() && activeCampaign != null,
                 onClick = {
                     runCatching {
@@ -226,26 +237,47 @@ fun CreatureManagerScreen(
                         refresh(created.item.identity.id)
                     }.onFailure { error -> statusMessage = error.message ?: "No se pudo crear la criatura de campaña." }
                 },
-            ) { Text("Crear en campaña") }
+            ) { Text("＋ Crear") }
+            OutlinedButton(enabled = activeCampaign != null, onClick = { choosingSrd = true }) { Text("📖 Añadir del SRD…") }
         }
-
-        if (ownerAccountId == null) {
-            Text(
-                "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
-                    "Inicia/sincroniza una campaña alojada con tu cuenta DM para establecer esa identidad. " +
-                    "El contenido de campaña local sigue disponible.",
-                style = MaterialTheme.typography.caption,
+        if (choosingSrd && activeCampaign != null) {
+            var srdQuery by remember { mutableStateOf("") }
+            AlertDialog(
+                onDismissRequest = { choosingSrd = false },
+                title = { Text("Monstruos del SRD") },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Elige uno: queda como criatura de «${activeCampaign.name}» y puedes ajustarlo.", style = MaterialTheme.typography.bodySmall)
+                        OutlinedTextField(value = srdQuery, onValueChange = { srdQuery = it }, label = { Text("Buscar por nombre o VD") }, singleLine = true)
+                        Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState())) {
+                            io.github.mrsimkin.dndcustomaid.shared.dm.searchSrdMonsters(controller.srdMonsters, srdQuery).forEach { monster ->
+                                TextButton(onClick = {
+                                    val created = controller.adoptSrd(activeCampaign.id, monster)
+                                    choosingSrd = false
+                                    statusMessage = "«${created.item.displayName}» quedó en ${activeCampaign.name}."
+                                    onQaEvent("Creature Manager: monstruo del SRD ${monster.name} (${monster.edition})")
+                                    refresh(created.item.identity.id)
+                                }) {
+                                    Text(listOfNotNull(monster.name, "SRD ${monster.edition}", monster.payload.challengeRating.takeIf { it.isNotBlank() }?.let { "VD $it" }, monster.payload.armorClass?.let { "CA $it" }, monster.payload.hitPoints?.let { "PV $it" }).joinToString(" · "))
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = { TextButton(onClick = { choosingSrd = false }) { Text("Cerrar") } },
             )
         }
-        statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
 
-        Divider()
+        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+
+        HorizontalDivider()
 
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             CreatureList(
+                    searching = query.isNotBlank(),
                 creatures = visibleCreatures,
                 selectedId = selectedId,
                 onSelect = {
@@ -254,17 +286,24 @@ fun CreatureManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            VerticalDivider()
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona una criatura para abrirla.", style = MaterialTheme.typography.h6)
-                    Text("Personal: ${personalCreatures.size} • Campaña activa: ${campaignCreatures.size}")
+                    Text("Selecciona una criatura para abrirla.", style = MaterialTheme.typography.titleLarge)
+                    Text("${campaignCreatures.size} en esta campaña.")
                 }
             } else {
                 CreatureEditor(
+                    onMessage = { statusMessage = it },
+                    onDelete = {
+                        controller.delete(selected)
+                        statusMessage = "«" + selected.item.displayName + "» quedó en la papelera."
+                        onQaEvent("Creature Manager: borrado " + selected.item.identity.id)
+                        refresh(null)
+                    },
                     content = selected,
                     draft = requireNotNull(draft),
                     activeCampaign = activeCampaign,
@@ -280,7 +319,7 @@ fun CreatureManagerScreen(
                                     payload = payload,
                                 )) {
                                     is RevisionDecision.Accepted -> {
-                                        statusMessage = "Cambios guardados (revisión ${decision.nextRevision.value})."
+                                        statusMessage = "Cambios guardados."
                                         onQaEvent("Creature Manager: criatura actualizada ${selected.item.identity.id}")
                                         refresh(selected.item.identity.id)
                                     }
@@ -320,6 +359,7 @@ fun CreatureManagerScreen(
 @Composable
 private fun CreatureList(
     creatures: List<CreatureContent>,
+    searching: Boolean,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
@@ -329,26 +369,26 @@ private fun CreatureList(
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         item {
-            Text("Criaturas (${creatures.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Criaturas (${creatures.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (creatures.isEmpty()) {
-            item { Text("No hay criaturas que coincidan con el filtro.", style = MaterialTheme.typography.caption) }
+            item { EmptyList(searching = searching, nothingYet = "Aún no hay criaturas tuyas.", howToCreate = "Escribe un nombre en «Nueva criatura» y toca «＋ Crear»; del SRD también puedes traerlas desde el combate.") }
         }
         items(creatures, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onSelect(content.item.identity.id) },
-                elevation = if (selected) 6.dp else 1.dp,
+                elevation = androidx.compose.material3.CardDefaults.cardElevation(if (selected) 6.dp else 1.dp),
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text(scopeLabel(content), style = MaterialTheme.typography.caption)
+                    scopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                     val detail = listOf(
                         content.payload.size,
                         content.payload.creatureType,
                         content.payload.challengeRating.takeIf { it.isNotBlank() }?.let { "CR $it" }.orEmpty(),
                     ).filter { it.isNotBlank() }.joinToString(" • ")
-                    if (detail.isNotBlank()) Text(detail, style = MaterialTheme.typography.caption)
+                    if (detail.isNotBlank()) Text(detail, style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
@@ -363,6 +403,8 @@ private fun CreatureEditor(
     onDraftChange: (CreatureDraft) -> Unit,
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
+    onDelete: () -> Unit,
+    onMessage: (String) -> Unit,
     modifier: Modifier,
 ) {
     LazyColumn(
@@ -376,16 +418,11 @@ private fun CreatureEditor(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Editor de criatura", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
-                    Text(scopeLabel(content), style = MaterialTheme.typography.caption)
-                    content.item.identity.provenance?.let { provenance ->
-                        Text(
-                            "Proveniencia: ${provenance.sourceScope.displayLabel()} • ${provenance.sourceObjectId.toString().take(8)}…",
-                            style = MaterialTheme.typography.caption,
-                        )
-                    }
-                    Text("Revisión ${content.item.identity.revision.value}", style = MaterialTheme.typography.caption)
+                    Text("Editor de criatura", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    scopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                 }
+                TableCardPdfButton(card = creatureTableCard(content), onMessage = onMessage)
+                DeleteContentButton(name = draft.displayName, what = "esta criatura", onDelete = onDelete)
                 Button(onClick = onSave) { Text("Guardar") }
                 if (content.item.identity.scope is ContentScope.Personal) {
                     Button(onClick = onCopyToCampaign, enabled = activeCampaign != null) {
@@ -414,7 +451,7 @@ private fun CreatureEditor(
         }
         item { EditorTextField("Velocidad", draft.speed) { onDraftChange(draft.copy(speed = it)) } }
         item {
-            Text("Características", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Características", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 EditorTextField("FUE", draft.strength, Modifier.weight(1f), true) { onDraftChange(draft.copy(strength = it)) }
                 EditorTextField("DES", draft.dexterity, Modifier.weight(1f), true) { onDraftChange(draft.copy(dexterity = it)) }
@@ -620,15 +657,15 @@ private fun scopeSortKey(content: CreatureContent): Int = when (content.item.ide
 }
 
 private fun scopeLabel(content: CreatureContent): String = when (val scope = content.item.identity.scope) {
-    is ContentScope.Personal -> "Personal"
-    is ContentScope.Campaign -> "Campaña • ${scope.campaignId.toString().take(8)}…"
+    is ContentScope.Personal -> "De tu biblioteca anterior"
+    is ContentScope.Campaign -> ""
     is ContentScope.Official -> "Oficial • ${scope.sourceKey}"
     ContentScope.System -> "Sistema"
 }
 
 private fun ContentScope.displayLabel(): String = when (this) {
-    is ContentScope.Personal -> "Personal"
-    is ContentScope.Campaign -> "Campaña"
+    is ContentScope.Personal -> "De tu biblioteca anterior"
+    is ContentScope.Campaign -> ""
     is ContentScope.Official -> "Oficial ($sourceKey)"
     ContentScope.System -> "Sistema"
 }

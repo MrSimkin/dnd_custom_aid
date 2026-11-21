@@ -1,0 +1,3 @@
+-- QA 0.7.0-preqa.2 (R4): a scene has its own sections (read-aloud, what is really happening, checks,
+-- discoveries, loot…) instead of everything in «Para qué sirve».
+ALTER TABLE scene_payload ADD COLUMN sections_json TEXT NOT NULL DEFAULT '{}';

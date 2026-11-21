@@ -2,6 +2,7 @@ package io.github.mrsimkin.dndcustomaid.desktop
 
 import io.github.mrsimkin.dndcustomaid.shared.content.MediaBlobStore
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRulesPassage
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiClient
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiErrorCode
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiException
@@ -57,17 +58,62 @@ internal class DesktopHostedCampaignAdministrationController(
 
     suspend fun bootstrap(): HostedCampaignBootstrapResult = bootstrapService.refresh()
 
+    /** Package 8: a rules answer from the SRD passages found on this computer. */
+    suspend fun answerRules(question: String, passages: List<HostedRulesPassage>): String =
+        apiClient.answerRules(question, passages)
+
     /**
      * Base para DM, package 1: sends this App de PC's DM content (personal library and every
      * campaign where the account is an active DM) and receives changes made on the tablet.
      */
-    suspend fun syncDmContent(nowEpochSeconds: Long = System.currentTimeMillis() / 1000): DmContentSyncResult {
+    suspend fun syncDmContent(
+        nowEpochSeconds: Long = System.currentTimeMillis() / 1000,
+        onProgress: (io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncProgress) -> Unit = {},
+    ): DmContentSyncResult {
         val account = bootstrapService.refresh().account
-        return dmContentSync.synchronize(dmContentSyncScopes(database, account.id), nowEpochSeconds)
+        return dmContentSync.synchronize(dmContentSyncScopes(database, account.id), nowEpochSeconds, onProgress)
+    }
+
+    /**
+     * Owner's D (2026-11-20): one «Sincronizar» runs them all. Until now Windows never delivered
+     * the PC changes the DM had queued — only the tablet did — so a correction stayed here.
+     */
+    suspend fun syncEverything(
+        nowEpochSeconds: Long = System.currentTimeMillis() / 1000,
+        onProgress: (io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncProgress) -> Unit = {},
+    ): DmContentSyncResult {
+        val account = bootstrapService.refresh().account
+        io.github.mrsimkin.dndcustomaid.shared.hosted.HostedOutboxDeliveryService(
+            outbox = io.github.mrsimkin.dndcustomaid.shared.hosted.HostedOutboxRepository(database),
+            api = apiClient,
+        ).deliverReady(attemptedAtEpochSeconds = nowEpochSeconds)
+        return dmContentSync.synchronize(dmContentSyncScopes(database, account.id), nowEpochSeconds, onProgress)
+    }
+
+    /** What is still waiting on this computer, without asking the server. */
+    fun syncStatus(lastSyncEpochSeconds: Long?, missingImages: Int = 0) =
+        io.github.mrsimkin.dndcustomaid.shared.hosted.SyncStatusReader(database)
+            .status(lastSyncEpochSeconds, missingImages)
+
+    /** «Nueva campaña»: created on the server with the open account as its DM. */
+    suspend fun createHostedCampaign(name: String) {
+        apiClient.createCampaign(mutationId = Uuid.random(), campaignId = Uuid.random(), name = name)
+    }
+
+    /** Refactor F5 (AGENTS §6.4): with test data and no account, a campaign that exists only here. */
+    fun createLocalCampaignForTesting(name: String) {
+        check(io.github.mrsimkin.dndcustomaid.shared.db.DesktopDatabaseFactory.usesTestDataDirectory()) {
+            "Only a test data folder creates campaigns without the server."
+        }
+        val repository = io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository(database)
+        repository.setActiveCampaign(repository.createCampaign(name.trim()).id)
     }
 
     fun membership(campaignId: Uuid, accountId: Uuid): CampaignMembership? =
         spine.membership(campaignId, accountId)
+
+    /** Everyone known on this computer for the campaign; empty for a campaign that exists only here. */
+    fun memberships(campaignId: Uuid): List<CampaignMembership> = spine.memberships(campaignId)
 
     suspend fun roster(campaignId: Uuid): HostedCampaignMemberRoster {
         val roster = administrationClient.members(campaignId)
@@ -115,6 +161,19 @@ internal class DesktopHostedCampaignAdministrationController(
         spine.setPcAuthority(result.authority)
         return result
     }
+
+    /** Owner, 2026-11-18: the live invitation of the campaign, or null. */
+    suspend fun invitation(campaignId: Uuid) = administrationClient.invitation(campaignId)
+
+    /** A new code, which replaces whatever was live. */
+    suspend fun createInvitation(campaignId: Uuid, daysValid: Int) =
+        administrationClient.createInvitation(campaignId, daysValid)
+
+    /** Stops the live code. */
+    suspend fun revokeInvitation(campaignId: Uuid) = administrationClient.revokeInvitation(campaignId)
+
+    /** Where a link made from a code points. */
+    val invitationLinkBaseUrl: String = DesktopHostedDevelopmentEnvironment.HOSTED_API_BASE_URL
 
     suspend fun moderate(
         campaignId: Uuid,

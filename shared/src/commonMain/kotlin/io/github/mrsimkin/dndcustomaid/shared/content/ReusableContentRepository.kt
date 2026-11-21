@@ -244,6 +244,23 @@ class ReusableContentRepository(
         return requireNotNull(content(identity.id, includeDeleted = true))
     }
 
+    /**
+     * What was deleted in this scope, newest first. The DM's trash (owner, 2026-11-18) reads this:
+     * a deleted object keeps its row and its content, only its sync state says it is gone.
+     */
+    fun listDeleted(
+        scope: ContentScope,
+        family: ReusableContentFamily? = null,
+    ): List<ReusableContentItem> {
+        val encoded = encodeScope(scope, authoredOnly = true)
+        return database.reusableContentQueries.selectDeletedReusableContentByScope(
+            scope_kind = encoded.kind,
+            scope_ref = requireNotNull(encoded.ref),
+            family = family?.name,
+            mapper = ::mapItem,
+        ).executeAsList()
+    }
+
     private fun listByScope(
         scope: ContentScope,
         family: ReusableContentFamily?,

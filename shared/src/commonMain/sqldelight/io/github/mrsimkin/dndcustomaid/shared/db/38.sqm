@@ -1,0 +1,3 @@
+-- QA 0.7.0-preqa.2 (J4): an attack can point to the weapon in the equipment or to a spell of the PC.
+ALTER TABLE character_combat_entry ADD COLUMN linked_item_id TEXT;
+ALTER TABLE character_combat_entry ADD COLUMN linked_spell_id TEXT;

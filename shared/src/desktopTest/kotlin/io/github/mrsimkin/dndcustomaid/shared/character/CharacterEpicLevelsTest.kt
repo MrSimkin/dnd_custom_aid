@@ -48,6 +48,15 @@ class CharacterEpicLevelsTest {
             characters.saveCharacter(requireNotNull(characters.character(pc.id)).copy(classes = listOf(fighter)))
             // Rebuild the version-27 shape: character_class without the column.
             driver.execute(null, "ALTER TABLE character_class DROP COLUMN epic_levels_enabled", 0)
+            // Migrations 36 and 37 (QA 0.7.0-preqa.2) add these columns.
+            driver.execute(null, "ALTER TABLE handout_payload DROP COLUMN shared_with_players", 0)
+            driver.execute(null, "ALTER TABLE handout_payload DROP COLUMN folder", 0)
+            driver.execute(null, "ALTER TABLE handout_payload DROP COLUMN tags_json", 0)
+            driver.execute(null, "ALTER TABLE scene_payload DROP COLUMN sections_json", 0)
+            driver.execute(null, "ALTER TABLE character_combat_entry DROP COLUMN linked_item_id", 0)
+            driver.execute(null, "ALTER TABLE character_combat_entry DROP COLUMN linked_spell_id", 0)
+            // Owner B (2026-11-20): migration 39 creates this table.
+            driver.execute(null, "DROP TABLE dm_content_conflict", 0)
 
             io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase.Schema.migrate(
                 driver, oldVersion = 27, newVersion = io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase.Schema.version)

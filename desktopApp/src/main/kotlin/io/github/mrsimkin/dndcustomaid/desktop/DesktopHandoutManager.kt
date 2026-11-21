@@ -13,15 +13,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.AlertDialog
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.RadioButton
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -117,6 +117,7 @@ internal fun HandoutVisibility.spanishLabel(): String = when (this) {
     HandoutVisibility.PLAYER_SAFE -> "Se puede mostrar a los jugadores"
 }
 
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 internal fun DesktopHandoutManagerScreen(
     controller: DesktopHandoutManagerController,
@@ -128,6 +129,9 @@ internal fun DesktopHandoutManagerScreen(
     var selectedId by remember { mutableStateOf<Uuid?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
     var confirmDelete by remember { mutableStateOf(false) }
+    // QA 0.7.0-preqa.2 (H1): search, filter by type and group by folder, with a thumbnail of each image.
+    var query by remember { mutableStateOf("") }
+    var filter by remember { mutableStateOf("TODOS") }
 
     val ownerId = remember(refresh) { controller.personalOwnerAccountId() }
     val list = remember(refresh, personal, activeCampaign?.id, ownerId) {
@@ -144,10 +148,12 @@ internal fun DesktopHandoutManagerScreen(
             modifier = Modifier.width(360.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text("Handouts e imágenes", style = MaterialTheme.typography.h5)
-            Text(
-                "Handouts, mapas y retratos de PNJ. Viajan a la tablet al sincronizar el contenido del DM.",
-                style = MaterialTheme.typography.caption,
+            WorkbenchHeading(
+                title = "Handouts y mapas",
+                subtitle = "Imágenes para mostrar a los jugadores, mapas con marcas y retratos de PNJ. Viajan a la tablet al sincronizar.",
+                help = "1) «Importar imagen…» elige un archivo; el explorador recuerda tus carpetas. 2) Ponle tipo (Handout, Mapa o Retrato), carpeta y etiquetas: " +
+                    "así la lista se ordena por carpeta y la búsqueda la encuentra. 3) Visibilidad: «Solo DM» o «Se puede mostrar a los jugadores», y «Enviar a los jugadores». " +
+                    "4) En un Mapa, un clic pone una marca y puedes arrastrarla para moverla.",
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(selected = !personal, enabled = activeCampaign != null, onClick = { personal = false })
@@ -158,7 +164,7 @@ internal fun DesktopHandoutManagerScreen(
                 Text("Mi biblioteca personal")
             }
             Button(onClick = {
-                val file = chooseImageFile() ?: return@Button
+                val file = chooseImageFile(activeCampaign?.id?.toString()) ?: return@Button
                 message = try {
                     val created = controller.import(
                         file = file,
@@ -175,22 +181,57 @@ internal fun DesktopHandoutManagerScreen(
                     "No se pudo importar la imagen: ${error.message ?: error::class.simpleName}"
                 }
             }) { Text("Importar imagen…") }
-            message?.let { Text(it, style = MaterialTheme.typography.body2) }
-            Divider()
+            message?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+            HorizontalDivider()
             if (list.isEmpty()) {
-                Text("Todavía no hay imágenes aquí.", style = MaterialTheme.typography.body2)
+                Text("Todavía no hay imágenes aquí.", style = MaterialTheme.typography.bodyMedium)
             }
-            list.forEach { handout ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().clickable { selectedId = handout.item.identity.id },
-                    elevation = if (handout.item.identity.id == selectedId) 6.dp else 1.dp,
-                ) {
-                    Column(modifier = Modifier.padding(10.dp)) {
-                        Text(handout.item.displayName, fontWeight = FontWeight.Bold)
-                        Text(
-                            "${handout.payload.kind.spanishLabel()} · ${handout.payload.visibility.spanishLabel()}",
-                            style = MaterialTheme.typography.caption,
-                        )
+            if (list.isNotEmpty()) {
+                OutlinedTextField(value = query, onValueChange = { query = it }, label = { Text("Buscar por nombre, carpeta, etiqueta o texto") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    listOf("TODOS" to "Todos", "MAP" to "Mapas", "HANDOUT" to "Handouts", "NPC_PORTRAIT" to "Retratos", "SENT" to "📤 Enviados", "DM" to "Solo DM").forEach { (key, label) ->
+                        if (filter == key) Button(onClick = { filter = key }) { Text(label) } else TextButton(onClick = { filter = key }) { Text(label) }
+                    }
+                }
+            }
+            val needle = query.trim().lowercase()
+            val shown = list.filter { handout ->
+                val p = handout.payload
+                val matchesFilter = when (filter) {
+                    "TODOS" -> true
+                    "SENT" -> p.sharedWithPlayers
+                    "DM" -> p.visibility == HandoutVisibility.DM_ONLY
+                    else -> p.kind.name == filter
+                }
+                matchesFilter && (needle.isEmpty() || listOf(handout.item.displayName, p.folder, p.caption, p.notes, p.tags.joinToString(" ")).any { it.lowercase().contains(needle) })
+            }
+            if (list.isNotEmpty() && shown.isEmpty()) Text("Nada coincide con la búsqueda.", style = MaterialTheme.typography.bodyMedium)
+            shown.groupBy { it.payload.folder.trim() }.toSortedMap(compareBy<String> { it.isEmpty() }.thenBy { it.lowercase() }).forEach { (folder, inFolder) ->
+                Text("📁 ${folder.ifEmpty { "Sin carpeta" }} · ${inFolder.size}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                inFolder.sortedBy { it.item.displayName.lowercase() }.forEach { handout ->
+                    val thumb = remember(handout.payload.sha256) { controller.preview(handout.payload.sha256) }
+                    Card(
+                        modifier = Modifier.fillMaxWidth().clickable { selectedId = handout.item.identity.id },
+                        elevation = androidx.compose.material3.CardDefaults.cardElevation(if (handout.item.identity.id == selectedId) 6.dp else 1.dp),
+                    ) {
+                        Row(modifier = Modifier.padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            if (thumb != null) {
+                                Image(bitmap = thumb, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.width(64.dp).heightIn(max = 64.dp))
+                            }
+                            Column {
+                                Text(handout.item.displayName, fontWeight = FontWeight.Bold)
+                                Text(
+                                    listOfNotNull(
+                                        handout.payload.kind.spanishLabel(),
+                                        handout.payload.visibility.spanishLabel(),
+                                        "📤 Enviado".takeIf { handout.payload.sharedWithPlayers },
+                                    ).joinToString(" · "),
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                                handout.payload.caption.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 2) }
+                                if (handout.payload.tags.isNotEmpty()) Text(handout.payload.tags.joinToString(" ") { "#$it" }, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
                     }
                 }
             }
@@ -240,8 +281,11 @@ private fun HandoutEditor(
     var name by remember(key) { mutableStateOf(handout.item.displayName) }
     var kind by remember(key) { mutableStateOf(handout.payload.kind) }
     var visibility by remember(key) { mutableStateOf(handout.payload.visibility) }
+    var shared by remember(key) { mutableStateOf(handout.payload.sharedWithPlayers) }
     var caption by remember(key) { mutableStateOf(handout.payload.caption) }
     var notes by remember(key) { mutableStateOf(handout.payload.notes) }
+    var folder by remember(key) { mutableStateOf(handout.payload.folder) }
+    var tags by remember(key) { mutableStateOf(handout.payload.tags.joinToString(", ")) }
     var error by remember(key) { mutableStateOf<String?>(null) }
     val bitmap = remember(handout.payload.sha256) { controller.preview(handout.payload.sha256) }
 
@@ -257,7 +301,7 @@ private fun HandoutEditor(
                 modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp),
             )
         } else {
-            Text("La imagen no está en este computador todavía.", style = MaterialTheme.typography.body2)
+            Text("La imagen no está en este computador todavía.", style = MaterialTheme.typography.bodyMedium)
         }
         Text(
             listOfNotNull(
@@ -265,7 +309,7 @@ private fun HandoutEditor(
                 if (handout.payload.width != null && handout.payload.height != null) "${handout.payload.width}×${handout.payload.height}" else null,
                 "${handout.payload.sizeBytes / 1024} KB",
             ).joinToString(" · "),
-            style = MaterialTheme.typography.caption,
+            style = MaterialTheme.typography.bodySmall,
         )
         OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth())
         Text("Tipo", fontWeight = FontWeight.Bold)
@@ -282,9 +326,23 @@ private fun HandoutEditor(
                 Text(option.spanishLabel())
             }
         }
+        // Redesign A7 (owner observation G2): only a PLAYER_SAFE image can be sent; their App shows it after syncing.
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            androidx.compose.material3.Checkbox(
+                checked = shared && visibility == HandoutVisibility.PLAYER_SAFE,
+                enabled = visibility == HandoutVisibility.PLAYER_SAFE,
+                onCheckedChange = { shared = it },
+            )
+            Text(
+                if (visibility == HandoutVisibility.PLAYER_SAFE) "Enviar a los jugadores (lo ven en su App al sincronizar)"
+                else "Para enviarla a los jugadores, primero márcala «Se puede mostrar a los jugadores».",
+            )
+        }
         OutlinedTextField(value = caption, onValueChange = { caption = it }, label = { Text("Texto al pie (opcional)") }, modifier = Modifier.fillMaxWidth())
         OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas del DM") }, modifier = Modifier.fillMaxWidth())
-        error?.let { Text(it, color = MaterialTheme.colors.error) }
+        OutlinedTextField(value = folder, onValueChange = { folder = it }, label = { Text("Carpeta (por ejemplo «Ciudad» o «La Torre»)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(value = tags, onValueChange = { tags = it }, label = { Text("Etiquetas, separadas por coma") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+        error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = {
                 if (name.isBlank()) {
@@ -294,21 +352,27 @@ private fun HandoutEditor(
                 val decision = controller.update(
                     handout,
                     name,
-                    handout.payload.copy(kind = kind, visibility = visibility, caption = caption.trim(), notes = notes.trim()),
+                    handout.payload.copy(
+                        kind = kind,
+                        visibility = visibility,
+                        caption = caption.trim(),
+                        notes = notes.trim(),
+                        sharedWithPlayers = shared && visibility == HandoutVisibility.PLAYER_SAFE,
+                        folder = folder.trim(),
+                        tags = tags.split(',').map(String::trim).filter(String::isNotEmpty).distinct(),
+                    ),
                 )
                 if (decision is RevisionDecision.Accepted) onSaved() else error = "Otra ventana cambió esta imagen. Vuelve a abrirla."
             }) { Text("Guardar") }
             TextButton(onClick = onDelete) { Text("Borrar") }
         }
+        DesktopContentLinksSection(handout.item, handoutKind = kind)
     }
 }
 
-private fun chooseImageFile(): File? {
-    val chooser = JFileChooser().apply {
-        dialogTitle = "Importar imagen"
-        fileFilter = FileNameExtensionFilter("Imágenes (JPG, PNG, WebP)", "jpg", "jpeg", "png", "webp")
-        isAcceptAllFileFilterUsed = false
-    }
-    if (chooser.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) return null
-    return chooser.selectedFile
-}
+private fun chooseImageFile(campaignKey: String? = null): File? = chooseFileWithExplorer(
+    title = "Agregar imagen",
+    purpose = "handouts",
+    campaignKey = campaignKey,
+    extensions = listOf("jpg", "jpeg", "png", "webp"),
+)

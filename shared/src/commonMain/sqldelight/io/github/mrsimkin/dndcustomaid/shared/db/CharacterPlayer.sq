@@ -1,0 +1,14 @@
+-- Redesign A13 (owner decision D13): the player of each PC, assignable even before that person has an account.
+CREATE TABLE character_player (
+    character_id TEXT NOT NULL PRIMARY KEY REFERENCES character(id) ON DELETE CASCADE,
+    player_name TEXT NOT NULL CHECK (length(trim(player_name)) > 0)
+);
+
+selectPlayer:
+SELECT player_name FROM character_player WHERE character_id = ?;
+
+upsertPlayer:
+INSERT OR REPLACE INTO character_player(character_id, player_name) VALUES (?, ?);
+
+deletePlayer:
+DELETE FROM character_player WHERE character_id = ?;

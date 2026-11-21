@@ -1,5 +1,8 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import io.github.mrsimkin.dndcustomaid.dmui.LocalRulesSources
+import io.github.mrsimkin.dndcustomaid.dmui.RulesPickButton
+import io.github.mrsimkin.dndcustomaid.dmui.RulesSources
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -156,6 +159,32 @@ internal fun CharacterBackgroundTabV4(
                     verticalArrangement = Arrangement.spacedBy(appSpacingV4(7.dp)),
                 ) {
                     Text("Trasfondo", style = MaterialTheme.typography.titleSmall)
+                    if (structuralEditingEnabled) {
+                        // Redesign R5 (D8, D9): background, species and subspecies from the SRD, then the homebrew.
+                        RulesPickButton(
+                            kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.BACKGROUND),
+                            label = "📖 Elegir el trasfondo del SRD o tu homebrew",
+                            onPick = { option ->
+                                onBackgroundChange(background.copy(name = option.name))
+                                onCanonicalOriginsChange(canonicalOrigins.withBackgroundName(option.name))
+                            },
+                        )
+                        RulesPickButton(
+                            kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.SPECIES),
+                            label = "📖 Elegir la raza del SRD o tu homebrew",
+                            onPick = { option ->
+                                onBackgroundChange(background.copy(race = option.name))
+                                onCanonicalOriginsChange(canonicalOrigins.withSpeciesName(option.name))
+                            },
+                        )
+                        if (canonicalOrigins.speciesIdentity?.name?.isNotBlank() == true) {
+                            RulesPickButton(
+                                kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.SUBSPECIES),
+                                label = "📖 Elegir subraza o semirraza",
+                                onPick = { option -> onCanonicalOriginsChange(canonicalOrigins.withSubraceName(option.name)) },
+                            )
+                        }
+                    }
                     CharacterCompactOutlinedTextFieldV4(
                         value = background.name,
                         onValueChange = { value ->

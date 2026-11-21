@@ -1,0 +1,5 @@
+-- Redesign R3 (owner observation P5): a dungeon is its own object, synced as DM content family DUNGEON.
+CREATE TABLE IF NOT EXISTS dungeon_payload (
+    content_id TEXT NOT NULL PRIMARY KEY REFERENCES reusable_content(id) ON DELETE CASCADE,
+    payload_json TEXT NOT NULL CHECK (length(trim(payload_json)) > 0)
+);

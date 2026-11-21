@@ -1,5 +1,8 @@
 package io.github.mrsimkin.dndcustomaid.android
 
+import io.github.mrsimkin.dndcustomaid.dmui.LocalRulesSources
+import io.github.mrsimkin.dndcustomaid.dmui.RulesPickButton
+import io.github.mrsimkin.dndcustomaid.dmui.RulesSources
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -174,6 +177,41 @@ private fun CharacterClassIdentitySuccessorEditorV4(
             )
         },
     ) {
+        // Redesign R5 (D8, D9): the class and the subclass from the SRD first, then the homebrew.
+        fun familyOf(option: io.github.mrsimkin.dndcustomaid.shared.dm.RulesOption): CharacterRulesFamily = when {
+            option.origin != io.github.mrsimkin.dndcustomaid.shared.content.RulesOrigin.SRD -> CharacterRulesFamily.CUSTOM
+            option.edition == "5e" -> CharacterRulesFamily.DND_5E
+            option.edition == "5.5e" -> CharacterRulesFamily.DND_5_5E
+            else -> CharacterRulesFamily.UNSPECIFIED
+        }
+        RulesPickButton(
+            kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.CLASS),
+            label = "📖 Elegir la clase del SRD o tu homebrew",
+            onPick = { option ->
+                manualClass = true
+                draft = draft.copy(
+                    name = option.name,
+                    source = option.source,
+                    catalogKey = null,
+                    rulesFamily = familyOf(option),
+                    hitDieSides = option.fields["dado_de_golpe"]?.removePrefix("d") ?: draft.hitDieSides,
+                )
+            },
+        )
+        RulesPickButton(
+            kinds = listOf(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryKind.SUBCLASS),
+            label = "📖 Elegir la subclase del SRD o tu homebrew",
+            onPick = { option ->
+                manualSubclass = true
+                customSubclassName = option.name
+                draft = draft.copy(
+                    subclassName = option.name,
+                    subclassSource = option.source,
+                    subclassCatalogKey = null,
+                    subclassRulesFamily = familyOf(option),
+                )
+            },
+        )
         ClassChoiceSuccessorV4(
             draft = draft,
             manual = manualClass,

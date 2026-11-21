@@ -7,6 +7,7 @@ import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupDocument
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterBackupRepository
 import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedRulesPassage
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiClient
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiErrorCode
 import io.github.mrsimkin.dndcustomaid.shared.hosted.HostedApiException
@@ -135,6 +136,18 @@ internal class AndroidHostedCampaignBootstrapController(
     fun hasRememberedSession(): Boolean =
         Descope.sessionManager.session?.refreshToken?.isExpired == false
 
+    /** Redesign A7: the handouts the DM sent to the players of [campaignId]. */
+    suspend fun sharedHandouts(campaignId: Uuid): List<io.github.mrsimkin.dndcustomaid.shared.hosted.HostedSharedHandout> =
+        apiClient.sharedHandouts(campaignId)
+
+    /** The image of a shared handout. */
+    suspend fun sharedHandoutImage(handout: io.github.mrsimkin.dndcustomaid.shared.hosted.HostedSharedHandout): ByteArray =
+        apiClient.mediaContent(handout.sha256, handout.id)
+
+    /** Package 8: a rules answer from the SRD passages found on the tablet. */
+    suspend fun answerRules(question: String, passages: List<HostedRulesPassage>): String =
+        apiClient.answerRules(question, passages)
+
     fun pendingMutationCount(): Int = outbox.allMutations().size
 
     fun mutationState(mutationId: Uuid): AndroidHostedMutationState {
@@ -171,7 +184,9 @@ internal class AndroidHostedCampaignBootstrapController(
      * A failed network/provider step never deletes local campaign/PC data or its durable outbox.
      * Diagnostic projections retain enough evidence for physical QA without exposing credentials.
      */
-    suspend fun refresh(): AndroidHostedCampaignBootstrapOutcome {
+    suspend fun refresh(
+        onDmContentProgress: (io.github.mrsimkin.dndcustomaid.shared.hosted.DmContentSyncProgress) -> Unit = {},
+    ): AndroidHostedCampaignBootstrapOutcome {
         if (!hasRememberedSession()) {
             return AndroidHostedCampaignBootstrapOutcome.NoRememberedSession
         }
@@ -323,7 +338,7 @@ internal class AndroidHostedCampaignBootstrapController(
             var dmContentError: String? = null
             if (dmScopes.any { it is DmContentSyncScope.Campaign }) {
                 try {
-                    dmContentResult = dmContentSync.synchronize(dmScopes, currentEpochSeconds())
+                    dmContentResult = dmContentSync.synchronize(dmScopes, currentEpochSeconds(), onDmContentProgress)
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (error: Exception) {

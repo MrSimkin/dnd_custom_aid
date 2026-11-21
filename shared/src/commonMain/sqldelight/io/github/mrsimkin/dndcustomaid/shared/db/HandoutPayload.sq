@@ -8,14 +8,18 @@ CREATE TABLE handout_payload (
     height INTEGER CHECK (height IS NULL OR height > 0),
     visibility TEXT NOT NULL CHECK (visibility IN ('DM_ONLY', 'PLAYER_SAFE')),
     caption TEXT NOT NULL,
-    notes TEXT NOT NULL
+    notes TEXT NOT NULL,
+    shared_with_players INTEGER NOT NULL DEFAULT 0,
+    folder TEXT NOT NULL DEFAULT '',
+    tags_json TEXT NOT NULL DEFAULT '[]'
 );
 
 insertHandoutPayload:
 INSERT INTO handout_payload(
-    content_id, kind, media_type, size_bytes, sha256, width, height, visibility, caption, notes
+    content_id, kind, media_type, size_bytes, sha256, width, height, visibility, caption, notes,
+    shared_with_players, folder, tags_json
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectHandoutPayloadByContentId:
 SELECT *
@@ -32,7 +36,10 @@ SET kind = ?,
     height = ?,
     visibility = ?,
     caption = ?,
-    notes = ?
+    notes = ?,
+    shared_with_players = ?,
+    folder = ?,
+    tags_json = ?
 WHERE content_id = ?;
 
 selectAllHandoutHashes:

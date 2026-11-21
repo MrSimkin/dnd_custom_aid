@@ -6,6 +6,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
+import io.ktor.client.request.delete
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -21,6 +22,43 @@ data class HostedCampaignMember(
     val role: CampaignRole,
     val status: CampaignMembershipStatus,
 )
+
+/*
+ * Owner, 2026-11-18 («A: invitar jugadores»): the DM holds one live code per campaign, with its
+ * expiry; a player joins with it. The code travels as six letters, and the same six letters make
+ * the link and the QR the DM can show.
+ */
+
+@Serializable
+data class HostedCampaignInvitation(
+    val code: String,
+    val campaignId: Uuid,
+    val campaignName: String,
+    val expiresAtEpochSeconds: Long,
+) {
+    /** The link that carries the same code, for sending it instead of dictating it. */
+    fun link(baseUrl: String): String = "${baseUrl.trimEnd('/')}/unirme/$code"
+}
+
+@Serializable
+data class HostedJoinedCampaign(
+    val campaignId: Uuid,
+    val campaignName: String,
+    val role: CampaignRole,
+    val alreadyMember: Boolean = false,
+)
+
+@Serializable
+private data class CampaignInvitationResponse(val invitation: HostedCampaignInvitation? = null)
+
+@Serializable
+private data class CreateInvitationRequest(val daysValid: Int)
+
+@Serializable
+private data class RevokeInvitationResponse(val revoked: Boolean)
+
+@Serializable
+private data class JoinCampaignResponse(val joined: HostedJoinedCampaign)
 
 @Serializable
 enum class HostedCampaignModerationAction {
@@ -116,6 +154,47 @@ class HostedCampaignAdministrationClient(
             campaignRevision = body.campaignRevision,
             applied = body.applied,
         )
+    }
+
+    /** The live invitation of the campaign, or null when there is none. */
+    suspend fun invitation(campaignId: Uuid): HostedCampaignInvitation? {
+        val response = httpClient.get("$apiBaseUrl/v1/campaigns/$campaignId/invitation") {
+            bearerAuth(requireAccessToken())
+        }
+        ensureSuccess(response)
+        return response.body<CampaignInvitationResponse>().invitation
+    }
+
+    /** Makes a new code and stops the previous one. */
+    suspend fun createInvitation(campaignId: Uuid, daysValid: Int = 7): HostedCampaignInvitation {
+        require(daysValid in 1..30) { "Una invitación vale entre 1 y 30 días." }
+        val response = httpClient.post("$apiBaseUrl/v1/campaigns/$campaignId/invitation") {
+            bearerAuth(requireAccessToken())
+            contentType(ContentType.Application.Json)
+            setBody(CreateInvitationRequest(daysValid))
+        }
+        ensureSuccess(response)
+        return requireNotNull(response.body<CampaignInvitationResponse>().invitation)
+    }
+
+    /** Stops the live code without making a new one. */
+    suspend fun revokeInvitation(campaignId: Uuid): Boolean {
+        val response = httpClient.delete("$apiBaseUrl/v1/campaigns/$campaignId/invitation") {
+            bearerAuth(requireAccessToken())
+        }
+        ensureSuccess(response)
+        return response.body<RevokeInvitationResponse>().revoked
+    }
+
+    /** A player joins with the six letters. */
+    suspend fun joinWithCode(code: String): HostedJoinedCampaign {
+        val normalized = code.trim().uppercase()
+        require(Regex("^[A-Z]{6}$").matches(normalized)) { "El código son seis letras." }
+        val response = httpClient.post("$apiBaseUrl/v1/invitations/$normalized") {
+            bearerAuth(requireAccessToken())
+        }
+        ensureSuccess(response)
+        return response.body<JoinCampaignResponse>().joined
     }
 
     fun close() {

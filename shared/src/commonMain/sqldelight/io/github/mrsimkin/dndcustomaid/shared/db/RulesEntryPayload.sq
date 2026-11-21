@@ -1,0 +1,14 @@
+-- Redesign R4/R5 (owner observation G4): the DM's homebrew rules library, synced as DM content family RULES_ENTRY.
+CREATE TABLE rules_entry_payload (
+    content_id TEXT NOT NULL PRIMARY KEY REFERENCES reusable_content(id) ON DELETE CASCADE,
+    payload_json TEXT NOT NULL CHECK (length(trim(payload_json)) > 0)
+);
+
+insertRulesEntryPayload:
+INSERT INTO rules_entry_payload(content_id, payload_json) VALUES (?, ?);
+
+selectRulesEntryPayloadByContentId:
+SELECT payload_json FROM rules_entry_payload WHERE content_id = ?;
+
+updateRulesEntryPayload:
+UPDATE rules_entry_payload SET payload_json = ? WHERE content_id = ?;

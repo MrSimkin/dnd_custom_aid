@@ -1,0 +1,14 @@
+-- Base para DM, package 7: live notes (P21), synced as DM content family NOTE.
+CREATE TABLE note_payload (
+    content_id TEXT NOT NULL PRIMARY KEY REFERENCES reusable_content(id) ON DELETE CASCADE,
+    payload_json TEXT NOT NULL CHECK (length(trim(payload_json)) > 0)
+);
+
+insertNotePayload:
+INSERT INTO note_payload(content_id, payload_json) VALUES (?, ?);
+
+selectNotePayloadByContentId:
+SELECT payload_json FROM note_payload WHERE content_id = ?;
+
+updateNotePayload:
+UPDATE note_payload SET payload_json = ? WHERE content_id = ?;

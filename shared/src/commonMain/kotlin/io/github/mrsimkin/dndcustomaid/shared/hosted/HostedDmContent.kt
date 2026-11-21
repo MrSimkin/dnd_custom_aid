@@ -1,5 +1,6 @@
 package io.github.mrsimkin.dndcustomaid.shared.hosted
 
+import kotlinx.coroutines.CancellationException
 import io.github.mrsimkin.dndcustomaid.shared.content.CreatureContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.CreaturePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterContentRepository
@@ -16,6 +17,12 @@ import io.github.mrsimkin.dndcustomaid.shared.content.NpcContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.NpcPayload
 import io.github.mrsimkin.dndcustomaid.shared.content.PlaceContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.PlacePayload
+import io.github.mrsimkin.dndcustomaid.shared.content.ContentLinks
+import io.github.mrsimkin.dndcustomaid.shared.content.ContentLinksRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.NoteContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.DungeonContentRepository
+import io.github.mrsimkin.dndcustomaid.shared.content.DungeonPayload
+import io.github.mrsimkin.dndcustomaid.shared.content.NotePayload
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentFamily
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentItem
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentRepository
@@ -126,6 +133,51 @@ data class HostedDmContentMutation(
     val applied: Boolean,
 )
 
+/**
+ * One queued change on its way to the hosted service. A null [snapshot] deletes the object.
+ *
+ * Plan A of the server decision (owner, 2026-11-18): the first upload of a whole package used one
+ * request per object, which took minutes and spent the free plan's request budget. Changes now
+ * travel in groups of [HOSTED_DM_CONTENT_SEND_GROUP].
+ */
+data class HostedDmContentSendItem(
+    val mutationId: Uuid,
+    val contentId: Uuid,
+    val expectedRevision: Long,
+    val snapshot: DmContentSnapshotDocument?,
+) {
+    init {
+        require(expectedRevision >= 0) { "Expected DM content revision must not be negative." }
+        require(snapshot == null || snapshot.content.id == contentId) {
+            "DM content snapshot identity must match the requested content."
+        }
+    }
+}
+
+/** What the hosted service answered for one item of a group. */
+sealed interface HostedDmContentSendResult {
+    data class Sent(val revision: Long) : HostedDmContentSendResult
+    data class Rejected(val code: HostedApiErrorCode?, val message: String?) : HostedDmContentSendResult
+}
+
+/** How many changes travel in one request. The hosted service refuses more than this. */
+const val HOSTED_DM_CONTENT_SEND_GROUP: Int = 100
+
+/**
+ * True when sending must stop and wait for a later pass instead of blocking the object: no
+ * connection, a transient server failure, an expired session, or a server without these routes.
+ */
+internal fun hostedSendMustWait(error: Exception): Boolean = when (error) {
+    // NOT_FOUND also counts as "try later": a server that does not have the DM content
+    // routes yet must not block the DM's queued changes. Nothing is lost while it waits.
+    is HostedApiException -> error.isTransient || error.code == HostedApiErrorCode.NOT_FOUND
+    is HostedAuthenticationUnavailableException -> true
+    else -> error::class.simpleName?.let { name ->
+        name.contains("Timeout") || name.contains("Connect") || name.contains("UnknownHost") ||
+            name.contains("Unresolved") || name.contains("Socket") || name.contains("IOException")
+    } == true
+}
+
 /** The hosted calls DM content sync needs; HostedApiClient implements them over HTTP. */
 interface HostedDmContentTransport {
     suspend fun campaignDmContent(campaignId: Uuid): List<HostedDmContent>
@@ -142,12 +194,42 @@ interface HostedDmContentTransport {
         expectedRevision: Long,
     ): HostedDmContentMutation
 
+    /**
+     * Sends a group of queued changes, in order, and answers one result per item.
+     *
+     * A shorter list than [items] means the connection stopped there: the rest stay in the queue
+     * for the next pass. The default sends them one by one, so a transport that cannot group them
+     * keeps working exactly as before.
+     */
+    suspend fun sendDmContent(items: List<HostedDmContentSendItem>): List<HostedDmContentSendResult> {
+        val results = mutableListOf<HostedDmContentSendResult>()
+        for (item in items) {
+            val result = try {
+                val mutation = if (item.snapshot != null) {
+                    putDmContent(item.mutationId, item.contentId, item.expectedRevision, item.snapshot)
+                } else {
+                    deleteDmContent(item.mutationId, item.contentId, item.expectedRevision)
+                }
+                HostedDmContentSendResult.Sent(mutation.content.revision)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                if (hostedSendMustWait(error)) return results
+                HostedDmContentSendResult.Rejected((error as? HostedApiException)?.code, error.message)
+            }
+            results += result
+        }
+        return results
+    }
+
     /** Uploads an image file by checksum (package 4). Uploading an existing checksum is a no-op. */
     suspend fun putMediaContent(sha256: String, mediaType: String, bytes: ByteArray)
 
     /** Downloads the image of a handout the account may read. */
     suspend fun mediaContent(sha256: String, contentId: Uuid): ByteArray
 }
+
+private const val LINKS_KEY = "links"
 
 internal fun dmContentJson(): Json = Json {
     ignoreUnknownKeys = true
@@ -174,6 +256,10 @@ class DmContentSnapshotCodec(
     private val scenes = SceneContentRepository(database, reusableContent)
     private val handouts = HandoutContentRepository(database, reusableContent)
     private val packages = PackageContentRepository(database, reusableContent)
+    private val links = ContentLinksRepository(database)
+    private val notes = NoteContentRepository(database, reusableContent)
+    private val dungeons = DungeonContentRepository(database, reusableContent)
+    private val rulesEntries = io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryContentRepository(database, reusableContent)
 
     fun supportsFamily(family: String): Boolean = ReusableContentFamily.entries.any { it.name == family }
 
@@ -195,7 +281,10 @@ class DmContentSnapshotCodec(
             ReusableContentFamily.SCENE -> encode(ScenePayload.serializer(), scenes.payload(id))
             ReusableContentFamily.HANDOUT -> encode(HandoutPayload.serializer(), handouts.payload(id))
             ReusableContentFamily.PACKAGE -> encode(PackagePayload.serializer(), packages.payload(id))
-        }
+            ReusableContentFamily.NOTE -> encode(NotePayload.serializer(), notes.payload(id))
+            ReusableContentFamily.DUNGEON -> encode(DungeonPayload.serializer(), dungeons.payload(id) ?: DungeonPayload())
+            ReusableContentFamily.RULES_ENTRY -> encode(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryPayload.serializer(), rulesEntries.payload(id))
+        }.withLinks(links.links(id))
         val provenance = item.identity.provenance?.let {
             val (kind, ref) = encodeScope(it.sourceScope)
             DmContentProvenanceDocument(
@@ -295,7 +384,21 @@ class DmContentSnapshotCodec(
         }
     }
 
-    private fun canonicalPayload(family: ReusableContentFamily, payload: JsonObject): JsonObject = when (family) {
+    /** Package 6: structured links travel inside the payload under "links"; none means no key. */
+    private fun JsonObject.withLinks(value: ContentLinks): JsonObject {
+        val clean = value.normalized()
+        if (clean.isEmpty) return JsonObject(this - LINKS_KEY)
+        return JsonObject(this + (LINKS_KEY to json.encodeToJsonElement(ContentLinks.serializer(), clean)))
+    }
+
+    private fun linksOf(payload: JsonObject): ContentLinks =
+        (payload[LINKS_KEY] as? JsonObject)?.let { runCatching { json.decodeFromJsonElement(ContentLinks.serializer(), it) }.getOrNull() }
+            ?: ContentLinks()
+
+    private fun canonicalPayload(family: ReusableContentFamily, payload: JsonObject): JsonObject =
+        familyCanonicalPayload(family, payload).withLinks(linksOf(payload))
+
+    private fun familyCanonicalPayload(family: ReusableContentFamily, payload: JsonObject): JsonObject = when (family) {
         ReusableContentFamily.CREATURE -> roundTrip(CreaturePayload.serializer(), payload)
         ReusableContentFamily.NPC -> roundTrip(NpcPayload.serializer(), payload)
         ReusableContentFamily.HOMEBREW_RULE -> roundTrip(HomebrewRulePayload.serializer(), payload)
@@ -305,9 +408,13 @@ class DmContentSnapshotCodec(
         ReusableContentFamily.SCENE -> roundTrip(ScenePayload.serializer(), payload)
         ReusableContentFamily.HANDOUT -> roundTrip(HandoutPayload.serializer(), payload)
         ReusableContentFamily.PACKAGE -> roundTrip(PackagePayload.serializer(), payload)
+        ReusableContentFamily.NOTE -> roundTrip(NotePayload.serializer(), payload)
+        ReusableContentFamily.DUNGEON -> roundTrip(DungeonPayload.serializer(), payload)
+        ReusableContentFamily.RULES_ENTRY -> roundTrip(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryPayload.serializer(), payload)
     }
 
     private fun writePayload(family: ReusableContentFamily, id: Uuid, payload: JsonObject) {
+        links.save(id, linksOf(payload))
         when (family) {
             ReusableContentFamily.CREATURE -> json.decodeFromJsonElement(CreaturePayload.serializer(), payload).let {
                 if (creatures.payload(id) == null) creatures.insertPayload(id, it) else creatures.updatePayloadRow(id, it)
@@ -335,6 +442,15 @@ class DmContentSnapshotCodec(
             }
             ReusableContentFamily.PACKAGE -> json.decodeFromJsonElement(PackagePayload.serializer(), payload).let {
                 if (packages.payload(id) == null) packages.insertPayload(id, it) else packages.updatePayloadRow(id, it)
+            }
+            ReusableContentFamily.NOTE -> json.decodeFromJsonElement(NotePayload.serializer(), payload).let {
+                if (notes.payload(id) == null) notes.insertPayload(id, it) else notes.updatePayloadRow(id, it)
+            }
+            ReusableContentFamily.DUNGEON -> json.decodeFromJsonElement(DungeonPayload.serializer(), payload).let {
+                dungeons.updatePayloadRow(id, it)
+            }
+            ReusableContentFamily.RULES_ENTRY -> json.decodeFromJsonElement(io.github.mrsimkin.dndcustomaid.shared.content.RulesEntryPayload.serializer(), payload).let {
+                rulesEntries.updatePayloadRow(id, it)
             }
         }
     }
@@ -571,6 +687,46 @@ data class DmContentSyncResult(
     val mediaMissingCount: Int = 0,
 )
 
+/** What a long «Sincronizar» is doing (owner request, 2026-11-13: show how much is left). */
+enum class DmContentSyncStep { SENDING, RECEIVING, IMAGES }
+
+data class DmContentSyncProgress(val step: DmContentSyncStep, val done: Int, val total: Int)
+
+/**
+ * Turns progress into a short Spanish line for the DM, with the time left once the pace is known:
+ * «Enviando 535 de 1.090 · faltan unos 7 min».
+ */
+class DmContentSyncProgressText(private val nowMillis: () -> Long) {
+    private var step: DmContentSyncStep? = null
+    private var stepStartedAt = 0L
+    private var doneAtStart = 0
+
+    fun text(progress: DmContentSyncProgress): String {
+        val now = nowMillis()
+        if (progress.step != step) {
+            step = progress.step
+            stepStartedAt = now
+            doneAtStart = progress.done
+        }
+        val verb = when (progress.step) {
+            DmContentSyncStep.SENDING -> "Enviando"
+            DmContentSyncStep.RECEIVING -> "Recibiendo"
+            DmContentSyncStep.IMAGES -> "Bajando imágenes:"
+        }
+        val base = "$verb ${grouped(progress.done)} de ${grouped(progress.total)}"
+        val advanced = progress.done - doneAtStart
+        val elapsed = now - stepStartedAt
+        if (progress.done >= progress.total || advanced < 10 || elapsed <= 0) return base
+        val secondsLeft = (progress.total - progress.done).toLong() * elapsed / advanced / 1000
+        return if (secondsLeft < 60) "$base · falta menos de un minuto" else "$base · faltan unos ${(secondsLeft + 30) / 60} min"
+    }
+
+    private fun grouped(value: Int): String = value.toString().reversed().chunked(3).joinToString(".").reversed()
+}
+
+/** The fraction done, for a progress bar. */
+val DmContentSyncProgress.fraction: Float get() = if (total <= 0) 0f else done.toFloat() / total
+
 /**
  * One sync pass for the DM: queue local changes, send the queue, then receive hosted changes.
  *
@@ -586,7 +742,11 @@ class HostedDmContentSyncService(
 ) {
     private var mediaTransferred = 0
 
-    suspend fun synchronize(scopes: List<DmContentSyncScope>, nowEpochSeconds: Long): DmContentSyncResult {
+    suspend fun synchronize(
+        scopes: List<DmContentSyncScope>,
+        nowEpochSeconds: Long,
+        onProgress: (DmContentSyncProgress) -> Unit = {},
+    ): DmContentSyncResult {
         require(nowEpochSeconds >= 0) { "Sync time must not be negative." }
         val conflicts = linkedMapOf<Uuid, DmContentSyncConflictReason>()
         val pushed = mutableListOf<Uuid>()
@@ -599,14 +759,21 @@ class HostedDmContentSyncService(
         scopes.distinct().forEach { queueLocalChanges(it, nowEpochSeconds, conflicts) }
 
         var offline = false
-        for (mutation in outbox.allMutations().filter { it.retryState == HostedRetryState.READY }) {
-            when (val outcome = send(mutation, nowEpochSeconds)) {
-                SendOutcome.Sent -> pushed += mutation.contentId
-                SendOutcome.Offline -> {
-                    offline = true
-                    break
+        val ready = outbox.allMutations().filter { it.retryState == HostedRetryState.READY }
+        if (ready.isNotEmpty()) onProgress(DmContentSyncProgress(DmContentSyncStep.SENDING, 0, ready.size))
+        var done = 0
+        groups@ for (group in ready.chunked(HOSTED_DM_CONTENT_SEND_GROUP)) {
+            for (outcome in sendGroup(group, nowEpochSeconds)) {
+                done += 1
+                onProgress(DmContentSyncProgress(DmContentSyncStep.SENDING, done, ready.size))
+                when (outcome) {
+                    is SendOutcome.Sent -> pushed += outcome.contentId
+                    SendOutcome.Offline -> {
+                        offline = true
+                        break@groups
+                    }
+                    is SendOutcome.Blocked -> conflicts[outcome.contentId] = outcome.reason
                 }
-                is SendOutcome.Blocked -> conflicts[mutation.contentId] = outcome.reason
             }
         }
 
@@ -626,19 +793,28 @@ class HostedDmContentSyncService(
                     }
                     throw error
                 }
-                hosted.sortedBy { it.id.toString() }.forEach { remote ->
+                if (hosted.isNotEmpty()) onProgress(DmContentSyncProgress(DmContentSyncStep.RECEIVING, 0, hosted.size))
+                hosted.sortedBy { it.id.toString() }.forEachIndexed { index, remote ->
+                    if ((index + 1) % 50 == 0 || index + 1 == hosted.size) {
+                        onProgress(DmContentSyncProgress(DmContentSyncStep.RECEIVING, index + 1, hosted.size))
+                    }
                     when (val outcome = receive(remote, conflicts)) {
                         ReceiveOutcome.Applied -> applied += remote.id
                         ReceiveOutcome.Tombstoned -> tombstoned += remote.id
                         ReceiveOutcome.Unchanged -> unchanged += 1
                         ReceiveOutcome.Unsupported -> unsupported += remote.id
-                        is ReceiveOutcome.Conflict -> conflicts[remote.id] = outcome.reason
+                        is ReceiveOutcome.Conflict -> {
+                            conflicts[remote.id] = outcome.reason
+                            // Owner's B (2026-11-20): the other device's version waits here so the
+                            // DM can compare and choose later, without syncing again.
+                            rememberDifference(remote, outcome.reason, nowEpochSeconds)
+                        }
                     }
                 }
             }
         }
 
-        val mediaMissing = if (offline) countMissingMedia(scopes) else downloadMissingMedia(scopes)
+        val mediaMissing = if (offline) countMissingMedia(scopes) else downloadMissingMedia(scopes, onProgress)
 
         return DmContentSyncResult(
             mediaTransferredCount = mediaTransferred,
@@ -687,39 +863,105 @@ class HostedDmContentSyncService(
         }
     }
 
-    private suspend fun send(mutation: HostedDmContentOutboxMutation, nowEpochSeconds: Long): SendOutcome {
-        return try {
-            when (mutation.type) {
-                HostedDmContentMutationType.CONTENT_PUT -> {
-                    val payload = outbox.putPayload(mutation)
-                    uploadHandoutImage(payload.snapshot)
-                    val result = transport.putDmContent(mutation.mutationId, mutation.contentId, mutation.expectedRevision, payload.snapshot)
-                    outbox.acknowledge(mutation, result.content.revision, false, codec.normalizedJson(payload.snapshot))
+    /**
+     * Sends one group of queued changes in a single request and writes down what came back.
+     *
+     * Preparing an item is local work (reading the queued snapshot, uploading its image), so a
+     * failure there blocks only that object. Once the group travels, each answer is applied in
+     * order; if the connection stops mid-group, the rest keep their place in the queue.
+     */
+    private suspend fun sendGroup(
+        group: List<HostedDmContentOutboxMutation>,
+        nowEpochSeconds: Long,
+    ): List<SendOutcome> {
+        val outcomes = mutableListOf<SendOutcome>()
+        val sending = mutableListOf<HostedDmContentOutboxMutation>()
+        val items = mutableListOf<HostedDmContentSendItem>()
+        val snapshots = mutableListOf<String>()
+
+        for (mutation in group) {
+            try {
+                when (mutation.type) {
+                    HostedDmContentMutationType.CONTENT_PUT -> {
+                        val payload = outbox.putPayload(mutation)
+                        uploadHandoutImage(payload.snapshot)
+                        items += HostedDmContentSendItem(mutation.mutationId, mutation.contentId, mutation.expectedRevision, payload.snapshot)
+                        snapshots += codec.normalizedJson(payload.snapshot)
+                    }
+                    HostedDmContentMutationType.CONTENT_DELETE -> {
+                        items += HostedDmContentSendItem(mutation.mutationId, mutation.contentId, mutation.expectedRevision, null)
+                        snapshots += outbox.baseline(mutation.contentId)?.snapshotJson
+                            ?: codec.export(mutation.contentId)?.let(codec::normalizedJson)
+                            ?: "{}"
+                    }
                 }
-                HostedDmContentMutationType.CONTENT_DELETE -> {
-                    val result = transport.deleteDmContent(mutation.mutationId, mutation.contentId, mutation.expectedRevision)
-                    val previous = outbox.baseline(mutation.contentId)?.snapshotJson
-                        ?: codec.export(mutation.contentId)?.let(codec::normalizedJson)
-                        ?: "{}"
-                    outbox.acknowledge(mutation, result.content.revision, true, previous)
+                sending += mutation
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                if (hostedSendMustWait(error)) {
+                    outbox.recordFailure(mutation.mutationId, nowEpochSeconds, retryable = true, errorCode = "OFFLINE", errorMessage = error.message)
+                    return outcomes + SendOutcome.Offline
                 }
+                outbox.recordFailure(mutation.mutationId, nowEpochSeconds, retryable = false, errorCode = "LOCAL_ERROR", errorMessage = error.message)
+                outcomes += SendOutcome.Blocked(mutation.contentId, DmContentSyncConflictReason.REJECTED)
             }
-            SendOutcome.Sent
-        } catch (error: Exception) {
-            if (isOffline(error)) {
-                outbox.recordFailure(mutation.mutationId, nowEpochSeconds, retryable = true, errorCode = "OFFLINE", errorMessage = error.message)
-                return SendOutcome.Offline
-            }
-            val code = (error as? HostedApiException)?.code
-            outbox.recordFailure(mutation.mutationId, nowEpochSeconds, retryable = false, errorCode = code?.name ?: "LOCAL_ERROR", errorMessage = error.message)
-            SendOutcome.Blocked(
-                when (code) {
-                    HostedApiErrorCode.CONFLICT_STALE_REVISION -> DmContentSyncConflictReason.LOCAL_AND_HOSTED_CHANGED
-                    HostedApiErrorCode.GONE -> DmContentSyncConflictReason.CHANGED_LOCALLY_DELETED_HOSTED
-                    else -> DmContentSyncConflictReason.REJECTED
-                },
-            )
         }
+        if (items.isEmpty()) return outcomes
+
+        val results = try {
+            transport.sendDmContent(items)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            outbox.recordFailure(items.first().mutationId, nowEpochSeconds, retryable = true, errorCode = "OFFLINE", errorMessage = error.message)
+            return outcomes + SendOutcome.Offline
+        }
+
+        results.forEachIndexed { index, result ->
+            val mutation = sending[index]
+            when (result) {
+                is HostedDmContentSendResult.Sent -> {
+                    outbox.acknowledge(mutation, result.revision, mutation.type == HostedDmContentMutationType.CONTENT_DELETE, snapshots[index])
+                    outcomes += SendOutcome.Sent(mutation.contentId)
+                }
+                is HostedDmContentSendResult.Rejected -> {
+                    outbox.recordFailure(
+                        mutation.mutationId,
+                        nowEpochSeconds,
+                        retryable = false,
+                        errorCode = result.code?.name ?: "LOCAL_ERROR",
+                        errorMessage = result.message,
+                    )
+                    outcomes += SendOutcome.Blocked(
+                        mutation.contentId,
+                        when (result.code) {
+                            HostedApiErrorCode.CONFLICT_STALE_REVISION -> DmContentSyncConflictReason.LOCAL_AND_HOSTED_CHANGED
+                            HostedApiErrorCode.GONE -> DmContentSyncConflictReason.CHANGED_LOCALLY_DELETED_HOSTED
+                            else -> DmContentSyncConflictReason.REJECTED
+                        },
+                    )
+                }
+            }
+        }
+        if (results.size < items.size) {
+            val waiting = sending[results.size]
+            outbox.recordFailure(waiting.mutationId, nowEpochSeconds, retryable = true, errorCode = "OFFLINE", errorMessage = null)
+            outcomes += SendOutcome.Offline
+        }
+        return outcomes
+    }
+
+    /** Keeps the other device's version of an object the DM has to decide about. */
+    private fun rememberDifference(remote: HostedDmContent, reason: DmContentSyncConflictReason, nowEpochSeconds: Long) {
+        database.dmContentConflictQueries.upsertDmContentConflict(
+            content_id = remote.id.toString(),
+            reason = reason.name,
+            hosted_revision = remote.revision,
+            hosted_snapshot = remote.snapshot.toString(),
+            hosted_deleted = if (remote.deletedAtEpochSeconds != null) 1L else 0L,
+            seen_at_epoch_seconds = nowEpochSeconds,
+        )
     }
 
     private fun receive(
@@ -818,10 +1060,13 @@ class HostedDmContentSyncService(
 
     private fun countMissingMedia(scopes: List<DmContentSyncScope>): Int = activeHandoutsMissingImage(scopes).size
 
-    private suspend fun downloadMissingMedia(scopes: List<DmContentSyncScope>): Int {
+    private suspend fun downloadMissingMedia(scopes: List<DmContentSyncScope>, onProgress: (DmContentSyncProgress) -> Unit): Int {
         val store = blobs ?: return 0
         var missing = 0
-        for ((id, payload) in activeHandoutsMissingImage(scopes)) {
+        val wanted = activeHandoutsMissingImage(scopes)
+        for ((index, entry) in wanted.withIndex()) {
+            val (id, payload) = entry
+            onProgress(DmContentSyncProgress(DmContentSyncStep.IMAGES, index, wanted.size))
             if (store.has(payload.sha256)) continue
             val bytes = try {
                 transport.mediaContent(payload.sha256, id)
@@ -841,21 +1086,12 @@ class HostedDmContentSyncService(
         return missing
     }
 
-    private fun isOffline(error: Exception): Boolean = when (error) {
-        // NOT_FOUND also counts as "try later": a server that does not have the DM content
-        // routes yet must not block the DM's queued changes. Nothing is lost while it waits.
-        is HostedApiException -> error.isTransient || error.code == HostedApiErrorCode.NOT_FOUND
-        is HostedAuthenticationUnavailableException -> true
-        else -> error::class.simpleName?.let { name ->
-            name.contains("Timeout") || name.contains("Connect") || name.contains("UnknownHost") ||
-                name.contains("Unresolved") || name.contains("Socket") || name.contains("IOException")
-        } == true
-    }
+    private fun isOffline(error: Exception): Boolean = hostedSendMustWait(error)
 
     private sealed interface SendOutcome {
-        data object Sent : SendOutcome
+        data class Sent(val contentId: Uuid) : SendOutcome
         data object Offline : SendOutcome
-        data class Blocked(val reason: DmContentSyncConflictReason) : SendOutcome
+        data class Blocked(val contentId: Uuid, val reason: DmContentSyncConflictReason) : SendOutcome
     }
 
     private sealed interface ReceiveOutcome {

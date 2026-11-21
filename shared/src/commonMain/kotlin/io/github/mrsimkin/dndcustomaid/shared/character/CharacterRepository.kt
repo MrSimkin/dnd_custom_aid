@@ -272,6 +272,7 @@ class CharacterRepository(
                     id = entry.id.toString(), character_id = sheet.id.toString(), name = entry.name.trim(), type = entry.type.name,
                     attack_modifier = entry.attackModifier?.toLong(), damage_effect = entry.damageEffect, range_text = entry.rangeText,
                     notes = entry.notes, sort_order = index.toLong(), pinned = if (entry.pinned) 1 else 0,
+                    linked_item_id = entry.linkedItemId?.toString(), linked_spell_id = entry.linkedSpellId?.toString(),
                 )
             }
 
@@ -414,8 +415,9 @@ class CharacterRepository(
         }.executeAsList()
 
         val combatEntries = database.characterQueries.selectCharacterCombatEntries(core.id.toString()) {
-                id, _, name, type, attackModifier, damageEffect, rangeText, notes, sortOrder, pinned ->
-            CharacterCombatEntry(Uuid.parse(id), name, CharacterCombatEntryType.valueOf(type), attackModifier?.toInt(), damageEffect, rangeText, notes, sortOrder.toInt(), pinned != 0L)
+                id, _, name, type, attackModifier, damageEffect, rangeText, notes, sortOrder, pinned, linkedItem, linkedSpell ->
+            CharacterCombatEntry(Uuid.parse(id), name, CharacterCombatEntryType.valueOf(type), attackModifier?.toInt(), damageEffect, rangeText, notes, sortOrder.toInt(), pinned != 0L,
+                linkedItem?.let(Uuid::parse), linkedSpell?.let(Uuid::parse))
         }.executeAsList()
 
         val inventoryItems = database.characterQueries.selectCharacterInventoryItems(core.id.toString()) {

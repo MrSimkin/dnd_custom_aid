@@ -171,6 +171,7 @@ class SceneContentRepository(
             possible_next_scenes_json = encodeStringList(payload.possibleNextScenes),
             references_json = encodeStringList(payload.references),
             notes = payload.notes,
+            sections_json = payloadJson.encodeToString(payload.sections),
         )
     }
 
@@ -180,6 +181,7 @@ class SceneContentRepository(
             possible_next_scenes_json = encodeStringList(payload.possibleNextScenes),
             references_json = encodeStringList(payload.references),
             notes = payload.notes,
+            sections_json = payloadJson.encodeToString(payload.sections),
             content_id = id.toString(),
         )
     }
@@ -190,6 +192,7 @@ class SceneContentRepository(
         possibleNextScenesJson: String,
         referencesJson: String,
         notes: String,
+        sectionsJson: String,
     ): ScenePayload {
         require(contentId.isNotBlank()) { "Scene payload content id must not be blank." }
         return ScenePayload(
@@ -197,6 +200,7 @@ class SceneContentRepository(
             possibleNextScenes = decodeStringList(possibleNextScenesJson),
             references = decodeStringList(referencesJson),
             notes = notes,
+            sections = runCatching { payloadJson.decodeFromString<Map<String, String>>(sectionsJson) }.getOrDefault(emptyMap()),
         )
     }
 

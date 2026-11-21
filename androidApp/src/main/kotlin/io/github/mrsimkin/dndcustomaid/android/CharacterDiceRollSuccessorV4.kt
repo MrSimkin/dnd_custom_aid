@@ -664,7 +664,7 @@ private fun characterDieSilhouettePathV4(sides: Int?, width: Float, height: Floa
 }
 
 @Composable
-private fun CharacterVisibleDiceResultCardV4(roll: CharacterResolvedD20Roll) {
+internal fun CharacterVisibleDiceResultCardV4(roll: CharacterResolvedD20Roll) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(
@@ -715,7 +715,7 @@ private fun CharacterVisibleD20V4(value: Int, chosen: Boolean) {
 }
 
 @Composable
-private fun CharacterD20ResultCardV4(roll: CharacterResolvedD20Roll) {
+internal fun CharacterD20ResultCardV4(roll: CharacterResolvedD20Roll) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(

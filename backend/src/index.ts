@@ -2,7 +2,17 @@ import { createApiHandler, type ApiHandler } from "./app.ts";
 import { DescopeJwtVerifier } from "./auth.ts";
 import { NeonCampaignAdministrationStore } from "./campaignAdministrationStore.ts";
 import { NeonDmContentStore } from "./dmContentStore.ts";
-import { MediaStore, NeonMediaAuthorization, type MediaKv } from "./mediaStore.ts";
+import { NeonInvitationStore } from "./invitationStore.ts";
+import {
+  BucketMediaStore,
+  FallbackMediaStore,
+  MediaStore,
+  migrateMediaToBucket,
+  NeonMediaAuthorization,
+  type MediaBucket,
+  type MediaKv,
+} from "./mediaStore.ts";
+import { RulesAnswerer, type AiRunner } from "./rulesAnswer.ts";
 import { NeonCampaignStore } from "./store.ts";
 
 interface AppEnv {
@@ -11,6 +21,16 @@ interface AppEnv {
   DESCOPE_BASE_URL?: string;
   /** Workers KV namespace for handout images (P27); optional so the Worker deploys without it. */
   MEDIA?: MediaKv;
+  /**
+   * Object storage for the images (owner's «N», 2026-11-18). When the owner binds it, the images
+   * go here instead of KV, which allows only 1000 writes a day on the free plan. Everything
+   * else stays the same, and files already in KV keep being served from there.
+   */
+  MEDIA_BUCKET?: MediaBucket;
+  /** Workers AI binding for rules answers (package 8); optional so the Worker deploys without it. */
+  AI?: AiRunner;
+  /** Replaceable model name (D-0070); the default is in rulesAnswer.ts. */
+  AI_MODEL?: string;
 }
 
 let cachedHandler: ApiHandler | null = null;
@@ -43,14 +63,35 @@ export default {
         campaigns: new NeonCampaignStore(databaseUrl),
         campaignAdministration: new NeonCampaignAdministrationStore(databaseUrl),
         dmContent: new NeonDmContentStore(databaseUrl),
-        media: env.MEDIA == null ? undefined : new MediaStore(env.MEDIA),
-        mediaAuthorization: env.MEDIA == null ? undefined : new NeonMediaAuthorization(databaseUrl),
+        invitations: new NeonInvitationStore(databaseUrl),
+        media: mediaStore(env),
+        mediaAuthorization: mediaStore(env) == null ? undefined : new NeonMediaAuthorization(databaseUrl),
+        mediaMigration:
+          env.MEDIA_BUCKET == null || env.MEDIA == null
+            ? undefined
+            : (options) => migrateMediaToBucket(env.MEDIA!, env.MEDIA_BUCKET!, options),
+        rules: env.AI == null ? undefined : new RulesAnswerer(env.AI, env.AI_MODEL?.trim() || undefined),
       });
     }
 
     return cachedHandler(request);
   },
 } satisfies ExportedHandler<AppEnv>;
+
+/**
+ * Object storage when the owner bound it, otherwise the KV namespace, otherwise no images.
+ *
+ * Owner's K (2026-11-20): while both are bound, what is written goes to the bucket and what is
+ * only in KV is still served — and copied across as it is read — so binding the bucket never
+ * hides an image that already existed.
+ */
+function mediaStore(env: AppEnv) {
+  if (env.MEDIA_BUCKET != null) {
+    const bucket = new BucketMediaStore(env.MEDIA_BUCKET);
+    return env.MEDIA == null ? bucket : new FallbackMediaStore(bucket, new MediaStore(env.MEDIA));
+  }
+  return env.MEDIA == null ? undefined : new MediaStore(env.MEDIA);
+}
 
 function normalizePath(pathname: string): string {
   if (pathname.length > 1 && pathname.endsWith("/")) {

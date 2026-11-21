@@ -4,10 +4,6 @@ import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetExportSources
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11ExportRequest
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticData
 import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetV11SemanticMapper
-import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportPlanner
-import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfExportRequest
-import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetPdfRenderPlan
-import io.github.mrsimkin.dndcustomaid.shared.character.PcSheetVisualFamily
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
@@ -18,21 +14,7 @@ import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
-internal data class DesktopPcSheetGeneratedPdf(
-    val plan: PcSheetPdfRenderPlan,
-    val bytes: ByteArray,
-)
-
-/**
- * Desktop delivery seam for the already owner-approved production renderer.
- *
- * This class deliberately owns no PDF layout. Both Save and Share receive the exact byte stream
- * produced by DesktopPcSheetWholeDraftRenderer from PcSheetPdfRenderPlan.
- */
-/**
- * QA-only V11 PDF: real local bytes from the app's production PDF backend,
- * but NOT a visually approved owner candidate. Never feed to the legacy renderer.
- */
+/** The V11 sheet's PDF bytes with the semantic data they were made from. */
 internal data class DesktopPcSheetV11PdfProof(
     val semantic: PcSheetV11SemanticData,
     val bytes: ByteArray,
@@ -42,10 +24,7 @@ internal class DesktopPcSheetExportService(
     private val portraitBytesLoader: (String) -> ByteArray? = ::loadLocalPortraitBytes,
 ) {
 
-    /**
-     * Separate owner-authorized V11 route. Generates ACTUAL PDF bytes locally for QA;
-     * the approved visual layout is incomplete, so do not expose in normal export UI.
-     */
+    /** The V11 sheet (C473: the only sheet), generated locally from the shared V11 contract. */
     fun generateV11Proof(
         request: PcSheetV11ExportRequest,
         sources: PcSheetExportSources,
@@ -68,67 +47,6 @@ internal class DesktopPcSheetExportService(
         }
         check(bytes.isNotEmpty())
         return DesktopPcSheetV11PdfProof(semantic, bytes)
-    }
-
-    fun generate(
-        request: PcSheetPdfExportRequest,
-        sources: PcSheetExportSources,
-    ): DesktopPcSheetGeneratedPdf {
-        val localPortraitBytes = mutableMapOf<String, ByteArray>()
-        val candidatePortraitRefs = buildList {
-            sources.permanent.closure.portraitRef?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-            sources.currentSnapshot?.closure?.portraitRef?.trim()?.takeIf { it.isNotEmpty() }?.let(::add)
-        }.distinct()
-
-        candidatePortraitRefs.forEach { ref ->
-            runCatching { portraitBytesLoader(ref) }.getOrNull()?.let { bytes ->
-                localPortraitBytes[ref] = bytes
-            }
-        }
-
-        val effectiveSources = sources.copy(
-            locallyAvailablePortraitRefs =
-                sources.locallyAvailablePortraitRefs + localPortraitBytes.keys,
-        )
-        val plan = PcSheetPdfExportPlanner.plan(request, effectiveSources)
-        val renderer = DesktopPcSheetWholeDraftRenderer(
-            portraitBytesLoader = { ref ->
-                localPortraitBytes[ref] ?: runCatching { portraitBytesLoader(ref) }.getOrNull()
-            },
-        )
-        val bytes = ByteArrayOutputStream().use { buffer ->
-            renderer.renderDraft(plan, buffer)
-            buffer.toByteArray()
-        }
-        return DesktopPcSheetGeneratedPdf(plan = plan, bytes = bytes)
-    }
-
-    fun save(
-        generated: DesktopPcSheetGeneratedPdf,
-        requestedTarget: File,
-    ): File {
-        val target = ensurePdfExtension(requestedTarget)
-        val absolute = target.toPath().toAbsolutePath()
-        val parent = requireNotNull(absolute.parent) { "El destino PDF no tiene directorio padre." }
-        Files.createDirectories(parent)
-
-        val temporary = Files.createTempFile(parent, ".dnd-custom-aid-", ".pdf.tmp")
-        try {
-            Files.write(temporary, generated.bytes)
-            try {
-                Files.move(
-                    temporary,
-                    absolute,
-                    StandardCopyOption.REPLACE_EXISTING,
-                    StandardCopyOption.ATOMIC_MOVE,
-                )
-            } catch (_: AtomicMoveNotSupportedException) {
-                Files.move(temporary, absolute, StandardCopyOption.REPLACE_EXISTING)
-            }
-        } finally {
-            Files.deleteIfExists(temporary)
-        }
-        return absolute.toFile()
     }
 
     /** Atomically save ONLY the clearly stamped V11 internal PDF proof. */
@@ -174,19 +92,7 @@ internal class DesktopPcSheetExportService(
             .replace(Regex("""[\\/:*?"<>|]+"""), "_")
             .replace(Regex("""\s+"""), " ")
             .ifBlank { "Personaje" }
-        return "$name - Hoja de PJ - PREQA V11 $variant.pdf"
-    }
-
-    fun createShareFile(
-        generated: DesktopPcSheetGeneratedPdf,
-        characterName: String,
-        directory: File = defaultShareDirectory(),
-    ): File {
-        Files.createDirectories(directory.toPath())
-        val target = File(directory, suggestedFileName(characterName, generated.plan.request.visualFamily))
-        val saved = save(generated, target)
-        saved.deleteOnExit()
-        return saved
+        return "$name - Hoja de PJ V11 $variant.pdf"
     }
 
     fun copyFileToClipboard(file: File) {
@@ -195,18 +101,6 @@ internal class DesktopPcSheetExportService(
             FileListTransferable(listOf(file)),
             null,
         )
-    }
-
-    fun suggestedFileName(
-        characterName: String,
-        family: PcSheetVisualFamily,
-    ): String {
-        val safeName = characterName
-            .trim()
-            .replace(Regex("""[\\/:*?"<>|]+"""), "_")
-            .replace(Regex("""\s+"""), " ")
-            .ifBlank { "Personaje" }
-        return "$safeName - Hoja de PJ - ${familyFileLabel(family)}.pdf"
     }
 
     private fun ensurePdfExtension(file: File): File =
@@ -218,13 +112,6 @@ internal class DesktopPcSheetExportService(
 
     private fun defaultShareDirectory(): File =
         File(System.getProperty("java.io.tmpdir"), "dnd-custom-aid/share")
-
-    private fun familyFileLabel(family: PcSheetVisualFamily): String = when (family) {
-        PcSheetVisualFamily.CLASSIC_DND_STYLE -> "Fantasy Sheet"
-        PcSheetVisualFamily.CUSTOM_V1 -> "Custom v1"
-        PcSheetVisualFamily.CUSTOM_V2_PER_ATTRIBUTE -> "Custom v2 - Atributo"
-        PcSheetVisualFamily.CUSTOM_V2_PER_ABILITY -> "Custom v2 - Habilidad"
-    }
 
     private class FileListTransferable(
         private val files: List<File>,

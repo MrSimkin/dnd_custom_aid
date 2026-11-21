@@ -17,10 +17,14 @@ settings = read("androidApp/src/main/kotlin/io/github/mrsimkin/dndcustomaid/andr
 manifest = read("androidApp/src/main/AndroidManifest.xml")
 paths = read("androidApp/src/main/res/xml/pc_sheet_file_paths.xml")
 
-require(service, "PcSheetPdfExportPlanner.plan", "shared export planner invocation")
-require(service, "AndroidPcSheetRendererBridge", "generated Android renderer bridge invocation")
+# F1 refactor (owner 2026-11-14): V11 is the only sheet; the four old families were removed.
+require(service, "PcSheetV11SemanticMapper.map", "shared V11 contract invocation")
+require(service, "AndroidPcSheetV11PdfProofRenderer().render", "V11 renderer invocation")
 require(service, "FileProvider.getUriForFile", "private Android share URI")
-require(service, 'File(appContext.cacheDir, "pc-sheet-pdf/$purpose")', "cache-only share staging")
+require(service, 'File(appContext.cacheDir, "pc-sheet-pdf/" + purpose)', "cache-only share staging")
+for legacy in ("AndroidPcSheetRendererBridge", "AndroidClassicRenderer", "PcSheetVisualFamily"):
+    if legacy in service:
+        raise SystemExit(f"Android PC sheet PDF delivery guard FAIL: removed legacy family is back: {legacy}")
 
 require(editor, 'ActivityResultContracts.CreateDocument("application/pdf")', "native PDF Save document flow")
 require(editor, "Intent.ACTION_SEND", "native Android Share flow")

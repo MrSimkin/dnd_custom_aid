@@ -1,12 +1,23 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "dnd-custom-aid-api",
-  "main": "src/index.ts",
-  "compatibility_date": "2026-08-30",
-  "secrets": {
-    "required": [
-      "DATABASE_URL",
-      "DESCOPE_PROJECT_ID"
-    ]
-  }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "dnd-custom-aid-api",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-08-30",
+	// Base para DM, package 8: Workers AI for rules answers. On the Workers Free plan it has a daily
+	// free allocation and no overage billing; without it the route answers 503 and the App searches offline.
+	"ai": {
+		"binding": "AI"
+	},
+	"secrets": {
+		"required": [
+			"DATABASE_URL",
+			"DESCOPE_PROJECT_ID"
+		]
+	},
+	"kv_namespaces": [
+		{
+			"binding": "MEDIA",
+			"id": "3a1023324c2e4a13b070a97a5995edc3"
+		}
+	]
 }

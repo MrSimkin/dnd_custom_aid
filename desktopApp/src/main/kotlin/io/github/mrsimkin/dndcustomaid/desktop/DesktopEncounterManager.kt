@@ -12,13 +12,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +31,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.mrsimkin.dndcustomaid.shared.campaign.Campaign
 import io.github.mrsimkin.dndcustomaid.shared.campaign.CampaignRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterRepository
+import io.github.mrsimkin.dndcustomaid.shared.character.CharacterSheet
+import io.github.mrsimkin.dndcustomaid.shared.content.CreatureContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterContent
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.content.EncounterParticipant
@@ -38,6 +42,9 @@ import io.github.mrsimkin.dndcustomaid.shared.content.EncounterPayload
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentFamily
 import io.github.mrsimkin.dndcustomaid.shared.content.ReusableContentRepository
 import io.github.mrsimkin.dndcustomaid.shared.db.AppDatabase
+import io.github.mrsimkin.dndcustomaid.shared.dm.EncounterDifficulty
+import io.github.mrsimkin.dndcustomaid.shared.dm.EncounterDifficultyLevel
+import io.github.mrsimkin.dndcustomaid.shared.dm.EncounterDifficultyVerdict
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignMembershipStatus
 import io.github.mrsimkin.dndcustomaid.shared.spine.CampaignRole
 import io.github.mrsimkin.dndcustomaid.shared.spine.ContentScope
@@ -98,6 +105,22 @@ class DesktopEncounterManagerController(
     private val spine = IntegratedSpineRepository(database)
     private val reusableContent = ReusableContentRepository(database)
     private val encounters = EncounterContentRepository(database, reusableContent)
+    private val creatures = CreatureContentRepository(database, reusableContent)
+    private val characters = CharacterRepository(database)
+
+    /** Owner's G (2026-11-20): the levels at the table, to weigh an encounter against them. */
+    fun partyLevels(campaignId: Uuid?): List<Int> =
+        campaignId?.let { characters.listCharacters(it).map(CharacterSheet::totalLevel) }.orEmpty()
+
+    /** Every creature's challenge rating, read once for the whole list. */
+    fun challengeRatings(campaignId: Uuid?, ownerAccountId: Uuid?): Map<Uuid, String> {
+        val items = campaignId?.let { reusableContent.listCampaign(it, ReusableContentFamily.CREATURE) }.orEmpty() +
+            ownerAccountId?.let { reusableContent.listPersonal(it, ReusableContentFamily.CREATURE) }.orEmpty()
+        return items.mapNotNull { item ->
+            runCatching { creatures.creature(item.identity.id) }.getOrNull()
+                ?.let { it.item.identity.id to it.payload.challengeRating }
+        }.toMap()
+    }
 
     fun personalOwnerAccountId(): Uuid? {
         val activeCampaignId = campaignRepository.activeCampaign()?.id
@@ -168,6 +191,17 @@ class DesktopEncounterManagerController(
             nowEpochSeconds = nowEpochSeconds(),
         )
 
+    /**
+     * Owner, 2026-11-18: what is prepared can be deleted. It leaves a tombstone, so it also goes
+     * from the tablet when syncing, and waits in «Papelera» in case it was a mistake.
+     */
+    fun delete(current: EncounterContent): RevisionDecision =
+        encounters.tombstone(
+            id = current.item.identity.id,
+            expectedRevision = current.item.identity.revision,
+            deletedAtEpochSeconds = nowEpochSeconds(),
+        )
+
     fun update(
         id: Uuid,
         expectedRevision: Revision,
@@ -194,12 +228,14 @@ internal fun DesktopEncounterManagerScreen(
     controller: DesktopEncounterManagerController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
+    /** Opens on this object, when the search sent the DM here. */
+    initialSelectedId: Uuid? = null,
 ) {
     var refreshVersion by remember { mutableStateOf(0) }
     var query by remember { mutableStateOf("") }
     var tagFilter by remember { mutableStateOf("") }
     var newName by remember { mutableStateOf("") }
-    var selectedId by remember { mutableStateOf<Uuid?>(null) }
+    var selectedId by remember(initialSelectedId) { mutableStateOf(initialSelectedId) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
 
     val ownerAccountId = remember(refreshVersion, activeCampaign?.id) {
@@ -226,6 +262,12 @@ internal fun DesktopEncounterManagerScreen(
         refreshVersion += 1
     }
 
+    // Owner's G: what this party can take, and what each creature is worth.
+    val partyLevels = remember(refreshVersion, activeCampaign?.id) { controller.partyLevels(activeCampaign?.id) }
+    val challengeRatings = remember(refreshVersion, activeCampaign?.id, ownerAccountId) {
+        controller.challengeRatings(activeCampaign?.id, ownerAccountId)
+    }
+
     val visibleEncounters = filterDesktopEncounters(
         encounters = personalEncounters + campaignEncounters,
         filters = DesktopEncounterFilters(query = query, tag = tagFilter),
@@ -235,15 +277,6 @@ internal fun DesktopEncounterManagerScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de Encuentros", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
-            Text(
-                "Prepara encuentros reutilizables sin convertirlos en combate en vivo. " +
-                    "Las anulaciones pertenecen al encuentro y no modifican las criaturas o PNJ de origen.",
-                style = MaterialTheme.typography.body1,
-            )
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -277,19 +310,6 @@ internal fun DesktopEncounterManagerScreen(
                 modifier = Modifier.weight(1f),
             )
             Button(
-                enabled = newName.isNotBlank() && ownerAccountId != null,
-                onClick = {
-                    runCatching { controller.createPersonal(requireNotNull(ownerAccountId), newName) }
-                        .onSuccess { created ->
-                            newName = ""
-                            statusMessage = "Encuentro Personal creado."
-                            onQaEvent("Encounter Manager: encuentro Personal creado ${created.item.identity.id}")
-                            refresh(created.item.identity.id)
-                        }
-                        .onFailure { statusMessage = it.message ?: "No se pudo crear el encuentro Personal." }
-                },
-            ) { Text("Crear Personal") }
-            Button(
                 enabled = newName.isNotBlank() && activeCampaign != null,
                 onClick = {
                     runCatching { controller.createCampaign(requireNotNull(activeCampaign).id, newName) }
@@ -301,25 +321,21 @@ internal fun DesktopEncounterManagerScreen(
                         }
                         .onFailure { statusMessage = it.message ?: "No se pudo crear el encuentro de campaña." }
                 },
-            ) { Text("Crear en campaña") }
+            ) { Text("＋ Crear") }
         }
 
-        if (ownerAccountId == null) {
-            Text(
-                "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
-                    "Los encuentros de campaña siguen disponibles.",
-                style = MaterialTheme.typography.caption,
-            )
-        }
-        statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
+        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
-        Divider()
+        HorizontalDivider()
 
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             EncounterList(
+                    searching = query.isNotBlank(),
+                partyLevels = partyLevels,
+                challengeRatings = challengeRatings,
                 encounters = visibleEncounters,
                 selectedId = selectedId,
                 onSelect = {
@@ -328,17 +344,25 @@ internal fun DesktopEncounterManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            VerticalDivider()
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona un encuentro para abrirlo.", style = MaterialTheme.typography.h6)
-                    Text("Personal: ${personalEncounters.size} • Campaña activa: ${campaignEncounters.size}")
+                    Text("Selecciona un encuentro para abrirlo.", style = MaterialTheme.typography.titleLarge)
+                    Text("${campaignEncounters.size} en esta campaña.")
                 }
             } else {
                 EncounterEditor(
+                    partyLevels = partyLevels,
+                    challengeRatings = challengeRatings,
+                    onDelete = {
+                        controller.delete(selected)
+                        statusMessage = "«" + selected.item.displayName + "» quedó en la papelera."
+                        onQaEvent("Encounter Manager: borrado " + selected.item.identity.id)
+                        refresh(null)
+                    },
                     content = selected,
                     draft = requireNotNull(draft),
                     participantSources = participantSources,
@@ -356,7 +380,7 @@ internal fun DesktopEncounterManagerScreen(
                         }.onSuccess { decision ->
                             when (decision) {
                                 is RevisionDecision.Accepted -> {
-                                    statusMessage = "Cambios guardados (revisión ${decision.nextRevision.value})."
+                                    statusMessage = "Cambios guardados."
                                     onQaEvent("Encounter Manager: encuentro actualizado ${selected.item.identity.id}")
                                     refresh(selected.item.identity.id)
                                 }
@@ -378,7 +402,7 @@ internal fun DesktopEncounterManagerScreen(
                         } else {
                             runCatching { controller.copyPersonalToCampaign(selected.item.identity.id, campaign.id) }
                                 .onSuccess { copied ->
-                                    statusMessage = "Copia independiente creada en ${campaign.name}; las dependencias Personal se copiaron y reconectaron."
+                                    statusMessage = "Traído a ${campaign.name} junto con sus criaturas y PNJ."
                                     onQaEvent("Encounter Manager: encuentro copiado a campaña ${copied.item.identity.id}")
                                     refresh(copied.item.identity.id)
                                 }
@@ -394,32 +418,41 @@ internal fun DesktopEncounterManagerScreen(
 
 @Composable
 private fun EncounterList(
+    partyLevels: List<Int>,
+    challengeRatings: Map<Uuid, String>,
     encounters: List<EncounterContent>,
+    searching: Boolean,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
-            Text("Encuentros (${encounters.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("Encuentros (${encounters.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (encounters.isEmpty()) {
-            item { Text("No hay encuentros que coincidan con el filtro.", style = MaterialTheme.typography.caption) }
+            item { EmptyList(searching = searching, nothingYet = "Aún no hay encuentros preparados.", howToCreate = "Escribe un nombre en «Nuevo encuentro» y toca «＋ Crear»; en el combate también puedes armarlos con «Elegir o armar encuentro».") }
         }
         items(encounters, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onSelect(content.item.identity.id) },
-                elevation = if (selected) 6.dp else 1.dp,
+                elevation = androidx.compose.material3.CardDefaults.cardElevation(if (selected) 6.dp else 1.dp),
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
                     Text(
-                        "${encounterScopeLabel(content.item.identity.scope)} • ${content.payload.participants.size} participantes/grupos",
-                        style = MaterialTheme.typography.caption,
+                        listOf(encounterScopeLabel(content.item.identity.scope), "${content.payload.participants.size} participantes o grupos").filter { it.isNotBlank() }.joinToString(" • "),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    DesktopDifficultyLine(
+                        EncounterDifficulty.of(
+                            partyLevels = partyLevels,
+                            creatures = EncounterDifficulty.challengeRatings(content.payload.participants) { id -> challengeRatings[id] },
+                        ),
                     )
                     if (content.payload.environment.isNotBlank()) {
-                        Text(content.payload.environment, style = MaterialTheme.typography.caption)
+                        Text(content.payload.environment, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -427,15 +460,36 @@ private fun EncounterList(
     }
 }
 
+/**
+ * Owner's G: «Difícil para 4 PJ · 1800 PX ajustados», with the verdict's own colour. The App says
+ * what it counted; the DM decides.
+ */
+@Composable
+internal fun DesktopDifficultyLine(verdict: EncounterDifficultyVerdict) {
+    Text(
+        verdict.spanishSummary(),
+        style = MaterialTheme.typography.bodySmall,
+        color = when {
+            verdict.unknown || verdict.partySize == 0 -> MaterialTheme.colorScheme.onSurfaceVariant
+            verdict.level == EncounterDifficultyLevel.DEADLY -> MaterialTheme.colorScheme.error
+            verdict.level == EncounterDifficultyLevel.HARD -> MaterialTheme.colorScheme.primary
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
+        },
+    )
+}
+
 @Composable
 private fun EncounterEditor(
     content: EncounterContent,
+    partyLevels: List<Int>,
+    challengeRatings: Map<Uuid, String>,
     draft: EncounterDraft,
     participantSources: List<DesktopEncounterParticipantSource>,
     activeCampaign: Campaign?,
     onDraftChange: (EncounterDraft) -> Unit,
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier,
 ) {
     val sourceLabels = participantSources.associate { it.id to it.displayName }
@@ -449,21 +503,12 @@ private fun EncounterEditor(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Editor de Encuentro", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
-                    Text(
-                        "${encounterScopeLabel(content.item.identity.scope)} • revisión ${content.item.identity.revision.value}",
-                        style = MaterialTheme.typography.caption,
-                    )
-                    content.item.identity.provenance?.let { provenance ->
-                        Text(
-                            "Copia de ${provenance.sourceObjectId.toString().take(8)}… • independiente desde la copia",
-                            style = MaterialTheme.typography.caption,
-                        )
-                    }
+                    Text("Editor de Encuentro", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 }
                 if (content.item.identity.scope is ContentScope.Personal && activeCampaign != null) {
-                    Button(onClick = onCopyToCampaign) { Text("Copiar a campaña") }
+                    Button(onClick = onCopyToCampaign) { Text("Traer a esta campaña") }
                 }
+                DeleteContentButton(name = draft.displayName, what = "este encuentro", onDelete = onDelete)
                 Button(
                     onClick = onSave,
                     enabled = draft.displayName.isNotBlank() && validParticipants,
@@ -480,11 +525,19 @@ private fun EncounterEditor(
         item { EncounterField("Notas", draft.notes, false, 4) { onDraftChange(draft.copy(notes = it)) } }
 
         item {
-            Divider()
-            Text("Participantes / grupos", style = MaterialTheme.typography.h6, fontWeight = FontWeight.Bold)
+            HorizontalDivider()
+            Text("Participantes / grupos", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            DesktopDifficultyLine(
+                EncounterDifficulty.of(
+                    partyLevels = partyLevels,
+                    creatures = draft.participants.flatMap { participant ->
+                        List(participant.quantity.coerceAtLeast(1)) { participant.sourceContentId?.let { challengeRatings[it] }.orEmpty() }
+                    },
+                ),
+            )
             Text(
                 "Añade grupos libres o referencias a criaturas/PNJ del mismo ámbito. Las anulaciones siguientes sólo pertenecen a este encuentro.",
-                style = MaterialTheme.typography.caption,
+                style = MaterialTheme.typography.bodySmall,
             )
             Button(
                 onClick = {
@@ -499,7 +552,7 @@ private fun EncounterEditor(
 
         if (participantSources.isNotEmpty()) {
             item {
-                Text("Añadir desde biblioteca", style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
+                Text("Añadir desde biblioteca", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             }
             items(participantSources, key = { "source-${it.id}" }) { source ->
                 TextButton(
@@ -551,7 +604,7 @@ private fun EncounterParticipantEditor(
     onChange: (EncounterParticipantDraft) -> Unit,
     onRemove: () -> Unit,
 ) {
-    Card(modifier = Modifier.fillMaxWidth(), elevation = 1.dp) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = androidx.compose.material3.CardDefaults.cardElevation(1.dp)) {
         Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -597,7 +650,7 @@ private fun EncounterParticipantEditor(
                 Button(onClick = { onChange(participant.copy(quantity = participant.quantity + 1)) }) { Text("+") }
             }
 
-            Text("Preparación", style = MaterialTheme.typography.subtitle2, fontWeight = FontWeight.Bold)
+            Text("Preparación", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 EncounterParticipantReadiness.entries.forEach { readiness ->
                     if (participant.readiness == readiness) {
@@ -710,8 +763,8 @@ private fun encounterScopeSortKey(content: EncounterContent): Int = when (conten
 }
 
 private fun encounterScopeLabel(scope: ContentScope): String = when (scope) {
-    is ContentScope.Personal -> "Personal"
-    is ContentScope.Campaign -> "Campaña"
+    is ContentScope.Personal -> "De tu biblioteca anterior"
+    is ContentScope.Campaign -> ""
     is ContentScope.Official -> "Oficial / SRD"
     ContentScope.System -> "Sistema"
 }

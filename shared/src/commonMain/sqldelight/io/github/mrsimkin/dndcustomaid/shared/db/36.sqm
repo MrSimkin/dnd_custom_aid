@@ -1,0 +1,5 @@
+-- QA 0.7.0-preqa.2 (H1, H3-H5): «Enviar a los jugadores» was kept only in memory and lost on save;
+-- handouts also get a folder and tags so the DM can order them and tell what each one is.
+ALTER TABLE handout_payload ADD COLUMN shared_with_players INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE handout_payload ADD COLUMN folder TEXT NOT NULL DEFAULT '';
+ALTER TABLE handout_payload ADD COLUMN tags_json TEXT NOT NULL DEFAULT '[]';

@@ -11,13 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,7 +73,7 @@ fun DesktopManagersScreen(
                 }
             }
         }
-        Divider()
+        HorizontalDivider()
         when (section) {
             DesktopManagerSection.CREATURES -> CreatureManagerScreen(
                 controller = creatureController,
@@ -145,6 +146,17 @@ class DesktopNpcManagerController(
             nowEpochSeconds = nowEpochSeconds(),
         )
 
+    /**
+     * Owner, 2026-11-18: what is prepared can be deleted. It leaves a tombstone, so it also goes
+     * from the tablet when syncing, and waits in «Papelera» in case it was a mistake.
+     */
+    fun delete(current: NpcContent): RevisionDecision =
+        npcs.tombstone(
+            id = current.item.identity.id,
+            expectedRevision = current.item.identity.revision,
+            deletedAtEpochSeconds = nowEpochSeconds(),
+        )
+
     fun update(
         id: Uuid,
         expectedRevision: Revision,
@@ -167,15 +179,17 @@ class DesktopNpcManagerController(
 }
 
 @Composable
-private fun NpcManagerScreen(
+internal fun NpcManagerScreen(
     controller: DesktopNpcManagerController,
     activeCampaign: Campaign?,
     onQaEvent: (String) -> Unit,
+    /** Opens on this object, when the search sent the DM here. */
+    initialSelectedId: Uuid? = null,
 ) {
     var refreshVersion by remember { mutableStateOf(0) }
     var query by remember { mutableStateOf("") }
     var newName by remember { mutableStateOf("") }
-    var selectedId by remember { mutableStateOf<Uuid?>(null) }
+    var selectedId by remember(initialSelectedId) { mutableStateOf(initialSelectedId) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
 
     val ownerAccountId = remember(refreshVersion, activeCampaign?.id) {
@@ -190,6 +204,9 @@ private fun NpcManagerScreen(
     val selected = remember(refreshVersion, selectedId) {
         selectedId?.let(controller::npc)
     }
+    // Owner point 10: the card first, the complete preparation only when asked for.
+    var openBlock by remember(selected?.item?.identity?.id) { mutableStateOf<String?>(null) }
+    var showAll by remember(selected?.item?.identity?.id) { mutableStateOf(false) }
     var draft by remember(selected?.item?.identity?.id, selected?.item?.identity?.revision?.value) {
         mutableStateOf(selected?.let(NpcDraft::from))
     }
@@ -219,14 +236,6 @@ private fun NpcManagerScreen(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Gestor de PNJ", style = MaterialTheme.typography.h4, fontWeight = FontWeight.Bold)
-            Text(
-                "PNJ rápidos, desarrollados y con mecánicas de combate opcionales. Un PNJ incompleto sigue siendo válido.",
-                style = MaterialTheme.typography.body1,
-            )
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -247,19 +256,6 @@ private fun NpcManagerScreen(
                 modifier = Modifier.weight(1f),
             )
             Button(
-                enabled = newName.isNotBlank() && ownerAccountId != null,
-                onClick = {
-                    runCatching { controller.createPersonal(requireNotNull(ownerAccountId), newName) }
-                        .onSuccess { created ->
-                            newName = ""
-                            statusMessage = "PNJ Personal creado."
-                            onQaEvent("NPC Manager: PNJ Personal creado ${created.item.identity.id}")
-                            refresh(created.item.identity.id)
-                        }
-                        .onFailure { statusMessage = it.message ?: "No se pudo crear el PNJ Personal." }
-                },
-            ) { Text("Crear Personal") }
-            Button(
                 enabled = newName.isNotBlank() && activeCampaign != null,
                 onClick = {
                     runCatching { controller.createCampaign(requireNotNull(activeCampaign).id, newName) }
@@ -271,25 +267,19 @@ private fun NpcManagerScreen(
                         }
                         .onFailure { statusMessage = it.message ?: "No se pudo crear el PNJ de campaña." }
                 },
-            ) { Text("Crear en campaña") }
+            ) { Text("＋ Crear") }
         }
 
-        if (ownerAccountId == null) {
-            Text(
-                "Biblioteca Personal no disponible: Desktop no puede identificar de forma unívoca una cuenta DM local. " +
-                    "El contenido de campaña local sigue disponible.",
-                style = MaterialTheme.typography.caption,
-            )
-        }
-        statusMessage?.let { Text(it, style = MaterialTheme.typography.caption) }
+        statusMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
 
-        Divider()
+        HorizontalDivider()
 
         Row(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             NpcList(
+                    searching = query.isNotBlank(),
                 npcs = visibleNpcs,
                 selectedId = selectedId,
                 onSelect = {
@@ -298,17 +288,24 @@ private fun NpcManagerScreen(
                 },
                 modifier = Modifier.width(330.dp).fillMaxHeight(),
             )
-            Divider(modifier = Modifier.fillMaxHeight().width(1.dp))
+            VerticalDivider()
             if (selected == null || draft == null) {
                 Column(
                     modifier = Modifier.weight(1f).padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Selecciona un PNJ para abrirlo.", style = MaterialTheme.typography.h6)
-                    Text("Personal: ${personalNpcs.size} • Campaña activa: ${campaignNpcs.size}")
+                    Text("Selecciona un PNJ para abrirlo.", style = MaterialTheme.typography.titleLarge)
+                    Text("${campaignNpcs.size} en esta campaña.")
                 }
             } else {
                 NpcEditor(
+                    onMessage = { statusMessage = it },
+                    onDelete = {
+                        controller.delete(selected)
+                        statusMessage = "«" + selected.item.displayName + "» quedó en la papelera."
+                        onQaEvent("Npc Manager: borrado " + selected.item.identity.id)
+                        refresh(null)
+                    },
                     content = selected,
                     draft = requireNotNull(draft),
                     activeCampaign = activeCampaign,
@@ -324,7 +321,7 @@ private fun NpcManagerScreen(
                                     payload = payload,
                                 )) {
                                     is RevisionDecision.Accepted -> {
-                                        statusMessage = "Cambios guardados (revisión ${decision.nextRevision.value})."
+                                        statusMessage = "Cambios guardados."
                                         onQaEvent("NPC Manager: PNJ actualizado ${selected.item.identity.id}")
                                         refresh(selected.item.identity.id)
                                     }
@@ -355,6 +352,10 @@ private fun NpcManagerScreen(
                         }
                     },
                     modifier = Modifier.weight(1f).fillMaxHeight(),
+                    openBlock = openBlock,
+                    onOpenBlock = { openBlock = it },
+                    showAll = showAll,
+                    onShowAll = { showAll = it },
                 )
             }
         }
@@ -364,31 +365,32 @@ private fun NpcManagerScreen(
 @Composable
 private fun NpcList(
     npcs: List<NpcContent>,
+    searching: Boolean,
     selectedId: Uuid?,
     onSelect: (Uuid) -> Unit,
     modifier: Modifier,
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item {
-            Text("PNJ (${npcs.size})", style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+            Text("PNJ (${npcs.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
         if (npcs.isEmpty()) {
-            item { Text("No hay PNJ que coincidan con el filtro.", style = MaterialTheme.typography.caption) }
+            item { EmptyList(searching = searching, nothingYet = "Aún no hay PNJ en esta campaña.", howToCreate = "Escribe un nombre en «Nuevo PNJ» y toca «＋ Crear».") }
         }
         items(npcs, key = { it.item.identity.id.toString() }) { content ->
             val selected = content.item.identity.id == selectedId
             Card(
                 modifier = Modifier.fillMaxWidth().clickable { onSelect(content.item.identity.id) },
-                elevation = if (selected) 6.dp else 1.dp,
+                elevation = androidx.compose.material3.CardDefaults.cardElevation(if (selected) 6.dp else 1.dp),
             ) {
                 Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(content.item.displayName, fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal)
-                    Text(npcScopeLabel(content), style = MaterialTheme.typography.caption)
+                    npcScopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                     val stage = if (content.payload.hasDevelopedDetails()) "Desarrollado" else "Rápido"
                     val combat = if (content.payload.combatMechanics != null) " • combate" else ""
-                    Text("$stage$combat", style = MaterialTheme.typography.caption)
+                    Text("$stage$combat", style = MaterialTheme.typography.bodySmall)
                     if (content.payload.conceptRole.isNotBlank()) {
-                        Text(content.payload.conceptRole, style = MaterialTheme.typography.caption)
+                        Text(content.payload.conceptRole, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -404,7 +406,13 @@ private fun NpcEditor(
     onDraftChange: (NpcDraft) -> Unit,
     onSave: () -> Unit,
     onCopyToCampaign: () -> Unit,
+    onDelete: () -> Unit,
+    onMessage: (String) -> Unit,
     modifier: Modifier,
+    openBlock: String?,
+    onOpenBlock: (String?) -> Unit,
+    showAll: Boolean,
+    onShowAll: (Boolean) -> Unit,
 ) {
     LazyColumn(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
@@ -414,22 +422,106 @@ private fun NpcEditor(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Editor de PNJ", style = MaterialTheme.typography.h5, fontWeight = FontWeight.Bold)
-                    Text(npcScopeLabel(content), style = MaterialTheme.typography.caption)
-                    content.item.identity.provenance?.let { provenance ->
-                        Text(
-                            "Proveniencia: ${npcScopeLabel(provenance.sourceScope)} • ${provenance.sourceObjectId.toString().take(8)}…",
-                            style = MaterialTheme.typography.caption,
-                        )
-                    }
-                    Text("Revisión ${content.item.identity.revision.value}", style = MaterialTheme.typography.caption)
+                    Text("Editor de PNJ", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    npcScopeLabel(content).takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                 }
+                TableCardPdfButton(card = npcTableCard(content, ""), onMessage = onMessage)
+                DeleteContentButton(name = draft.displayName, what = "este PNJ", onDelete = onDelete)
                 Button(onClick = onSave) { Text("Guardar") }
                 if (content.item.identity.scope is ContentScope.Personal) {
                     Button(onClick = onCopyToCampaign, enabled = activeCampaign != null) { Text("Usar en campaña") }
                 }
             }
         }
+
+        // Owner points 6 and 10: the PNJ opens as the card you read at the table; «Editar» turns
+        // one block into its fields, and «Ver todo» opens the complete preparation below.
+        item {
+            SheetBlock(
+                title = "Quién es",
+                editing = openBlock == "quien",
+                onEdit = { onOpenBlock("quien") },
+                onDone = { onOpenBlock(null) },
+            ) {
+                if (openBlock == "quien") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        NpcEditorTextField("Nombre", draft.displayName) { onDraftChange(draft.copy(displayName = it)) }
+                        NpcEditorTextField("Concepto / rol", draft.conceptRole) { onDraftChange(draft.copy(conceptRole = it)) }
+                        NpcEditorTextField("Apariencia / primera impresión", draft.appearanceFirstImpression, lines = 3) { onDraftChange(draft.copy(appearanceFirstImpression = it)) }
+                        NpcEditorTextField("Personalidad / manera", draft.personalityManner, lines = 3) { onDraftChange(draft.copy(personalityManner = it)) }
+                    }
+                } else {
+                    Text(draft.displayName.ifBlank { "Sin nombre" }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    SheetLine("Concepto", draft.conceptRole)
+                    SheetLine("Primera impresión", draft.appearanceFirstImpression)
+                    SheetLine("Manera", draft.personalityManner)
+                    if (listOf(draft.conceptRole, draft.appearanceFirstImpression, draft.personalityManner).all { it.isBlank() }) {
+                        SheetEmpty("Todavía sin descripción. Toca «Editar» para escribirla.")
+                    }
+                }
+            }
+        }
+        item {
+            SheetBlock(
+                title = "Qué quiere en la mesa",
+                editing = openBlock == "quiere",
+                onEdit = { onOpenBlock("quiere") },
+                onDone = { onOpenBlock(null) },
+            ) {
+                if (openBlock == "quiere") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        NpcEditorTextField("Quiere / teme / necesita", draft.wantsFearsNeeds, lines = 3) { onDraftChange(draft.copy(wantsFearsNeeds = it)) }
+                        NpcEditorTextField("Qué puede ofrecer", draft.canOffer, lines = 3) { onDraftChange(draft.copy(canOffer = it)) }
+                        NpcEditorTextField("Límites / negativas", draft.limitsRefusals, lines = 3) { onDraftChange(draft.copy(limitsRefusals = it)) }
+                        NpcEditorTextField("Relación / contexto", draft.relationshipContext, lines = 3) { onDraftChange(draft.copy(relationshipContext = it)) }
+                    }
+                } else {
+                    SheetLine("Quiere, teme, necesita", draft.wantsFearsNeeds)
+                    SheetLine("Puede ofrecer", draft.canOffer)
+                    SheetLine("No hará", draft.limitsRefusals)
+                    SheetLine("Relación con el grupo", draft.relationshipContext)
+                    if (listOf(draft.wantsFearsNeeds, draft.canOffer, draft.limitsRefusals, draft.relationshipContext).all { it.isBlank() }) {
+                        SheetEmpty("Sin intenciones anotadas. Es lo que más sirve en la mesa.")
+                    }
+                }
+            }
+        }
+        item {
+            SheetBlock(
+                title = "Secretos y guía para ti",
+                editing = openBlock == "secretos",
+                onEdit = { onOpenBlock("secretos") },
+                onDone = { onOpenBlock(null) },
+            ) {
+                if (openBlock == "secretos") {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        NpcEditorTextField("Secretos", draft.secrets, lines = 4) { onDraftChange(draft.copy(secrets = it)) }
+                        NpcEditorTextField("Guía para el DM", draft.dmGuidance, lines = 4) { onDraftChange(draft.copy(dmGuidance = it)) }
+                        NpcEditorTextField("Notas", draft.notes, lines = 4) { onDraftChange(draft.copy(notes = it)) }
+                    }
+                } else {
+                    SheetLine("Secretos", draft.secrets)
+                    SheetLine("Guía", draft.dmGuidance)
+                    SheetLine("Notas", draft.notes)
+                    if (listOf(draft.secrets, draft.dmGuidance, draft.notes).all { it.isBlank() }) {
+                        SheetEmpty("Sin secretos ni notas.")
+                    }
+                }
+            }
+        }
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(onClick = { onShowAll(!showAll) }) {
+                    Text(if (showAll) "▾ Ocultar la preparación completa" else "▸ Ver todo (preparación completa)")
+                }
+                Text(
+                    if (showAll) "Todos los campos, como antes." else "Lo de arriba es lo que se ve en la mesa.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+
+        if (!showAll) return@LazyColumn
 
         item { NpcSectionTitle("PNJ rápido") }
         item { NpcEditorTextField("Nombre", draft.displayName) { onDraftChange(draft.copy(displayName = it)) } }
@@ -457,6 +549,7 @@ private fun NpcEditor(
         item { NpcEditorTextField("Lugares", draft.places, lines = 3) { onDraftChange(draft.copy(places = it)) } }
         item { NpcEditorTextField("Aventura / escena", draft.adventureSceneLinks, lines = 3) { onDraftChange(draft.copy(adventureSceneLinks = it)) } }
         item { NpcEditorTextField("Guía para el DM", draft.dmGuidance, lines = 4) { onDraftChange(draft.copy(dmGuidance = it)) } }
+        item { DesktopContentLinksSection(content.item) }
 
         item {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -526,7 +619,7 @@ private fun NpcEditor(
 
 @Composable
 private fun NpcSectionTitle(text: String) {
-    Text(text, style = MaterialTheme.typography.subtitle1, fontWeight = FontWeight.Bold)
+    Text(text, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 }
 
 @Composable
@@ -770,8 +863,8 @@ private fun npcScopeSortKey(content: NpcContent): Int = when (content.item.ident
 private fun npcScopeLabel(content: NpcContent): String = npcScopeLabel(content.item.identity.scope)
 
 private fun npcScopeLabel(scope: ContentScope): String = when (scope) {
-    is ContentScope.Personal -> "Personal"
-    is ContentScope.Campaign -> "Campaña"
+    is ContentScope.Personal -> "De tu biblioteca anterior"
+    is ContentScope.Campaign -> ""
     is ContentScope.Official -> "Oficial / SRD"
     ContentScope.System -> "Sistema"
 }

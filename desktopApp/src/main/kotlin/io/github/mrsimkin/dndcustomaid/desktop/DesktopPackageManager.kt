@@ -11,14 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.RadioButton
-import androidx.compose.material.Text
-import androidx.compose.material.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -108,10 +108,10 @@ internal fun DesktopPackageManagerScreen(
 
     Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         Column(modifier = Modifier.width(340.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Paquetes", style = MaterialTheme.typography.h5)
+            Text("Paquetes", style = MaterialTheme.typography.headlineSmall)
             Text(
                 "Piezas y ajustes que la Mesa de Combate aplica de un toque a una criatura o a su grupo. El bestiario no cambia.",
-                style = MaterialTheme.typography.caption,
+                style = MaterialTheme.typography.bodySmall,
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(selected = !personal, enabled = activeCampaign != null, onClick = { personal = false })
@@ -132,17 +132,17 @@ internal fun DesktopPackageManagerScreen(
                     null
                 }.getOrElse { it.message }
             }) { Text("Crear paquete") }
-            message?.let { Text(it, color = MaterialTheme.colors.error) }
-            Divider()
-            if (list.isEmpty()) Text("Todavía no hay paquetes aquí.", style = MaterialTheme.typography.body2)
+            message?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            HorizontalDivider()
+            if (list.isEmpty()) Text("Todavía no hay paquetes aquí.", style = MaterialTheme.typography.bodyMedium)
             list.forEach { pkg ->
                 Card(
                     modifier = Modifier.fillMaxWidth().clickable { selectedId = pkg.item.identity.id },
-                    elevation = if (pkg.item.identity.id == selectedId) 6.dp else 1.dp,
+                    elevation = androidx.compose.material3.CardDefaults.cardElevation(if (pkg.item.identity.id == selectedId) 6.dp else 1.dp),
                 ) {
                     Column(Modifier.padding(10.dp)) {
                         Text(pkg.item.displayName, fontWeight = FontWeight.Bold)
-                        Text(pkg.payload.summary.ifBlank { "${pkg.payload.pieces.size} pieza(s)" }, style = MaterialTheme.typography.caption)
+                        Text(pkg.payload.summary.ifBlank { "${pkg.payload.pieces.size} pieza(s)" }, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -179,12 +179,12 @@ private fun PackageEditor(controller: DesktopPackageManagerController, pkg: Pack
         OutlinedTextField(value = summary, onValueChange = { summary = it }, label = { Text("Resumen") }, modifier = Modifier.fillMaxWidth())
         Text("Piezas que suma", fontWeight = FontWeight.Bold)
         pieces.forEachIndexed { index, piece ->
-            Card(elevation = 1.dp, modifier = Modifier.fillMaxWidth()) {
+            Card(elevation = androidx.compose.material3.CardDefaults.cardElevation(1.dp), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         PackagePieceKind.entries.forEach { kind ->
                             RadioButton(selected = piece.kind == kind, onClick = { pieces = pieces.toMutableList().also { it[index] = piece.copy(kind = kind) } })
-                            Text(kind.spanishLabel(), style = MaterialTheme.typography.caption)
+                            Text(kind.spanishLabel(), style = MaterialTheme.typography.bodySmall)
                         }
                     }
                     OutlinedTextField(value = piece.name, onValueChange = { v -> pieces = pieces.toMutableList().also { it[index] = piece.copy(name = v) } }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth())
@@ -208,7 +208,7 @@ private fun PackageEditor(controller: DesktopPackageManagerController, pkg: Pack
             OutlinedTextField(value = damage, onValueChange = { damage = it }, label = { Text("Bono daño") }, modifier = Modifier.width(130.dp))
         }
         OutlinedTextField(value = notes, onValueChange = { notes = it }, label = { Text("Notas") }, modifier = Modifier.fillMaxWidth())
-        error?.let { Text(it, color = MaterialTheme.colors.error) }
+        error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(onClick = {
                 val numbers = listOf(hp, ac, attack, damage).map { it.trim().ifEmpty { "0" }.toIntOrNull() }

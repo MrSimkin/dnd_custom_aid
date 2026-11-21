@@ -165,6 +165,59 @@ class HostedApiClientTest {
     }
 
     @Test
+    fun aRulesQuestionTravelsWithItsSrdPassagesAndA503MeansNotAvailable() = runBlocking {
+        var sentBody = ""
+        var path = ""
+        val api = HostedApiClient(
+            baseUrl = "https://example.test",
+            accessTokens = tokenProvider("token"),
+            httpClient = hostedClient { request ->
+                path = request.url.encodedPath
+                sentBody = (request.body as TextContent).text
+                respondJson("""{"answer":"Media cobertura: +2 a la CA [1].","passageCount":1}""")
+            },
+        )
+        val answer = api.answerRules("¿Media cobertura?", listOf(HostedRulesPassage("5.2.1", 177, "Cobertura", "Media cobertura: +2 a la CA.")))
+        assertEquals("Media cobertura: +2 a la CA [1].", answer)
+        assertEquals("/v1/rules/answer", path)
+        assertTrue(sentBody.contains("\"version\":\"5.2.1\"") && sentBody.contains("\"page\":177"))
+        api.close()
+
+        val unavailable = HostedApiClient(
+            baseUrl = "https://example.test",
+            accessTokens = tokenProvider("token"),
+            httpClient = hostedClient { respondJson("""{"code":"TRANSIENT_FAILURE","message":"Rules answers are not available yet."}""", HttpStatusCode.ServiceUnavailable) },
+        )
+        val failure = assertFailsWith<HostedApiException> {
+            unavailable.answerRules("¿?", listOf(HostedRulesPassage("5.1", 1, text = "x")))
+        }
+        assertEquals(503, failure.statusCode)
+        unavailable.close()
+    }
+
+    @Test
+    fun aPlayerReceivesTheHandoutsTheDmSent() = runBlocking {
+        var path = ""
+        val api = HostedApiClient(
+            baseUrl = "https://example.test",
+            accessTokens = tokenProvider("token"),
+            httpClient = hostedClient { request ->
+                path = request.url.encodedPath
+                respondJson(
+                    """{"handouts":[{"id":"50000000-0000-4000-8000-000000000005","name":"Cartel de la Sierpe","caption":"Baños",""" +
+                        """"kind":"HANDOUT","sha256":"${"a".repeat(64)}","mediaType":"image/png","revision":2}]}""",
+                )
+            },
+        )
+        val campaignId = kotlin.uuid.Uuid.parse("20000000-0000-4000-8000-000000000901")
+        val handouts = api.sharedHandouts(campaignId)
+        assertEquals("/v1/campaigns/$campaignId/handouts", path)
+        assertEquals("Cartel de la Sierpe", handouts.single().name)
+        assertEquals("Baños", handouts.single().caption)
+        api.close()
+    }
+
+    @Test
     fun invalidBaseUrlIsRejectedAtConstruction() {
         assertFailsWith<IllegalArgumentException> {
             HostedApiClient(

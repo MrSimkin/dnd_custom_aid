@@ -56,15 +56,18 @@ for label in ('"V"', '"S"', '"M"', '"Concentración"', '"Ritual"'):
     if label not in spell:
         errors.append(f'spell editor lost expected checkbox label {label}')
 
-equipment = (ROOT / 'CharacterEquipmentClosureV4.kt').read_text(encoding='utf-8')
+# Refactor F3 split the equipment editor out of CharacterEquipmentClosureV4.kt; both are read together.
+equipment = '\n'.join((ROOT / name).read_text(encoding='utf-8') for name in ('CharacterEquipmentClosureV4.kt', 'CharacterEquipmentEditorV4.kt'))
 if equipment.count('CharacterResponsiveCheckboxGroupV4') < 2:
     errors.append('equipment editor no longer proves responsive checkbox grouping in both editor presentations')
 for label in ('"Equipado"', '"Equipo especial"', '"Sintonizado"'):
     if label not in equipment:
         errors.append(f'equipment editor lost expected checkbox label {label}')
 
+# Refactor F3 moved the management dialogs (rest preview) to CharacterManagementDialogsV4.kt.
+SPLIT = {'CharacterManagementSuccessorV4.kt': ('CharacterManagementDialogsV4.kt',)}
 for filename in ('CharacterManagementSuccessorV4.kt', 'CharacterManagementTabV4.kt'):
-    management = (ROOT / filename).read_text(encoding='utf-8')
+    management = '\n'.join((ROOT / name).read_text(encoding='utf-8') for name in (filename,) + SPLIT.get(filename, ()))
     if 'CharacterCompactCheckboxV4(' not in management:
         errors.append(f'{filename} rest preview is not using the shared icon-only checkbox primitive')
 

@@ -221,7 +221,7 @@ private fun CharacterProficiencyEditorDialogV4(
             )
         },
         saveEnabled = name.trim().isNotEmpty(),
-        supportingText = "Registro libre: la app conserva la información sin imponer reglas de clase, especie o dote.",
+        supportingText = "Registro libre: la app conserva la información sin imponer reglas de clase, raza o dote.",
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(appSpacingV4(4.dp))) {
             Text("Tipo", style = MaterialTheme.typography.labelSmall)

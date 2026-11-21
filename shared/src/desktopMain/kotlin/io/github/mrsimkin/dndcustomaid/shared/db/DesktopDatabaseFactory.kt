@@ -77,9 +77,29 @@ class DesktopDatabaseFactory(
             "pc_sync_baseline",
         )
 
-        fun defaultDatabaseFile(): File = File(
-            File(System.getProperty("user.home"), APP_DIRECTORY),
-            DATABASE_NAME,
-        )
+        /** Java property that points a test run at its own data folder (AGENTS §6.4, refactor F5). */
+        const val DATA_DIR_PROPERTY = "dndcustomaid.dataDir"
+
+        /** Environment variable with the same purpose, for the packaged App (no JVM options there). */
+        const val DATA_DIR_ENV = "DND_CUSTOM_AID_DATA_DIR"
+
+        /**
+         * The folder with the database, the images, the remembered account and the preferences.
+         * Normally `~/.dnd_custom_aid`; a test run sets [DATA_DIR_PROPERTY] or [DATA_DIR_ENV] so it
+         * never touches the owner's real data.
+         */
+        fun defaultDataDirectory(
+            property: String? = System.getProperty(DATA_DIR_PROPERTY),
+            environment: String? = System.getenv(DATA_DIR_ENV),
+            home: String = System.getProperty("user.home"),
+        ): File = (property?.takeIf { it.isNotBlank() } ?: environment?.takeIf { it.isNotBlank() })
+            ?.let { File(it).absoluteFile }
+            ?: File(home, APP_DIRECTORY)
+
+        /** True when this run uses a test folder instead of the normal one. */
+        fun usesTestDataDirectory(): Boolean =
+            !System.getProperty(DATA_DIR_PROPERTY).isNullOrBlank() || !System.getenv(DATA_DIR_ENV).isNullOrBlank()
+
+        fun defaultDatabaseFile(): File = File(defaultDataDirectory(), DATABASE_NAME)
     }
 }
