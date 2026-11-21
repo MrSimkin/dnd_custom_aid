@@ -8,9 +8,9 @@ El propietario decidió el 20-11-2026 que **la conversación sobre el diseño vi
 
 | Pieza | Identidad | SHA-256 |
 | --- | --- | --- |
-| APK | `dnd-custom-aid-0.7.0-preqa.6-build-70600.apk` (versionName `0.7.0-preqa.6`, versionCode 70600) | `PENDIENTE` |
-| Windows | `dnd-custom-aid-windows-0.7.5-preqa.6.zip` (packageVersion 0.7.5) | `PENDIENTE` |
-| Fuente | rama `feature/dm-ux-redesign`, commit `PENDIENTE` | — |
+| APK | `dnd-custom-aid-0.7.0-preqa.6-build-70600.apk` (versionName `0.7.0-preqa.6`, versionCode 70600) | `d8168b43b6736525cce100dd561efad3389a9d2ae7617315fb8ee9395dd21892` |
+| Windows | `dnd-custom-aid-windows-0.7.5-preqa.6.zip` (packageVersion 0.7.5) | `bc95d9ed2a85637a50d430a6ba4ab9516297429dc86ad0bd071eb91ce860fcd8` |
+| Fuente | rama `feature/dm-ux-redesign`, commit `15c58b6e` | — |
 | Worker | `dnd-custom-aid-api` · **sin desplegar todavía** (ver «Lo que falta de tu lado») | — |
 
 - Carpeta local: `D:\DnD_Aid\APKs\QA 0.7.0-preqa.6`.
@@ -89,7 +89,7 @@ No compartas tokens ni cadenas de conexión: para avisar que quedó listo basta 
 
 ## Ventana de QA
 
-La ventana de QA de esta candidata está en su propio artefacto, con el formato acordado:
+Ventana: artefacto **«QA Base DM preqa.6»** — https://claude.ai/artifact/PohRV42o66yqTuQPbwvDjq — 30 pruebas, con el formato acordado:
 
 - marcas **Bien · Bien, pero no lo esperado · En parte · Falla · No aplica**;
 - «Comentario» y «Mis comentarios adicionales» en cada prueba;
