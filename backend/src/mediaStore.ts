@@ -18,6 +18,15 @@ export interface MediaKv {
   get(key: string, type: "arrayBuffer"): Promise<ArrayBuffer | null>;
   getWithMetadata<M>(key: string, type: "arrayBuffer"): Promise<{ value: ArrayBuffer | null; metadata: M | null }>;
   put(key: string, value: ArrayBuffer, options?: { metadata?: unknown }): Promise<void>;
+  /** Owner's K (2026-11-20): only the move from KV to the bucket walks the keys. */
+  list?(options?: { prefix?: string; limit?: number; cursor?: string }): Promise<MediaKvListing>;
+}
+
+/** The part of a KV listing the move needs. */
+export interface MediaKvListing {
+  keys: Array<{ name: string }>;
+  list_complete: boolean;
+  cursor?: string;
 }
 
 export interface MediaAuthorization {
@@ -103,6 +112,44 @@ export class BucketMediaStore implements MediaBytesStore {
   }
 }
 
+/**
+ * Owner's K (2026-11-20): while the images move from Workers KV to object storage, both are open
+ * at once. Everything new is written to [primary]; a read that [primary] does not have is served
+ * from [fallback] and copied across on the way out, so an image moves the first time anyone looks
+ * at it and nothing has to be moved before the bucket can be used.
+ */
+export class FallbackMediaStore implements MediaBytesStore {
+  private readonly primary: MediaBytesStore;
+  private readonly fallback: MediaBytesStore;
+
+  constructor(primary: MediaBytesStore, fallback: MediaBytesStore) {
+    this.primary = primary;
+    this.fallback = fallback;
+  }
+
+  put(sha256: string, mediaType: string, bytes: ArrayBuffer): Promise<boolean> {
+    return this.primary.put(sha256, mediaType, bytes);
+  }
+
+  async get(sha256: string): Promise<StoredMedia | null> {
+    const first = await this.primary.get(sha256);
+    if (first != null) {
+      return first;
+    }
+    const old = await this.fallback.get(sha256);
+    if (old == null) {
+      return null;
+    }
+    // Copying must never cost the reader the image: if the write fails, serve it anyway.
+    try {
+      await this.primary.put(sha256, old.mediaType, old.bytes);
+    } catch {
+      // The next read tries again.
+    }
+    return old;
+  }
+}
+
 export class MediaStore implements MediaBytesStore {
   private readonly kv: MediaKv;
 
@@ -132,6 +179,69 @@ export class MediaStore implements MediaBytesStore {
       mediaType: mediaType != null && MEDIA_TYPES.has(mediaType) ? mediaType : "application/octet-stream",
     };
   }
+}
+
+/** What one pass of the move from KV to the bucket did. */
+export interface MediaMigrationReport {
+  examined: number;
+  moved: number;
+  alreadyThere: number;
+  missing: number;
+  /** Where the next pass starts, or null when there is nothing left. */
+  cursor: string | null;
+  done: boolean;
+}
+
+export const MEDIA_MIGRATION_MAX = 100;
+
+/**
+ * Owner's K: one bounded pass of the move. It reads a page of KV keys, copies into the bucket the
+ * ones that are not there yet, and hands back where to continue, so the whole move is a few calls
+ * instead of one request that would time out. It never deletes from KV: the old copy stays until
+ * the owner says the move is finished.
+ */
+export async function migrateMediaToBucket(
+  kv: MediaKv,
+  bucket: MediaBucket,
+  options: { limit?: number; cursor?: string | null } = {},
+): Promise<MediaMigrationReport> {
+  if (kv.list == null) {
+    throw new Error("This KV binding cannot list its keys.");
+  }
+  const limit = Math.min(Math.max(options.limit ?? 25, 1), MEDIA_MIGRATION_MAX);
+  const listing = await kv.list({ prefix: "media/", limit, cursor: options.cursor ?? undefined });
+  const from = new MediaStore(kv);
+  const to = new BucketMediaStore(bucket);
+  let moved = 0;
+  let alreadyThere = 0;
+  let missing = 0;
+
+  for (const key of listing.keys) {
+    const sha256 = key.name.slice("media/".length);
+    if (!SHA256_PATTERN.test(sha256)) {
+      missing += 1;
+      continue;
+    }
+    const stored = await from.get(sha256);
+    if (stored == null) {
+      missing += 1;
+      continue;
+    }
+    if (await to.put(sha256, stored.mediaType, stored.bytes)) {
+      moved += 1;
+    } else {
+      alreadyThere += 1;
+    }
+  }
+
+  return {
+    examined: listing.keys.length,
+    moved,
+    alreadyThere,
+    missing,
+    cursor: listing.list_complete ? null : (listing.cursor ?? null),
+    done: listing.list_complete,
+  };
 }
 
 export async function sha256Hex(bytes: ArrayBuffer): Promise<string> {

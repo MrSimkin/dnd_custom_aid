@@ -18,6 +18,8 @@ import {
   MEDIA_TYPES,
   type MediaAuthorization,
   type MediaBytesStore,
+  type MediaMigrationReport,
+  MEDIA_MIGRATION_MAX,
   sha256Hex,
 } from "./mediaStore.ts";
 import type { ApiErrorBody, ApiErrorCode, Uuid } from "./contracts/spine.ts";
@@ -52,6 +54,11 @@ export interface ApiDependencies {
   /** Absent until the owner binds storage for the images; media routes then answer 503. */
   media?: MediaBytesStore;
   mediaAuthorization?: MediaAuthorization;
+  /**
+   * Owner's K (2026-11-20): one bounded pass of the move from Workers KV to the bucket. Absent
+   * unless both are bound, because there is nothing to move otherwise.
+   */
+  mediaMigration?: (options: { limit?: number; cursor?: string | null }) => Promise<MediaMigrationReport>;
   /** Absent until the invitation table exists; the invitation routes then answer 503. */
   invitations?: InvitationStore;
   /** Absent until the owner binds Workers AI (package 8); the rules route then answers 503. */
@@ -95,6 +102,7 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
         path === "/v1/me" ||
         path === "/v1/me/content" ||
         path === "/v1/content:batch" ||
+        path === "/v1/media:migrate" ||
         path === "/v1/campaigns" ||
         path === "/v1/campaign-memberships" ||
         path === "/v1/rules/answer";
@@ -175,6 +183,26 @@ export function createApiHandler(dependencies: ApiDependencies): ApiHandler {
           throw new ApiProblem(404, "NOT_FOUND", "Campaign not found.");
         }
         return jsonResponse({ handouts });
+      }
+
+      if (path === "/v1/media:migrate") {
+        // Owner's K: the DM asks for one page of the move and is told where to continue.
+        requireMethod(request, "POST");
+        const authorization = dependencies.mediaAuthorization;
+        const migrate = dependencies.mediaMigration;
+        if (authorization == null || migrate == null) {
+          throw new ApiProblem(503, "TRANSIENT_FAILURE", "There is nothing to move: object storage or KV is not bound.");
+        }
+        if (!(await authorization.isActiveDm(user.id))) {
+          throw new ApiProblem(403, "FORBIDDEN", "Only an active DM may move the images.");
+        }
+        const limitText = url.searchParams.get("limit");
+        const limit = limitText == null ? undefined : Number(limitText);
+        if (limit != null && (!Number.isInteger(limit) || limit < 1 || limit > MEDIA_MIGRATION_MAX)) {
+          throw new ApiProblem(400, "VALIDATION_FAILED", `limit must be between 1 and ${MEDIA_MIGRATION_MAX}.`, { field: "limit" });
+        }
+        const report = await migrate({ limit, cursor: url.searchParams.get("cursor") });
+        return jsonResponse(report);
       }
 
       if (mediaMatch != null) {

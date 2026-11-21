@@ -44,6 +44,15 @@ npx wrangler deploy
 
 **Detente y avísame si:** el panel pide activar un plan de pago, la creación del bucket pide una tarjeta, o el despliegue dice que el *binding* no existe.
 
+## El traslado de lo que ya está en KV (hecho el 20-11-2026, punto «K»)
+
+Había un problema en lo anterior: si conectabas el *bucket*, el Worker dejaba de mirar KV, así que **las imágenes viejas habrían dejado de verse**. Eso ya está corregido, y el traslado tiene dos caminos que no se estorban:
+
+1. **Solo: cada imagen se muda cuando alguien la mira.** Con los dos conectados, lo nuevo se guarda en R2 y lo que todavía está en KV se sirve igual y, de paso, se copia a R2. No hay que hacer nada y no hay un día en que algo se deje de ver. Si la copia falla, la imagen se entrega igual y se reintenta la próxima vez.
+2. **De una vez: una pasada por tandas.** `POST /v1/media:migrate?limit=25` copia una tanda y te dice dónde seguir (`cursor`). Repites con `?cursor=...` hasta que responda `"done": true`. Solo un DM activo puede pedirlo.
+
+**Nada se borra de KV.** La copia vieja se queda hasta que tú digas que el traslado terminó; leerla no cuesta nada y así no hay forma de perder una imagen a mitad de camino.
+
 ## Después, cuando quieras
 
-Las imágenes viejas pueden quedarse en KV para siempre (se leen gratis) o copiarse a R2 en una pasada; eso lo preparo cuando el bucket exista y me digas.
+Cuando el *bucket* exista y me digas, te paso las llamadas exactas de la pasada completa para tu set. Borrar lo viejo de KV es una decisión tuya y la dejo para el final.

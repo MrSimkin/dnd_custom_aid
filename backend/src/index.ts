@@ -5,7 +5,9 @@ import { NeonDmContentStore } from "./dmContentStore.ts";
 import { NeonInvitationStore } from "./invitationStore.ts";
 import {
   BucketMediaStore,
+  FallbackMediaStore,
   MediaStore,
+  migrateMediaToBucket,
   NeonMediaAuthorization,
   type MediaBucket,
   type MediaKv,
@@ -64,6 +66,10 @@ export default {
         invitations: new NeonInvitationStore(databaseUrl),
         media: mediaStore(env),
         mediaAuthorization: mediaStore(env) == null ? undefined : new NeonMediaAuthorization(databaseUrl),
+        mediaMigration:
+          env.MEDIA_BUCKET == null || env.MEDIA == null
+            ? undefined
+            : (options) => migrateMediaToBucket(env.MEDIA!, env.MEDIA_BUCKET!, options),
         rules: env.AI == null ? undefined : new RulesAnswerer(env.AI, env.AI_MODEL?.trim() || undefined),
       });
     }
@@ -72,10 +78,17 @@ export default {
   },
 } satisfies ExportedHandler<AppEnv>;
 
-/** Object storage when the owner bound it, otherwise the KV namespace, otherwise no images. */
+/**
+ * Object storage when the owner bound it, otherwise the KV namespace, otherwise no images.
+ *
+ * Owner's K (2026-11-20): while both are bound, what is written goes to the bucket and what is
+ * only in KV is still served — and copied across as it is read — so binding the bucket never
+ * hides an image that already existed.
+ */
 function mediaStore(env: AppEnv) {
   if (env.MEDIA_BUCKET != null) {
-    return new BucketMediaStore(env.MEDIA_BUCKET);
+    const bucket = new BucketMediaStore(env.MEDIA_BUCKET);
+    return env.MEDIA == null ? bucket : new FallbackMediaStore(bucket, new MediaStore(env.MEDIA));
   }
   return env.MEDIA == null ? undefined : new MediaStore(env.MEDIA);
 }
