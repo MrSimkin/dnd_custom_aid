@@ -40,6 +40,9 @@ data class EncounterDifficultyVerdict(
 ) {
     /** One line for the DM: «Difícil para 4 PJ (1.800 PX ajustados)». */
     fun spanishSummary(): String = when {
+        // Tablet walk of 0.7.0-preqa.6: an encounter with nothing in it read «Trivial», which
+        // sounds like a verdict. Nothing to fight is not an easy fight.
+        creatureCount == 0 -> "Sin criaturas todavía: no hay nada que medir."
         unknown -> "Sin VD en las criaturas: no se puede calcular la dificultad."
         partySize == 0 -> "Todavía no hay PJ en la campaña para comparar."
         else -> "${level.spanish} para $partySize PJ · ${adjustedExperience} PX ajustados"

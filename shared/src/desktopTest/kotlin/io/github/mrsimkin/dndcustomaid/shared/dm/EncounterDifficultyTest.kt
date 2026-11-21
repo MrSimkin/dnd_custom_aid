@@ -60,6 +60,10 @@ class EncounterDifficultyTest {
         assertTrue(noRatings.unknown)
         assertEquals("Sin VD en las criaturas: no se puede calcular la dificultad.", noRatings.spanishSummary())
 
+        // Tablet walk of 0.7.0-preqa.6: an empty encounter said «Trivial», as if it were a verdict.
+        val nothing = EncounterDifficulty.of(party, emptyList())
+        assertEquals("Sin criaturas todavía: no hay nada que medir.", nothing.spanishSummary())
+
         val noParty = EncounterDifficulty.of(emptyList(), listOf("5"))
         assertEquals(0, noParty.partySize)
         assertEquals("Todavía no hay PJ en la campaña para comparar.", noParty.spanishSummary())
